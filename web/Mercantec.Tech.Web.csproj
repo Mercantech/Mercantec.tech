@@ -17,4 +17,10 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <!-- Undgå at Development-API-URL (localhost:8080) ender i Docker/prod-image -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Content Remove="wwwroot\appsettings.Development.json" />
+    <None Include="wwwroot\appsettings.Development.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
 </Project>

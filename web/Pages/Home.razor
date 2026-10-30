@@ -9,6 +9,7 @@
 @if (_error is not null)
 {
     <p class="text-danger">API: @_error</p>
+    <p class="text-muted small">Base: @Http.BaseAddress</p>
 }
 else if (_health is null)
 {

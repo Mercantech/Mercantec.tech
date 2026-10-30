@@ -9,7 +9,7 @@ self.addEventListener('fetch', event => event.respondWith(onFetch(event)));
 const cacheNamePrefix = 'offline-cache-';
 const cacheName = `${cacheNamePrefix}${self.assetsManifest.version}`;
 const offlineAssetsInclude = [ /\.dll$/, /\.pdb$/, /\.wasm/, /\.html/, /\.js$/, /\.json$/, /\.css$/, /\.woff$/, /\.png$/, /\.jpe?g$/, /\.gif$/, /\.ico$/, /\.blat$/, /\.dat$/, /\.webmanifest$/ ];
-const offlineAssetsExclude = [ /^service-worker\.js$/ ];
+const offlineAssetsExclude = [ /^service-worker\.js$/, /^appsettings\.Development\.json$/ ];
 
 // Replace with your base path if you are hosting on a subfolder. Ensure there is a trailing '/'.
 const base = "/";
@@ -19,7 +19,6 @@ const manifestUrlList = self.assetsManifest.assets.map(asset => new URL(asset.ur
 async function onInstall(event) {
     console.info('Service worker: Install');
 
-    // Fetch and cache all matching items from the assets manifest
     const assetsRequests = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
@@ -30,7 +29,6 @@ async function onInstall(event) {
 async function onActivate(event) {
     console.info('Service worker: Activate');
 
-    // Delete unused caches
     const cacheKeys = await caches.keys();
     await Promise.all(cacheKeys
         .filter(key => key.startsWith(cacheNamePrefix) && key !== cacheName)
@@ -38,13 +36,17 @@ async function onActivate(event) {
 }
 
 async function onFetch(event) {
+    const url = new URL(event.request.url);
+
+    // Never cache or intercept API calls — always hit the network (nginx → api).
+    if (url.pathname.startsWith('/api/')) {
+        return fetch(event.request);
+    }
+
     let cachedResponse = null;
     if (event.request.method === 'GET') {
-        // For all navigation requests, try to serve index.html from cache,
-        // unless that request is for an offline resource.
-        // If you need some URLs to be server-rendered, edit the following check to exclude those URLs
         const shouldServeIndexHtml = event.request.mode === 'navigate'
-            && !manifestUrlList.some(url => url === event.request.url);
+            && !manifestUrlList.some(u => u === event.request.url);
 
         const request = shouldServeIndexHtml ? 'index.html' : event.request;
         const cache = await caches.open(cacheName);
