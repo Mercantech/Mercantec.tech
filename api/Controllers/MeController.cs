@@ -16,7 +16,16 @@ public class MeController : ControllerBase
         var name = User.FindFirstValue("name");
         var email = User.FindFirstValue("email");
         var loginMethod = User.FindFirstValue("login_method");
-        var roles = User.FindAll("role").Select(c => c.Value).Distinct().OrderBy(r => r).ToArray();
+        var roles = User.Claims
+            .Where(c =>
+                c.Type is "role" or "roles"
+                || c.Type.Equals(ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
+                || c.Type.EndsWith("/role", StringComparison.OrdinalIgnoreCase))
+            .Select(c => c.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r)
+            .ToArray();
 
         var teacherRoleNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

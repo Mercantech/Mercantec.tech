@@ -197,15 +197,18 @@ public sealed class AuthService(
         IsAuthenticated = true;
         try
         {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            // Undgå DefaultInboundClaimTypeMap ("role" → lang ClaimTypes.Role-URI)
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler
+            {
+                MapInboundClaims = false
+            };
             var jwt = handler.ReadJwtToken(accessToken);
-            Subject = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-            Email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
-            LoginMethod = jwt.Claims.FirstOrDefault(c => c.Type == "login_method")?.Value;
-            DisplayName = jwt.Claims.FirstOrDefault(c => c.Type == "name")?.Value
-                ?? Email
-                ?? Subject;
-            Roles = jwt.Claims.Where(c => c.Type == "role").Select(c => c.Value).Distinct().ToArray();
+
+            Subject = FirstClaim(jwt, "sub");
+            Email = FirstClaim(jwt, "email");
+            LoginMethod = FirstClaim(jwt, "login_method");
+            DisplayName = FirstClaim(jwt, "name") ?? Email ?? Subject;
+            Roles = ReadRoles(jwt);
         }
         catch
         {
@@ -216,6 +219,47 @@ public sealed class AuthService(
             Roles = [];
         }
     }
+
+    private static string? FirstClaim(System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt, string type) =>
+        jwt.Claims.FirstOrDefault(c => c.Type == type)?.Value
+        ?? jwt.Payload.Claims.FirstOrDefault(c => c.Type == type)?.Value;
+
+    private static string[] ReadRoles(System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt)
+    {
+        // Gentagne "role"-claims og evt. array i payload
+        var fromClaims = jwt.Claims
+            .Where(IsRoleClaim)
+            .Select(c => c.Value)
+            .ToList();
+
+        if (jwt.Payload.TryGetValue("role", out var roleValue))
+            fromClaims.AddRange(FlattenPayloadRoles(roleValue));
+
+        if (jwt.Payload.TryGetValue("roles", out var rolesValue))
+            fromClaims.AddRange(FlattenPayloadRoles(rolesValue));
+
+        return fromClaims
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r)
+            .ToArray();
+    }
+
+    private static bool IsRoleClaim(System.Security.Claims.Claim c) =>
+        c.Type is "role" or "roles"
+        || c.Type.Equals(System.Security.Claims.ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
+        || c.Type.EndsWith("/role", StringComparison.OrdinalIgnoreCase);
+
+    private static IEnumerable<string> FlattenPayloadRoles(object? value) => value switch
+    {
+        string s => [s],
+        System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } el => [el.GetString()!],
+        System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.Array } arr =>
+            arr.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x.Length > 0),
+        System.Collections.IEnumerable list when value is not string =>
+            list.Cast<object?>().Select(o => o?.ToString() ?? "").Where(x => x.Length > 0),
+        _ => []
+    };
 
     private void ClearLocalState()
     {

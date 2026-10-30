@@ -16,6 +16,7 @@ else
         <p class="role-badge">Underviser</p>
         <h1>Underviser-dashboard</h1>
         <p class="text-muted">Velkommen@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName}"). Her lander hold, quest planner og vurdering.</p>
+        <p class="small mb-0">Auth-roller: @RoleSummary()</p>
     </div>
 
     <div class="border rounded p-4 bg-light">
@@ -53,6 +54,9 @@ else
         EnsureAccess();
         StateHasChanged();
     });
+
+    private string RoleSummary() =>
+        Auth.Roles.Count == 0 ? "(ingen)" : string.Join(", ", Auth.Roles);
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 }

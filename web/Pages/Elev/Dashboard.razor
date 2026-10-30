@@ -16,6 +16,7 @@ else
         <p class="role-badge">Elev</p>
         <h1>Elev-dashboard</h1>
         <p class="text-muted">Velkommen@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName}"). Her lander dine forløb, quests og projekter.</p>
+        <p class="small mb-0">Auth-roller: @RoleSummary()</p>
     </div>
 
     <div class="border rounded p-4 bg-light">
@@ -53,6 +54,9 @@ else
         EnsureAccess();
         StateHasChanged();
     });
+
+    private string RoleSummary() =>
+        Auth.Roles.Count == 0 ? "(ingen — typisk almindelig bruger)" : string.Join(", ", Auth.Roles);
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 }
