@@ -1,0 +1,62 @@
+@page "/underviser"
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Underviser</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    <div class="role-shell underviser-shell mb-4">
+        <p class="role-badge">Underviser</p>
+        <h1>Underviser-dashboard</h1>
+        <p class="text-muted">Velkommen@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName}"). Her lander hold, quest planner og vurdering.</p>
+        <p class="small mb-0">Auth-roller: @RoleSummary()</p>
+    </div>
+
+    <div class="border rounded p-4 bg-light">
+        <h2 class="h5">Tom shell (Sprint 0)</h2>
+        <p class="mb-0">Indhold kommer i senere sprints (forløb/hold, quests, dashboard …).</p>
+    </div>
+
+    <p class="mt-3"><a href="/profil">Se mine brugeroplysninger</a></p>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        EnsureAccess();
+    }
+
+    private void EnsureAccess()
+    {
+        if (!Auth.IsInitialized)
+            return;
+
+        if (!Auth.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (Redirect.CurrentAppRole() != AppRole.Underviser)
+            Nav.NavigateTo(Redirect.PostLoginPath());
+    }
+
+    private void OnAuth() => InvokeAsync(() =>
+    {
+        EnsureAccess();
+        StateHasChanged();
+    });
+
+    private string RoleSummary() =>
+        Auth.Roles.Count == 0 ? "(ingen)" : string.Join(", ", Auth.Roles);
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

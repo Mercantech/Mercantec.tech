@@ -9,6 +9,9 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOptions.SectionName));
+builder.Services.Configure<RoleOptions>(builder.Configuration.GetSection(RoleOptions.SectionName));
+builder.Services.AddScoped<RoleResolver>();
+builder.Services.AddScoped<AuthRedirect>();
 
 var apiBase = builder.Configuration["ApiBaseUrl"]?.Trim() ?? "/api/";
 Uri apiBaseUri;

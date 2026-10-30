@@ -1,0 +1,132 @@
+@page "/profil"
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Brugeroplysninger</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du er ikke logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <h1>Brugeroplysninger</h1>
+    <p class="text-muted">Hvem er logget ind, roller og app-rolle (elev/underviser).</p>
+
+    <dl class="row">
+        <dt class="col-sm-3">Navn</dt>
+        <dd class="col-sm-9">@(Auth.DisplayName ?? "—")</dd>
+
+        <dt class="col-sm-3">E-mail</dt>
+        <dd class="col-sm-9">@(Auth.Email ?? "—")</dd>
+
+        <dt class="col-sm-3">Subject (sub)</dt>
+        <dd class="col-sm-9"><code>@(Auth.Subject ?? "—")</code></dd>
+
+        <dt class="col-sm-3">Login-metode</dt>
+        <dd class="col-sm-9">@(Auth.LoginMethod ?? "—")</dd>
+
+        <dt class="col-sm-3">Auth-roller</dt>
+        <dd class="col-sm-9">
+            @if (Auth.Roles.Count == 0)
+            {
+                <span class="text-muted">Ingen role-claims</span>
+            }
+            else
+            {
+                <ul class="mb-0">
+                    @foreach (var role in Auth.Roles)
+                    {
+                        <li><code>@role</code></li>
+                    }
+                </ul>
+            }
+        </dd>
+
+        <dt class="col-sm-3">App-rolle</dt>
+        <dd class="col-sm-9">
+            <strong>@Redirect.CurrentAppRole()</strong>
+            — shell: <a href="@Redirect.PostLoginPath()">@Redirect.PostLoginPath()</a>
+        </dd>
+    </dl>
+
+    <h2 class="h5 mt-4">Fra API (<code>/api/me</code>)</h2>
+    @if (_meError is not null)
+    {
+        <p class="text-danger">@_meError</p>
+    }
+    else if (_meJson is null)
+    {
+        <p>Henter…</p>
+    }
+    else
+    {
+        <pre class="bg-light border rounded p-3 small">@_meJson</pre>
+    }
+
+    <div class="mt-3 d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary" href="@Redirect.PostLoginPath()">Gå til mit dashboard</a>
+        <button class="btn btn-outline-secondary" @onclick="Logout">Log ud</button>
+    </div>
+}
+
+@code {
+    private string? _meJson;
+    private string? _meError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        await EnsureAndLoadAsync();
+    }
+
+    private async Task EnsureAndLoadAsync()
+    {
+        if (!Auth.IsInitialized)
+            return;
+
+        if (!Auth.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        await LoadMeAsync();
+    }
+
+    private async Task LoadMeAsync()
+    {
+        try
+        {
+            var doc = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("me");
+            _meJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            _meError = null;
+        }
+        catch (Exception ex)
+        {
+            _meError = ex.Message;
+            _meJson = null;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await Auth.LogoutLocalAsync();
+        Nav.NavigateTo("/login");
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        await EnsureAndLoadAsync();
+        StateHasChanged();
+    });
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

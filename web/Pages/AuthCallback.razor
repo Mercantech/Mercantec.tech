@@ -1,5 +1,6 @@
 @page "/auth/callback"
 @inject AuthService Auth
+@inject AuthRedirect Redirect
 @inject NavigationManager Nav
 
 <PageTitle>Logger ind…</PageTitle>
@@ -27,7 +28,7 @@ else
 
         var ok = await Auth.CompleteLoginAsync(code, state, error);
         if (ok)
-            Nav.NavigateTo("/");
+            Nav.NavigateTo(Redirect.PostLoginPath());
         else
             _error = error ?? "Kunne ikke fuldføre login (state/code).";
     }

@@ -15,10 +15,13 @@ public sealed class AuthService(
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private static readonly HttpClient TokenHttp = new();
 
+    public bool IsInitialized { get; private set; }
     public bool IsAuthenticated { get; private set; }
     public string? AccessToken { get; private set; }
     public string? DisplayName { get; private set; }
     public string? Subject { get; private set; }
+    public string? Email { get; private set; }
+    public string? LoginMethod { get; private set; }
     public IReadOnlyList<string> Roles { get; private set; } = [];
 
     public event Action? AuthStateChanged;
@@ -29,6 +32,8 @@ public sealed class AuthService(
         if (string.IsNullOrEmpty(access))
         {
             ClearLocalState();
+            IsInitialized = true;
+            Notify();
             return;
         }
 
@@ -40,12 +45,16 @@ public sealed class AuthService(
                 if (!ok)
                 {
                     await LogoutLocalAsync();
+                    IsInitialized = true;
+                    Notify();
                     return;
                 }
             }
             else
             {
                 await LogoutLocalAsync();
+                IsInitialized = true;
+                Notify();
                 return;
             }
         }
@@ -54,6 +63,7 @@ public sealed class AuthService(
             ApplyAccessToken(access);
         }
 
+        IsInitialized = true;
         Notify();
     }
 
@@ -136,6 +146,7 @@ public sealed class AuthService(
     {
         await tokens.ClearTokensAsync();
         ClearLocalState();
+        IsInitialized = true;
         Notify();
     }
 
@@ -186,21 +197,69 @@ public sealed class AuthService(
         IsAuthenticated = true;
         try
         {
-            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            // Undgå DefaultInboundClaimTypeMap ("role" → lang ClaimTypes.Role-URI)
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler
+            {
+                MapInboundClaims = false
+            };
             var jwt = handler.ReadJwtToken(accessToken);
-            Subject = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-            DisplayName = jwt.Claims.FirstOrDefault(c => c.Type == "name")?.Value
-                ?? jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value
-                ?? Subject;
-            Roles = jwt.Claims.Where(c => c.Type == "role").Select(c => c.Value).Distinct().ToArray();
+
+            Subject = FirstClaim(jwt, "sub");
+            Email = FirstClaim(jwt, "email");
+            LoginMethod = FirstClaim(jwt, "login_method");
+            DisplayName = FirstClaim(jwt, "name") ?? Email ?? Subject;
+            Roles = ReadRoles(jwt);
         }
         catch
         {
             DisplayName = null;
             Subject = null;
+            Email = null;
+            LoginMethod = null;
             Roles = [];
         }
     }
+
+    private static string? FirstClaim(System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt, string type) =>
+        jwt.Claims.FirstOrDefault(c => c.Type == type)?.Value
+        ?? jwt.Payload.Claims.FirstOrDefault(c => c.Type == type)?.Value;
+
+    private static string[] ReadRoles(System.IdentityModel.Tokens.Jwt.JwtSecurityToken jwt)
+    {
+        // Gentagne "role"-claims og evt. array i payload
+        var fromClaims = jwt.Claims
+            .Where(IsRoleClaim)
+            .Select(c => c.Value)
+            .ToList();
+
+        if (jwt.Payload.TryGetValue("role", out var roleValue))
+            fromClaims.AddRange(FlattenPayloadRoles(roleValue));
+
+        if (jwt.Payload.TryGetValue("roles", out var rolesValue))
+            fromClaims.AddRange(FlattenPayloadRoles(rolesValue));
+
+        return fromClaims
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r)
+            .ToArray();
+    }
+
+    private static bool IsRoleClaim(System.Security.Claims.Claim c) =>
+        c.Type is "role" or "roles"
+        || c.Type.Equals(System.Security.Claims.ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
+        || c.Type.EndsWith("/role", StringComparison.OrdinalIgnoreCase);
+
+    private static IEnumerable<string> FlattenPayloadRoles(object? value) => value switch
+    {
+        string s => [s],
+        System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } el => [el.GetString()!],
+        System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.Array } arr =>
+            arr.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x.Length > 0),
+        System.Collections.IEnumerable list when value is not string =>
+            list.Cast<object?>().Select(o => o?.ToString() ?? "").Where(x => x.Length > 0),
+        _ => []
+    };
 
     private void ClearLocalState()
     {
@@ -208,6 +267,8 @@ public sealed class AuthService(
         IsAuthenticated = false;
         DisplayName = null;
         Subject = null;
+        Email = null;
+        LoginMethod = null;
         Roles = [];
     }
 

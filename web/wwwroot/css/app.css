@@ -113,3 +113,25 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+.role-shell {
+    border-left: 4px solid #1b6ec2;
+    padding-left: 1rem;
+}
+
+.role-shell.elev-shell {
+    border-left-color: #0d9488;
+}
+
+.role-shell.underviser-shell {
+    border-left-color: #c2410c;
+}
+
+.role-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    color: #64748b;
+}
