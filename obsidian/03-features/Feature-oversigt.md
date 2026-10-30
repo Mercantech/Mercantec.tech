@@ -8,7 +8,7 @@ tags:
 
 # Feature-oversigt
 
-Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]. Issues/sprints kommer senere via [[GitHub-Issues-og-Projects]].
+Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]. Aktive sprints/issues: [[Sprints]] · [[GitHub-Issues-og-Projects]].
 
 ## Status-legende
 

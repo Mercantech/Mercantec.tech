@@ -11,6 +11,35 @@
             "id": "9d227a11061cae49",
             "type": "leaf",
             "state": {
+              "type": "canvas",
+              "state": {
+                "file": "obsidian/06-badges/Unavngivet.canvas",
+                "viewState": {
+                  "x": 0,
+                  "y": 0,
+                  "zoom": 0
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Unavngivet"
+            }
+          },
+          {
+            "id": "5f1058d4b86d8c71",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "obsidian/06-badges/Drawing 2026-10-30 11.40.13.excalidraw.md"
+              },
+              "icon": "excalidraw-icon",
+              "title": "Drawing 2026-10-30 11.40.13.excalidraw"
+            }
+          },
+          {
+            "id": "1c97f97847d1a50c",
+            "type": "leaf",
+            "state": {
               "type": "markdown",
               "state": {
                 "file": "obsidian/06-badges/Badge-oversigt.md",
@@ -21,7 +50,8 @@
               "title": "Badge-oversigt"
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -185,11 +215,20 @@
       "daily-notes:Åbn dagens note": false,
       "templates:Indsæt skabelon": false,
       "command-palette:Åbn kommandopalet": false,
-      "bases:Opret ny base": false
+      "bases:Opret ny base": false,
+      "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "9d227a11061cae49",
+  "active": "1c97f97847d1a50c",
   "lastOpenFiles": [
+    "obsidian/06-badges/katalog/Fancy-Friday.md",
+    "obsidian/06-badges/katalog/Hawaii-skjorte.md",
+    "obsidian/06-badges/Drawing 2026-10-30 11.40.13.excalidraw.md",
+    "obsidian/06-badges/Unavngivet.canvas",
+    "obsidian/06-badges/Badge-oversigt.md",
+    "obsidian/03-features/Sprints.md",
+    "obsidian/06-badges/katalog/_emne-skabelon-rækker.md",
+    "obsidian/06-badges/Emne-badges.md",
     "obsidian/06-badges/katalog/_index.md",
     "obsidian/06-badges/design/README.md",
     "obsidian/03-features/Levels-XP-Badges.md",
@@ -198,7 +237,6 @@
     "obsidian/06-badges/katalog",
     "obsidian/06-badges/design",
     "obsidian/06-badges/Sammenhæng.md",
-    "obsidian/06-badges/Badge-oversigt.md",
     "obsidian/06-badges",
     "obsidian/03-features/Hold-dashboard.md",
     "obsidian/03-features/Aktivitet-og-elevprofil.md",
@@ -213,12 +251,6 @@
     "obsidian/03-features/Hold-og-Lectio.md",
     "obsidian/03-features/Onboarding-modal.md",
     "obsidian/03-features/Underviser-og-elev-views.md",
-    "obsidian/01-kontekst/Domæne-model.md",
-    "obsidian/02-ai-workflows/GitHub-Issues-og-Projects.md",
-    "README.md",
-    "obsidian/05-team",
-    "obsidian/99-templates/Workflow.md",
-    "obsidian/99-templates/Prompt.md",
-    "obsidian/99-templates/Feature-plan.md"
+    "obsidian/05-team"
   ]
 }

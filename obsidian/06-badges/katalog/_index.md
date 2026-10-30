@@ -11,7 +11,8 @@ tags:
 
 ## Badges
 
-- *(ingen endnu)*
+- [[Hawaii-skjorte]]
+- [[Fancy-Friday]]
 
 ## Relateret
 

@@ -14,8 +14,9 @@ Hele vores arbejdsflow for Mercantec.tech (og beslægtet arbejde under Mercantec
 
 ## Board
 
-- Org-project (Kanban): [Mercantech Projects #9](https://github.com/orgs/Mercantech/projects/9/views/1?system_template=kanban)
-- Issues oprettes i det relevante repo (fx `Mercantec.tech`) og tilføjes til boardet.
+- Org-project (Kanban): [Mercantech Projects #9](https://github.com/orgs/Mercantech/projects/9/views/1)
+- Issues oprettes i `Mercantec.tech`, milestones = sprints, labels `sprint-0` / `sprint-1` / …
+- Oversigt: [[Sprints]]
 
 ## Principper
 

@@ -22,7 +22,8 @@ Læg assets i denne mappe (`06-badges/design/`) og link dem fra den enkelte badg
 
 | Fil | Badge | Status |
 |-----|-------|--------|
-| *(tilføj)* | — | — |
+| `hawaii-skjorte.svg` | [[Hawaii-skjorte]] | TODO |
+| `fancy-friday.svg` | [[Fancy-Friday]] | TODO |
 
 ## Relateret
 

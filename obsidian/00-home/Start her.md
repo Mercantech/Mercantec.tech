@@ -39,10 +39,12 @@ Indgang til Obsidian-vaultet for **Mercantec.tech**. Her dokumenterer vi AI-work
 
 ### Features & beslutninger
 - [[Feature-oversigt]]
+- [[Sprints]]
 - [[_index|Beslutningslog]]
 
 ### Badges
 - [[Badge-oversigt]]
+- [[Emne-badges]]
 - [[Sammenhæng]]
 
 ### Skabeloner
