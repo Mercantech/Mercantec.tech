@@ -16,7 +16,7 @@ Sådan arbejder vi med Cursor på Mercantec.tech.
 2. Arbejde styres via [[GitHub-Issues-og-Projects]] — Issue + [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1?system_template=kanban).
 3. Brug **Plan mode** til større ændringer — godkend planen før implementering.
 4. Tjek [[Prompt-bibliotek]] for genbrugelige prompts.
-5. Respektér [[Agent-regler]].
+5. Respektér [[Agent-regler]] og [[Husregler-fra-Cursor]] (prod: **mercantec.tech** apex).
 
 ## Under implementering
 

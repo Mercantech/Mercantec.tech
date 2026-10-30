@@ -11,18 +11,21 @@ tags:
 
 ## Hvornår
 
-Når vi skal oprette, opdatere eller fejlsøge deploy på Dokploy.
+Oprette, opdatere eller fejlsøge deploy på Dokploy for Mercantec.tech.
 
 ## Prompt
 
 ```
 Brug Dokploy MCP (ikke ad hoc curl).
-Følg alias-mønsteret på dokploy-network (unikke *-api / *-db aliases).
-Tjek logs via MCP ved fejl (subnet-pool, inotify, nginx upstream, localhost-DB).
-Læs obsidian Stack-og-hosting og Agent-regler først.
+Læs obsidian/02-ai-workflows/Dokploy-drift.md og Stack-og-hosting.
+Prod-domæne: mercantec.tech (APEX — intet subdomæne). Service web, port 3000.
+Aliases: mercantec-tech-api, mercantec-tech-db. Nginx resolver + proxy til mercantec-tech-api:8080.
+DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false. Connection string Host=mercantec-tech-db.
+Cors:SpaOrigins skal inkludere https://mercantec.tech.
+Ved fejl: MCP logs (subnet-pool, inotify, nginx DNS, localhost-DB).
 Opgave: <BESKRIV>.
 ```
 
 ## Output
 
-Kort status + hvad der blev deployet/fejlet; ingen secrets i chat-output.
+Kort status + hvad der blev deployet/fejlet; ingen secrets i chat.

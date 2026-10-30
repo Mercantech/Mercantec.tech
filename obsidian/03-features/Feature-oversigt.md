@@ -38,6 +38,10 @@ Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]
 | [[Aktivitet-og-elevprofil]] | plan | Egen + underviser; ikke peer |
 | [[Hold-dashboard]] | plan | Manglende vurdering; kompetence NTH |
 
+## Nice to Have
+
+Idéer uden for kerne-sprints: [[Skattekisten]].
+
 ## Relateret
 
 - [[Domæne-model]]

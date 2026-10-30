@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mercantec}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mercantec}
+      POSTGRES_DB: ${POSTGRES_DB:-mercantec}
+    volumes:
+      - mercantec_tech_pg:/var/lib/postgresql/data
+    networks:
+      default:
+        aliases:
+          - mercantec-tech-db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: "false"
+      ConnectionStrings__Default: ${CONNECTION_STRING:-Host=mercantec-tech-db;Port=5432;Database=mercantec;Username=mercantec;Password=mercantec}
+      Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-}
+      AUTH_ISSUER: ${AUTH_ISSUER:-}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-}
+      JWKS_URI: ${JWKS_URI:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - mercantec-tech-api
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+    networks:
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.services.mercantec-tech-web.loadbalancer.server.port=3000
+    restart: unless-stopped
+
+volumes:
+  mercantec_tech_pg:
+
+networks:
+  default:
+    name: dokploy-network
+    external: true

@@ -1,0 +1,14 @@
+# Lokal udvikling uden Dokploy-netværk:
+# docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+services:
+  web:
+    ports:
+      - "3000:3000"
+  api:
+    ports:
+      - "8080:8080"
+
+networks:
+  default:
+    name: mercantec-tech-local
+    external: false

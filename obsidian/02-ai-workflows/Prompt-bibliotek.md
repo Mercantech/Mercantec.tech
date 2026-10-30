@@ -16,6 +16,13 @@ MOC for genbrugelige prompts. Nye prompts: skabelon [[Prompt]] → gem under `02
 - [[Kode-review]]
 - [[Deploy-Dokploy]]
 
+## Husregler (workflows)
+
+- [[Husregler-fra-Cursor]]
+- [[Auth-Mercantec]]
+- [[Dokploy-drift]]
+- [[Agent-regler]]
+
 ## Sådan tilføjer du en prompt
 
 1. Opret note fra [[Prompt]].

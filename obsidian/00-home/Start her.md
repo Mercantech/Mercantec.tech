@@ -34,6 +34,9 @@ Indgang til Obsidian-vaultet for **Mercantec.tech**. Her dokumenterer vi AI-work
 ### AI-workflows
 - [[GitHub-Issues-og-Projects]]
 - [[Cursor-arbejdsgang]]
+- [[Husregler-fra-Cursor]]
+- [[Auth-Mercantec]]
+- [[Dokploy-drift]]
 - [[Agent-regler]]
 - [[Prompt-bibliotek]]
 
@@ -41,6 +44,9 @@ Indgang til Obsidian-vaultet for **Mercantec.tech**. Her dokumenterer vi AI-work
 - [[Feature-oversigt]]
 - [[Sprints]]
 - [[_index|Beslutningslog]]
+
+### Skattekisten (Nice to Have)
+- [[Skattekisten]] — [[The-Farmer-Was-Replaced]], [[Lejlighed-hus-moebler]], [[Levels-unlocker-ting]]
 
 ### Badges
 - [[Badge-oversigt]]

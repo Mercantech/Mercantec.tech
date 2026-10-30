@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/api/">
+    <Project Path="api/Mercantec.Tech.Api.csproj" />
+  </Folder>
+  <Folder Name="/web/">
+    <Project Path="web/Mercantec.Tech.Web.csproj" />
+  </Folder>
+</Solution>

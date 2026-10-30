@@ -8,25 +8,33 @@ tags:
 
 # Agent-regler
 
-Korte regler for AI-agenter (Cursor m.fl.) på dette projekt. Uddybende husregler kan ligge i Cursor rules — denne note er den delte, menneske-/AI-læsbare version.
+Korte regler for AI på Mercantec.tech. Uddybning: [[Husregler-fra-Cursor]], [[Auth-Mercantec]], [[Dokploy-drift]].
 
 ## Må
 
-- Læse og opdatere noter i `obsidian/` som del af planlægning.
-- Foreslå og implementere kode inden for [[Stack-og-hosting]].
-- Bruge Dokploy MCP til drift, når det er relevant.
-- Skrive på dansk.
+- Læse/opdatere `obsidian/` før og under planlægning.
+- Bygge inden for stack: .NET 10 API (controllers) + Blazor WASM PWA + Docker.
+- Bruge Dokploy MCP til drift.
+- Skrive på **dansk**.
+- Bruge officielle logoer (ikke tegne selv).
 
 ## Må ikke
 
-- Rulle egen auth/JWT — brug Mercantec Auth.
-- Committe secrets (`.env`, credentials, API-nøgler).
-- Hardcode miljø-URL’er, CORS-origins eller DB-hosts til localhost som “sandhed” i produktion.
+- Rulle egen auth/JWT — [[Auth-Mercantec]].
+- Committe secrets.
+- Hardcode prod-URL’er/CORS/DB-hosts som localhost-sandhed.
 - Tilføje Cursor co-author / Made-with i commits.
 - Kalde Auth global signout fra SPA som standard-logout.
+- Oprette nye Docker bridge-net på Dokploy (brug aliases på `dokploy-network`).
+- Antage subdomæne — prod er **`https://mercantec.tech`** (apex).
+
+## Prioritering
+
+- Få noget kørende først; tests/CI senere (ikke TDD-default).
+- Arbejde styres af Issues + [[Sprints]] / Project #9.
 
 ## Ved tvivl
 
-1. Tjek denne vault ([[Start her]]).
-2. Spørg Kasper/Mathias.
-3. Log valget som [[ADR]] hvis det er varigt.
+1. [[Start her]] + [[Stack-og-hosting]]
+2. Spørg MAGS/KASC ([[Ansvarsområder]])
+3. [[ADR]] ved varige valg

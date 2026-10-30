@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+*.swp
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## Secrets
+.env
+.env.*
+!.env.example
+
+## Publish
+publish/
+**/wwwroot/service-worker-assets.js

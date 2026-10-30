@@ -1,0 +1,31 @@
+---
+description: Projektregler for Mercantec.tech læringsplatform
+alwaysApply: true
+---
+
+# Mercantec.tech
+
+Læs vaulten `obsidian/` — start med `00-home/Start her.md`. AI-workflows: `02-ai-workflows/`.
+
+## Stack
+- .NET 10 API med controllers (`api/`)
+- Blazor WebAssembly PWA (`web/`)
+- Docker Compose, aliases `mercantec-tech-api` / `mercantec-tech-db`
+
+## Domæne
+- **Prod: `https://mercantec.tech`** (apex — **ingen** subdomæne)
+
+## Skal
+- Dansk i svar og noter
+- Mercantec Auth (PKCE); lokal logout
+- Dokploy MCP til drift
+- Officielle logoer — tegn ikke selv
+
+## Må ikke
+- Egen JWT/login
+- Secrets i git
+- Cursor co-author i commits
+- Nye bridge-net på Dokploy (brug dokploy-network + aliases)
+- Generiske upstream-navne (`http://api:...`) på delt net
+
+Detaljer: `obsidian/02-ai-workflows/Husregler-fra-Cursor.md`, `Auth-Mercantec.md`, `Dokploy-drift.md`.
