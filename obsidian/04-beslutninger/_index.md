@@ -15,6 +15,7 @@ Log over arkitektur- og procesbeslutninger (ADR). Nye beslutninger: kopiér [[AD
 | Dato | Titel | Status |
 |------|-------|--------|
 | 2026-10-30 | [[ADR-001-apex-domæne]] | accepted |
+| 2026-10-30 | [[ADR-002-gdpr-principper]] | accepted |
 
 ## Relateret
 
