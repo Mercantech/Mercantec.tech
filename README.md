@@ -31,3 +31,5 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 Brug `docker-compose.yml` (eksternt `dokploy-network`). Env fra `.env.example`. Auth tilføjes i Sprint 0 (#2).
 
 **Prod-domæne: [`https://mercantec.tech`](https://mercantec.tech)** — apex, **uden** subdomæne. Se `obsidian/02-ai-workflows/Dokploy-drift.md`.
+
+**Auth:** Mercantec Auth, client_id `mercantec-tech`, callback `/auth/callback`. Se `obsidian/02-ai-workflows/Auth-Mercantec.md`.

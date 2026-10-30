@@ -33,9 +33,14 @@ Porteret fra generelle Cursor-rules — gælder Mercantec.tech.
 - 401 ugyldig token, 403 manglende rolle
 - Bruger-nøgle i DB: `sub` (GUID) — aldrig e-mail
 
-## Registrering
+## Registrering (dette projekt)
 
-- `client_id` + eksakte redirect-URIs (inkl. `https://mercantec.tech/...`)
+- **client_id:** `mercantec-tech` (offentlig SPA, PKCE)
+- Redirect-URIs:
+  - `https://mercantec.tech/auth/callback`
+  - `http://localhost:3000/auth/callback`
+  - `http://127.0.0.1:3000/auth/callback`
+  - `http://localhost:5173/auth/callback`
 - SPA-origin i `Cors:SpaOrigins` (apex: `https://mercantec.tech`)
 - Kontakt: mags@mercantec.dk
 
