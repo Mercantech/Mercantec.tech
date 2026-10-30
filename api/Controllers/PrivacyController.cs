@@ -1,15 +1,18 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Mercantec.Tech.Api.Auth;
+using Mercantec.Tech.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mercantec.Tech.Api.Controllers;
 
 [ApiController]
 [Route("api/privacy")]
 [Authorize]
-public class PrivacyController : ControllerBase
+public class PrivacyController(AppDbContext db) : ControllerBase
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -21,9 +24,9 @@ public class PrivacyController : ControllerBase
     /// Auth-konto (password, MFA m.m.) ligger hos Mercantec Auth — ikke her.
     /// </summary>
     [HttpGet("export")]
-    public IActionResult Export()
+    public async Task<IActionResult> Export(CancellationToken ct)
     {
-        var package = BuildDataPackage();
+        var package = await BuildDataPackageAsync(ct);
         var json = JsonSerializer.Serialize(package, JsonOptions);
         var bytes = Encoding.UTF8.GetBytes(json);
         var fileName = $"mercantec-tech-data-{package.Sub ?? "unknown"}-{DateTime.UtcNow:yyyyMMdd}.json";
@@ -36,11 +39,12 @@ public class PrivacyController : ControllerBase
     [HttpPost("deletion-request")]
     public IActionResult RequestDeletion([FromBody] DeletionRequestBody? body)
     {
-        var sub = ResolveSub();
-        if (string.IsNullOrWhiteSpace(sub))
+        var subGuid = UserClaims.GetSub(User);
+        if (subGuid is null)
             return Unauthorized(new { error = "missing_sub" });
+        var sub = subGuid.Value.ToString();
 
-        var reference = $"del-{DateTime.UtcNow:yyyyMMddHHmmss}-{sub[..Math.Min(8, sub.Length)]}";
+        var reference = $"del-{DateTime.UtcNow:yyyyMMddHHmmss}-{sub[..8]}";
 
         // I v1 logger vi kun — ingen persistens før domæne-DB (#4).
         Console.WriteLine(
@@ -62,9 +66,10 @@ public class PrivacyController : ControllerBase
         });
     }
 
-    private PrivacyExportPackage BuildDataPackage()
+    private async Task<PrivacyExportPackage> BuildDataPackageAsync(CancellationToken ct)
     {
-        var sub = ResolveSub();
+        var subGuid = UserClaims.GetSub(User);
+        var sub = subGuid?.ToString();
         var name = User.FindFirstValue("name");
         var email = User.FindFirstValue("email");
         var loginMethod = User.FindFirstValue("login_method");
@@ -79,11 +84,31 @@ public class PrivacyController : ControllerBase
             .OrderBy(r => r)
             .ToArray();
 
-        // Kun claim-typer der ikke ligner secrets/tokens.
         var safeClaims = User.Claims
             .Where(c => !IsSensitiveClaim(c.Type))
             .GroupBy(c => c.Type)
             .ToDictionary(g => g.Key, g => g.Select(c => c.Value).Distinct().ToArray());
+
+        object[] memberships = [];
+        if (subGuid is not null)
+        {
+            memberships = await db.Memberships
+                .AsNoTracking()
+                .Where(m => m.UserSub == subGuid.Value)
+                .Include(m => m.Hold)
+                .ThenInclude(h => h.Forloeb)
+                .Select(m => (object)new
+                {
+                    m.Id,
+                    m.HoldId,
+                    holdName = m.Hold.Name,
+                    forloebId = m.Hold.ForloebId,
+                    forloebName = m.Hold.Forloeb.Name,
+                    m.Source,
+                    m.CreatedAtUtc
+                })
+                .ToArrayAsync(ct);
+        }
 
         return new PrivacyExportPackage(
             ExportedAtUtc: DateTime.UtcNow,
@@ -98,22 +123,18 @@ public class PrivacyController : ControllerBase
             },
             PlatformRecords: new
             {
-                note = "Ingen egne elev-/forløbsdata lagres endnu i Mercantec.tech (domæne-skeleton kommer senere).",
-                memberships = Array.Empty<object>(),
+                memberships,
                 submissions = Array.Empty<object>(),
                 deletionRequests = Array.Empty<object>()
             },
             Claims: safeClaims,
             Notes: new[]
             {
-                "Eksporten indeholder data kendt af Mercantec.tech API ud fra din JWT — ikke Auth-backendens fulde profil.",
+                "Eksporten indeholder data kendt af Mercantec.tech API ud fra din JWT og platform-DB — ikke Auth-backendens fulde profil.",
                 "Tokens, refresh-tokens og secrets eksporteres aldrig."
             }
         );
     }
-
-    private string? ResolveSub() =>
-        User.FindFirstValue("sub") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     private static bool IsSensitiveClaim(string type)
     {
