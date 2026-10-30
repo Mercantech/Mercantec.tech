@@ -1,0 +1,46 @@
+@page "/auth/callback"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Logger ind…</PageTitle>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <h1>Login fejlede</h1>
+    <p class="text-danger">@_error</p>
+    <a href="/login">Prøv igen</a>
+}
+else
+{
+    <p>Fuldfører login…</p>
+}
+
+@code {
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var code = GetQuery(uri, "code");
+        var state = GetQuery(uri, "state");
+        var error = GetQuery(uri, "error");
+
+        var ok = await Auth.CompleteLoginAsync(code, state, error);
+        if (ok)
+            Nav.NavigateTo("/");
+        else
+            _error = error ?? "Kunne ikke fuldføre login (state/code).";
+    }
+
+    private static string? GetQuery(Uri uri, string key)
+    {
+        var query = uri.Query.TrimStart('?');
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2 && Uri.UnescapeDataString(kv[0]) == key)
+                return Uri.UnescapeDataString(kv[1]);
+        }
+        return null;
+    }
+}

@@ -26,10 +26,10 @@ services:
       ASPNETCORE_URLS: http://+:8080
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: "false"
       ConnectionStrings__Default: ${CONNECTION_STRING:-Host=mercantec-tech-db;Port=5432;Database=mercantec;Username=mercantec;Password=mercantec}
-      Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-}
-      AUTH_ISSUER: ${AUTH_ISSUER:-}
-      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-}
-      JWKS_URI: ${JWKS_URI:-}
+      Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-http://localhost:3000;https://mercantec.tech}
+      AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.mercantec.tech}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-mercantec-apps}
+      JWKS_URI: ${JWKS_URI:-https://auth.mercantec.tech/.well-known/jwks.json}
     depends_on:
       db:
         condition: service_healthy

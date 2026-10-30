@@ -1,0 +1,41 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Log ind</PageTitle>
+
+<h1>Log ind</h1>
+<p>Du sendes til Mercantec Auth (PKCE).</p>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+
+<button class="btn btn-primary" @onclick="StartLogin" disabled="@_busy">Log ind med Mercantec Auth</button>
+
+@code {
+    private bool _busy;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        if (Auth.IsAuthenticated)
+            Nav.NavigateTo("/");
+    }
+
+    private async Task StartLogin()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Auth.BeginLoginAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _busy = false;
+        }
+    }
+}
