@@ -31,6 +31,11 @@ Hvad badge’et betyder for eleven (kort, elev-vendt tekst).
 - Quest / handling / fremlæggelse:
 - Forudsætnings-badges: (typisk forrige niveau samme emne)
 
+## Statistik
+
+- Vis **% af brugere** der har badge’et (se [[Badge-statistik]])
+- Population: platform (default) / forløb / hold:
+
 ## Sammenhæng
 
 - Låser op for: næste emne-niveau / …

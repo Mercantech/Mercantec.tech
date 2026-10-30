@@ -45,6 +45,7 @@ Indgang til Obsidian-vaultet for **Mercantec.tech**. Her dokumenterer vi AI-work
 ### Badges
 - [[Badge-oversigt]]
 - [[Emne-badges]]
+- [[Badge-statistik]]
 - [[Sammenhæng]]
 
 ### Skabeloner

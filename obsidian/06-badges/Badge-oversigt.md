@@ -17,6 +17,7 @@ Samlet katalog over badges på Mercantec.tech: hvad de betyder, hvordan de hæng
 | Denne note | Liste + status over alle badges |
 | [[Emne-badges]] | Custom badges pr. emne + fem niveauer |
 | [[Sammenhæng]] | Træer, forudsætninger, XP/quest-koblinger |
+| [[Badge-statistik]] | % af brugere der har badge’et |
 | `katalog/` | Én note pr. badge (brug skabelon [[Badge]]) |
 | `design/` | Artwork, mocks, referencer (KASC) |
 
@@ -52,6 +53,7 @@ Detaljer: [[Emne-badges]].
 ## Relateret
 
 - [[Emne-badges]]
+- [[Badge-statistik]]
 - [[Sammenhæng]]
 - [[Levels-XP-Badges]]
 - [[Karakter-og-certifikatvæg]]

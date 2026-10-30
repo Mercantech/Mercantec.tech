@@ -31,6 +31,11 @@ Du klædte dig **fancy** til Fancy Friday — pænt tøj, god energi, fredagsste
 - Quest / handling: Fancy Friday-fremmøde
 - Forudsætnings-badges: ingen
 
+## Statistik
+
+- Vis % af brugere der har badge’et — [[Badge-statistik]]
+- Population: platform (default)
+
 ## Sammenhæng
 
 - Låser op for: —

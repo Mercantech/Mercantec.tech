@@ -31,6 +31,11 @@ Du mødte op i **hawaii-skjorte** — stilpoint og god stemning på holdet.
 - Quest / handling: fysisk fremmøde i hawaii-skjorte
 - Forudsætnings-badges: ingen
 
+## Statistik
+
+- Vis % af brugere der har badge’et — [[Badge-statistik]]
+- Population: platform (default)
+
 ## Sammenhæng
 
 - Låser op for: —

@@ -31,6 +31,7 @@ Badge-katalog, sammenhæng og design: [[Badge-oversigt]] · [[Sammenhæng]] · `
 - [ ] Quest-completion giver XP til relevant hold **og** karriere
 - [ ] Frivilligt modul uden hold giver karriere-XP
 - [ ] Badges kan tildeles/vises (regler kan udbygges)
+- [ ] Hvert badge viser **% af brugere** der har det (se [[Badge-statistik]])
 
 ## Afhængigheder
 
@@ -51,4 +52,5 @@ Badge-katalog, sammenhæng og design: [[Badge-oversigt]] · [[Sammenhæng]] · `
 - [[Feature-oversigt]]
 - [[Domæne-model]]
 - [[Badge-oversigt]]
+- [[Badge-statistik]]
 - [[Karakter-og-certifikatvæg]]
