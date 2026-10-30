@@ -20,3 +20,8 @@ Desktop.ini
 ## Publish
 publish/
 **/wwwroot/service-worker-assets.js
+
+## Obsidian / IDE lokal
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache

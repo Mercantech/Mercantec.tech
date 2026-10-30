@@ -1,12 +1,13 @@
 {
-  "name": "Mercantec.Tech.Web",
-  "short_name": "Mercantec.Tech.Web",
+  "name": "Mercantec.tech",
+  "short_name": "Mercantec.tech",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",
   "prefer_related_applications": false,
+  "lang": "da",
   "icons": [
     {
       "src": "icon-512.png",
