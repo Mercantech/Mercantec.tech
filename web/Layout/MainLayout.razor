@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthService Auth
+@inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -12,7 +13,8 @@
         <div class="top-row px-4 d-flex gap-3 align-items-center justify-content-end">
             @if (Auth.IsAuthenticated)
             {
-                <span class="small">@(Auth.DisplayName ?? "Bruger")</span>
+                <span class="small text-muted">@Redirect.CurrentAppRole()</span>
+                <a class="small" href="/profil">@(Auth.DisplayName ?? "Bruger")</a>
                 <button class="btn btn-sm btn-outline-secondary" @onclick="Logout">Log ud</button>
             }
             else

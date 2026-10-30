@@ -1,5 +1,6 @@
 @page "/login"
 @inject AuthService Auth
+@inject AuthRedirect Redirect
 @inject NavigationManager Nav
 
 <PageTitle>Log ind</PageTitle>
@@ -21,7 +22,7 @@
     protected override void OnInitialized()
     {
         if (Auth.IsAuthenticated)
-            Nav.NavigateTo("/");
+            Nav.NavigateTo(Redirect.PostLoginPath());
     }
 
     private async Task StartLogin()

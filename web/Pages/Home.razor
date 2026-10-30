@@ -1,100 +1,72 @@
 ﻿@page "/"
-@inject HttpClient Http
 @inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
 @inject NavigationManager Nav
 @implements IDisposable
 
 <PageTitle>Mercantec.tech</PageTitle>
 
-<h1>Mercantec.tech</h1>
-<p>Central læringsplatform — Blazor PWA + .NET API.</p>
-
-@if (Auth.IsAuthenticated)
+@if (!Auth.IsInitialized)
 {
-    <p>Logget ind som <strong>@(Auth.DisplayName ?? Auth.Subject)</strong></p>
-    <button class="btn btn-outline-secondary btn-sm" @onclick="Logout">Log ud</button>
+    <p>Indlæser…</p>
+}
+else if (Auth.IsAuthenticated)
+{
+    <p>Sender dig til dit dashboard…</p>
 }
 else
 {
-    <p><a href="/login">Log ind</a></p>
-}
+    <h1>Mercantec.tech</h1>
+    <p>Central læringsplatform — Blazor PWA + .NET API.</p>
+    <p><a class="btn btn-primary" href="/login">Log ind</a></p>
 
-<hr />
-
-@if (_error is not null)
-{
-    <p class="text-danger">API: @_error</p>
-    <p class="text-muted small">Base: @Http.BaseAddress</p>
-}
-else if (_health is null)
-{
-    <p>Tjekker API…</p>
-}
-else
-{
-    <p class="text-success">API health: <strong>@_health.status</strong> (@_health.service)</p>
-}
-
-@if (_meError is not null)
-{
-    <p class="text-muted">/api/me: @_meError</p>
-}
-else if (_me is not null)
-{
-    <p>/api/me: <code>@_me.sub</code> — @_me.name</p>
+    @if (_error is not null)
+    {
+        <p class="text-danger mt-3">API: @_error</p>
+    }
+    else if (_health is not null)
+    {
+        <p class="text-success mt-3">API: <strong>@_health.status</strong></p>
+    }
 }
 
 @code {
     private HealthDto? _health;
     private string? _error;
-    private MeDto? _me;
-    private string? _meError;
 
     protected override async Task OnInitializedAsync()
     {
-        Auth.AuthStateChanged += OnAuthChanged;
-        await LoadAsync();
+        Auth.AuthStateChanged += OnAuth;
+        await LoadHealthAsync();
+        RedirectIfAuthenticated();
     }
 
-    private async Task LoadAsync()
+    private void RedirectIfAuthenticated()
+    {
+        if (Auth.IsInitialized && Auth.IsAuthenticated)
+            Nav.NavigateTo(Redirect.PostLoginPath());
+    }
+
+    private async Task LoadHealthAsync()
     {
         try
         {
             _health = await Http.GetFromJsonAsync<HealthDto>("health");
-            _error = null;
         }
         catch (Exception ex)
         {
             _error = ex.Message;
         }
-
-        _me = null;
-        _meError = null;
-        if (Auth.IsAuthenticated)
-        {
-            try
-            {
-                _me = await Http.GetFromJsonAsync<MeDto>("me");
-            }
-            catch (Exception ex)
-            {
-                _meError = ex.Message;
-            }
-        }
-
-        StateHasChanged();
     }
 
-    private async Task Logout()
+    private void OnAuth() => InvokeAsync(() =>
     {
-        await Auth.LogoutLocalAsync();
-        Nav.NavigateTo("/login");
-    }
+        RedirectIfAuthenticated();
+        StateHasChanged();
+    });
 
-    private void OnAuthChanged() => _ = InvokeAsync(LoadAsync);
-
-    public void Dispose() => Auth.AuthStateChanged -= OnAuthChanged;
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 
     private sealed record HealthDto(string status, string service, DateTime utc);
-    private sealed record MeDto(string? sub, string? name, string? email, string[]? roles);
 }

@@ -15,10 +15,13 @@ public sealed class AuthService(
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private static readonly HttpClient TokenHttp = new();
 
+    public bool IsInitialized { get; private set; }
     public bool IsAuthenticated { get; private set; }
     public string? AccessToken { get; private set; }
     public string? DisplayName { get; private set; }
     public string? Subject { get; private set; }
+    public string? Email { get; private set; }
+    public string? LoginMethod { get; private set; }
     public IReadOnlyList<string> Roles { get; private set; } = [];
 
     public event Action? AuthStateChanged;
@@ -29,6 +32,8 @@ public sealed class AuthService(
         if (string.IsNullOrEmpty(access))
         {
             ClearLocalState();
+            IsInitialized = true;
+            Notify();
             return;
         }
 
@@ -40,12 +45,16 @@ public sealed class AuthService(
                 if (!ok)
                 {
                     await LogoutLocalAsync();
+                    IsInitialized = true;
+                    Notify();
                     return;
                 }
             }
             else
             {
                 await LogoutLocalAsync();
+                IsInitialized = true;
+                Notify();
                 return;
             }
         }
@@ -54,6 +63,7 @@ public sealed class AuthService(
             ApplyAccessToken(access);
         }
 
+        IsInitialized = true;
         Notify();
     }
 
@@ -136,6 +146,7 @@ public sealed class AuthService(
     {
         await tokens.ClearTokensAsync();
         ClearLocalState();
+        IsInitialized = true;
         Notify();
     }
 
@@ -189,8 +200,10 @@ public sealed class AuthService(
             var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(accessToken);
             Subject = jwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+            Email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            LoginMethod = jwt.Claims.FirstOrDefault(c => c.Type == "login_method")?.Value;
             DisplayName = jwt.Claims.FirstOrDefault(c => c.Type == "name")?.Value
-                ?? jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value
+                ?? Email
                 ?? Subject;
             Roles = jwt.Claims.Where(c => c.Type == "role").Select(c => c.Value).Distinct().ToArray();
         }
@@ -198,6 +211,8 @@ public sealed class AuthService(
         {
             DisplayName = null;
             Subject = null;
+            Email = null;
+            LoginMethod = null;
             Roles = [];
         }
     }
@@ -208,6 +223,8 @@ public sealed class AuthService(
         IsAuthenticated = false;
         DisplayName = null;
         Subject = null;
+        Email = null;
+        LoginMethod = null;
         Roles = [];
     }
 
