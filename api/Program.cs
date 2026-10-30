@@ -1,9 +1,25 @@
+using Mercantec.Tech.Api.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+var connectionString =
+    builder.Configuration.GetConnectionString("Default")
+    ?? builder.Configuration["CONNECTION_STRING"]
+    ?? "";
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Missing ConnectionStrings:Default or CONNECTION_STRING (use Host=mercantec-tech-db in Docker).");
+}
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 var authIssuer = builder.Configuration["AUTH_ISSUER"]
     ?? "https://auth.mercantec.tech";
@@ -75,6 +91,12 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseCors("Spa");
 app.UseAuthentication();

@@ -19,8 +19,8 @@ Arbejdet køres som GitHub **milestones** + labels (`sprint-0` …) og [Project 
 | [#3](https://github.com/Mercantech/Mercantec.tech/issues/3) | Underviser- vs elev-shell | Done |
 | [#15](https://github.com/Mercantech/Mercantec.tech/issues/15) | Brugeroplysningsside (profil) | Done |
 | [#18](https://github.com/Mercantech/Mercantec.tech/issues/18) | GDPR og brugerrettigheder | Done |
-| [#4](https://github.com/Mercantech/Mercantec.tech/issues/4) | Domæne-skeleton: Forløb, Hold, Membership | Ready |
-| [#5](https://github.com/Mercantech/Mercantec.tech/issues/5) | Dokploy: compose-app, env og domain | Ready |
+| [#4](https://github.com/Mercantech/Mercantec.tech/issues/4) | Domæne-skeleton: Forløb, Hold, Membership | Done |
+| [#5](https://github.com/Mercantech/Mercantec.tech/issues/5) | Dokploy: compose-app, env og domain | Done |
 
 ## Sprint 1 – Forløb og hold (Ready)
 

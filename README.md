@@ -11,7 +11,7 @@ Sprints: [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1) · 
 
 | Sti | Indhold |
 |-----|---------|
-| `api/` | .NET 10 Web API (controllers), JWT Auth |
+| `api/` | .NET 10 Web API + EF/Postgres (Forløb, Hold, Membership) |
 | `web/` | Blazor WASM PWA + nginx i Docker |
 | `docker-compose.yml` | Dokploy (`dokploy-network`, aliases) |
 | `docker-compose.local.yml` | Lokal port-mapping + lokalt net |
@@ -48,6 +48,20 @@ dotnet run --project web
 
 - API: `http://localhost:8080` — `GET /api/health`
 - Web: Blazor launch-URL; Development pejer API mod port 8080
+
+## Domæne-API (stubs)
+
+Kræver Bearer JWT. Underviser/Admin til create.
+
+| Metode | Sti |
+|--------|-----|
+| GET/POST | `/api/forloeb` |
+| GET | `/api/forloeb/{id}` |
+| GET | `/api/holds/{id}` · `/api/holds/{id}/memberships` |
+| POST | `/api/holds/{id}/memberships` |
+| GET | `/api/me/memberships` |
+
+Migreringer køres automatisk ved API-start (`Database.Migrate()`).
 
 ## Dokploy
 
