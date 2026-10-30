@@ -18,6 +18,7 @@ Arbejdet køres som GitHub **milestones** + labels (`sprint-0` …) og [Project 
 | [#2](https://github.com/Mercantech/Mercantec.tech/issues/2) | Mercantec Auth: PKCE i SPA + JWT i API | Done |
 | [#3](https://github.com/Mercantech/Mercantec.tech/issues/3) | Underviser- vs elev-shell | Done |
 | [#15](https://github.com/Mercantech/Mercantec.tech/issues/15) | Brugeroplysningsside (profil) | Done |
+| [#18](https://github.com/Mercantech/Mercantec.tech/issues/18) | GDPR og brugerrettigheder | Done |
 | [#4](https://github.com/Mercantech/Mercantec.tech/issues/4) | Domæne-skeleton: Forløb, Hold, Membership | Ready |
 | [#5](https://github.com/Mercantech/Mercantec.tech/issues/5) | Dokploy: compose-app, env og domain | Ready |
 

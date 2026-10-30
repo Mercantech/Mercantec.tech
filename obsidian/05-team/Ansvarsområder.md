@@ -17,7 +17,7 @@ Ejer angives som **MAGS**, **KASC** eller **Fælles**.
 | Område            | Ejer   | Dækker                                                                                                                                                           |
 | ----------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Auth              | MAGS   | Mercantec Auth-klient, redirect-URIs, roller, token-flow i app                                                                                                   |
-| Sikkerhed / GDPR  | Fælles | Elevdata, samtykke, logning, adgangskontrol, dataminimering — sikkerhedsansvarlig                                                                                |
+| Sikkerhed / GDPR  | Fælles | Elevdata, samtykke, logning, adgangskontrol, dataminimering — se [[GDPR-og-rettigheder]] / [[ADR-002-gdpr-principper]]                                           |
 | Integrationer     | MAGS   | Eksterne datakilder og broer; afstemmes altid med Auth. Primær kilde til elevers skoleforløb: [Lectio-Collector](https://github.com/Mercantech/Lectio-Collector) |
 | Deploy            | MAGS   | Dokploy, Docker Compose, miljøer (dev/prod), domæner, logs                                                                                                       |
 | Design            | KASC   | UI/UX, branding, typografi, visuelle retningslinjer                                                                                                              |

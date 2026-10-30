@@ -37,6 +37,7 @@ Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]
 | [[Game-side]] | idé | Nice-to-have; egne spil + highscores |
 | [[Aktivitet-og-elevprofil]] | plan | Egen + underviser; ikke peer |
 | [[Hold-dashboard]] | plan | Manglende vurdering; kompetence NTH |
+| [[GDPR-og-rettigheder]] | done | Privatliv, eksport, sletteanmodning (#18) |
 
 ## Nice to Have
 

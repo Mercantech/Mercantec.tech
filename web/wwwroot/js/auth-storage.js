@@ -31,3 +31,14 @@ window.mercantecAuth = {
     sessionStorage.removeItem('mt_oauth_state');
   }
 };
+
+window.mercantecDownload = {
+  fromBase64(filename, contentType, base64) {
+    const link = document.createElement('a');
+    link.href = `data:${contentType};base64,${base64}`;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+};

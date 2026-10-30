@@ -1,0 +1,78 @@
+@page "/privatliv"
+@inject AuthService Auth
+
+<PageTitle>Privatliv og GDPR</PageTitle>
+
+<h1>Privatliv og dine rettigheder</h1>
+<p class="lead">
+    Mercantec.tech er en læringsplatform for Mercantec. Her beskriver vi kort, hvilke personoplysninger
+    vi behandler, og hvilke rettigheder du har (GDPR).
+</p>
+
+<section class="mb-4">
+    <h2 class="h4">Formål</h2>
+    <p>
+        Vi behandler data for at kunne logge dig ind, vise den rigtige rolle (elev/underviser),
+        og senere knytte dig til forløb, hold, quests og afleveringer.
+    </p>
+</section>
+
+<section class="mb-4">
+    <h2 class="h4">Hvem behandler hvad</h2>
+    <ul>
+        <li>
+            <strong>Mercantec Auth</strong> (<code>auth.mercantec.tech</code>) —
+            identitet, login-metode, MFA og Auth-roller. Platformen validerer JWT; vi opretter ikke egen login.
+        </li>
+        <li>
+            <strong>Mercantec.tech</strong> —
+            app-data knyttet til dit <code>sub</code> (GUID). I den nuværende version lagres næsten ingen elevdata endnu.
+        </li>
+        <li>
+            <strong>Lectio / Lectio-Collector</strong> —
+            skoleforløb kommer udefra; synk følger separat integrationskontrakt.
+        </li>
+    </ul>
+</section>
+
+<section class="mb-4">
+    <h2 class="h4">Datakategorier (planlagt / nuværende)</h2>
+    <ul>
+        <li>Identitet fra token: navn, e-mail, <code>sub</code>, login-metode, roller</li>
+        <li>Senere: hold-/forløbsmedlemskab, afleveringer, feedback, aktivitet</li>
+        <li>Tekniske logs i drift (fx anmodninger) — dataminimering og adgangskontrol</li>
+    </ul>
+</section>
+
+<section class="mb-4">
+    <h2 class="h4">Dine rettigheder</h2>
+    <ul>
+        <li><strong>Indsigt</strong> — se/download egne platform-data (når du er logget ind).</li>
+        <li><strong>Berigtigelse</strong> — ret profiloplysninger via Auth / kontakt drift.</li>
+        <li><strong>Sletning</strong> — send sletteanmodning i appen; Auth-konto og Lectio håndteres separat.</li>
+        <li><strong>Klage</strong> — du kan klage til Datatilsynet.</li>
+    </ul>
+</section>
+
+<section class="mb-4">
+    <h2 class="h4">Kontakt</h2>
+    <p>
+        Spørgsmål om privatliv på Mercantec.tech:
+        <a href="mailto:mags@mercantec.dk">mags@mercantec.dk</a>
+    </p>
+</section>
+
+@if (Auth.IsAuthenticated)
+{
+    <p>
+        <a class="btn btn-primary" href="/rettigheder">Gå til mine rettigheder (eksport / sletning)</a>
+        <a class="btn btn-outline-secondary" href="/profil">Profil</a>
+    </p>
+}
+else
+{
+    <p>
+        <a class="btn btn-primary" href="/login">Log ind</a>
+        for at eksportere data eller sende sletteanmodning.
+    </p>
+}
