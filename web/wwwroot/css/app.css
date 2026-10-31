@@ -135,3 +135,122 @@ code {
     margin-bottom: 0.25rem;
     color: #64748b;
 }
+
+.forloeb-expand {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(18rem, 1fr);
+    gap: 1.25rem 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .forloeb-expand {
+        grid-template-columns: 1fr;
+    }
+}
+
+.forloeb-timeline {
+    min-width: 0;
+}
+
+.timeline-axis {
+    position: relative;
+    height: 1.25rem;
+    margin: 0 0 0.35rem 7.5rem;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.timeline-tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.timeline-today,
+.timeline-today-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 2px dashed #dc2626;
+    transform: translateX(-1px);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.timeline-today {
+    height: 100%;
+}
+
+.timeline-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.timeline-row {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 1.35rem;
+}
+
+.timeline-label {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeline-track {
+    position: relative;
+    height: 0.85rem;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.timeline-bar {
+    position: absolute;
+    top: 0.1rem;
+    bottom: 0.1rem;
+    border-radius: 999px;
+    min-width: 4px;
+    background: #64748b;
+}
+
+.timeline-bar.is-past {
+    background: #94a3b8;
+}
+
+.timeline-bar.is-current {
+    background: #1b6ec2;
+}
+
+.timeline-bar.is-future {
+    background: #38bdf8;
+}
+
+.timeline-legend-swatch {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    vertical-align: middle;
+    margin-right: 0.2rem;
+    background: #94a3b8;
+}
+
+.timeline-legend-swatch.is-current {
+    background: #1b6ec2;
+}
+
+.timeline-legend-swatch.is-future {
+    background: #38bdf8;
+}

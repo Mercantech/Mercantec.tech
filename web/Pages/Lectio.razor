@@ -177,30 +177,80 @@ else
                                             }
                                             else if (_plans.TryGetValue(s.LectioId, out var plan) && plan.Periods.Count > 0)
                                             {
+                                                var timeline = BuildTimeline(plan.Periods);
                                                 <div class="fw-semibold mb-2">Alle forløb (@plan.Periods.Count)</div>
                                                 @if (!string.IsNullOrWhiteSpace(plan.ClassName))
                                                 {
                                                     <div class="small text-muted mb-2">Klasse i studieplan: @plan.ClassName</div>
                                                 }
-                                                <table class="table table-sm table-bordered mb-0 bg-white" style="max-width: 40rem;">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Forløb</th>
-                                                            <th>Start</th>
-                                                            <th>Slut</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach (var p in plan.Periods)
+                                                <div class="forloeb-expand">
+                                                    <div class="forloeb-list">
+                                                        <table class="table table-sm table-bordered mb-0 bg-white">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Forløb</th>
+                                                                    <th>Start</th>
+                                                                    <th>Slut</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach (var p in plan.Periods)
+                                                                {
+                                                                    <tr>
+                                                                        <td>@p.Name</td>
+                                                                        <td>@(p.StartLabel ?? "—")</td>
+                                                                        <td>@(p.EndLabel ?? "—")</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="forloeb-timeline">
+                                                        @if (timeline is null)
                                                         {
-                                                            <tr>
-                                                                <td>@p.Name</td>
-                                                                <td>@(p.Start ?? "—")</td>
-                                                                <td>@(p.End ?? "—")</td>
-                                                            </tr>
+                                                            <p class="text-muted small mb-0">Ingen datoer til tidslinje.</p>
                                                         }
-                                                    </tbody>
-                                                </table>
+                                                        else
+                                                        {
+                                                            <div class="timeline-axis">
+                                                                @foreach (var tick in timeline.Ticks)
+                                                                {
+                                                                    <span class="timeline-tick" style="left: @(tick.Left.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))%">@tick.Label</span>
+                                                                }
+                                                                @if (timeline.TodayLeft is double todayLeft)
+                                                                {
+                                                                    <span class="timeline-today" style="left: @(todayLeft.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))%" title="I dag"></span>
+                                                                }
+                                                            </div>
+                                                            <div class="timeline-rows">
+                                                                @foreach (var bar in timeline.Bars)
+                                                                {
+                                                                    <div class="timeline-row" title="@bar.Tooltip">
+                                                                        <div class="timeline-label">@bar.Name</div>
+                                                                        <div class="timeline-track">
+                                                                            <div class="timeline-bar @(bar.IsCurrent ? "is-current" : null) @(bar.IsPast ? "is-past" : null) @(bar.IsFuture ? "is-future" : null)"
+                                                                                 style="left: @(bar.Left.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))%; width: @(bar.Width.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))%">
+                                                                            </div>
+                                                                            @if (timeline.TodayLeft is double t2)
+                                                                            {
+                                                                                <span class="timeline-today-track" style="left: @(t2.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))%"></span>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <div class="timeline-legend small text-muted mt-2">
+                                                                <span class="timeline-legend-swatch is-past"></span> Afsluttet
+                                                                <span class="timeline-legend-swatch is-current ms-2"></span> Igangværende
+                                                                <span class="timeline-legend-swatch is-future ms-2"></span> Kommende
+                                                                @if (timeline.TodayLeft is not null)
+                                                                {
+                                                                    <span class="ms-2">· lodret streg = i dag</span>
+                                                                }
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
                                             }
                                             else
                                             {
@@ -622,19 +672,77 @@ else
             foreach (var item in arr.EnumerateArray())
             {
                 var name = GetString(item, "name") ?? GetString(item, "Name") ?? "—";
-                var start = FormatDate(item, "startDate")
-                            ?? FormatDate(item, "StartDate")
-                            ?? GetString(item, "startDate")
-                            ?? GetString(item, "StartDate");
-                var end = FormatDate(item, "endDate")
-                          ?? FormatDate(item, "EndDate")
-                          ?? GetString(item, "endDate")
-                          ?? GetString(item, "EndDate");
-                periods.Add(new PeriodRow(name, start, end));
+                var start = ParseDateOnly(item, "startDate") ?? ParseDateOnly(item, "StartDate");
+                var end = ParseDateOnly(item, "endDate") ?? ParseDateOnly(item, "EndDate");
+                periods.Add(new PeriodRow(
+                    name,
+                    start?.ToString("dd.MM.yyyy"),
+                    end?.ToString("dd.MM.yyyy"),
+                    start,
+                    end));
             }
         }
 
         return new StudentPlan(className, periods);
+    }
+
+    private static TimelineView? BuildTimeline(IReadOnlyList<PeriodRow> periods)
+    {
+        var dated = periods
+            .Where(p => p.StartDate is not null && p.EndDate is not null && p.EndDate >= p.StartDate)
+            .OrderBy(p => p.StartDate)
+            .ToList();
+        if (dated.Count == 0)
+            return null;
+
+        var rangeStart = dated.Min(p => p.StartDate!.Value);
+        var rangeEnd = dated.Max(p => p.EndDate!.Value);
+        // Lidt luft i enderne
+        rangeStart = rangeStart.AddMonths(-1);
+        rangeEnd = rangeEnd.AddMonths(1);
+        var totalDays = Math.Max(1, rangeEnd.DayNumber - rangeStart.DayNumber);
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        double Pct(DateOnly d) =>
+            100.0 * (d.DayNumber - rangeStart.DayNumber) / totalDays;
+
+        double? todayLeft = today >= rangeStart && today <= rangeEnd ? Pct(today) : null;
+
+        var bars = dated.Select(p =>
+        {
+            var left = Pct(p.StartDate!.Value);
+            var right = Pct(p.EndDate!.Value);
+            var width = Math.Max(0.8, right - left);
+            var isPast = p.EndDate < today;
+            var isFuture = p.StartDate > today;
+            var isCurrent = !isPast && !isFuture;
+            return new TimelineBar(
+                p.Name,
+                left,
+                width,
+                isPast,
+                isCurrent,
+                isFuture,
+                $"{p.Name}: {p.StartLabel} – {p.EndLabel}");
+        }).ToList();
+
+        var ticks = new List<TimelineTick>();
+        var year = rangeStart.Year;
+        while (year <= rangeEnd.Year)
+        {
+            var jan1 = new DateOnly(year, 1, 1);
+            if (jan1 >= rangeStart && jan1 <= rangeEnd)
+                ticks.Add(new TimelineTick(Pct(jan1), year.ToString()));
+            year++;
+        }
+
+        if (ticks.Count == 0)
+        {
+            ticks.Add(new TimelineTick(0, rangeStart.ToString("MMM yyyy")));
+            ticks.Add(new TimelineTick(100, rangeEnd.ToString("MMM yyyy")));
+        }
+
+        return new TimelineView(bars, ticks, todayLeft);
     }
 
     private static bool TryGetArray(JsonElement el, string name, out JsonElement arr)
@@ -681,16 +789,24 @@ else
 
     private static string? FormatDate(JsonElement el, string name)
     {
+        var d = ParseDateOnly(el, name);
+        return d?.ToString("dd.MM.yyyy");
+    }
+
+    private static DateOnly? ParseDateOnly(JsonElement el, string name)
+    {
         if (!el.TryGetProperty(name, out var p) || p.ValueKind == JsonValueKind.Null) return null;
         if (p.ValueKind == JsonValueKind.String)
         {
-            if (DateTimeOffset.TryParse(p.GetString(), out var dto))
-                return dto.ToString("dd.MM.yyyy");
-            return p.GetString();
+            var raw = p.GetString();
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            if (DateOnly.TryParse(raw, out var d)) return d;
+            if (DateTimeOffset.TryParse(raw, out var dto)) return DateOnly.FromDateTime(dto.Date);
+            return null;
         }
 
         if (p.TryGetDateTimeOffset(out var dt))
-            return dt.ToString("dd.MM.yyyy");
+            return DateOnly.FromDateTime(dt.Date);
         return null;
     }
 
@@ -738,5 +854,26 @@ else
 
     private sealed record StudentPlan(string? ClassName, List<PeriodRow> Periods);
 
-    private sealed record PeriodRow(string Name, string? Start, string? End);
+    private sealed record PeriodRow(
+        string Name,
+        string? StartLabel,
+        string? EndLabel,
+        DateOnly? StartDate,
+        DateOnly? EndDate);
+
+    private sealed record TimelineView(
+        IReadOnlyList<TimelineBar> Bars,
+        IReadOnlyList<TimelineTick> Ticks,
+        double? TodayLeft);
+
+    private sealed record TimelineBar(
+        string Name,
+        double Left,
+        double Width,
+        bool IsPast,
+        bool IsCurrent,
+        bool IsFuture,
+        string Tooltip);
+
+    private sealed record TimelineTick(double Left, string Label);
 }
