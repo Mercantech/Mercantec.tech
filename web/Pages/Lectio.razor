@@ -68,25 +68,87 @@ else
             }
             else if (_students.Count > 0)
             {
+                <div class="mb-2" style="max-width: 20rem;">
+                    <input class="form-control form-control-sm" @bind="_teacherFilter" @bind:event="oninput"
+                           placeholder="Filtrér på navn, klasse, læreplads…" />
+                </div>
                 <div class="table-responsive">
                     <table class="table table-sm table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Navn</th>
-                                <th>Lectio-id</th>
                                 <th>Klasse</th>
                                 <th>XPRS</th>
+                                <th>Læreplads</th>
+                                <th>Forløb</th>
+                                <th>VUF</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var s in _students)
+                            @foreach (var s in FilteredStudents)
                             {
                                 <tr>
-                                    <td>@s.Name</td>
-                                    <td><code>@s.LectioId</code></td>
+                                    <td>
+                                        <div>@s.Name</div>
+                                        <code class="small text-muted">@s.LectioId</code>
+                                    </td>
                                     <td>@(s.ClassName ?? "—")</td>
-                                    <td>@(s.Xprs ?? "—")</td>
+                                    <td>
+                                        @(s.Xprs ?? "—")
+                                        @if (!string.IsNullOrWhiteSpace(s.AgreementType))
+                                        {
+                                            <div class="small text-muted">@s.AgreementType</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(s.WorkplaceName))
+                                        {
+                                            <div>@s.WorkplaceName</div>
+                                            @if (!string.IsNullOrWhiteSpace(s.WorkplaceCvr))
+                                            {
+                                                <div class="small text-muted">CVR @s.WorkplaceCvr</div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(s.WorkplacePhone))
+                                            {
+                                                <div class="small text-muted">@s.WorkplacePhone</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(s.ForloebName))
+                                        {
+                                            <div>@s.ForloebName</div>
+                                            @if (!string.IsNullOrWhiteSpace(s.ForloebDates))
+                                            {
+                                                <div class="small text-muted">@s.ForloebDates</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (s.VufEarned is not null || s.VufRequired is not null)
+                                        {
+                                            <span class="@(s.VufOk == true ? "text-success" : "")">
+                                                @(s.VufEarned?.ToString() ?? "?")/@(s.VufRequired?.ToString() ?? "?")
+                                            </span>
+                                            @if (s.VufPercent is not null)
+                                            {
+                                                <div class="small text-muted">@s.VufPercent.Value.ToString("0.#") %</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
                                     <td>
                                         <a href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener">Åbn</a>
                                     </td>
@@ -95,6 +157,10 @@ else
                         </tbody>
                     </table>
                 </div>
+                @if (FilteredStudents.Count == 0)
+                {
+                    <p class="text-muted small">Ingen elever matcher filteret.</p>
+                }
             }
         </section>
     }
@@ -201,6 +267,7 @@ else
     private string? _meStudent;
     private string? _authName;
     private string? _selectedLectioId;
+    private string _teacherFilter = "";
     private bool _busy;
     private bool _linkOk;
     private bool _loading;
@@ -208,6 +275,27 @@ else
     private bool _dismissed;
     private readonly List<StudentRow> _students = [];
     private readonly List<CandidateRow> _candidates = [];
+
+    private IEnumerable<StudentRow> FilteredStudents
+    {
+        get
+        {
+            var q = _teacherFilter.Trim();
+            if (q.Length == 0) return _students;
+            return _students.Where(s =>
+                Contains(s.Name, q)
+                || Contains(s.ClassName, q)
+                || Contains(s.Xprs, q)
+                || Contains(s.WorkplaceName, q)
+                || Contains(s.ForloebName, q)
+                || Contains(s.LectioId, q)
+                || Contains(s.AgreementType, q));
+        }
+    }
+
+    private static bool Contains(string? hay, string needle) =>
+        !string.IsNullOrEmpty(hay)
+        && hay.Contains(needle, StringComparison.CurrentCultureIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -325,11 +413,61 @@ else
 
         foreach (var item in arr.EnumerateArray())
         {
+            string? workplaceName = null;
+            string? workplaceCvr = null;
+            string? workplacePhone = null;
+            if (item.TryGetProperty("workplace", out var wp) && wp.ValueKind == JsonValueKind.Object)
+            {
+                workplaceName = GetString(wp, "name");
+                workplaceCvr = GetString(wp, "cvr");
+                workplacePhone = GetString(wp, "phone");
+            }
+
+            string? forloebName = null;
+            string? forloebDates = null;
+            if (item.TryGetProperty("h6", out var h6) && h6.ValueKind == JsonValueKind.Object)
+            {
+                forloebName = GetString(h6, "name");
+                var start = FormatDate(h6, "startDate");
+                var end = FormatDate(h6, "endDate");
+                if (!string.IsNullOrWhiteSpace(start) || !string.IsNullOrWhiteSpace(end))
+                    forloebDates = $"{start ?? "?"} – {end ?? "?"}";
+                var level = GetString(h6, "level") ?? (h6.TryGetProperty("level", out var lv) && lv.ValueKind == JsonValueKind.Number
+                    ? lv.ToString()
+                    : null);
+                if (!string.IsNullOrWhiteSpace(level) && !string.IsNullOrWhiteSpace(forloebName))
+                    forloebName = $"{level}: {forloebName}";
+                else if (!string.IsNullOrWhiteSpace(level))
+                    forloebName = level;
+            }
+
+            int? vufEarned = null, vufRequired = null;
+            double? vufPercent = null;
+            bool? vufOk = null;
+            if (item.TryGetProperty("vuf", out var vuf) && vuf.ValueKind == JsonValueKind.Object)
+            {
+                vufEarned = GetInt(vuf, "earned");
+                vufRequired = GetInt(vuf, "required");
+                vufPercent = GetDouble(vuf, "percent");
+                if (vuf.TryGetProperty("ok", out var ok) && (ok.ValueKind is JsonValueKind.True or JsonValueKind.False))
+                    vufOk = ok.GetBoolean();
+            }
+
             _students.Add(new StudentRow(
                 LectioId: GetString(item, "lectioId") ?? "",
                 Name: GetString(item, "name") ?? "—",
                 ClassName: GetString(item, "className"),
-                Xprs: GetString(item, "xprsElevType")
+                Xprs: GetString(item, "xprsElevType"),
+                AgreementType: GetString(item, "agreementType"),
+                WorkplaceName: workplaceName,
+                WorkplaceCvr: workplaceCvr,
+                WorkplacePhone: workplacePhone,
+                ForloebName: forloebName,
+                ForloebDates: forloebDates,
+                VufEarned: vufEarned,
+                VufRequired: vufRequired,
+                VufPercent: vufPercent,
+                VufOk: vufOk
             ));
         }
     }
@@ -393,6 +531,33 @@ else
     private static string? GetString(JsonElement el, string name) =>
         el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
 
+    private static int? GetInt(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var p) || p.ValueKind == JsonValueKind.Null) return null;
+        return p.TryGetInt32(out var i) ? i : null;
+    }
+
+    private static double? GetDouble(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var p) || p.ValueKind == JsonValueKind.Null) return null;
+        return p.TryGetDouble(out var d) ? d : null;
+    }
+
+    private static string? FormatDate(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var p) || p.ValueKind == JsonValueKind.Null) return null;
+        if (p.ValueKind == JsonValueKind.String)
+        {
+            if (DateTimeOffset.TryParse(p.GetString(), out var dto))
+                return dto.ToString("dd.MM.yyyy");
+            return p.GetString();
+        }
+
+        if (p.TryGetDateTimeOffset(out var dt))
+            return dt.ToString("dd.MM.yyyy");
+        return null;
+    }
+
     private static string Pretty(string json)
     {
         try
@@ -417,6 +582,21 @@ else
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 
-    private sealed record StudentRow(string LectioId, string Name, string? ClassName, string? Xprs);
+    private sealed record StudentRow(
+        string LectioId,
+        string Name,
+        string? ClassName,
+        string? Xprs,
+        string? AgreementType,
+        string? WorkplaceName,
+        string? WorkplaceCvr,
+        string? WorkplacePhone,
+        string? ForloebName,
+        string? ForloebDates,
+        int? VufEarned,
+        int? VufRequired,
+        double? VufPercent,
+        bool? VufOk);
+
     private sealed record CandidateRow(string LectioId, string Name, string? ClassName, string? Xprs);
 }
