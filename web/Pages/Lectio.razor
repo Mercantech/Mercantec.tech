@@ -112,7 +112,7 @@ else
                 {
                     <div class="lectio-facet @(_openFacet == "year" ? "is-open" : null)">
                         <button type="button" @onclick='() => ToggleFacet("year")'>
-                            År@FacetCount(_yearFilter)
+                            År@(FacetCount(_yearFilter))
                         </button>
                         @if (_openFacet == "year")
                         {
@@ -133,7 +133,7 @@ else
                 {
                     <div class="lectio-facet @(_openFacet == "fag" ? "is-open" : null)">
                         <button type="button" @onclick='() => ToggleFacet("fag")'>
-                            Fag@FacetCount(_fagFilter)
+                            Fag@(FacetCount(_fagFilter))
                         </button>
                         @if (_openFacet == "fag")
                         {
@@ -431,7 +431,7 @@ else
                     @if (classOptions.Count > 0)
                     {
                         <div class="lectio-facet @(_openFacet == "class" ? "is-open" : null)">
-                            <button type="button" @onclick='() => ToggleFacet("class")'>Klasse@FacetCount(_classFilter)</button>
+                            <button type="button" @onclick='() => ToggleFacet("class")'>Klasse@(FacetCount(_classFilter))</button>
                             @if (_openFacet == "class")
                             {
                                 <div class="lectio-facet-menu">
@@ -450,7 +450,7 @@ else
                     @if (xprsOptions.Count > 0)
                     {
                         <div class="lectio-facet @(_openFacet == "xprs" ? "is-open" : null)">
-                            <button type="button" @onclick='() => ToggleFacet("xprs")'>XPRS@FacetCount(_xprsFilter)</button>
+                            <button type="button" @onclick='() => ToggleFacet("xprs")'>XPRS@(FacetCount(_xprsFilter))</button>
                             @if (_openFacet == "xprs")
                             {
                                 <div class="lectio-facet-menu">
@@ -469,7 +469,7 @@ else
                     @if (agreementOptions.Count > 0)
                     {
                         <div class="lectio-facet @(_openFacet == "agreement" ? "is-open" : null)">
-                            <button type="button" @onclick='() => ToggleFacet("agreement")'>Aftale@FacetCount(_agreementFilter)</button>
+                            <button type="button" @onclick='() => ToggleFacet("agreement")'>Aftale@(FacetCount(_agreementFilter))</button>
                             @if (_openFacet == "agreement")
                             {
                                 <div class="lectio-facet-menu">
@@ -488,7 +488,7 @@ else
                     @if (forloebOptions.Count > 0)
                     {
                         <div class="lectio-facet @(_openFacet == "forloeb" ? "is-open" : null)">
-                            <button type="button" @onclick='() => ToggleFacet("forloeb")'>Forløb@FacetCount(_forloebFilter)</button>
+                            <button type="button" @onclick='() => ToggleFacet("forloeb")'>Forløb@(FacetCount(_forloebFilter))</button>
                             @if (_openFacet == "forloeb")
                             {
                                 <div class="lectio-facet-menu">
@@ -515,7 +515,7 @@ else
                     <label class="lectio-select">
                         <span class="visually-hidden">VUF</span>
                         <select class="form-select" @bind="_vufFilter">
-                            <option value="@VufPresence.All">Al VUF</option>
+                            <option value="@VufPresence.All">Alle VUF</option>
                             <option value="@VufPresence.Ok">VUF ok</option>
                             <option value="@VufPresence.NotOk">VUF ikke ok</option>
                             <option value="@VufPresence.Missing">VUF mangler</option>
