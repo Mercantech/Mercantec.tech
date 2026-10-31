@@ -22,10 +22,11 @@ Elevlister skal spejle skolevirkeligheden uden at låse platformen totalt til Le
 
 ## Acceptkriterier
 
-- [ ] Opret forløb opretter/tilknytter præcis ét hold
-- [ ] Elevliste synkroniseres primært fra Lectio
-- [ ] Underviser/admin kan tilføje elev manuelt
-- [ ] Samme elev kan tilhøre flere hold
+- [x] Opret forløb opretter/tilknytter præcis ét hold (API stub)
+- [ ] Elevliste synkroniseres primært fra Lectio (kontrakt + scoped read; fuld sync senere)
+- [x] Underviser/admin kan tilføje elev manuelt (API stub)
+- [x] Samme elev kan tilhøre flere hold (model)
+- [x] Elev ser kun egne Lectio-data; underviser ser alt ([[ADR-003-lectio-integration]])
 
 ## Afhængigheder
 

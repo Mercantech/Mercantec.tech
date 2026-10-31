@@ -1,0 +1,167 @@
+@page "/lectio"
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Lectio</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <h1>Lectio</h1>
+    <p class="text-muted">
+        Data fra Lectio-Collector. Elev ser kun egne data; underviser ser alle.
+        <a href="https://lc.mags.dk" target="_blank" rel="noopener">Åbn Collector</a>
+    </p>
+
+    <p>
+        App-rolle: <strong>@Redirect.CurrentAppRole()</strong>
+    </p>
+
+    @if (_error is not null)
+    {
+        <p class="text-danger">@_error</p>
+    }
+
+    @if (Redirect.CurrentAppRole() == AppRole.Elev)
+    {
+        <section class="mb-4">
+            <h2 class="h5">Kobl Lectio elev-id</h2>
+            <div class="input-group" style="max-width: 28rem;">
+                <input class="form-control" @bind="_lectioId" placeholder="Lectio elev-id" />
+                <button class="btn btn-primary" disabled="@_busy" @onclick="LinkAsync">Kobl</button>
+            </div>
+            @if (_linkOk)
+            {
+                <p class="text-success mt-2">Kobling gemt.</p>
+            }
+        </section>
+
+        <section class="mb-4">
+            <h2 class="h5">Mine data</h2>
+            @if (_meStudent is not null)
+            {
+                <pre class="bg-light border rounded p-3 small">@_meStudent</pre>
+            }
+            else if (_meJson is not null)
+            {
+                <pre class="bg-light border rounded p-3 small">@_meJson</pre>
+            }
+        </section>
+    }
+    else
+    {
+        <section class="mb-4">
+            <h2 class="h5">Programmeringselever (underviser)</h2>
+            @if (_listJson is not null)
+            {
+                <pre class="bg-light border rounded p-3 small" style="max-height: 28rem; overflow: auto;">@_listJson</pre>
+            }
+        </section>
+    }
+
+    <p><a href="@Redirect.PostLoginPath()">Tilbage til dashboard</a></p>
+}
+
+@code {
+    private string? _error;
+    private string? _meJson;
+    private string? _meStudent;
+    private string? _listJson;
+    private string? _lectioId;
+    private bool _busy;
+    private bool _linkOk;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Auth.IsInitialized) return;
+        if (!Auth.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        _error = null;
+        try
+        {
+            var me = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/me");
+            _meJson = System.Text.Json.JsonSerializer.Serialize(me, Indented);
+
+            if (Redirect.CurrentAppRole() == AppRole.Elev)
+            {
+                try
+                {
+                    var student = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/me/student");
+                    _meStudent = System.Text.Json.JsonSerializer.Serialize(student, Indented);
+                }
+                catch (Exception ex)
+                {
+                    _meStudent = null;
+                    _error = ex.Message;
+                }
+            }
+            else
+            {
+                var list = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/programmeringselever");
+                _listJson = System.Text.Json.JsonSerializer.Serialize(list, Indented);
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task LinkAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_lectioId)) return;
+        _busy = true;
+        _linkOk = false;
+        _error = null;
+        try
+        {
+            var res = await Http.PutAsJsonAsync("lectio/me/lectio-link", new { lectioId = _lectioId.Trim() });
+            if (!res.IsSuccessStatusCode)
+            {
+                _error = await res.Content.ReadAsStringAsync();
+                return;
+            }
+
+            _linkOk = true;
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static readonly System.Text.Json.JsonSerializerOptions Indented = new() { WriteIndented = true };
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

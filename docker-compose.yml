@@ -30,6 +30,7 @@ services:
       AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.mercantec.tech}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-mercantec-apps}
       JWKS_URI: ${JWKS_URI:-https://auth.mercantec.tech/.well-known/jwks.json}
+      Lectio__BaseUrl: ${LECTIO_BASE_URL:-https://lc.mags.dk/api/}
     depends_on:
       db:
         condition: service_healthy

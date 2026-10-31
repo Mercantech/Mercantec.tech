@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Integrations.Lectio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,18 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.Configure<LectioOptions>(builder.Configuration.GetSection(LectioOptions.SectionName));
+builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>
+{
+    var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LectioOptions>>().Value;
+    var baseUrl = string.IsNullOrWhiteSpace(opts.BaseUrl)
+        ? "https://lc.mags.dk/api/"
+        : opts.BaseUrl.TrimEnd('/') + "/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddScoped<ILectioMembershipSync>(sp => sp.GetRequiredService<LectioCollectorClient>());
 
 var connectionString =
     builder.Configuration.GetConnectionString("Default")
