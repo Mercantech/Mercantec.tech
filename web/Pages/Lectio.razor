@@ -157,7 +157,7 @@ else
                         </tbody>
                     </table>
                 </div>
-                @if (FilteredStudents.Count == 0)
+                @if (!string.IsNullOrWhiteSpace(_teacherFilter) && !FilteredStudents.Any())
                 {
                     <p class="text-muted small">Ingen elever matcher filteret.</p>
                 }
