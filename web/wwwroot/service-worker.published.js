@@ -21,11 +21,22 @@ async function onInstall(event) {
     // Activate updated SW immediately so routes like /lectio appear without hard-reset.
     self.skipWaiting();
 
-    const assetsRequests = self.assetsManifest.assets
+    // Integrity på cache.addAll fejler bag Cloudflare, fordi de serverede WASM-bytes
+    // ikke matcher manifest-hashen. App-loaderen validerer stadig selv. Ét mismatch
+    // må ikke afvise hele installationen.
+    const assets = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
-        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
-        .map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
-    await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
+        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)));
+    const cache = await caches.open(cacheName);
+    await Promise.all(assets.map(async (asset) => {
+        try {
+            const response = await fetch(asset.url, { cache: 'no-cache' });
+            if (response.ok)
+                await cache.put(asset.url, response);
+        } catch (err) {
+            console.warn('Service worker: skipped', asset.url, err);
+        }
+    }));
 }
 
 async function onActivate(event) {
