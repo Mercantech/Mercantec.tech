@@ -41,6 +41,22 @@ public class LectioController(LectioCollectorClient lectio) : ControllerBase
     public Task<IActionResult> Studieplan(string elevId, CancellationToken ct) =>
         ProxyAsync(() => lectio.GetStudieplanAsync(elevId, RequireBearer(), ct), ct);
 
+    [HttpGet("holds/tracked")]
+    public Task<IActionResult> TrackedHolds(CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+            return Task.FromResult<IActionResult>(Forbid());
+        return ProxyAsync(() => lectio.GetTrackedHoldsAsync(RequireBearer(), ct), ct);
+    }
+
+    [HttpGet("holds/saved")]
+    public Task<IActionResult> SavedHolds(CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+            return Task.FromResult<IActionResult>(Forbid());
+        return ProxyAsync(() => lectio.GetSavedHoldsAsync(RequireBearer(), ct), ct);
+    }
+
     public sealed record LinkBody(string LectioId, Guid? AuthSub);
 
     [HttpPut("me/lectio-link")]

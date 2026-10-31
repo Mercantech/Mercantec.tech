@@ -54,6 +54,22 @@ public class LectioCollectorClient(HttpClient http, ILogger<LectioCollectorClien
         return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
     }
 
+    public async Task<JsonElement> GetTrackedHoldsAsync(string bearerToken, CancellationToken ct = default)
+    {
+        using var req = CreateRequest(HttpMethod.Get, "holds/tracked", bearerToken);
+        using var res = await http.SendAsync(req, ct);
+        await EnsureSuccess(res, ct);
+        return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
+    }
+
+    public async Task<JsonElement> GetSavedHoldsAsync(string bearerToken, CancellationToken ct = default)
+    {
+        using var req = CreateRequest(HttpMethod.Get, "holds/saved", bearerToken);
+        using var res = await http.SendAsync(req, ct);
+        await EnsureSuccess(res, ct);
+        return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
+    }
+
     public async Task LinkAsync(string lectioId, string bearerToken, Guid? authSub = null, CancellationToken ct = default)
     {
         using var req = CreateRequest(HttpMethod.Put, "me/lectio-link", bearerToken);
