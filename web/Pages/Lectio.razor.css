@@ -1,0 +1,371 @@
+.lectio-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.lectio-head h1 {
+    margin-bottom: 0.25rem;
+}
+
+.lectio-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.lectio-segments {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+    background: #f1f5f9;
+    border-radius: 999px;
+}
+
+.lectio-segments button {
+    border: 0;
+    background: transparent;
+    color: #334155;
+    font-weight: 650;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+}
+
+.lectio-segments button.is-active {
+    background: #1b6ec2;
+    color: #fff;
+}
+
+.lectio-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.lectio-panel-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.lectio-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.lectio-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 7.5rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid #dbe3ee;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: #334155;
+    text-align: left;
+}
+
+button.lectio-stat {
+    cursor: pointer;
+}
+
+button.lectio-stat:hover,
+.lectio-stat.is-active {
+    border-color: #1b6ec2;
+    background: #eff6ff;
+}
+
+.lectio-stat-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #0f172a;
+}
+
+.lectio-filters {
+    position: sticky;
+    top: 3.5rem;
+    z-index: 4;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.65rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.lectio-search {
+    flex: 1 1 16rem;
+    margin: 0;
+}
+
+.lectio-select {
+    margin: 0;
+}
+
+.lectio-select .form-select,
+.lectio-search .form-control {
+    min-height: 2.4rem;
+}
+
+.lectio-facet {
+    position: relative;
+}
+
+.lectio-facet > button {
+    min-height: 2.4rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    background: #fff;
+    color: #0f172a;
+}
+
+.lectio-facet.is-open > button,
+.lectio-facet > button:hover {
+    border-color: #1b6ec2;
+}
+
+.lectio-facet-menu {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    min-width: 14rem;
+    max-height: 16rem;
+    overflow: auto;
+    padding: 0.4rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.lectio-check {
+    display: flex;
+    gap: 0.45rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0.28rem 0.35rem;
+    border-radius: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.lectio-check:hover {
+    background: #f8fafc;
+}
+
+.lectio-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.lectio-chip {
+    border: 0;
+    background: #e0f2fe;
+    color: #0c4a6e;
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.82rem;
+}
+
+.lectio-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lectio-count {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.lectio-table-wrap {
+    max-height: calc(100vh - 14rem);
+    overflow: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+}
+
+.lectio-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.92rem;
+}
+
+.lectio-table th,
+.lectio-table td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: middle;
+    background: #fff;
+}
+
+.lectio-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+    font-weight: 650;
+    color: #475569;
+}
+
+.lectio-table tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.lectio-table tr.is-selected td {
+    background: #eff6ff;
+}
+
+.lectio-table tr.is-open td {
+    background: #f8fafc;
+}
+
+.lectio-check-col {
+    width: 2.2rem;
+}
+
+.lectio-sort {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 650;
+    color: inherit;
+    white-space: nowrap;
+}
+
+.lectio-sort.is-active {
+    color: #1b6ec2;
+}
+
+.lectio-name,
+.lectio-count-btn {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #0f172a;
+    font-weight: 650;
+    text-align: left;
+}
+
+.lectio-name:hover,
+.lectio-count-btn:hover,
+.lectio-sort:hover {
+    color: #1b6ec2;
+}
+
+.lectio-expand-row td {
+    background: #f8fafc !important;
+}
+
+.lectio-empty {
+    margin: 0;
+    padding: 1.25rem;
+    text-align: center;
+    color: #64748b;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+}
+
+.vuf-readout {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 4.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.vuf-readout.is-ok {
+    color: #15803d;
+}
+
+.vuf-readout.is-bad {
+    color: #b45309;
+}
+
+.vuf-bar {
+    display: block;
+    height: 0.35rem;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.vuf-bar > span {
+    display: block;
+    height: 100%;
+    background: #b45309;
+}
+
+.vuf-readout.is-ok .vuf-bar > span {
+    background: #15803d;
+}
+
+.lectio-members-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.lectio-members-head .form-control {
+    max-width: 18rem;
+}
+
+.lectio-member-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 22rem;
+    overflow: auto;
+}
+
+.lectio-member-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.45rem 0.65rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.55rem;
+}
+
+@media (max-width: 720px) {
+    .lectio-filters {
+        position: static;
+    }
+
+    .lectio-table-wrap {
+        max-height: none;
+    }
+
+    .lectio-facet-menu {
+        position: static;
+        box-shadow: none;
+        margin-top: 0.35rem;
+    }
+}

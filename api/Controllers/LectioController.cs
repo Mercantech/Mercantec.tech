@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Services;
@@ -7,7 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Mercantec.Tech.Api.Controllers;
 
-/// <summary>Proxy til Lectio-Collector med brugerens Bearer — elev=egen, underviser=alt (håndhæves i LC).</summary>
+/// <summary>
+/// Proxy til Lectio-Collector. Udgående kald bruger den Bearer, JWT-middleware allerede har valideret.
+/// Rolle og sub læses kun fra den principal — aldrig fra body eller query.
+/// </summary>
 [ApiController]
 [Route("api/lectio")]
 [Authorize]
@@ -35,12 +39,39 @@ public class LectioController(LectioCollectorClient lectio, MembershipClaimServi
         ProxyAsync(() => lectio.GetLectioCandidatesAsync(RequireBearer(), ct), ct);
 
     [HttpGet("programmeringselever")]
-    public Task<IActionResult> Programmeringselever(CancellationToken ct) =>
-        ProxyAsync(() => lectio.GetProgrammeringseleverAsync(RequireBearer(), ct), ct);
+    public Task<IActionResult> Programmeringselever(CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+            return Task.FromResult<IActionResult>(Forbid());
+        return ProxyAsync(() => lectio.GetProgrammeringseleverAsync(RequireBearer(), ct), ct);
+    }
 
     [HttpGet("students/{elevId}/studieplan")]
-    public Task<IActionResult> Studieplan(string elevId, CancellationToken ct) =>
-        ProxyAsync(() => lectio.GetStudieplanAsync(elevId, RequireBearer(), ct), ct);
+    public async Task<IActionResult> Studieplan(string elevId, CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+        {
+            string? ownId;
+            try
+            {
+                ownId = await ResolveOwnLectioIdAsync(ct);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { error = "missing_bearer" });
+            }
+            catch (LectioCollectorException ex)
+            {
+                return StatusCode(ex.StatusCode, ex.Body);
+            }
+
+            if (string.IsNullOrWhiteSpace(ownId)
+                || !string.Equals(ownId, elevId, StringComparison.OrdinalIgnoreCase))
+                return Forbid();
+        }
+
+        return await ProxyAsync(() => lectio.GetStudieplanAsync(elevId, RequireBearer(), ct), ct);
+    }
 
     [HttpGet("holds/tracked")]
     public Task<IActionResult> TrackedHolds(CancellationToken ct)
@@ -73,11 +104,13 @@ public class LectioController(LectioCollectorClient lectio, MembershipClaimServi
     {
         try
         {
-            await lectio.LinkAsync(body.LectioId, RequireBearer(), body.AuthSub, ct);
-
-            var sub = body.AuthSub is Guid overrideSub && overrideSub != Guid.Empty
+            var isTeacher = UserClaims.IsTeacher(User);
+            Guid? authSub = isTeacher && body.AuthSub is Guid overrideSub && overrideSub != Guid.Empty
                 ? overrideSub
-                : UserClaims.GetSub(User);
+                : null;
+            await lectio.LinkAsync(body.LectioId, RequireBearer(), authSub, ct);
+
+            var sub = authSub ?? UserClaims.GetSub(User);
             var claimed = 0;
             if (sub is Guid s)
                 claimed = await claims.ClaimByLectioIdAsync(s, body.LectioId, ct);
@@ -131,6 +164,20 @@ public class LectioController(LectioCollectorClient lectio, MembershipClaimServi
         {
             return StatusCode(ex.StatusCode, ex.Body);
         }
+    }
+
+    private async Task<string?> ResolveOwnLectioIdAsync(CancellationToken ct)
+    {
+        var me = await lectio.GetMeAsync(RequireBearer(), ct);
+        if (!me.TryGetProperty("lectio", out var lectioEl)
+            || lectioEl.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return null;
+        if (lectioEl.ValueKind != JsonValueKind.Object
+            || !lectioEl.TryGetProperty("lectioId", out var id)
+            || id.ValueKind != JsonValueKind.String)
+            return null;
+        var value = id.GetString();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     private string RequireBearer()

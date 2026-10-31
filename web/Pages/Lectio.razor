@@ -21,46 +21,39 @@ else
 {
     var isTeacher = Redirect.CurrentAppRole() == AppRole.Underviser;
 
-    <h1>Lectio</h1>
-    <p class="text-muted mb-2">
-        Data fra Lectio-Collector.
-        @(isTeacher ? "Som underviser kan du se alle elever." : "Som elev ser du kun dig selv (efter kobling).")
-    </p>
-    <p class="mb-3">
-        App-rolle: <strong>@(isTeacher ? "underviser" : "elev")</strong>
-        @if (Auth.Roles.Count > 0)
-        {
-            <span class="text-muted"> · Auth: @string.Join(", ", Auth.Roles)</span>
-        }
-    </p>
-
     @if (isTeacher)
     {
-        <div class="mb-3 d-flex flex-wrap gap-2">
-            <a class="btn btn-primary" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
-                Åbn i Lectio-Collector
-            </a>
-            <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
-                @(_loading ? "Henter…" : "Genindlæs")
+        <header class="lectio-head">
+            <div>
+                <h1>Lectio</h1>
+                <p class="text-muted mb-0">Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
+            </div>
+            <div class="lectio-head-actions">
+                <a class="btn btn-primary" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
+                    Åbn i Lectio-Collector
+                </a>
+                <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
+                    @(_loading ? "Henter…" : "Genindlæs")
+                </button>
+            </div>
+        </header>
+        <div class="lectio-segments" role="tablist">
+            <button type="button" role="tab" class="@(_teacherTab == TeacherTab.Elever ? "is-active" : null)"
+                    aria-selected="@(_teacherTab == TeacherTab.Elever)"
+                    @onclick="ShowStudents">
+                Elever
+            </button>
+            <button type="button" role="tab" class="@(_teacherTab == TeacherTab.Hold ? "is-active" : null)"
+                    aria-selected="@(_teacherTab == TeacherTab.Hold)"
+                    @onclick="() => SwitchToHoldTabAsync()">
+                Hold
             </button>
         </div>
-        <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-                <button type="button" class="nav-link @(_teacherTab == TeacherTab.Elever ? "active" : null)"
-                        @onclick="() => _teacherTab = TeacherTab.Elever">
-                    Programmeringselever
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link @(_teacherTab == TeacherTab.Hold ? "active" : null)"
-                        @onclick="() => SwitchToHoldTabAsync()">
-                    Hold
-                </button>
-            </li>
-        </ul>
-        <p class="text-muted small">
-            Data spejles fra lc.mags.dk. Elever kobler selv via navnematch; hold er de samme som i Collector.
-        </p>
+    }
+    else
+    {
+        <h1>Lectio</h1>
+        <p class="text-muted mb-3">Som elev ser du kun dig selv, efter din profil er koblet.</p>
     }
 
     @if (_error is not null)
@@ -74,19 +67,28 @@ else
     }
     else if (isTeacher && _teacherTab == TeacherTab.Hold)
     {
-        <section class="mb-4">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                <h2 class="h5 mb-0">
-                    Hold (@FilteredHolds.Count())
+        var holds = VisibleHolds;
+        <section class="lectio-panel">
+            <div class="lectio-panel-top">
+                <div class="lectio-stats" role="group" aria-label="Hold-overblik">
+                    <button type="button" class="lectio-stat @(!HasHoldFilters ? "is-active" : null)" @onclick="ResetHoldFilters">
+                        <span class="lectio-stat-num">@holds.Count</span>
+                        <span>af @_holds.Count hold</span>
+                    </button>
                     @if (_holdSummary is not null)
                     {
-                        <span class="text-muted fw-normal small">
-                            · @_holdSummary.HoldCount i Collector
-                            · @_holdSummary.UniqueStudents unikke elever
-                        </span>
+                        <div class="lectio-stat is-static">
+                            <span class="lectio-stat-num">@_holdSummary.UniqueStudents</span>
+                            <span>unikke elever</span>
+                        </div>
                     }
-                </h2>
-                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="lectio-stat @(_holdPeriod == HoldPeriod.Ongoing ? "is-active" : null)"
+                            @onclick="() => SetHoldPeriod(HoldPeriod.Ongoing)">
+                        <span class="lectio-stat-num">@OngoingHoldCount</span>
+                        <span>igangværende</span>
+                    </button>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Hold-kilde">
                     <button type="button" class="btn @(_holdScope == HoldScope.Tracked ? "btn-primary" : "btn-outline-primary")"
                             @onclick="() => SetHoldScopeAsync(HoldScope.Tracked)">
                         Tracked
@@ -97,30 +99,121 @@ else
                     </button>
                 </div>
             </div>
-            <div class="d-flex flex-wrap align-items-end gap-2 mb-2">
-                <div style="max-width: 20rem; flex: 1 1 12rem;">
-                    <input class="form-control form-control-sm" @bind="_holdFilter" @bind:event="oninput"
-                           placeholder="Filtrér hold, år, fag…" />
+            <div class="lectio-filters">
+                <label class="lectio-search">
+                    <span class="visually-hidden">Søg hold</span>
+                    <input class="form-control" @bind="_holdQuery" @bind:event="oninput" placeholder="Søg navn, nøgle eller fag" />
+                </label>
+                @{
+                    var yearOptions = YearOptions;
+                    var fagOptions = FagOptions;
+                }
+                @if (yearOptions.Count > 0)
+                {
+                    <div class="lectio-facet @(_openFacet == "year" ? "is-open" : null)">
+                        <button type="button" @onclick='() => ToggleFacet("year")'>
+                            År@FacetCount(_yearFilter)
+                        </button>
+                        @if (_openFacet == "year")
+                        {
+                            <div class="lectio-facet-menu">
+                                @foreach (var value in yearOptions)
+                                {
+                                    var v = value;
+                                    <label class="lectio-check">
+                                        <input type="checkbox" checked="@_yearFilter.Contains(v)" @onchange="() => ToggleValue(_yearFilter, v)" />
+                                        <span>@v</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                @if (fagOptions.Count > 0)
+                {
+                    <div class="lectio-facet @(_openFacet == "fag" ? "is-open" : null)">
+                        <button type="button" @onclick='() => ToggleFacet("fag")'>
+                            Fag@FacetCount(_fagFilter)
+                        </button>
+                        @if (_openFacet == "fag")
+                        {
+                            <div class="lectio-facet-menu">
+                                @foreach (var value in fagOptions)
+                                {
+                                    var v = value;
+                                    <label class="lectio-check">
+                                        <input type="checkbox" checked="@_fagFilter.Contains(v)" @onchange="() => ToggleValue(_fagFilter, v)" />
+                                        <span>@v</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                @if (_holdScope == HoldScope.Saved)
+                {
+                    <label class="lectio-select">
+                        <span class="visually-hidden">Status</span>
+                        <select class="form-select" @bind="_holdStatus">
+                            <option value="@HoldStatusFilter.All">Alle statusser</option>
+                            <option value="@HoldStatusFilter.Tracked">Tracked</option>
+                            <option value="@HoldStatusFilter.SavedOnly">Kun gemt</option>
+                        </select>
+                    </label>
+                }
+                <label class="lectio-select">
+                    <span class="visually-hidden">Periode</span>
+                    <select class="form-select" @bind="_holdPeriod">
+                        <option value="@HoldPeriod.All">Alle perioder</option>
+                        <option value="@HoldPeriod.Ongoing">Igangværende</option>
+                        <option value="@HoldPeriod.Upcoming">Kommende</option>
+                        <option value="@HoldPeriod.Finished">Afsluttet</option>
+                        <option value="@HoldPeriod.NoDate">Uden dato</option>
+                    </select>
+                </label>
+                <button type="button" class="btn btn-outline-secondary" disabled="@(!HasHoldFilters)" @onclick="ResetHoldFilters">Nulstil</button>
+            </div>
+            @if (HasHoldFilters)
+            {
+                <div class="lectio-chips">
+                    @if (!string.IsNullOrWhiteSpace(_holdQuery))
+                    {
+                        <button type="button" class="lectio-chip" @onclick="() => _holdQuery = string.Empty">Søgning: @_holdQuery.Trim() <span aria-hidden="true">×</span></button>
+                    }
+                    @foreach (var value in _yearFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        var chip = value;
+                        <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_yearFilter, chip)">År: @chip <span aria-hidden="true">×</span></button>
+                    }
+                    @foreach (var value in _fagFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                    {
+                        var chip = value;
+                        <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_fagFilter, chip)">Fag: @chip <span aria-hidden="true">×</span></button>
+                    }
+                    @if (_holdScope == HoldScope.Saved && _holdStatus != HoldStatusFilter.All)
+                    {
+                        <button type="button" class="lectio-chip" @onclick="() => _holdStatus = HoldStatusFilter.All">Status: @HoldStatusLabel(_holdStatus) <span aria-hidden="true">×</span></button>
+                    }
+                    @if (_holdPeriod != HoldPeriod.All)
+                    {
+                        <button type="button" class="lectio-chip" @onclick="() => _holdPeriod = HoldPeriod.All">Periode: @HoldPeriodLabel(_holdPeriod) <span aria-hidden="true">×</span></button>
+                    }
                 </div>
+            }
+            <div class="lectio-toolbar">
+                <p class="lectio-count mb-0">@holds.Count af @_holds.Count</p>
                 @if (_selectedHoldKeys.Count > 0)
                 {
-                    <button type="button"
-                            class="btn btn-sm btn-primary"
-                            disabled="@_creatingForloeb"
-                            @onclick="CreateForloebFromSelectedAsync">
-                        @(_creatingForloeb
-                            ? "Opretter…"
-                            : $"Opret forløb fra {_selectedHoldKeys.Count} valgte")
+                    <button type="button" class="btn btn-sm btn-primary" disabled="@_creatingForloeb" @onclick="CreateForloebFromSelectedAsync">
+                        @(_creatingForloeb ? "Opretter…" : $"Opret forløb fra {_selectedHoldKeys.Count} valgte")
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                            disabled="@_creatingForloeb"
-                            @onclick="ClearHoldSelection">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled="@_creatingForloeb" @onclick="ClearHoldSelection">
                         Ryd valg
                     </button>
                 }
             </div>
-            <p class="small text-muted mb-2">
-                Markér flere hold (fx <code>…/pro</code> og <code>…/proEA</code>) for at samle dem i ét forløb med fælles elevliste.
+            <p class="small text-muted mb-0">
+                Markér flere hold (fx <code>…/pro</code> og <code>…/proEA</code>) for at samle dem i ét forløb med fælles elevliste. Klik på navn eller elevtal for at se eleverne.
             </p>
             @if (_holds.Count == 0 && _error is null)
             {
@@ -128,30 +221,31 @@ else
             }
             else if (_holds.Count > 0)
             {
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle">
+                <div class="lectio-table-wrap">
+                    <table class="lectio-table">
                         <thead>
                             <tr>
-                                <th style="width: 2rem;">
+                                <th class="lectio-check-col">
                                     <input type="checkbox"
                                            class="form-check-input"
                                            title="Vælg synlige"
                                            checked="@AllFilteredHoldsSelected"
                                            @onchange="ToggleSelectAllFiltered" />
                                 </th>
-                                <th>Hold</th>
-                                <th>År</th>
-                                <th>Elever</th>
-                                <th>Periode</th>
+                                <th><button type="button" class="lectio-sort @SortClass(HoldSort.Name)" @onclick="() => SetHoldSort(HoldSort.Name)">Hold @SortMark(HoldSort.Name)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(HoldSort.Year)" @onclick="() => SetHoldSort(HoldSort.Year)">År @SortMark(HoldSort.Year)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(HoldSort.Members)" @onclick="() => SetHoldSort(HoldSort.Members)">Elever @SortMark(HoldSort.Members)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(HoldSort.Start)" @onclick="() => SetHoldSort(HoldSort.Start)">Periode @SortMark(HoldSort.Start)</button></th>
                                 <th>Status</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var h in FilteredHolds)
+                            @foreach (var h in holds)
                             {
                                 var selected = _selectedHoldKeys.Contains(h.LectioHoldKey);
-                                <tr class="@(selected ? "table-primary" : null)">
+                                var expanded = string.Equals(_expandedHoldKey, h.LectioHoldKey, StringComparison.OrdinalIgnoreCase);
+                                <tr class="@(selected ? "is-selected" : null) @(expanded ? "is-open" : null)">
                                     <td>
                                         <input type="checkbox"
                                                class="form-check-input"
@@ -160,17 +254,20 @@ else
                                                @onchange="() => ToggleHoldSelection(h.LectioHoldKey)" />
                                     </td>
                                     <td>
-                                        <div>@h.Name</div>
-                                        <code class="small text-muted">@h.LectioHoldKey</code>
+                                        <button type="button" class="lectio-name" title="@h.LectioHoldKey" @onclick="() => ToggleHoldMembersAsync(h.LectioHoldKey)">
+                                            @(expanded ? "▼" : "▶") @h.Name
+                                        </button>
                                         @if (!string.IsNullOrWhiteSpace(h.FagId))
                                         {
                                             <div class="small text-muted">Fag @h.FagId</div>
                                         }
                                     </td>
-                                    <td>@(h.YearLabel ?? h.Year ?? "—")</td>
-                                    <td>@h.MemberCount</td>
+                                    <td>@(YearKey(h) ?? "—")</td>
                                     <td>
-                                        @if (!string.IsNullOrWhiteSpace(h.StartLabel) || !string.IsNullOrWhiteSpace(h.EndLabel))
+                                        <button type="button" class="lectio-count-btn" @onclick="() => ToggleHoldMembersAsync(h.LectioHoldKey)">@h.MemberCount</button>
+                                    </td>
+                                    <td>
+                                        @if (h.StartDate is not null || h.EndDate is not null)
                                         {
                                             <span>@(h.StartLabel ?? "?") – @(h.EndLabel ?? "?")</span>
                                             @if (!string.IsNullOrWhiteSpace(h.DateSource))
@@ -203,13 +300,75 @@ else
                                         <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn</a>
                                     </td>
                                 </tr>
+                                @if (expanded)
+                                {
+                                    <tr class="lectio-expand-row">
+                                        <td colspan="7">
+                                            @if (_loadingHoldKey == h.LectioHoldKey)
+                                            {
+                                                <span class="text-muted">Henter elever…</span>
+                                            }
+                                            else if (_holdMemberErrors.TryGetValue(h.LectioHoldKey, out var memberErr))
+                                            {
+                                                <span class="text-danger">@memberErr</span>
+                                            }
+                                            else if (_holdMembers.TryGetValue(h.LectioHoldKey, out var members))
+                                            {
+                                                var shown = FilterMembers(members);
+                                                <div class="lectio-members">
+                                                    <div class="lectio-members-head">
+                                                        <strong>Elever på holdet (@shown.Count af @members.Count)</strong>
+                                                        <input class="form-control form-control-sm" @bind="_holdMemberQuery" @bind:event="oninput" placeholder="Søg navn eller id" />
+                                                    </div>
+                                                    @if (members.Count == 0)
+                                                    {
+                                                        <p class="text-muted mb-0">Ingen elever på holdet.</p>
+                                                    }
+                                                    else if (shown.Count == 0)
+                                                    {
+                                                        <p class="text-muted mb-0">Ingen elever matcher søgningen.</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <ul class="lectio-member-list">
+                                                            @foreach (var m in shown)
+                                                            {
+                                                                var profile = FindStudent(m.LectioId);
+                                                                <li>
+                                                                    <div>
+                                                                        <div class="fw-semibold" title="@m.LectioId">@m.Name</div>
+                                                                        @if (profile is not null)
+                                                                        {
+                                                                            <div class="small text-muted">
+                                                                                @(profile.ClassName ?? "Ukendt klasse")
+                                                                                @if (!string.IsNullOrWhiteSpace(profile.WorkplaceName))
+                                                                                {
+                                                                                    <text> · @profile.WorkplaceName</text>
+                                                                                }
+                                                                                @if (profile.VufEarned is not null || profile.VufRequired is not null)
+                                                                                {
+                                                                                    <text> · VUF @(profile.VufEarned?.ToString() ?? "?")/@(profile.VufRequired?.ToString() ?? "?")</text>
+                                                                                }
+                                                                            </div>
+                                                                        }
+                                                                    </div>
+                                                                    <a href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener">Åbn</a>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
                 </div>
-                @if (!string.IsNullOrWhiteSpace(_holdFilter) && !FilteredHolds.Any())
+                @if (holds.Count == 0)
                 {
-                    <p class="text-muted small">Ingen hold matcher filteret.</p>
+                    <p class="lectio-empty">Ingen hold matcher filteret.</p>
                 }
                 @if (_importResult is not null)
                 {
@@ -228,48 +387,203 @@ else
     }
     else if (isTeacher)
     {
-        <section class="mb-4">
-            <h2 class="h5">Programmeringselever (@_students.Count)</h2>
+        var students = VisibleStudents;
+        <section class="lectio-panel">
+            <div class="lectio-stats" role="group" aria-label="Elev-overblik">
+                <button type="button" class="lectio-stat @(_workplaceFilter == WorkplacePresence.All && _vufFilter == VufPresence.All ? "is-active" : null)"
+                        @onclick="ClearStudentQuickFilters">
+                    <span class="lectio-stat-num">@_students.Count</span>
+                    <span>elever</span>
+                </button>
+                <button type="button" class="lectio-stat @(_workplaceFilter == WorkplacePresence.Missing ? "is-active" : null)"
+                        @onclick="() => SetWorkplace(WorkplacePresence.Missing)">
+                    <span class="lectio-stat-num">@MissingWorkplaceCount</span>
+                    <span>uden læreplads</span>
+                </button>
+                <button type="button" class="lectio-stat @(_vufFilter == VufPresence.NotOk ? "is-active" : null)"
+                        @onclick="() => SetVuf(VufPresence.NotOk)">
+                    <span class="lectio-stat-num">@VufNotOkCount</span>
+                    <span>VUF ikke ok</span>
+                </button>
+                <button type="button" class="lectio-stat @(_vufFilter == VufPresence.Missing ? "is-active" : null)"
+                        @onclick="() => SetVuf(VufPresence.Missing)">
+                    <span class="lectio-stat-num">@VufMissingCount</span>
+                    <span>VUF mangler</span>
+                </button>
+            </div>
             @if (_students.Count == 0 && _error is null)
             {
-                <p class="text-muted">Ingen elever returneret. Tjek at Collector er synkroniseret, eller åbn Collector direkte.</p>
+                <p class="text-muted mb-0">Ingen elever returneret. Tjek at Collector er synkroniseret, eller åbn Collector direkte.</p>
             }
             else if (_students.Count > 0)
             {
-                <div class="mb-2" style="max-width: 20rem;">
-                    <input class="form-control form-control-sm" @bind="_teacherFilter" @bind:event="oninput"
-                           placeholder="Filtrér på navn, klasse, læreplads…" />
+                <div class="lectio-filters">
+                    <label class="lectio-search">
+                        <span class="visually-hidden">Søg elever</span>
+                        <input class="form-control" @bind="_studentQuery" @bind:event="oninput" placeholder="Søg navn, læreplads, CVR eller id" />
+                    </label>
+                    @{
+                        var classOptions = ClassOptions;
+                        var xprsOptions = XprsOptions;
+                        var agreementOptions = AgreementOptions;
+                        var forloebOptions = ForloebOptions;
+                    }
+                    @if (classOptions.Count > 0)
+                    {
+                        <div class="lectio-facet @(_openFacet == "class" ? "is-open" : null)">
+                            <button type="button" @onclick='() => ToggleFacet("class")'>Klasse@FacetCount(_classFilter)</button>
+                            @if (_openFacet == "class")
+                            {
+                                <div class="lectio-facet-menu">
+                                    @foreach (var value in classOptions)
+                                    {
+                                        var v = value;
+                                        <label class="lectio-check">
+                                            <input type="checkbox" checked="@_classFilter.Contains(v)" @onchange="() => ToggleValue(_classFilter, v)" />
+                                            <span>@v</span>
+                                        </label>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    @if (xprsOptions.Count > 0)
+                    {
+                        <div class="lectio-facet @(_openFacet == "xprs" ? "is-open" : null)">
+                            <button type="button" @onclick='() => ToggleFacet("xprs")'>XPRS@FacetCount(_xprsFilter)</button>
+                            @if (_openFacet == "xprs")
+                            {
+                                <div class="lectio-facet-menu">
+                                    @foreach (var value in xprsOptions)
+                                    {
+                                        var v = value;
+                                        <label class="lectio-check">
+                                            <input type="checkbox" checked="@_xprsFilter.Contains(v)" @onchange="() => ToggleValue(_xprsFilter, v)" />
+                                            <span>@v</span>
+                                        </label>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    @if (agreementOptions.Count > 0)
+                    {
+                        <div class="lectio-facet @(_openFacet == "agreement" ? "is-open" : null)">
+                            <button type="button" @onclick='() => ToggleFacet("agreement")'>Aftale@FacetCount(_agreementFilter)</button>
+                            @if (_openFacet == "agreement")
+                            {
+                                <div class="lectio-facet-menu">
+                                    @foreach (var value in agreementOptions)
+                                    {
+                                        var v = value;
+                                        <label class="lectio-check">
+                                            <input type="checkbox" checked="@_agreementFilter.Contains(v)" @onchange="() => ToggleValue(_agreementFilter, v)" />
+                                            <span>@v</span>
+                                        </label>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    @if (forloebOptions.Count > 0)
+                    {
+                        <div class="lectio-facet @(_openFacet == "forloeb" ? "is-open" : null)">
+                            <button type="button" @onclick='() => ToggleFacet("forloeb")'>Forløb@FacetCount(_forloebFilter)</button>
+                            @if (_openFacet == "forloeb")
+                            {
+                                <div class="lectio-facet-menu">
+                                    @foreach (var value in forloebOptions)
+                                    {
+                                        var v = value;
+                                        <label class="lectio-check">
+                                            <input type="checkbox" checked="@_forloebFilter.Contains(v)" @onchange="() => ToggleValue(_forloebFilter, v)" />
+                                            <span>@v</span>
+                                        </label>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    <label class="lectio-select">
+                        <span class="visually-hidden">Læreplads</span>
+                        <select class="form-select" @bind="_workplaceFilter">
+                            <option value="@WorkplacePresence.All">Alle lærepladser</option>
+                            <option value="@WorkplacePresence.Has">Har læreplads</option>
+                            <option value="@WorkplacePresence.Missing">Mangler læreplads</option>
+                        </select>
+                    </label>
+                    <label class="lectio-select">
+                        <span class="visually-hidden">VUF</span>
+                        <select class="form-select" @bind="_vufFilter">
+                            <option value="@VufPresence.All">Al VUF</option>
+                            <option value="@VufPresence.Ok">VUF ok</option>
+                            <option value="@VufPresence.NotOk">VUF ikke ok</option>
+                            <option value="@VufPresence.Missing">VUF mangler</option>
+                        </select>
+                    </label>
+                    <button type="button" class="btn btn-outline-secondary" disabled="@(!HasStudentFilters)" @onclick="ResetStudentFilters">Nulstil</button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle">
+                @if (HasStudentFilters)
+                {
+                    <div class="lectio-chips">
+                        @if (!string.IsNullOrWhiteSpace(_studentQuery))
+                        {
+                            <button type="button" class="lectio-chip" @onclick="() => _studentQuery = string.Empty">Søgning: @_studentQuery.Trim() <span aria-hidden="true">×</span></button>
+                        }
+                        @foreach (var value in _classFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                        {
+                            var chip = value;
+                            <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_classFilter, chip)">Klasse: @chip <span aria-hidden="true">×</span></button>
+                        }
+                        @foreach (var value in _xprsFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                        {
+                            var chip = value;
+                            <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_xprsFilter, chip)">XPRS: @chip <span aria-hidden="true">×</span></button>
+                        }
+                        @foreach (var value in _agreementFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                        {
+                            var chip = value;
+                            <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_agreementFilter, chip)">Aftale: @chip <span aria-hidden="true">×</span></button>
+                        }
+                        @foreach (var value in _forloebFilter.OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase))
+                        {
+                            var chip = value;
+                            <button type="button" class="lectio-chip" @onclick="() => ToggleValue(_forloebFilter, chip)">Forløb: @chip <span aria-hidden="true">×</span></button>
+                        }
+                        @if (_workplaceFilter != WorkplacePresence.All)
+                        {
+                            <button type="button" class="lectio-chip" @onclick="() => _workplaceFilter = WorkplacePresence.All">Læreplads: @WorkplaceLabel(_workplaceFilter) <span aria-hidden="true">×</span></button>
+                        }
+                        @if (_vufFilter != VufPresence.All)
+                        {
+                            <button type="button" class="lectio-chip" @onclick="() => _vufFilter = VufPresence.All">VUF: @VufLabel(_vufFilter) <span aria-hidden="true">×</span></button>
+                        }
+                    </div>
+                }
+                <p class="lectio-count">@students.Count af @_students.Count</p>
+                <div class="lectio-table-wrap">
+                    <table class="lectio-table">
                         <thead>
                             <tr>
-                                <th>Navn</th>
-                                <th>Klasse</th>
+                                <th><button type="button" class="lectio-sort @SortClass(StudentSort.Name)" @onclick="() => SetStudentSort(StudentSort.Name)">Navn @SortMark(StudentSort.Name)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(StudentSort.Class)" @onclick="() => SetStudentSort(StudentSort.Class)">Klasse @SortMark(StudentSort.Class)</button></th>
                                 <th>XPRS</th>
-                                <th>Læreplads</th>
-                                <th>Forløb</th>
-                                <th>VUF</th>
+                                <th><button type="button" class="lectio-sort @SortClass(StudentSort.Workplace)" @onclick="() => SetStudentSort(StudentSort.Workplace)">Læreplads @SortMark(StudentSort.Workplace)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(StudentSort.Forloeb)" @onclick="() => SetStudentSort(StudentSort.Forloeb)">Forløb @SortMark(StudentSort.Forloeb)</button></th>
+                                <th><button type="button" class="lectio-sort @SortClass(StudentSort.Vuf)" @onclick="() => SetStudentSort(StudentSort.Vuf)">VUF @SortMark(StudentSort.Vuf)</button></th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var s in FilteredStudents)
+                            @foreach (var s in students)
                             {
-                                var expanded = _expandedId == s.LectioId;
-                                <tr>
+                                var expanded = string.Equals(_expandedId, s.LectioId, StringComparison.OrdinalIgnoreCase);
+                                var vufWidth = VufWidth(s);
+                                <tr class="@(expanded ? "is-open" : null)">
                                     <td>
-                                        <button type="button"
-                                                class="btn btn-link btn-sm p-0 text-decoration-none me-1"
-                                                title="@(expanded ? "Skjul forløb" : "Vis alle forløb")"
-                                                disabled="@(_loadingPlanId == s.LectioId)"
-                                                @onclick="() => ToggleForloebAsync(s.LectioId)">
-                                            @(expanded ? "▼" : "▶")
+                                        <button type="button" class="lectio-name" title="@s.LectioId" @onclick="() => ToggleForloebAsync(s.LectioId)">
+                                            @(expanded ? "▼" : "▶") @s.Name
                                         </button>
-                                        <div class="d-inline-block align-middle">
-                                            <div>@s.Name</div>
-                                            <code class="small text-muted">@s.LectioId</code>
-                                        </div>
                                     </td>
                                     <td>@(s.ClassName ?? "—")</td>
                                     <td>
@@ -312,15 +626,14 @@ else
                                         }
                                     </td>
                                     <td>
-                                        @if (s.VufEarned is not null || s.VufRequired is not null)
+                                        @if (vufWidth is double width)
                                         {
-                                            <span class="@(s.VufOk == true ? "text-success" : "")">
-                                                @(s.VufEarned?.ToString() ?? "?")/@(s.VufRequired?.ToString() ?? "?")
-                                            </span>
-                                            @if (s.VufPercent is not null)
-                                            {
-                                                <div class="small text-muted">@s.VufPercent.Value.ToString("0.#") %</div>
-                                            }
+                                            <div class="vuf-readout @(s.VufOk == true ? "is-ok" : s.VufOk == false ? "is-bad" : null)">
+                                                <span>@(s.VufEarned?.ToString() ?? "?")/@(s.VufRequired?.ToString() ?? "?")</span>
+                                                <span class="vuf-bar" title="@(s.VufPercent is double p ? p.ToString("0.#") + " %" : null)">
+                                                    <span style="width: @(width.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span>
+                                                </span>
+                                            </div>
                                         }
                                         else
                                         {
@@ -333,7 +646,7 @@ else
                                 </tr>
                                 @if (expanded)
                                 {
-                                    <tr class="table-light">
+                                    <tr class="lectio-expand-row">
                                         <td colspan="7" class="py-3">
                                             @if (_loadingPlanId == s.LectioId)
                                             {
@@ -431,9 +744,9 @@ else
                         </tbody>
                     </table>
                 </div>
-                @if (!string.IsNullOrWhiteSpace(_teacherFilter) && !FilteredStudents.Any())
+                @if (students.Count == 0)
                 {
-                    <p class="text-muted small">Ingen elever matcher filteret.</p>
+                    <p class="lectio-empty">Ingen elever matcher filteret.</p>
                 }
             }
         </section>
@@ -541,13 +854,31 @@ else
     private string? _meStudent;
     private string? _authName;
     private string? _selectedLectioId;
-    private string _teacherFilter = "";
-    private string _holdFilter = "";
+    private string _studentQuery = "";
+    private string _holdQuery = "";
+    private string _holdMemberQuery = "";
+    private string? _openFacet;
     private string? _expandedId;
+    private string? _expandedHoldKey;
     private string? _loadingPlanId;
+    private string? _loadingHoldKey;
     private bool _creatingForloeb;
     private ImportResult? _importResult;
     private readonly HashSet<string> _selectedHoldKeys = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _classFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private readonly HashSet<string> _xprsFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private readonly HashSet<string> _agreementFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private readonly HashSet<string> _forloebFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private readonly HashSet<string> _yearFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private readonly HashSet<string> _fagFilter = new(StringComparer.CurrentCultureIgnoreCase);
+    private WorkplacePresence _workplaceFilter = WorkplacePresence.All;
+    private VufPresence _vufFilter = VufPresence.All;
+    private HoldStatusFilter _holdStatus = HoldStatusFilter.All;
+    private HoldPeriod _holdPeriod = HoldPeriod.All;
+    private StudentSort _studentSort = StudentSort.Name;
+    private HoldSort _holdSort = HoldSort.Name;
+    private bool _studentSortDesc;
+    private bool _holdSortDesc;
     private bool _busy;
     private bool _linkOk;
     private bool _loading;
@@ -561,46 +892,317 @@ else
     private readonly List<HoldRow> _holds = [];
     private readonly Dictionary<string, StudentPlan> _plans = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _planErrors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<HoldMember>> _holdMembers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _holdMemberErrors = new(StringComparer.OrdinalIgnoreCase);
 
-    private IEnumerable<StudentRow> FilteredStudents
+    private List<StudentRow> VisibleStudents
     {
         get
         {
-            var q = _teacherFilter.Trim();
-            if (q.Length == 0) return _students;
-            return _students.Where(s =>
-                Contains(s.Name, q)
-                || Contains(s.ClassName, q)
-                || Contains(s.Xprs, q)
-                || Contains(s.WorkplaceName, q)
-                || Contains(s.ForloebName, q)
-                || Contains(s.LectioId, q)
-                || Contains(s.AgreementType, q));
+            IEnumerable<StudentRow> rows = _students;
+            var q = _studentQuery.Trim();
+            if (q.Length > 0)
+            {
+                rows = rows.Where(s =>
+                    Contains(s.Name, q)
+                    || Contains(s.WorkplaceName, q)
+                    || Contains(s.WorkplaceCvr, q)
+                    || Contains(s.LectioId, q));
+            }
+
+            if (_classFilter.Count > 0)
+                rows = rows.Where(s => s.ClassName is not null && _classFilter.Contains(s.ClassName));
+            if (_xprsFilter.Count > 0)
+                rows = rows.Where(s => s.Xprs is not null && _xprsFilter.Contains(s.Xprs));
+            if (_agreementFilter.Count > 0)
+                rows = rows.Where(s => s.AgreementType is not null && _agreementFilter.Contains(s.AgreementType));
+            if (_forloebFilter.Count > 0)
+                rows = rows.Where(s => s.ForloebName is not null && _forloebFilter.Contains(s.ForloebName));
+
+            rows = _workplaceFilter switch
+            {
+                WorkplacePresence.Has => rows.Where(s => !string.IsNullOrWhiteSpace(s.WorkplaceName)),
+                WorkplacePresence.Missing => rows.Where(s => string.IsNullOrWhiteSpace(s.WorkplaceName)),
+                _ => rows
+            };
+            rows = _vufFilter switch
+            {
+                VufPresence.Ok => rows.Where(s => s.VufOk == true),
+                VufPresence.NotOk => rows.Where(s => s.VufOk == false),
+                VufPresence.Missing => rows.Where(IsVufMissing),
+                _ => rows
+            };
+
+            rows = _studentSort switch
+            {
+                StudentSort.Class => OrderText(rows, s => s.ClassName, _studentSortDesc),
+                StudentSort.Workplace => OrderText(rows, s => s.WorkplaceName, _studentSortDesc),
+                StudentSort.Forloeb => OrderText(rows, s => s.ForloebName, _studentSortDesc),
+                StudentSort.Vuf => OrderVuf(rows),
+                _ => OrderText(rows, s => s.Name, _studentSortDesc)
+            };
+            return rows.ToList();
         }
     }
 
-    private IEnumerable<HoldRow> FilteredHolds
+    private List<HoldRow> VisibleHolds
     {
         get
         {
-            var q = _holdFilter.Trim();
-            if (q.Length == 0) return _holds;
-            return _holds.Where(h =>
-                Contains(h.Name, q)
-                || Contains(h.LectioHoldKey, q)
-                || Contains(h.Year, q)
-                || Contains(h.YearLabel, q)
-                || Contains(h.FagId, q));
+            IEnumerable<HoldRow> rows = _holds;
+            var q = _holdQuery.Trim();
+            if (q.Length > 0)
+            {
+                rows = rows.Where(h =>
+                    Contains(h.Name, q)
+                    || Contains(h.LectioHoldKey, q)
+                    || Contains(h.FagId, q));
+            }
+
+            if (_yearFilter.Count > 0)
+                rows = rows.Where(h => YearKey(h) is string y && _yearFilter.Contains(y));
+            if (_fagFilter.Count > 0)
+                rows = rows.Where(h => h.FagId is not null && _fagFilter.Contains(h.FagId));
+            if (_holdScope == HoldScope.Saved)
+            {
+                rows = _holdStatus switch
+                {
+                    HoldStatusFilter.Tracked => rows.Where(h => h.IsTracked),
+                    HoldStatusFilter.SavedOnly => rows.Where(h => !h.IsTracked),
+                    _ => rows
+                };
+            }
+
+            if (_holdPeriod != HoldPeriod.All)
+                rows = rows.Where(h => ClassifyHold(h) == _holdPeriod);
+
+            rows = _holdSort switch
+            {
+                HoldSort.Year => OrderText(rows, YearKey, _holdSortDesc),
+                HoldSort.Members => _holdSortDesc
+                    ? rows.OrderByDescending(h => h.MemberCount)
+                    : rows.OrderBy(h => h.MemberCount),
+                HoldSort.Start => _holdSortDesc
+                    ? rows.OrderBy(h => h.StartDate is null).ThenByDescending(h => h.StartDate)
+                    : rows.OrderBy(h => h.StartDate is null).ThenBy(h => h.StartDate),
+                _ => OrderText(rows, h => h.Name, _holdSortDesc)
+            };
+            return rows.ToList();
         }
     }
+
+    private bool HasStudentFilters =>
+        !string.IsNullOrWhiteSpace(_studentQuery)
+        || _classFilter.Count > 0
+        || _xprsFilter.Count > 0
+        || _agreementFilter.Count > 0
+        || _forloebFilter.Count > 0
+        || _workplaceFilter != WorkplacePresence.All
+        || _vufFilter != VufPresence.All;
+
+    private bool HasHoldFilters =>
+        !string.IsNullOrWhiteSpace(_holdQuery)
+        || _yearFilter.Count > 0
+        || _fagFilter.Count > 0
+        || (_holdScope == HoldScope.Saved && _holdStatus != HoldStatusFilter.All)
+        || _holdPeriod != HoldPeriod.All;
+
+    private int MissingWorkplaceCount => _students.Count(s => string.IsNullOrWhiteSpace(s.WorkplaceName));
+    private int VufNotOkCount => _students.Count(s => s.VufOk == false);
+    private int VufMissingCount => _students.Count(IsVufMissing);
+    private int OngoingHoldCount => _holds.Count(h => ClassifyHold(h) == HoldPeriod.Ongoing);
+
+    private List<string> ClassOptions => Distinct(_students.Select(s => s.ClassName));
+    private List<string> XprsOptions => Distinct(_students.Select(s => s.Xprs));
+    private List<string> AgreementOptions => Distinct(_students.Select(s => s.AgreementType));
+    private List<string> ForloebOptions => Distinct(_students.Select(s => s.ForloebName));
+    private List<string> YearOptions => Distinct(_holds.Select(YearKey));
+    private List<string> FagOptions => Distinct(_holds.Select(h => h.FagId));
 
     private bool AllFilteredHoldsSelected
     {
         get
         {
-            var keys = FilteredHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
+            var keys = VisibleHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
             return keys.Count > 0 && keys.All(k => _selectedHoldKeys.Contains(k));
         }
+    }
+
+    private static bool IsVufMissing(StudentRow s) =>
+        s.VufEarned is null && s.VufRequired is null && s.VufOk is null && s.VufPercent is null;
+
+    private static List<string> Distinct(IEnumerable<string?> values) =>
+        values
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v!.Trim())
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(v => v, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+    private static IEnumerable<T> OrderText<T>(IEnumerable<T> rows, Func<T, string?> key, bool desc)
+    {
+        var ordered = desc
+            ? rows.OrderByDescending(x => key(x) ?? "", StringComparer.CurrentCultureIgnoreCase)
+            : rows.OrderBy(x => key(x) ?? "", StringComparer.CurrentCultureIgnoreCase);
+        return ordered;
+    }
+
+    private IEnumerable<StudentRow> OrderVuf(IEnumerable<StudentRow> rows)
+    {
+        static double Key(StudentRow s)
+        {
+            if (s.VufPercent is double p) return p;
+            if (s.VufEarned is int earned && s.VufRequired is int required && required > 0)
+                return 100.0 * earned / required;
+            return double.NaN;
+        }
+
+        return _studentSortDesc
+            ? rows.OrderBy(s => double.IsNaN(Key(s))).ThenByDescending(Key)
+            : rows.OrderBy(s => double.IsNaN(Key(s))).ThenBy(Key);
+    }
+
+    private static string? YearKey(HoldRow h) =>
+        string.IsNullOrWhiteSpace(h.YearLabel)
+            ? (string.IsNullOrWhiteSpace(h.Year) ? null : h.Year.Trim())
+            : h.YearLabel.Trim();
+
+    private static HoldPeriod ClassifyHold(HoldRow h)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (h.StartDate is null && h.EndDate is null)
+            return HoldPeriod.NoDate;
+        if (h.EndDate is DateOnly end && end < today)
+            return HoldPeriod.Finished;
+        if (h.StartDate is DateOnly start && start > today)
+            return HoldPeriod.Upcoming;
+        return HoldPeriod.Ongoing;
+    }
+
+    private static double? VufWidth(StudentRow s)
+    {
+        if (s.VufPercent is double p)
+            return Math.Clamp(p, 0, 100);
+        if (s.VufEarned is int earned && s.VufRequired is int required && required > 0)
+            return Math.Clamp(100.0 * earned / required, 0, 100);
+        return null;
+    }
+
+    private void ToggleFacet(string key) => _openFacet = _openFacet == key ? null : key;
+
+    private static void ToggleValue(HashSet<string> set, string value)
+    {
+        if (!set.Add(value))
+            set.Remove(value);
+    }
+
+    private static string FacetCount(HashSet<string> set) => set.Count == 0 ? "" : $" ({set.Count})";
+
+    private void SetStudentSort(StudentSort sort)
+    {
+        if (_studentSort == sort)
+            _studentSortDesc = !_studentSortDesc;
+        else
+        {
+            _studentSort = sort;
+            _studentSortDesc = false;
+        }
+    }
+
+    private void SetHoldSort(HoldSort sort)
+    {
+        if (_holdSort == sort)
+            _holdSortDesc = !_holdSortDesc;
+        else
+        {
+            _holdSort = sort;
+            _holdSortDesc = false;
+        }
+    }
+
+    private string SortClass(StudentSort sort) => _studentSort == sort ? "is-active" : "";
+    private string SortClass(HoldSort sort) => _holdSort == sort ? "is-active" : "";
+    private string SortMark(StudentSort sort) => _studentSort == sort ? (_studentSortDesc ? "↓" : "↑") : "";
+    private string SortMark(HoldSort sort) => _holdSort == sort ? (_holdSortDesc ? "↓" : "↑") : "";
+
+    private void SetWorkplace(WorkplacePresence value) =>
+        _workplaceFilter = _workplaceFilter == value ? WorkplacePresence.All : value;
+
+    private void SetVuf(VufPresence value) =>
+        _vufFilter = _vufFilter == value ? VufPresence.All : value;
+
+    private void SetHoldPeriod(HoldPeriod value) =>
+        _holdPeriod = _holdPeriod == value ? HoldPeriod.All : value;
+
+    private void ClearStudentQuickFilters()
+    {
+        _workplaceFilter = WorkplacePresence.All;
+        _vufFilter = VufPresence.All;
+    }
+
+    private void ResetStudentFilters()
+    {
+        _studentQuery = "";
+        _classFilter.Clear();
+        _xprsFilter.Clear();
+        _agreementFilter.Clear();
+        _forloebFilter.Clear();
+        _workplaceFilter = WorkplacePresence.All;
+        _vufFilter = VufPresence.All;
+        _openFacet = null;
+    }
+
+    private void ResetHoldFilters()
+    {
+        _holdQuery = "";
+        _yearFilter.Clear();
+        _fagFilter.Clear();
+        _holdStatus = HoldStatusFilter.All;
+        _holdPeriod = HoldPeriod.All;
+        _openFacet = null;
+    }
+
+    private static string WorkplaceLabel(WorkplacePresence value) => value switch
+    {
+        WorkplacePresence.Has => "har",
+        WorkplacePresence.Missing => "mangler",
+        _ => "alle"
+    };
+
+    private static string VufLabel(VufPresence value) => value switch
+    {
+        VufPresence.Ok => "ok",
+        VufPresence.NotOk => "ikke ok",
+        VufPresence.Missing => "mangler",
+        _ => "alle"
+    };
+
+    private static string HoldStatusLabel(HoldStatusFilter value) => value switch
+    {
+        HoldStatusFilter.Tracked => "tracked",
+        HoldStatusFilter.SavedOnly => "kun gemt",
+        _ => "alle"
+    };
+
+    private static string HoldPeriodLabel(HoldPeriod value) => value switch
+    {
+        HoldPeriod.Ongoing => "igangværende",
+        HoldPeriod.Upcoming => "kommende",
+        HoldPeriod.Finished => "afsluttet",
+        HoldPeriod.NoDate => "uden dato",
+        _ => "alle"
+    };
+
+    private StudentRow? FindStudent(string lectioId) =>
+        _students.FirstOrDefault(s => string.Equals(s.LectioId, lectioId, StringComparison.OrdinalIgnoreCase));
+
+    private List<HoldMember> FilterMembers(IReadOnlyList<HoldMember> members)
+    {
+        var q = _holdMemberQuery.Trim();
+        IEnumerable<HoldMember> rows = members;
+        if (q.Length > 0)
+            rows = rows.Where(m => Contains(m.Name, q) || Contains(m.LectioId, q));
+        return rows.ToList();
     }
 
     private static bool Contains(string? hay, string needle) =>
@@ -632,8 +1234,13 @@ else
         _holdSummary = null;
         _plans.Clear();
         _planErrors.Clear();
+        _holdMembers.Clear();
+        _holdMemberErrors.Clear();
         _expandedId = null;
+        _expandedHoldKey = null;
         _loadingPlanId = null;
+        _loadingHoldKey = null;
+        _holdMemberQuery = "";
         _linked = false;
         _meStudent = null;
         StateHasChanged();
@@ -826,9 +1433,16 @@ else
         _selectedLectioId = null;
     }
 
+    private void ShowStudents()
+    {
+        _teacherTab = TeacherTab.Elever;
+        _openFacet = null;
+    }
+
     private async Task SwitchToHoldTabAsync()
     {
         _teacherTab = TeacherTab.Hold;
+        _openFacet = null;
         if (_holds.Count == 0 && !_loading)
             await LoadHoldsAsync(clearError: true);
     }
@@ -838,6 +1452,10 @@ else
         if (_holdScope == scope) return;
         _holdScope = scope;
         _selectedHoldKeys.Clear();
+        _expandedHoldKey = null;
+        _holdMemberQuery = "";
+        if (scope == HoldScope.Tracked)
+            _holdStatus = HoldStatusFilter.All;
         await LoadHoldsAsync(clearError: true);
     }
 
@@ -850,7 +1468,7 @@ else
 
     private void ToggleSelectAllFiltered(ChangeEventArgs _)
     {
-        var keys = FilteredHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
+        var keys = VisibleHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
         if (keys.Count == 0) return;
         if (keys.All(k => _selectedHoldKeys.Contains(k)))
         {
@@ -1022,9 +1640,91 @@ else
                 MemberCount: GetInt(item, "memberCount") ?? 0,
                 StartLabel: start?.ToString("dd.MM.yyyy"),
                 EndLabel: end?.ToString("dd.MM.yyyy"),
+                StartDate: start,
+                EndDate: end,
                 DateSource: GetString(item, "dateSource"),
                 IsTracked: isTracked));
         }
+    }
+
+    private async Task ToggleHoldMembersAsync(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            return;
+
+        if (string.Equals(_expandedHoldKey, key, StringComparison.OrdinalIgnoreCase))
+        {
+            _expandedHoldKey = null;
+            _holdMemberQuery = "";
+            return;
+        }
+
+        _expandedHoldKey = key;
+        _holdMemberQuery = "";
+        if (_holdMembers.ContainsKey(key) || _holdMemberErrors.ContainsKey(key))
+            return;
+
+        _loadingHoldKey = key;
+        try
+        {
+            var res = await Http.GetAsync($"lectio/holds/by-lectio/{Uri.EscapeDataString(key)}");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _holdMemberErrors[key] = $"Elever ({(int)res.StatusCode}): {Trim(body)}";
+                return;
+            }
+
+            _holdMembers[key] = ParseMembers(body);
+            _holdMemberErrors.Remove(key);
+        }
+        catch (Exception ex)
+        {
+            _holdMemberErrors[key] = ex.Message;
+        }
+        finally
+        {
+            _loadingHoldKey = null;
+        }
+    }
+
+    private static List<HoldMember> ParseMembers(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        if (!TryMembers(root, out var arr)
+            && root.TryGetProperty("hold", out var hold)
+            && hold.ValueKind == JsonValueKind.Object)
+        {
+            TryMembers(hold, out arr);
+        }
+
+        var list = new List<HoldMember>();
+        if (arr.ValueKind != JsonValueKind.Array)
+            return list;
+
+        foreach (var item in arr.EnumerateArray())
+        {
+            var id = GetString(item, "studentLectioId") ?? GetString(item, "lectioId");
+            if (string.IsNullOrWhiteSpace(id))
+                continue;
+            var name = GetString(item, "studentName") ?? GetString(item, "name") ?? id;
+            list.Add(new HoldMember(id, name));
+        }
+
+        return list
+            .OrderBy(m => m.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+    }
+
+    private static bool TryMembers(JsonElement el, out JsonElement arr)
+    {
+        if (el.ValueKind == JsonValueKind.Object
+            && el.TryGetProperty("members", out arr)
+            && arr.ValueKind == JsonValueKind.Array)
+            return true;
+        arr = default;
+        return false;
     }
 
     private async Task ToggleForloebAsync(string lectioId)
@@ -1266,8 +1966,12 @@ else
         int MemberCount,
         string? StartLabel,
         string? EndLabel,
+        DateOnly? StartDate,
+        DateOnly? EndDate,
         string? DateSource,
         bool IsTracked);
+
+    private sealed record HoldMember(string LectioId, string Name);
 
     private sealed record HoldSummaryRow(int HoldCount, int MemberCount, int UniqueStudents);
 
@@ -1276,6 +1980,18 @@ else
     private enum TeacherTab { Elever, Hold }
 
     private enum HoldScope { Tracked, Saved }
+
+    private enum WorkplacePresence { All, Has, Missing }
+
+    private enum VufPresence { All, Ok, NotOk, Missing }
+
+    private enum HoldStatusFilter { All, Tracked, SavedOnly }
+
+    private enum HoldPeriod { All, Ongoing, Upcoming, Finished, NoDate }
+
+    private enum StudentSort { Name, Class, Workplace, Forloeb, Vuf }
+
+    private enum HoldSort { Name, Year, Members, Start }
 
     private sealed record StudentPlan(string? ClassName, List<PeriodRow> Periods);
 
