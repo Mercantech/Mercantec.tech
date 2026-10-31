@@ -45,6 +45,7 @@ else
         </div>
         <p class="text-muted small">
             Collector har studieplaner, hold, sync og cookies. Listen herunder er et uddrag via Mercantec.tech.
+            Elever kobler selv via navnematch; underviser kan stadig koble manuelt i Collector.
         </p>
     }
 
@@ -97,22 +98,14 @@ else
             }
         </section>
     }
-    else
+    else if (_linked)
     {
         <section class="mb-4">
-            <h2 class="h5">Kobl Lectio elev-id</h2>
-            <div class="input-group" style="max-width: 28rem;">
-                <input class="form-control" @bind="_lectioId" placeholder="Lectio elev-id" />
-                <button class="btn btn-primary" disabled="@_busy" @onclick="LinkAsync">Kobl</button>
-            </div>
+            <h2 class="h5">Mine data</h2>
             @if (_linkOk)
             {
-                <p class="text-success mt-2">Kobling gemt.</p>
+                <p class="text-success">Kobling gemt.</p>
             }
-        </section>
-
-        <section class="mb-4">
-            <h2 class="h5">Mine data</h2>
             @if (_meStudent is not null)
             {
                 <pre class="bg-light border rounded p-3 small">@_meStudent</pre>
@@ -121,9 +114,80 @@ else
             {
                 <pre class="bg-light border rounded p-3 small">@_meJson</pre>
             }
-            else if (_error is null)
+        </section>
+    }
+    else
+    {
+        <section class="mb-4">
+            <h2 class="h5">Kobl din Lectio-profil</h2>
+            <p class="text-muted">
+                Vi foreslår kun profiler der matcher dit Auth-navn
+                @if (!string.IsNullOrWhiteSpace(_authName))
+                {
+                    <text>(<strong>@_authName</strong>)</text>
+                }
+                — du kan ikke se andre elevers data.
+            </p>
+
+            @if (_candidates.Count == 1)
             {
-                <p class="text-muted">Ingen kobling endnu — indtast dit Lectio elev-id ovenfor.</p>
+                var c = _candidates[0];
+                <div class="border rounded p-3 mb-3" style="max-width: 32rem;">
+                    <p class="mb-2">Er du <strong>@c.Name</strong>?</p>
+                    <p class="small text-muted mb-3">
+                        @(c.ClassName ?? "Ukendt klasse")
+                        @if (!string.IsNullOrWhiteSpace(c.Xprs))
+                        {
+                            <text> · @c.Xprs</text>
+                        }
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary" disabled="@_busy" @onclick="() => LinkCandidateAsync(c.LectioId)">
+                            @(_busy ? "Kobler…" : "Ja — kobl mig")
+                        </button>
+                        <button class="btn btn-outline-secondary" disabled="@_busy" @onclick="DismissCandidates">
+                            Nej
+                        </button>
+                    </div>
+                </div>
+            }
+            else if (_candidates.Count > 1)
+            {
+                <p>Vælg dig selv blandt forslagene:</p>
+                <div class="list-group mb-3" style="max-width: 32rem;">
+                    @foreach (var c in _candidates)
+                    {
+                        <button type="button"
+                                class="list-group-item list-group-item-action @(_selectedLectioId == c.LectioId ? "active" : null)"
+                                disabled="@_busy"
+                                @onclick="() => _selectedLectioId = c.LectioId">
+                            <strong>@c.Name</strong>
+                            <span class="d-block small @( _selectedLectioId == c.LectioId ? "" : "text-muted")">
+                                @(c.ClassName ?? "Ukendt klasse")
+                                @if (!string.IsNullOrWhiteSpace(c.Xprs))
+                                {
+                                    <text> · @c.Xprs</text>
+                                }
+                            </span>
+                        </button>
+                    }
+                </div>
+                <button class="btn btn-primary"
+                        disabled="@(_busy || string.IsNullOrEmpty(_selectedLectioId))"
+                        @onclick="() => LinkCandidateAsync(_selectedLectioId!)">
+                    @(_busy ? "Kobler…" : "Bekræft kobling")
+                </button>
+            }
+            else if (_dismissed || _candidates.Count == 0)
+            {
+                <div class="alert alert-warning" style="max-width: 36rem;">
+                    <p class="mb-2">Ingen automatisk match på dit Auth-navn.</p>
+                    <p class="mb-0 small">
+                        Bed en underviser om at koble dig i Lectio-Collector
+                        (<a href="https://lc.mags.dk" target="_blank" rel="noopener">lc.mags.dk</a>).
+                        Af sikkerhedshensyn kan du ikke indtaste et vilkårligt Lectio-id her.
+                    </p>
+                </div>
             }
         </section>
     }
@@ -135,11 +199,15 @@ else
     private string? _error;
     private string? _meJson;
     private string? _meStudent;
-    private string? _lectioId;
+    private string? _authName;
+    private string? _selectedLectioId;
     private bool _busy;
     private bool _linkOk;
     private bool _loading;
+    private bool _linked;
+    private bool _dismissed;
     private readonly List<StudentRow> _students = [];
+    private readonly List<CandidateRow> _candidates = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -161,6 +229,9 @@ else
         _loading = true;
         _error = null;
         _students.Clear();
+        _candidates.Clear();
+        _linked = false;
+        _meStudent = null;
         StateHasChanged();
 
         try
@@ -174,17 +245,23 @@ else
             }
 
             _meJson = Pretty(meBody);
+            _linked = HasLectioLink(meBody);
 
             if (Redirect.CurrentAppRole() == AppRole.Elev)
             {
-                var studentRes = await Http.GetAsync("lectio/me/student");
-                var studentBody = await studentRes.Content.ReadAsStringAsync();
-                if (studentRes.IsSuccessStatusCode)
-                    _meStudent = Pretty(studentBody);
-                else if ((int)studentRes.StatusCode == 403)
-                    _meStudent = null; // ikke koblet endnu
-                else
-                    _error = $"Mine data ({(int)studentRes.StatusCode}): {Trim(studentBody)}";
+                if (_linked)
+                {
+                    var studentRes = await Http.GetAsync("lectio/me/student");
+                    var studentBody = await studentRes.Content.ReadAsStringAsync();
+                    if (studentRes.IsSuccessStatusCode)
+                        _meStudent = Pretty(studentBody);
+                    else if ((int)studentRes.StatusCode != 403)
+                        _error = $"Mine data ({(int)studentRes.StatusCode}): {Trim(studentBody)}";
+                }
+                else if (!_dismissed)
+                {
+                    await LoadCandidatesAsync();
+                }
             }
             else
             {
@@ -210,6 +287,36 @@ else
         }
     }
 
+    private async Task LoadCandidatesAsync()
+    {
+        var res = await Http.GetAsync("lectio/me/lectio-candidates");
+        var body = await res.Content.ReadAsStringAsync();
+        if (!res.IsSuccessStatusCode)
+        {
+            _error = $"Kandidater ({(int)res.StatusCode}): {Trim(body)}";
+            return;
+        }
+
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+        _authName = GetString(root, "authName");
+        if (!root.TryGetProperty("candidates", out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return;
+
+        foreach (var item in arr.EnumerateArray())
+        {
+            _candidates.Add(new CandidateRow(
+                LectioId: GetString(item, "lectioId") ?? "",
+                Name: GetString(item, "name") ?? "—",
+                ClassName: GetString(item, "className"),
+                Xprs: GetString(item, "xprs")
+            ));
+        }
+
+        if (_candidates.Count == 1)
+            _selectedLectioId = _candidates[0].LectioId;
+    }
+
     private void ParseStudents(string json)
     {
         using var doc = JsonDocument.Parse(json);
@@ -227,15 +334,15 @@ else
         }
     }
 
-    private async Task LinkAsync()
+    private async Task LinkCandidateAsync(string lectioId)
     {
-        if (string.IsNullOrWhiteSpace(_lectioId)) return;
+        if (string.IsNullOrWhiteSpace(lectioId)) return;
         _busy = true;
         _linkOk = false;
         _error = null;
         try
         {
-            var res = await Http.PutAsJsonAsync("lectio/me/lectio-link", new { lectioId = _lectioId.Trim() });
+            var res = await Http.PutAsJsonAsync("lectio/me/lectio-link", new { lectioId = lectioId.Trim() });
             var body = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode)
             {
@@ -244,6 +351,7 @@ else
             }
 
             _linkOk = true;
+            _dismissed = false;
             await LoadAsync();
         }
         catch (Exception ex)
@@ -253,6 +361,32 @@ else
         finally
         {
             _busy = false;
+        }
+    }
+
+    private void DismissCandidates()
+    {
+        _dismissed = true;
+        _candidates.Clear();
+        _selectedLectioId = null;
+    }
+
+    private static bool HasLectioLink(string meJson)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(meJson);
+            if (!doc.RootElement.TryGetProperty("lectio", out var lectio))
+                return false;
+            if (lectio.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                return false;
+            return lectio.TryGetProperty("lectioId", out var id)
+                   && id.ValueKind == JsonValueKind.String
+                   && !string.IsNullOrWhiteSpace(id.GetString());
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -284,4 +418,5 @@ else
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 
     private sealed record StudentRow(string LectioId, string Name, string? ClassName, string? Xprs);
+    private sealed record CandidateRow(string LectioId, string Name, string? ClassName, string? Xprs);
 }

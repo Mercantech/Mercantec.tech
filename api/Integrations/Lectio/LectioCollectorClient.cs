@@ -27,6 +27,14 @@ public class LectioCollectorClient(HttpClient http, ILogger<LectioCollectorClien
         return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
     }
 
+    public async Task<JsonElement> GetLectioCandidatesAsync(string bearerToken, CancellationToken ct = default)
+    {
+        using var req = CreateRequest(HttpMethod.Get, "me/lectio-candidates", bearerToken);
+        using var res = await http.SendAsync(req, ct);
+        await EnsureSuccess(res, ct);
+        return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
+    }
+
     public async Task<JsonElement> GetProgrammeringseleverAsync(string bearerToken, CancellationToken ct = default)
     {
         using var req = CreateRequest(HttpMethod.Get, "programmeringselever", bearerToken);

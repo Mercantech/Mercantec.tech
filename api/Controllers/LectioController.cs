@@ -29,6 +29,10 @@ public class LectioController(LectioCollectorClient lectio) : ControllerBase
         return ProxyAsync(() => lectio.GetMyStudentAsync(RequireBearer(), ct), ct);
     }
 
+    [HttpGet("me/lectio-candidates")]
+    public Task<IActionResult> LectioCandidates(CancellationToken ct) =>
+        ProxyAsync(() => lectio.GetLectioCandidatesAsync(RequireBearer(), ct), ct);
+
     [HttpGet("programmeringselever")]
     public Task<IActionResult> Programmeringselever(CancellationToken ct) =>
         ProxyAsync(() => lectio.GetProgrammeringseleverAsync(RequireBearer(), ct), ct);

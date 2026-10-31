@@ -30,8 +30,10 @@ Elevlister og studieforløb kommer fra [Lectio-Collector](https://github.com/Mer
 ## Konsekvenser
 
 - Lectio-Collector skal deployes med adgangsmiddleware før elev-login i prod.
-- Underviser kobler elev (`PUT /api/me/lectio-link` med `authSub`) eller elev self-link.
-- Mercantec UI: elev ser “Mit Lectio”; underviser ser liste.
+- **Elev self-link:** `GET /api/me/lectio-candidates` matcher JWT-navn server-side; `PUT /api/me/lectio-link` tillader kun Lectio-id blandt egne kandidater (ingen fritekst-id, ingen elev-roster i browseren).
+- **Underviser-fallback:** `PUT /api/me/lectio-link` med `authSub` (uden kandidat-krav) til elever uden navnematch.
+- Elev-lister (`/api/people/students`, fulde programmeringselever) er teacher-only / scoped — elev ser kun sig selv efter kobling.
+- Mercantec UI: `/lectio` bekræftelsesflow + blød CTA på elev-dashboard.
 
 ## Relateret
 

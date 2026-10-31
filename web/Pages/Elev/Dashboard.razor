@@ -1,7 +1,9 @@
 @page "/elev"
+@using System.Text.Json
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
+@inject HttpClient Http
 @implements IDisposable
 
 <PageTitle>Elev</PageTitle>
@@ -19,6 +21,14 @@ else
         <p class="small mb-0">Auth-roller: @RoleSummary()</p>
     </div>
 
+    @if (_showLectioCta)
+    {
+        <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+            <span>Kobl din Lectio-profil for at se dine elevdata her.</span>
+            <a class="btn btn-sm btn-primary" href="/lectio">Kobl Lectio</a>
+        </div>
+    }
+
     <div class="border rounded p-4 bg-light">
         <h2 class="h5">Tom shell (Sprint 0)</h2>
         <p class="mb-0">Indhold kommer i senere sprints (mine forløb, quests, logbog …).</p>
@@ -28,10 +38,13 @@ else
 }
 
 @code {
-    protected override void OnInitialized()
+    private bool _showLectioCta;
+
+    protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
         EnsureAccess();
+        await CheckLectioLinkAsync();
     }
 
     private void EnsureAccess()
@@ -49,9 +62,44 @@ else
             Nav.NavigateTo(Redirect.PostLoginPath());
     }
 
-    private void OnAuth() => InvokeAsync(() =>
+    private async Task CheckLectioLinkAsync()
+    {
+        _showLectioCta = false;
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Elev)
+            return;
+
+        try
+        {
+            var res = await Http.GetAsync("lectio/me");
+            if (!res.IsSuccessStatusCode)
+            {
+                _showLectioCta = true;
+                return;
+            }
+
+            var body = await res.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(body);
+            if (!doc.RootElement.TryGetProperty("lectio", out var lectio)
+                || lectio.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                _showLectioCta = true;
+                return;
+            }
+
+            _showLectioCta = !(lectio.TryGetProperty("lectioId", out var id)
+                               && id.ValueKind == JsonValueKind.String
+                               && !string.IsNullOrWhiteSpace(id.GetString()));
+        }
+        catch
+        {
+            _showLectioCta = true;
+        }
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
     {
         EnsureAccess();
+        await CheckLectioLinkAsync();
         StateHasChanged();
     });
 
