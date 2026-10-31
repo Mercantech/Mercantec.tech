@@ -1,4 +1,5 @@
 @page "/lectio"
+@using System.Text.Json
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject HttpClient Http
@@ -17,22 +18,86 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
+    var isTeacher = Redirect.CurrentAppRole() == AppRole.Underviser;
+
     <h1>Lectio</h1>
-    <p class="text-muted">
-        Data fra Lectio-Collector. Elev ser kun egne data; underviser ser alle.
-        <a href="https://lc.mags.dk" target="_blank" rel="noopener">Åbn Collector</a>
+    <p class="text-muted mb-2">
+        Data fra Lectio-Collector.
+        @(isTeacher ? "Som underviser kan du se alle elever." : "Som elev ser du kun dig selv (efter kobling).")
+    </p>
+    <p class="mb-3">
+        App-rolle: <strong>@(isTeacher ? "underviser" : "elev")</strong>
+        @if (Auth.Roles.Count > 0)
+        {
+            <span class="text-muted"> · Auth: @string.Join(", ", Auth.Roles)</span>
+        }
     </p>
 
-    <p>
-        App-rolle: <strong>@Redirect.CurrentAppRole()</strong>
-    </p>
+    @if (isTeacher)
+    {
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <a class="btn btn-primary" href="https://lc.mags.dk/programmeringselever" target="_blank" rel="noopener">
+                Åbn fuld Lectio-Collector
+            </a>
+            <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
+                @(_loading ? "Henter…" : "Genindlæs liste")
+            </button>
+        </div>
+        <p class="text-muted small">
+            Collector har studieplaner, hold, sync og cookies. Listen herunder er et uddrag via Mercantec.tech.
+        </p>
+    }
 
     @if (_error is not null)
     {
-        <p class="text-danger">@_error</p>
+        <div class="alert alert-danger">@_error</div>
     }
 
-    @if (Redirect.CurrentAppRole() == AppRole.Elev)
+    @if (_loading)
+    {
+        <p>Henter Lectio-data…</p>
+    }
+    else if (isTeacher)
+    {
+        <section class="mb-4">
+            <h2 class="h5">Programmeringselever (@_students.Count)</h2>
+            @if (_students.Count == 0 && _error is null)
+            {
+                <p class="text-muted">Ingen elever returneret. Tjek at Collector er synkroniseret, eller åbn Collector direkte.</p>
+            }
+            else if (_students.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Navn</th>
+                                <th>Lectio-id</th>
+                                <th>Klasse</th>
+                                <th>XPRS</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in _students)
+                            {
+                                <tr>
+                                    <td>@s.Name</td>
+                                    <td><code>@s.LectioId</code></td>
+                                    <td>@(s.ClassName ?? "—")</td>
+                                    <td>@(s.Xprs ?? "—")</td>
+                                    <td>
+                                        <a href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener">Åbn</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    }
+    else
     {
         <section class="mb-4">
             <h2 class="h5">Kobl Lectio elev-id</h2>
@@ -56,15 +121,9 @@ else
             {
                 <pre class="bg-light border rounded p-3 small">@_meJson</pre>
             }
-        </section>
-    }
-    else
-    {
-        <section class="mb-4">
-            <h2 class="h5">Programmeringselever (underviser)</h2>
-            @if (_listJson is not null)
+            else if (_error is null)
             {
-                <pre class="bg-light border rounded p-3 small" style="max-height: 28rem; overflow: auto;">@_listJson</pre>
+                <p class="text-muted">Ingen kobling endnu — indtast dit Lectio elev-id ovenfor.</p>
             }
         </section>
     }
@@ -76,10 +135,11 @@ else
     private string? _error;
     private string? _meJson;
     private string? _meStudent;
-    private string? _listJson;
     private string? _lectioId;
     private bool _busy;
     private bool _linkOk;
+    private bool _loading;
+    private readonly List<StudentRow> _students = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,41 +149,81 @@ else
 
     private async Task LoadAsync()
     {
-        if (!Auth.IsInitialized) return;
+        if (!Auth.IsInitialized)
+            return;
+
         if (!Auth.IsAuthenticated)
         {
             Nav.NavigateTo("/login");
             return;
         }
 
+        _loading = true;
         _error = null;
+        _students.Clear();
+        StateHasChanged();
+
         try
         {
-            var me = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/me");
-            _meJson = System.Text.Json.JsonSerializer.Serialize(me, Indented);
+            var meRes = await Http.GetAsync("lectio/me");
+            var meBody = await meRes.Content.ReadAsStringAsync();
+            if (!meRes.IsSuccessStatusCode)
+            {
+                _error = $"Kunne ikke hente /lectio/me ({(int)meRes.StatusCode}): {Trim(meBody)}";
+                return;
+            }
+
+            _meJson = Pretty(meBody);
 
             if (Redirect.CurrentAppRole() == AppRole.Elev)
             {
-                try
-                {
-                    var student = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/me/student");
-                    _meStudent = System.Text.Json.JsonSerializer.Serialize(student, Indented);
-                }
-                catch (Exception ex)
-                {
-                    _meStudent = null;
-                    _error = ex.Message;
-                }
+                var studentRes = await Http.GetAsync("lectio/me/student");
+                var studentBody = await studentRes.Content.ReadAsStringAsync();
+                if (studentRes.IsSuccessStatusCode)
+                    _meStudent = Pretty(studentBody);
+                else if ((int)studentRes.StatusCode == 403)
+                    _meStudent = null; // ikke koblet endnu
+                else
+                    _error = $"Mine data ({(int)studentRes.StatusCode}): {Trim(studentBody)}";
             }
             else
             {
-                var list = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("lectio/programmeringselever");
-                _listJson = System.Text.Json.JsonSerializer.Serialize(list, Indented);
+                var listRes = await Http.GetAsync("lectio/programmeringselever");
+                var listBody = await listRes.Content.ReadAsStringAsync();
+                if (!listRes.IsSuccessStatusCode)
+                {
+                    _error = $"Programmeringselever ({(int)listRes.StatusCode}): {Trim(listBody)}. " +
+                             "Åbn Collector direkte, eller tjek at din Auth-rolle er Underviser/Admin.";
+                    return;
+                }
+
+                ParseStudents(listBody);
             }
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ParseStudents(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("students", out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return;
+
+        foreach (var item in arr.EnumerateArray())
+        {
+            _students.Add(new StudentRow(
+                LectioId: GetString(item, "lectioId") ?? "",
+                Name: GetString(item, "name") ?? "—",
+                ClassName: GetString(item, "className"),
+                Xprs: GetString(item, "xprsElevType")
+            ));
         }
     }
 
@@ -136,9 +236,10 @@ else
         try
         {
             var res = await Http.PutAsJsonAsync("lectio/me/lectio-link", new { lectioId = _lectioId.Trim() });
+            var body = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode)
             {
-                _error = await res.Content.ReadAsStringAsync();
+                _error = Trim(body);
                 return;
             }
 
@@ -155,7 +256,24 @@ else
         }
     }
 
-    private static readonly System.Text.Json.JsonSerializerOptions Indented = new() { WriteIndented = true };
+    private static string? GetString(JsonElement el, string name) =>
+        el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
+
+    private static string Pretty(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return json;
+        }
+    }
+
+    private static string Trim(string s) =>
+        s.Length <= 400 ? s : s[..400] + "…";
 
     private void OnAuth() => _ = InvokeAsync(async () =>
     {
@@ -164,4 +282,6 @@ else
     });
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record StudentRow(string LectioId, string Name, string? ClassName, string? Xprs);
 }
