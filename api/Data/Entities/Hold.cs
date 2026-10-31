@@ -7,9 +7,10 @@ public class Hold
     public Guid ForloebId { get; set; }
     public Forloeb Forloeb { get; set; } = null!;
     public string Name { get; set; } = "";
-    /// <summary>Lectio-Collector hold-nøgle (lectioHoldKey), hvis oprettet fra Lectio.</summary>
+    /// <summary>Primær Lectio-nøgle (første importerede). Se også <see cref="LectioSources"/>.</summary>
     public string? LectioHoldKey { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
+    public ICollection<HoldLectioSource> LectioSources { get; set; } = new List<HoldLectioSource>();
 }

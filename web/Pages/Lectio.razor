@@ -97,10 +97,31 @@ else
                     </button>
                 </div>
             </div>
-            <div class="mb-2" style="max-width: 20rem;">
-                <input class="form-control form-control-sm" @bind="_holdFilter" @bind:event="oninput"
-                       placeholder="Filtrér hold, år, fag…" />
+            <div class="d-flex flex-wrap align-items-end gap-2 mb-2">
+                <div style="max-width: 20rem; flex: 1 1 12rem;">
+                    <input class="form-control form-control-sm" @bind="_holdFilter" @bind:event="oninput"
+                           placeholder="Filtrér hold, år, fag…" />
+                </div>
+                @if (_selectedHoldKeys.Count > 0)
+                {
+                    <button type="button"
+                            class="btn btn-sm btn-primary"
+                            disabled="@_creatingForloeb"
+                            @onclick="CreateForloebFromSelectedAsync">
+                        @(_creatingForloeb
+                            ? "Opretter…"
+                            : $"Opret forløb fra {_selectedHoldKeys.Count} valgte")
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            disabled="@_creatingForloeb"
+                            @onclick="ClearHoldSelection">
+                        Ryd valg
+                    </button>
+                }
             </div>
+            <p class="small text-muted mb-2">
+                Markér flere hold (fx <code>…/pro</code> og <code>…/proEA</code>) for at samle dem i ét forløb med fælles elevliste.
+            </p>
             @if (_holds.Count == 0 && _error is null)
             {
                 <p class="text-muted">Ingen hold returneret. Track hold i Collector først.</p>
@@ -111,6 +132,13 @@ else
                     <table class="table table-sm table-striped align-middle">
                         <thead>
                             <tr>
+                                <th style="width: 2rem;">
+                                    <input type="checkbox"
+                                           class="form-check-input"
+                                           title="Vælg synlige"
+                                           checked="@AllFilteredHoldsSelected"
+                                           @onchange="ToggleSelectAllFiltered" />
+                                </th>
                                 <th>Hold</th>
                                 <th>År</th>
                                 <th>Elever</th>
@@ -122,7 +150,15 @@ else
                         <tbody>
                             @foreach (var h in FilteredHolds)
                             {
-                                <tr>
+                                var selected = _selectedHoldKeys.Contains(h.LectioHoldKey);
+                                <tr class="@(selected ? "table-primary" : null)">
+                                    <td>
+                                        <input type="checkbox"
+                                               class="form-check-input"
+                                               checked="@selected"
+                                               disabled="@_creatingForloeb"
+                                               @onchange="() => ToggleHoldSelection(h.LectioHoldKey)" />
+                                    </td>
                                     <td>
                                         <div>@h.Name</div>
                                         <code class="small text-muted">@h.LectioHoldKey</code>
@@ -160,9 +196,9 @@ else
                                     <td class="text-nowrap">
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-primary me-1"
-                                                disabled="@(_creatingHoldKey == h.LectioHoldKey)"
+                                                disabled="@_creatingForloeb"
                                                 @onclick="() => CreateForloebFromHoldAsync(h)">
-                                            @(_creatingHoldKey == h.LectioHoldKey ? "Opretter…" : "Opret forløb")
+                                            Opret forløb
                                         </button>
                                         <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn</a>
                                     </td>
@@ -179,7 +215,12 @@ else
                 {
                     <div class="alert alert-success mt-3">
                         Forløb oprettet: <a href="@($"/forloeb/{_importResult.ForloebId}")">@_importResult.Name</a>
-                        — @_importResult.Total medlemmer (@_importResult.Claimed claimed, @_importResult.Shadows shadow).
+                        — @_importResult.Total medlemmer (@_importResult.Claimed claimed, @_importResult.Shadows shadow)
+                        @if (_importResult.LectioHolds > 1)
+                        {
+                            <text> · @_importResult.LectioHolds Lectio-hold samlet</text>
+                        }
+                        .
                     </div>
                 }
             }
@@ -504,8 +545,9 @@ else
     private string _holdFilter = "";
     private string? _expandedId;
     private string? _loadingPlanId;
-    private string? _creatingHoldKey;
+    private bool _creatingForloeb;
     private ImportResult? _importResult;
+    private readonly HashSet<string> _selectedHoldKeys = new(StringComparer.OrdinalIgnoreCase);
     private bool _busy;
     private bool _linkOk;
     private bool _loading;
@@ -549,6 +591,15 @@ else
                 || Contains(h.Year, q)
                 || Contains(h.YearLabel, q)
                 || Contains(h.FagId, q));
+        }
+    }
+
+    private bool AllFilteredHoldsSelected
+    {
+        get
+        {
+            var keys = FilteredHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
+            return keys.Count > 0 && keys.All(k => _selectedHoldKeys.Contains(k));
         }
     }
 
@@ -786,35 +837,92 @@ else
     {
         if (_holdScope == scope) return;
         _holdScope = scope;
+        _selectedHoldKeys.Clear();
         await LoadHoldsAsync(clearError: true);
     }
 
-    private async Task CreateForloebFromHoldAsync(HoldRow hold)
+    private void ToggleHoldSelection(string key)
     {
-        if (string.IsNullOrWhiteSpace(hold.LectioHoldKey)) return;
-        _creatingHoldKey = hold.LectioHoldKey;
+        if (string.IsNullOrWhiteSpace(key)) return;
+        if (!_selectedHoldKeys.Add(key))
+            _selectedHoldKeys.Remove(key);
+    }
+
+    private void ToggleSelectAllFiltered(ChangeEventArgs _)
+    {
+        var keys = FilteredHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
+        if (keys.Count == 0) return;
+        if (keys.All(k => _selectedHoldKeys.Contains(k)))
+        {
+            foreach (var k in keys)
+                _selectedHoldKeys.Remove(k);
+        }
+        else
+        {
+            foreach (var k in keys)
+                _selectedHoldKeys.Add(k);
+        }
+    }
+
+    private void ClearHoldSelection() => _selectedHoldKeys.Clear();
+
+    private Task CreateForloebFromHoldAsync(HoldRow hold) =>
+        CreateForloebFromKeysAsync([hold.LectioHoldKey], hold.Name);
+
+    private Task CreateForloebFromSelectedAsync() =>
+        CreateForloebFromKeysAsync(_selectedHoldKeys.ToList(), suggestedName: null);
+
+    private async Task CreateForloebFromKeysAsync(IReadOnlyList<string> keys, string? suggestedName)
+    {
+        var clean = keys
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Select(k => k.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (clean.Count == 0) return;
+
+        _creatingForloeb = true;
         _importResult = null;
         _error = null;
         try
         {
             var res = await Http.PostAsJsonAsync("forloeb/from-lectio", new
             {
-                lectioHoldKey = hold.LectioHoldKey,
-                name = hold.Name
+                lectioHoldKeys = clean,
+                name = suggestedName
             });
             var body = await res.Content.ReadAsStringAsync();
             if (res.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                // Allerede importeret — gå til eksisterende forløb hvis muligt
                 using var doc = JsonDocument.Parse(body);
-                if (doc.RootElement.TryGetProperty("forloebId", out var fid)
-                    && fid.TryGetGuid(out var forloebId))
+                var root = doc.RootElement;
+                // Én konflikt med forloebId → navigér; flere → vis fejl
+                if (root.TryGetProperty("conflicts", out var conflicts)
+                    && conflicts.ValueKind == JsonValueKind.Array)
                 {
-                    Nav.NavigateTo($"/forloeb/{forloebId}");
+                    var forloebIds = new HashSet<Guid>();
+                    foreach (var c in conflicts.EnumerateArray())
+                    {
+                        if (c.TryGetProperty("forloebId", out var fid) && fid.TryGetGuid(out var id))
+                            forloebIds.Add(id);
+                    }
+
+                    if (forloebIds.Count == 1)
+                    {
+                        Nav.NavigateTo($"/forloeb/{forloebIds.First()}");
+                        return;
+                    }
+                }
+
+                if (root.TryGetProperty("forloebId", out var legacyFid) && legacyFid.TryGetGuid(out var legacyId))
+                {
+                    Nav.NavigateTo($"/forloeb/{legacyId}");
                     return;
                 }
 
-                _error = Trim(body);
+                _error = root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.String
+                    ? msg.GetString()
+                    : Trim(body);
                 return;
             }
 
@@ -825,20 +933,24 @@ else
             }
 
             using var ok = JsonDocument.Parse(body);
-            var root = ok.RootElement;
-            var id = root.GetProperty("id").GetGuid();
-            var name = GetString(root, "name") ?? hold.Name;
+            var okRoot = ok.RootElement;
+            var forloebId = okRoot.GetProperty("id").GetGuid();
+            var name = GetString(okRoot, "name") ?? suggestedName ?? clean[0];
             var total = 0;
             var claimed = 0;
             var shadows = 0;
-            if (root.TryGetProperty("imported", out var imported) && imported.ValueKind == JsonValueKind.Object)
+            var lectioHolds = clean.Count;
+            if (okRoot.TryGetProperty("imported", out var imported) && imported.ValueKind == JsonValueKind.Object)
             {
                 total = GetInt(imported, "total") ?? 0;
                 claimed = GetInt(imported, "claimed") ?? 0;
                 shadows = GetInt(imported, "shadows") ?? 0;
+                lectioHolds = GetInt(imported, "lectioHolds") ?? lectioHolds;
             }
 
-            _importResult = new ImportResult(id, name, total, claimed, shadows);
+            _importResult = new ImportResult(forloebId, name, total, claimed, shadows, lectioHolds);
+            foreach (var k in clean)
+                _selectedHoldKeys.Remove(k);
         }
         catch (Exception ex)
         {
@@ -846,7 +958,7 @@ else
         }
         finally
         {
-            _creatingHoldKey = null;
+            _creatingForloeb = false;
         }
     }
 
@@ -1159,7 +1271,7 @@ else
 
     private sealed record HoldSummaryRow(int HoldCount, int MemberCount, int UniqueStudents);
 
-    private sealed record ImportResult(Guid ForloebId, string Name, int Total, int Claimed, int Shadows);
+    private sealed record ImportResult(Guid ForloebId, string Name, int Total, int Claimed, int Shadows, int LectioHolds = 1);
 
     private enum TeacherTab { Elever, Hold }
 

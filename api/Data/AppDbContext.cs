@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Forloeb> Forloeb => Set<Forloeb>();
     public DbSet<Hold> Hold => Set<Hold>();
     public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<HoldLectioSource> HoldLectioSources => Set<HoldLectioSource>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Forloeb)
                 .WithOne(x => x.Hold)
                 .HasForeignKey<Hold>(x => x.ForloebId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<HoldLectioSource>(e =>
+        {
+            e.ToTable("hold_lectio_sources");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.LectioHoldKey).HasMaxLength(128).IsRequired();
+            e.Property(x => x.LectioHoldName).HasMaxLength(200);
+            e.HasIndex(x => x.LectioHoldKey).IsUnique();
+            e.HasIndex(x => x.HoldId);
+            e.HasOne(x => x.Hold)
+                .WithMany(x => x.LectioSources)
+                .HasForeignKey(x => x.HoldId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

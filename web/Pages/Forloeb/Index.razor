@@ -99,7 +99,16 @@ else
                                 }
                             </td>
                             <td>
-                                @if (!string.IsNullOrWhiteSpace(f.LectioHoldKey))
+                                @if (f.LectioHoldKeys.Count > 0)
+                                {
+                                    <div class="small">
+                                        @foreach (var key in f.LectioHoldKeys)
+                                        {
+                                            <div><code>@key</code></div>
+                                        }
+                                    </div>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(f.LectioHoldKey))
                                 {
                                     <code class="small">@f.LectioHoldKey</code>
                                 }
@@ -156,13 +165,30 @@ else
             using var doc = JsonDocument.Parse(body);
             foreach (var item in doc.RootElement.EnumerateArray())
             {
+                var keys = new List<string>();
+                if (item.TryGetProperty("lectioHoldKeys", out var keysEl) && keysEl.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var k in keysEl.EnumerateArray())
+                    {
+                        if (k.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(k.GetString()))
+                            keys.Add(k.GetString()!);
+                    }
+                }
+
+                var primary = item.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String
+                    ? lk.GetString()
+                    : null;
+                if (keys.Count == 0 && !string.IsNullOrWhiteSpace(primary))
+                    keys.Add(primary);
+
                 _items.Add(new ForloebRow(
                     item.GetProperty("id").GetGuid(),
                     item.GetProperty("name").GetString() ?? "—",
                     item.TryGetProperty("description", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null,
                     item.TryGetProperty("memberCount", out var mc) && mc.TryGetInt32(out var mci) ? mci : 0,
                     item.TryGetProperty("shadowCount", out var sc) && sc.TryGetInt32(out var sci) ? sci : 0,
-                    item.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String ? lk.GetString() : null,
+                    primary,
+                    keys,
                     item.TryGetProperty("createdAtUtc", out var ca) && ca.TryGetDateTimeOffset(out var dto) ? dto : DateTimeOffset.MinValue
                 ));
             }
@@ -224,5 +250,6 @@ else
         int MemberCount,
         int ShadowCount,
         string? LectioHoldKey,
+        List<string> LectioHoldKeys,
         DateTimeOffset CreatedAtUtc);
 }

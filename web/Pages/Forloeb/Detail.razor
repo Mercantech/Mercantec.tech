@@ -46,14 +46,31 @@ else if (_forloeb is not null)
             <p class="small text-muted mb-2">
                 @_forloeb.Hold.MemberCount medlemmer
                 (@_forloeb.Hold.ShadowCount shadow)
-                @if (!string.IsNullOrWhiteSpace(_forloeb.Hold.LectioHoldKey))
-                {
-                    <text>
-                        · Lectio <code>@_forloeb.Hold.LectioHoldKey</code>
-                        · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(_forloeb.Hold.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn i Collector</a>
-                    </text>
-                }
             </p>
+            @if (_forloeb.Hold.LectioSources.Count > 0)
+            {
+                <ul class="list-unstyled small mb-3">
+                    @foreach (var src in _forloeb.Hold.LectioSources)
+                    {
+                        <li>
+                            Lectio
+                            <code>@(src.Name ?? src.Key)</code>
+                            @if (!string.IsNullOrWhiteSpace(src.Name) && !string.Equals(src.Name, src.Key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="text-muted">· <code>@src.Key</code></span>
+                            }
+                            · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(src.Key)}")" target="_blank" rel="noopener">Åbn i Collector</a>
+                        </li>
+                    }
+                </ul>
+            }
+            else if (!string.IsNullOrWhiteSpace(_forloeb.Hold.LectioHoldKey))
+            {
+                <p class="small text-muted mb-3">
+                    Lectio <code>@_forloeb.Hold.LectioHoldKey</code>
+                    · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(_forloeb.Hold.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn i Collector</a>
+                </p>
+            }
 
             @if (_forloeb.Hold.Members.Count == 0)
             {
@@ -152,10 +169,41 @@ else if (_forloeb is not null)
                     }
                 }
 
+                var sources = new List<LectioSourceRow>();
+                if (h.TryGetProperty("lectioSources", out var srcArr) && srcArr.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var s in srcArr.EnumerateArray())
+                    {
+                        var key = s.TryGetProperty("lectioHoldKey", out var sk) && sk.ValueKind == JsonValueKind.String
+                            ? sk.GetString()
+                            : null;
+                        if (string.IsNullOrWhiteSpace(key)) continue;
+                        var sName = s.TryGetProperty("lectioHoldName", out var sn) && sn.ValueKind == JsonValueKind.String
+                            ? sn.GetString()
+                            : null;
+                        sources.Add(new LectioSourceRow(key, sName));
+                    }
+                }
+                else if (h.TryGetProperty("lectioHoldKeys", out var keysArr) && keysArr.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var k in keysArr.EnumerateArray())
+                    {
+                        if (k.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(k.GetString()))
+                            sources.Add(new LectioSourceRow(k.GetString()!, null));
+                    }
+                }
+
+                var primaryKey = h.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String
+                    ? lk.GetString()
+                    : null;
+                if (sources.Count == 0 && !string.IsNullOrWhiteSpace(primaryKey))
+                    sources.Add(new LectioSourceRow(primaryKey, null));
+
                 hold = new HoldDetail(
                     h.GetProperty("id").GetGuid(),
                     h.GetProperty("name").GetString() ?? "—",
-                    h.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String ? lk.GetString() : null,
+                    primaryKey,
+                    sources,
                     h.TryGetProperty("memberCount", out var mc) && mc.TryGetInt32(out var mci) ? mci : members.Count,
                     h.TryGetProperty("shadowCount", out var sc) && sc.TryGetInt32(out var sci) ? sci : members.Count(x => x.IsShadow),
                     members);
@@ -186,6 +234,14 @@ else if (_forloeb is not null)
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 
     private sealed record ForloebDetail(Guid Id, string Name, string? Description, HoldDetail? Hold);
-    private sealed record HoldDetail(Guid Id, string Name, string? LectioHoldKey, int MemberCount, int ShadowCount, List<MemberRow> Members);
+    private sealed record HoldDetail(
+        Guid Id,
+        string Name,
+        string? LectioHoldKey,
+        List<LectioSourceRow> LectioSources,
+        int MemberCount,
+        int ShadowCount,
+        List<MemberRow> Members);
+    private sealed record LectioSourceRow(string Key, string? Name);
     private sealed record MemberRow(string? DisplayName, string? LectioId, bool IsShadow, string Source);
 }

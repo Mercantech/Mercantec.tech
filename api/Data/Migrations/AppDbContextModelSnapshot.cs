@@ -81,6 +81,37 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("hold", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldLectioSource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ImportedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LectioHoldKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LectioHoldName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId");
+
+                    b.HasIndex("LectioHoldKey")
+                        .IsUnique();
+
+                    b.ToTable("hold_lectio_sources", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Membership", b =>
                 {
                     b.Property<Guid>("Id")
@@ -137,6 +168,17 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Forloeb");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldLectioSource", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", "Hold")
+                        .WithMany("LectioSources")
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hold");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Membership", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", "Hold")
@@ -155,6 +197,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Hold", b =>
                 {
+                    b.Navigation("LectioSources");
+
                     b.Navigation("Memberships");
                 });
 #pragma warning restore 612, 618
