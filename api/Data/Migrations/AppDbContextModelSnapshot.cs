@@ -62,6 +62,10 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<Guid>("ForloebId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("LectioHoldKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -71,6 +75,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
                     b.HasIndex("ForloebId")
                         .IsUnique();
+
+                    b.HasIndex("LectioHoldKey");
 
                     b.ToTable("hold", (string)null);
                 });
@@ -84,23 +90,38 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<Guid>("HoldId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("LectioId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<Guid>("UserSub")
+                    b.Property<Guid?>("UserSub")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LectioId");
+
                     b.HasIndex("UserSub");
 
+                    b.HasIndex("HoldId", "LectioId")
+                        .IsUnique()
+                        .HasFilter("\"LectioId\" IS NOT NULL");
+
                     b.HasIndex("HoldId", "UserSub")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"UserSub\" IS NOT NULL");
 
                     b.ToTable("memberships", (string)null);
                 });

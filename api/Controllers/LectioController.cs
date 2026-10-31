@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Integrations.Lectio;
+using Mercantec.Tech.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace Mercantec.Tech.Api.Controllers;
 [ApiController]
 [Route("api/lectio")]
 [Authorize]
-public class LectioController(LectioCollectorClient lectio) : ControllerBase
+public class LectioController(LectioCollectorClient lectio, MembershipClaimService claims) : ControllerBase
 {
     [HttpGet("me")]
     public Task<IActionResult> Me(CancellationToken ct) =>
@@ -57,6 +58,14 @@ public class LectioController(LectioCollectorClient lectio) : ControllerBase
         return ProxyAsync(() => lectio.GetSavedHoldsAsync(RequireBearer(), ct), ct);
     }
 
+    [HttpGet("holds/by-lectio/{lectioHoldKey}")]
+    public Task<IActionResult> HoldByLectio(string lectioHoldKey, CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+            return Task.FromResult<IActionResult>(Forbid());
+        return ProxyAsync(() => lectio.GetHoldByLectioKeyAsync(lectioHoldKey, RequireBearer(), ct), ct);
+    }
+
     public sealed record LinkBody(string LectioId, Guid? AuthSub);
 
     [HttpPut("me/lectio-link")]
@@ -65,7 +74,21 @@ public class LectioController(LectioCollectorClient lectio) : ControllerBase
         try
         {
             await lectio.LinkAsync(body.LectioId, RequireBearer(), body.AuthSub, ct);
-            return Ok(new { linked = true, lectioId = body.LectioId, authSub = body.AuthSub });
+
+            var sub = body.AuthSub is Guid overrideSub && overrideSub != Guid.Empty
+                ? overrideSub
+                : UserClaims.GetSub(User);
+            var claimed = 0;
+            if (sub is Guid s)
+                claimed = await claims.ClaimByLectioIdAsync(s, body.LectioId, ct);
+
+            return Ok(new
+            {
+                linked = true,
+                lectioId = body.LectioId,
+                authSub = sub,
+                claimedMemberships = claimed
+            });
         }
         catch (UnauthorizedAccessException)
         {

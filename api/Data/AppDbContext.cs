@@ -25,7 +25,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("hold");
             e.HasKey(x => x.Id);
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.LectioHoldKey).HasMaxLength(128);
             e.HasIndex(x => x.ForloebId).IsUnique();
+            e.HasIndex(x => x.LectioHoldKey);
             e.HasOne(x => x.Forloeb)
                 .WithOne(x => x.Hold)
                 .HasForeignKey<Hold>(x => x.ForloebId)
@@ -37,8 +39,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.ToTable("memberships");
             e.HasKey(x => x.Id);
             e.Property(x => x.Source).HasMaxLength(32).IsRequired();
-            e.HasIndex(x => new { x.HoldId, x.UserSub }).IsUnique();
+            e.Property(x => x.LectioId).HasMaxLength(64);
+            e.Property(x => x.DisplayName).HasMaxLength(200);
+            // Claimed: én række pr. Auth-bruger på holdet
+            e.HasIndex(x => new { x.HoldId, x.UserSub })
+                .IsUnique()
+                .HasFilter("\"UserSub\" IS NOT NULL");
+            // Shadow/lectio: én række pr. Lectio-id på holdet
+            e.HasIndex(x => new { x.HoldId, x.LectioId })
+                .IsUnique()
+                .HasFilter("\"LectioId\" IS NOT NULL");
             e.HasIndex(x => x.UserSub);
+            e.HasIndex(x => x.LectioId);
             e.HasOne(x => x.Hold)
                 .WithMany(x => x.Memberships)
                 .HasForeignKey(x => x.HoldId)

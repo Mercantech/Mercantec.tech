@@ -1,5 +1,6 @@
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Integrations.Lectio;
+using Mercantec.Tech.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,7 @@ builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(60);
 });
 builder.Services.AddScoped<ILectioMembershipSync>(sp => sp.GetRequiredService<LectioCollectorClient>());
+builder.Services.AddScoped<MembershipClaimService>();
 
 var connectionString =
     builder.Configuration.GetConnectionString("Default")

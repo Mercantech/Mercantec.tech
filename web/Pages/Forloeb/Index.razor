@@ -1,0 +1,228 @@
+@page "/forloeb"
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Forløb</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (Redirect.CurrentAppRole() != AppRole.Underviser)
+{
+    <p class="text-muted">Forløb-administration er for undervisere. <a href="/lectio">Gå til Lectio</a></p>
+}
+else
+{
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+            <h1 class="h3 mb-1">Forløb</h1>
+            <p class="text-muted mb-0 small">Opret manuelt eller importer fra Lectio-hold.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="/lectio">Fra Lectio-hold</a>
+            <button class="btn btn-primary" @onclick="() => _showCreate = !_showCreate">
+                @(_showCreate ? "Skjul" : "Nyt forløb")
+            </button>
+        </div>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger">@_error</div>
+    }
+
+    @if (_showCreate)
+    {
+        <div class="border rounded p-3 mb-4 bg-light" style="max-width: 28rem;">
+            <h2 class="h6">Opret forløb</h2>
+            <div class="mb-2">
+                <label class="form-label">Navn</label>
+                <input class="form-control" @bind="_newName" maxlength="200" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Beskrivelse (valgfri)</label>
+                <textarea class="form-control" rows="2" @bind="_newDescription"></textarea>
+            </div>
+            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))" @onclick="CreateAsync">
+                @(_busy ? "Opretter…" : "Opret")
+            </button>
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <p>Henter forløb…</p>
+    }
+    else if (_items.Count == 0)
+    {
+        <p class="text-muted">Ingen forløb endnu. Opret et manuelt, eller vælg et hold under Lectio → Hold.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Navn</th>
+                        <th>Medlemmer</th>
+                        <th>Lectio</th>
+                        <th>Oprettet</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in _items)
+                    {
+                        <tr>
+                            <td>
+                                <div>@f.Name</div>
+                                @if (!string.IsNullOrWhiteSpace(f.Description))
+                                {
+                                    <div class="small text-muted">@f.Description</div>
+                                }
+                            </td>
+                            <td>
+                                @f.MemberCount
+                                @if (f.ShadowCount > 0)
+                                {
+                                    <span class="small text-muted"> (@f.ShadowCount shadow)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(f.LectioHoldKey))
+                                {
+                                    <code class="small">@f.LectioHoldKey</code>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td class="small text-muted">@f.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                            <td><a href="@($"/forloeb/{f.Id}")">Åbn</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private bool _loading;
+    private bool _busy;
+    private bool _showCreate;
+    private string? _error;
+    private string _newName = "";
+    private string _newDescription = "";
+    private readonly List<ForloebRow> _items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated)
+            return;
+        if (Redirect.CurrentAppRole() != AppRole.Underviser)
+            return;
+
+        _loading = true;
+        _error = null;
+        _items.Clear();
+        try
+        {
+            var res = await Http.GetAsync("forloeb");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _error = body.Length > 300 ? body[..300] + "…" : body;
+                return;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                _items.Add(new ForloebRow(
+                    item.GetProperty("id").GetGuid(),
+                    item.GetProperty("name").GetString() ?? "—",
+                    item.TryGetProperty("description", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null,
+                    item.TryGetProperty("memberCount", out var mc) && mc.TryGetInt32(out var mci) ? mci : 0,
+                    item.TryGetProperty("shadowCount", out var sc) && sc.TryGetInt32(out var sci) ? sci : 0,
+                    item.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String ? lk.GetString() : null,
+                    item.TryGetProperty("createdAtUtc", out var ca) && ca.TryGetDateTimeOffset(out var dto) ? dto : DateTimeOffset.MinValue
+                ));
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var res = await Http.PostAsJsonAsync("forloeb", new
+            {
+                name = _newName.Trim(),
+                description = string.IsNullOrWhiteSpace(_newDescription) ? null : _newDescription.Trim()
+            });
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _error = body.Length > 300 ? body[..300] + "…" : body;
+                return;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            var id = doc.RootElement.GetProperty("id").GetGuid();
+            Nav.NavigateTo($"/forloeb/{id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record ForloebRow(
+        Guid Id,
+        string Name,
+        string? Description,
+        int MemberCount,
+        int ShadowCount,
+        string? LectioHoldKey,
+        DateTimeOffset CreatedAtUtc);
+}

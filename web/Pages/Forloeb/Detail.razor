@@ -1,0 +1,191 @@
+@page "/forloeb/{Id:guid}"
+@using System.Text.Json
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>@( _forloeb?.Name ?? "Forløb" )</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (_loading)
+{
+    <p>Henter…</p>
+}
+else if (_error is not null && _forloeb is null)
+{
+    <div class="alert alert-danger">@_error</div>
+    <p><a href="/forloeb">Tilbage</a></p>
+}
+else if (_forloeb is not null)
+{
+    <p class="mb-2"><a href="/forloeb">← Alle forløb</a></p>
+    <h1 class="h3">@_forloeb.Name</h1>
+    @if (!string.IsNullOrWhiteSpace(_forloeb.Description))
+    {
+        <p class="text-muted">@_forloeb.Description</p>
+    }
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger">@_error</div>
+    }
+
+    @if (_forloeb.Hold is not null)
+    {
+        <section class="mb-4">
+            <h2 class="h5">Hold: @_forloeb.Hold.Name</h2>
+            <p class="small text-muted mb-2">
+                @_forloeb.Hold.MemberCount medlemmer
+                (@_forloeb.Hold.ShadowCount shadow)
+                @if (!string.IsNullOrWhiteSpace(_forloeb.Hold.LectioHoldKey))
+                {
+                    <text>
+                        · Lectio <code>@_forloeb.Hold.LectioHoldKey</code>
+                        · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(_forloeb.Hold.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn i Collector</a>
+                    </text>
+                }
+            </p>
+
+            @if (_forloeb.Hold.Members.Count == 0)
+            {
+                <p class="text-muted">Ingen medlemmer endnu.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Navn</th>
+                                <th>Lectio-id</th>
+                                <th>Status</th>
+                                <th>Kilde</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in _forloeb.Hold.Members)
+                            {
+                                <tr>
+                                    <td>@(m.DisplayName ?? "—")</td>
+                                    <td><code class="small">@(m.LectioId ?? "—")</code></td>
+                                    <td>
+                                        @if (m.IsShadow)
+                                        {
+                                            <span class="badge text-bg-warning">Shadow</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-success">Claimed</span>
+                                        }
+                                    </td>
+                                    <td class="small text-muted">@m.Source</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mb-0">
+                    Shadow = elev fra Lectio uden Auth-kobling endnu. Når eleven kobler sin Lectio-profil, claimed medlemskabet automatisk.
+                </p>
+            }
+        </section>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private bool _loading = true;
+    private string? _error;
+    private ForloebDetail? _forloeb;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        Auth.AuthStateChanged += OnAuth;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Auth.IsInitialized)
+            return;
+
+        _loading = true;
+        _error = null;
+        _forloeb = null;
+        try
+        {
+            var res = await Http.GetAsync($"forloeb/{Id}");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _error = body.Length > 400 ? body[..400] + "…" : body;
+                return;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            HoldDetail? hold = null;
+            if (root.TryGetProperty("hold", out var h) && h.ValueKind == JsonValueKind.Object)
+            {
+                var members = new List<MemberRow>();
+                if (h.TryGetProperty("members", out var arr) && arr.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var m in arr.EnumerateArray())
+                    {
+                        members.Add(new MemberRow(
+                            m.TryGetProperty("displayName", out var dn) && dn.ValueKind == JsonValueKind.String ? dn.GetString() : null,
+                            m.TryGetProperty("lectioId", out var li) && li.ValueKind == JsonValueKind.String ? li.GetString() : null,
+                            m.TryGetProperty("isShadow", out var sh) && sh.ValueKind == JsonValueKind.True,
+                            m.TryGetProperty("source", out var so) && so.ValueKind == JsonValueKind.String ? so.GetString() ?? "" : ""
+                        ));
+                    }
+                }
+
+                hold = new HoldDetail(
+                    h.GetProperty("id").GetGuid(),
+                    h.GetProperty("name").GetString() ?? "—",
+                    h.TryGetProperty("lectioHoldKey", out var lk) && lk.ValueKind == JsonValueKind.String ? lk.GetString() : null,
+                    h.TryGetProperty("memberCount", out var mc) && mc.TryGetInt32(out var mci) ? mci : members.Count,
+                    h.TryGetProperty("shadowCount", out var sc) && sc.TryGetInt32(out var sci) ? sci : members.Count(x => x.IsShadow),
+                    members);
+            }
+
+            _forloeb = new ForloebDetail(
+                root.GetProperty("id").GetGuid(),
+                root.GetProperty("name").GetString() ?? "—",
+                root.TryGetProperty("description", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null,
+                hold);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record ForloebDetail(Guid Id, string Name, string? Description, HoldDetail? Hold);
+    private sealed record HoldDetail(Guid Id, string Name, string? LectioHoldKey, int MemberCount, int ShadowCount, List<MemberRow> Members);
+    private sealed record MemberRow(string? DisplayName, string? LectioId, bool IsShadow, string Source);
+}

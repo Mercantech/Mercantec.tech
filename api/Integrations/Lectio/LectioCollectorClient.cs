@@ -70,6 +70,69 @@ public class LectioCollectorClient(HttpClient http, ILogger<LectioCollectorClien
         return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
     }
 
+    public async Task<JsonElement> GetHoldByLectioKeyAsync(string lectioHoldKey, string bearerToken, CancellationToken ct = default)
+    {
+        using var req = CreateRequest(
+            HttpMethod.Get,
+            $"holds/by-lectio/{Uri.EscapeDataString(lectioHoldKey)}",
+            bearerToken);
+        using var res = await http.SendAsync(req, ct);
+        await EnsureSuccess(res, ct);
+        return await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
+    }
+
+    public async Task<IReadOnlyDictionary<string, Guid>> ResolveAuthLinksAsync(
+        IEnumerable<string> lectioIds,
+        string bearerToken,
+        CancellationToken ct = default)
+    {
+        var ids = lectioIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (ids.Count == 0)
+            return new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+
+        using var req = CreateRequest(HttpMethod.Post, "auth-links/resolve", bearerToken);
+        req.Content = JsonContent.Create(new { lectioIds = ids });
+        using var res = await http.SendAsync(req, ct);
+        // Ældre Collector uden endpoint → alle shadows
+        if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+
+        await EnsureSuccess(res, ct);
+        var json = await res.Content.ReadFromJsonAsync<JsonElement>(JsonOptions, ct);
+        var map = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+
+        if (json.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in json.EnumerateArray())
+                TryAddLink(map, item);
+        }
+        else if (json.TryGetProperty("links", out var links) && links.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in links.EnumerateArray())
+                TryAddLink(map, item);
+        }
+
+        return map;
+    }
+
+    private static void TryAddLink(Dictionary<string, Guid> map, JsonElement item)
+    {
+        if (!item.TryGetProperty("lectioId", out var idEl) || idEl.ValueKind != JsonValueKind.String)
+            return;
+        var lectioId = idEl.GetString();
+        if (string.IsNullOrWhiteSpace(lectioId))
+            return;
+        if (!item.TryGetProperty("authSub", out var subEl))
+            return;
+        var raw = subEl.ValueKind == JsonValueKind.String ? subEl.GetString() : subEl.ToString();
+        if (Guid.TryParse(raw, out var sub))
+            map[lectioId] = sub;
+    }
+
     public async Task LinkAsync(string lectioId, string bearerToken, Guid? authSub = null, CancellationToken ct = default)
     {
         using var req = CreateRequest(HttpMethod.Put, "me/lectio-link", bearerToken);
