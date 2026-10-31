@@ -1,4 +1,4 @@
-@page "/privatliv"
+@page "/privacy"
 @inject AuthService Auth
 
 <PageTitle>Privatliv og GDPR</PageTitle>
@@ -65,8 +65,8 @@
 @if (Auth.IsAuthenticated)
 {
     <p>
-        <a class="btn btn-primary" href="/rettigheder">Gå til mine rettigheder (eksport / sletning)</a>
-        <a class="btn btn-outline-secondary" href="/profil">Profil</a>
+        <a class="btn btn-primary" href="/rights">Gå til mine rettigheder (eksport / sletning)</a>
+        <a class="btn btn-outline-secondary" href="/profile">Profil</a>
     </p>
 }
 else

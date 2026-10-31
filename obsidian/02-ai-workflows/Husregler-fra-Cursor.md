@@ -15,6 +15,12 @@ Projekt-specifik udgave til Mercantec.tech. Kilde: generelle Cursor-retningslinj
 
 - Svar og vault-noter på **dansk**, medmindre andet er aftalt.
 
+## Sider
+
+- **Router og filer på engelsk.** Blazor-`@page` og sidefiler/mapper: `/courses`, `web/Pages/Courses/` — ikke `/forloeb` eller mappen `Forloeb`.
+- **Sidens tekst og navbar må være dansk.** Menupunktet kan hedde "Forløb" og stadig linke til `/courses`.
+- Gamle danske URL'er må kun være redirects. API-routes og C#-domænetyper skifter ikke navn, bare fordi en side flytter.
+
 ## Logoer og branding
 
 - Brug **officielle** logoer (brand kit, Simple Icons, Wikimedia m.m.) — gem i repo (fx `web/wwwroot/`).

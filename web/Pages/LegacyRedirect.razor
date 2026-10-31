@@ -1,0 +1,31 @@
+@page "/forloeb"
+@page "/forloeb/{Id:guid}"
+@page "/elev"
+@page "/underviser"
+@page "/profil"
+@page "/rettigheder"
+@page "/privatliv"
+@inject NavigationManager Nav
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri).Trim('/');
+        var target = relative switch
+        {
+            "forloeb" => "/courses",
+            "elev" => "/student",
+            "underviser" => "/teacher",
+            "profil" => "/profile",
+            "rettigheder" => "/rights",
+            "privatliv" => "/privacy",
+            _ when relative.StartsWith("forloeb/", StringComparison.OrdinalIgnoreCase)
+                => "/courses/" + relative["forloeb/".Length..],
+            _ => "/"
+        };
+
+        Nav.NavigateTo(target, replace: true);
+    }
+}

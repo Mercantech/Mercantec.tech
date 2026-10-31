@@ -50,7 +50,7 @@ public sealed class RoleResolver(IOptions<RoleOptions> options)
 
     public string HomePath(AppRole role) => role switch
     {
-        AppRole.Underviser => "/underviser",
-        _ => "/elev"
+        AppRole.Underviser => "/teacher",
+        _ => "/student"
     };
 }

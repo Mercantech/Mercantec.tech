@@ -14,7 +14,7 @@
             @if (Auth.IsAuthenticated)
             {
                 <span class="small text-muted">@Redirect.CurrentAppRole()</span>
-                <a class="small" href="/profil">@(Auth.DisplayName ?? "Bruger")</a>
+                <a class="small" href="/profile">@(Auth.DisplayName ?? "Bruger")</a>
                 <button class="btn btn-sm btn-outline-secondary" @onclick="Logout">Log ud</button>
             }
             else

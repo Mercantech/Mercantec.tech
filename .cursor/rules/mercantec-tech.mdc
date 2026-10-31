@@ -21,6 +21,11 @@ Læs vaulten `obsidian/` — start med `00-home/Start her.md`. AI-workflows: `02
 - Dokploy MCP til drift
 - Officielle logoer — tegn ikke selv
 
+## Sider
+- **Router og filer på engelsk.** `@page`-stier og sidefiler/mapper hedder fx `/courses` og `web/Pages/Courses/`, ikke `/forloeb` eller `Forloeb`.
+- **Synlig tekst og navbar må være dansk.** Knapper, overskrifter og menupunkter kan sige "Forløb", mens linket peger på `/courses`.
+- Gamle danske stier må kun være redirects til den engelske sti. API-routes og domænetyper følger deres eget navn og omdøbes ikke bare fordi siden flytter.
+
 ## Må ikke
 - Egen JWT/login
 - Secrets i git

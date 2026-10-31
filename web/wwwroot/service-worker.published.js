@@ -41,27 +41,53 @@ async function onActivate(event) {
 async function onFetch(event) {
     const url = new URL(event.request.url);
 
-    // Never cache or intercept API calls — always hit the network (nginx → api).
+    // Never cache API calls — always hit the network (nginx → api).
     if (url.pathname.startsWith('/api/')) {
-        return fetch(event.request);
-    }
-
-    // Navigations (HTML): always network-first so new Blazor builds win over stale cache.
-    if (event.request.method === 'GET' && event.request.mode === 'navigate') {
         try {
-            const network = await fetch(event.request);
-            return network;
+            return await fetch(event.request);
         } catch {
-            const cache = await caches.open(cacheName);
-            return (await cache.match('index.html')) || Response.error();
+            return new Response(JSON.stringify({ error: 'offline' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
     }
 
-    let cachedResponse = null;
-    if (event.request.method === 'GET') {
-        const cache = await caches.open(cacheName);
-        cachedResponse = await cache.match(event.request);
+    const isDocument = event.request.method === 'GET' && (
+        event.request.mode === 'navigate'
+        || event.request.destination === 'document'
+        || !manifestUrlList.includes(event.request.url) && (event.request.headers.get('accept') || '').includes('text/html')
+    );
+
+    // SPA-ruter som /lectio findes ikke som filer. Netværk først, ellers den cachede app-skal.
+    // respondWith må ikke afvise — en afvist fetch bliver en "network error" i browseren.
+    if (isDocument) {
+        try {
+            return await fetch(event.request);
+        } catch {
+            return await cachedIndex();
+        }
     }
 
-    return cachedResponse || fetch(event.request);
+    if (event.request.method === 'GET') {
+        const cache = await caches.open(cacheName);
+        const cachedResponse = await cache.match(event.request);
+        if (cachedResponse) return cachedResponse;
+    }
+
+    try {
+        return await fetch(event.request);
+    } catch {
+        return new Response('', { status: 504, statusText: 'offline' });
+    }
+}
+
+async function cachedIndex() {
+    const cache = await caches.open(cacheName);
+    return await cache.match('index.html')
+        || await cache.match(new URL('index.html', self.location).href)
+        || new Response('Offline', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
 }

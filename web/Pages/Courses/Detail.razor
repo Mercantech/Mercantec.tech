@@ -1,4 +1,4 @@
-@page "/forloeb/{Id:guid}"
+@page "/courses/{Id:guid}"
 @using System.Text.Json
 @inject AuthService Auth
 @inject AuthRedirect Redirect
@@ -23,11 +23,11 @@ else if (_loading)
 else if (_error is not null && _forloeb is null)
 {
     <div class="alert alert-danger">@_error</div>
-    <p><a href="/forloeb">Tilbage</a></p>
+    <p><a href="/courses">Tilbage</a></p>
 }
 else if (_forloeb is not null)
 {
-    <p class="mb-2"><a href="/forloeb">← Alle forløb</a></p>
+    <p class="mb-2"><a href="/courses">← Alle forløb</a></p>
     <h1 class="h3">@_forloeb.Name</h1>
     @if (!string.IsNullOrWhiteSpace(_forloeb.Description))
     {

@@ -373,7 +373,7 @@ else
                 @if (_importResult is not null)
                 {
                     <div class="alert alert-success mt-3">
-                        Forløb oprettet: <a href="@($"/forloeb/{_importResult.ForloebId}")">@_importResult.Name</a>
+                        Forløb oprettet: <a href="@($"/courses/{_importResult.ForloebId}")">@_importResult.Name</a>
                         — @_importResult.Total medlemmer (@_importResult.Claimed claimed, @_importResult.Shadows shadow)
                         @if (_importResult.LectioHolds > 1)
                         {
@@ -1527,14 +1527,14 @@ else
 
                     if (forloebIds.Count == 1)
                     {
-                        Nav.NavigateTo($"/forloeb/{forloebIds.First()}");
+                        Nav.NavigateTo($"/courses/{forloebIds.First()}");
                         return;
                     }
                 }
 
                 if (root.TryGetProperty("forloebId", out var legacyFid) && legacyFid.TryGetGuid(out var legacyId))
                 {
-                    Nav.NavigateTo($"/forloeb/{legacyId}");
+                    Nav.NavigateTo($"/courses/{legacyId}");
                     return;
                 }
 

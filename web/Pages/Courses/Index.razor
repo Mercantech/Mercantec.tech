@@ -1,4 +1,4 @@
-@page "/forloeb"
+@page "/courses"
 @using System.Net.Http.Json
 @using System.Text.Json
 @inject AuthService Auth
@@ -118,7 +118,7 @@ else
                                 }
                             </td>
                             <td class="small text-muted">@f.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</td>
-                            <td><a href="@($"/forloeb/{f.Id}")">Åbn</a></td>
+                            <td><a href="@($"/courses/{f.Id}")">Åbn</a></td>
                         </tr>
                     }
                 </tbody>
@@ -223,7 +223,7 @@ else
 
             using var doc = JsonDocument.Parse(body);
             var id = doc.RootElement.GetProperty("id").GetGuid();
-            Nav.NavigateTo($"/forloeb/{id}");
+            Nav.NavigateTo($"/courses/{id}");
         }
         catch (Exception ex)
         {
