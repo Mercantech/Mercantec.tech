@@ -16,6 +16,26 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+a.lc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    vertical-align: middle;
+}
+
+a.lc-link .lc-mark {
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 22%;
+    object-fit: cover;
+    flex: none;
+}
+
+a.btn.lc-link .lc-mark {
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }

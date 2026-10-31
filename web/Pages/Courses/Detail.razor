@@ -59,7 +59,7 @@ else if (_forloeb is not null)
                             {
                                 <span class="text-muted">· <code>@src.Key</code></span>
                             }
-                            · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(src.Key)}")" target="_blank" rel="noopener">Åbn i Collector</a>
+                            · <a class="lc-link" href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(src.Key)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />Åbn i Collector</a>
                         </li>
                     }
                 </ul>
@@ -68,7 +68,7 @@ else if (_forloeb is not null)
             {
                 <p class="small text-muted mb-3">
                     Lectio <code>@_forloeb.Hold.LectioHoldKey</code>
-                    · <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(_forloeb.Hold.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn i Collector</a>
+                    · <a class="lc-link" href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(_forloeb.Hold.LectioHoldKey)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />Åbn i Collector</a>
                 </p>
             }
 

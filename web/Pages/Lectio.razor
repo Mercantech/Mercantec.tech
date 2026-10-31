@@ -29,7 +29,8 @@ else
                 <p class="text-muted mb-0">Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
             </div>
             <div class="lectio-head-actions">
-                <a class="btn btn-primary" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
+                <a class="btn btn-primary lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
+                    <img class="lc-mark" src="images/lc-logo.jpg" alt="" />
                     Åbn i Lectio-Collector
                 </a>
                 <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
@@ -297,7 +298,7 @@ else
                                                 @onclick="() => CreateForloebFromHoldAsync(h)">
                                             Opret forløb
                                         </button>
-                                        <a href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener">Åbn</a>
+                                        <a class="lc-link" href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />Åbn</a>
                                     </td>
                                 </tr>
                                 @if (expanded)
@@ -352,7 +353,7 @@ else
                                                                             </div>
                                                                         }
                                                                     </div>
-                                                                    <a href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener">Åbn</a>
+                                                                    <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />Åbn</a>
                                                                 </li>
                                                             }
                                                         </ul>
@@ -641,7 +642,7 @@ else
                                         }
                                     </td>
                                     <td>
-                                        <a href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener">Åbn</a>
+                                        <a class="lc-link" href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />Åbn</a>
                                     </td>
                                 </tr>
                                 @if (expanded)
@@ -837,7 +838,7 @@ else
                     <p class="mb-2">Ingen automatisk match på dit Auth-navn.</p>
                     <p class="mb-0 small">
                         Bed en underviser om at koble dig i Lectio-Collector
-                        (<a href="https://lc.mags.dk" target="_blank" rel="noopener">lc.mags.dk</a>).
+                        (<a class="lc-link" href="https://lc.mags.dk" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" />lc.mags.dk</a>).
                         Af sikkerhedshensyn kan du ikke indtaste et vilkårligt Lectio-id her.
                     </p>
                 </div>
