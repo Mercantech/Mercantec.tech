@@ -88,10 +88,20 @@ else
                         <tbody>
                             @foreach (var s in FilteredStudents)
                             {
+                                var expanded = _expandedId == s.LectioId;
                                 <tr>
                                     <td>
-                                        <div>@s.Name</div>
-                                        <code class="small text-muted">@s.LectioId</code>
+                                        <button type="button"
+                                                class="btn btn-link btn-sm p-0 text-decoration-none me-1"
+                                                title="@(expanded ? "Skjul forløb" : "Vis alle forløb")"
+                                                disabled="@(_loadingPlanId == s.LectioId)"
+                                                @onclick="() => ToggleForloebAsync(s.LectioId)">
+                                            @(expanded ? "▼" : "▶")
+                                        </button>
+                                        <div class="d-inline-block align-middle">
+                                            <div>@s.Name</div>
+                                            <code class="small text-muted">@s.LectioId</code>
+                                        </div>
                                     </td>
                                     <td>@(s.ClassName ?? "—")</td>
                                     <td>
@@ -153,6 +163,52 @@ else
                                         <a href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener">Åbn</a>
                                     </td>
                                 </tr>
+                                @if (expanded)
+                                {
+                                    <tr class="table-light">
+                                        <td colspan="7" class="py-3">
+                                            @if (_loadingPlanId == s.LectioId)
+                                            {
+                                                <span class="text-muted">Henter studieplan…</span>
+                                            }
+                                            else if (_planErrors.TryGetValue(s.LectioId, out var planErr))
+                                            {
+                                                <span class="text-danger">@planErr</span>
+                                            }
+                                            else if (_plans.TryGetValue(s.LectioId, out var plan) && plan.Periods.Count > 0)
+                                            {
+                                                <div class="fw-semibold mb-2">Alle forløb (@plan.Periods.Count)</div>
+                                                @if (!string.IsNullOrWhiteSpace(plan.ClassName))
+                                                {
+                                                    <div class="small text-muted mb-2">Klasse i studieplan: @plan.ClassName</div>
+                                                }
+                                                <table class="table table-sm table-bordered mb-0 bg-white" style="max-width: 40rem;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Forløb</th>
+                                                            <th>Start</th>
+                                                            <th>Slut</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var p in plan.Periods)
+                                                        {
+                                                            <tr>
+                                                                <td>@p.Name</td>
+                                                                <td>@(p.Start ?? "—")</td>
+                                                                <td>@(p.End ?? "—")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Ingen forløb i cachet studieplan.</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -268,6 +324,8 @@ else
     private string? _authName;
     private string? _selectedLectioId;
     private string _teacherFilter = "";
+    private string? _expandedId;
+    private string? _loadingPlanId;
     private bool _busy;
     private bool _linkOk;
     private bool _loading;
@@ -275,6 +333,8 @@ else
     private bool _dismissed;
     private readonly List<StudentRow> _students = [];
     private readonly List<CandidateRow> _candidates = [];
+    private readonly Dictionary<string, StudentPlan> _plans = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, string> _planErrors = new(StringComparer.OrdinalIgnoreCase);
 
     private IEnumerable<StudentRow> FilteredStudents
     {
@@ -318,6 +378,10 @@ else
         _error = null;
         _students.Clear();
         _candidates.Clear();
+        _plans.Clear();
+        _planErrors.Clear();
+        _expandedId = null;
+        _loadingPlanId = null;
         _linked = false;
         _meStudent = null;
         StateHasChanged();
@@ -509,6 +573,78 @@ else
         _selectedLectioId = null;
     }
 
+    private async Task ToggleForloebAsync(string lectioId)
+    {
+        if (string.Equals(_expandedId, lectioId, StringComparison.OrdinalIgnoreCase))
+        {
+            _expandedId = null;
+            return;
+        }
+
+        _expandedId = lectioId;
+        if (_plans.ContainsKey(lectioId) || _planErrors.ContainsKey(lectioId))
+            return;
+
+        _loadingPlanId = lectioId;
+        try
+        {
+            var res = await Http.GetAsync($"lectio/students/{Uri.EscapeDataString(lectioId)}/studieplan");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _planErrors[lectioId] = $"Studieplan ({(int)res.StatusCode}): {Trim(body)}";
+                return;
+            }
+
+            _plans[lectioId] = ParsePlan(body);
+            _planErrors.Remove(lectioId);
+        }
+        catch (Exception ex)
+        {
+            _planErrors[lectioId] = ex.Message;
+        }
+        finally
+        {
+            _loadingPlanId = null;
+        }
+    }
+
+    private static StudentPlan ParsePlan(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        var className = GetString(root, "className");
+        var periods = new List<PeriodRow>();
+
+        if (TryGetArray(root, "schoolPeriods", out var arr)
+            || TryGetArray(root, "SchoolPeriods", out arr))
+        {
+            foreach (var item in arr.EnumerateArray())
+            {
+                var name = GetString(item, "name") ?? GetString(item, "Name") ?? "—";
+                var start = FormatDate(item, "startDate")
+                            ?? FormatDate(item, "StartDate")
+                            ?? GetString(item, "startDate")
+                            ?? GetString(item, "StartDate");
+                var end = FormatDate(item, "endDate")
+                          ?? FormatDate(item, "EndDate")
+                          ?? GetString(item, "endDate")
+                          ?? GetString(item, "EndDate");
+                periods.Add(new PeriodRow(name, start, end));
+            }
+        }
+
+        return new StudentPlan(className, periods);
+    }
+
+    private static bool TryGetArray(JsonElement el, string name, out JsonElement arr)
+    {
+        if (el.TryGetProperty(name, out arr) && arr.ValueKind == JsonValueKind.Array)
+            return true;
+        arr = default;
+        return false;
+    }
+
     private static bool HasLectioLink(string meJson)
     {
         try
@@ -599,4 +735,8 @@ else
         bool? VufOk);
 
     private sealed record CandidateRow(string LectioId, string Name, string? ClassName, string? Xprs);
+
+    private sealed record StudentPlan(string? ClassName, List<PeriodRow> Periods);
+
+    private sealed record PeriodRow(string Name, string? Start, string? End);
 }
