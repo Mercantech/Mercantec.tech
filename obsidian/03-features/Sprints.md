@@ -22,15 +22,15 @@ Arbejdet køres som GitHub **milestones** + labels (`sprint-0` …) og [Project 
 | [#4](https://github.com/Mercantech/Mercantec.tech/issues/4) | Domæne-skeleton: Forløb, Hold, Membership | Done |
 | [#5](https://github.com/Mercantech/Mercantec.tech/issues/5) | Dokploy: compose-app, env og domain | Done |
 
-## Sprint 1 – Forløb og hold (Ready)
+## Sprint 1 – Forløb og hold
 
-| Issue | Titel |
-|-------|--------|
-| [#6](https://github.com/Mercantech/Mercantec.tech/issues/6) | CRUD forløb (+ auto 1:1 hold) |
-| [#7](https://github.com/Mercantech/Mercantec.tech/issues/7) | Manuel elevliste på hold |
-| [#8](https://github.com/Mercantech/Mercantec.tech/issues/8) | Elev-view: mine forløb/hold |
-| [#9](https://github.com/Mercantech/Mercantec.tech/issues/9) | Onboarding-modal (minimal) |
-| [#10](https://github.com/Mercantech/Mercantec.tech/issues/10) | Lectio: integrationskontrakt + ADR |
+| Issue | Titel | Status |
+|-------|--------|--------|
+| [#10](https://github.com/Mercantech/Mercantec.tech/issues/10) | Lectio: integrationskontrakt + ADR | Done |
+| [#6](https://github.com/Mercantech/Mercantec.tech/issues/6) | CRUD forløb (+ auto 1:1 hold) | Ready |
+| [#7](https://github.com/Mercantech/Mercantec.tech/issues/7) | Manuel elevliste på hold | Ready |
+| [#8](https://github.com/Mercantech/Mercantec.tech/issues/8) | Elev-view: mine forløb/hold | Ready |
+| [#9](https://github.com/Mercantech/Mercantec.tech/issues/9) | Onboarding-modal (minimal) | Ready |
 
 ## Sprint 2 – Quests og aflevering (Backlog)
 
