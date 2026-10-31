@@ -29,9 +29,8 @@ else
                 <p class="text-muted mb-0">Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
             </div>
             <div class="lectio-head-actions">
-                <a class="btn btn-primary lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
+                <a class="lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector">
                     <img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />
-                    Åbn i Lectio-Collector
                 </a>
                 <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
                     @(_loading ? "Henter…" : "Genindlæs")
@@ -298,7 +297,7 @@ else
                                                 @onclick="() => CreateForloebFromHoldAsync(h)">
                                             Opret forløb
                                         </button>
-                                        <a class="lc-link" href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />Åbn</a>
+                                        <a class="lc-link" href="@($"https://lc.mags.dk/hold/{Uri.EscapeDataString(h.LectioHoldKey)}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                     </td>
                                 </tr>
                                 @if (expanded)
@@ -353,7 +352,7 @@ else
                                                                             </div>
                                                                         }
                                                                     </div>
-                                                                    <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />Åbn</a>
+                                                                    <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                                                 </li>
                                                             }
                                                         </ul>
@@ -642,7 +641,7 @@ else
                                         }
                                     </td>
                                     <td>
-                                        <a class="lc-link" href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />Åbn</a>
+                                        <a class="lc-link" href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                     </td>
                                 </tr>
                                 @if (expanded)
