@@ -23,17 +23,15 @@ a.lc-link {
     vertical-align: middle;
 }
 
+img.lc-mark,
 a.lc-link .lc-mark {
-    width: 1.15rem;
-    height: 1.15rem;
+    width: 18px;
+    height: 18px;
+    max-width: 18px;
+    max-height: 18px;
     border-radius: 22%;
     object-fit: cover;
     flex: none;
-}
-
-a.btn.lc-link .lc-mark {
-    width: 1.35rem;
-    height: 1.35rem;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
