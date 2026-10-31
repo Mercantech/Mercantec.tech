@@ -21,22 +21,22 @@
         @if (Auth.IsAuthenticated)
         {
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="@Redirect.PostLoginPath().TrimStart('/')">
+                <NavLink class="nav-link" href="@Redirect.PostLoginPath()">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Dashboard
                 </NavLink>
             </div>
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="profil">
+                <NavLink class="nav-link" href="/profil">
                     <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Profil
                 </NavLink>
             </div>
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="rettigheder">
+                <NavLink class="nav-link" href="/rettigheder">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Rettigheder
                 </NavLink>
             </div>
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="lectio">
+                <NavLink class="nav-link" href="/lectio">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Lectio
                 </NavLink>
             </div>
@@ -44,13 +44,13 @@
         else
         {
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="login">
+                <NavLink class="nav-link" href="/login">
                     <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Log ind
                 </NavLink>
             </div>
         }
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="privatliv">
+            <NavLink class="nav-link" href="/privatliv">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Privatliv
             </NavLink>
         </div>

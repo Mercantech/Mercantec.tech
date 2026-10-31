@@ -1,5 +1,26 @@
 ﻿@page "/not-found"
 @layout MainLayout
+@inject AuthService Auth
+@inject AuthRedirect Redirect
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<PageTitle>Siden findes ikke</PageTitle>
+
+<h1>Siden findes ikke</h1>
+<p>
+    Adressen matcher ingen side i den indlæste app-version.
+    Har du lige deployet? Prøv et hårdt reload (Ctrl+Shift+R) — PWA-cachen kan være gammel.
+</p>
+
+<ul>
+    <li><a href="/">Forside</a></li>
+    @if (Auth.IsAuthenticated)
+    {
+        <li><a href="@Redirect.PostLoginPath()">Mit dashboard</a></li>
+        <li><a href="/lectio">Lectio</a></li>
+        <li><a href="/profil">Profil</a></li>
+    }
+    else
+    {
+        <li><a href="/login">Log ind</a></li>
+    }
+</ul>
