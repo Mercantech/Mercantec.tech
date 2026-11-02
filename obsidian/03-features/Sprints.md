@@ -27,7 +27,7 @@ Arbejdet køres som GitHub **milestones** + labels (`sprint-0` …) og [Project 
 | Issue | Titel | Status |
 |-------|--------|--------|
 | [#10](https://github.com/Mercantech/Mercantec.tech/issues/10) | Lectio: integrationskontrakt + ADR | Done |
-| [#6](https://github.com/Mercantech/Mercantec.tech/issues/6) | CRUD forløb (+ auto 1:1 hold) | Ready |
+| [#6](https://github.com/Mercantech/Mercantec.tech/issues/6) | CRUD forløb (+ auto 1:1 hold) | Done |
 | [#7](https://github.com/Mercantech/Mercantec.tech/issues/7) | Manuel elevliste på hold | Ready |
 | [#8](https://github.com/Mercantech/Mercantec.tech/issues/8) | Elev-view: mine forløb/hold | Ready |
 | [#9](https://github.com/Mercantech/Mercantec.tech/issues/9) | Onboarding-modal (minimal) | Ready |
@@ -39,6 +39,17 @@ Arbejdet køres som GitHub **milestones** + labels (`sprint-0` …) og [Project 
 | [#11](https://github.com/Mercantech/Mercantec.tech/issues/11) | Quest planner Main/Side/Daily |
 | [#12](https://github.com/Mercantech/Mercantec.tech/issues/12) | Afleveringer + privat feedback |
 | [#13](https://github.com/Mercantech/Mercantec.tech/issues/13) | Hold-dashboard v1 |
+
+## Sprint NTH – Skattekisten
+
+Nice to have. Ikke et kerne-sprint. Milestone: [Sprint NTH – Skattekisten](https://github.com/Mercantech/Mercantec.tech/milestone/4). Label: `sprint-nth`.
+
+| Issue | Titel | Status |
+|-------|--------|--------|
+| [#23](https://github.com/Mercantech/Mercantec.tech/issues/23) | The Farmer Was Replaced som forløbskort | Open |
+| [#24](https://github.com/Mercantech/Mercantec.tech/issues/24) | Egen lejlighed med møbler (v1) | Open |
+| [#25](https://github.com/Mercantech/Mercantec.tech/issues/25) | Levels låser titel og tema op | Open |
+| [#26](https://github.com/Mercantech/Mercantec.tech/issues/26) | Level-unlock giver møbel til lejligheden | Open |
 
 ## Board
 

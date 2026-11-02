@@ -8,7 +8,7 @@ tags:
 
 # The Farmer Was Replaced
 
-**Status:** Nice to Have
+**Status:** Issue [#23](https://github.com/Mercantech/Mercantec.tech/issues/23) i Sprint NTH
 
 ## Idé
 

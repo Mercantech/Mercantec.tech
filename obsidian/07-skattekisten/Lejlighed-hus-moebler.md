@@ -8,7 +8,7 @@ tags:
 
 # Lejlighed / hus og møbler
 
-**Status:** Nice to Have
+**Status:** Issue [#24](https://github.com/Mercantech/Mercantec.tech/issues/24) (rum) og [#26](https://github.com/Mercantech/Mercantec.tech/issues/26) (møbel fra level) i Sprint NTH
 
 ## Idé
 

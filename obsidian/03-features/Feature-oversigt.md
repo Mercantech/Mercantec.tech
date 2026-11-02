@@ -41,7 +41,7 @@ Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]
 
 ## Nice to Have
 
-Idéer uden for kerne-sprints: [[Skattekisten]].
+Idéer uden for kerne-sprints: [[Skattekisten]] (eget sprint, [#23](https://github.com/Mercantech/Mercantec.tech/issues/23)–[#26](https://github.com/Mercantech/Mercantec.tech/issues/26)).
 
 ## Relateret
 

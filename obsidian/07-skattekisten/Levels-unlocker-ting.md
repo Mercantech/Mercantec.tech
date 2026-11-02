@@ -9,7 +9,7 @@ tags:
 
 # Levels unlocker ting
 
-**Status:** Nice to Have
+**Status:** Issue [#25](https://github.com/Mercantech/Mercantec.tech/issues/25) (titel og tema) og [#26](https://github.com/Mercantech/Mercantec.tech/issues/26) (møbel) i Sprint NTH
 
 ## Idé
 
