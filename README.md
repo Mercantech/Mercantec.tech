@@ -1,6 +1,22 @@
-# Mercantec.tech
+# LUP – Lokal UndervisningsPlatform
 
 Central læringsplatform for undervisning (Kasper & Mathias).
+
+Repository og domæne hedder fortsat `Mercantec.tech` / `mercantec.tech`.
+
+## Start LUP-designet
+
+Den seneste klikbare designreference ligger i [`design/lup/`](design/lup/README.md). Fra repoets rod:
+
+```bash
+python -m http.server 3001 --bind 127.0.0.1 --directory design/lup
+```
+
+Åbn **http://localhost:3001**. På Windows kan [`design/lup/start.cmd`](design/lup/start.cmd) også dobbeltklikkes. Visningen kræver hverken .NET, database, login eller en API-nøgle; lokale valg gemmes i browseren. Docker-opstart står i [designets README](design/lup/README.md).
+
+Det er UI-skabelonen til samarbejdet, ikke en erstatning for Blazor-/API-appen. Se [LUP-design og leveranceplan](obsidian/03-features/LUP-design-og-leveranceplan.md) og [den samlede featureplan](obsidian/03-features/Feature-oversigt.md).
+
+## Den eksisterende .NET-app
 
 **Stack:** .NET 10 — Blazor WebAssembly PWA (`web/`) + ASP.NET Core API med controllers (`api/`) + Postgres.
 
@@ -15,6 +31,7 @@ Sprints: [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1) · 
 | `web/` | Blazor WASM PWA + nginx i Docker |
 | `docker-compose.yml` | Dokploy (`dokploy-network`, aliases) |
 | `docker-compose.local.yml` | Lokal port-mapping + lokalt net |
+| `design/lup/` | Selvstændig klikbar LUP-designreference (port 3001) |
 | `obsidian/` | AI-workflows, features, badges |
 
 **Aliases:** `mercantec-tech-api` · `mercantec-tech-db`  

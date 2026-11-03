@@ -60,3 +60,7 @@ Indgang til Obsidian-vaultet for **Mercantec.tech**. Her dokumenterer vi AI-work
 - [[Workflow]]
 - [[ADR]]
 - [[Prompt]]
+
+## Seneste LUP-design
+
+Produktnavn: **LUP – Lokal UndervisningsPlatform**. [Start den klikbare designreference](../../design/lup/README.md), og læs [[LUP-design-og-leveranceplan]] for nye ønsker, forskelle fra den gamle plan og GitHub-opfølgninger. Produktionsstacken og eksisterende v1-issues bevares.

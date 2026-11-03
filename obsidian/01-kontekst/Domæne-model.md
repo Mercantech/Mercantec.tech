@@ -23,7 +23,7 @@ Fælles ordliste for Mercantec.tech — aftalt i feature-afklaringen. Feature-ka
 | **Karriere-XP** | Samlet XP (hold + frivillige moduler + quests m.m.). Alt quest-XP tæller med. |
 | **Main quest** | Obligatorisk på forløbet (fx delafleveringer). |
 | **Side / Daily quest** | Frivillige; ekstra XP (tæller også til karriere). |
-| **Aflevering** | Skoleopgave/quest-krav i systemet (link, video, fil m.m.). |
+| **Aflevering** | Elevens private indsendelse som svar på en quests krav, med status og underviserfeedback (link, tekst, video, fil m.m.). |
 | **Projekt** | Dedikeret showcase (solo/gruppe) — **adskilt** fra quest-aflevering. |
 | **Logbog** | Elevens løbende refleksion; synlig for underviser. |
 
@@ -64,3 +64,13 @@ flowchart LR
 - [[Feature-oversigt]]
 - [[Ansvarsområder]] — Lectio under Integrationer
 - [[Relaterede-projekter]] — Lectio-Collector
+
+## Begreber fra LUP-designet
+
+- **LUP**: Lokal UndervisningsPlatform; produktnavn, ikke et nyt repositorie eller domæne.
+- **Guld**: virtuel saldo til kosmetiske køb; adskilt fra XP og level.
+- **Afstemning**: undervisningsrunde knyttet til et forløb/hold.
+- **Aktivitetsoverblik**: egne afstemninger og Main/Side/Daily med separat udført-, afleverings- og godkendelsesstatus.
+- **Fag/emne i UI**: gruppering af fagligt indhold; endnu ikke en beslutning om nye databaseentiteter.
+
+Se [[LUP-design-og-leveranceplan]]. Forløb og hold forbliver 1:1.

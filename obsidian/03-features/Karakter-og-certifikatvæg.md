@@ -49,3 +49,9 @@ To lag i profilen:
 - [[Domæne-model]]
 - [[Badge-oversigt]] — katalog + [[Sammenhæng]]
 - Design-assets: `06-badges/design/`
+
+## LUP-design: 2D-avatar og garderobe
+
+Designreferencen har en fælles 2D-avatar, som bruges på profilen og i et lille Rune Run-prøvespil. Købt tøj kan tages på fra garderoben; level/badge åbner købet, men er ikke i sig selv ejerskab. Se [[Guld-butik-og-oplaasninger]].
+
+Det er kosmetik, ikke RPG-stats eller en færdig integration til andre spil. Badge-/certifikatvæg og underviserens faglige adgang forbliver i planen.

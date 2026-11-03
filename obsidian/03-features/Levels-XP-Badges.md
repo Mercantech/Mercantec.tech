@@ -54,3 +54,9 @@ Badge-katalog, sammenhæng og design: [[Badge-oversigt]] · [[Sammenhæng]] · `
 - [[Badge-oversigt]]
 - [[Badge-statistik]]
 - [[Karakter-og-certifikatvæg]]
+
+## LUP-design: guld, fem niveauer og belønninger
+
+[[Guld-butik-og-oplaasninger]] specificerer virtuelt guld, entydige belønninger og køb. Karriere-level og emnebadgets niveau er forskellige. Lille, Mellem, Stor, Mega og Ultra mega følger fortsat [[Emne-badges]]. UI'et kan samle dem under samme emne uden at ændre aftalen om separate badge-ID'er pr. niveau.
+
+Visningen viser ejet/mangler og krav pr. niveau. Hawaii/Fancy Friday er særlige kriterier og kan åbne kosmetiske køb. De viste levelkurver, XP-beløb og priser er afklaringsgrundlag, ikke fastlagte produktionsværdier. Eksisterende krav om badge-statistik bevares.

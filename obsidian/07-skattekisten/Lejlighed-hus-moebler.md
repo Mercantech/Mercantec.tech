@@ -36,3 +36,9 @@ Først karakter + badge-væg; bolig er lag ovenpå.
 - [[Skattekisten]]
 - [[Levels-unlocker-ting]]
 - [[Karakter-og-certifikatvæg]]
+
+## LUP-design og senere butik
+
+Designreferencen bruger det aftalte 2D-grid på 8×6 med placér/flyt/fjern og startinventar. Butikken tilføjer købte møbler og avatartøj; se [[Guld-butik-og-oplaasninger]].
+
+Køb og valuta er fortsat en udvidelse efter lejlighedens v1-issue #24. Dets nuværende acceptkriterier, kun egen bolig og fravalg af gæster/3D bevares.

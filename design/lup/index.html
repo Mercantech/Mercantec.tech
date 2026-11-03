@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="LUP – Lokal UndervisningsPlatform. Forløb, aktiviteter og dit personlige univers.">
+  <title>LUP – Lokal UndervisningsPlatform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;550;600;650;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="campus-prototype">
+ <div class="proto-bar"><span>Campus · Klikbar designprototype</span><div class="proto-actions"><button type="button" data-role="student" aria-pressed="true">Elev</button><button type="button" data-role="teacher" aria-pressed="false">Underviser</button><a href="#/sitemap">Alle sider</a></div></div>
+ <div class="app">
+  <header><div class="top"><a class="brand" href="#/student" translate="no">mercantec<b>.tech</b></a><span class="role-label" id="campus-role">Elev</span><div class="account"><a href="#/notifications"><span class="notice-label">Notifikationer</span><span class="pill">3</span></a><a href="#/profile"><span class="avatar">AJ</span>Alex Jensen</a></div></div><nav class="mainnav" id="campus-nav" aria-label="Hovednavigation"></nav></header>
+  <div id="campus-notice" aria-live="polite"></div>
+  <main class="body" id="campus-content"></main>
+  <footer class="footer"><span>Prototype · Fiktive elevdata og progression</span><div class="footer-links"><a href="#/sitemap">Alle sider</a><a href="#/sources">Kilder</a><a href="#/profile">Profil</a><a href="#/help">Hjælp</a><a href="#/privacy">Privatliv</a></div></footer>
+ </div>
+</div>
+<script type="application/json" id="campus-v2-images">{"h3":"assets/h3-cover.jpg","game":"assets/game-cover.jpg","project":"assets/project-cover.jpg"}</script>
+<script src="vendor/lucide.min.js"></script>
+<script src="storage.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

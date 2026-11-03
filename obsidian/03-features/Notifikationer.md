@@ -41,3 +41,9 @@ Elever og undervisere skal opdage deadlines, feedback og sociale hændelser uden
 
 - [[Feature-oversigt]]
 - [[GitHub-Issues-og-Projects]]
+
+## Handlingsstatus i LUP
+
+Se [[Aktiviteter-og-status]]. Én samlet indikator viser rød for vigtigt, orange for valgfrie handlinger og grøn, når intet kræver handling. Afventer underviser betyder ikke, at eleven stadig mangler at aflevere.
+
+Afstemninger ligger under Aktiviteter og gentages ikke i banner, genvejsboks og flere forsidepunkter. Handlingsstatus er ikke det samme som ulæste notifikationer; den eksisterende in-app-notifikationsliste er fortsat en separat plan.

@@ -50,3 +50,17 @@ Idéer uden for kerne-sprints: [[Skattekisten]] (eget sprint, [#23](https://gith
 - [[Badge-oversigt]] — badge-katalog, [[Sammenhæng]] og design
 - [[GitHub-Issues-og-Projects]] — features bliver Issues på [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1?system_template=kanban)
 - Skabelon: [[Feature-plan]] · [[Badge]]
+
+## LUP-designet og nye opfølgninger (3. november 2026)
+
+Den klikbare reference er leveret i [design/lup](../../design/lup/README.md). Det lukker ikke implementeringsopgaverne. Samlet retning og afklaringer: [[LUP-design-og-leveranceplan]].
+
+| Feature | Status | Omfang |
+| --- | --- | --- |
+| [[LUP-navigation-og-soegning]] | plan | LUP-branding, én header, temaer, kontekst og global søgning |
+| [[Forloebsvisning-og-kalender]] | plan | Dokumentforløb, uge-/dagsplan, fremmødeform og visuel planner |
+| [[Afstemninger-og-stemning]] | plan | Fire svartyper, elevdeltagelse og tavlevisning |
+| [[Aktiviteter-og-status]] | plan | Samlet aktivitetsindgang, Daily og rød/orange/grøn handlingsstatus |
+| [[Guld-butik-og-oplaasninger]] | plan | XP/guld, butik, avatartøj og badgekrav; butik er NTH |
+
+De eksisterende Sprint 1/2- og NTH-v1-afgrænsninger bevares; udvidelserne føres som nye backlogopgaver i [[Sprints]].

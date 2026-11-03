@@ -51,6 +51,21 @@ Nice to have. Ikke et kerne-sprint. Milestone: [Sprint NTH – Skattekisten](htt
 | [#25](https://github.com/Mercantech/Mercantec.tech/issues/25) | Levels låser titel og tema op | Open |
 | [#26](https://github.com/Mercantech/Mercantec.tech/issues/26) | Level-unlock giver møbel til lejligheden | Open |
 
+## Nye LUP-opfølgninger · 3. november 2026
+
+Designreference og afklaringer: [[LUP-design-og-leveranceplan]]. Opgaverne nedenfor udvider ikke de eksisterende v1-acceptkriterier og er ikke markeret som implementeret.
+
+| Issue | Opfølgning | Placering |
+| --- | --- | --- |
+| [#27](https://github.com/Mercantech/Mercantec.tech/issues/27) | LUP-shell: kompakt navigation, temaer og forløbskontekst | Ny backlog · åben |
+| [#28](https://github.com/Mercantech/Mercantec.tech/issues/28) | Global søgning i forløb, emner, quests, badges og projekter | Ny backlog · åben |
+| [#29](https://github.com/Mercantech/Mercantec.tech/issues/29) | Forløbsvisning som dokument med uger, dage og faglige sider | Ny backlog · åben |
+| [#30](https://github.com/Mercantech/Mercantec.tech/issues/30) | Ugekalender og visuel questplanlægning med fremmødeform | Ny backlog · åben |
+| [#31](https://github.com/Mercantech/Mercantec.tech/issues/31) | Afstemninger og stemningstjek med elevdeltagelse og tavlevisning | Ny backlog · åben |
+| [#32](https://github.com/Mercantech/Mercantec.tech/issues/32) | Samlet aktivitetsoverblik, Daily-registrering og rød/orange/grøn status | Ny backlog · åben |
+| [#33](https://github.com/Mercantech/Mercantec.tech/issues/33) | XP, karriere-level og guld ved entydig questgodkendelse | Ny backlog · åben |
+| [#34](https://github.com/Mercantech/Mercantec.tech/issues/34) | NTH: Butik med guld, avatartøj, møbler og badgekrav | Sprint NTH · åben |
+
 ## Board
 
 https://github.com/orgs/Mercantech/projects/9/views/1
@@ -60,3 +75,5 @@ https://github.com/orgs/Mercantech/projects/9/views/1
 - [[Feature-oversigt]]
 - [[GitHub-Issues-og-Projects]]
 - [[Domæne-model]]
+
+Project #9-tilknytning/status for de nye issues er ikke verificeret: det tilgængelige GitHub-login mangler Projects-scopes. Eksisterende boardstatus er ikke ændret af denne opdatering.

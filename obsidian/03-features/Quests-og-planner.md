@@ -46,3 +46,12 @@ Undervisere skal kunne planlægge obligatoriske og frivillige opgaver på et for
 - [[Feature-oversigt]]
 - [[Hold-dashboard]]
 - [[Domæne-model]]
+
+## Opfølgning fra LUP-designet
+
+Se [[Forloebsvisning-og-kalender]] og [[Aktiviteter-og-status]] for ugekalender, formular/træk-og-slip og samlet elev-UX. Det er opfølgninger efter v1-listen i issue #11, ikke ændrede kriterier for at lukke den.
+
+- Udført, afleveret og godkendt er tre forskellige tilstande. En egen Main-markering erstatter ikke afleveringskravet.
+- Daily har datoafgrænset status; en kort registrering kan være nok uden en ekstra rapport.
+- XP og guld udløses af godkendelse og tildeles ikke dobbelt.
+- Åbne afstemninger og quests samles i Aktiviteter; personlige funktioner følger aktivt medlemskab.

@@ -43,3 +43,9 @@ Først synlig XP/levels; unlock-katalog kommer efter.
 - [[Skattekisten]]
 - [[Levels-XP-Badges]]
 - [[Badge-oversigt]]
+
+## LUP-design: levelkrav, badgekrav og ejerskab
+
+Den nye butik skelner mellem oplåst, ejet og taget på/placeret. Level eller badge kan åbne adgang til køb; direkte tildelte gaver fra #26 er en anden tildelingstype. Se [[Guld-butik-og-oplaasninger]].
+
+System/lys/mørk/rainbow er frit tilgængelige grundtemaer. Level-låste temaer i #25 vedrører yderligere kosmetiske profiltemaer. Karriere-level og emnebadgeniveau blandes ikke sammen.

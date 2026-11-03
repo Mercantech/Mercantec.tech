@@ -8,9 +8,9 @@ tags:
 
 # Platform-vision
 
-## Hvad er Mercantec.tech?
+## Hvad er LUP?
 
-Central læringsplatform for undervisning — bygget og drevet sammen af **Kasper** og **Mathias**.
+**LUP – Lokal UndervisningsPlatform** er den centrale læringsplatform for undervisning — bygget og drevet sammen af **Kasper** og **Mathias**.
 
 Repoet `Mercantec.tech` er hjemsted for den samlede platform. Planlægning og AI-workflows lever i denne Obsidian-vault (`obsidian/`).
 
@@ -22,5 +22,9 @@ Repoet `Mercantec.tech` er hjemsted for den samlede platform. Planlægning og AI
 
 ## Ikke i scope lige nu
 
-- App-implementering og GitHub Issues/sprints (katalog først; Issues næste skridt).
+- At betragte designreferencens lokale interaktioner som færdig backend. .NET-fundamentet findes; den videre implementering styres af GitHub Issues og [[Sprints]].
 - Kopiering af VAT-/undervisningsdocs fra andre repos — vi henviser, vi duplikerer ikke.
+
+## Designreference
+
+Det aktuelle LUP-design ligger i `design/lup/`. Se [[LUP-design-og-leveranceplan]] for den samlede retning, afklaringer og nye backlogopgaver.

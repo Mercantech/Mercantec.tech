@@ -46,3 +46,9 @@ Elever (og grupper) skal kunne fremvise tidligere og aktuelle produkter med rige
 - [[Feature-oversigt]]
 - [[Afleveringer]]
 - [[Domæne-model]]
+
+## LUP-design: mine projekter og fælles galleri
+
+UI'et skelner tydeligt mellem egne projekter og projekter, ejerne har delt. Private afleveringer bliver aldrig automatisk del af galleriet.
+
+**Afklaring:** den oprindelige plan ovenfor siger åben som standard; designreferencen starter privat og lader ejeren vælge deling. Den endelige standard for publicering afklares fælles før backendimplementeringen. Søgning skal respektere samme synlighed som galleriet. Se [[LUP-design-og-leveranceplan]].

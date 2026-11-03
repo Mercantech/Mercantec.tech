@@ -1,0 +1,15 @@
+BILLEDER
+Genereret med det indbyggede image_gen-værktøj. Ingen ekstern API-nøgle anvendt.
+Repoet indeholder optimerede JPEG-versioner i denne mappe.
+
+1. H3: h3-cover.jpg
+Endelig prompt:
+Use case: photorealistic-natural. Asset type: wide cover image for a Danish vocational education course about IoT, Arduino and .NET dashboards. Create an editorial photograph of a real electronics workbench: compact microcontroller development board, neatly connected temperature sensor, a few jumper wires and a laptop showing an abstract simple sensor dashboard without readable text. Hands-on, believable school engineering project, daylight, cool blue accents, tactile materials, medium-wide composition that can crop to a 3:1 course banner or 16:9 card. Focus on actual hardware and making, no floating objects, no isometric 3D illustration, no logos, no readable text, no watermark. Warm human creative workshop mood but no people or faces.
+
+2. Game Design: game-cover.jpg
+Endelig prompt:
+Use case: illustration-story. Asset type: wide cover for a beginner game design course called Rune Run (do not render any text). A charming hand-painted 2D top-down adventure game scene: a small cloaked adventurer, three glowing runestones, two branching paths through a small forest maze and a portal destination. Coherent flat 2D game art, rich blue and teal trees, amber light, subtle paper texture and clear silhouettes. Emphasize choosing routes and collecting runes. Wide framing usable for a 3:1 crop or 16:9 course card. No isometric camera, no 3D blocks, no interface, no readable text, no logos, no watermark.
+
+3. Projekt: project-cover.jpg
+Endelig prompt:
+Use case: stylized-concept. Asset type: landscape project showcase cover for a student's playable 2D game called Rune Run: To Veje (do not render text). Create a crisp illustrated side-view platform adventure game environment with two alternate traversable routes: lower safe route and an upper route with a short gap, a friendly small orange-scarfed explorer, blue crystalline collectible runes and an inviting portal. Flat 2D video game art, navy outlines, sky blue, moss green and orange highlights, playful but suitable for teenage and adult programming students. Attractive panoramic composition for 16:9 project cards. No isometric shapes, no 3D render, no UI, no logos, no lettering or watermark.
