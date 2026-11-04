@@ -1,197 +1,109 @@
 @page "/learning"
 @page "/learning/{CourseId}"
+@page "/learning/{CourseId}/subjects"
+@page "/learning/{CourseId}/subjects/{SubjectId}"
+@page "/learning/{CourseId}/subjects/{SubjectId}/{LessonId}"
+@page "/learning/{CourseId}/weeks/{Week:int}"
+@page "/learning/{CourseId}/days/{Date}"
+@page "/learning/{CourseId}/calendar"
 @page "/calendar"
 @page "/quests"
 @page "/journal"
 @page "/activities"
 @page "/education"
-@using Mercantec.Tech.Web.Demo
 @inject NavigationManager Nav
 @inject AuthService Auth
+@inject LearningContext CourseContext
 @implements IDisposable
-
-<PageTitle>@Title</PageTitle>
-
-@if (!Auth.IsInitialized)
-{
-    <p>Indlæser…</p>
+<PageTitle>@Title · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p>Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
+else if (CourseId is null && string.IsNullOrEmpty(CourseContext.CourseId) && PathKey is "calendar" or "quests" or "journal" or "activities") { <section class="hero-empty"><h1>Dit næste forløb venter</h1><p>Dine aktiviteter og din uge vises, når du er aktiv på et forløb.</p><div class="actions"><a class="action" href="/learning">Udforsk læring</a><a class="secondary" href="/projects/mine">Mine projekter</a></div></section> }
+else if (CourseId is not null && Course is null) { <div class="empty"><h1>Forløbet findes ikke</h1><a href="/learning">Tilbage til min læring</a></div> }
+else if (PathKey == "calendar" || PathKey.EndsWith("/calendar")) {
+    @if (Course is not null) { <CourseNavigation Course="Course" Current="Ugekalender" /> }
+    <header class="page-title"><div><h1>Min uge</h1><p>Undervisning, quests og tid til at arbejde videre.</p></div></header>
+    <WeekCalendar CourseId="@(CourseId ?? CourseContext.CourseId)" />
 }
-else if (!Auth.IsAuthenticated)
-{
-    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
-}
-else
-{
-    <header class="page-title"><div><h1>@Title</h1><p>@Lead</p></div></header>
-
-    @if (PathKey is "calendar")
-    {
-        <DemoTodo Issue="30" Text="Fremmøde gemmes ikke. Farverne er et eksempel for uge 3." />
-        <div class="tiles">
-            @foreach (var day in Days)
-            {
-                <section class="panel"><h2>@day.Name</h2><p>@day.Tone · @day.State</p><p>Serverside · API og målinger</p></section>
-            }
-        </div>
+else if (PathKey == "activities") {
+    <header class="page-title"><div><h1>Det sker lige nu</h1><p>Dine afstemninger og quests, samlet ét sted.</p></div></header>
+    <div class="lup-status-legend"><span class="lup-state-important"><i class="lup-status-dot"></i>Vigtigt</span><span class="lup-state-optional"><i class="lup-status-dot"></i>Kan gøre</span><span class="lup-state-ready"><i class="lup-status-dot"></i>Intet mangler</span></div>
+    <div class="filters">@foreach (var f in new[] { "Alle", "Afstemninger", "Main", "Side", "Daily" }) { <button class="filter" aria-pressed="@(_filter == f)" @onclick="() => _filter = f">@f</button> }</div>
+    @if (_filter is "Alle" or "Afstemninger") {
+        <div class="headrow"><h2>Aktive afstemninger</h2><span>Giv din stemme</span></div>
+        <div class="v4-activity-list">@foreach (var p in DemoCatalog.Polls.Select((poll, index) => (poll, index)).Where(p => CourseContext.CourseId == "h3" ? p.index == 0 : p.index == 1)) { <article class="v4-activity"><span class="activity-icon"><UiIcon Name="chart" /></span><div class="v4-activity-main"><p class="v4-type"><strong>@p.poll.Type</strong><span>@p.poll.Course</span></p><h3><a href="/polls/@p.index">@p.poll.Question</a></h3><span class="v4-status lup-important-text">Venter på dit svar</span></div><a class="secondary" href="/polls/@p.index">Deltag</a></article> }</div>
     }
-    else if (PathKey is "quests")
-    {
-        <DemoTodo Issue="11" Text="Aflevering er slået fra. Quests gemmes ikke." />
-        <div class="panel">
-            @foreach (var quest in DemoCatalog.Quests)
-            {
-                <div class="row">
-                    <span class="mark"><span class="mark-glyph">@quest.Type[0]</span></span>
-                    <div><h3>@quest.Name</h3><p>@quest.Type · @(quest.Course == "h3" ? "H3" : "Game Design"). @quest.Desc</p></div>
-                    <button type="button" class="secondary" disabled title="TODO #11">Aflevér</button>
-                </div>
-            }
-        </div>
-    }
-    else if (PathKey is "journal")
-    {
-        <DemoTodo Issue="11" Text="Logbogen kan ikke gemmes endnu." />
-        <div class="panel">
-            @foreach (var note in DemoCatalog.Journal)
-            {
-                <div class="row"><span class="mark"><span class="mark-glyph">A</span></span><div><h3>Alex Jensen</h3><p>@note</p></div></div>
-            }
-        </div>
-        <form class="panel" style="margin-top:16px">
-            <label class="field">Ny note<textarea disabled placeholder="TODO: logbog gemmes ikke"></textarea></label>
-            <button type="button" class="action" disabled>Gem</button>
-        </form>
-    }
-    else if (PathKey is "activities")
-    {
-        <DemoTodo Issue="32" Text="Statusprikkerne er et eksempel. Afkrydsning gemmes ikke." />
-        <div class="lup-status-legend">
-            <span class="lup-state-important"><i class="lup-status-dot" aria-hidden="true"></i>Vigtigt</span>
-            <span class="lup-state-optional"><i class="lup-status-dot" aria-hidden="true"></i>Kan gøre</span>
-            <span class="lup-state-ready"><i class="lup-status-dot" aria-hidden="true"></i>Intet mangler</span>
-        </div>
-        <div class="v4-activity-list">
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Main</strong></p><h3>Miniprojekt · Fyld maskinen</h3><p class="v4-status lup-important-text">Aflevering mangler</p></div>
-                <button type="button" class="secondary" disabled>Marker</button>
-            </article>
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Afstemning</strong></p><h3>Hvad skal vi bruge mere tid på?</h3><p class="v4-status lup-important-text">Venter på dit svar</p></div>
-                <a class="secondary" href="/activities">Se</a>
-            </article>
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Daily</strong></p><h3>Skriv dagens tre linjer</h3><p class="v4-status lup-optional-text">Kan gøres</p></div>
-                <button type="button" class="secondary" disabled>Marker</button>
-            </article>
-        </div>
-    }
-    else if (PathKey is "education")
-    {
-        <DemoTodo Issue="29" Text="Læringsmålene er oversigtstekst og kan ikke redigeres her." />
-        <div class="panel">
-            @foreach (var step in DemoCatalog.Education)
-            {
-                <div class="row"><span class="mark"><span class="mark-glyph">@step.Name[1]</span></span><div><h3>@step.Name</h3><p>@step.Duration · @step.Desc</p></div></div>
-            }
-        </div>
-    }
-    else if (CourseId == "game" || PathKey == "learning/game")
-    {
-        var course = DemoCatalog.Courses[1];
-        <DemoTodo Issue="29" Text="Game Design-forløbet er eksempeldata." />
-        <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
-        <p>@course.Teacher · @course.Duration</p>
-        <p>@course.Desc</p>
-        <p><a class="action" href="/games">Se highscore</a></p>
-    }
-    else if (PathKey.StartsWith("learning/"))
-    {
-        var course = DemoCatalog.Courses[0];
-        <DemoTodo Issue="29" Text="Uger og fag er eksempeltekst. De hentes ikke fra API’et." />
-        <img src="lup/assets/h3-cover.jpg" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
-        <p>@course.Teacher · @course.Duration</p>
-        <div class="panel">
-            @foreach (var week in course.Weeks.Select((name, index) => (name, index)))
-            {
-                <div class="row"><span class="mark"><span class="mark-glyph">@(week.index + 1)</span></span><div><h3>@week.name</h3><p>@(week.index == 2 ? "Aktuel uge i eksemplet." : "Planlagt uge.")</p></div></div>
-            }
-        </div>
-    }
-    else
-    {
-        <DemoTodo Issue="29" Text="Forløbssiden viser eksempeldata. Den gemmer ikke et dokument." />
-        <div class="tiles">
-            @foreach (var course in DemoCatalog.Courses)
-            {
-                <a class="tile" href="@($"/learning/{course.Id}")">
-                    <h2>@course.Name</h2>
-                    <p>@course.Desc</p>
-                </a>
-            }
-        </div>
-        <section class="panel" style="margin-top:18px">
-            <h2>The Farmer Was Replaced</h2>
-            <DemoTodo Issue="23" Text="Kortet kan ikke tændes af underviseren endnu. Steam-linket er kun en visning." />
-            <p>En drone høster, sår og holder styr på lageret. Underviseren slår kortet til på forløbet.</p>
-            <p><a href="https://store.steampowered.com/app/2060160/The_Farmer_Was_Replaced/" target="_blank" rel="noopener">Åbn på Steam</a></p>
-            <ul>
-                @foreach (var quest in DemoCatalog.FarmerQuests)
-                {
-                    <li>@quest</li>
-                }
-            </ul>
-        </section>
+    @if (_filter != "Afstemninger") {
+        <div class="headrow"><h2>Quests at arbejde på</h2><a href="/quests">Alle quests</a></div>
+        <QuestList Filter="@(_filter == "Alle" ? "Alle" : _filter)" CourseId="@CourseContext.CourseId" />
     }
 }
-
-@code {
-    [Parameter] public string? CourseId { get; set; }
-
-    private static readonly (string Name, string Tone, string State)[] Days =
-    [
-        ("Man", "Grøn", "Mødt"),
-        ("Tir", "Grøn", "Mødt"),
-        ("Ons", "Gul", "Delvist"),
-        ("Tor", "Blå", "Planlagt"),
-        ("Fre", "Blå", "Planlagt")
-    ];
-
-    private string PathKey
-    {
-        get
-        {
-            var relative = Nav.ToBaseRelativePath(Nav.Uri);
-            var cut = relative.IndexOfAny(['?', '#']);
-            if (cut >= 0)
-                relative = relative[..cut];
-            return relative.Trim('/');
+else if (PathKey == "quests") {
+    <header class="page-title"><div><h1>Quests og afleveringer</h1><p>Questen er opgaven. Afleveringen er dit svar på den.</p></div></header>
+    <div class="filters">@foreach (var f in new[] { "Alle", "Main", "Side", "Daily" }) { <button class="filter" aria-pressed="@(_filter == f)" @onclick="() => _filter = f">@f</button> }</div>
+    <QuestList Filter="@_filter" CourseId="@(CourseFilter ?? CourseContext.CourseId)" />
+}
+else if (PathKey == "journal") {
+    <header class="page-title"><div><h1>Min logbog</h1><p>Små refleksioner gør din udvikling synlig.</p></div><a class="secondary" href="/calendar">Til min uge</a></header>
+    <div class="cols"><section class="panel"><h2>Dine seneste noter</h2>@foreach (var note in DemoCatalog.Journal) { <div class="row"><span class="mark"><UiIcon Name="book" /></span><div><h3>Fra sensor til dashboard</h3><p>@note</p></div></div> }</section><aside class="panel"><h2>Tre gode spørgsmål</h2><ol class="goals"><li>Hvad arbejdede jeg med?</li><li>Hvad lærte jeg?</li><li>Hvad er mit næste skridt?</li></ol><a href="/quests/h3-journal">Åbn din daily quest</a></aside></div>
+}
+else if (PathKey == "education") {
+    <header class="page-title"><div><h1>Din vej gennem uddannelsen</h1><p>Fra fundament til svendeprøve. Se, hvad du bygger videre på.</p></div></header>
+    <div class="education-roadmap">@foreach (var step in DemoCatalog.Education) { <section class="education-step"><span class="education-number">@step.Name[..2]</span><div><h2>@step.Name</h2><p>@step.Desc</p><span class="pill">@step.Duration</span></div></section> }</div>
+}
+else if (Course is not null) {
+    <CourseNavigation Course="Course" Current="@ContextLabel" />
+    @if (SubjectId is not null) {
+        var subject = Course.Subjects.FirstOrDefault(s => s.Id == SubjectId);
+        var lesson = LearningContent.Lessons.FirstOrDefault(l => l.Subject == SubjectId && l.Id == LessonId);
+        @if (subject is null || (LessonId is not null && lesson is null)) { <div class="empty"><h1>Indholdet findes ikke</h1><a href="/learning/@Course.Id/subjects">Se fag og emner</a></div> }
+        else {
+            <header class="page-title"><div><h1>@(lesson?.Name ?? subject.Name)</h1><p>@(lesson?.Lead ?? subject.Desc)</p></div></header>
+            <div class="course-document"><aside class="course-toc"><a href="/learning/@Course.Id/subjects">Alle fag</a><h2>@subject.Name</h2>@foreach (var l in LearningContent.Lessons.Where(l => l.Subject == SubjectId)) { <a class="@(LessonId == l.Id ? "current" : "")" href="/learning/@Course.Id/subjects/@SubjectId/@l.Id">@l.Name</a> }</aside>
+            <article class="article">@if (lesson is not null) { <span class="pill">Fagligt emne</span><h2>@lesson.Name</h2><p>@lesson.Body</p><h3>Det arbejder du hen imod</h3><div class="callout">@lesson.Goal</div><h3>Prøv det af</h3><p>Arbejd i små skridt. Vis din løsning til en makker, og forklar, hvad du har valgt, før du bygger videre.</p><a class="secondary" href="/quests?course=@Course.Id">Find en quest i forløbet</a> }
+            else { <h2>Arbejd dig gennem emnerne</h2>@foreach (var l in LearningContent.Lessons.Where(l => l.Subject == SubjectId)) { <a class="lesson-link" href="/learning/@Course.Id/subjects/@SubjectId/@l.Id"><span><strong>@l.Name</strong><small>@l.Lead</small></span><UiIcon Name="arrow" /></a> } }</article></div>
         }
     }
-
-    private string Title => PathKey switch
-    {
-        "calendar" => "Min uge",
-        "quests" => "Quests og afleveringer",
-        "journal" => "Min logbog",
-        "activities" => "Aktiviteter",
-        "education" => "Uddannelse og læringsmål",
-        "learning/game" => "Game design fra bunden",
-        _ when CourseId == "game" => "Game design fra bunden",
-        _ when PathKey.StartsWith("learning/", StringComparison.Ordinal) => "H3 · 2026",
-        _ => "Min læring"
-    };
-
-    private string Lead => PathKey switch
-    {
-        "calendar" => "Uge 3 i H3. Fremmøde er et eksempel.",
-        "quests" => "Main, Side og Daily fra H3 og Game Design.",
-        "journal" => "To eksempelnoter fra Alex.",
-        "activities" => "Rød er vigtigt, orange kan gøres, grøn er ajour.",
-        "education" => "H1 til H6 som oversigt.",
-        _ => "Eksempelindhold, så fladen kan vises. Det er ikke dine Lectio-hold."
-    };
-
-    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    else if (PathKey.EndsWith("/subjects")) {
+        <header class="page-title"><div><h1>Fag og emner</h1><p>@Course.Name · Dyk ned i materialet, og arbejd i dit eget tempo.</p></div></header><SubjectCards Course="Course" />
+    }
+    else if (Week is not null || Date is not null) {
+        var day = DateOnly.TryParse(Date, out var parsed) ? parsed : LearningContent.Start(Course.Id).AddDays(((Week ?? 1) - 1) * 7);
+        var weekIndex = Math.Clamp((day.DayNumber - LearningContent.Start(Course.Id).DayNumber) / 7, 0, Course.Weeks.Length - 1);
+        <header class="page-title"><div><span class="pill">Uge @(weekIndex + 1)</span><h1>@(Date is not null ? day.ToString("dddd d. MMMM", Danish) : Course.Weeks[weekIndex])</h1><p>@Course.Weeks[weekIndex] · @Course.Name</p></div></header>
+        <div class="cols"><article class="article"><h2>Dagens fokus</h2><p>@Course.Desc</p><h3>Materialer og arbejde</h3><SubjectCards Course="Course" /><h3>Quests i forløbet</h3><QuestList CourseId="@Course.Id" /></article><aside class="panel"><h2>Din uge</h2>@for (var d = 0; d < 5; d++) { var date = LearningContent.Start(Course.Id).AddDays(weekIndex * 7 + d); <a class="day-link" href="/learning/@Course.Id/days/@date.ToString("yyyy-MM-dd")">@date.ToString("ddd d.", Danish)<span class="v2-dot @(d == 3 ? "online" : d == 4 ? "home" : "physical")"></span></a> }</aside></div>
+    }
+    else {
+        <img class="v2-cover" src="lup/assets/@LearningContent.Cover(Course.Id)" alt="@(Course.Id == "h3" ? "Elektronik og enheder til H3-forløbet" : "Illustreret spilverden til Game Design")" />
+        <header class="page-title course-title"><div><span class="context">@Course.Duration · @Course.Teacher</span><h1>@Course.Name</h1><p>@Course.Desc</p></div><a class="secondary" href="/learning/@Course.Id/calendar"><UiIcon Name="calendar" />Se ugekalender</a></header>
+        <div class="course-document"><aside class="course-toc"><h2>I dette forløb</h2><a href="/learning/@Course.Id#about">Om forløbet</a><a href="/learning/@Course.Id#weeks">Ugeplan</a><a href="/learning/@Course.Id/subjects">Fag og emner</a><a href="/quests?course=@Course.Id">Quests og afleveringer</a><a href="/journal">Logbog</a></aside>
+        <article class="course-paper"><section id="about"><h2>@(Course.Id == "h3" ? "Fra sensor til noget, der virker." : "Byg et spil. Forstå valgene.")</h2><p>@Course.Desc</p><div class="callout"><strong>@(Course.Id == "h3" ? "En løsning, hele vejen igennem" : "Godkend dit GDD, før du bygger")</strong><p>@(Course.Id == "h3" ? "Sensor, backend, database og dashboard skal spille sammen. Vi bygger i små skridt og afprøver forbindelserne undervejs." : "Først bygger vi Rune Run sammen. Derefter bruger du erfaringerne i dit eget spil. Dit indledende GDD skal godkendes, før udviklingen begynder.")</p></div></section>
+        <section id="weeks"><div class="headrow"><h2>Din plan, uge for uge</h2><span>@Course.Duration</span></div>
+        @for (var w = 0; w < Course.Weeks.Length; w++) { var wi = w; <details class="course-week" open="@(w == (Course.Id == "h3" ? 2 : 0))"><summary><span class="week-number">@(w + 1)</span><span><strong>@Course.Weeks[w]</strong><small>@LearningContent.Start(Course.Id).AddDays(w * 7).ToString("d. MMM", Danish) – @LearningContent.Start(Course.Id).AddDays(w * 7 + 4).ToString("d. MMM", Danish)</small></span><span class="week-chevron">⌄</span></summary><div class="week-days">@for (var d = 0; d < 5; d++) { var date = LearningContent.Start(Course.Id).AddDays(wi * 7 + d); <a class="v2-day-row" href="/learning/@Course.Id/days/@date.ToString("yyyy-MM-dd")"><strong>@date.ToString("dddd", Danish)</strong><span>@Course.Weeks[wi]</span><span class="v2-presence"><i class="v2-dot @(d == 3 ? "online" : d == 4 ? "home" : "physical")"></i>@(d == 3 ? "Online" : d == 4 ? "Hjemme" : "Fremmøde")</span></a> }<a class="week-open" href="/learning/@Course.Id/weeks/@(w + 1)">Åbn hele ugen <UiIcon Name="arrow" /></a></div></details> }
+        </section><section><div class="headrow"><h2>Fagene i forløbet</h2></div><SubjectCards Course="Course" /></section></article></div>
+    }
+}
+else {
+    <header class="page-title"><div><h1>Min læring</h1><p>Dit forløb er dit udgangspunkt. Materialer, dage og quests hænger sammen her.</p></div></header>
+    <div class="tiles">@foreach (var course in DemoCatalog.Courses) { <a class="course-card" href="/learning/@course.Id"><img src="lup/assets/@LearningContent.Cover(course.Id)" alt="" /><div><span class="pill">@course.Duration</span><h2>@course.Name</h2><p>@course.Desc</p><span class="course-card-cta">Åbn forløbet <UiIcon Name="arrow" /></span></div></a> }</div>
+}
+@code {
+    [Parameter] public string? CourseId { get; set; }
+    [Parameter] public string? SubjectId { get; set; }
+    [Parameter] public string? LessonId { get; set; }
+    [Parameter] public int? Week { get; set; }
+    [Parameter] public string? Date { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public string? CourseFilter { get; set; }
+    private string _filter = "Alle";
+    private static readonly System.Globalization.CultureInfo Danish = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    private string PathKey => Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].Trim('/');
+    private DemoCatalog.Course? Course => DemoCatalog.Courses.FirstOrDefault(c => c.Id == CourseId);
+    private string ContextLabel => SubjectId is not null ? Course?.Subjects.FirstOrDefault(s => s.Id == SubjectId)?.Name ?? "Emner" : Date is not null ? "Dagsplan" : Week is not null ? $"Uge {Week}" : "";
+    private string Title => Course?.Name ?? PathKey switch { "calendar" => "Min uge", "quests" => "Quests og afleveringer", "journal" => "Min logbog", "activities" => "Aktiviteter", "education" => "Uddannelse og læringsmål", _ => "Min læring" };
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; CourseContext.Changed += OnContext; }
+    public override Task SetParametersAsync(ParameterView parameters) { CourseId = null; SubjectId = null; LessonId = null; Week = null; Date = null; return base.SetParametersAsync(parameters); }
     private void OnAuth() => InvokeAsync(StateHasChanged);
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    private void OnContext() => InvokeAsync(StateHasChanged);
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; CourseContext.Changed -= OnContext; }
 }

@@ -26,19 +26,11 @@ else if (Redirect.CurrentAppRole() != AppRole.Underviser)
 }
 else if (PathKey == "teacher/planner")
 {
-    <header class="page-title"><div><h1>Planlægning</h1><p>Uge 3 · H3 · Serverside. Eksempelplan.</p></div></header>
-    <DemoTodo Issue="11" Text="Ugeplanen kan ikke gemmes. Quest-felterne er låst." />
-    <div class="tiles">
-        @foreach (var slot in new[] { "Mandag · REST API", "Tirsdag · Fejlsvar", "Onsdag · Database", "Torsdag · Målinger", "Fredag · Review" })
-        {
-            <section class="panel"><h2>@slot</h2><p>Placering er et eksempel.</p><button type="button" class="secondary" disabled>Flyt</button></section>
-        }
-    </div>
+    <header class="page-title"><div><h1>Planlæg undervisning og quests</h1><p>H3 · Uge 3 · Serverside</p></div></header><WeekCalendar CourseId="h3" Teacher="true" />
 }
 else if (PathKey == "teacher/reviews")
 {
     <header class="page-title"><div><h1>Afleveringer til vurdering</h1><p>Én indsendt quest fra Alex.</p></div></header>
-    <DemoTodo Issue="12" Text="Godkendelse giver ikke XP og gemmes ikke." />
     <article class="panel">
         <h2>Indledende GDD til eget spil</h2>
         <p>Alex Jensen · indsendt. Et kort 2D-spil med rutevalg og én bane.</p>
@@ -51,11 +43,10 @@ else if (PathKey == "teacher/reviews")
 }
 else if (PathKey == "teacher/students")
 {
-    <header class="page-title"><div><h1>Elever</h1><p>Eksempelholdet er ikke Lectio-listen. Den rigtige liste ligger under Lectio.</p></div></header>
-    <DemoTodo Issue="8" Text="Rækkerne er eksempeldata. Medlemskab hentes på forløb og Lectio." />
+    <header class="page-title"><div><h1>Elever</h1><p>Følg eleverne og deres faglige udvikling. Find holdets medlemskaber under Lectio.</p></div></header>
     <p><a class="action" href="/lectio">Åbn Lectio</a></p>
     <div class="panel">
-        <div class="row"><span class="mark"><span class="mark-glyph">AJ</span></span><div><h3>Alex Jensen</h3><p>H3 · level 7 i demoen · 2 badges</p></div></div>
+        <div class="row"><span class="mark"><span class="mark-glyph">AJ</span></span><div><h3>Alex Jensen</h3><p>H3 · level 7 · 5 badges</p></div></div>
         <div class="row"><span class="mark"><span class="mark-glyph">MH</span></span><div><h3>Maja Holm</h3><p>Game Design · har kommenteret Rune Run</p></div></div>
         <div class="row"><span class="mark"><span class="mark-glyph">NB</span></span><div><h3>Noah Berg</h3><p>Game Design · highscore 1.495</p></div></div>
     </div>
@@ -63,7 +54,6 @@ else if (PathKey == "teacher/students")
 else if (PathKey == "teacher/content")
 {
     <header class="page-title"><div><h1>Fagligt indhold</h1><p>Fag og emner fra H3 og Game Design.</p></div></header>
-    <DemoTodo Issue="29" Text="Indholdet kan ikke redigeres her." />
     @foreach (var course in DemoCatalog.Courses)
     {
         <section class="panel" style="margin-bottom:12px">
@@ -78,7 +68,6 @@ else if (PathKey == "teacher/content")
 else if (PathKey == "teacher/badges")
 {
     <header class="page-title"><div><h1>Tildel badges</h1><p>Emne, niveau og et kort grundlag.</p></div></header>
-    <DemoTodo Issue="25" Text="Tildeling gemmes ikke. Niveau vælges ikke i databasen endnu." />
     <form class="panel">
         <label class="field">Elev<select disabled><option>Alex Jensen</option></select></label>
         <label class="field">Badge<select disabled><option>Core Loop</option></select></label>
@@ -89,22 +78,9 @@ else if (PathKey == "teacher/badges")
 }
 else
 {
-    <header class="page-title"><div><h1>Afstemninger</h1><p>To åbne eksempler. Svar gemmes ikke.</p></div></header>
-    <DemoTodo Issue="31" Text="Afstemninger kan ikke oprettes eller besvares endnu." />
-    @foreach (var poll in DemoCatalog.Polls)
-    {
-        <section class="panel" style="margin-bottom:14px">
-            <h2>@poll.Question</h2>
-            <p>@poll.Course · @poll.Type</p>
-            <div class="v4-poll-options">
-                @for (var i = 0; i < poll.Options.Length; i++)
-                {
-                    <button type="button" class="secondary" disabled>@poll.Options[i] · @poll.Counts[i]</button>
-                }
-            </div>
-        </section>
-    }
-    <button type="button" class="action" disabled>Ny afstemning</button>
+    <header class="page-title"><div><h1>Afstemninger</h1><p>Giv klassen en stemme. Et hurtigt tjek eller et fælles valg.</p></div><button class="action" disabled title="Oprettelse bliver tilgængelig, når afstemninger er tilkoblet holdet">Ny afstemning</button></header>
+    <div class="tiles">@foreach (var poll in DemoCatalog.Polls) { <section class="panel"><div class="project-card-meta"><span class="pill green">Åben</span><span class="pill">@poll.Type</span><span class="tiny muted">@poll.Course</span></div><h2>@poll.Question</h2><div class="v4-results">@for (var i = 0; i < poll.Options.Length; i++) { <div class="v4-result-row"><span>@poll.Options[i]</span><div class="v4-result-track"><span style="width:@(poll.Counts[i] * 100 / poll.Counts.Sum())%"></span></div><strong>@poll.Counts[i]</strong></div> }</div><p>@poll.Counts.Sum() svar</p></section> }</div>
+    <div class="headrow"><h2>Start med et godt spørgsmål</h2></div><div class="tiles"><section class="panel"><UiIcon Name="heart" /><h2>Stemningstjek</h2><p>Hvordan er I landet i dag? Fem enkle svar giver et fælles udgangspunkt.</p></section><section class="panel"><UiIcon Name="chart" /><h2>Et valg i fællesskab</h2><p>Hvad skal vi bruge mere tid på? Få klassens perspektiv frem.</p></section></div>
 }
 
 @code {
@@ -130,7 +106,8 @@ else
         _ => "Afstemninger"
     };
 
-    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; }
     private void OnAuth() => InvokeAsync(StateHasChanged);
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; }
 }

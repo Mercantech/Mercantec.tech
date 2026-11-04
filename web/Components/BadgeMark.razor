@@ -1,0 +1,5 @@
+<div class="v3-medal v3-rank-@Math.Max(1, Rank) @(Rank == 0 ? "locked" : "")" aria-hidden="true"><span class="v3-badge-shell"></span><span class="v3-medal-center"><UiIcon Name="@Icon" /></span><span class="v3-medal-stars">@(Rank == 0 ? "○ ○ ○" : new string('★', Rank))</span><span class="v3-medal-ribbon">@(Rank == 0 ? "Ikke opnået" : DemoCatalog.RankNames[Rank - 1])</span></div>
+@code {
+    [Parameter] public int Rank { get; set; }
+    [Parameter] public string Icon { get; set; } = "star";
+}

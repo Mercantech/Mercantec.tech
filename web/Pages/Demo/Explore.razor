@@ -21,8 +21,7 @@ else if (!Auth.IsAuthenticated && PathKey is not ("help" or "sources"))
 }
 else if (PathKey == "search")
 {
-    <header class="page-title"><div><h1>Søg</h1><p>Eksempelindeks over forløb, quests, badges og projekter.</p></div></header>
-    <DemoTodo Issue="28" Text="Søgningen leder kun i eksempeldata på denne side." />
+    <header class="page-title"><div><h1>Søg</h1><p>Find forløb, fag, emner, quests, badges og projekter.</p></div></header>
     <label class="field">Søg<input @bind="_query" @bind:event="oninput" placeholder="H3, MQTT, Rune Run …" /></label>
     <div class="panel">
         @foreach (var hit in Hits)
@@ -35,70 +34,30 @@ else if (PathKey == "search")
         }
         @if (!Hits.Any())
         {
-            <p>Ingen træffere i eksemplet.</p>
+            <p>Ingen resultater. Prøv et andet søgeord.</p>
         }
     </div>
 }
 else if (PathKey == "explore/projects")
 {
-    <header class="page-title"><div><h1>Fælles galleri</h1><p>Projekter med like og kommentar. Handlinger gemmes ikke.</p></div></header>
-    <DemoTodo Text="Like og kommentar er slået fra. Der er ikke et issue-nummer på porteføljen endnu." />
-    @foreach (var project in DemoCatalog.Projects.Where(p => p.Visibility == "Fælles"))
-    {
-        <article class="panel" style="margin-bottom:14px">
-            <img src="lup/assets/project-cover.jpg" alt="" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px" />
-            <h2>@project.Name</h2>
-            <p>@project.Owner · @project.Tag</p>
-            <p>@project.Desc</p>
-            <p>@project.Likes likes</p>
-            <button type="button" class="secondary" disabled>Like</button>
-            @foreach (var comment in project.Comments)
-            {
-                <p><strong>@comment.Author.</strong> @comment.Text</p>
-            }
-            <label class="field">Kommentar<textarea disabled placeholder="TODO: kommentar gemmes ikke"></textarea></label>
-        </article>
-    }
+    <header class="page-title"><div><h1>Bygget her. Delt med dig.</h1><p>Udforsk klassens projekter, og se idéerne blive til noget.</p></div><a class="secondary" href="/projects/mine">Mine projekter</a></header><ProjectGallery />
 }
 else if (PathKey == "explore/modules")
 {
-    <header class="page-title"><div><h1>Fag og emner</h1><p>Emnerne fra eksempelkataloget.</p></div></header>
-    <DemoTodo Issue="29" Text="Emnerne er ikke et gemt forløbsdokument." />
-    @foreach (var course in DemoCatalog.Courses)
-    {
-        <section class="panel" style="margin-bottom:12px">
-            <h2>@course.Name</h2>
-            @foreach (var subject in course.Subjects)
-            {
-                <div class="row"><span class="mark"><span class="mark-glyph">@subject.Name[0]</span></span><div><h3>@subject.Name</h3><p>@subject.Desc</p></div></div>
-            }
-        </section>
-    }
+    <header class="page-title"><div><h1>Fag og emner</h1><p>Gå på opdagelse, eller find det næste emne i dit forløb.</p></div></header>@foreach (var course in DemoCatalog.Courses) { <div class="headrow"><h2>@course.Name</h2><a href="/learning/@course.Id">Åbn forløbet</a></div><SubjectCards Course="course" /> }
 }
 else if (PathKey == "badges")
 {
-    <header class="page-title"><div><h1>Badgekatalog</h1><p>Fem niveauer: Lille, Mellem, Stor, Mega, Ultra mega.</p></div></header>
-    <DemoTodo Issue="25" Text="Rang er kun vist. Den gemmes ikke som karrierevalg." />
-    <div class="tiles">
-        @foreach (var badge in DemoCatalog.Badges)
-        {
-            <section class="panel">
-                <h2>@badge.Name</h2>
-                <p>@badge.Topic</p>
-                <p>@badge.Desc</p>
-                <p>@(badge.Rank > 0 ? $"Niveau {badge.Rank} · {badge.RankName}" : "Ikke opnået i eksemplet")</p>
-            </section>
-        }
-    </div>
+    <header class="page-title"><div><h1>Badgekatalog</h1><p>Din viden fortjener at blive synlig.</p></div><a class="secondary" href="/progress/badges">Mine badges</a></header><BadgeGallery />
 }
 else if (PathKey == "help")
 {
     <header class="page-title"><div><h1>Hjælp</h1><p>Sådan hænger LUP sammen.</p></div></header>
     <article class="article">
         <h2>Din læring</h2>
-        <p>Overblikket viser dine rigtige medlemskaber. Læring, quests og kalender er eksempelindhold, indtil de gemmes.</p>
+        <p>Overblikket samler dine hold og giver dig genveje til forløbsplaner, fag og materialer. Åbn et forløb for at finde uger, dage og emner.</p>
         <h2>Status</h2>
-        <p>Prikken i headeren er et eksempel. Rød betyder vigtigt, orange kan gøres, og grøn betyder at intet mangler.</p>
+        <p>Rød betyder vigtigt, orange er noget, du kan gøre, og grøn betyder, at intet mangler. Grøn, blå og gul i kalenderen viser fremmøde, online fremmøde og arbejde hjemme.</p>
         <h2>Profil</h2>
         <p>Navnet kommer fra din konto. Temaet gemmes kun i denne browser. Det giver ikke adgang.</p>
     </article>
@@ -108,7 +67,7 @@ else
     <header class="page-title"><div><h1>Om LUP</h1><p>Lokal UndervisningsPlatform.</p></div></header>
     <article class="article">
         <h2>Et fælles sted at lære og bygge</h2>
-        <p>LUP samler forløb, faglige materialer, quests og din personlige udvikling. Kasper og Mathias underviser på eksempel-forløbene.</p>
+        <p>LUP samler forløb, faglige materialer, quests og din personlige udvikling. Kasper og Mathias underviser på forløbene.</p>
         <p>Produktet hedder LUP i fladen. Domænet er stadig mercantec.tech, og login er Mercantec Auth.</p>
         <p><a href="https://github.com/Mercantech/Mercantec.tech" target="_blank" rel="noopener">Projektets repository</a></p>
     </article>
@@ -147,11 +106,17 @@ else
             var all = new List<Hit>();
             foreach (var course in DemoCatalog.Courses)
                 all.Add(new("Forløb", course.Name, course.Desc, $"/learning/{course.Id}"));
+            foreach (var course in DemoCatalog.Courses)
+                foreach (var subject in course.Subjects) {
+                    all.Add(new("Fag", subject.Name, subject.Desc, $"/learning/{course.Id}/subjects/{subject.Id}"));
+                    foreach (var lesson in LearningContent.Lessons.Where(l => l.Subject == subject.Id))
+                        all.Add(new("Emne", lesson.Name, lesson.Lead, $"/learning/{course.Id}/subjects/{subject.Id}/{lesson.Id}"));
+                }
             foreach (var quest in DemoCatalog.Quests)
-                all.Add(new("Quest", quest.Name, quest.Desc, "/quests"));
+                all.Add(new("Quest", quest.Name, quest.Desc, $"/quests/{quest.Id}"));
             foreach (var badge in DemoCatalog.Badges)
-                all.Add(new("Badge", badge.Name, badge.Desc, "/badges"));
-            foreach (var project in DemoCatalog.Projects)
+                all.Add(new("Badge", badge.Name, badge.Desc, $"/badges/{badge.Id}"));
+            foreach (var project in DemoCatalog.Projects.Where(p => p.Visibility == "Fælles"))
                 all.Add(new("Projekt", project.Name, project.Desc, "/explore/projects"));
             return string.IsNullOrEmpty(q)
                 ? all.Take(8)
@@ -161,7 +126,8 @@ else
 
     private sealed record Hit(string Kind, string Title, string Text, string Href);
 
-    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; }
     private void OnAuth() => InvokeAsync(StateHasChanged);
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; }
 }

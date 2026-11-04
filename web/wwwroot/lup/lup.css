@@ -1,4 +1,4 @@
-﻿html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c)}.lup{max-width:1440px;margin:0 auto}.lup .app{border-radius:0;min-height:100vh}
+html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c)}.lup{max-width:1440px;margin:0 auto}.lup .app{border-radius:0;min-height:100vh}
 
 .lup{font-family:'DM Sans',sans-serif;color:light-dark(#17243b,#eaf0ff);--bg:light-dark(#f3f6fb,#101b2c);--paper:light-dark(#fff,#1a2940);--ink:light-dark(#17243b,#eaf0ff);--muted:light-dark(#63728b,#a8b8d0);--rule:light-dark(#dfe7f2,#33445e);--blue:light-dark(#2452e8,#9ab5ff);--on-blue:light-dark(#fff,#12254e);--tint:light-dark(#eaf0ff,#263c63);--sky:light-dark(#e8f2ff,#233c57);--peach:light-dark(#fff0e3,#3d3029);--orange:light-dark(#a84613,#ffb580);--green:light-dark(#216747,#8ed6af);--green-tint:light-dark(#e6f3ec,#243e36)}
 .lup *{box-sizing:border-box}.lup [hidden]{display:none!important}
@@ -229,7 +229,6 @@
 .lup{color:var(--ink)}
 .lup[data-theme=light]{color-scheme:light}
 .lup[data-theme=dark]{color-scheme:dark}
-.lup[data-theme=rainbow]{color-scheme:light;--blue:#673bc5;--on-blue:#fff;--tint:#f0eafa;--sky:#eaf4fa}
 .lup .app{border-radius:12px}
 .lup .proto-bar{padding-bottom:12px;color-scheme:light dark;color:light-dark(#63728b,#a8b8d0)}
 .lup .v3-demo-select{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
@@ -260,8 +259,6 @@
 .lup .v3-gold-dot{display:inline-block;width:11px;height:11px;background:linear-gradient(135deg,#f6d77e,#c58921);border-radius:50%;box-shadow:inset 0 0 0 2px #fff4;vertical-align:-1px;margin-right:4px}
 .lup .v3-attention-link{font-size:11px!important;color:var(--orange)!important;border:0!important;padding:7px 0!important}
 .lup .v3-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:50%;background:var(--peach);color:var(--orange);font-weight:600;margin-right:4px;font-size:11px}
-.lup[data-theme=rainbow] .app>header{border-top:4px solid transparent;border-image:linear-gradient(90deg,#dc5d60,#e5ab3b,#4b9f6a,#498dca,#8d5dcc) 1}
-.lup[data-theme=rainbow] .v3-wallet-link{border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#dc5d60,#dca83d,#51a279,#4a8ed3,#9865d4) 1}
 .lup .v3-context{background:var(--paper);border-bottom:1px solid var(--rule);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:15px;position:relative;z-index:6}
 .lup .v3-location{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;min-width:0}
 .lup .v3-location a{color:var(--muted)}
@@ -469,12 +466,12 @@
 .lup .v4-shirt.blazer:before,.lup .v4-shirt.friday:before{content:'';position:absolute;left:40%;right:40%;top:6px;height:74px;background:#f4ede0;clip-path:polygon(0 0,100% 0,75% 100%,25% 100%)}
 .lup .v4-shirt.hoodie:before{content:'';position:absolute;left:35%;right:35%;top:65%;height:19%;border-radius:7px;background:var(--cloth-light)}
 .lup .v4-shirt.developer:before{content:'</>';position:absolute;font-size:20px;font-weight:600;left:32%;top:35%;color:#d8e9d6}
-.lup .v4-shirt.mentor:before{content:'â˜…';position:absolute;font-size:22px;left:40%;top:35%;color:#ebc55d}
-.lup .v4-shirt.space:before{content:'âœ¦';position:absolute;font-size:27px;left:36%;top:30%;color:#edf6ff}
+.lup .v4-shirt.mentor:before{content:'★';position:absolute;font-size:22px;left:40%;top:35%;color:#ebc55d}
+.lup .v4-shirt.space:before{content:'✦';position:absolute;font-size:27px;left:36%;top:30%;color:#edf6ff}
 .lup .v2-sprite.wear-hoodie .torso:after{width:19px;left:9px;top:18px;height:9px;background:#ffffff38;border-radius:4px}
 .lup .v2-sprite.wear-blazer .torso:after,.lup .v2-sprite.wear-friday .torso:after{background:#f2e8d9;left:13px;width:11px;height:28px;clip-path:polygon(0 0,100% 0,70% 100%,30% 100%)}
 .lup .v2-sprite.wear-developer .torso:after{content:'</>';width:auto;height:auto;left:7px;top:10px;font-size:10px;background:none;color:#d8e9d6}
-.lup .v2-sprite.wear-space .torso:after,.lup .v2-sprite.wear-mentor .torso:after{content:'â˜…';background:none;color:#f0d180;width:auto;left:13px;top:8px;font-size:12px}
+.lup .v2-sprite.wear-space .torso:after,.lup .v2-sprite.wear-mentor .torso:after{content:'★';background:none;color:#f0d180;width:auto;left:13px;top:8px;font-size:12px}
 .lup .v4-wardrobe{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
 .lup .v4-wardrobe button{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);padding:8px 5px;color:var(--ink);font-size:11px;min-width:0}
 .lup .v4-wardrobe button[aria-pressed=true]{border-color:var(--blue);background:var(--tint)}
@@ -578,6 +575,3 @@
 .lup .callout{margin:0 0 16px}
 html[data-theme="light"]{color-scheme:light}
 html[data-theme="dark"]{color-scheme:dark}
-html[data-theme="rainbow"]{color-scheme:light}
-html[data-theme="rainbow"] body{background:linear-gradient(180deg,#fff7ed,#eef2ff 42%,#ecfeff)}
-html[data-theme="rainbow"] .lup{--blue:#7c3aed;--on-blue:#fff;--tint:#f3e8ff}

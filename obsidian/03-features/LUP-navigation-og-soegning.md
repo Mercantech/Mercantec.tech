@@ -12,7 +12,7 @@ tags: [feature, navigation, search, design]
 
 Profilmenuen samler tema, brugerprofil og valg af aktiv rolle. Et aktivt forløb er en UI-kontekst blandt autoriserede medlemskaber; det giver ikke i sig selv adgang. Funktioner til afstemninger, egne quests og logbog skjules, når de ikke er relevante. Materialer, egne projekter og univers kan bruges mellem forløb.
 
-System, lyst, mørkt og rainbow kan vælges frit. En fast sti og forløbsmenu gør det muligt at vende tilbage fra emne, quest og aflevering.
+System, lyst, mørkt, jul og hacker kan vælges frit. Jul har interaktiv sne, lys og en lille gave; sne kan pauses og følger reduceret bevægelse. Rainbow er udgået. En fast sti og forløbsmenu gør det muligt at vende tilbage fra emne, quest og aflevering.
 
 ## Global søgning
 

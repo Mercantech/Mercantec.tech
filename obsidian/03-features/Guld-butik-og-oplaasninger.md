@@ -39,7 +39,7 @@ Kataloget indeholder møbler og kosmetisk avatartøj. En vare kan kræve level, 
 
 ## Afgrænsning og afhængigheder
 
-Butik/garderobe er en **NTH-udvidelse**, ikke et nyt v1-krav i #24–#26. Ingen rigtige penge, handel mellem elever, crafting eller spilfordele. Grundtemaerne system/lys/mørk/rainbow er frit tilgængelige.
+Butik/garderobe er en **NTH-udvidelse**, ikke et nyt v1-krav i #24–#26. Ingen rigtige penge, handel mellem elever, crafting eller spilfordele. Grundtemaerne system/lys/mørk/jul/hacker er frit tilgængelige.
 
 [[Levels-XP-Badges]] · [[Karakter-og-certifikatvæg]] · [[Lejlighed-hus-moebler]] · [[Levels-unlocker-ting]] · [[Emne-badges]]
 

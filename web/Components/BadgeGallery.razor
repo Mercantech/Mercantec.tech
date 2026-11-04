@@ -1,0 +1,17 @@
+@using Mercantec.Tech.Web.Demo
+<div class="v3-badge-intro"><div><h2>@(OwnedOnly ? "Det har du opnået" : "Små sejre. Synlige fremskridt.")</h2><p>Et emne, fem niveauer. Se, hvad du kan nu, og hvad dit næste faglige skridt er.</p></div><span class="pill green">@DemoCatalog.Badges.Count(b => b.Rank > 0) af @DemoCatalog.Badges.Length opnået</span></div>
+<div class="v3-rank-key">@for (var i = 0; i < 5; i++) { <span class="v3-rank-@(i + 1)"><i></i>@DemoCatalog.RankNames[i]</span> }</div>
+@if (!OwnedOnly) {
+    <div class="filters">@foreach (var filter in new[] { "Alle", "Opnået", "Ikke opnået" }) { <button class="filter" aria-pressed="@(_filter == filter)" @onclick="() => _filter = filter">@filter</button> }</div>
+}
+<div class="badge-grid">
+@foreach (var badge in DemoCatalog.Badges.Where(b => (!OwnedOnly || b.Rank > 0) && (_filter == "Alle" || (_filter == "Opnået" ? b.Rank > 0 : b.Rank == 0)))) {
+    <a class="badge-card v3-rank-@Math.Max(1, badge.Rank) @(badge.Rank == 0 ? "not-owned" : "")" href="/badges/@badge.Id">
+        <span class="v3-badge-type">@(badge.Special ? "Særligt badge" : badge.Topic)</span><BadgeMark Rank="badge.Rank" Icon="@badge.Icon" />
+        <h2>@badge.Name</h2><p>@badge.Desc</p><span class="v3-badge-status">@(badge.Rank > 0 ? "✓ " + badge.RankName + " opnået" : "Ikke opnået endnu")</span>
+        @if (!badge.Special) { <div class="v3-badge-progress" aria-label="@($"{badge.Rank} af 5 niveauer")">@for (var i = 1; i <= 5; i++) { <span class="@(i <= badge.Rank ? "on" : "")"></span> }</div> }
+        <span class="badge-stat">@(badge.Special ? "Se kriteriet og særlige oplåsninger" : "Se kriterier for alle fem niveauer")</span>
+    </a>
+}
+</div>
+@code { [Parameter] public bool OwnedOnly { get; set; } private string _filter = "Alle"; }

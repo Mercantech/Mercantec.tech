@@ -28,6 +28,8 @@ else
     apiBaseUri = new Uri(new Uri(builder.HostEnvironment.BaseAddress), relative);
 }
 
+builder.Services.AddScoped<Mercantec.Tech.Web.Demo.LearningContext>();
+
 builder.Services.AddScoped<TokenStore>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

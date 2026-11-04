@@ -5,55 +5,31 @@
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @inject HttpClient Http
+@inject LearningContext CourseContext
 @implements IDisposable
 
-<PageTitle>Elev</PageTitle>
-
-@if (!Auth.IsInitialized)
-{
-    <p>Indlæser…</p>
-}
-else
-{
-    <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}")</h1><p>Dine hold fra platformen. Quests og XP i menuen er eksempelindhold.</p></div></header>
-
-    @if (_showLectioCta)
-    {
-        <div class="callout">
-            <p>Kobl din Lectio-profil for at se dine elevdata her.</p>
-            <a class="action" href="/lectio">Kobl Lectio</a>
-        </div>
-    }
-
-    <section class="panel">
-        <h2>Mine medlemskaber</h2>
-        @if (_membershipError is not null)
-        {
-            <p>@_membershipError</p>
-        }
-        else if (_memberships is null)
-        {
-            <p>Henter…</p>
-        }
-        else if (_memberships.Count == 0)
-        {
-            <div class="empty"><h2>Ingen hold endnu</h2><p>Når en underviser tilføjer dig, vises holdet her.</p></div>
-        }
-        else
-        {
-            @foreach (var m in _memberships)
-            {
-                <div class="row">
-                    <span class="mark"><span class="mark-glyph">@(string.IsNullOrEmpty(m.ForloebName) ? "?" : m.ForloebName[..1])</span></span>
-                    <div><h3><a href="@($"/courses/{m.ForloebId}")">@m.ForloebName</a></h3><p>@m.HoldName · @m.Source</p></div>
-                    <a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a>
-                </div>
-            }
-        }
+<PageTitle>Dit overblik · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p>Indlæser…</p> }
+else {
+    <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div></header>
+    <div class="cols"><div>
+    @if (ActiveCourse is not null) {
+    <section class="v3-next"><div class="v3-next-copy"><span class="pill">@ActiveCourse.Name</span><h2>@(ActiveCourse.Id == "h3" ? "Fra sensor til noget, der virker." : "Byg et spil. Forstå valgene.")</h2><p>@ActiveCourse.Desc</p><div class="actions"><a class="action" href="/learning/@ActiveCourse.Id">Åbn mit forløb <UiIcon Name="arrow" /></a></div><div class="v3-quick-links"><a href="/calendar">Min uge</a><a href="/quests">Quests og afleveringer</a><a href="/journal">Min logbog</a></div></div><img src="lup/assets/@LearningContent.Cover(ActiveCourse.Id)" alt="" /></section>
+    } else { <section class="hero-empty"><h2>Dit næste kapitel starter her</h2><p>Udforsk faglige emner, og byg videre i dit univers, mens du venter på dit næste forløb.</p><div class="actions"><a class="action" href="/learning">Udforsk forløb</a><a class="secondary" href="/projects/mine">Mine projekter</a></div></section> }
+    <div class="dashboard-links"><a href="/learning"><UiIcon Name="book" /><h2>Min læring</h2><p>Forløb, fag og emner</p></a>@if (ActiveCourse is not null) { <a href="/calendar"><UiIcon Name="calendar" /><h2>Min uge</h2><p>Undervisning og quests</p></a> }<a href="/projects/mine"><UiIcon Name="code" /><h2>Mine projekter</h2><p>Fra idé til løsning</p></a></div>
+    <section class="panel"><h2>Mine hold</h2>
+    @if (_membershipError is not null) { <p role="status">Dine hold kunne ikke hentes. Prøv at åbne forløbsoversigten igen.</p><a class="secondary" href="/courses">Åbn mine forløb</a> }
+    else if (_memberships is null) { <p>Henter dine hold…</p> }
+    else if (_memberships.Count == 0) { <div class="empty"><h3>Dit næste kapitel starter her</h3><p>Når en underviser tilføjer dig til et hold, kan du finde det her.</p></div> }
+    else { @foreach (var m in _memberships) { <div class="row"><span class="mark"><UiIcon Name="book" /></span><div><h3><a href="@($"/courses/{m.ForloebId}")">@m.ForloebName</a></h3><p>@m.HoldName</p></div><a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a></div> } }
     </section>
+    @if (_showLectioCta) { <div class="callout"><strong>Dit skema kan følge med</strong><p>Kobl din Lectio-profil for at finde dine elevdata.</p><div class="actions"><a class="secondary" href="/lectio">Kobl Lectio</a></div></div> }
+    </div><aside class="aside"><section class="panel"><h2>Din udvikling</h2><div class="v3-wallet-panel"><div><strong>7</strong><span>Level</span></div><div class="v3-gold"><strong>320</strong><span>Guld</span></div></div><div class="v3-level-track"><span style="width:20%"></span></div><p>160 XP til level 8</p><a href="/progress">Se XP og belønninger</a></section><section class="panel"><h2>Dit eget sted</h2><div class="person"><AvatarSprite /><div><p>Din figur og dine idéer har også et hjem her.</p></div></div><div class="actions"><a class="secondary" href="/profile/character">Min avatar</a><a class="secondary" href="/apartment">Min lejlighed</a></div></section><section class="panel"><h2>Dit næste badge</h2><BadgeMark Rank="0" Icon="wifi" /><p>MQTT Explorer</p><a href="/badges/mqtt">Se dit næste skridt</a></section></aside></div>
 }
 
 @code {
+    private DemoCatalog.Course? ActiveCourse => DemoCatalog.Courses.FirstOrDefault(c => c.Id == CourseContext.CourseId);
+    private void OnContext() => InvokeAsync(StateHasChanged);
     private bool _showLectioCta;
     private string? _membershipError;
     private List<MembershipRow>? _memberships;
@@ -61,6 +37,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
+        CourseContext.Changed += OnContext;
         EnsureAccess();
         await CheckLectioLinkAsync();
         await LoadMembershipsAsync();
@@ -140,7 +117,7 @@ else
         }
     }
 
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; CourseContext.Changed -= OnContext; }
 
     private sealed record MembershipRow(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 }

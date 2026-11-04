@@ -1,0 +1,60 @@
+html[data-theme="christmas"],html[data-theme="hacker"] { color-scheme:dark; }
+html[data-theme="christmas"] body { background:#081d18; }
+html[data-theme="christmas"] .lup {
+    --bg:#0c251fe8; --paper:#14342d; --ink:#f6f4e9; --muted:#b4c9bf; --rule:#34544a;
+    --blue:#f2cd83; --on-blue:#292211; --tint:#3c3c27; --sky:#21463c;
+    --peach:#493329; --orange:#ffc08b; --green:#9cdeb3; --green-tint:#254638;
+    --lup-danger:#ff9eac; --lup-danger-bg:#482e36; --lup-optional:#ffd18c; --lup-optional-bg:#483e29;
+}
+html[data-theme="christmas"] .lup .app { background:transparent; }
+html[data-theme="christmas"] .lup .body { background:transparent; }
+html[data-theme="christmas"] .lup .lup-header { border-bottom-color:#6b6845; }
+html[data-theme="christmas"] .lup .brand { color:#f2cd83; }
+html[data-theme="christmas"] .lup .v3-next { background:#1a4034; }
+html[data-theme="christmas"] .lup .page-title h1:after { content:'✧'; color:#f2cd83; font-size:.7em; margin-left:12px; }
+html[data-theme="christmas"] .lup .footer { background:#0f2b24; padding-bottom:70px; }
+#lup-snow-host { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+#lup-snow-host canvas { width:100%; height:100%; display:block; }
+.lup { position:relative; z-index:1; }
+.christmas-lights,.christmas-corner { display:none; }
+html[data-theme="christmas"] .christmas-lights { display:flex; }
+.christmas-lights { position:absolute; top:0; left:0; right:0; height:10px; z-index:40; pointer-events:none; justify-content:space-around; border-top:1px solid #738069; }
+.christmas-lights span { width:6px; height:10px; border-radius:1px 1px 50% 50%; background:#f7d580; box-shadow:0 2px 9px #ffdb7780; transform:rotate(-9deg); }
+.christmas-lights span:nth-child(4n+2) { background:#d8666e; box-shadow:0 2px 9px #e87b7880; transform:rotate(8deg); }
+.christmas-lights span:nth-child(4n+3) { background:#8cd5b4; box-shadow:0 2px 9px #8bdcb580; }
+.christmas-lights span:nth-child(4n) { background:#a5bfdc; box-shadow:0 2px 9px #a5bfdc80; }
+html[data-theme="christmas"] .christmas-corner { display:flex; }
+.christmas-corner { position:fixed; right:22px; bottom:16px; align-items:center; gap:8px; z-index:45; }
+.christmas-present,.snow-toggle { border:1px solid #5a6b51; border-radius:9px; background:#173a31; color:#f2cd83; display:flex; align-items:center; justify-content:center; cursor:pointer; min-height:42px; padding:9px 12px; font:500 12px 'DM Sans',sans-serif; }
+.christmas-present .ui-icon { width:25px; height:25px; }
+.christmas-present:hover { background:#264e3f; transform:rotate(-5deg); }
+.snow-toggle { gap:7px; }
+.christmas-note { position:absolute; right:0; bottom:56px; background:#1b4034; border:1px solid #63765a; color:#f6f4e9; border-radius:12px; width:min(290px,calc(100vw - 36px)); padding:20px; box-shadow:0 10px 35px #0005; font:14px/1.65 'DM Sans',sans-serif; }
+.christmas-note p { font-size:13px; color:#c0d1c7; margin:6px 0 0; }
+.christmas-corner button:focus-visible { outline:3px solid #f2cd83; outline-offset:3px; }
+html[data-theme="hacker"] body { background:#07110e; }
+html[data-theme="hacker"] .lup {
+    --bg:#091713; --paper:#10231c; --ink:#ddf3e6; --muted:#9bb9a8; --rule:#2a493b;
+    --blue:#8aefaa; --on-blue:#092016; --tint:#1c3b2a; --sky:#153027;
+    --peach:#392f21; --orange:#efc383; --green:#8aefaa; --green-tint:#1b3828;
+    --lup-danger:#ff9baa; --lup-danger-bg:#422a32; --lup-optional:#f2c174; --lup-optional-bg:#3e3424;
+}
+html[data-theme="hacker"] .lup :is(h1,h2,h3,.brand,.lup-wallet,.pill,.context) { font-family:'Cascadia Code','Consolas',monospace; letter-spacing:-.6px; }
+html[data-theme="hacker"] .lup .lup-header { border-bottom:1px solid #426e50; }
+html[data-theme="hacker"] .lup .brand:before { content:'>_'; font-size:16px; margin-right:8px; color:#76b68b; letter-spacing:-3px; }
+html[data-theme="hacker"] .lup .panel,html[data-theme="hacker"] .lup .article,html[data-theme="hacker"] .lup .tile,html[data-theme="hacker"] .lup .v4-product { border-radius:5px; }
+html[data-theme="hacker"] .lup .v3-next { background:#132f24; border:1px solid #345d43; }
+html[data-theme="hacker"] .lup .page-title h1:before { content:'~/ '; font-size:.7em; color:#79b98e; }
+html[data-theme="hacker"] .lup .v2-avatar-stage { background-color:#0d2119; background-image:linear-gradient(#29513a40 1px,transparent 1px),linear-gradient(90deg,#29513a40 1px,transparent 1px); background-size:24px 24px; }
+@media(max-width:620px) { .christmas-corner { right:12px; bottom:12px; } .snow-toggle span { display:none; } .christmas-lights span:nth-child(even) { display:none; } }
+@media(prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } .christmas-present:hover { transform:none; } }
+
+.ui-icon { width:18px; height:18px; flex-shrink:0; display:inline-block; vertical-align:middle; }
+.christmas-note-close { float:right; width:28px; height:28px; border:0; background:transparent; color:#f2cd83; font-size:22px; cursor:pointer; margin:-8px -8px 0 6px; }
+
+#lup-snow-host { display:none; }
+html[data-theme="christmas"] #lup-snow-host { display:block; }
+html[data-theme="hacker"] .lup .body { background-image:linear-gradient(#85db9c05 1px,transparent 1px),linear-gradient(90deg,#85db9c05 1px,transparent 1px); background-size:32px 32px; }
+
+html[data-theme="christmas"] .lup .footer { padding-right:230px; }
+@media(max-width:620px) { html[data-theme="christmas"] .lup .footer { padding-right:120px; } }

@@ -1,0 +1,8 @@
+<nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/learning">Min læring</a><span>›</span><a href="/learning/@Course.Id">@Course.Name</a>@if (!string.IsNullOrEmpty(Current)) { <span>›</span><span aria-current="page">@Current</span> }</nav>
+<nav class="subnav" aria-label="Forløbsnavigation">
+    <NavLink href="@($"/learning/{Course.Id}")" Match="NavLinkMatch.All">Forløbsplan</NavLink>
+    <NavLink href="@($"/learning/{Course.Id}/subjects")">Fag og emner</NavLink>
+    <NavLink href="@($"/learning/{Course.Id}/calendar")">Ugekalender</NavLink>
+    <a href="/quests?course=@Course.Id">Quests</a>
+</nav>
+@code { [Parameter, EditorRequired] public DemoCatalog.Course Course { get; set; } = default!; [Parameter] public string? Current { get; set; } }

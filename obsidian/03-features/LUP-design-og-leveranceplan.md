@@ -14,6 +14,10 @@ Opdateret 3. november 2026 efter Kaspers designgennemgang. Produktnavnet er **LU
 
 Det er en **designreference**, ikke en markering af, at backendfunktionerne er implementeret. Ingen eksisterende issues lukkes på baggrund af visningen. Blazor WASM PWA, ASP.NET Core controllers, Postgres og Mercantec Auth er fortsat produktionsstacken.
 
+## Blazor-opfølgning · 4. november 2026
+
+Designet er nu flyttet ind i Blazor-komponenter. [[Blazor-designgennemgang]] beskriver afvigelser, rettelser, de nye temaer og resterende backendarbejde. Den statiske visning i design/lup bevares som den oprindelige reference.
+
 ## Omfang og opfølgning
 
 | Område | Beslutning / ønsket adfærd | Plan |
@@ -52,7 +56,7 @@ GitHub Issues og Project #9 er fortsat sandheden for prioritering og status. Nye
 - **Badge-ID:** UI kan samle fem niveauer under samme emne, selv om [[Emne-badges]] har separate badge-ID'er pr. niveau. Designets lokale `rank` er ikke et databasevalg.
 - **Offentliggørelse:** den gamle projektplan siger åben som standard. Skabelonen starter private projekter og kræver et aktivt delingsvalg. Den endelige standard afklares fælles, før publicering implementeres.
 - **Økonomi:** 200 XP pr. level, 100 XP/20 guld for en standardquest og de viste priser er eksempelværdier til afklaring, ikke fastlagte backendkrav.
-- **Levels og tema:** system/lys/mørk/rainbow er frit tilgængelige grundtemaer. Level-unlocks i #25 vedrører yderligere kosmetik/profiltemaer.
+- **Levels og tema:** system/lys/mørk/jul/hacker er frit tilgængelige grundtemaer. Level-unlocks i #25 vedrører yderligere kosmetik/profiltemaer.
 - **Gratis gave eller køb:** #26 giver et møbel direkte. Den nye butik bruger adgang til køb. Begge tildelingstyper skal være entydige, så et unlock ikke både uddeler og sælger samme eksemplar.
 - **Sikkerhed:** rolle-/forløbsskift i designvisningen erstatter ikke Auth og medlemskabskontrol. Køb, belønninger, datoafgrænsning af Daily og synlighed skal valideres af API'et.
 - **Indhold:** H3-/Game Design-planerne er inspireret af de delte Notion-forløb. De viste H3-Side/Daily-quests og kosmetiske belønninger er nye designforslag, ikke formelle målpinde.

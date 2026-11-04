@@ -4,9 +4,21 @@ Central læringsplatform for undervisning (Kasper & Mathias).
 
 Repository og domæne hedder fortsat `Mercantec.tech` / `mercantec.tech`.
 
-## Start LUP-designet
+## Start Blazor-appen
 
-Den seneste klikbare designreference ligger i [`design/lup/`](design/lup/README.md). Fra repoets rod:
+Den aktuelle LUP-flade ligger i web/. Start lokalt fra repoets rod:
+
+~~~bash
+dotnet run --project web
+~~~
+
+Åbn **http://localhost:5253**. Login bruger fortsat Mercantec Auth. For rigtige hold- og Lectio-data skal API og Postgres også køre; se Docker-opstart nedenfor. Grundtemaerne vælges under **profil → Udseende**: System, Lyst, Mørkt, Jul og Hacker. Temavalg findes også før login.
+
+[Designgennemgangen](obsidian/03-features/Blazor-designgennemgang.md) beskriver, hvad der er genskabt i Blazor, og hvilke datakoblinger der stadig mangler.
+
+## Den oprindelige designreference
+
+Den oprindelige klikbare designreference ligger i [`design/lup/`](design/lup/README.md). Fra repoets rod:
 
 ```bash
 python -m http.server 3001 --bind 127.0.0.1 --directory design/lup

@@ -1,0 +1,2 @@
+<div class="subject-grid">@foreach (var subject in Course.Subjects) { <a class="subject-card" href="/learning/@Course.Id/subjects/@subject.Id"><span class="subject-icon"><UiIcon Name="@LearningContent.SubjectIcon(subject.Id)" /></span><div><h3>@subject.Name</h3><p>@subject.Desc</p><small>@LearningContent.Lessons.Count(l => l.Subject == subject.Id) emner</small></div><UiIcon Name="arrow" /></a> }</div>
+@code { [Parameter, EditorRequired] public DemoCatalog.Course Course { get; set; } = default!; }

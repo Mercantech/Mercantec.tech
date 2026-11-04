@@ -1,0 +1,26 @@
+<div class="v2-toolbar"><div class="calendar-buttons"><button class="secondary" aria-label="Forrige uge" @onclick="() => _offset--">‹</button><button class="secondary" @onclick="() => _offset = 0">Denne uge</button><button class="secondary" aria-label="Næste uge" @onclick="() => _offset++">›</button></div><h2>@Monday.ToString("dd. MMM", Danish) – @Monday.AddDays(4).ToString("dd. MMM yyyy", Danish)</h2></div>
+<div class="v2-legend"><span class="v2-presence"><i class="v2-dot physical"></i>Fuldt fremmøde</span><span class="v2-presence"><i class="v2-dot online"></i>Online fremmøde</span><span class="v2-presence"><i class="v2-dot home"></i>Arbejde hjemme</span></div>
+<div class="@(Teacher ? "v2-planning" : "")"><div class="v2-calendar"><div class="v2-hours">@for (var hour = 8; hour < 15; hour++) { <div>@hour.00</div> }</div>
+@for (var d = 0; d < 5; d++) {
+    var day = d; var date = Monday.AddDays(d); var mode = d == 3 ? "online" : d == 4 ? "home" : "physical";
+    <section class="v2-cal-col"><div class="v2-cal-head"><strong><a href="/learning/@CourseId/days/@date.ToString("yyyy-MM-dd")">@date.ToString("ddd d.", Danish)</a></strong><span class="v2-presence"><i class="v2-dot @mode"></i>@(mode == "physical" ? "Fremmøde" : mode == "online" ? "Online" : "Hjemme")</span></div>
+    <div class="v2-cal-body">
+    @if (_offset == 0) {
+        <a class="v2-event" href="/learning/@CourseId/days/@date.ToString("yyyy-MM-dd")" style="--event-top:0px;--event-height:97px"><small>08.00–09.30</small><strong>@Focus[day]</strong></a>
+        <a class="v2-event quest" href="/quests/@Quest.Id" style="--event-top:130px;--event-height:130px"><small>10.00–12.00 · @Quest.Type</small><strong>@Quest.Name</strong></a>
+        <a class="v2-event is-short" href="/journal" style="--event-top:390px;--event-height:48px"><small>14.00–14.45</small><strong>Opsamling og logbog</strong></a>
+    } else { <p class="calendar-empty">Ingen aktiviteter planlagt</p> }
+    </div></section>
+}
+</div>
+@if (Teacher) { <aside class="panel"><h2>Quests at planlægge</h2><p>Vælg en quest for at se mål og afleveringskrav.</p><div class="v2-backlog">@foreach (var q in DemoCatalog.Quests.Where(q => q.Course == CourseId)) { <a href="/quests/@q.Id">@q.Name<small>@q.Type quest</small></a> }</div></aside> }
+</div>
+@code {
+    [Parameter] public string CourseId { get; set; } = "h3";
+    [Parameter] public bool Teacher { get; set; }
+    private int _offset;
+    private static readonly System.Globalization.CultureInfo Danish = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
+    private DateOnly Monday => LearningContent.Start(CourseId).AddDays((CourseId == "h3" ? 14 : 0) + _offset * 7);
+    private DemoCatalog.Quest Quest => DemoCatalog.Quests.First(q => q.Course == CourseId);
+    private string[] Focus => CourseId == "h3" ? ["REST API og requests", "Validering og fejlsvar", "Database og relationer", "Fra måling til visning", "Review og næste skridt"] : ["Core loop og Rune Run", "Regler og mål", "Risiko og belønning", "Feedback og playtest", "GDD og næste skridt"];
+}

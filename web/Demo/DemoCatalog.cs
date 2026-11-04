@@ -43,6 +43,9 @@ public static class DemoCatalog
         new("menu", "Lav en main menu", "Side", "game", "Byg start og en vej tilbage fra spillet.")
     ];
 
+    public static readonly string[] RankNames = ["Lille", "Mellem", "Stor", "Mega", "Ultra mega"];
+    public static readonly string[] RankCriteria = ["Forklar emnet med dine egne ord.", "Brug emnet i et fælles projekt.", "Brug det i dit eget projekt, og vis det til underviseren.", "Præsentér emnet for klassen.", "Lær emnet fra dig, så andre kan bruge det."];
+
     public static readonly Badge[] Badges =
     [
         new("loop", "Core Loop", "Game Design", "Forklar, hvad spilleren gør igen og igen.", 2, "Mellem"),
@@ -51,6 +54,12 @@ public static class DemoCatalog
         new("mqtt", "MQTT Explorer", "Arduino & IoT", "Følg en besked fra enhed til broker.", 0, null),
         new("cpp", "C++ Bygger", "Arduino & IoT", "Strukturér Arduino-kode med funktioner og flere filer.", 0, null),
         new("friday", "Fancy Friday", "Fællesskab", "Et særligt fællesskabsbadge, som underviseren aftaler kriterier for.", 0, null),
+        new("api", "API Architect", "Serverside", "Design tydelige endpoints og håndtér fejl.", 3, "Stor"),
+        new("sql", "Data Designer", "Database", "Modellér relationer og gem dine målinger.", 2, "Mellem"),
+        new("git", "Git Together", "Samarbejde", "Brug branches, commits og review i dit team.", 1, "Lille"),
+        new("security", "Security Mindset", "Test & sikkerhed", "Beskyt adgang, og undersøg fejltilstande.", 0, null),
+        new("ui", "Interface Builder", "Frontend", "Gør data forståelige og mulige at handle på.", 0, null),
+        new("docs", "Fortæl med kode", "Dokumentation", "Forklar løsningen, så andre kan arbejde videre.", 0, null),
         new("hawaii", "Hawaii", "Fællesskab", "Åbner Hawaii-skjorten i butikken. Gives ikke automatisk.", 0, null)
     ];
 
@@ -67,6 +76,15 @@ public static class DemoCatalog
         new("Møbler", "Vævet tæppe", 2, 50, "Sælges. Gives ikke som gave."),
         new("Møbler", "Bordlampe", 3, 80, "Sælges, når level er nået."),
         new("Møbler", "Trofæ", 4, 140, "Sælges. Det er ikke den samme ting som gave-møblet."),
+        new("Tøj", "Blå blazer", 6, 120, "Et skarpere udtryk til din avatar."),
+        new("Tøj", "Fancy Friday-sæt", 1, 150, "Åbnes med Fancy Friday-badget."),
+        new("Tøj", "Developer-T-shirt", 8, 160, "Kode på brystet, fra level 8."),
+        new("Tøj", "Mentor-jakke", 10, 190, "Kræver Core Loop på Stor."),
+        new("Tøj", "Rumjakke", 12, 230, "Til dit næste store projekt."),
+        new("Møbler", "Bogreol", 6, 130, "Plads til dine næste idéer."),
+        new("Møbler", "Sofa", 8, 180, "En pause mellem projekterne."),
+        new("Møbler", "Monstera", 5, 100, "En grøn krog i dit rum."),
+        new("Møbler", "Arbejdsstation", 12, 300, "Kræver API Architect på Mellem."),
         new("Møbler", "Arkadekabinet", 10, 260, "Kræver level og Game Designer på Mellem.")
     ];
 
@@ -129,8 +147,19 @@ public static class DemoCatalog
     public sealed record Course(string Id, string Name, string Desc, string Duration, string Teacher, string[] Weeks, Subject[] Subjects);
     public sealed record Subject(string Id, string Name, string Desc);
     public sealed record Quest(string Id, string Name, string Type, string Course, string Desc);
-    public sealed record Badge(string Id, string Name, string Topic, string Desc, int Rank, string? RankName);
-    public sealed record ShopItem(string Kind, string Name, int Level, int Cost, string Desc);
+    public sealed record Badge(string Id, string Name, string Topic, string Desc, int Rank, string? RankName)
+    {
+        public bool Special => Id is "hawaii" or "friday";
+        public string Icon => Id switch { "loop" => "loop", "playtest" => "test", "gdd" => "game", "mqtt" => "wifi", "cpp" => "chip", "api" => "code", "sql" => "database", "security" => "shield", "hawaii" => "flower", "friday" => "shirt", "git" => "loop", "ui" => "chart", _ => "book" };
+    }
+    public sealed record ShopItem(string Kind, string Name, int Level, int Cost, string Desc)
+    {
+        public string Design => Name switch { "Basis-T-shirt" => "basic", "Stribet T-shirt" => "striped", "Grøn hoodie" => "hoodie", "Hawaii-skjorte" => "hawaii", "Skrivebord" => "desk", "Seng" => "bed", "Stol" => "chair", "Plante" => "plant", "Vævet tæppe" => "rug", "Bordlampe" => "lamp", "Trofæ" => "trophy", "Arkadekabinet" => "arcade", "Bogreol" => "bookcase", "Sofa" => "sofa", "Monstera" => "monstera", "Arbejdsstation" => "workstation", "Fancy Friday-sæt" => "friday", "Developer-T-shirt" => "developer", "Mentor-jakke" => "mentor", "Rumjakke" => "space", _ => "blazer" };
+        public string Color => Design switch { "hoodie" => "#38785e", "hawaii" => "#468f9a", "friday" => "#684e83", "developer" => "#304f56", "mentor" => "#5d5276", "space" => "#425b87", _ => "#387d8c" };
+        public string? BadgeId => Design switch { "hawaii" => "hawaii", "friday" => "friday", "arcade" => "gdd", "mentor" => "loop", "workstation" => "api", _ => null };
+        public int BadgeRank => Design is "arcade" or "workstation" ? 2 : Design == "mentor" ? 3 : 1;
+        public bool Available => Level <= DemoCatalog.Level && (BadgeId is null || Badges.Any(b => b.Id == BadgeId && b.Rank >= BadgeRank));
+    }
     public sealed record GiftItem(string Name, int Level, string Desc);
     public sealed record Unlock(string Type, string Name, int Level, bool Open);
     public sealed record Project(string Id, string Name, string Desc, string Tag, string Owner, string Visibility, int Likes, Comment[] Comments);

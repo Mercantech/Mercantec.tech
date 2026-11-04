@@ -1,0 +1,9 @@
+<div class="v4-product-art" aria-hidden="true">
+@if (Kind == "Tøj") { <span class="v4-shirt @Design" style="--cloth:@Color;--cloth-light:#ffffff55"></span> }
+else { <span class="v2-furniture @Design"></span> }
+</div>
+@code {
+    [Parameter] public string Kind { get; set; } = "Møbler";
+    [Parameter] public string Design { get; set; } = "desk";
+    [Parameter] public string Color { get; set; } = "#387d8c";
+}

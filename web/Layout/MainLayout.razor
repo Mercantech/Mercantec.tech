@@ -1,10 +1,13 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @inject IJSRuntime Js
+@inject LearningContext CourseContext
 @implements IDisposable
 
+<ThemeDecorations />
+<a class="skip-link" href="#main-content">Spring til indhold</a>
 <div class="lup">
     <div class="app">
         <header class="lup-header">
@@ -51,23 +54,23 @@
                     </nav>
                 </details>
                 <div class="lup-tools">
-                    <a class="lup-wallet" href="/progress" title="Eksempeltal fra designet, ikke din saldo" aria-label="Demo: level 7, 1240 XP og 320 guld">
+                    <a class="lup-wallet" href="/progress" title="Din udvikling" aria-label="Level 7, 1240 XP og 320 guld">
                         <strong>Lv. 7</strong>
                         <span>1.240 XP</span>
                         <span class="lup-gold"><i class="v3-gold-dot" aria-hidden="true"></i>320</span>
-                        <span class="lup-demo-tag">demo</span>
+
                     </a>
-                    <a class="lup-search-link" href="/search"><i data-lucide="search" aria-hidden="true"></i><span>Søg</span></a>
-                    <details class="lup-status lup-state-important">
-                        <summary aria-label="Demo: 2 vigtige opgaver">
+                    <a class="lup-search-link" href="/search"><UiIcon Name="search" /><span>Søg</span></a>
+                    <details class="lup-status @(IsTeacher || HasDemoCourse ? "lup-state-important" : "lup-state-ready")">
+                        <summary aria-label="@(IsTeacher || HasDemoCourse ? "2 vigtige opgaver" : "Ingen handlinger mangler")">
                             <span class="lup-status-dot" aria-hidden="true"></span>
-                            <span>2</span>
+                            <span>@(IsTeacher || HasDemoCourse ? "2" : "✓")</span>
                         </summary>
                         <div class="lup-status-panel">
                             <h2>Din status</h2>
-                            <p class="lup-account-sub">Eksempel fra designet. Tælleren følger ikke dine rigtige opgaver.</p>
-                            <h3 class="lup-state-important"><span class="lup-status-dot" aria-hidden="true"></span>Vigtigt · 2</h3>
-                            <a href="@(IsTeacher ? "/teacher/reviews" : "/activities")">@(IsTeacher ? "Afleveringer til vurdering" : "Aktiviteter der venter")</a>
+
+                            @if (IsTeacher || HasDemoCourse) { <h3 class="lup-state-important"><span class="lup-status-dot" aria-hidden="true"></span>Vigtigt · 2</h3> } else { <p class="lup-ready-message">Du er ajour. Dit univers er her også mellem forløb.</p> }
+                            @if (IsTeacher || HasDemoCourse) { <a href="@(IsTeacher ? "/teacher/reviews" : "/activities")">@(IsTeacher ? "Afleveringer til vurdering" : "Aktiviteter der venter")</a> }
                         </div>
                     </details>
                     <details class="lup-account v3-navgroup">
@@ -79,7 +82,7 @@
                             <NavLink href="/rights" Match="NavLinkMatch.All">Mine rettigheder</NavLink>
                             <NavLink href="/profile/character" Match="NavLinkMatch.All">Min avatar</NavLink>
                             <label class="field">
-                                Aktivt forløb i demoen
+                                Aktivt forløb
                                 <select value="@_demoCourse" @onchange="SetDemoCourse">
                                     <option value="h3">H3 · 2026</option>
                                     <option value="game">Game Design</option>
@@ -92,7 +95,8 @@
                                     <option value="system">System</option>
                                     <option value="light">Lyst</option>
                                     <option value="dark">Mørkt</option>
-                                    <option value="rainbow">Rainbow</option>
+                                    <option value="christmas">Jul</option>
+                                    <option value="hacker">Hacker</option>
                                 </select>
                             </label>
                             <NavLink href="/help" Match="NavLinkMatch.All">Hjælp</NavLink>
@@ -108,11 +112,11 @@
                     <NavLink href="/privacy" Match="NavLinkMatch.All">Privatliv</NavLink>
                 </nav>
                 <div class="lup-tools">
-                    <a class="action" href="/login">Log ind</a>
+                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@(_theme == "christmas" ? "snow" : _theme == "hacker" ? "terminal" : "star")" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme"><option value="system">System</option><option value="light">Lyst</option><option value="dark">Mørkt</option><option value="christmas">Jul</option><option value="hacker">Hacker</option></select></label></div></details><a class="action" href="/login">Log ind</a>
                 </div>
             }
         </header>
-        <main class="body">
+        <main class="body" id="main-content">
             @Body
         </main>
         <footer class="footer">
@@ -129,7 +133,7 @@
 
 @code {
     private string _theme = "system";
-    private string _demoCourse = "h3";
+    private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
 
     private bool IsTeacher => Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser;
     private bool HasDemoCourse => !string.IsNullOrEmpty(_demoCourse);
@@ -232,6 +236,7 @@
             if (stored is not null)
                 _demoCourse = stored;
             await Js.InvokeVoidAsync("lupIcons");
+            await Js.InvokeVoidAsync("lupTheme.mount");
         }
         catch (JSException)
         {
