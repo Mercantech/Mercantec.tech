@@ -5,15 +5,14 @@
 
 <PageTitle>Log ind</PageTitle>
 
-<h1>Log ind</h1>
-<p>Du sendes til Mercantec Auth (PKCE).</p>
-
-@if (!string.IsNullOrEmpty(_error))
-{
-    <p class="text-danger">@_error</p>
-}
-
-<button class="btn btn-primary" @onclick="StartLogin" disabled="@_busy">Log ind med Mercantec Auth</button>
+<section class="panel" style="max-width:32rem">
+    <header class="page-title"><div><h1>Log ind</h1><p>Du sendes til Mercantec Auth. Login sker med PKCE, og logout her rydder kun denne app.</p></div></header>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <p class="callout">@_error</p>
+    }
+    <button class="action" @onclick="StartLogin" disabled="@_busy">@(_busy ? "Sender…" : "Log ind med Mercantec Auth")</button>
+</section>
 
 @code {
     private bool _busy;

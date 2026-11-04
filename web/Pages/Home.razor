@@ -17,20 +17,19 @@ else if (Auth.IsAuthenticated)
 }
 else
 {
-    <h1>Mercantec.tech</h1>
-    <p>Central læringsplatform — Blazor PWA + .NET API.</p>
-    <p class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" href="/login">Log ind</a>
-        <a class="btn btn-outline-secondary" href="/privacy">Privatliv</a>
-    </p>
+    <header class="page-title"><div><h1>LUP</h1><p>Lokal UndervisningsPlatform på mercantec.tech.</p></div></header>
+    <div class="actions">
+        <a class="action" href="/login">Log ind</a>
+        <a class="secondary" href="/privacy">Privatliv</a>
+    </div>
 
     @if (_error is not null)
     {
-        <p class="text-danger mt-3">API: @_error</p>
+        <p class="callout">API: @_error</p>
     }
     else if (_health is not null)
     {
-        <p class="text-success mt-3">API: <strong>@_health.status</strong></p>
+        <p>API: <strong>@_health.status</strong></p>
     }
 }
 

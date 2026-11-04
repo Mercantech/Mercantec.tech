@@ -3,22 +3,23 @@
 
 <PageTitle>Privatliv og GDPR</PageTitle>
 
-<h1>Privatliv og dine rettigheder</h1>
-<p class="lead">
+<header class="page-title"><div><h1>Privatliv og dine rettigheder</h1></div></header>
+<article class="article">
+<p>
     Mercantec.tech er en læringsplatform for Mercantec. Her beskriver vi kort, hvilke personoplysninger
     vi behandler, og hvilke rettigheder du har (GDPR).
 </p>
 
-<section class="mb-4">
-    <h2 class="h4">Formål</h2>
+<section>
+    <h2>Formål</h2>
     <p>
         Vi behandler data for at kunne logge dig ind, vise den rigtige rolle (elev/underviser),
         og senere knytte dig til forløb, hold, quests og afleveringer.
     </p>
 </section>
 
-<section class="mb-4">
-    <h2 class="h4">Hvem behandler hvad</h2>
+<section>
+    <h2>Hvem behandler hvad</h2>
     <ul>
         <li>
             <strong>Mercantec Auth</strong> (<code>auth.mercantec.tech</code>) —
@@ -35,8 +36,8 @@
     </ul>
 </section>
 
-<section class="mb-4">
-    <h2 class="h4">Datakategorier (planlagt / nuværende)</h2>
+<section>
+    <h2>Datakategorier</h2>
     <ul>
         <li>Identitet fra token: navn, e-mail, <code>sub</code>, login-metode, roller</li>
         <li>Senere: hold-/forløbsmedlemskab, afleveringer, feedback, aktivitet</li>
@@ -44,8 +45,8 @@
     </ul>
 </section>
 
-<section class="mb-4">
-    <h2 class="h4">Dine rettigheder</h2>
+<section>
+    <h2>Dine rettigheder</h2>
     <ul>
         <li><strong>Indsigt</strong> — se/download egne platform-data (når du er logget ind).</li>
         <li><strong>Berigtigelse</strong> — ret profiloplysninger via Auth / kontakt drift.</li>
@@ -54,8 +55,8 @@
     </ul>
 </section>
 
-<section class="mb-4">
-    <h2 class="h4">Kontakt</h2>
+<section>
+    <h2>Kontakt</h2>
     <p>
         Spørgsmål om privatliv på Mercantec.tech:
         <a href="mailto:mags@mercantec.dk">mags@mercantec.dk</a>
@@ -65,14 +66,15 @@
 @if (Auth.IsAuthenticated)
 {
     <p>
-        <a class="btn btn-primary" href="/rights">Gå til mine rettigheder (eksport / sletning)</a>
-        <a class="btn btn-outline-secondary" href="/profile">Profil</a>
+        <a class="action" href="/rights">Gå til mine rettigheder</a>
+        <a class="secondary" href="/profile">Profil</a>
     </p>
 }
 else
 {
     <p>
-        <a class="btn btn-primary" href="/login">Log ind</a>
+        <a class="action" href="/login">Log ind</a>
         for at eksportere data eller sende sletteanmodning.
     </p>
 }
+</article>

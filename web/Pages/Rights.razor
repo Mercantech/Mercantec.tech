@@ -17,65 +17,56 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    <h1>Mine rettigheder</h1>
-    <p class="text-muted">
-        Indsigt og sletteanmodning for data i Mercantec.tech.
-        Læs også <a href="/privacy">privatlivssiden</a>.
-    </p>
-
-    <section class="mb-4">
-        <h2 class="h5">Ret til indsigt — eksporter mine data</h2>
-        <p>Downloader en JSON-fil med de oplysninger, API’et kender om dig (claims + platform-status).</p>
-        <button class="btn btn-primary" disabled="@_exporting" @onclick="ExportAsync">
+    <header class="page-title"><div><h1>Dine data og rettigheder</h1><p>Indsigt og sletteanmodning. Læs også <a href="/privacy">privatlivssiden</a>.</p></div></header>
+    <div class="cols">
+    <section class="panel">
+        <h2>Mine oplysninger</h2>
+        <p>Downloader en JSON-fil med de oplysninger, API’et kender om dig.</p>
+        <button class="action" disabled="@_exporting" @onclick="ExportAsync">
             @(_exporting ? "Henter…" : "Download mine data")
         </button>
         @if (_exportError is not null)
         {
-            <p class="text-danger mt-2">@_exportError</p>
+            <p>@_exportError</p>
         }
         @if (_exportOk)
         {
-            <p class="text-success mt-2">Download startet.</p>
+            <p>Download startet.</p>
         }
-    </section>
-
-    <section class="mb-4">
-        <h2 class="h5">Sletteanmodning</h2>
-        <p>
-            Sender en anmodning til platformen. Fuld automatisk sletning (inkl. Auth/Lectio) er endnu ikke på plads —
-            du får en reference og næste skridt.
-        </p>
-        <div class="mb-2">
-            <label class="form-label" for="reason">Begrundelse (valgfri)</label>
-            <textarea id="reason" class="form-control" rows="3" @bind="_reason"></textarea>
-        </div>
-        <button class="btn btn-outline-danger" disabled="@_deleting" @onclick="RequestDeletionAsync">
+        <hr class="line" />
+        <h2>Sletteanmodning</h2>
+        <p>Du får en reference og næste skridt. Auth og Lectio håndteres separat.</p>
+        <label class="field" for="reason">Begrundelse (valgfri)
+            <textarea id="reason" rows="3" @bind="_reason"></textarea>
+        </label>
+        <button class="secondary" disabled="@_deleting" @onclick="RequestDeletionAsync">
             @(_deleting ? "Sender…" : "Send sletteanmodning")
         </button>
         @if (_deleteError is not null)
         {
-            <p class="text-danger mt-2">@_deleteError</p>
+            <p>@_deleteError</p>
         }
         @if (_deleteResult is not null)
         {
-            <div class="alert alert-info mt-3">
-                <p class="mb-1"><strong>Modtaget.</strong> Reference: <code>@_deleteResult.Reference</code></p>
-                <ul class="mb-0">
+            <div class="callout">
+                <p><strong>Modtaget.</strong> Reference: <code>@_deleteResult.Reference</code></p>
+                <ul>
                     @foreach (var step in _deleteResult.NextSteps)
                     {
                         <li>@step</li>
                     }
                 </ul>
-                <p class="mb-0 mt-2">Kontakt: <a href="mailto:@_deleteResult.Contact">@_deleteResult.Contact</a></p>
+                <p>Kontakt: <a href="mailto:@_deleteResult.Contact">@_deleteResult.Contact</a></p>
             </div>
         }
     </section>
-
-    <p>
-        <a href="/profile">Tilbage til profil</a>
-        ·
-        <a href="/privacy">Privatliv</a>
-    </p>
+    <aside class="panel">
+        <h2>Privatliv</h2>
+        <p>Læs om datakilder og adgang.</p>
+        <a href="/privacy">Se privatlivssiden</a>
+        <p><a href="/profile">Tilbage til profil</a></p>
+    </aside>
+    </div>
 }
 
 @code {

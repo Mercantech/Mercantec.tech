@@ -1,0 +1,211 @@
+@page "/progress"
+@page "/progress/badges"
+@page "/projects/mine"
+@page "/profile/character"
+@page "/apartment"
+@page "/universe/shop"
+@page "/universe/unlocks"
+@page "/games"
+@page "/notifications"
+@page "/onboarding"
+@using Mercantec.Tech.Web.Demo
+@inject NavigationManager Nav
+@inject AuthService Auth
+@implements IDisposable
+
+<PageTitle>@Title</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (PathKey == "progress")
+{
+    <header class="page-title"><div><h1>XP, level og guld</h1><p>Eksempeltal. Det er ikke din saldo.</p></div></header>
+    <DemoTodo Issue="33" Text="XP og guld tildeles ikke, når en quest godkendes." />
+    <div class="v3-wallet-panel">
+        <div><strong>Level @DemoCatalog.Level</strong><span>160 XP til næste level</span></div>
+        <div><strong>1.240</strong><span>Samlet karriere-XP · demo</span></div>
+        <div class="v3-gold"><strong>320</strong><span>Guld · demo</span></div>
+    </div>
+    <section class="panel">
+        <h2>Forløbs-XP</h2>
+        <p>H3 · 2026 · 420 XP</p>
+        <p>Game design fra bunden · 320 XP</p>
+    </section>
+}
+else if (PathKey == "progress/badges")
+{
+    <header class="page-title"><div><h1>Mine badges</h1><p>Det, Alex har opnået i eksemplet.</p></div></header>
+    <DemoTodo Issue="25" Text="Badges på væggen er eksempeldata." />
+    <div class="tiles">
+        @foreach (var badge in DemoCatalog.Badges.Where(b => b.Rank > 0))
+        {
+            <section class="panel"><h2>@badge.Name</h2><p>Niveau @badge.Rank · @badge.RankName</p><p>@badge.Desc</p></section>
+        }
+    </div>
+}
+else if (PathKey == "projects/mine")
+{
+    <header class="page-title"><div><h1>Mine projekter</h1><p>Et privat og et fælles eksempel.</p></div></header>
+    <DemoTodo Text="Nye projekter kan ikke oprettes. Like og kommentar gemmes ikke." />
+    @foreach (var project in DemoCatalog.Projects)
+    {
+        <article class="panel" style="margin-bottom:14px">
+            <h2>@project.Name</h2>
+            <p>@project.Visibility · @project.Likes likes</p>
+            <p>@project.Desc</p>
+            @foreach (var comment in project.Comments)
+            {
+                <p><strong>@comment.Author.</strong> @comment.Text</p>
+            }
+            <button type="button" class="secondary" disabled>Like</button>
+        </article>
+    }
+}
+else if (PathKey == "profile/character")
+{
+    <header class="page-title"><div><h1>Min avatar</h1><p>Titel og ekstra tema følger level i eksemplet.</p></div></header>
+    <DemoTodo Issue="25" Text="Titel og tema kan ikke vælges eller gemmes. Underviseren kan ikke sætte level her." />
+    <section class="panel">
+        <h2>Alex Jensen</h2>
+        <p>Valgt titel: Systembygger · åben fra level 2.</p>
+        <p>Valgt ekstra tema: Nordlys · åbent fra level 3.</p>
+        <p>Basis-temaerne System, Lyst, Mørkt og Rainbow er frie og ligger i profilmenuen.</p>
+        <label class="field">Titel<select disabled><option>Systembygger</option><option>Mentor · låst til level 9</option></select></label>
+        <label class="field">Ekstra tema<select disabled><option>Nordlys</option><option>Kobber · låst til level 9</option></select></label>
+    </section>
+}
+else if (PathKey == "apartment")
+{
+    <header class="page-title"><div><h1>Min lejlighed</h1><p>Ét rum, 8×6 felter. To startmøbler står i eksemplet.</p></div></header>
+    <DemoTodo Issue="24" Text="Møbler kan ikke flyttes eller fjernes. Rummet gemmes ikke." />
+    <div class="v2-room" aria-label="Eksempelrum, 8 gange 6" style="display:grid;grid-template-columns:repeat(8,32px);gap:4px">
+        @for (var i = 0; i < 48; i++)
+        {
+            <button type="button" class="v2-room-cell" disabled aria-label="@CellLabel(i)">@CellMark(i)</button>
+        }
+    </div>
+    <p>Skrivebord og plante er startmøbler. Opslagstavlen er en gave og kan først stilles, når level er nået.</p>
+}
+else if (PathKey == "universe/shop")
+{
+    <header class="page-title"><div><h1>Butik</h1><p>320 guld i eksemplet. Køb er slået fra.</p></div></header>
+    <DemoTodo Issue="34" Text="Køb trækker ikke guld og giver ikke ejerskab." />
+    <section class="panel">
+        <h2>Gave · @DemoCatalog.Gift.Name</h2>
+        <DemoTodo Issue="26" Text="Gaven er ikke den samme ting som det, butikken sælger. Den kan ikke tildeles endnu." />
+        <p>Level @DemoCatalog.Gift.Level. @DemoCatalog.Gift.Desc</p>
+        <button type="button" class="secondary" disabled>Modtaget i eksemplet</button>
+    </section>
+    <div class="tiles">
+        @foreach (var item in DemoCatalog.Shop)
+        {
+            <section class="panel">
+                <h2>@item.Name</h2>
+                <p>@item.Kind · level @item.Level · @item.Cost guld</p>
+                <p>@item.Desc</p>
+                <button type="button" class="action" disabled>@(item.Cost == 0 ? "Start" : "Køb")</button>
+            </section>
+        }
+    </div>
+}
+else if (PathKey == "universe/unlocks")
+{
+    <header class="page-title"><div><h1>Level-oplåsninger</h1><p>Level @DemoCatalog.Level i eksemplet. Låste rækker bliver stående.</p></div></header>
+    <DemoTodo Issue="25" Text="Level sættes ikke af underviseren, og valg gemmes ikke." />
+    <DemoTodo Issue="26" Text="Møbel-gaven tildeles ikke automatisk ved level." />
+    <div class="panel">
+        @foreach (var unlock in DemoCatalog.Unlocks)
+        {
+            <div class="row">
+                <span class="mark"><span class="mark-glyph">@unlock.Level</span></span>
+                <div><h3>@unlock.Name</h3><p>@unlock.Type · level @unlock.Level · @(unlock.Open ? "Åben i eksemplet" : "Låst")</p></div>
+            </div>
+        }
+    </div>
+}
+else if (PathKey == "games")
+{
+    <header class="page-title"><div><h1>Spil</h1><p>Highscore er en visning. Der er ingen upload.</p></div></header>
+    <DemoTodo Text="Spil kan ikke uploades, og scoren opdateres ikke. Der er ikke et issue-nummer endnu." />
+    <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
+    <table class="table">
+        <thead><tr><th>Elev</th><th>Spil</th><th>Point</th></tr></thead>
+        <tbody>
+            @foreach (var score in DemoCatalog.Highscores)
+            {
+                <tr><td>@score.Name</td><td>@score.Game</td><td>@score.Points</td></tr>
+            }
+        </tbody>
+    </table>
+    <button type="button" class="action" disabled>Upload spil</button>
+}
+else if (PathKey == "notifications")
+{
+    <header class="page-title"><div><h1>Notifikationer</h1><p>To eksempelhændelser.</p></div></header>
+    <DemoTodo Text="Notifikationer sendes ikke. Listen er et eksempel." />
+    <div class="panel">
+        <div class="row"><span class="mark"><span class="mark-glyph">1</span></span><div><h3>Maja kommenterede Rune Run</h3><p>Den hurtige rute føles fair. <a href="/explore/projects">Åbn galleriet</a></p></div></div>
+        <div class="row"><span class="mark"><span class="mark-glyph">2</span></span><div><h3>Aflevering venter</h3><p>Indledende GDD til eget spil er sendt til vurdering.</p></div></div>
+    </div>
+}
+else
+{
+    <header class="page-title"><div><h1>Velkommen til LUP</h1><p>Første besøg som eksempel. Valget gemmes ikke.</p></div></header>
+    <DemoTodo Issue="9" Text="Onboarding vises ikke automatisk, og svaret gemmes ikke." />
+    <form class="panel">
+        <label class="field">Hvad vil du i gang med?<select disabled><option>Mit forløb</option><option>Mit univers</option></select></label>
+        <button type="button" class="action" disabled>Gem og gå videre</button>
+    </form>
+}
+
+@code {
+    private string PathKey
+    {
+        get
+        {
+            var relative = Nav.ToBaseRelativePath(Nav.Uri);
+            var cut = relative.IndexOfAny(['?', '#']);
+            if (cut >= 0)
+                relative = relative[..cut];
+            return relative.Trim('/');
+        }
+    }
+
+    private string Title => PathKey switch
+    {
+        "progress" => "Udvikling",
+        "progress/badges" => "Mine badges",
+        "projects/mine" => "Mine projekter",
+        "profile/character" => "Avatar",
+        "apartment" => "Lejlighed",
+        "universe/shop" => "Butik",
+        "universe/unlocks" => "Oplåsninger",
+        "games" => "Spil",
+        "notifications" => "Notifikationer",
+        _ => "Onboarding"
+    };
+
+    private static string CellMark(int index) => index switch
+    {
+        9 => "Bord",
+        10 => "Plante",
+        _ => ""
+    };
+
+    private static string CellLabel(int index) => index switch
+    {
+        9 => "Skrivebord",
+        10 => "Plante",
+        _ => "Tomt felt"
+    };
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    private void OnAuth() => InvokeAsync(StateHasChanged);
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

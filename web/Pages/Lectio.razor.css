@@ -22,7 +22,7 @@
     gap: 0.25rem;
     padding: 0.25rem;
     margin-bottom: 1rem;
-    background: #f1f5f9;
+    background: var(--bg);
     border-radius: 999px;
 }
 
@@ -36,8 +36,8 @@
 }
 
 .lectio-segments button.is-active {
-    background: #1b6ec2;
-    color: #fff;
+    background: var(--blue);
+    color: var(--on-blue);
 }
 
 .lectio-panel {
@@ -80,7 +80,7 @@ button.lectio-stat {
 
 button.lectio-stat:hover,
 .lectio-stat.is-active {
-    border-color: #1b6ec2;
+    border-color: var(--blue);
     background: #eff6ff;
 }
 
@@ -135,7 +135,7 @@ button.lectio-stat:hover,
 
 .lectio-facet.is-open > button,
 .lectio-facet > button:hover {
-    border-color: #1b6ec2;
+    border-color: var(--blue);
 }
 
 .lectio-facet-menu {
@@ -253,7 +253,7 @@ button.lectio-stat:hover,
 }
 
 .lectio-sort.is-active {
-    color: #1b6ec2;
+    color: var(--blue);
 }
 
 .lectio-name,
@@ -269,7 +269,7 @@ button.lectio-stat:hover,
 .lectio-name:hover,
 .lectio-count-btn:hover,
 .lectio-sort:hover {
-    color: #1b6ec2;
+    color: var(--blue);
 }
 
 .lectio-expand-row td {

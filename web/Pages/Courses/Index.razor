@@ -19,44 +19,55 @@ else if (!Auth.IsAuthenticated)
 }
 else if (Redirect.CurrentAppRole() != AppRole.Underviser)
 {
-    <p class="text-muted">Forløb-administration er for undervisere. <a href="/lectio">Gå til Lectio</a></p>
+    <header class="page-title"><div><h1>Mine forløb</h1><p>Hold, du er medlem af. Administration ligger hos underviseren.</p></div></header>
+    @if (_loading)
+    {
+        <p>Henter…</p>
+    }
+    else if (_memberships.Count == 0)
+    {
+        <div class="empty"><h2>Ingen hold endnu</h2><p>Når du bliver tilføjet, vises forløbet her.</p></div>
+    }
+    else
+    {
+        <div class="panel">
+            @foreach (var m in _memberships)
+            {
+                <div class="row">
+                    <span class="mark"><span class="mark-glyph">@(string.IsNullOrEmpty(m.ForloebName) ? "?" : m.ForloebName[..1])</span></span>
+                    <div><h3>@m.ForloebName</h3><p>@m.HoldName · @m.Source</p></div>
+                    <a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a>
+                </div>
+            }
+        </div>
+    }
 }
 else
 {
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <header class="page-title">
         <div>
-            <h1 class="h3 mb-1">Forløb</h1>
-            <p class="text-muted mb-0 small">Opret manuelt eller importer fra Lectio-hold.</p>
+            <h1>Forløb og hold</h1>
+            <p>Opret manuelt, eller hent et hold ind fra Lectio.</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-primary" href="/lectio">Fra Lectio-hold</a>
-            <button class="btn btn-primary" @onclick="() => _showCreate = !_showCreate">
-                @(_showCreate ? "Skjul" : "Nyt forløb")
-            </button>
+        <div class="actions">
+            <a class="secondary" href="/lectio">Fra Lectio-hold</a>
+            <button type="button" class="action" @onclick="() => _showCreate = !_showCreate">@(_showCreate ? "Skjul" : "Nyt forløb")</button>
         </div>
-    </div>
+    </header>
 
     @if (_error is not null)
     {
-        <div class="alert alert-danger">@_error</div>
+        <p class="callout">@_error</p>
     }
 
     @if (_showCreate)
     {
-        <div class="border rounded p-3 mb-4 bg-light" style="max-width: 28rem;">
-            <h2 class="h6">Opret forløb</h2>
-            <div class="mb-2">
-                <label class="form-label">Navn</label>
-                <input class="form-control" @bind="_newName" maxlength="200" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Beskrivelse (valgfri)</label>
-                <textarea class="form-control" rows="2" @bind="_newDescription"></textarea>
-            </div>
-            <button class="btn btn-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))" @onclick="CreateAsync">
-                @(_busy ? "Opretter…" : "Opret")
-            </button>
-        </div>
+        <form class="panel" style="max-width:28rem;margin-bottom:16px">
+            <h2>Opret forløb</h2>
+            <label class="field">Navn<input @bind="_newName" maxlength="200" /></label>
+            <label class="field">Beskrivelse (valgfri)<textarea rows="2" @bind="_newDescription"></textarea></label>
+            <button type="button" class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))" @onclick="CreateAsync">@(_busy ? "Opretter…" : "Opret")</button>
+        </form>
     }
 
     @if (_loading)
@@ -65,64 +76,33 @@ else
     }
     else if (_items.Count == 0)
     {
-        <p class="text-muted">Ingen forløb endnu. Opret et manuelt, eller vælg et hold under Lectio → Hold.</p>
+        <div class="empty"><h2>Ingen forløb endnu</h2><p>Opret et manuelt, eller vælg et hold under Lectio.</p></div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-sm table-striped align-middle">
-                <thead>
-                    <tr>
-                        <th>Navn</th>
-                        <th>Medlemmer</th>
-                        <th>Lectio</th>
-                        <th>Oprettet</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var f in _items)
-                    {
-                        <tr>
-                            <td>
-                                <div>@f.Name</div>
-                                @if (!string.IsNullOrWhiteSpace(f.Description))
-                                {
-                                    <div class="small text-muted">@f.Description</div>
-                                }
-                            </td>
-                            <td>
-                                @f.MemberCount
-                                @if (f.ShadowCount > 0)
-                                {
-                                    <span class="small text-muted"> (@f.ShadowCount shadow)</span>
-                                }
-                            </td>
-                            <td>
-                                @if (f.LectioHoldKeys.Count > 0)
-                                {
-                                    <div class="small">
-                                        @foreach (var key in f.LectioHoldKeys)
-                                        {
-                                            <div><code>@key</code></div>
-                                        }
-                                    </div>
-                                }
-                                else if (!string.IsNullOrWhiteSpace(f.LectioHoldKey))
-                                {
-                                    <code class="small">@f.LectioHoldKey</code>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">—</span>
-                                }
-                            </td>
-                            <td class="small text-muted">@f.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</td>
-                            <td><a href="@($"/courses/{f.Id}")">Åbn</a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="panel">
+            @foreach (var f in _items)
+            {
+                <div class="row">
+                    <span class="mark"><span class="mark-glyph">@f.Name[..1]</span></span>
+                    <div>
+                        <h3>@f.Name</h3>
+                        <p>
+                            @f.MemberCount medlemmer
+                            @if (f.ShadowCount > 0)
+                            {
+                                <span> (@f.ShadowCount shadow)</span>
+                            }
+                            · @f.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")
+                            @if (!string.IsNullOrWhiteSpace(f.Description))
+                            {
+                                <span> · @f.Description</span>
+                            }
+                        </p>
+                    </div>
+                    <a class="secondary" href="@($"/courses/{f.Id}")">Åbn</a>
+                </div>
+            }
         </div>
     }
 }
@@ -135,6 +115,7 @@ else
     private string _newName = "";
     private string _newDescription = "";
     private readonly List<ForloebRow> _items = [];
+    private readonly List<MembershipCard> _memberships = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,8 +127,12 @@ else
     {
         if (!Auth.IsInitialized || !Auth.IsAuthenticated)
             return;
+
         if (Redirect.CurrentAppRole() != AppRole.Underviser)
+        {
+            await LoadMembershipsAsync();
             return;
+        }
 
         _loading = true;
         _error = null;
@@ -203,6 +188,26 @@ else
         }
     }
 
+    private async Task LoadMembershipsAsync()
+    {
+        _loading = true;
+        _error = null;
+        _memberships.Clear();
+        try
+        {
+            var rows = await Http.GetFromJsonAsync<List<MembershipCard>>("me/memberships") ?? [];
+            _memberships.AddRange(rows);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
     private async Task CreateAsync()
     {
         _busy = true;
@@ -242,6 +247,8 @@ else
     });
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record MembershipCard(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 
     private sealed record ForloebRow(
         Guid Id,

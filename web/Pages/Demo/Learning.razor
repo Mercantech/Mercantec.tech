@@ -1,0 +1,197 @@
+@page "/learning"
+@page "/learning/{CourseId}"
+@page "/calendar"
+@page "/quests"
+@page "/journal"
+@page "/activities"
+@page "/education"
+@using Mercantec.Tech.Web.Demo
+@inject NavigationManager Nav
+@inject AuthService Auth
+@implements IDisposable
+
+<PageTitle>@Title</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <header class="page-title"><div><h1>@Title</h1><p>@Lead</p></div></header>
+
+    @if (PathKey is "calendar")
+    {
+        <DemoTodo Issue="30" Text="Fremmøde gemmes ikke. Farverne er et eksempel for uge 3." />
+        <div class="tiles">
+            @foreach (var day in Days)
+            {
+                <section class="panel"><h2>@day.Name</h2><p>@day.Tone · @day.State</p><p>Serverside · API og målinger</p></section>
+            }
+        </div>
+    }
+    else if (PathKey is "quests")
+    {
+        <DemoTodo Issue="11" Text="Aflevering er slået fra. Quests gemmes ikke." />
+        <div class="panel">
+            @foreach (var quest in DemoCatalog.Quests)
+            {
+                <div class="row">
+                    <span class="mark"><span class="mark-glyph">@quest.Type[0]</span></span>
+                    <div><h3>@quest.Name</h3><p>@quest.Type · @(quest.Course == "h3" ? "H3" : "Game Design"). @quest.Desc</p></div>
+                    <button type="button" class="secondary" disabled title="TODO #11">Aflevér</button>
+                </div>
+            }
+        </div>
+    }
+    else if (PathKey is "journal")
+    {
+        <DemoTodo Issue="11" Text="Logbogen kan ikke gemmes endnu." />
+        <div class="panel">
+            @foreach (var note in DemoCatalog.Journal)
+            {
+                <div class="row"><span class="mark"><span class="mark-glyph">A</span></span><div><h3>Alex Jensen</h3><p>@note</p></div></div>
+            }
+        </div>
+        <form class="panel" style="margin-top:16px">
+            <label class="field">Ny note<textarea disabled placeholder="TODO: logbog gemmes ikke"></textarea></label>
+            <button type="button" class="action" disabled>Gem</button>
+        </form>
+    }
+    else if (PathKey is "activities")
+    {
+        <DemoTodo Issue="32" Text="Statusprikkerne er et eksempel. Afkrydsning gemmes ikke." />
+        <div class="lup-status-legend">
+            <span class="lup-state-important"><i class="lup-status-dot" aria-hidden="true"></i>Vigtigt</span>
+            <span class="lup-state-optional"><i class="lup-status-dot" aria-hidden="true"></i>Kan gøre</span>
+            <span class="lup-state-ready"><i class="lup-status-dot" aria-hidden="true"></i>Intet mangler</span>
+        </div>
+        <div class="v4-activity-list">
+            <article class="v4-activity">
+                <div class="v4-activity-main"><p class="v4-type"><strong>Main</strong></p><h3>Miniprojekt · Fyld maskinen</h3><p class="v4-status lup-important-text">Aflevering mangler</p></div>
+                <button type="button" class="secondary" disabled>Marker</button>
+            </article>
+            <article class="v4-activity">
+                <div class="v4-activity-main"><p class="v4-type"><strong>Afstemning</strong></p><h3>Hvad skal vi bruge mere tid på?</h3><p class="v4-status lup-important-text">Venter på dit svar</p></div>
+                <a class="secondary" href="/activities">Se</a>
+            </article>
+            <article class="v4-activity">
+                <div class="v4-activity-main"><p class="v4-type"><strong>Daily</strong></p><h3>Skriv dagens tre linjer</h3><p class="v4-status lup-optional-text">Kan gøres</p></div>
+                <button type="button" class="secondary" disabled>Marker</button>
+            </article>
+        </div>
+    }
+    else if (PathKey is "education")
+    {
+        <DemoTodo Issue="29" Text="Læringsmålene er oversigtstekst og kan ikke redigeres her." />
+        <div class="panel">
+            @foreach (var step in DemoCatalog.Education)
+            {
+                <div class="row"><span class="mark"><span class="mark-glyph">@step.Name[1]</span></span><div><h3>@step.Name</h3><p>@step.Duration · @step.Desc</p></div></div>
+            }
+        </div>
+    }
+    else if (CourseId == "game" || PathKey == "learning/game")
+    {
+        var course = DemoCatalog.Courses[1];
+        <DemoTodo Issue="29" Text="Game Design-forløbet er eksempeldata." />
+        <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
+        <p>@course.Teacher · @course.Duration</p>
+        <p>@course.Desc</p>
+        <p><a class="action" href="/games">Se highscore</a></p>
+    }
+    else if (PathKey.StartsWith("learning/"))
+    {
+        var course = DemoCatalog.Courses[0];
+        <DemoTodo Issue="29" Text="Uger og fag er eksempeltekst. De hentes ikke fra API’et." />
+        <img src="lup/assets/h3-cover.jpg" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
+        <p>@course.Teacher · @course.Duration</p>
+        <div class="panel">
+            @foreach (var week in course.Weeks.Select((name, index) => (name, index)))
+            {
+                <div class="row"><span class="mark"><span class="mark-glyph">@(week.index + 1)</span></span><div><h3>@week.name</h3><p>@(week.index == 2 ? "Aktuel uge i eksemplet." : "Planlagt uge.")</p></div></div>
+            }
+        </div>
+    }
+    else
+    {
+        <DemoTodo Issue="29" Text="Forløbssiden viser eksempeldata. Den gemmer ikke et dokument." />
+        <div class="tiles">
+            @foreach (var course in DemoCatalog.Courses)
+            {
+                <a class="tile" href="@($"/learning/{course.Id}")">
+                    <h2>@course.Name</h2>
+                    <p>@course.Desc</p>
+                </a>
+            }
+        </div>
+        <section class="panel" style="margin-top:18px">
+            <h2>The Farmer Was Replaced</h2>
+            <DemoTodo Issue="23" Text="Kortet kan ikke tændes af underviseren endnu. Steam-linket er kun en visning." />
+            <p>En drone høster, sår og holder styr på lageret. Underviseren slår kortet til på forløbet.</p>
+            <p><a href="https://store.steampowered.com/app/2060160/The_Farmer_Was_Replaced/" target="_blank" rel="noopener">Åbn på Steam</a></p>
+            <ul>
+                @foreach (var quest in DemoCatalog.FarmerQuests)
+                {
+                    <li>@quest</li>
+                }
+            </ul>
+        </section>
+    }
+}
+
+@code {
+    [Parameter] public string? CourseId { get; set; }
+
+    private static readonly (string Name, string Tone, string State)[] Days =
+    [
+        ("Man", "Grøn", "Mødt"),
+        ("Tir", "Grøn", "Mødt"),
+        ("Ons", "Gul", "Delvist"),
+        ("Tor", "Blå", "Planlagt"),
+        ("Fre", "Blå", "Planlagt")
+    ];
+
+    private string PathKey
+    {
+        get
+        {
+            var relative = Nav.ToBaseRelativePath(Nav.Uri);
+            var cut = relative.IndexOfAny(['?', '#']);
+            if (cut >= 0)
+                relative = relative[..cut];
+            return relative.Trim('/');
+        }
+    }
+
+    private string Title => PathKey switch
+    {
+        "calendar" => "Min uge",
+        "quests" => "Quests og afleveringer",
+        "journal" => "Min logbog",
+        "activities" => "Aktiviteter",
+        "education" => "Uddannelse og læringsmål",
+        "learning/game" => "Game design fra bunden",
+        _ when CourseId == "game" => "Game design fra bunden",
+        _ when PathKey.StartsWith("learning/", StringComparison.Ordinal) => "H3 · 2026",
+        _ => "Min læring"
+    };
+
+    private string Lead => PathKey switch
+    {
+        "calendar" => "Uge 3 i H3. Fremmøde er et eksempel.",
+        "quests" => "Main, Side og Daily fra H3 og Game Design.",
+        "journal" => "To eksempelnoter fra Alex.",
+        "activities" => "Rød er vigtigt, orange kan gøres, grøn er ajour.",
+        "education" => "H1 til H6 som oversigt.",
+        _ => "Eksempelindhold, så fladen kan vises. Det er ikke dine Lectio-hold."
+    };
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    private void OnAuth() => InvokeAsync(StateHasChanged);
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

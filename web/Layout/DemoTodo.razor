@@ -1,0 +1,13 @@
+@if (Issue is int number)
+{
+    <p class="demo-todo"><strong>TODO #@number.</strong> @Text</p>
+}
+else
+{
+    <p class="demo-todo"><strong>TODO.</strong> @Text</p>
+}
+
+@code {
+    [Parameter] public int? Issue { get; set; }
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+}

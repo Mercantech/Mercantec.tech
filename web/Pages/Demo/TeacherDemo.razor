@@ -1,0 +1,136 @@
+@page "/teacher/planner"
+@page "/teacher/reviews"
+@page "/teacher/students"
+@page "/teacher/content"
+@page "/teacher/badges"
+@page "/teacher/polls"
+@using Mercantec.Tech.Web.Demo
+@inject NavigationManager Nav
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@implements IDisposable
+
+<PageTitle>@Title</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (Redirect.CurrentAppRole() != AppRole.Underviser)
+{
+    <p>Siden er for undervisere. <a href="/student">Gå til elevoverblik</a></p>
+}
+else if (PathKey == "teacher/planner")
+{
+    <header class="page-title"><div><h1>Planlægning</h1><p>Uge 3 · H3 · Serverside. Eksempelplan.</p></div></header>
+    <DemoTodo Issue="11" Text="Ugeplanen kan ikke gemmes. Quest-felterne er låst." />
+    <div class="tiles">
+        @foreach (var slot in new[] { "Mandag · REST API", "Tirsdag · Fejlsvar", "Onsdag · Database", "Torsdag · Målinger", "Fredag · Review" })
+        {
+            <section class="panel"><h2>@slot</h2><p>Placering er et eksempel.</p><button type="button" class="secondary" disabled>Flyt</button></section>
+        }
+    </div>
+}
+else if (PathKey == "teacher/reviews")
+{
+    <header class="page-title"><div><h1>Afleveringer til vurdering</h1><p>Én indsendt quest fra Alex.</p></div></header>
+    <DemoTodo Issue="12" Text="Godkendelse giver ikke XP og gemmes ikke." />
+    <article class="panel">
+        <h2>Indledende GDD til eget spil</h2>
+        <p>Alex Jensen · indsendt. Et kort 2D-spil med rutevalg og én bane.</p>
+        <p><a href="https://example.com/gdd" target="_blank" rel="noopener">Link i afleveringen</a></p>
+        <div class="actions">
+            <button type="button" class="action" disabled>Godkend</button>
+            <button type="button" class="secondary" disabled>Giv feedback</button>
+        </div>
+    </article>
+}
+else if (PathKey == "teacher/students")
+{
+    <header class="page-title"><div><h1>Elever</h1><p>Eksempelholdet er ikke Lectio-listen. Den rigtige liste ligger under Lectio.</p></div></header>
+    <DemoTodo Issue="8" Text="Rækkerne er eksempeldata. Medlemskab hentes på forløb og Lectio." />
+    <p><a class="action" href="/lectio">Åbn Lectio</a></p>
+    <div class="panel">
+        <div class="row"><span class="mark"><span class="mark-glyph">AJ</span></span><div><h3>Alex Jensen</h3><p>H3 · level 7 i demoen · 2 badges</p></div></div>
+        <div class="row"><span class="mark"><span class="mark-glyph">MH</span></span><div><h3>Maja Holm</h3><p>Game Design · har kommenteret Rune Run</p></div></div>
+        <div class="row"><span class="mark"><span class="mark-glyph">NB</span></span><div><h3>Noah Berg</h3><p>Game Design · highscore 1.495</p></div></div>
+    </div>
+}
+else if (PathKey == "teacher/content")
+{
+    <header class="page-title"><div><h1>Fagligt indhold</h1><p>Fag og emner fra H3 og Game Design.</p></div></header>
+    <DemoTodo Issue="29" Text="Indholdet kan ikke redigeres her." />
+    @foreach (var course in DemoCatalog.Courses)
+    {
+        <section class="panel" style="margin-bottom:12px">
+            <h2>@course.Name</h2>
+            @foreach (var subject in course.Subjects)
+            {
+                <p>@subject.Name — @subject.Desc</p>
+            }
+        </section>
+    }
+}
+else if (PathKey == "teacher/badges")
+{
+    <header class="page-title"><div><h1>Tildel badges</h1><p>Emne, niveau og et kort grundlag.</p></div></header>
+    <DemoTodo Issue="25" Text="Tildeling gemmes ikke. Niveau vælges ikke i databasen endnu." />
+    <form class="panel">
+        <label class="field">Elev<select disabled><option>Alex Jensen</option></select></label>
+        <label class="field">Badge<select disabled><option>Core Loop</option></select></label>
+        <label class="field">Niveau<select disabled><option>2 · Mellem</option></select></label>
+        <label class="field">Grundlag<textarea disabled>Alex forklarede core loop med Rune Run.</textarea></label>
+        <button type="button" class="action" disabled>Tildel</button>
+    </form>
+}
+else
+{
+    <header class="page-title"><div><h1>Afstemninger</h1><p>To åbne eksempler. Svar gemmes ikke.</p></div></header>
+    <DemoTodo Issue="31" Text="Afstemninger kan ikke oprettes eller besvares endnu." />
+    @foreach (var poll in DemoCatalog.Polls)
+    {
+        <section class="panel" style="margin-bottom:14px">
+            <h2>@poll.Question</h2>
+            <p>@poll.Course · @poll.Type</p>
+            <div class="v4-poll-options">
+                @for (var i = 0; i < poll.Options.Length; i++)
+                {
+                    <button type="button" class="secondary" disabled>@poll.Options[i] · @poll.Counts[i]</button>
+                }
+            </div>
+        </section>
+    }
+    <button type="button" class="action" disabled>Ny afstemning</button>
+}
+
+@code {
+    private string PathKey
+    {
+        get
+        {
+            var relative = Nav.ToBaseRelativePath(Nav.Uri);
+            var cut = relative.IndexOfAny(['?', '#']);
+            if (cut >= 0)
+                relative = relative[..cut];
+            return relative.Trim('/');
+        }
+    }
+
+    private string Title => PathKey switch
+    {
+        "teacher/planner" => "Planlægning",
+        "teacher/reviews" => "Afleveringer",
+        "teacher/students" => "Elever",
+        "teacher/content" => "Fagligt indhold",
+        "teacher/badges" => "Tildel badges",
+        _ => "Afstemninger"
+    };
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    private void OnAuth() => InvokeAsync(StateHasChanged);
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+}

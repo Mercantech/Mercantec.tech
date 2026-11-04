@@ -1,5 +1,6 @@
 @page "/student"
 @using System.Text.Json
+@using System.Net.Http.Json
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
@@ -14,37 +15,55 @@
 }
 else
 {
-    <div class="role-shell elev-shell mb-4">
-        <p class="role-badge">Elev</p>
-        <h1>Elev-dashboard</h1>
-        <p class="text-muted">Velkommen@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName}"). Her lander dine forløb, quests og projekter.</p>
-        <p class="small mb-0">Auth-roller: @RoleSummary()</p>
-    </div>
+    <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}")</h1><p>Dine hold fra platformen. Quests og XP i menuen er eksempelindhold.</p></div></header>
 
     @if (_showLectioCta)
     {
-        <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
-            <span>Kobl din Lectio-profil for at se dine elevdata her.</span>
-            <a class="btn btn-sm btn-primary" href="/lectio">Kobl Lectio</a>
+        <div class="callout">
+            <p>Kobl din Lectio-profil for at se dine elevdata her.</p>
+            <a class="action" href="/lectio">Kobl Lectio</a>
         </div>
     }
 
-    <div class="border rounded p-4 bg-light">
-        <h2 class="h5">Tom shell (Sprint 0)</h2>
-        <p class="mb-0">Indhold kommer i senere sprints (mine forløb, quests, logbog …).</p>
-    </div>
-
-    <p class="mt-3"><a href="/profile">Se mine brugeroplysninger</a></p>
+    <section class="panel">
+        <h2>Mine medlemskaber</h2>
+        @if (_membershipError is not null)
+        {
+            <p>@_membershipError</p>
+        }
+        else if (_memberships is null)
+        {
+            <p>Henter…</p>
+        }
+        else if (_memberships.Count == 0)
+        {
+            <div class="empty"><h2>Ingen hold endnu</h2><p>Når en underviser tilføjer dig, vises holdet her.</p></div>
+        }
+        else
+        {
+            @foreach (var m in _memberships)
+            {
+                <div class="row">
+                    <span class="mark"><span class="mark-glyph">@(string.IsNullOrEmpty(m.ForloebName) ? "?" : m.ForloebName[..1])</span></span>
+                    <div><h3><a href="@($"/courses/{m.ForloebId}")">@m.ForloebName</a></h3><p>@m.HoldName · @m.Source</p></div>
+                    <a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a>
+                </div>
+            }
+        }
+    </section>
 }
 
 @code {
     private bool _showLectioCta;
+    private string? _membershipError;
+    private List<MembershipRow>? _memberships;
 
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
         EnsureAccess();
         await CheckLectioLinkAsync();
+        await LoadMembershipsAsync();
     }
 
     private void EnsureAccess()
@@ -100,11 +119,28 @@ else
     {
         EnsureAccess();
         await CheckLectioLinkAsync();
+        await LoadMembershipsAsync();
         StateHasChanged();
     });
 
-    private string RoleSummary() =>
-        Auth.Roles.Count == 0 ? "(ingen — typisk almindelig bruger)" : string.Join(", ", Auth.Roles);
+    private async Task LoadMembershipsAsync()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Elev)
+            return;
+
+        _membershipError = null;
+        try
+        {
+            _memberships = await Http.GetFromJsonAsync<List<MembershipRow>>("me/memberships") ?? [];
+        }
+        catch (Exception ex)
+        {
+            _memberships = [];
+            _membershipError = ex.Message;
+        }
+    }
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record MembershipRow(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 }

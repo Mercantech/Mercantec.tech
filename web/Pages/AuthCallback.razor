@@ -5,16 +5,17 @@
 
 <PageTitle>Logger ind…</PageTitle>
 
-@if (!string.IsNullOrEmpty(_error))
-{
-    <h1>Login fejlede</h1>
-    <p class="text-danger">@_error</p>
-    <a href="/login">Prøv igen</a>
-}
-else
-{
-    <p>Fuldfører login…</p>
-}
+<section class="panel" style="max-width:32rem">
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <header class="page-title"><div><h1>Login fejlede</h1><p>@_error</p></div></header>
+        <a class="action" href="/login">Prøv igen</a>
+    }
+    else
+    {
+        <header class="page-title"><div><h1>Logger ind</h1><p>Fuldfører login med Mercantec Auth…</p></div></header>
+    }
+</section>
 
 @code {
     private string? _error;
