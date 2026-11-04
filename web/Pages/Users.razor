@@ -1,0 +1,172 @@
+@page "/users"
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Brugere</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (Redirect.CurrentAppRole() != AppRole.Underviser)
+{
+    <p>Siden er for undervisere. <a href="/student">Gå til elevoverblik</a></p>
+}
+else
+{
+    <header class="page-title">
+        <div>
+            <h1>Brugere</h1>
+            <p>Konti i Mercantec Auth. Admin, Underviser, Teacher og Instructor vises som undervisere. Øvrige konti er elever.</p>
+        </div>
+    </header>
+
+    @if (_error is not null)
+    {
+        <p class="callout">@_error</p>
+    }
+    else if (_users is null)
+    {
+        <p>Henter brugere…</p>
+    }
+    else
+    {
+        <div class="stats">
+            <div class="stat"><strong>@_users.Count</strong><span>brugere</span></div>
+            <div class="stat"><strong>@TeacherCount</strong><span>undervisere</span></div>
+            <div class="stat"><strong>@StudentCount</strong><span>elever</span></div>
+        </div>
+        <label class="field">Find en bruger
+            <input type="search" @bind="_query" @bind:event="oninput" placeholder="Navn eller e-mail" autocomplete="off" />
+        </label>
+        <div class="filters" aria-label="Filtrér brugere">
+            <button type="button" class="filter" aria-pressed="@(_filter == "alle")" @onclick='() => _filter = "alle"'>Alle</button>
+            <button type="button" class="filter" aria-pressed="@(_filter == "underviser")" @onclick='() => _filter = "underviser"'>Undervisere</button>
+            <button type="button" class="filter" aria-pressed="@(_filter == "elev")" @onclick='() => _filter = "elev"'>Elever</button>
+        </div>
+        @if (Visible.Count == 0)
+        {
+            <div class="empty"><h2>Ingen brugere matcher</h2><p>Prøv et andet navn, en anden e-mail eller et andet filter.</p></div>
+        }
+        else
+        {
+            <div class="panel">
+                @foreach (var user in Visible)
+                {
+                    <div class="row">
+                        <span class="mark">@Initial(user.DisplayName)</span>
+                        <div>
+                            <h3>@user.DisplayName</h3>
+                            <p>@(user.Email ?? "Ingen e-mail")</p>
+                            <p class="meta">
+                                @if (user.IsDisabled)
+                                {
+                                    <span class="pill orange">Deaktiveret</span>
+                                }
+                                <span class="pill @(user.AppRole == "underviser" ? null : "green")">@(user.AppRole == "underviser" ? "Underviser" : "Elev")</span>
+                                @if (user.Roles.Length > 0)
+                                {
+                                    <span>@string.Join(", ", user.Roles)</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    private string? _error;
+    private string _query = "";
+    private string _filter = "alle";
+    private List<UserRow>? _users;
+
+    private int TeacherCount => _users?.Count(user => user.AppRole == "underviser") ?? 0;
+    private int StudentCount => _users?.Count(user => user.AppRole != "underviser") ?? 0;
+
+    private IReadOnlyList<UserRow> Visible
+    {
+        get
+        {
+            if (_users is null)
+                return [];
+
+            IEnumerable<UserRow> rows = _users;
+            if (_filter is "underviser" or "elev")
+                rows = rows.Where(user => user.AppRole == _filter);
+
+            var query = _query.Trim();
+            if (query.Length > 0)
+            {
+                rows = rows.Where(user =>
+                    user.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)
+                    || (user.Email?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            return rows.ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Underviser)
+            return;
+
+        _error = null;
+        try
+        {
+            var response = await Http.GetAsync("users");
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _users = [];
+                _error = "Kun en administrator i Mercantec Auth kan se brugerlisten.";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _users = [];
+                _error = "Brugerlisten kunne ikke hentes.";
+                return;
+            }
+
+            _users = await response.Content.ReadFromJsonAsync<List<UserRow>>() ?? [];
+        }
+        catch (Exception ex)
+        {
+            _users = [];
+            _error = ex.Message;
+        }
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        await LoadAsync();
+        StateHasChanged();
+    });
+
+    private static string Initial(string name)
+    {
+        var trimmed = name.Trim();
+        return trimmed.Length == 0 ? "?" : char.ToUpperInvariant(trimmed[0]).ToString();
+    }
+
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    private sealed record UserRow(Guid Id, string DisplayName, string? Email, bool IsDisabled, string AppRole, string[] Roles);
+}

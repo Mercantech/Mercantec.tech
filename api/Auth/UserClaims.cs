@@ -16,11 +16,16 @@ public static class UserClaims
     }
 
     public static bool IsTeacher(ClaimsPrincipal user) =>
+        ToAppRole(RoleValues(user)) == "underviser";
+
+    public static string ToAppRole(IEnumerable<string> roles) =>
+        roles.Any(TeacherRoleNames.Contains) ? "underviser" : "elev";
+
+    private static IEnumerable<string> RoleValues(ClaimsPrincipal user) =>
         user.Claims
             .Where(c =>
                 c.Type is "role" or "roles"
                 || c.Type.Equals(ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
                 || c.Type.EndsWith("/role", StringComparison.OrdinalIgnoreCase))
-            .Select(c => c.Value)
-            .Any(v => TeacherRoleNames.Contains(v));
+            .Select(c => c.Value);
 }

@@ -196,6 +196,7 @@
             new("Planlægning", "/teacher/planner"),
             new("Afleveringer til vurdering", "/teacher/reviews"),
             new("Elever", "/teacher/students"),
+            new("Brugere", "/users"),
             new("Fagligt indhold", "/teacher/content"),
             new("Tildel badges", "/teacher/badges")
         ]),
@@ -268,7 +269,7 @@
         var path = CurrentPath;
         return name switch
         {
-            "Læring" => path is "/learning" or "/calendar" or "/quests" or "/journal" or "/education" or "/courses" or "/lectio"
+            "Læring" => path is "/learning" or "/calendar" or "/quests" or "/journal" or "/education" or "/courses" or "/lectio" or "/users"
                 || path.StartsWith("/learning/", StringComparison.Ordinal)
                 || path.StartsWith("/courses/", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/planner", StringComparison.Ordinal)

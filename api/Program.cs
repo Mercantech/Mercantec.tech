@@ -20,6 +20,10 @@ builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(60);
 });
 builder.Services.AddScoped<ILectioMembershipSync>(sp => sp.GetRequiredService<LectioCollectorClient>());
+builder.Services.AddHttpClient("auth-admin", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
 builder.Services.AddScoped<MembershipClaimService>();
 
 var connectionString =
