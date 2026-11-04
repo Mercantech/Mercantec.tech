@@ -1,7 +1,6 @@
 ﻿@page "/"
 @inject AuthService Auth
 @inject AuthRedirect Redirect
-@inject HttpClient Http
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -17,30 +16,43 @@ else if (Auth.IsAuthenticated)
 }
 else
 {
-    <header class="page-title"><div><h1>LUP</h1><p>Lokal UndervisningsPlatform på mercantec.tech.</p></div></header>
-    <div class="actions">
-        <a class="action" href="/login">Log ind</a>
-        <a class="secondary" href="/privacy">Privatliv</a>
-    </div>
-
-    @if (_error is not null)
-    {
-        <p class="callout">API: @_error</p>
-    }
-    else if (_health is not null)
-    {
-        <p>API: <strong>@_health.status</strong></p>
-    }
+    <header class="page-title">
+        <div>
+            <h1>Et sted at lære, bygge og vise det frem.</h1>
+            <p>Mercantec.tech samler undervisning, projekter og faglig progression.</p>
+        </div>
+    </header>
+    <section class="hero">
+        <div>
+            <h2>Fra det første forsøg til noget, der virker.</h2>
+            <p>Find dine forløb og det næste skridt i dit arbejde.</p>
+            @if (_error is not null)
+            {
+                <p class="callout">@_error</p>
+            }
+            <button type="button" class="action" @onclick="StartLogin" disabled="@_busy">@(_busy ? "Sender…" : "Log ind")</button>
+        </div>
+        <div class="scene" role="img" aria-label="Illustration af en lille spilbane">
+            <div class="island">
+                <div class="ground-left"></div>
+                <div class="ground-right"></div>
+                <div class="ground"></div>
+                <div class="cube"><span></span></div>
+                <div class="cube b"><span></span></div>
+                <div class="cube c"><span></span></div>
+                <div class="cube player"><span></span></div>
+            </div>
+        </div>
+    </section>
 }
 
 @code {
-    private HealthDto? _health;
+    private bool _busy;
     private string? _error;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuth;
-        await LoadHealthAsync();
         RedirectIfAuthenticated();
     }
 
@@ -50,15 +62,18 @@ else
             Nav.NavigateTo(Redirect.PostLoginPath());
     }
 
-    private async Task LoadHealthAsync()
+    private async Task StartLogin()
     {
+        _busy = true;
+        _error = null;
         try
         {
-            _health = await Http.GetFromJsonAsync<HealthDto>("health");
+            await Auth.BeginLoginAsync();
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+            _busy = false;
         }
     }
 
@@ -69,6 +84,4 @@ else
     });
 
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
-
-    private sealed record HealthDto(string status, string service, DateTime utc);
 }

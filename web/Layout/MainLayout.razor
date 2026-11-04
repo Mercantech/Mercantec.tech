@@ -1,4 +1,4 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
@@ -113,7 +113,7 @@
                     <NavLink href="/privacy" Match="NavLinkMatch.All">Privatliv</NavLink>
                 </nav>
                 <div class="lup-tools">
-                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@(_theme == "christmas" ? "snow" : _theme == "hacker" ? "terminal" : "star")" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme"><option value="system">System</option><option value="light">Lyst</option><option value="dark">Mørkt</option><option value="christmas">Jul</option><option value="hacker">Hacker</option></select></label></div></details><a class="action" href="/login">Log ind</a>
+                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@(_theme == "christmas" ? "snow" : _theme == "hacker" ? "terminal" : "star")" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme"><option value="system">System</option><option value="light">Lyst</option><option value="dark">Mørkt</option><option value="christmas">Jul</option><option value="hacker">Hacker</option></select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
             }
         </header>
@@ -134,6 +134,7 @@
 
 @code {
     private string _theme = "system";
+    private bool _loginBusy;
     private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
 
     private bool IsTeacher => Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser;
@@ -299,10 +300,27 @@
 
     private void OpenPlans() => Nav.NavigateTo("/lup/index.html", forceLoad: true);
 
+    private async Task StartLogin()
+    {
+        if (!Auth.IsInitialized || Auth.IsAuthenticated || _loginBusy)
+            return;
+
+        _loginBusy = true;
+        try
+        {
+            await Auth.BeginLoginAsync();
+        }
+        catch (Exception)
+        {
+            _loginBusy = false;
+            Nav.NavigateTo("/login");
+        }
+    }
+
     private async Task Logout()
     {
         await Auth.LogoutLocalAsync();
-        Nav.NavigateTo("/login");
+        Nav.NavigateTo("/");
     }
 
     private void OnAuthChanged() => InvokeAsync(StateHasChanged);
