@@ -31,6 +31,8 @@ else
 builder.Services.AddScoped<Mercantec.Tech.Web.Demo.LearningContext>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Demo.DemoWorld>();
 
+builder.Services.AddScoped<Mercantec.Tech.Web.Gifts.GiftMailboxClient>();
+
 builder.Services.AddScoped<TokenStore>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

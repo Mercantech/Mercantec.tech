@@ -12,7 +12,9 @@ Den aktuelle LUP-flade ligger i web/. Start lokalt fra repoets rod:
 dotnet run --project web
 ~~~
 
-Åbn **http://localhost:5253**. Login bruger fortsat Mercantec Auth. For rigtige hold- og Lectio-data skal API og Postgres også køre; se Docker-opstart nedenfor. Grundtemaerne vælges under **profil → Udseende**: System, Lyst, Mørkt, Jul og Hacker. Temavalg findes også før login.
+Åbn **http://localhost:3000**. HTTP-startprofilen bruger denne port, fordi den er registreret til Mercantec Auths lokale callback. Login bruger fortsat Mercantec Auth. For rigtige hold- og Lectio-data skal API og Postgres også køre; se Docker-opstart nedenfor. Grundtemaerne vælges under **profil → Udseende**: System, Lyst, Mørkt, Jul og Hacker. Temavalg findes også før login.
+
+[Julegaver og sne](obsidian/03-features/Julegaver-og-sne.md) beskriver rigtig gavelevering mellem konti, modtagere og sneindstillinger. Begge brugere skal bruge samme API/database.
 
 [Designgennemgangen](obsidian/03-features/Blazor-designgennemgang.md) beskriver, hvad der er genskabt i Blazor, og hvilke datakoblinger der stadig mangler.
 
@@ -76,7 +78,7 @@ dotnet run --project web
 ```
 
 - API: `http://localhost:8080` — `GET /api/health`
-- Web: Blazor launch-URL; Development pejer API mod port 8080
+- Web: `http://localhost:3000` med HTTP-startprofilen; Development peger API mod port 8080. Brug `dotnet run --project web --launch-profile http`, hvis din IDE vælger en anden profil.
 
 ## Domæne-API (stubs)
 
@@ -90,7 +92,19 @@ Kræver Bearer JWT. Underviser/Admin til create.
 | POST | `/api/holds/{id}/memberships` |
 | GET | `/api/me/memberships` |
 
+Julegaver: `POST /api/gifts/profile`, `GET /api/gifts/recipients`, `GET/POST /api/gifts` og `POST /api/gifts/{id}/open`. Alle kræver login; se [adgangsregler og drift](obsidian/03-features/Julegaver-og-sne.md).
+
 Migreringer køres automatisk ved API-start (`Database.Migrate()`).
+
+## Test
+
+```bash
+dotnet test tests/Mercantec.Tech.Api.Tests
+node --test tests/lup-ui.test.cjs
+dotnet build web
+```
+
+Gavetestene bruger en isoleret SQLite-database; ingen rigtige gaver sendes. Sneens tre regressionstests bruger Nodes indbyggede testkører uden npm-afhængigheder.
 
 ## Dokploy
 

@@ -38,9 +38,9 @@ Layout: kompakt header → sidetitel → hovedindhold med kontekstafhængig side
 
 ## Juletema
 
-Sne renderes på ét canvas bag indholdet. Mus eller finger påvirker vinden, og snefnug skubbes til side omkring markøren. Der er højst 90 fnug og begrænset pixelratio. Animationen stopper ved skjult fane og ved skift væk fra jul. Ved reduceret bevægelse vises et stillestående snelag. Brugeren kan også pause sneen, og valget huskes.
+Sne renderes på ét canvas bag indholdet. Mus eller finger påvirker vinden, og snefnug skubbes til side omkring markøren. Der er højst 90 fnug og begrænset pixelratio. Animationen stopper ved skjult fane og ved skift væk fra jul. Følg systemet viser et stillestående snelag ved reduceret bevægelse. Brugeren kan aktivt vælge Bevægelig sne eller Stille sne, og valget huskes. Start sne virker også ved reduceret bevægelse.
 
-En lyskæde ligger ved headeren. Gaven åbner en lille julepause, kan lukkes og lukker ved navigation. Den uddeler ikke XP, guld eller varer. Nye SVG-ikoner er almindelige UI-illustrationer, ikke nye brandinglogoer.
+En lyskæde ligger ved headeren. Gaven åbner nu en rigtig gaveindbakke med modtagervalg og pakkeåbning; se [[Julegaver-og-sne]]. Den kan lukkes og lukker ved navigation. Den uddeler ikke XP, guld eller varer. Nye SVG-ikoner er almindelige UI-illustrationer, ikke nye brandinglogoer.
 
 ## Implementeringsgrænse
 

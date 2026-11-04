@@ -7,7 +7,17 @@
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let canvas, context, frame = 0, flakes = [], previous = 0, wind = 0, pointerX = -1000, pointerY = -1000;
     let width = 0, height = 0;
-    const snowPaused = () => read("lup-snow-paused", "false") === "true";
+    const snowMode = () => {
+        const mode = read("lup-snow-mode");
+        return ["auto", "on", "off"].includes(mode) ? mode : read("lup-snow-paused", "false") === "true" ? "off" : "auto";
+    };
+    const snowPaused = () => snowMode() === "off" || (snowMode() === "auto" && motion.matches);
+    const snowState = () => ({ mode: snowMode(), paused: snowPaused(), reducedMotion: motion.matches, hidden: document.hidden });
+    const snowObservers = new Map();
+    let snowObserverId = 0;
+    function notifySnow() {
+        for (const [id, observer] of snowObservers) observer.invokeMethodAsync("SnowChanged", snowState()).catch(() => snowObservers.delete(id));
+    }
     function resize() {
         if (!canvas) return;
         width = innerWidth; height = innerHeight;
@@ -44,10 +54,11 @@
     }
     function syncSnow() {
         cancelAnimationFrame(frame); frame = 0; previous = 0;
+        notifySnow();
         if (!canvas) return;
         context.clearRect(0, 0, width, height);
         if (document.documentElement.dataset.theme !== "christmas" || document.hidden) return;
-        if (motion.matches || snowPaused()) draw(0, true);
+        if (snowPaused()) draw(0, true);
         else frame = requestAnimationFrame(draw);
     }
     window.lupTheme = {
@@ -75,7 +86,16 @@
             host.appendChild(canvas); resize(); syncSnow();
         },
         snowPaused,
-        toggleSnow() { const paused = !snowPaused(); save("lup-snow-paused", String(paused)); syncSnow(); return paused; }
+        snowState,
+        observeSnow(observer) { const id = ++snowObserverId; snowObservers.set(id, observer); return id; },
+        unobserveSnow(id) { snowObservers.delete(id); },
+        setSnowMode(mode) {
+            save("lup-snow-mode", ["auto", "on", "off"].includes(mode) ? mode : "auto");
+            save("lup-snow-paused", "false");
+            syncSnow();
+            return snowState();
+        },
+        toggleSnow() { this.setSnowMode(snowPaused() ? "on" : "off"); return snowPaused(); }
     };
     addEventListener("resize", resize, { passive: true });
     addEventListener("pointermove", event => {
@@ -121,4 +141,9 @@ for (const [name, prefix] of [["lupAppearance", "lup-appearance-v1:"], ["lupRoom
 window.lupDemo = {
     get() { try { return localStorage.getItem("lup-demo-world"); } catch { return null; } },
     set(value) { try { localStorage.setItem("lup-demo-world", value || ""); } catch { /* Local interactions remain available without storage. */ } }
+};
+
+window.lupGiftUi = {
+    open(id) { const dialog = document.getElementById(id); if (dialog && !dialog.open) dialog.showModal(); },
+    close(id) { const dialog = document.getElementById(id); if (dialog?.open) dialog.close(); }
 };

@@ -22,6 +22,61 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ChristmasGift", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<DateTime?>("OpenedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("RecipientSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("SenderSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Wrapping")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientSub", "CreatedAtUtc");
+
+                    b.HasIndex("SenderSub", "CreatedAtUtc");
+
+                    b.ToTable("christmas_gifts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_gifts_different_people", "\"SenderSub\" <> \"RecipientSub\"");
+                        });
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>
                 {
                     b.Property<Guid>("Id")
@@ -48,6 +103,25 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.HasIndex("CreatedBySub");
 
                     b.ToTable("forloeb", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.GiftContact", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<bool>("IsTeacher")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("UserSub");
+
+                    b.ToTable("gift_contacts", (string)null);
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Hold", b =>

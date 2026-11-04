@@ -1,0 +1,121 @@
+@inject GiftMailboxClient Mailbox
+@inject AuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+@implements IAsyncDisposable
+<button class="christmas-present gift-launcher" data-unread="@(Mailbox.Unread > 0 ? "true" : null)" @onclick="Show" aria-haspopup="dialog" aria-label="@(Mailbox.Unread > 0 ? $"Gaver, {Mailbox.Unread} uåbnede" : "Send eller åbn en gave")"><UiIcon Name="gift" />@if (Mailbox.Unread > 0) { <span class="gift-count">@Mailbox.Unread</span> }</button>
+<dialog id="lup-gift-dialog" class="gift-dialog" aria-labelledby="gift-title" @onkeydown="DialogKey">
+    <div class="gift-dialog-head"><div><span class="gift-eyebrow">En lille ting til hinanden</span><h2 id="gift-title">Gaver i LUP</h2></div><button class="gift-close" @onclick="Close" aria-label="Luk gavevinduet">×</button></div>
+    @if (_open)
+    {
+        @if (!Auth.IsAuthenticated)
+        {
+            @if (_selected is null) { <div class="gift-welcome"><span class="gift-welcome-art"><UiIcon Name="gift" /></span><h3>Gør en andens dag lidt varmere</h3><p>Log ind for at vælge en modtager og sende en julehilsen i en pakke.</p><a href="/login" class="gift-primary" @onclick="Close">Log ind</a><button class="gift-secondary" @onclick="Preview">Se gaveoplevelsen</button></div> }
+        }
+        else
+        {
+            <nav class="gift-tabs" aria-label="Gavevisninger"><button aria-pressed="@(_tab == "inbox")" @onclick='() => SetTab("inbox")'>Modtaget @if (Mailbox.Unread > 0) { <span>@Mailbox.Unread</span> }</button><button aria-pressed="@(_tab == "send")" @onclick='() => SetTab("send")'>Send en gave</button><button aria-pressed="@(_tab == "sent")" @onclick='() => SetTab("sent")'>Sendt</button></nav>
+            @if (Mailbox.Error is not null) { <div class="gift-connection" role="status"><p>@Mailbox.Error</p><button class="gift-secondary" disabled="@_loading" @onclick="Reload">Prøv igen</button></div> }
+            @if (_selected is null)
+            {
+                @if (_tab == "send")
+                {
+                    <div class="gift-composer">
+                        <fieldset><legend>Hvem skal have en gave?</legend><input class="gift-input" type="search" @bind="_search" @bind:event="oninput" aria-label="Find modtager" placeholder="Søg efter et navn" />
+                            @if (_loading) { <p class="gift-muted" role="status">Henter modtagere…</p> }
+                            <div class="gift-recipients">@foreach (var person in Mailbox.Recipients.Where(p => p.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase))) { <label class="gift-recipient"><input type="radio" name="gift-recipient" checked="@(_recipient == person.UserSub)" @onchange="() => _recipient = person.UserSub" /><span class="gift-initials">@Initials(person.DisplayName)</span><span><strong>@person.DisplayName</strong><small>@(person.IsTeacher ? "Underviser" : "Fra dit hold")</small></span></label> }</div>
+                            @if (!_loading && Mailbox.Error is null && Mailbox.Recipients.Count == 0) { <p class="gift-muted">Ingen modtagere endnu. Modtagere vises, når de har åbnet LUP med deres konto.</p> }
+                        </fieldset>
+                        <fieldset><legend>Hvad vil du give?</legend><div class="gift-kinds">@foreach (var kind in Kinds) { <button class="gift-kind" aria-pressed="@(_kind == kind.Id)" @onclick="() => _kind = kind.Id"><UiIcon Name="@kind.Icon" /><span>@kind.Title</span></button> }</div></fieldset>
+                        <label class="gift-label">Din hilsen<textarea class="gift-input" maxlength="240" @bind="_message" @bind:event="oninput" placeholder="Skriv en lille hilsen til modtageren…"></textarea><small>@_message.Length / 240</small></label>
+                        <fieldset><legend>Vælg indpakning</legend><div class="gift-wraps">@foreach (var wrap in Wraps) { <button class="gift-wrap @wrap.Id" aria-pressed="@(_wrapping == wrap.Id)" aria-label="@wrap.Name" @onclick="() => _wrapping = wrap.Id"><span></span></button> }<span class="gift-free">Gratis julehilsen</span></div></fieldset>
+                        <div class="gift-actions"><button class="gift-primary" disabled="@(_busy || _recipient is null || Mailbox.Error is not null)" @onclick="Send">@(_busy ? "Sender…" : "Send gave")</button><button class="gift-secondary" @onclick="Preview">Se pakken før du sender</button></div>
+                    </div>
+                }
+                else
+                {
+                    var items = _tab == "sent" ? Mailbox.Sent : Mailbox.Received;
+                    @if (items.Count == 0) { <div class="gift-empty"><UiIcon Name="gift" /><h3>@(_tab == "sent" ? "Din første gave starter her" : "Der venter ingen pakker endnu")</h3><p>@(_tab == "sent" ? "En lille hilsen kan gøre en stor forskel." : "Når nogen sender dig en gave, finder du den her.")</p><button class="gift-secondary" @onclick='() => SetTab("send")'>Send en gave</button></div> }
+                    <div class="gift-list">@foreach (var gift in items) { <button class="gift-list-item" @onclick="() => Select(gift)"><span class="gift-mini @gift.Wrapping"><UiIcon Name="gift" /></span><span><strong>@(_tab == "sent" ? "Til " + gift.RecipientName : "Fra " + gift.SenderName)</strong><small>@(gift.OpenedAtUtc is null ? _tab == "sent" ? "Leveret · ikke åbnet" : "En pakke venter på dig" : "Åbnet " + gift.OpenedAtUtc.Value.ToLocalTime().ToString("d. MMM"))</small></span><span class="gift-item-status">@(gift.OpenedAtUtc is null ? "●" : "✓")</span></button> }</div>
+                }
+            }
+        }
+        @if (_selected is not null)
+        {
+            var opened = _selected.OpenedAtUtc is not null;
+            <section class="gift-reveal @(_preview ? "is-preview" : "")" aria-label="Din gave"><span class="gift-reveal-caption">@(_preview ? "Sådan ser gaven ud" : _tab == "sent" ? "Til " + _selected.RecipientName : "Fra " + _selected.SenderName)</span>
+                <button class="gift-parcel @_selected.Wrapping @(opened ? "is-open" : "")" disabled="@(opened || _busy || (!_preview && _tab == "sent"))" @onclick="OpenGift" aria-label="@(_preview ? "Åbn gavevisningen" : "Åbn gaven fra " + _selected.SenderName)"><span class="parcel-shadow"></span><span class="parcel-box"><span></span></span><span class="parcel-lid"><span class="parcel-bow left"></span><span class="parcel-bow right"></span></span><span class="parcel-spark one">✧</span><span class="parcel-spark two">✦</span><span class="parcel-spark three">✧</span><UiIcon Name="@Kinds.First(k => k.Id == _selected.Kind).Icon" /></button>
+                @if (opened || (!_preview && _tab == "sent")) { <div class="gift-letter" role="status"><h3>@Kinds.First(k => k.Id == _selected.Kind).Title</h3><p>@(string.IsNullOrWhiteSpace(_selected.Message) ? "En lille hilsen og et ønske om en dejlig dag." : _selected.Message)</p><span>Fra @_selected.SenderName</span></div> } else { <p class="gift-muted">@(_busy ? "Åbner pakken…" : "Klik på pakken for at åbne din gave")</p> }
+                <button class="gift-secondary" @onclick="BackToList">@(_preview ? "Tilbage" : "Tilbage til gaver")</button>
+            </section>
+        }
+        @if (_notice is not null) { <p class="gift-feedback" role="status">@_notice</p> }
+        @if (_error is not null) { <p class="gift-error" role="alert">@_error</p> }
+    }
+</dialog>
+@code {
+    private bool _open, _showDialog, _busy, _loading, _preview;
+    private string _tab = "inbox", _search = "", _kind = "cheer", _wrapping = "berry", _message = "";
+    private string? _notice, _error, _user;
+    private Guid? _recipient;
+    private Guid _request = Guid.NewGuid();
+    private GiftMessage? _selected;
+    private CancellationTokenSource? _session;
+    private Task? _poll;
+    private static readonly (string Id, string Title, string Icon)[] Kinds = [("cheer", "En pose juleglæde", "tree"), ("thanks", "Tak for hjælpen", "heart"), ("warmth", "Lidt ekstra varme", "star")];
+    private static readonly (string Id, string Name)[] Wraps = [("berry", "Rød gave"), ("pine", "Grøn gave"), ("gold", "Gylden gave")];
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Mailbox.Changed += OnChanged; Nav.LocationChanged += OnLocation; }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await UpdateSession();
+        if (_showDialog) { _showDialog = false; await Js.InvokeVoidAsync("lupGiftUi.open", "lup-gift-dialog"); }
+    }
+    private void OnAuth() => _ = InvokeAsync(UpdateSession);
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(Close);
+    private async Task UpdateSession()
+    {
+        var next = Auth.IsAuthenticated ? Auth.Subject : null;
+        if (next == _user) return;
+        _user = next; _selected = null; _open = _showDialog = _preview = false; _notice = _error = null;
+        _recipient = null; _search = _message = ""; _kind = "cheer"; _wrapping = "berry"; _request = Guid.NewGuid();
+        await Js.InvokeVoidAsync("lupGiftUi.close", "lup-gift-dialog");
+        Mailbox.Clear(); await StopPolling();
+        if (next is not null) { _session = new(); _poll = Poll(_session.Token); }
+    }
+    private async Task Poll(CancellationToken ct)
+    {
+        try { await Mailbox.RefreshAsync(ct: ct); using var timer = new PeriodicTimer(TimeSpan.FromSeconds(20)); while (await timer.WaitForNextTickAsync(ct)) await Mailbox.RefreshAsync(ct: ct); }
+        catch (OperationCanceledException) { }
+    }
+    private async Task StopPolling() { if (_session is null) return; await _session.CancelAsync(); if (_poll is not null) await _poll; _session.Dispose(); _session = null; }
+    private async Task Show() { _request = Guid.NewGuid(); _open = _showDialog = true; _selected = null; _preview = false; _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null; if (Auth.IsAuthenticated) await Reload(); }
+    private async Task Reload() { _loading = true; try { await Mailbox.RefreshAsync(recipients: true, ct: _session?.Token ?? default); } catch (OperationCanceledException) { } finally { _loading = false; } }
+    private async Task Close() { _open = false; _selected = null; _notice = _error = null; await Js.InvokeVoidAsync("lupGiftUi.close", "lup-gift-dialog"); }
+    private async Task DialogKey(KeyboardEventArgs e) { if (e.Key == "Escape") await Close(); }
+    private void SetTab(string tab) { _tab = tab; _selected = null; _preview = false; _notice = _error = null; }
+    private void Select(GiftMessage gift) { _selected = gift; _preview = false; _notice = _error = null; }
+    private void BackToList() { _selected = null; _preview = false; }
+    private void Preview() { _preview = true; _selected = new(Guid.Empty, Auth.DisplayName ?? "En fra dit hold", Mailbox.Recipients.FirstOrDefault(p => p.UserSub == _recipient)?.DisplayName ?? "dig", _kind, _wrapping, _message, DateTime.UtcNow, null); }
+    private async Task Send()
+    {
+        if (_recipient is not Guid recipient || _busy) return;
+        _busy = true; _error = _notice = null;
+        var subject = Auth.Subject;
+        try { await Mailbox.SendAsync(new(_request, recipient, _kind, _wrapping, _message), _session?.Token ?? default); if (subject != Auth.Subject) return; _notice = "Din gave er sendt til " + Mailbox.Recipients.FirstOrDefault(p => p.UserSub == recipient)?.DisplayName + "."; _request = Guid.NewGuid(); _message = ""; _tab = "sent"; }
+        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException) { if (subject == Auth.Subject && _open) _error = ex is GiftException ? ex.Message : "Gaven kunne ikke sendes. Dine valg er bevaret, så du kan prøve igen."; }
+        finally { _busy = false; }
+    }
+    private async Task OpenGift()
+    {
+        if (_selected is null || _busy) return;
+        _busy = true; _error = null;
+        var subject = Auth.Subject;
+        var selected = _selected;
+        try { var opened = _preview ? selected with { OpenedAtUtc = DateTime.UtcNow } : await Mailbox.OpenAsync(selected.Id, _session?.Token ?? default); if (subject == Auth.Subject && _open && _selected?.Id == selected.Id) _selected = opened; }
+        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException) { if (subject == Auth.Subject && _open) _error = "Pakken kunne ikke åbnes lige nu. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    private static string Initials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= OnAuth; Mailbox.Changed -= OnChanged; Nav.LocationChanged -= OnLocation; await StopPolling(); }
+}

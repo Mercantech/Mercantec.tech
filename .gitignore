@@ -25,3 +25,6 @@ publish/
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/cache
+
+# Lokale udviklingsværktøjer
+.tools/

@@ -2,6 +2,9 @@
   <Folder Name="/api/">
     <Project Path="api/Mercantec.Tech.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mercantec.Tech.Api.Tests/Mercantec.Tech.Api.Tests.csproj" />
+  </Folder>
   <Folder Name="/web/">
     <Project Path="web/Mercantec.Tech.Web.csproj" />
   </Folder>

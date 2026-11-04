@@ -18,6 +18,10 @@ Det er en **designreference**, ikke en markering af, at backendfunktionerne er i
 
 Designet er nu flyttet ind i Blazor-komponenter. [[Blazor-designgennemgang]] beskriver afvigelser, rettelser, de nye temaer og resterende backendarbejde. Den statiske visning i design/lup bevares som den oprindelige reference.
 
+## Julegaver og sne · 4. november 2026
+
+[[Julegaver-og-sne]] tilføjer rigtig levering af gratis julehilsner via API/Postgres med modtagervalg, indbakke, uåbnet-tæller og åbnet-status. Begge brugere skal være registreret ved besøg i samme installation. Gaver overfører ikke butiksting eller guld. Sneen har system/aktiv/stille og en Start-knap, der kan tilsidesætte reduceret bevægelse for sneen. Produktionsdeployment kontrolleres særskilt; øvrige backendleverancer nedenfor er ikke ændret.
+
 ## Omfang og opfølgning
 
 | Område | Beslutning / ønsket adfærd | Plan |

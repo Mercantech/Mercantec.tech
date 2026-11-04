@@ -1,25 +1,5 @@
-@inject IJSRuntime Js
-@inject NavigationManager Nav
-@implements IDisposable
 <div id="lup-snow-host" aria-hidden="true"></div>
 <div class="christmas-lights" aria-hidden="true">
     @for (var i = 0; i < 32; i++) { <span style="--bulb:@(i % 4)"></span> }
 </div>
-<aside class="christmas-corner" aria-label="Jul i LUP">
-    @if (_opened) {
-        <div class="christmas-note" role="status"><button class="christmas-note-close" @onclick="() => _opened = false" aria-label="Luk julegaven">×</button><strong>En lille julepause</strong><p>Stræk benene, hent en varm kop, og glæd dig over det, du har lært i dag.</p></div>
-    }
-    <button class="christmas-present" @onclick="() => _opened = !_opened" aria-expanded="@_opened" aria-label="Åbn julegaven"><UiIcon Name="gift" /></button>
-    <button class="snow-toggle" @onclick="ToggleSnow" aria-pressed="@_paused" aria-label="@(_paused ? "Start sneen" : "Sæt sneen på pause")"><UiIcon Name="snow" /><span>@(_paused ? "Start sne" : "Pause sne")</span></button>
-</aside>
-@code {
-    protected override void OnInitialized() => Nav.LocationChanged += OnLocation;
-    private void OnLocation(object? sender, LocationChangedEventArgs e) { _opened = false; InvokeAsync(StateHasChanged); }
-    public void Dispose() => Nav.LocationChanged -= OnLocation;
-    private bool _opened;
-    private bool _paused;
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) { _paused = await Js.InvokeAsync<bool>("lupTheme.snowPaused"); StateHasChanged(); }
-    }
-    private async Task ToggleSnow() => _paused = await Js.InvokeAsync<bool>("lupTheme.toggleSnow");
-}
+<aside class="christmas-corner" aria-label="Gaver og jul i LUP"><GiftLauncher /><SnowControls /></aside>

@@ -10,8 +10,29 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<HoldLectioSource> HoldLectioSources => Set<HoldLectioSource>();
 
+    public DbSet<ChristmasGift> ChristmasGifts => Set<ChristmasGift>();
+    public DbSet<GiftContact> GiftContacts => Set<GiftContact>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GiftContact>(e =>
+        {
+            e.ToTable("gift_contacts");
+            e.HasKey(x => x.UserSub);
+            e.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
+        });
+        modelBuilder.Entity<ChristmasGift>(e =>
+        {
+            e.ToTable("christmas_gifts", table => table.HasCheckConstraint("CK_gifts_different_people", "\"SenderSub\" <> \"RecipientSub\""));
+            e.HasKey(x => x.Id);
+            e.Property(x => x.SenderName).HasMaxLength(120).IsRequired();
+            e.Property(x => x.RecipientName).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Kind).HasMaxLength(16).IsRequired();
+            e.Property(x => x.Wrapping).HasMaxLength(16).IsRequired();
+            e.Property(x => x.Message).HasMaxLength(240).IsRequired();
+            e.HasIndex(x => new { x.RecipientSub, x.CreatedAtUtc });
+            e.HasIndex(x => new { x.SenderSub, x.CreatedAtUtc });
+        });
         modelBuilder.Entity<Forloeb>(e =>
         {
             e.ToTable("forloeb");

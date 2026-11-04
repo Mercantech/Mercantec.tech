@@ -90,6 +90,8 @@ public class PrivacyController(AppDbContext db) : ControllerBase
             .ToDictionary(g => g.Key, g => g.Select(c => c.Value).Distinct().ToArray());
 
         object[] memberships = [];
+        object[] gifts = [];
+        object? giftProfile = null;
         if (subGuid is not null)
         {
             memberships = await db.Memberships
@@ -110,6 +112,14 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 .ToArrayAsync(ct);
         }
 
+        if (subGuid is Guid giftSub)
+        {
+            gifts = await db.ChristmasGifts.AsNoTracking().Where(g => g.SenderSub == giftSub || g.RecipientSub == giftSub)
+                .OrderBy(g => g.CreatedAtUtc).Select(g => (object)new { g.Id, g.SenderSub, g.RecipientSub, g.SenderName, g.RecipientName, g.Kind, g.Wrapping, g.Message, g.CreatedAtUtc, g.OpenedAtUtc }).ToArrayAsync(ct);
+            giftProfile = await db.GiftContacts.AsNoTracking().Where(g => g.UserSub == giftSub)
+                .Select(g => new { g.UserSub, g.DisplayName, g.IsTeacher }).FirstOrDefaultAsync(ct);
+        }
+
         return new PrivacyExportPackage(
             ExportedAtUtc: DateTime.UtcNow,
             Source: "mercantec.tech",
@@ -124,6 +134,8 @@ public class PrivacyController(AppDbContext db) : ControllerBase
             PlatformRecords: new
             {
                 memberships,
+                gifts,
+                giftProfile,
                 submissions = Array.Empty<object>(),
                 deletionRequests = Array.Empty<object>()
             },
