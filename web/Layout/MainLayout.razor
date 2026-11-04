@@ -118,6 +118,7 @@
         <footer class="footer">
             <span>LUP · Lokal UndervisningsPlatform</span>
             <div class="footer-links">
+                <a href="/lup/index.html" @onclick="OpenPlans" @onclick:preventDefault>Undervisningsplaner</a>
                 <a href="/help">Hjælp</a>
                 <a href="/privacy">Privatliv</a>
                 <a href="/sources">Om LUP</a>
@@ -285,6 +286,8 @@
         _demoCourse = e.Value?.ToString() ?? "";
         await Js.InvokeVoidAsync("lupCourse.set", _demoCourse);
     }
+
+    private void OpenPlans() => Nav.NavigateTo("/lup/index.html", forceLoad: true);
 
     private async Task Logout()
     {

@@ -1,0 +1,171 @@
+/* Samme layout som lup.dk. Farver og skrift fra den nye LUP-flade. */
+
+:root {
+  --ink: #17243b;
+  --ink-soft: #63728b;
+  --paper: #f3f6fb;
+  --foam: #eaf0ff;
+  --moss: #2452e8;
+  --moss-deep: #1d3fd4;
+  --lime: #eaf0ff;
+  --amber: #a84613;
+  --error: #b42318;
+  --line: #dfe7f2;
+  --shadow: 0 18px 40px rgba(23, 36, 59, 0.08);
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: #fff;
+  --surface-soft: rgba(255, 255, 255, 0.7);
+  --nav-bg: rgba(243, 246, 251, 0.9);
+  --rail-bg: rgba(255, 255, 255, 0.94);
+  --dot-ring: #f3f6fb;
+  --dot-idle: #c5d0e4;
+  --praktik-dot: #fff0e3;
+  --check-fill: #fff;
+  --fig-bg: #fff;
+  --glow: rgba(36, 82, 232, 0.12);
+  --glow-strong: rgba(36, 82, 232, 0.16);
+  --bridge: rgba(36, 82, 232, 0.06);
+  --table-head: rgba(36, 82, 232, 0.08);
+  --card-accent-bg: linear-gradient(160deg, #eaf0ff, #fff);
+  --logo-fg: #fff;
+  --logo-bg: #2452e8;
+  --text-glow: none;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --radius: 10px;
+  color-scheme: light;
+}
+
+html[data-theme="dark"],
+html[data-theme="terminal"] {
+  --ink: #eaf0ff;
+  --ink-soft: #a8b8d0;
+  --paper: #101b2c;
+  --foam: #152238;
+  --moss: #9ab5ff;
+  --moss-deep: #9ab5ff;
+  --lime: #263c63;
+  --amber: #ffb580;
+  --error: #ff8d8d;
+  --line: #33445e;
+  --shadow: none;
+  --surface: #1a2940;
+  --surface-strong: #1a2940;
+  --surface-soft: #152238;
+  --nav-bg: rgba(16, 27, 44, 0.92);
+  --rail-bg: rgba(26, 41, 64, 0.96);
+  --dot-ring: #101b2c;
+  --dot-idle: #33445e;
+  --praktik-dot: #3d3029;
+  --check-fill: #101b2c;
+  --fig-bg: #1a2940;
+  --glow: rgba(154, 181, 255, 0.14);
+  --glow-strong: rgba(154, 181, 255, 0.2);
+  --bridge: rgba(154, 181, 255, 0.08);
+  --table-head: rgba(154, 181, 255, 0.12);
+  --card-accent-bg: #1a2940;
+  --logo-fg: #12254e;
+  --logo-bg: #9ab5ff;
+  --text-glow: none;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --radius: 10px;
+  color-scheme: dark;
+}
+
+body {
+  font-family: "DM Sans", sans-serif;
+  text-shadow: none;
+}
+
+.crt {
+  display: none;
+}
+
+html[data-theme="dark"] .atmosphere,
+html[data-theme="terminal"] .atmosphere {
+  background:
+    radial-gradient(ellipse 55% 42% at 8% -4%, var(--glow), transparent 55%),
+    linear-gradient(180deg, var(--paper) 0%, var(--foam) 100%);
+}
+
+html[data-theme="dark"] .atmosphere::before,
+html[data-theme="terminal"] .atmosphere::before,
+html[data-theme="dark"] .atmosphere::after,
+html[data-theme="terminal"] .atmosphere::after {
+  opacity: 0.2;
+  animation: none;
+  filter: none;
+  mask-image: none;
+  background: none;
+}
+
+html[data-theme="dark"] *,
+html[data-theme="dark"] *::before,
+html[data-theme="dark"] *::after,
+html[data-theme="terminal"] *,
+html[data-theme="terminal"] *::before,
+html[data-theme="terminal"] *::after {
+  border-radius: 10px !important;
+}
+
+html[data-theme="dark"] .tl-dot,
+html[data-theme="dark"] .tl-rail-dot,
+html[data-theme="terminal"] .tl-dot,
+html[data-theme="terminal"] .tl-rail-dot {
+  border-radius: 50% !important;
+}
+
+html[data-theme="dark"] .prose,
+html[data-theme="dark"] .tl-panel,
+html[data-theme="dark"] .card,
+html[data-theme="terminal"] .prose,
+html[data-theme="terminal"] .tl-panel,
+html[data-theme="terminal"] .card {
+  background: #1a2940 !important;
+  border: 1px solid #33445e !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .brand,
+html[data-theme="dark"] .detail-title,
+html[data-theme="dark"] .prose h2,
+html[data-theme="dark"] .prose h3,
+html[data-theme="terminal"] .brand,
+html[data-theme="terminal"] .detail-title,
+html[data-theme="terminal"] .prose h2,
+html[data-theme="terminal"] .prose h3 {
+  text-transform: none;
+  letter-spacing: -0.03em;
+  text-shadow: none;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+html[data-theme="dark"] .brand,
+html[data-theme="terminal"] .brand {
+  font-size: clamp(1.7rem, 4.2vw, 2.6rem);
+  font-weight: 600;
+  max-width: 22ch;
+}
+
+html[data-theme="dark"] .cta-primary::before,
+html[data-theme="dark"] .cta-primary::after,
+html[data-theme="terminal"] .cta-primary::before,
+html[data-theme="terminal"] .cta-primary::after {
+  content: none;
+}
+
+html[data-theme="dark"] .card:hover,
+html[data-theme="dark"] .back:hover,
+html[data-theme="dark"] .cta:hover,
+html[data-theme="terminal"] .card:hover,
+html[data-theme="terminal"] .back:hover,
+html[data-theme="terminal"] .cta:hover {
+  background: #263c63 !important;
+  color: #eaf0ff !important;
+}
+
+html[data-theme="dark"] .foot,
+html[data-theme="terminal"] .foot {
+  background: transparent;
+}

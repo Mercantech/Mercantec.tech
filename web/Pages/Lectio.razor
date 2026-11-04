@@ -15,7 +15,8 @@
 }
 else if (!Auth.IsAuthenticated)
 {
-    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+    <header class="page-title"><div><h1>Lectio</h1><p>Log ind for at se elever, hold og din egen profil.</p></div></header>
+    <a class="action" href="/login">Log ind</a>
 }
 else
 {
@@ -26,18 +27,19 @@ else
         <header class="lectio-head page-title">
             <div>
                 <h1>Lectio</h1>
-                <p class="text-muted mb-0">Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
+                <p>Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
             </div>
             <div class="lectio-head-actions">
-                <a class="lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector">
+                <a class="secondary lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
                     <img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />
+                    Lectio-Collector
                 </a>
-                <button class="btn btn-outline-secondary" disabled="@_loading" @onclick="LoadAsync">
+                <button class="secondary" disabled="@_loading" @onclick="LoadAsync">
                     @(_loading ? "Henter…" : "Genindlæs")
                 </button>
             </div>
         </header>
-        <div class="lectio-segments" role="tablist">
+        <div class="lectio-tabs" role="tablist">
             <button type="button" role="tab" class="@(_teacherTab == TeacherTab.Elever ? "is-active" : null)"
                     aria-selected="@(_teacherTab == TeacherTab.Elever)"
                     @onclick="ShowStudents">
@@ -52,13 +54,17 @@ else
     }
     else
     {
-        <h1>Lectio</h1>
-        <p class="text-muted mb-3">Som elev ser du kun dig selv, efter din profil er koblet.</p>
+        <header class="page-title">
+            <div>
+                <h1>Lectio</h1>
+                <p>Som elev ser du kun dig selv, efter din profil er koblet.</p>
+            </div>
+        </header>
     }
 
     @if (_error is not null)
     {
-        <div class="alert alert-danger">@_error</div>
+        <p class="callout bad">@_error</p>
     }
 
     @if (_loading)
@@ -70,30 +76,30 @@ else
         var holds = VisibleHolds;
         <section class="lectio-panel">
             <div class="lectio-panel-top">
-                <div class="lectio-stats" role="group" aria-label="Hold-overblik">
-                    <button type="button" class="lectio-stat @(!HasHoldFilters ? "is-active" : null)" @onclick="ResetHoldFilters">
-                        <span class="lectio-stat-num">@holds.Count</span>
+                <div class="stats lectio-stats" role="group" aria-label="Hold-overblik">
+                    <button type="button" class="stat @(!HasHoldFilters ? "is-active" : null)" @onclick="ResetHoldFilters">
+                        <strong>@holds.Count</strong>
                         <span>af @_holds.Count hold</span>
                     </button>
                     @if (_holdSummary is not null)
                     {
-                        <div class="lectio-stat is-static">
-                            <span class="lectio-stat-num">@_holdSummary.UniqueStudents</span>
+                        <div class="stat">
+                            <strong>@_holdSummary.UniqueStudents</strong>
                             <span>unikke elever</span>
                         </div>
                     }
-                    <button type="button" class="lectio-stat @(_holdPeriod == HoldPeriod.Ongoing ? "is-active" : null)"
+                    <button type="button" class="stat @(_holdPeriod == HoldPeriod.Ongoing ? "is-active" : null)"
                             @onclick="() => SetHoldPeriod(HoldPeriod.Ongoing)">
-                        <span class="lectio-stat-num">@OngoingHoldCount</span>
+                        <strong>@OngoingHoldCount</strong>
                         <span>igangværende</span>
                     </button>
                 </div>
-                <div class="btn-group btn-group-sm" role="group" aria-label="Hold-kilde">
-                    <button type="button" class="btn @(_holdScope == HoldScope.Tracked ? "btn-primary" : "btn-outline-primary")"
+                <div class="lectio-scope" role="group" aria-label="Hold-kilde">
+                    <button type="button" class="@(_holdScope == HoldScope.Tracked ? "is-active" : null)"
                             @onclick="() => SetHoldScopeAsync(HoldScope.Tracked)">
                         Tracked
                     </button>
-                    <button type="button" class="btn @(_holdScope == HoldScope.Saved ? "btn-primary" : "btn-outline-primary")"
+                    <button type="button" class="@(_holdScope == HoldScope.Saved ? "is-active" : null)"
                             @onclick="() => SetHoldScopeAsync(HoldScope.Saved)">
                         Alle gemte
                     </button>
@@ -171,7 +177,7 @@ else
                         <option value="@HoldPeriod.NoDate">Uden dato</option>
                     </select>
                 </label>
-                <button type="button" class="btn btn-outline-secondary" disabled="@(!HasHoldFilters)" @onclick="ResetHoldFilters">Nulstil</button>
+                <button type="button" class="secondary" disabled="@(!HasHoldFilters)" @onclick="ResetHoldFilters">Nulstil</button>
             </div>
             @if (HasHoldFilters)
             {
@@ -204,15 +210,15 @@ else
                 <p class="lectio-count mb-0">@holds.Count af @_holds.Count</p>
                 @if (_selectedHoldKeys.Count > 0)
                 {
-                    <button type="button" class="btn btn-sm btn-primary" disabled="@_creatingForloeb" @onclick="CreateForloebFromSelectedAsync">
+                    <button type="button" class="action" disabled="@_creatingForloeb" @onclick="CreateForloebFromSelectedAsync">
                         @(_creatingForloeb ? "Opretter…" : $"Opret forløb fra {_selectedHoldKeys.Count} valgte")
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled="@_creatingForloeb" @onclick="ClearHoldSelection">
+                    <button type="button" class="secondary" disabled="@_creatingForloeb" @onclick="ClearHoldSelection">
                         Ryd valg
                     </button>
                 }
             </div>
-            <p class="small text-muted mb-0">
+            <p class="lectio-hint">
                 Markér flere hold (fx <code>…/pro</code> og <code>…/proEA</code>) for at samle dem i ét forløb med fælles elevliste. Klik på navn eller elevtal for at se eleverne.
             </p>
             @if (_holds.Count == 0 && _error is null)
@@ -283,16 +289,16 @@ else
                                     <td>
                                         @if (h.IsTracked)
                                         {
-                                            <span class="badge text-bg-success">Tracked</span>
+                                            <span class="pill green">Tracked</span>
                                         }
                                         else
                                         {
-                                            <span class="badge text-bg-secondary">Gemt</span>
+                                            <span class="pill">Gemt</span>
                                         }
                                     </td>
-                                    <td class="text-nowrap">
+                                    <td class="lectio-row-actions">
                                         <button type="button"
-                                                class="btn btn-sm btn-outline-primary me-1"
+                                                class="secondary"
                                                 disabled="@_creatingForloeb"
                                                 @onclick="() => CreateForloebFromHoldAsync(h)">
                                             Opret forløb
@@ -372,7 +378,7 @@ else
                 }
                 @if (_importResult is not null)
                 {
-                    <div class="alert alert-success mt-3">
+                    <div class="callout ok">
                         Forløb oprettet: <a href="@($"/courses/{_importResult.ForloebId}")">@_importResult.Name</a>
                         — @_importResult.Total medlemmer (@_importResult.Claimed claimed, @_importResult.Shadows shadow)
                         @if (_importResult.LectioHolds > 1)
@@ -389,25 +395,25 @@ else
     {
         var students = VisibleStudents;
         <section class="lectio-panel">
-            <div class="lectio-stats" role="group" aria-label="Elev-overblik">
-                <button type="button" class="lectio-stat @(_workplaceFilter == WorkplacePresence.All && _vufFilter == VufPresence.All ? "is-active" : null)"
+            <div class="stats lectio-stats" role="group" aria-label="Elev-overblik">
+                <button type="button" class="stat @(_workplaceFilter == WorkplacePresence.All && _vufFilter == VufPresence.All ? "is-active" : null)"
                         @onclick="ClearStudentQuickFilters">
-                    <span class="lectio-stat-num">@_students.Count</span>
+                    <strong>@_students.Count</strong>
                     <span>elever</span>
                 </button>
-                <button type="button" class="lectio-stat @(_workplaceFilter == WorkplacePresence.Missing ? "is-active" : null)"
+                <button type="button" class="stat @(_workplaceFilter == WorkplacePresence.Missing ? "is-active" : null)"
                         @onclick="() => SetWorkplace(WorkplacePresence.Missing)">
-                    <span class="lectio-stat-num">@MissingWorkplaceCount</span>
+                    <strong>@MissingWorkplaceCount</strong>
                     <span>uden læreplads</span>
                 </button>
-                <button type="button" class="lectio-stat @(_vufFilter == VufPresence.NotOk ? "is-active" : null)"
+                <button type="button" class="stat @(_vufFilter == VufPresence.NotOk ? "is-active" : null)"
                         @onclick="() => SetVuf(VufPresence.NotOk)">
-                    <span class="lectio-stat-num">@VufNotOkCount</span>
+                    <strong>@VufNotOkCount</strong>
                     <span>VUF ikke ok</span>
                 </button>
-                <button type="button" class="lectio-stat @(_vufFilter == VufPresence.Missing ? "is-active" : null)"
+                <button type="button" class="stat @(_vufFilter == VufPresence.Missing ? "is-active" : null)"
                         @onclick="() => SetVuf(VufPresence.Missing)">
-                    <span class="lectio-stat-num">@VufMissingCount</span>
+                    <strong>@VufMissingCount</strong>
                     <span>VUF mangler</span>
                 </button>
             </div>
@@ -521,7 +527,7 @@ else
                             <option value="@VufPresence.Missing">VUF mangler</option>
                         </select>
                     </label>
-                    <button type="button" class="btn btn-outline-secondary" disabled="@(!HasStudentFilters)" @onclick="ResetStudentFilters">Nulstil</button>
+                    <button type="button" class="secondary" disabled="@(!HasStudentFilters)" @onclick="ResetStudentFilters">Nulstil</button>
                 </div>
                 @if (HasStudentFilters)
                 {
@@ -666,7 +672,7 @@ else
                                                 }
                                                 <div class="forloeb-expand">
                                                     <div class="forloeb-list">
-                                                        <table class="table table-sm table-bordered mb-0 bg-white">
+                                                        <table class="lectio-mini">
                                                             <thead>
                                                                 <tr>
                                                                     <th>Forløb</th>
@@ -720,7 +726,7 @@ else
                                                                     </div>
                                                                 }
                                                             </div>
-                                                            <div class="timeline-legend small text-muted mt-2">
+                                                            <div class="timeline-legend">
                                                                 <span class="timeline-legend-swatch is-past"></span> Afsluttet
                                                                 <span class="timeline-legend-swatch is-current ms-2"></span> Igangværende
                                                                 <span class="timeline-legend-swatch is-future ms-2"></span> Kommende
@@ -753,27 +759,27 @@ else
     }
     else if (_linked)
     {
-        <section class="mb-4">
-            <h2 class="h5">Mine data</h2>
+        <section class="panel">
+            <h2>Mine data</h2>
             @if (_linkOk)
             {
-                <p class="text-success">Kobling gemt.</p>
+                <p class="callout ok">Kobling gemt.</p>
             }
             @if (_meStudent is not null)
             {
-                <pre class="bg-light border rounded p-3 small">@_meStudent</pre>
+                <pre class="lectio-raw">@_meStudent</pre>
             }
             else if (_meJson is not null)
             {
-                <pre class="bg-light border rounded p-3 small">@_meJson</pre>
+                <pre class="lectio-raw">@_meJson</pre>
             }
         </section>
     }
     else
     {
-        <section class="mb-4">
-            <h2 class="h5">Kobl din Lectio-profil</h2>
-            <p class="text-muted">
+        <section class="panel">
+            <h2>Kobl din Lectio-profil</h2>
+            <p>
                 Vi foreslår kun profiler der matcher dit Auth-navn
                 @if (!string.IsNullOrWhiteSpace(_authName))
                 {
@@ -785,20 +791,20 @@ else
             @if (_candidates.Count == 1)
             {
                 var c = _candidates[0];
-                <div class="border rounded p-3 mb-3" style="max-width: 32rem;">
-                    <p class="mb-2">Er du <strong>@c.Name</strong>?</p>
-                    <p class="small text-muted mb-3">
+                <div class="panel lectio-card">
+                    <h2>Er du @c.Name?</h2>
+                    <p>
                         @(c.ClassName ?? "Ukendt klasse")
                         @if (!string.IsNullOrWhiteSpace(c.Xprs))
                         {
                             <text> · @c.Xprs</text>
                         }
                     </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-primary" disabled="@_busy" @onclick="() => LinkCandidateAsync(c.LectioId)">
+                    <div class="actions">
+                        <button class="action" disabled="@_busy" @onclick="() => LinkCandidateAsync(c.LectioId)">
                             @(_busy ? "Kobler…" : "Ja — kobl mig")
                         </button>
-                        <button class="btn btn-outline-secondary" disabled="@_busy" @onclick="DismissCandidates">
+                        <button class="secondary" disabled="@_busy" @onclick="DismissCandidates">
                             Nej
                         </button>
                     </div>
@@ -807,15 +813,15 @@ else
             else if (_candidates.Count > 1)
             {
                 <p>Vælg dig selv blandt forslagene:</p>
-                <div class="list-group mb-3" style="max-width: 32rem;">
+                <div class="lectio-picks">
                     @foreach (var c in _candidates)
                     {
                         <button type="button"
-                                class="list-group-item list-group-item-action @(_selectedLectioId == c.LectioId ? "active" : null)"
+                                class="lectio-pick @(_selectedLectioId == c.LectioId ? "is-active" : null)"
                                 disabled="@_busy"
                                 @onclick="() => _selectedLectioId = c.LectioId">
                             <strong>@c.Name</strong>
-                            <span class="d-block small @( _selectedLectioId == c.LectioId ? "" : "text-muted")">
+                            <span>
                                 @(c.ClassName ?? "Ukendt klasse")
                                 @if (!string.IsNullOrWhiteSpace(c.Xprs))
                                 {
@@ -825,7 +831,7 @@ else
                         </button>
                     }
                 </div>
-                <button class="btn btn-primary"
+                <button class="action"
                         disabled="@(_busy || string.IsNullOrEmpty(_selectedLectioId))"
                         @onclick="() => LinkCandidateAsync(_selectedLectioId!)">
                     @(_busy ? "Kobler…" : "Bekræft kobling")
@@ -833,9 +839,9 @@ else
             }
             else if (_dismissed || _candidates.Count == 0)
             {
-                <div class="alert alert-warning" style="max-width: 36rem;">
-                    <p class="mb-2">Ingen automatisk match på dit Auth-navn.</p>
-                    <p class="mb-0 small">
+                <div class="callout warn">
+                    <p>Ingen automatisk match på dit Auth-navn.</p>
+                    <p>
                         Bed en underviser om at koble dig i Lectio-Collector
                         (<a class="lc-link" href="https://lc.mags.dk" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />lc.mags.dk</a>).
                         Af sikkerhedshensyn kan du ikke indtaste et vilkårligt Lectio-id her.
@@ -845,7 +851,7 @@ else
         </section>
     }
 
-    <p><a href="@Redirect.PostLoginPath()">Tilbage til dashboard</a></p>
+    <p class="lectio-back"><a href="@Redirect.PostLoginPath()">Tilbage til dashboard</a></p>
 }
 
 @code {

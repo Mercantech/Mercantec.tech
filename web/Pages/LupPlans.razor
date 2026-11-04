@@ -1,0 +1,7 @@
+@page "/lup"
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized() =>
+        Nav.NavigateTo("/lup/index.html", forceLoad: true);
+}
