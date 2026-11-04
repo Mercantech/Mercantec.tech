@@ -7,6 +7,8 @@ const byShort = Object.fromEntries(forlob.map((f) => [f.short.toLowerCase(), f])
 const homeView = document.getElementById("home-view");
 const detailView = document.getElementById("detail-view");
 const praktikView = document.getElementById("praktik-view");
+const platformView = document.getElementById("platform-view");
+const platformGroups = document.getElementById("platform-groups");
 const detailCode = document.getElementById("detail-code");
 const detailTitle = document.getElementById("detail-title");
 const detailLead = document.getElementById("detail-lead");
@@ -23,6 +25,7 @@ const navLinks = document.querySelectorAll("[data-nav]");
 let railActiveId = "";
 let railRaf = 0;
 let tidslinjeBuilt = false;
+let platformBuilt = false;
 let railScrolling = false;
 
 const prefersReducedMotion = () =>
@@ -250,8 +253,112 @@ const hideAll = () => {
   homeView.hidden = true;
   detailView.hidden = true;
   praktikView.hidden = true;
+  platformView.hidden = true;
   document.body.classList.remove("has-tl-rail");
 };
+
+const tokenRoles = () => {
+  try {
+    const token = sessionStorage.getItem("mt_access_token");
+    if (!token) return [];
+    const part = token.split(".")[1];
+    if (!part) return [];
+    const json = JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/")));
+    const raw =
+      json.role ??
+      json.roles ??
+      json["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+    if (Array.isArray(raw)) return raw.map(String);
+    if (typeof raw === "string") return [raw];
+    return [];
+  } catch {
+    return [];
+  }
+};
+
+const isTeacher = () =>
+  tokenRoles().some((role) =>
+    ["admin", "underviser", "teacher", "instructor"].includes(role.toLowerCase())
+  );
+
+const platformCatalog = () => {
+  const teacher = isTeacher();
+  const learning = teacher
+    ? [
+        ["Overblik", "/teacher", "Underviserfladen, når du er logget ind."],
+        ["Forløb og hold", "/courses", "Forløb på tværs af uddannelsen."],
+        ["Lectio", "/lectio", "Skema og beskeder."],
+        ["Planlægning", "/teacher/planner", "Planlæg uger og indhold."],
+        ["Afleveringer", "/teacher/reviews", "Afleveringer til vurdering."],
+        ["Elever", "/teacher/students", "Elever på dine hold."],
+        ["Brugere", "/users", "Brugere i Mercantec Auth."],
+        ["Fagligt indhold", "/teacher/content", "Indhold til forløbene."],
+        ["Tildel badges", "/teacher/badges", "Giv badges til elever."]
+      ]
+    : [
+        ["Overblik", "/", "Forsiden, eller dit dashboard når du er logget ind."],
+        ["Min læring", "/learning", "Dit forløb, uger og opgaver."],
+        ["Alle forløb", "/courses", "Forløb på tværs af uddannelsen."],
+        ["Lectio", "/lectio", "Skema og beskeder."],
+        ["Uddannelse", "/education", "Uddannelse og læringsmål."]
+      ];
+
+  return [
+    ["Læring", learning],
+    [
+      "Udforsk",
+      [
+        ["Fag og emner", "/explore/modules", "Fag og emner i platformen."],
+        ["Fælles galleri", "/explore/projects", "Projekter fra holdene."],
+        ["Badgekatalog", "/badges", "Badges du kan arbejde hen imod."],
+        ["Søg", "/search", "Find sider, forløb og indhold."]
+      ]
+    ],
+    [
+      "Mit univers",
+      [
+        ["XP og level", "/progress", "Level, XP og guld."],
+        ["Mine badges", "/progress/badges", "De badges du har samlet."],
+        ["Mine projekter", "/projects/mine", "Projekter du har lavet."],
+        ["Min avatar", "/profile/character", "Din figur i universet."],
+        ["Min lejlighed", "/apartment", "Lejligheden mellem forløbene."],
+        ["Butik", "/universe/shop", "Brug guld i butikken."]
+      ]
+    ],
+    [
+      "Konto",
+      [
+        ["Min profil", "/profile", "Navn og konto."],
+        ["Mine rettigheder", "/rights", "Hvad du må på platformen."],
+        ["Hjælp", "/help", "Hjælp til LUP."],
+        ["Privatliv", "/privacy", "Privatliv og data."],
+        ["Om LUP", "/sources", "Hvem der står bag platformen."]
+      ]
+    ]
+  ];
+};
+
+const renderPlatform = () =>
+  platformCatalog()
+    .map(
+      ([title, items]) => `
+        <section class="platform-group">
+          <h2>${escapeHtml(title)}</h2>
+          <div class="grid">
+            ${items
+              .map(
+                ([label, href, desc]) => `
+                  <a class="card" href="${href}">
+                    <p class="card-title">${escapeHtml(label)}</p>
+                    <p class="card-desc">${escapeHtml(desc)}</p>
+                    <span class="card-go">Åbn</span>
+                  </a>`
+              )
+              .join("")}
+          </div>
+        </section>`
+    )
+    .join("");
 
 const setActiveNav = (key) => {
   navLinks.forEach((link) => {
@@ -422,6 +529,7 @@ const showTimeline = (stopId = "") => {
 
   detailView.hidden = true;
   praktikView.hidden = true;
+  platformView.hidden = true;
   homeView.hidden = false;
   document.body.classList.add("has-tl-rail");
   document.title = "LUP · Lokale undervisningsplaner";
@@ -465,6 +573,18 @@ const showForlob = (key) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
+const showPlatform = () => {
+  hideAll();
+  platformView.hidden = false;
+  if (!platformBuilt) {
+    platformGroups.innerHTML = renderPlatform();
+    platformBuilt = true;
+  }
+  document.title = "Andre sider · LUP";
+  setActiveNav("platform");
+  window.scrollTo({ top: 0, behavior: "auto" });
+};
+
 const showPraktik = () => {
   hideAll();
   praktikView.hidden = false;
@@ -484,6 +604,10 @@ const render = () => {
   }
   if (key === "praktik") {
     showPraktik();
+    return;
+  }
+  if (key === "platform") {
+    showPlatform();
     return;
   }
   showForlob(key);

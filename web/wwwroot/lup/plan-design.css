@@ -283,3 +283,17 @@ html[data-theme="christmas"] .brand,
 html[data-theme="hacker"] .brand {
   color: var(--moss);
 }
+
+.platform-group + .platform-group {
+  margin-top: 1.75rem;
+}
+
+.platform-group h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
