@@ -166,14 +166,17 @@ else
     {
         Auth.AuthStateChanged += OnAuth;
         World.Changed += OnAuth;
+        Nav.LocationChanged += OnLocation;
         await World.EnsureAsync();
     }
 
     private void OnAuth() => InvokeAsync(StateHasChanged);
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuth;
         World.Changed -= OnAuth;
+        Nav.LocationChanged -= OnLocation;
     }
 }

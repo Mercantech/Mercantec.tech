@@ -166,7 +166,18 @@ else
         _ => "Eksempelindhold, så fladen kan vises. Det er ikke dine Lectio-hold."
     };
 
-    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    protected override void OnInitialized()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        Nav.LocationChanged += OnLocation;
+    }
+
     private void OnAuth() => InvokeAsync(StateHasChanged);
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        Nav.LocationChanged -= OnLocation;
+    }
 }
