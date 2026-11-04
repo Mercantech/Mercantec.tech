@@ -1,0 +1,101 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser demo…</p>
+}
+else
+{
+    <header class="page-title"><div><h1>Butik</h1><p>Demo. Møbler til rummet og tøj til den fælles spilavatar. Guld trækkes kun i denne browser.</p></div></header>
+    <DemoTodo Issue="34" Text="Køb gemmes lokalt. Det trækker ikke rigtigt guld og giver ikke ejerskab på serveren." />
+    <section class="panel">
+        <h2>Gave · @DemoWorld.Gift.Name</h2>
+        <DemoTodo Issue="26" Text="Opslagstavlen er en gave. Den sælges ikke, og den er ikke det samme som trofæet i butikken." />
+        <p>Level @DemoWorld.Gift.Level. @DemoWorld.Gift.Desc</p>
+        <a class="secondary" href="/apartment">Stil gaven i lejligheden</a>
+    </section>
+    <div class="v4-shop-summary">
+        <div>
+            <strong><i class="v3-gold-dot" aria-hidden="true"></i>@World.Gold guld</strong>
+            <p>Level @DemoWorld.Level · Nye ting ved level @NextLevel</p>
+        </div>
+        <a class="secondary" href="/universe/unlocks">Se alle level- og badge-oplåsninger</a>
+    </div>
+    <div class="v4-shop-tabs" aria-label="Butikskategorier">
+        @foreach (var category in new[] { "Tøj", "Møbler", "Alle" })
+        {
+            <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(World.ShopCategory == category)" @onclick="() => World.SetCategory(category)">@(category == "Tøj" ? "Avatartøj" : category)</button>
+        }
+        <a class="secondary" href="/profile/character">Min garderobe</a>
+    </div>
+    <div class="v4-shop-grid">
+        @foreach (var item in World.VisibleGoods)
+        {
+            var owned = World.Owned(item);
+            var open = World.Unlocked(item);
+            <section class="v4-product @(open ? null : "is-locked")">
+                <GoodsArt Item="item" />
+                <h2><a href="@($"/universe/shop/items/{item.Id}")">@item.Name</a></h2>
+                <p>@item.Desc</p>
+                <div class="v4-product-lock @(open ? "is-ready" : null)">
+                    <span aria-hidden="true">@(owned ? "✓" : open ? "○" : "◇")</span>
+                    <span>@(owned ? "Ejet" : World.LockText(item))</span>
+                </div>
+                <div class="v4-product-price">
+                    @if (item.Cost == 0)
+                    {
+                        <span>Startinventar</span>
+                    }
+                    else
+                    {
+                        <span><i class="v3-gold-dot" aria-hidden="true"></i>@($"{item.Cost} guld")</span>
+                    }
+                </div>
+                <div class="actions">
+                    @if (owned && item.Kind == "Tøj")
+                    {
+                        <button type="button" class="secondary" disabled="@(World.EquippedId == item.Id)" @onclick="() => World.Equip(item.Id)">@(World.EquippedId == item.Id ? "✓ På din avatar" : "Tag på")</button>
+                    }
+                    else if (owned)
+                    {
+                        <a class="secondary" href="/apartment">Indret med møblet</a>
+                    }
+                    else
+                    {
+                        var enough = World.Gold >= item.Cost;
+                        <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(!open || !enough)" @onclick="() => World.Buy(item.Id)">@BuyLabel(item, open, enough)</button>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+    @if (World.NoticeArea == "shop" && World.Notice is not null)
+    {
+        <p class="v2-status" role="status">@World.Notice</p>
+    }
+    <p class="tiny muted" style="margin-top:18px">Et level eller badge åbner købet. Du ejer først varen, når du har købt den med guld.</p>
+}
+
+@code {
+    private int NextLevel => DemoWorld.Goods.Where(g => g.Level > DemoWorld.Level).Select(g => g.Level).DefaultIfEmpty(DemoWorld.Level).Min();
+
+    private string BuyLabel(DemoGoods item, bool open, bool enough)
+    {
+        if (!open)
+            return "Låst";
+        if (!enough)
+            return $"Mangler {item.Cost - World.Gold} guld";
+        return item.Kind == "Tøj" ? $"Køb og tag på · {item.Cost} guld" : $"Køb · {item.Cost} guld";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

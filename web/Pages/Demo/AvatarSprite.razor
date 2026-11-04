@@ -1,0 +1,19 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+<div class="v2-sprite @World.HairStyle wear-@World.Equipped.Style @(Mini ? "mini" : null)" style="@($"--skin:{World.Skin};--outfit:{World.OutfitColor};--hair:{World.Hair}")" aria-hidden="true">
+    <span class="hair"></span>
+    <span class="face"></span>
+    <span class="arms"></span>
+    <span class="torso"></span>
+    <span class="legs"></span>
+</div>
+
+@code {
+    [Parameter] public bool Mini { get; set; }
+
+    protected override void OnInitialized() => World.Changed += OnChanged;
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

@@ -27,13 +27,8 @@ else if (Redirect.CurrentAppRole() != AppRole.Underviser)
 else if (PathKey == "teacher/planner")
 {
     <header class="page-title"><div><h1>Planlægning</h1><p>Uge 3 · H3 · Serverside. Eksempelplan.</p></div></header>
-    <DemoTodo Issue="11" Text="Ugeplanen kan ikke gemmes. Quest-felterne er låst." />
-    <div class="tiles">
-        @foreach (var slot in new[] { "Mandag · REST API", "Tirsdag · Fejlsvar", "Onsdag · Database", "Torsdag · Målinger", "Fredag · Review" })
-        {
-            <section class="panel"><h2>@slot</h2><p>Placering er et eksempel.</p><button type="button" class="secondary" disabled>Flyt</button></section>
-        }
-    </div>
+    <DemoTodo Issue="11" Text="Ugeplanen kan ikke gemmes. Blokkene kan ikke flyttes." />
+    <WeekCalendar Teacher="true" />
 }
 else if (PathKey == "teacher/reviews")
 {
@@ -90,20 +85,29 @@ else if (PathKey == "teacher/badges")
 else
 {
     <header class="page-title"><div><h1>Afstemninger</h1><p>To åbne eksempler. Svar gemmes ikke.</p></div></header>
-    <DemoTodo Issue="31" Text="Afstemninger kan ikke oprettes eller besvares endnu." />
-    @foreach (var poll in DemoCatalog.Polls)
-    {
-        <section class="panel" style="margin-bottom:14px">
-            <h2>@poll.Question</h2>
-            <p>@poll.Course · @poll.Type</p>
-            <div class="v4-poll-options">
-                @for (var i = 0; i < poll.Options.Length; i++)
-                {
-                    <button type="button" class="secondary" disabled>@poll.Options[i] · @poll.Counts[i]</button>
-                }
-            </div>
-        </section>
-    }
+    <DemoTodo Issue="31" Text="Nye afstemninger kan ikke oprettes. Tallene er et eksempel, og elevens lokale svar lægges oveni, hvis det er afgivet i denne browser." />
+    <div class="v4-activity-list">
+        @foreach (var poll in DemoCatalog.Polls)
+        {
+            <article class="v4-activity">
+                <div class="v4-activity-main">
+                    <div class="v4-type"><span class="v4-live-dot" aria-hidden="true"></span><strong>@poll.Type</strong><span>@poll.Course · åben i demoen</span></div>
+                    <h3>@poll.Question</h3>
+                    <div class="v4-results">
+                        @for (var i = 0; i < poll.Options.Length; i++)
+                        {
+                            var total = Math.Max(1, poll.Counts.Sum());
+                            <div class="v4-result-row">
+                                <span>@poll.Options[i]</span>
+                                <div class="v4-result-track" aria-hidden="true"><span style="@($"width:{(double)poll.Counts[i] / total * 100:0}%")"></span></div>
+                                <strong>@poll.Counts[i]</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
     <button type="button" class="action" disabled>Ny afstemning</button>
 }
 

@@ -1,0 +1,69 @@
+@using Mercantec.Tech.Web.Demo
+
+<div class="stats">
+    <div class="stat"><strong>@Owned.Count()</strong><span>opnåede badges · demo</span></div>
+    <div class="stat"><strong>@(DemoCatalog.Badges.Length - Owned.Count())</strong><span>mangler endnu</span></div>
+    <div class="stat"><strong>5</strong><span>niveauer pr. emne</span></div>
+</div>
+<div class="filters">
+    @if (!WallOnly)
+    {
+        @foreach (var filter in new[] { "Alle", "Mine", "Mangler" })
+        {
+            <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(_filter == filter)" @onclick="() => _filter = filter">@filter</button>
+        }
+    }
+    <a class="secondary" href="@(WallOnly ? "/badges" : "/progress/badges")">@(WallOnly ? "Se hele kataloget" : "Min badgevæg")</a>
+</div>
+<div class="badge-grid">
+    @foreach (var badge in Visible)
+    {
+        var owned = badge.Rank > 0;
+        <a class="badge-card @(owned ? null : "not-owned")" href="/badges">
+            <div class="medal state-@(owned ? "earned" : "locked")" aria-hidden="true">
+                <span class="badge-glyph">@Glyph(badge.Name)</span>
+                <span class="rank-number">@(owned ? badge.Rank.ToString() : "○")</span>
+            </div>
+            <h2>@badge.Name</h2>
+            <p>@badge.Desc</p>
+            <div class="@(owned ? "v2-owned" : "v2-missing")">@(owned ? "✓" : "○") @(owned ? $"Opnået · {badge.RankName}" : "Mangler")</div>
+            <div class="v2-levels" aria-label="@badge.Rank af 5 niveauer">
+                @for (var i = 0; i < 5; i++)
+                {
+                    <span class="@(i < badge.Rank ? "achieved" : null)"></span>
+                }
+            </div>
+            <div class="badge-stat">@badge.Topic · demotal</div>
+        </a>
+    }
+</div>
+@if (WallOnly)
+{
+    <div class="panel" style="margin-top:20px">
+        <h2>Certifikater</h2>
+        <p>Forløbsbeviser kan vises her, når underviseren har tildelt dem. Et emnebadge er ikke automatisk et formelt uddannelsesbevis.</p>
+    </div>
+}
+else
+{
+    <div class="callout">De fem niveauer er: Lille, Mellem, Stor, Mega og Ultra mega. Særlige badges som Hawaii og Fancy Friday bruger deres egne krav.</div>
+}
+
+@code {
+    [Parameter] public bool WallOnly { get; set; }
+
+    private string _filter = "Alle";
+    private IEnumerable<DemoCatalog.Badge> Owned => DemoCatalog.Badges.Where(b => b.Rank > 0);
+    private IEnumerable<DemoCatalog.Badge> Visible => DemoCatalog.Badges.Where(b =>
+        WallOnly
+            ? b.Rank > 0
+            : _filter switch
+            {
+                "Mine" => b.Rank > 0,
+                "Mangler" => b.Rank == 0,
+                _ => true
+            });
+
+    private static string Glyph(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => char.ToUpperInvariant(w[0])));
+}

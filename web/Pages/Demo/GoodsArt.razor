@@ -1,0 +1,22 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+<div class="v4-product-art">
+    @if (Item.Kind == "Tøj")
+    {
+        <span class="v4-shirt @Item.Style" style="@($"--cloth:{Item.Color ?? World.Outfit};--cloth-light:#ffffff60")" aria-hidden="true"></span>
+    }
+    else
+    {
+        <span class="v2-furniture @Item.Style" aria-hidden="true"></span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DemoGoods Item { get; set; } = default!;
+
+    protected override void OnInitialized() => World.Changed += OnChanged;
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Mercantec.Tech.Web;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Demo;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -28,6 +29,7 @@ else
     apiBaseUri = new Uri(new Uri(builder.HostEnvironment.BaseAddress), relative);
 }
 
+builder.Services.AddScoped<DemoWorld>();
 builder.Services.AddScoped<TokenStore>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

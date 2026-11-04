@@ -79,17 +79,7 @@ else if (PathKey == "badges")
 {
     <header class="page-title"><div><h1>Badgekatalog</h1><p>Fem niveauer: Lille, Mellem, Stor, Mega, Ultra mega.</p></div></header>
     <DemoTodo Issue="25" Text="Rang er kun vist. Den gemmes ikke som karrierevalg." />
-    <div class="tiles">
-        @foreach (var badge in DemoCatalog.Badges)
-        {
-            <section class="panel">
-                <h2>@badge.Name</h2>
-                <p>@badge.Topic</p>
-                <p>@badge.Desc</p>
-                <p>@(badge.Rank > 0 ? $"Niveau {badge.Rank} · {badge.RankName}" : "Ikke opnået i eksemplet")</p>
-            </section>
-        }
-    </div>
+    <BadgeWall />
 }
 else if (PathKey == "help")
 {

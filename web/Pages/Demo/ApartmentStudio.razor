@@ -1,0 +1,81 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser demo…</p>
+}
+else
+{
+    <header class="page-title"><div><h1>Min lejlighed</h1><p>Demo. Ét rum, 8×6 felter. Vælg et møbel, og placér det på et frit felt.</p></div></header>
+    <DemoTodo Issue="24" Text="Rummet gemmes kun i denne browser. Det er ikke en bolig på serveren." />
+    <div class="cols">
+        <section class="v2-room-wrap">
+            <div class="v2-room" aria-label="Dit rum, 8 gange 6 felter">
+                @for (var i = 0; i < 48; i++)
+                {
+                    var cell = i;
+                    var placed = World.RoomItem(cell);
+                    <button type="button" class="v2-room-cell" aria-pressed="@DemoWorld.Pressed(World.SelectedCell == cell)" aria-label="@CellLabel(cell, placed)" @onclick="() => World.ClickCell(cell)">
+                        @if (placed is not null)
+                        {
+                            <span class="v2-furniture @placed" aria-hidden="true"></span>
+                        }
+                    </button>
+                }
+            </div>
+            <p class="v2-status" aria-live="polite">@(World.NoticeArea == "room" ? World.Notice : "Vælg et møbel fra inventaret.")</p>
+            @if (World.SelectedCell is int selected && World.RoomItem(selected) is not null)
+            {
+                <div class="actions">
+                    <button type="button" class="secondary" @onclick="World.BeginMove">Flyt møbel</button>
+                    <button type="button" class="secondary" @onclick="World.RemoveSelected">Tilbage til inventar</button>
+                </div>
+            }
+        </section>
+        <aside class="aside">
+            <section class="panel">
+                <h2>Dit inventar</h2>
+                <p class="tiny muted">Seng, bord, stol og plante følger med fra start. Opslagstavlen er en gave og står ikke i butikken.</p>
+                <div class="v2-inventory">
+                    @foreach (var item in World.Furniture.Where(World.Owned))
+                    {
+                        var placed = World.Placed(item.Id);
+                        <button type="button" class="v2-item" aria-pressed="@DemoWorld.Pressed(World.SelectedItem == item.Id)" disabled="@placed" @onclick="() => World.ChooseFurniture(item.Id)">
+                            <span class="v2-furniture @item.Style" aria-hidden="true"></span>
+                            <span>
+                                @item.Name<br />
+                                <span class="muted">@(placed ? "I rummet" : item.Id == DemoWorld.Gift.Id ? "Gave" : "Ejet")</span>
+                            </span>
+                        </button>
+                    }
+                </div>
+                <a href="/universe/shop">Køb flere møbler</a>
+            </section>
+            <section class="panel">
+                <div class="v2-home-sprite"><AvatarSprite /></div>
+                <h2>Dit univers</h2>
+                <p>Figuren følger med i prøvespillet.</p>
+                <a href="/profile/character">Tilpas avatar</a>
+            </section>
+        </aside>
+    </div>
+}
+
+@code {
+    private static string CellLabel(int index, string? item)
+    {
+        var name = item is null ? "tomt" : DemoWorld.Goods.FirstOrDefault(g => g.Id == item)?.Name ?? DemoWorld.Gift.Name;
+        return $"Række {index / 8 + 1}, felt {index % 8 + 1}, {name}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

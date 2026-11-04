@@ -3,6 +3,9 @@
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @inject IJSRuntime Js
+@inject DemoWorld World
+@using Mercantec.Tech.Web.Demo
+@using Mercantec.Tech.Web.Pages.Demo
 @implements IDisposable
 
 <div class="lup">
@@ -71,10 +74,11 @@
                         </div>
                     </details>
                     <details class="lup-account v3-navgroup">
-                        <summary aria-label="Profil og indstillinger"><span class="avatar">@Initials</span></summary>
+                        <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarSprite Mini="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
                             <p class="lup-account-name">@(Auth.DisplayName ?? "Bruger")</p>
                             <p class="lup-account-sub">@(IsTeacher ? "Underviser" : "Elev") · LUP</p>
+                            <p class="lup-account-sub">Avataren er en demo i denne browser.</p>
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
                             <NavLink href="/rights" Match="NavLinkMatch.All">Mine rettigheder</NavLink>
                             <NavLink href="/profile/character" Match="NavLinkMatch.All">Min avatar</NavLink>
@@ -175,6 +179,7 @@
         new("Mine badges", "/progress/badges"),
         new("Mine projekter", "/projects/mine"),
         new("Min avatar", "/profile/character"),
+        new("Prøvespil", "/games/avatar-demo"),
         new("Min lejlighed", "/apartment"),
         new("Butik", "/universe/shop"),
         new("Level-oplåsninger", "/universe/unlocks")
@@ -214,6 +219,7 @@
     {
         Auth.AuthStateChanged += OnAuthChanged;
         Nav.LocationChanged += OnLocation;
+        World.Changed += OnAuthChanged;
         _demoCourse = "h3";
     }
 
@@ -228,6 +234,7 @@
         try
         {
             _theme = await Js.InvokeAsync<string>("lupTheme.get");
+            await World.EnsureAsync();
             var stored = await Js.InvokeAsync<string?>("lupCourse.get");
             if (stored is not null)
                 _demoCourse = stored;
@@ -268,6 +275,7 @@
                 || path.StartsWith("/teacher/badges", StringComparison.Ordinal),
             "Udforsk" => path.StartsWith("/explore", StringComparison.Ordinal) || path is "/badges" || path.StartsWith("/badges/", StringComparison.Ordinal),
             _ => path is "/progress" or "/apartment" or "/games" or "/notifications" or "/onboarding"
+                || path.StartsWith("/games/", StringComparison.Ordinal)
                 || path.StartsWith("/progress/", StringComparison.Ordinal)
                 || path.StartsWith("/projects", StringComparison.Ordinal)
                 || path.StartsWith("/profile/", StringComparison.Ordinal)
@@ -301,6 +309,7 @@
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuthChanged;
+        World.Changed -= OnAuthChanged;
         Nav.LocationChanged -= OnLocation;
     }
 

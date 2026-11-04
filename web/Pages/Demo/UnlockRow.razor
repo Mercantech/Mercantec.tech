@@ -1,0 +1,20 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+<div class="v4-unlock-row">
+    <GoodsArt Item="Item" />
+    <div>
+        <strong>@Item.Name</strong>
+        <small>@Item.Kind · @(Item.Cost == 0 ? "Startinventar" : $"{Item.Cost} guld")@(Item.Badge is null ? "" : $" · {World.LockText(Item)}")</small>
+    </div>
+    <a href="@($"/universe/shop/items/{Item.Id}")">@(World.Owned(Item) ? "Ejet" : World.Unlocked(Item) ? "Se varen" : "Se krav")</a>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public DemoGoods Item { get; set; } = default!;
+
+    protected override void OnInitialized() => World.Changed += OnChanged;
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

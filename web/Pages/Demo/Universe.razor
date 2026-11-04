@@ -11,6 +11,7 @@
 @using Mercantec.Tech.Web.Demo
 @inject NavigationManager Nav
 @inject AuthService Auth
+@inject DemoWorld World
 @implements IDisposable
 
 <PageTitle>@Title</PageTitle>
@@ -30,7 +31,7 @@ else if (PathKey == "progress")
     <div class="v3-wallet-panel">
         <div><strong>Level @DemoCatalog.Level</strong><span>160 XP til næste level</span></div>
         <div><strong>1.240</strong><span>Samlet karriere-XP · demo</span></div>
-        <div class="v3-gold"><strong>320</strong><span>Guld · demo</span></div>
+        <div class="v3-gold"><strong>@(World.Ready ? World.Gold : DemoCatalog.Gold)</strong><span>Guld · demo i denne browser</span></div>
     </div>
     <section class="panel">
         <h2>Forløbs-XP</h2>
@@ -41,13 +42,8 @@ else if (PathKey == "progress")
 else if (PathKey == "progress/badges")
 {
     <header class="page-title"><div><h1>Mine badges</h1><p>Det, Alex har opnået i eksemplet.</p></div></header>
-    <DemoTodo Issue="25" Text="Badges på væggen er eksempeldata." />
-    <div class="tiles">
-        @foreach (var badge in DemoCatalog.Badges.Where(b => b.Rank > 0))
-        {
-            <section class="panel"><h2>@badge.Name</h2><p>Niveau @badge.Rank · @badge.RankName</p><p>@badge.Desc</p></section>
-        }
-    </div>
+    <DemoTodo Issue="25" Text="Badges på væggen er eksempeldata. De tildeles ikke her." />
+    <BadgeWall WallOnly="true" />
 }
 else if (PathKey == "projects/mine")
 {
@@ -56,6 +52,7 @@ else if (PathKey == "projects/mine")
     @foreach (var project in DemoCatalog.Projects)
     {
         <article class="panel" style="margin-bottom:14px">
+            <img class="v2-project-image" src="@(project.Id == "rune" ? "lup/assets/project-cover.jpg" : "lup/assets/h3-cover.jpg")" alt="" />
             <h2>@project.Name</h2>
             <p>@project.Visibility · @project.Likes likes</p>
             <p>@project.Desc</p>
@@ -69,81 +66,55 @@ else if (PathKey == "projects/mine")
 }
 else if (PathKey == "profile/character")
 {
-    <header class="page-title"><div><h1>Min avatar</h1><p>Titel og ekstra tema følger level i eksemplet.</p></div></header>
-    <DemoTodo Issue="25" Text="Titel og tema kan ikke vælges eller gemmes. Underviseren kan ikke sætte level her." />
-    <section class="panel">
-        <h2>Alex Jensen</h2>
-        <p>Valgt titel: Systembygger · åben fra level 2.</p>
-        <p>Valgt ekstra tema: Nordlys · åbent fra level 3.</p>
-        <p>Basis-temaerne System, Lyst, Mørkt og Rainbow er frie og ligger i profilmenuen.</p>
-        <label class="field">Titel<select disabled><option>Systembygger</option><option>Mentor · låst til level 9</option></select></label>
-        <label class="field">Ekstra tema<select disabled><option>Nordlys</option><option>Kobber · låst til level 9</option></select></label>
-    </section>
+    <AvatarStudio />
 }
 else if (PathKey == "apartment")
 {
-    <header class="page-title"><div><h1>Min lejlighed</h1><p>Ét rum, 8×6 felter. To startmøbler står i eksemplet.</p></div></header>
-    <DemoTodo Issue="24" Text="Møbler kan ikke flyttes eller fjernes. Rummet gemmes ikke." />
-    <div class="v2-room" aria-label="Eksempelrum, 8 gange 6" style="display:grid;grid-template-columns:repeat(8,32px);gap:4px">
-        @for (var i = 0; i < 48; i++)
-        {
-            <button type="button" class="v2-room-cell" disabled aria-label="@CellLabel(i)">@CellMark(i)</button>
-        }
-    </div>
-    <p>Skrivebord og plante er startmøbler. Opslagstavlen er en gave og kan først stilles, når level er nået.</p>
+    <ApartmentStudio />
 }
 else if (PathKey == "universe/shop")
 {
-    <header class="page-title"><div><h1>Butik</h1><p>320 guld i eksemplet. Køb er slået fra.</p></div></header>
-    <DemoTodo Issue="34" Text="Køb trækker ikke guld og giver ikke ejerskab." />
-    <section class="panel">
-        <h2>Gave · @DemoCatalog.Gift.Name</h2>
-        <DemoTodo Issue="26" Text="Gaven er ikke den samme ting som det, butikken sælger. Den kan ikke tildeles endnu." />
-        <p>Level @DemoCatalog.Gift.Level. @DemoCatalog.Gift.Desc</p>
-        <button type="button" class="secondary" disabled>Modtaget i eksemplet</button>
-    </section>
-    <div class="tiles">
-        @foreach (var item in DemoCatalog.Shop)
-        {
-            <section class="panel">
-                <h2>@item.Name</h2>
-                <p>@item.Kind · level @item.Level · @item.Cost guld</p>
-                <p>@item.Desc</p>
-                <button type="button" class="action" disabled>@(item.Cost == 0 ? "Start" : "Køb")</button>
-            </section>
-        }
-    </div>
+    <ShopBoard />
 }
 else if (PathKey == "universe/unlocks")
 {
-    <header class="page-title"><div><h1>Level-oplåsninger</h1><p>Level @DemoCatalog.Level i eksemplet. Låste rækker bliver stående.</p></div></header>
-    <DemoTodo Issue="25" Text="Level sættes ikke af underviseren, og valg gemmes ikke." />
-    <DemoTodo Issue="26" Text="Møbel-gaven tildeles ikke automatisk ved level." />
-    <div class="panel">
-        @foreach (var unlock in DemoCatalog.Unlocks)
+    <UnlockRoadmap />
+    <section class="panel" style="margin-top:18px">
+        <h2>Titler og ekstra temaer</h2>
+        <DemoTodo Issue="25" Text="Titel og ekstra tema kan ses, men ikke vælges. Basis-temaerne ligger i profilmenuen." />
+        @foreach (var unlock in DemoCatalog.Unlocks.Where(u => u.Type is "Titel" or "Tema"))
         {
             <div class="row">
                 <span class="mark"><span class="mark-glyph">@unlock.Level</span></span>
                 <div><h3>@unlock.Name</h3><p>@unlock.Type · level @unlock.Level · @(unlock.Open ? "Åben i eksemplet" : "Låst")</p></div>
             </div>
         }
-    </div>
+    </section>
 }
 else if (PathKey == "games")
 {
-    <header class="page-title"><div><h1>Spil</h1><p>Highscore er en visning. Der er ingen upload.</p></div></header>
-    <DemoTodo Text="Spil kan ikke uploades, og scoren opdateres ikke. Der er ikke et issue-nummer endnu." />
-    <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
-    <table class="table">
-        <thead><tr><th>Elev</th><th>Spil</th><th>Point</th></tr></thead>
-        <tbody>
-            @foreach (var score in DemoCatalog.Highscores)
-            {
-                <tr><td>@score.Name</td><td>@score.Game</td><td>@score.Points</td></tr>
-            }
-        </tbody>
-    </table>
-    <button type="button" class="action" disabled>Upload spil</button>
+    <header class="page-title"><div><h1>Spil</h1><p>Highscore er en visning. Prøvespillet bruger din demo-avatar.</p></div></header>
+    <DemoTodo Text="Spil kan ikke uploades, og highscoren opdateres ikke. Prøvespillet er en lokal demo." />
+    <div class="cols">
+        <a class="tile" href="/games/avatar-demo">
+            <div class="v2-home-sprite"><AvatarSprite /></div>
+            <h2>Rune Run Mini</h2>
+            <p>Saml tre runer med den figur, du har sat sammen.</p>
+        </a>
+        <section class="panel">
+            <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
+            <h2>Eksempel-highscore</h2>
+            <table class="table">
+                <thead><tr><th>Elev</th><th>Point</th></tr></thead>
+                <tbody>
+                    @foreach (var score in DemoCatalog.Highscores)
+                    {
+                        <tr><td>@score.Name</td><td>@score.Points</td></tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    </div>
 }
 else if (PathKey == "notifications")
 {
@@ -191,21 +162,18 @@ else
         _ => "Onboarding"
     };
 
-    private static string CellMark(int index) => index switch
+    protected override async Task OnInitializedAsync()
     {
-        9 => "Bord",
-        10 => "Plante",
-        _ => ""
-    };
+        Auth.AuthStateChanged += OnAuth;
+        World.Changed += OnAuth;
+        await World.EnsureAsync();
+    }
 
-    private static string CellLabel(int index) => index switch
-    {
-        9 => "Skrivebord",
-        10 => "Plante",
-        _ => "Tomt felt"
-    };
-
-    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
     private void OnAuth() => InvokeAsync(StateHasChanged);
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        World.Changed -= OnAuth;
+    }
 }

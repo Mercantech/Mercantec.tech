@@ -1,0 +1,103 @@
+@page "/games/avatar-demo"
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@inject AuthService Auth
+@implements IDisposable
+
+<PageTitle>Rune Run Mini</PageTitle>
+
+@if (!Auth.IsInitialized || !World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <header class="page-title"><div><h1>Din avatar i Rune Run Mini</h1><p>Demo. En lille 2D-test: saml tre runer, og find portalen.</p></div></header>
+    <DemoTodo Text="Prøvespillet gemmer kun din rute i denne browser. Det er ikke et spil fra dit forløb, og scoren gemmes ikke." />
+    <div class="cols" @ref="_board" tabindex="0" @onkeydown="OnKey">
+        <section class="panel">
+            <h2>@(World.GameWon ? "Du nåede i mål!" : "Find en rute gennem banen")</h2>
+            <div class="v2-gamegrid" role="img" aria-label="Spilbane med din avatar, tre runer og en portal">
+                @for (var i = 0; i < 48; i++)
+                {
+                    <div class="v2-gamecell @(World.IsWall(i) ? "wall" : null)">
+                        @if (World.Player == i)
+                        {
+                            <AvatarSprite Mini="true" />
+                        }
+                        else if (i == 7)
+                        {
+                            <span>◎</span>
+                        }
+                        else if (World.ShowRune(i))
+                        {
+                            <span>✦</span>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="v2-controls" aria-label="Flyt avataren">
+                <button type="button" style="grid-column:2" aria-label="Op" @onclick="@(() => Move("up"))">↑</button>
+                <button type="button" style="grid-column:1;grid-row:2" aria-label="Venstre" @onclick="@(() => Move("left"))">←</button>
+                <button type="button" style="grid-column:2;grid-row:2" aria-label="Ned" @onclick="@(() => Move("down"))">↓</button>
+                <button type="button" style="grid-column:3;grid-row:2" aria-label="Højre" @onclick="@(() => Move("right"))">→</button>
+            </div>
+            <p class="v2-status" aria-live="polite">@World.Collected.Count af 3 runer samlet. @(World.GameWon ? "Godt klaret." : "Brug knapperne eller piletasterne.")</p>
+        </section>
+        <aside class="aside">
+            <section class="panel">
+                <h2>Den samme figur</h2>
+                <p>Tøj, hår og hudtone følger din avatar i demoen.</p>
+                <div class="actions">
+                    <a class="secondary" href="/profile/character">Tilpas avataren</a>
+                    <button type="button" class="secondary" @onclick="World.ResetGame">Start banen igen</button>
+                </div>
+            </section>
+        </aside>
+    </div>
+}
+
+@code {
+    private ElementReference _board;
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && World.Ready && Auth.IsAuthenticated)
+            await _board.FocusAsync();
+    }
+
+    private void Move(string direction) => World.MovePlayer(direction);
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        var direction = e.Key switch
+        {
+            "ArrowUp" => "up",
+            "ArrowDown" => "down",
+            "ArrowLeft" => "left",
+            "ArrowRight" => "right",
+            _ => null
+        };
+        if (direction is not null)
+            World.MovePlayer(direction);
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnChanged;
+        World.Changed -= OnChanged;
+    }
+}

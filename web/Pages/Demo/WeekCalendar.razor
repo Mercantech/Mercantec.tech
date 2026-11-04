@@ -1,0 +1,85 @@
+@using Mercantec.Tech.Web.Demo
+
+<div class="v2-toolbar">
+    <h2>Uge 45 · 2.–6. november</h2>
+    <span class="lup-demo-tag">Demo</span>
+</div>
+<div class="v2-legend">
+    <span class="v2-presence"><i class="v2-dot green"></i>Mødt</span>
+    <span class="v2-presence"><i class="v2-dot yellow"></i>Delvist</span>
+    <span class="v2-presence"><i class="v2-dot blue"></i>Planlagt</span>
+</div>
+<div class="v2-calendar" aria-label="Ugekalender">
+    <div class="v2-hours" aria-hidden="true">
+        @for (var hour = 8; hour <= 14; hour++)
+        {
+            <div>@hour</div>
+        }
+    </div>
+    @foreach (var day in Days)
+    {
+        <section class="v2-cal-col">
+            <div class="v2-cal-head">
+                <strong>@day.Name</strong>
+                <span class="v2-presence"><i class="v2-dot @day.Tone"></i>@day.State</span>
+            </div>
+            <div class="v2-cal-body">
+                @foreach (var item in Events.Where(e => e.Day == day.Index))
+                {
+                    <a class="v2-event @(item.Quest ? "quest" : null) @(item.Minutes <= 45 ? "is-short" : null)" style="@($"--event-top:{Top(item)}px;--event-height:{Height(item)}px")" href="@(item.Quest ? "/quests" : "/calendar")">
+                        <small>@Clock(item)</small>
+                        <strong>@item.Title</strong>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+</div>
+<p class="v2-calendar-note">Eksempelplan for H3 og Game Design. Fremmøde og tider gemmes ikke.</p>
+@if (Teacher)
+{
+    <div class="v2-planning" style="margin-top:22px">
+        <section class="panel">
+            <h2>Placerede aktiviteter</h2>
+            <p>Blokkenes farve viser undervisning og quests. De kan ikke trækkes endnu.</p>
+        </section>
+        <aside class="v2-backlog">
+            <h2>Quests til planen</h2>
+            @foreach (var quest in DemoCatalog.Quests.Take(4))
+            {
+                <a href="/quests">@quest.Name<small>@quest.Type · @(quest.Course == "h3" ? "H3" : "Game Design")</small></a>
+            }
+        </aside>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Teacher { get; set; }
+
+    private static readonly (int Index, string Name, string Tone, string State)[] Days =
+    [
+        (0, "Man 2.", "green", "Mødt"),
+        (1, "Tir 3.", "green", "Mødt"),
+        (2, "Ons 4.", "yellow", "Delvist"),
+        (3, "Tor 5.", "blue", "Planlagt"),
+        (4, "Fre 6.", "blue", "Planlagt")
+    ];
+
+    private static readonly CalEvent[] Events =
+    [
+        new(0, 8 * 60 + 15, 90, "Serverside · API", false),
+        new(0, 10 * 60 + 15, 75, "Målinger i dashboard", false),
+        new(1, 8 * 60 + 30, 60, "Fejlsvar", true),
+        new(1, 10 * 60, 90, "Database", false),
+        new(2, 9 * 60, 120, "Rune Run · fælles teori", false),
+        new(3, 8 * 60 + 15, 90, "MQTT-fejlfinding", true),
+        new(3, 12 * 60, 45, "Logbog", true),
+        new(4, 8 * 60 + 30, 90, "Review", false)
+    ];
+
+    private static int Top(CalEvent item) => (item.Start - 8 * 60) * 65 / 60;
+    private static int Height(CalEvent item) => Math.Max(28, item.Minutes * 65 / 60 - 4);
+    private static string Clock(CalEvent item) => $"{item.Start / 60}.{item.Start % 60:00}";
+
+    private sealed record CalEvent(int Day, int Start, int Minutes, string Title, bool Quest);
+}

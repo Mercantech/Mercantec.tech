@@ -5,6 +5,9 @@
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @inject HttpClient Http
+@inject DemoWorld World
+@using Mercantec.Tech.Web.Demo
+@using Mercantec.Tech.Web.Pages.Demo
 @implements IDisposable
 
 <PageTitle>Elev</PageTitle>
@@ -51,6 +54,25 @@ else
             }
         }
     </section>
+
+    <section class="panel" style="margin-top:18px">
+        <DemoTodo Text="Avataren, lejligheden og butikken er en demo. De gemmes kun i denne browser." />
+        <div class="cols">
+            <a class="tile" href="/profile/character">
+                <div class="v2-home-sprite"><AvatarSprite /></div>
+                <h2>Din avatar</h2>
+                <p>Hud, hår og garderobe følger med i prøvespillet.</p>
+            </a>
+            <a class="tile" href="/apartment">
+                <h2>Din lejlighed</h2>
+                <p>Placér, flyt og fjern møbler i rummet på 8×6 felter.</p>
+            </a>
+            <a class="tile" href="/universe/shop">
+                <h2>Butik</h2>
+                <p>Køb tøj og møbler for demo-guld.</p>
+            </a>
+        </div>
+    </section>
 }
 
 @code {
@@ -61,7 +83,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
+        World.Changed += OnWorld;
         EnsureAccess();
+        await World.EnsureAsync();
         await CheckLectioLinkAsync();
         await LoadMembershipsAsync();
     }
@@ -140,7 +164,13 @@ else
         }
     }
 
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    private void OnWorld() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        World.Changed -= OnWorld;
+    }
 
     private sealed record MembershipRow(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 }

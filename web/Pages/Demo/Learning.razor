@@ -26,13 +26,8 @@ else
 
     @if (PathKey is "calendar")
     {
-        <DemoTodo Issue="30" Text="Fremmøde gemmes ikke. Farverne er et eksempel for uge 3." />
-        <div class="tiles">
-            @foreach (var day in Days)
-            {
-                <section class="panel"><h2>@day.Name</h2><p>@day.Tone · @day.State</p><p>Serverside · API og målinger</p></section>
-            }
-        </div>
+        <DemoTodo Issue="30" Text="Fremmøde gemmes ikke. Ugen er et eksempel." />
+        <WeekCalendar />
     }
     else if (PathKey is "quests")
     {
@@ -64,26 +59,7 @@ else
     }
     else if (PathKey is "activities")
     {
-        <DemoTodo Issue="32" Text="Statusprikkerne er et eksempel. Afkrydsning gemmes ikke." />
-        <div class="lup-status-legend">
-            <span class="lup-state-important"><i class="lup-status-dot" aria-hidden="true"></i>Vigtigt</span>
-            <span class="lup-state-optional"><i class="lup-status-dot" aria-hidden="true"></i>Kan gøre</span>
-            <span class="lup-state-ready"><i class="lup-status-dot" aria-hidden="true"></i>Intet mangler</span>
-        </div>
-        <div class="v4-activity-list">
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Main</strong></p><h3>Miniprojekt · Fyld maskinen</h3><p class="v4-status lup-important-text">Aflevering mangler</p></div>
-                <button type="button" class="secondary" disabled>Marker</button>
-            </article>
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Afstemning</strong></p><h3>Hvad skal vi bruge mere tid på?</h3><p class="v4-status lup-important-text">Venter på dit svar</p></div>
-                <a class="secondary" href="/activities">Se</a>
-            </article>
-            <article class="v4-activity">
-                <div class="v4-activity-main"><p class="v4-type"><strong>Daily</strong></p><h3>Skriv dagens tre linjer</h3><p class="v4-status lup-optional-text">Kan gøres</p></div>
-                <button type="button" class="secondary" disabled>Marker</button>
-            </article>
-        </div>
+        <ActivitiesBoard />
     }
     else if (PathKey is "education")
     {
@@ -110,12 +86,19 @@ else
         <DemoTodo Issue="29" Text="Uger og fag er eksempeltekst. De hentes ikke fra API’et." />
         <img src="lup/assets/h3-cover.jpg" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
         <p>@course.Teacher · @course.Duration</p>
-        <div class="panel">
+        <article class="v2-document">
+            <h2>Ugerne</h2>
             @foreach (var week in course.Weeks.Select((name, index) => (name, index)))
             {
-                <div class="row"><span class="mark"><span class="mark-glyph">@(week.index + 1)</span></span><div><h3>@week.name</h3><p>@(week.index == 2 ? "Aktuel uge i eksemplet." : "Planlagt uge.")</p></div></div>
+                <details class="v2-week" open="@(week.index == 2)">
+                    <summary>Uge @(week.index + 1) · @week.name</summary>
+                    <div class="v2-day-row">
+                        <strong>@(week.index == 2 ? "Aktuel uge i eksemplet" : "Planlagt uge")</strong>
+                        <p>@course.Subjects[Math.Min(week.index, course.Subjects.Length - 1)].Desc</p>
+                    </div>
+                </details>
             }
-        </div>
+        </article>
     }
     else
     {
@@ -124,6 +107,7 @@ else
             @foreach (var course in DemoCatalog.Courses)
             {
                 <a class="tile" href="@($"/learning/{course.Id}")">
+                    <img class="v2-card-image" src="@(course.Id == "game" ? "lup/assets/game-cover.jpg" : "lup/assets/h3-cover.jpg")" alt="" />
                     <h2>@course.Name</h2>
                     <p>@course.Desc</p>
                 </a>
@@ -146,15 +130,6 @@ else
 
 @code {
     [Parameter] public string? CourseId { get; set; }
-
-    private static readonly (string Name, string Tone, string State)[] Days =
-    [
-        ("Man", "Grøn", "Mødt"),
-        ("Tir", "Grøn", "Mødt"),
-        ("Ons", "Gul", "Delvist"),
-        ("Tor", "Blå", "Planlagt"),
-        ("Fre", "Blå", "Planlagt")
-    ];
 
     private string PathKey
     {

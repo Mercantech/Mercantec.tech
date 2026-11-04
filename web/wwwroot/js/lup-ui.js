@@ -34,6 +34,15 @@ window.lupCourse = {
     }
 };
 
+window.lupDemo = {
+    get() {
+        return localStorage.getItem("lup-demo-world");
+    },
+    set(value) {
+        localStorage.setItem("lup-demo-world", value || "");
+    }
+};
+
 window.lupIcons = () => {
     if (window.lucide?.createIcons)
         window.lucide.createIcons();

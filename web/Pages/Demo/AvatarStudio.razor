@@ -1,0 +1,109 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser demo…</p>
+}
+else
+{
+    <header class="page-title"><div><h1>Min avatar og garderobe</h1><p>Demo. Dit købte tøj følger figuren i lejligheden og prøvespillet, kun i denne browser.</p></div></header>
+    <DemoTodo Issue="25" Text="Hud, hår og tøj gemmes lokalt som demo. Det er ikke en profil på serveren, og det giver ikke XP." />
+    <div class="cols">
+        <section class="panel">
+            <div class="v2-avatar-stage" role="img" aria-label="@($"Din avatar med {World.Equipped.Name}")">
+                <AvatarSprite />
+            </div>
+            <h2>@World.Equipped.Name</h2>
+            <div class="actions">
+                <a class="action" href="/games/avatar-demo">Prøv avataren i et spil</a>
+                <a class="secondary" href="/universe/shop">Køb tøj i butikken</a>
+            </div>
+            <div class="headrow"><h2>Min garderobe</h2><span>@World.OwnedWear.Count sæt</span></div>
+            <div class="v4-wardrobe">
+                @foreach (var item in DemoWorld.Goods.Where(g => g.Kind == "Tøj" && World.Owned(g)))
+                {
+                    <button type="button" aria-pressed="@DemoWorld.Pressed(World.EquippedId == item.Id)" @onclick="() => World.Equip(item.Id)">
+                        <span class="v4-shirt @item.Style" style="@($"--cloth:{item.Color ?? World.Outfit};--cloth-light:#ffffff60")" aria-hidden="true"></span>
+                        <span>@item.Name</span>
+                        @if (World.EquippedId == item.Id)
+                        {
+                            <span>✓ På</span>
+                        }
+                    </button>
+                }
+            </div>
+            <a href="/universe/unlocks">Se kommende tøj og oplåsninger</a>
+        </section>
+        <aside class="aside">
+            <section class="panel">
+                <h2>Dit udtryk</h2>
+                <strong class="small">Hudtone</strong>
+                <div class="v2-options">
+                    @foreach (var (color, name) in Skin)
+                    {
+                        <button type="button" class="v2-swatch" style="@($"--swatch:{color}")" aria-label="@name" aria-pressed="@DemoWorld.Pressed(World.Skin == color)" @onclick="@(() => World.SetColor("skin", color))"></button>
+                    }
+                </div>
+                <strong class="small">Hårfarve</strong>
+                <div class="v2-options">
+                    @foreach (var (color, name) in Hair)
+                    {
+                        <button type="button" class="v2-swatch" style="@($"--swatch:{color}")" aria-label="@name" aria-pressed="@DemoWorld.Pressed(World.Hair == color)" @onclick="@(() => World.SetColor("hair", color))"></button>
+                    }
+                </div>
+                <strong class="small">Hår og tilbehør</strong>
+                <div class="v2-options">
+                    @foreach (var (style, name) in Styles)
+                    {
+                        <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(World.HairStyle == style)" @onclick="() => World.SetHair(style)">@name</button>
+                    }
+                </div>
+                @if (World.EquippedId == "basic")
+                {
+                    <strong class="small">Basis-T-shirtens farve</strong>
+                    <div class="v2-options">
+                        @foreach (var (color, name) in Outfit)
+                        {
+                            <button type="button" class="v2-swatch" style="@($"--swatch:{color}")" aria-label="@name" aria-pressed="@DemoWorld.Pressed(World.Outfit == color)" @onclick="@(() => World.SetColor("outfit", color))"></button>
+                        }
+                    </div>
+                }
+            </section>
+            <section class="panel">
+                <h2>Badges giver adgang</h2>
+                <p>Hawaii-skjorten kræver Hawaii-badget. Fancy Friday åbner et særligt sæt. Level og badge åbner kun købet.</p>
+                <a href="/universe/unlocks">Se alle krav</a>
+            </section>
+        </aside>
+    </div>
+}
+
+@code {
+    private static readonly (string Color, string Name)[] Skin =
+    [
+        ("#edc5a2", "Lys"), ("#c98d69", "Mellem"), ("#8d5e44", "Brun"), ("#553b33", "Mørk")
+    ];
+    private static readonly (string Color, string Name)[] Hair =
+    [
+        ("#42302a", "Mørk"), ("#a76636", "Brun"), ("#d5ac62", "Lys"), ("#545ca0", "Lilla")
+    ];
+    private static readonly (string Color, string Name)[] Outfit =
+    [
+        ("#2452e8", "Blå"), ("#30826a", "Grøn"), ("#b66291", "Rosa"), ("#d47837", "Orange")
+    ];
+    private static readonly (string Style, string Name)[] Styles =
+    [
+        ("short", "Kort hår"), ("long", "Langt hår"), ("cap", "Kasket")
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}
