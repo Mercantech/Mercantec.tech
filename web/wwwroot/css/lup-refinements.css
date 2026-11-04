@@ -2,7 +2,7 @@
 .lup .row { --bs-gutter-x:0; --bs-gutter-y:0; margin:0; }
 .lup .row > * { width:auto; max-width:100%; padding:0; margin:0; }
 .lup .app { display:flex; flex-direction:column; min-height:100dvh; border-radius:0; }
-.lup .body { flex:1; min-width:0; }
+.lup .body { flex:1; min-width:0; width:100%; max-width:1440px; margin-inline:auto; }
 .lup .ui-icon { width:18px; height:18px; flex-shrink:0; display:inline-block; vertical-align:middle; }
 .lup .v3-medal .ui-icon { width:31px; height:31px; }
 .lup .lup-header .v3-menu { max-height:calc(100dvh - 90px); overflow-y:auto; }

@@ -1,4 +1,4 @@
-html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c)}.lup{max-width:1440px;margin:0 auto}.lup .app{border-radius:0;min-height:100vh}
+html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c)}.lup{width:100%;max-width:none;margin:0}.lup .app{border-radius:0;min-height:100vh}
 
 .lup{font-family:'DM Sans',sans-serif;color:light-dark(#17243b,#eaf0ff);--bg:light-dark(#f3f6fb,#101b2c);--paper:light-dark(#fff,#1a2940);--ink:light-dark(#17243b,#eaf0ff);--muted:light-dark(#63728b,#a8b8d0);--rule:light-dark(#dfe7f2,#33445e);--blue:light-dark(#2452e8,#9ab5ff);--on-blue:light-dark(#fff,#12254e);--tint:light-dark(#eaf0ff,#263c63);--sky:light-dark(#e8f2ff,#233c57);--peach:light-dark(#fff0e3,#3d3029);--orange:light-dark(#a84613,#ffb580);--green:light-dark(#216747,#8ed6af);--green-tint:light-dark(#e6f3ec,#243e36)}
 .lup *{box-sizing:border-box}.lup [hidden]{display:none!important}
