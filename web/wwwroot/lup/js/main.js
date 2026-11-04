@@ -517,48 +517,57 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-const THEME_KEY = "lup-dk-theme";
-const themeToggle = document.getElementById("theme-toggle");
+const THEMES = new Set(["system", "light", "dark", "christmas", "hacker"]);
+const themeSelect = document.getElementById("theme-select");
 
-/** Light er standard. Følger aldrig OS prefers-color-scheme. */
-const currentTheme = () =>
-  document.documentElement.dataset.theme === "dark" ||
-  document.documentElement.dataset.theme === "terminal"
-    ? "dark"
-    : "light";
-
-const applyTheme = (theme) => {
-  const next = theme === "dark" ? "dark" : "light";
-  document.documentElement.dataset.theme = next;
-  document.documentElement.style.colorScheme = next;
+const signedIn = () => {
   try {
-    localStorage.setItem(THEME_KEY, next);
-  } catch (_) {}
-  if (themeToggle) {
-    themeToggle.setAttribute(
-      "aria-label",
-      next === "dark" ? "Skift til lys tilstand" : "Skift til mørk tilstand"
-    );
-    themeToggle.title = next === "dark" ? "Lys tilstand" : "Mørk tilstand";
+    return !!sessionStorage.getItem("mt_access_token");
+  } catch (_) {
+    return false;
   }
 };
 
-{
-  let initial = "light";
+const storedTheme = () => {
   try {
-    const stored = localStorage.getItem(THEME_KEY);
-    if (stored === "dark") initial = "dark";
-    else if (stored === "terminal") {
-      // Tidligere tvungen terminal → reset til light
-      localStorage.setItem(THEME_KEY, "light");
-      initial = "light";
-    }
+    const stored = localStorage.getItem("lup-theme");
+    if (stored) return stored;
+    if (signedIn() && localStorage.getItem("lup-dk-theme") === "dark") return "dark";
   } catch (_) {}
-  applyTheme(initial);
-}
+  return null;
+};
 
-themeToggle?.addEventListener("click", () => {
-  applyTheme(currentTheme() === "dark" ? "light" : "dark");
+/** Samme nøgle som forsiden. Uden login er standarden lys, også når valget er System. */
+const currentTheme = () => {
+  const stored = storedTheme();
+  if (!signedIn() && (!stored || stored === "system")) return "light";
+  return THEMES.has(stored) ? stored : "light";
+};
+
+const applyTheme = (theme, persist = true) => {
+  const next = THEMES.has(theme) ? theme : "light";
+  if (persist) {
+    try {
+      localStorage.setItem("lup-theme", next);
+    } catch (_) {}
+  }
+  const chosen = !signedIn() && next === "system" ? "light" : next;
+  const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const resolved = chosen === "system" ? (osDark ? "dark" : "light") : chosen;
+  const dark = resolved === "dark" || resolved === "christmas" || resolved === "hacker";
+  document.documentElement.dataset.theme = resolved;
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  if (themeSelect) themeSelect.value = chosen;
+};
+
+applyTheme(currentTheme(), false);
+
+themeSelect?.addEventListener("change", () => {
+  applyTheme(themeSelect.value);
+});
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (signedIn() && storedTheme() === "system") applyTheme("system", false);
 });
 
 if (!location.hash || location.hash === "#") {

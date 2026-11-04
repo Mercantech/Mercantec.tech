@@ -169,3 +169,117 @@ html[data-theme="dark"] .foot,
 html[data-theme="terminal"] .foot {
   background: transparent;
 }
+
+.theme-field {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.theme-field select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.35rem 0.45rem;
+}
+
+html[data-theme="christmas"] {
+  --ink: #f6f4e9;
+  --ink-soft: #b4c9bf;
+  --paper: #081d18;
+  --foam: #0f2b24;
+  --moss: #f2cd83;
+  --moss-deep: #f2cd83;
+  --lime: #3c3c27;
+  --amber: #ffc08b;
+  --error: #ff9eac;
+  --line: #34544a;
+  --shadow: none;
+  --surface: #14342d;
+  --surface-strong: #14342d;
+  --surface-soft: #0f2b24;
+  --nav-bg: rgba(8, 29, 24, 0.92);
+  --rail-bg: rgba(20, 52, 45, 0.96);
+  --dot-ring: #081d18;
+  --dot-idle: #34544a;
+  --praktik-dot: #493329;
+  --check-fill: #081d18;
+  --fig-bg: #14342d;
+  --glow: rgba(242, 205, 131, 0.16);
+  --glow-strong: rgba(242, 205, 131, 0.24);
+  --bridge: rgba(242, 205, 131, 0.08);
+  --table-head: rgba(242, 205, 131, 0.12);
+  --card-accent-bg: #1a4034;
+  --logo-fg: #292211;
+  --logo-bg: #f2cd83;
+  --text-glow: none;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --radius: 10px;
+  color-scheme: dark;
+}
+
+html[data-theme="hacker"] {
+  --ink: #ddf3e6;
+  --ink-soft: #9bb9a8;
+  --paper: #07110e;
+  --foam: #0d2119;
+  --moss: #8aefaa;
+  --moss-deep: #8aefaa;
+  --lime: #1c3b2a;
+  --amber: #efc383;
+  --error: #ff9baa;
+  --line: #2a493b;
+  --shadow: none;
+  --surface: #10231c;
+  --surface-strong: #10231c;
+  --surface-soft: #0d2119;
+  --nav-bg: rgba(7, 17, 14, 0.92);
+  --rail-bg: rgba(16, 35, 28, 0.96);
+  --dot-ring: #07110e;
+  --dot-idle: #2a493b;
+  --praktik-dot: #392f21;
+  --check-fill: #07110e;
+  --fig-bg: #10231c;
+  --glow: rgba(138, 239, 170, 0.14);
+  --glow-strong: rgba(138, 239, 170, 0.22);
+  --bridge: rgba(138, 239, 170, 0.08);
+  --table-head: rgba(138, 239, 170, 0.12);
+  --card-accent-bg: #132f24;
+  --logo-fg: #092016;
+  --logo-bg: #8aefaa;
+  --text-glow: none;
+  --font-display: "Cascadia Code", Consolas, monospace;
+  --font-body: "DM Sans", sans-serif;
+  --radius: 5px;
+  color-scheme: dark;
+}
+
+html[data-theme="christmas"] .atmosphere,
+html[data-theme="hacker"] .atmosphere {
+  background:
+    radial-gradient(ellipse 55% 42% at 8% -4%, var(--glow), transparent 55%),
+    linear-gradient(180deg, var(--paper) 0%, var(--foam) 100%);
+}
+
+html[data-theme="christmas"] .prose,
+html[data-theme="christmas"] .tl-panel,
+html[data-theme="christmas"] .card,
+html[data-theme="hacker"] .prose,
+html[data-theme="hacker"] .tl-panel,
+html[data-theme="hacker"] .card {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="christmas"] .brand,
+html[data-theme="hacker"] .brand {
+  color: var(--moss);
+}

@@ -2,7 +2,8 @@
     const themes = new Set(["system", "light", "dark", "christmas", "hacker"]);
     const read = (key, fallback = null) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
     const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* Themes also work without storage. */ } };
-    const normalize = value => themes.has(value) ? value : "system";
+    const signedIn = () => { try { return !!sessionStorage.getItem("mt_access_token"); } catch { return false; } };
+    const normalize = value => themes.has(value) ? value : "light";
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let canvas, context, frame = 0, flakes = [], previous = 0, wind = 0, pointerX = -1000, pointerY = -1000;
     let width = 0, height = 0;
@@ -50,7 +51,11 @@
         else frame = requestAnimationFrame(draw);
     }
     window.lupTheme = {
-        get() { return normalize(read("lup-theme", "system")); },
+        get() {
+            const stored = read("lup-theme");
+            if (!signedIn() && (!stored || stored === "system")) return "light";
+            return normalize(stored ?? "light");
+        },
         resolved(theme) {
             const value = normalize(theme || this.get());
             return ["dark", "christmas", "hacker"].includes(value) ? "dark" : value === "light" ? "light" : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";

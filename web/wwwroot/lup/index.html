@@ -10,20 +10,21 @@
     <title>LUP · Lokale undervisningsplaner</title>
     <script>
       (() => {
-        // Light er standard — følg aldrig OS. Kun eksplicit "dark" fra toggle tæller.
-        // (Gammel tvungen "terminal" ignoreres, så alle starter i light igen.)
-        const key = "lup-dk-theme";
-        let theme = "light";
-        try {
-          const stored = localStorage.getItem(key);
-          if (stored === "dark") theme = "dark";
-          else if (stored === "terminal") {
-            localStorage.setItem(key, "light");
-            theme = "light";
-          }
-        } catch (_) {}
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.style.colorScheme = theme;
+        const themes = new Set(["system", "light", "dark", "christmas", "hacker"]);
+        let stored = null;
+        let legacy = null;
+        let authed = false;
+        try { stored = localStorage.getItem("lup-theme"); } catch (_) {}
+        try { legacy = localStorage.getItem("lup-dk-theme"); } catch (_) {}
+        try { authed = !!sessionStorage.getItem("mt_access_token"); } catch (_) {}
+        if (!stored && authed && legacy === "dark") stored = "dark";
+        let chosen = "light";
+        if (authed) chosen = themes.has(stored) ? stored : "light";
+        else if (stored && stored !== "system" && themes.has(stored)) chosen = stored;
+        const resolved = chosen === "system" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : chosen === "system" ? "light" : chosen;
+        const dark = resolved === "dark" || resolved === "christmas" || resolved === "hacker";
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,7 +34,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="plan.css" />
-    <link rel="stylesheet" href="plan-design.css?v=2" />
+    <link rel="stylesheet" href="plan-design.css?v=3" />
   </head>
   <body>
     <div class="atmosphere" aria-hidden="true"></div>
@@ -57,26 +58,16 @@
           <a href="#/h6" data-nav="h6">H6</a>
           <a href="#/praktik" data-nav="praktik">Praktik</a>
         </nav>
-        <button
-          type="button"
-          class="theme-toggle"
-          id="theme-toggle"
-          aria-label="Skift til mørk tilstand"
-          title="Skift tema"
-        >
-          <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M15.5 3.1a1 1 0 0 1 1.15 1.4A7.5 7.5 0 1 0 19.5 16a1 1 0 0 1 1.55 1.2A9.5 9.5 0 1 1 15.5 3.1Z"
-            />
-          </svg>
-          <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M12 4a1 1 0 0 1 1 1v1.2a1 1 0 1 1-2 0V5a1 1 0 0 1 1-1Zm0 12.8a4.8 4.8 0 1 0 0-9.6 4.8 4.8 0 0 0 0 9.6ZM5.6 5.6a1 1 0 0 1 1.4 0l.85.85a1 1 0 1 1-1.4 1.4L5.6 7A1 1 0 0 1 5.6 5.6Zm11.35.85a1 1 0 0 1 1.4-1.4L19.2 5.9a1 1 0 1 1-1.4 1.4l-.85-.85ZM4 12a1 1 0 0 1 1-1h1.2a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm13.8 0a1 1 0 0 1 1-1H20a1 1 0 1 1 0 2h-1.2a1 1 0 0 1-1-1ZM6.45 16.15a1 1 0 0 1 1.4 1.4l-.85.85a1 1 0 1 1-1.4-1.4l.85-.85Zm11.5 1.4a1 1 0 0 1 0-1.4l.85-.85a1 1 0 1 1 1.4 1.4l-.85.85a1 1 0 0 1-1.4 0ZM12 17.8a1 1 0 0 1 1 1V20a1 1 0 1 1-2 0v-1.2a1 1 0 0 1 1-1Z"
-            />
-          </svg>
-        </button>
+        <label class="theme-field">
+          Udseende
+          <select id="theme-select" aria-label="Udseende">
+            <option value="system">System</option>
+            <option value="light">Lyst</option>
+            <option value="dark">Mørkt</option>
+            <option value="christmas">Jul</option>
+            <option value="hacker">Hacker</option>
+          </select>
+        </label>
       </div>
     </header>
 
@@ -139,6 +130,6 @@
       </div>
     </footer>
 
-    <script type="module" src="js/main.js?v=32"></script>
+    <script type="module" src="js/main.js?v=33"></script>
   </body>
 </html>

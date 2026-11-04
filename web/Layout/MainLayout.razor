@@ -133,7 +133,7 @@
 </div>
 
 @code {
-    private string _theme = "system";
+    private string _theme = "light";
     private bool _loginBusy;
     private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
 
@@ -289,7 +289,7 @@
 
     private async Task SetTheme(ChangeEventArgs e)
     {
-        _theme = e.Value?.ToString() ?? "system";
+        _theme = e.Value?.ToString() ?? "light";
         await Js.InvokeVoidAsync("lupTheme.set", _theme);
     }
 

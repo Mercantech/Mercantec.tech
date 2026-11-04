@@ -5,6 +5,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LUP · Lokal UndervisningsPlatform</title>
+    <script>
+        (() => {
+            const themes = new Set(["system", "light", "dark", "christmas", "hacker"]);
+            let stored = null;
+            let authed = false;
+            try { stored = localStorage.getItem("lup-theme"); } catch { /* Tomt lager starter lyst. */ }
+            try { authed = !!sessionStorage.getItem("mt_access_token"); } catch { /* Ingen session er logget ud. */ }
+            let theme = "light";
+            if (authed) theme = themes.has(stored) ? stored : "light";
+            else if (stored && stored !== "system" && themes.has(stored)) theme = stored;
+            const dark = theme === "dark" || theme === "christmas" || theme === "hacker"
+                || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
+        })();
+    </script>
     <base href="/" />
     <link rel="preload" id="webassembly" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,7 +66,7 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="lup/vendor/lucide.min.js"></script>
-    <script src="js/lup-ui.js?v=5"></script>
+    <script src="js/lup-ui.js?v=6"></script>
     <script>
         window.lupTheme.apply(window.lupTheme.get());
     </script>
