@@ -1,0 +1,87 @@
+@page "/universe/shop/items/{ItemId}"
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@inject AuthService Auth
+@implements IDisposable
+
+<PageTitle>@(Item?.Name ?? "Butik")</PageTitle>
+
+@if (!Auth.IsInitialized || !World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else if (Item is null)
+{
+    <header class="page-title"><div><h1>Varen findes ikke</h1><p>Gå tilbage til butikken, og vælg en anden vare.</p></div></header>
+    <a href="/universe/shop">Tilbage til butikken</a>
+}
+else
+{
+    var owned = World.Owned(Item);
+    var open = World.Unlocked(Item);
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/universe/shop">Butik</a><span>›</span><span aria-current="page">@Item.Name</span></nav>
+    <header class="page-title"><div><h1>@Item.Name</h1><p>@Item.Kind</p></div></header>
+    <div class="v4-item-hero">
+        <GoodsArt Item="Item" />
+        <section>
+            <h2 style="font-size:26px">@(Item.Cost == 0 ? "Dit startsæt" : $"{Item.Cost} guld")</h2>
+            <p class="small muted" style="margin-top:10px">@Item.Desc</p>
+            <ul class="v4-requirements">
+                <li class="@(DemoWorld.Level >= Item.Level ? "passed" : null)">@(DemoWorld.Level >= Item.Level ? "✓" : "○") Level @Item.Level · Du er level @DemoWorld.Level</li>
+                @if (Item.Badge is not null)
+                {
+                    <li class="@(DemoWorld.BadgeRank(Item.Badge) >= Item.Rank ? "passed" : null)">@(DemoWorld.BadgeRank(Item.Badge) >= Item.Rank ? "✓" : "○") <a href="/badges/@Item.Badge">@World.LockText(Item)</a></li>
+                }
+                <li class="@(owned ? "passed" : null)">@(owned ? "✓ Du ejer varen" : Item.Kind == "Tøj" ? "○ Køb varen for at føje den til din garderobe" : "○ Køb varen for at føje den til dit inventar")</li>
+            </ul>
+            <div class="actions">
+                @if (owned && Item.Kind == "Tøj")
+                {
+                    <button type="button" class="secondary" disabled="@(World.EquippedId == Item.Id)" @onclick="() => World.Equip(Item.Id)">@(World.EquippedId == Item.Id ? "✓ På din avatar" : "Tag på")</button>
+                    <a class="secondary" href="/profile/character">Se min avatar</a>
+                }
+                else if (owned)
+                {
+                    <a class="secondary" href="/apartment">Se min lejlighed</a>
+                }
+                else
+                {
+                    var enough = World.Gold >= Item.Cost;
+                    <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(!open || !enough)" @onclick="Buy">@(!open ? "Låst" : !enough ? $"Mangler {Item.Cost - World.Gold} guld" : $"Køb · {Item.Cost} guld")</button>
+                }
+            </div>
+            <p class="tiny muted" style="margin-top:15px">Din saldo: @World.Gold guld.</p>
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public string ItemId { get; set; } = "";
+
+    private DemoGoods? Item => DemoWorld.Goods.FirstOrDefault(g => g.Id == ItemId);
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void Buy()
+    {
+        if (Item is not null)
+            World.Buy(Item.Id);
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnChanged;
+        World.Changed -= OnChanged;
+    }
+}

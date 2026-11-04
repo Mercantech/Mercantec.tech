@@ -1,0 +1,112 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@inject LearningContext CourseContext
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    <div class="v4-toolbar">
+        <div class="filters" aria-label="Aktivitetstype">
+            @foreach (var filter in Filters)
+            {
+                <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(_filter == filter)" @onclick="() => _filter = filter">@filter</button>
+            }
+        </div>
+        <label class="checklabel"><input type="checkbox" @bind="_onlyPending" /> Kun det, jeg mangler</label>
+    </div>
+
+    @if (_filter is "Alle" or "Afstemninger")
+    {
+        <section>
+            <div class="v4-section"><h2>Afstemninger lige nu</h2><p>@(CourseContext.CourseId == "game" ? "Game Design" : "H3 · 2026")</p></div>
+            <div class="v4-activity-list">
+                @foreach (var poll in DemoCatalog.Polls.Where(p => CourseContext.CourseId == "game" ? p.Course == "Game Design" : p.Course == "H3 · 2026"))
+                {
+                    var vote = World.VoteOf(poll.Question);
+                    if (_onlyPending && vote is not null)
+                        continue;
+                    <article class="v4-activity">
+                        <div class="v4-activity-main">
+                            <div class="v4-type"><strong>@poll.Type</strong><span>@poll.Course</span></div>
+                            <h3><a href="/polls/@Array.IndexOf(DemoCatalog.Polls, poll)">@poll.Question</a></h3>
+                            <div class="v4-poll-options @(poll.Type == "Stemning" ? "mood" : null)">
+                                @for (var i = 0; i < poll.Options.Length; i++)
+                                {
+                                    var index = i;
+                                    <button type="button" class="v4-poll-option" aria-pressed="@DemoWorld.Pressed(vote == index)" @onclick="() => World.Vote(poll.Question, index)">
+                                        @if (poll.Type != "Stemning")
+                                        {
+                                            <span class="v4-choice-key" aria-hidden="true">@((char)('A' + index))</span>
+                                        }
+                                        @if (poll.Type == "Stemning") { <span class="v4-mood-emoji" aria-hidden="true">@Faces[index]</span> }<span>@poll.Options[index]</span>
+                                    </button>
+                                }
+                            </div>
+                            @if (vote is not null)
+                            {
+                                <h2>Svarfordeling</h2><PollResults Poll="poll" />
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    @foreach (var type in new[] { "Main", "Side", "Daily" })
+    {
+        if (_filter is not "Alle" && _filter != type)
+            continue;
+        var quests = DemoCatalog.Quests.Where(q => q.Course == CourseContext.CourseId && q.Type == type && (!_onlyPending || !World.IsDone(q.Id))).ToArray();
+        <section>
+            <div class="v4-section"><h2>@type quests</h2></div>
+            <div class="v4-activity-list">
+                @if (quests.Length == 0)
+                {
+                    <p class="small muted" style="padding:18px 0">Du er ajour i dette udvalg.</p>
+                }
+                @foreach (var quest in quests)
+                {
+                    var done = World.IsDone(quest.Id);
+                    <article class="v4-activity">
+                        <div class="v4-activity-main">
+                            <div class="v4-type"><strong>@quest.Type</strong><span>@(quest.Course == "h3" ? "H3" : "Game Design")</span></div>
+                            <h3><a href="/quests/@quest.Id">@quest.Name</a></h3>
+                            <p>@quest.Desc</p>
+                            <span class="v4-status @(done ? "done" : null)">@(done ? "✓ Markeret udført" : "Ikke markeret udført")</span>
+                        </div>
+                        <div class="v4-activity-actions">
+                            <button type="button" class="secondary v4-done-button" aria-pressed="@DemoWorld.Pressed(done)" @onclick="() => World.ToggleDone(quest.Id)">@(done ? "✓ Udført" : "Markér udført")</button>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+    @if (World.NoticeArea == "activity" && World.Notice is not null)
+    {
+        <p class="v2-status" role="status">@World.Notice</p>
+    }
+    <p class="tiny muted" style="margin-top:20px">Udført er din egen markering. XP og guld gives først, når en underviser godkender en rigtig aflevering.</p>
+}
+
+@code {
+    private static readonly string[] Faces = ["😊", "🙂", "😐", "😴", "😟"];
+    private static readonly string[] Filters = ["Alle", "Afstemninger", "Main", "Side", "Daily"];
+    private string _filter = "Alle";
+    private bool _onlyPending;
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        CourseContext.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() { World.Changed -= OnChanged; CourseContext.Changed -= OnChanged; }
+}

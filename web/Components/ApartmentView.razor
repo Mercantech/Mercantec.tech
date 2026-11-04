@@ -1,19 +1,80 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
 @inject AuthService Auth
-@inject IJSRuntime Js
-<div class="cols"><section class="v2-room-wrap"><div class="v2-room" aria-label="Dit rum, 8 gange 6 felter">@for (var i = 0; i < 48; i++) { var cell = i; <button class="v2-room-cell" aria-label="@($"Række {i / 8 + 1}, felt {i % 8 + 1}: {Name(_room[i])}")" aria-pressed="@(_selected == i)" @onclick="() => SelectCell(cell)">@if (_room[i] is string id) { <span class="v2-furniture @id" aria-hidden="true"></span> }</button> }</div><p class="v2-status" role="status">@_notice</p>@if (_selected is int selected && _room[selected] is not null) { <div class="actions"><button class="secondary" @onclick="BeginMove">Flyt møbel</button><button class="secondary" @onclick="Remove">Tilbage til inventar</button></div> }</section>
-<aside class="panel"><h2>Dit inventar</h2><p>Vælg et møbel, og klik på et frit felt. Rummet gemmes i denne browser.</p><div class="v2-inventory">@foreach (var item in Items) { <button class="v2-item" aria-pressed="@(_item == item.Id)" disabled="@_room.Contains(item.Id)" @onclick="() => SelectItem(item.Id)"><span class="v2-furniture @item.Id" aria-hidden="true"></span><span>@item.Name<small>@(_room.Contains(item.Id) ? "I rummet" : "Klar til at placere")</small></span></button> }</div><a class="secondary" href="/universe/shop">Find flere møbler</a><a class="small" href="/universe/unlocks">Se kommende oplåsninger</a></aside></div>
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    <div class="cols">
+        <section class="v2-room-wrap">
+            <div class="v2-room" aria-label="Dit rum, 8 gange 6 felter">
+                @for (var i = 0; i < 48; i++)
+                {
+                    var cell = i;
+                    var placed = World.RoomItem(cell);
+                    <button type="button" class="v2-room-cell" aria-pressed="@DemoWorld.Pressed(World.SelectedCell == cell)" aria-label="@CellLabel(cell, placed)" @onclick="() => World.ClickCell(cell)">
+                        @if (placed is not null)
+                        {
+                            <span class="v2-furniture @placed" aria-hidden="true"></span>
+                        }
+                    </button>
+                }
+            </div>
+            <p class="v2-status" aria-live="polite">@(World.NoticeArea == "room" ? World.Notice : "Vælg et møbel fra inventaret.")</p>
+            @if (World.SelectedCell is int selected && World.RoomItem(selected) is not null)
+            {
+                <div class="actions">
+                    <button type="button" class="secondary" @onclick="World.BeginMove">Flyt møbel</button>
+                    <button type="button" class="secondary" @onclick="World.RemoveSelected">Tilbage til inventar</button>
+                </div>
+            }
+        </section>
+        <aside class="aside">
+            <section class="panel">
+                <h2>Dit inventar</h2>
+                <p class="tiny muted">Seng, bord, stol og plante følger med fra start. Opslagstavlen er en gave og står ikke i butikken.</p>
+                <div class="v2-inventory">
+                    @foreach (var item in World.Furniture.Where(World.Owned))
+                    {
+                        var placed = World.Placed(item.Id);
+                        <button type="button" class="v2-item" aria-pressed="@DemoWorld.Pressed(World.SelectedItem == item.Id)" disabled="@placed" @onclick="() => World.ChooseFurniture(item.Id)">
+                            <span class="v2-furniture @item.Style" aria-hidden="true"></span>
+                            <span>
+                                @item.Name<br />
+                                <span class="muted">@(placed ? "I rummet" : item.Id == DemoWorld.Gift.Id ? "Gave" : "Ejet")</span>
+                            </span>
+                        </button>
+                    }
+                </div>
+                <a href="/universe/shop">Køb flere møbler</a>
+            </section>
+            <section class="panel">
+                <div class="v2-home-sprite"><AvatarSprite /></div>
+                <h2>Dit univers</h2>
+                <p>Figuren følger med i prøvespillet.</p>
+                <a href="/profile/character">Tilpas avatar</a>
+            </section>
+        </aside>
+    </div>
+}
+
 @code {
-    private string?[] _room = new string?[48];
-    private int? _selected, _moving;
-    private string? _item;
-    private string _notice = "Vælg et møbel i inventaret, eller klik på et møbel i rummet.";
-    private static readonly (string Id, string Name)[] Items = [("desk", "Skrivebord"), ("bed", "Seng"), ("chair", "Stol"), ("plant", "Plante")];
-    protected override void OnInitialized() { _room[9] = "desk"; _room[14] = "bed"; _room[33] = "plant"; }
-    protected override async Task OnAfterRenderAsync(bool firstRender) { if (!firstRender) return; var json = await Js.InvokeAsync<string?>("lupRoom.get", Auth.Subject); if (json is not null) { try { var room = System.Text.Json.JsonSerializer.Deserialize<string?[]>(json); if (room?.Length == 48 && room.Where(s => s is not null).All(s => Items.Any(i => i.Id == s)) && room.Where(s => s is not null).Distinct().Count() == room.Count(s => s is not null)) _room = room; } catch (System.Text.Json.JsonException) {} StateHasChanged(); } }
-    private static string Name(string? id) => Items.FirstOrDefault(i => i.Id == id).Name ?? "Tomt felt";
-    private void SelectItem(string id) { _item = id; _selected = _moving = null; _notice = Name(id) + " valgt. Klik på et frit felt."; }
-    private async Task SelectCell(int index) { if (_item is not null || _moving is not null) { if (_room[index] is not null) { _notice = "Feltet er optaget. Vælg et frit felt."; return; } if (_moving is int source) { _room[index] = _room[source]; _room[source] = null; } else _room[index] = _item; _item = null; _moving = null; _selected = index; await Save(); } else { _selected = index; _notice = _room[index] is not null ? Name(_room[index]) + " valgt." : "Vælg et møbel fra inventaret først."; } }
-    private void BeginMove() { _moving = _selected; _notice = "Vælg et frit felt at flytte møblet til."; }
-    private async Task Remove() { if (_selected is int index) _room[index] = null; _selected = _moving = null; await Save(); }
-    private async Task Save() { var saved = await Js.InvokeAsync<bool>("lupRoom.set", Auth.Subject, System.Text.Json.JsonSerializer.Serialize(_room)); _notice = saved ? "Rummet er gemt i denne browser." : "Rummet er ændret. Browseren tillader ikke lagring."; }
+    private static string CellLabel(int index, string? item)
+    {
+        var name = item is null ? "Tomt felt" : DemoWorld.Goods.FirstOrDefault(g => g.Id == item)?.Name ?? DemoWorld.Gift.Name;
+        return $"Række {index / 8 + 1}, felt {index % 8 + 1}: {name}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.ImportLegacyAsync(Auth.Subject);
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
 }

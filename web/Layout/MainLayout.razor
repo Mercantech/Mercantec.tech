@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime Js
 @inject LearningContext CourseContext
+@inject DemoWorld World
 @implements IDisposable
 
 <ThemeDecorations />
@@ -54,10 +55,10 @@
                     </nav>
                 </details>
                 <div class="lup-tools">
-                    <a class="lup-wallet" href="/progress" title="Din udvikling" aria-label="Level 7, 1240 XP og 320 guld">
+                    <a class="lup-wallet" href="/progress" title="Din udvikling" aria-label="@($"Level 7, 1240 XP og {World.Gold} guld")">
                         <strong>Lv. 7</strong>
                         <span>1.240 XP</span>
-                        <span class="lup-gold"><i class="v3-gold-dot" aria-hidden="true"></i>320</span>
+                        <span class="lup-gold"><i class="v3-gold-dot" aria-hidden="true"></i>@World.Gold</span>
 
                     </a>
                     <a class="lup-search-link" href="/search"><UiIcon Name="search" /><span>Søg</span></a>
@@ -74,7 +75,7 @@
                         </div>
                     </details>
                     <details class="lup-account v3-navgroup">
-                        <summary aria-label="Profil og indstillinger"><span class="avatar">@Initials</span></summary>
+                        <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarSprite Mini="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
                             <p class="lup-account-name">@(Auth.DisplayName ?? "Bruger")</p>
                             <p class="lup-account-sub">@(IsTeacher ? "Underviser" : "Elev") · LUP</p>
@@ -179,6 +180,7 @@
         new("Mine badges", "/progress/badges"),
         new("Mine projekter", "/projects/mine"),
         new("Min avatar", "/profile/character"),
+        new("Prøvespil", "/games/avatar-demo"),
         new("Min lejlighed", "/apartment"),
         new("Butik", "/universe/shop"),
         new("Level-oplåsninger", "/universe/unlocks")
@@ -218,6 +220,7 @@
     {
         Auth.AuthStateChanged += OnAuthChanged;
         Nav.LocationChanged += OnLocation;
+        World.Changed += OnAuthChanged;
         _demoCourse = "h3";
     }
 
@@ -232,6 +235,7 @@
         try
         {
             _theme = await Js.InvokeAsync<string>("lupTheme.get");
+            await World.EnsureAsync();
             var stored = await Js.InvokeAsync<string?>("lupCourse.get");
             if (stored is not null)
                 _demoCourse = stored;
@@ -273,6 +277,7 @@
                 || path.StartsWith("/teacher/badges", StringComparison.Ordinal),
             "Udforsk" => path.StartsWith("/explore", StringComparison.Ordinal) || path is "/badges" || path.StartsWith("/badges/", StringComparison.Ordinal),
             _ => path is "/progress" or "/apartment" or "/games" or "/notifications" or "/onboarding"
+                || path.StartsWith("/games/", StringComparison.Ordinal)
                 || path.StartsWith("/progress/", StringComparison.Ordinal)
                 || path.StartsWith("/projects", StringComparison.Ordinal)
                 || path.StartsWith("/profile/", StringComparison.Ordinal)
@@ -306,6 +311,7 @@
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuthChanged;
+        World.Changed -= OnAuthChanged;
         Nav.LocationChanged -= OnLocation;
     }
 

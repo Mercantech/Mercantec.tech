@@ -112,3 +112,8 @@ for (const [name, prefix] of [["lupAppearance", "lup-appearance-v1:"], ["lupRoom
         set(subject, json) { try { localStorage.setItem(prefix + (subject || "guest"), json); return true; } catch { return false; } }
     };
 }
+
+window.lupDemo = {
+    get() { try { return localStorage.getItem("lup-demo-world"); } catch { return null; } },
+    set(value) { try { localStorage.setItem("lup-demo-world", value || ""); } catch { /* Local interactions remain available without storage. */ } }
+};

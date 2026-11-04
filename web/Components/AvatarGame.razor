@@ -1,14 +1,102 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
 @inject AuthService Auth
-@inject IJSRuntime Js
-<div class="cols"><section class="panel avatar-game" tabindex="0" @onkeydown="OnKey" aria-label="Rune Run. Brug piletasterne, når banen har fokus."><h2>@(Won ? "Du nåede i mål!" : "Find en rute gennem banen")</h2><div class="v2-gamegrid" role="img" aria-label="Spilbane med din avatar, tre runer og en portal">@for (var i = 0; i < 48; i++) { <div class="v2-gamecell @(Walls.Contains(i) ? "wall" : "")">@if (_player == i) { <AvatarSprite Mini="true" Skin="@_skin" Hair="@_hair" Style="@_style" /> } else if (i == 7) { <span>◎</span> } else if (Runes.Contains(i) && !_collected.Contains(i)) { <span>✦</span> }</div> }</div><div class="v2-controls"><button style="grid-column:2" aria-label="Op" @onclick="() => Move(0, -1)">↑</button><button style="grid-column:1;grid-row:2" aria-label="Venstre" @onclick="() => Move(-1, 0)">←</button><button style="grid-column:2;grid-row:2" aria-label="Ned" @onclick="() => Move(0, 1)">↓</button><button style="grid-column:3;grid-row:2" aria-label="Højre" @onclick="() => Move(1, 0)">→</button></div><p class="v2-status" role="status">@_collected.Count af 3 runer samlet. @(Won ? "Godt klaret." : "Saml runerne, og find portalen øverst til højre.")</p></section><aside class="panel"><h2>Den samme figur</h2><p>Hudtone, hår og tilbehør følger din avatar fra garderoben.</p><div class="actions"><a class="secondary" href="/profile/character">Tilpas avataren</a><button class="secondary" @onclick="Reset">Start banen igen</button></div></aside></div>
+@implements IDisposable
+
+@if (!Auth.IsInitialized || !World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <div class="cols avatar-game" @ref="_board" tabindex="0" @onkeydown="OnKey">
+        <section class="panel">
+            <h2>@(World.GameWon ? "Du nåede i mål!" : "Find en rute gennem banen")</h2>
+            <div class="v2-gamegrid" role="img" aria-label="Spilbane med din avatar, tre runer og en portal">
+                @for (var i = 0; i < 48; i++)
+                {
+                    <div class="v2-gamecell @(World.IsWall(i) ? "wall" : null)">
+                        @if (World.Player == i)
+                        {
+                            <AvatarSprite Mini="true" />
+                        }
+                        else if (i == 7)
+                        {
+                            <span>◎</span>
+                        }
+                        else if (World.ShowRune(i))
+                        {
+                            <span>✦</span>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="v2-controls" aria-label="Flyt avataren">
+                <button type="button" style="grid-column:2" aria-label="Op" @onclick="@(() => Move("up"))">↑</button>
+                <button type="button" style="grid-column:1;grid-row:2" aria-label="Venstre" @onclick="@(() => Move("left"))">←</button>
+                <button type="button" style="grid-column:2;grid-row:2" aria-label="Ned" @onclick="@(() => Move("down"))">↓</button>
+                <button type="button" style="grid-column:3;grid-row:2" aria-label="Højre" @onclick="@(() => Move("right"))">→</button>
+            </div>
+            <p class="v2-status" aria-live="polite">@World.Collected.Count af 3 runer samlet. @(World.GameWon ? "Godt klaret." : "Brug knapperne eller piletasterne.")</p>
+        </section>
+        <aside class="aside">
+            <section class="panel">
+                <h2>Den samme figur</h2>
+                <p>Tøj, hår og hudtone følger din avatar.</p>
+                <div class="actions">
+                    <a class="secondary" href="/profile/character">Tilpas avataren</a>
+                    <button type="button" class="secondary" @onclick="World.ResetGame">Start banen igen</button>
+                </div>
+            </section>
+        </aside>
+    </div>
+}
+
 @code {
-    private int _player = 40;
-    private readonly HashSet<int> _collected = [];
-    private static readonly int[] Walls = [10, 11, 12, 18, 26, 27, 35], Runes = [5, 20, 37];
-    private string _skin = "#c98d69", _hair = "#42302a", _style = "short";
-    private bool Won => _collected.Count == 3 && _player == 7;
-    private void Move(int x, int y) { if (Won) return; var nx = _player % 8 + x; var ny = _player / 8 + y; if (nx < 0 || nx >= 8 || ny < 0 || ny >= 6) return; var next = ny * 8 + nx; if (Walls.Contains(next)) return; _player = next; if (Runes.Contains(next)) _collected.Add(next); }
-    private void OnKey(KeyboardEventArgs e) { switch (e.Key) { case "ArrowUp": Move(0, -1); break; case "ArrowDown": Move(0, 1); break; case "ArrowLeft": Move(-1, 0); break; case "ArrowRight": Move(1, 0); break; } }
-    private void Reset() { _player = 40; _collected.Clear(); }
-    protected override async Task OnAfterRenderAsync(bool firstRender) { if (!firstRender) return; var json = await Js.InvokeAsync<string?>("lupAppearance.get", Auth.Subject); try { var values = json is null ? null : System.Text.Json.JsonSerializer.Deserialize<string[]>(json); if (values?.Length == 3) { if (System.Text.RegularExpressions.Regex.IsMatch(values[0] ?? "", "^#[0-9a-fA-F]{6}$")) _skin = values[0]; if (System.Text.RegularExpressions.Regex.IsMatch(values[1] ?? "", "^#[0-9a-fA-F]{6}$")) _hair = values[1]; if (new[] { "short", "long", "cap" }.Contains(values[2])) _style = values[2]; StateHasChanged(); } } catch (System.Text.Json.JsonException) {} }
+    private ElementReference _board;
+    private bool _focused;
+
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focused && World.Ready && Auth.IsAuthenticated)
+        {
+            _focused = true;
+            await _board.FocusAsync();
+        }
+    }
+
+    private void Move(string direction) => World.MovePlayer(direction);
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        var direction = e.Key switch
+        {
+            "ArrowUp" => "up",
+            "ArrowDown" => "down",
+            "ArrowLeft" => "left",
+            "ArrowRight" => "right",
+            _ => null
+        };
+        if (direction is not null)
+            World.MovePlayer(direction);
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnChanged;
+        World.Changed -= OnChanged;
+    }
 }

@@ -1,0 +1,73 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    <div class="v4-shop-summary">
+        <div>
+            <strong>Level @DemoWorld.Level</strong>
+            <p>160 XP til næste level · @World.Gold guld</p>
+        </div>
+        <a class="secondary" href="/universe/shop">Til butikken</a>
+    </div>
+    <div class="v4-roadmap">
+        @foreach (var level in Upcoming)
+        {
+            <section class="v4-level-node @(level == Next ? "next" : null)">
+                <h2>Level @level <span class="pill">@(level == Next ? "Næste oplåsning" : "Låst")</span></h2>
+                @foreach (var item in DemoWorld.Goods.Where(g => g.Level == level))
+                {
+                    <UnlockRow Item="item" />
+                }
+            </section>
+        }
+    </div>
+    <details class="v4-past-levels">
+        <summary>Se allerede nåede levels</summary>
+        <div class="v4-roadmap">
+            @foreach (var level in Reached)
+            {
+                <section class="v4-level-node reached">
+                    <h2>Level @level <span class="pill green">✓ Level nået</span></h2>
+                    @foreach (var item in DemoWorld.Goods.Where(g => g.Level == level))
+                    {
+                        <UnlockRow Item="item" />
+                    }
+                </section>
+            }
+        </div>
+    </details>
+    <div class="v4-section"><h2>Badges åbner særlige ting</h2><p>Level og badge skal begge være på plads, hvis varen har begge krav.</p></div>
+    <section class="panel">
+        @foreach (var item in DemoWorld.Goods.Where(g => g.Badge is not null))
+        {
+            <UnlockRow Item="item" />
+        }
+        <div class="v4-unlock-row">
+            <div class="v4-product-art"><span class="v2-furniture board" aria-hidden="true"></span></div>
+            <div><strong>@DemoWorld.Gift.Name</strong><small>Gave · level @DemoWorld.Gift.Level · står ikke i butikken</small></div>
+            <a href="/apartment">Stil den op</a>
+        </div>
+    </section>
+}
+
+@code {
+    private IEnumerable<int> Levels => DemoWorld.Goods.Select(g => g.Level).Distinct().Order();
+    private int? Next => Levels.Cast<int?>().FirstOrDefault(level => level > DemoWorld.Level);
+    private IEnumerable<int> Upcoming => Levels.Where(level => level > DemoWorld.Level);
+    private IEnumerable<int> Reached => Levels.Where(level => level <= DemoWorld.Level);
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

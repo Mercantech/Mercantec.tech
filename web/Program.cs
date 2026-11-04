@@ -29,6 +29,7 @@ else
 }
 
 builder.Services.AddScoped<Mercantec.Tech.Web.Demo.LearningContext>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Demo.DemoWorld>();
 
 builder.Services.AddScoped<TokenStore>();
 builder.Services.AddScoped<AuthService>();

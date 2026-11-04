@@ -575,3 +575,10 @@ html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c
 .lup .callout{margin:0 0 16px}
 html[data-theme="light"]{color-scheme:light}
 html[data-theme="dark"]{color-scheme:dark}
+
+.lup .avatar.lup-face{position:relative;overflow:hidden}
+.lup .avatar.lup-face .v2-sprite.mini{left:1px;top:-6px;transform:scale(.32)}
+.lup .v2-furniture.board{background:#efe6d4;border:3px solid #c4b496;border-radius:3px}
+.lup .v2-furniture.board:before{content:'';position:absolute;left:14%;right:14%;top:18%;height:8%;background:#d47837;box-shadow:0 10px #2452e8,0 20px #216747}
+.lup .v2-home-sprite{display:flex;align-items:flex-end;justify-content:center;min-height:180px;background:var(--sky);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.lup .v2-home-sprite .v2-sprite{transform:scale(1.35);transform-origin:center bottom;margin-bottom:8px}

@@ -1,5 +1,93 @@
-<div class="v4-shop-summary"><div><strong><i class="v3-gold-dot"></i>@DemoCatalog.Gold guld</strong><p>Level @DemoCatalog.Level · Nye ting fra level 8</p></div><a class="secondary" href="/universe/unlocks">Se level- og badge-oplåsninger</a></div>
-<div class="v4-shop-tabs">@foreach (var kind in new[] { "Tøj", "Møbler", "Alle" }) { <button class="filter" aria-pressed="@(_kind == kind)" @onclick="() => _kind = kind">@(kind == "Tøj" ? "Avatartøj" : kind)</button> }<a class="secondary" href="/profile/character">Min garderobe</a></div>
-<div class="v4-shop-grid">@foreach (var item in DemoCatalog.Shop.Where(i => _kind == "Alle" || i.Kind == _kind)) { <article class="v4-product @(!item.Available ? "is-locked" : "")"><ProductArt Kind="@item.Kind" Design="@item.Design" Color="@item.Color" /><h2>@item.Name</h2><p>@item.Desc</p><div class="v4-product-lock @(item.Available ? "is-ready" : "")"><UiIcon Name="@(item.Available ? "check" : "lock")" /><span>Level @item.Level @if (item.BadgeId is not null) { <span> + <a href="/badges/@item.BadgeId">@DemoCatalog.Badges.First(b => b.Id == item.BadgeId).Name@(item.BadgeRank > 1 ? " · " + DemoCatalog.RankNames[item.BadgeRank - 1] : "")</a></span> }</span></div><div class="v4-product-price">@(item.Cost == 0 ? "Dit startsæt" : item.Cost + " guld")</div><div class="actions">@if (item.Cost == 0) { <a class="secondary" href="@(item.Kind == "Tøj" ? "/profile/character" : "/apartment")">Ejet · Se inventar</a> } else { <button class="secondary" type="button" disabled title="Køb bliver tilgængeligt, når butikken er tilkoblet din konto">@(item.Available ? "Køb med guld" : "Låst")</button> }</div></article> }</div>
-<p class="small muted" style="margin-top:18px">Et level eller badge åbner købet. Du ejer først varen, når du har købt den med guld.</p>
-@code { private string _kind = "Tøj"; }
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+@if (!World.Ready)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    <div class="v4-shop-summary">
+        <div>
+            <strong><i class="v3-gold-dot" aria-hidden="true"></i>@World.Gold guld</strong>
+            <p>Level @DemoWorld.Level · Nye ting ved level @NextLevel</p>
+        </div>
+        <a class="secondary" href="/universe/unlocks">Se alle level- og badge-oplåsninger</a>
+    </div>
+    <div class="v4-shop-tabs" aria-label="Butikskategorier">
+        @foreach (var category in new[] { "Tøj", "Møbler", "Alle" })
+        {
+            <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(World.ShopCategory == category)" @onclick="() => World.SetCategory(category)">@(category == "Tøj" ? "Avatartøj" : category)</button>
+        }
+        <a class="secondary" href="/profile/character">Min garderobe</a>
+    </div>
+    <div class="v4-shop-grid">
+        @foreach (var item in World.VisibleGoods)
+        {
+            var owned = World.Owned(item);
+            var open = World.Unlocked(item);
+            <section class="v4-product @(open ? null : "is-locked")">
+                <GoodsArt Item="item" />
+                <h2><a href="@($"/universe/shop/items/{item.Id}")">@item.Name</a></h2>
+                <p>@item.Desc</p>
+                <div class="v4-product-lock @(open ? "is-ready" : null)">
+                    <span aria-hidden="true">@(owned ? "✓" : open ? "○" : "◇")</span>
+                    <span>@(owned ? "Ejet" : World.LockText(item)) @if (item.Badge is not null) { <a href="/badges/@item.Badge">Se badgekrav</a> }</span>
+                </div>
+                <div class="v4-product-price">
+                    @if (item.Cost == 0)
+                    {
+                        <span>Startinventar</span>
+                    }
+                    else
+                    {
+                        <span><i class="v3-gold-dot" aria-hidden="true"></i>@($"{item.Cost} guld")</span>
+                    }
+                </div>
+                <div class="actions">
+                    @if (owned && item.Kind == "Tøj")
+                    {
+                        <button type="button" class="secondary" disabled="@(World.EquippedId == item.Id)" @onclick="() => World.Equip(item.Id)">@(World.EquippedId == item.Id ? "✓ På din avatar" : "Tag på")</button>
+                    }
+                    else if (owned)
+                    {
+                        <a class="secondary" href="/apartment">Indret med møblet</a>
+                    }
+                    else
+                    {
+                        var enough = World.Gold >= item.Cost;
+                        <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(!open || !enough)" @onclick="() => World.Buy(item.Id)">@BuyLabel(item, open, enough)</button>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+    @if (World.NoticeArea == "shop" && World.Notice is not null)
+    {
+        <p class="v2-status" role="status">@World.Notice</p>
+    }
+    <p class="tiny muted" style="margin-top:18px">Et level eller badge åbner købet. Du ejer først varen, når du har købt den med guld.</p>
+}
+
+@code {
+    private int NextLevel => DemoWorld.Goods.Where(g => g.Level > DemoWorld.Level).Select(g => g.Level).DefaultIfEmpty(DemoWorld.Level).Min();
+
+    private string BuyLabel(DemoGoods item, bool open, bool enough)
+    {
+        if (!open)
+            return "Låst";
+        if (!enough)
+            return $"Mangler {item.Cost - World.Gold} guld";
+        return item.Kind == "Tøj" ? $"Køb og tag på · {item.Cost} guld" : $"Køb · {item.Cost} guld";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        World.Changed += OnChanged;
+        await World.EnsureAsync();
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+    public void Dispose() => World.Changed -= OnChanged;
+}

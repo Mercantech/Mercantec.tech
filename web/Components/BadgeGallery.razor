@@ -14,4 +14,5 @@
     </a>
 }
 </div>
+@if (OwnedOnly) { <section class="panel" style="margin-top:20px"><h2>Certifikater</h2><p>Forløbsbeviser vises her, når underviseren har tildelt dem. Et emnebadge er ikke automatisk et formelt uddannelsesbevis.</p></section> }
 @code { [Parameter] public bool OwnedOnly { get; set; } private string _filter = "Alle"; }

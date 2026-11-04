@@ -63,31 +63,6 @@ public static class DemoCatalog
         new("hawaii", "Hawaii", "Fællesskab", "Åbner Hawaii-skjorten i butikken. Gives ikke automatisk.", 0, null)
     ];
 
-    public static readonly ShopItem[] Shop =
-    [
-        new("Tøj", "Basis-T-shirt", 1, 0, "Dit startsæt."),
-        new("Tøj", "Stribet T-shirt", 2, 45, "Rolige striber til værksted og prøvespil."),
-        new("Tøj", "Grøn hoodie", 4, 90, "Et nyt sæt til din fælles spilavatar."),
-        new("Tøj", "Hawaii-skjorte", 1, 120, "Kræver Hawaii-badget, før den kan købes."),
-        new("Møbler", "Skrivebord", 1, 0, "Startmøbel. Ejes allerede i eksemplet."),
-        new("Møbler", "Seng", 1, 0, "Startmøbel. Ejes allerede i eksemplet."),
-        new("Møbler", "Stol", 1, 0, "Startmøbel."),
-        new("Møbler", "Plante", 1, 0, "Startmøbel."),
-        new("Møbler", "Vævet tæppe", 2, 50, "Sælges. Gives ikke som gave."),
-        new("Møbler", "Bordlampe", 3, 80, "Sælges, når level er nået."),
-        new("Møbler", "Trofæ", 4, 140, "Sælges. Det er ikke den samme ting som gave-møblet."),
-        new("Tøj", "Blå blazer", 6, 120, "Et skarpere udtryk til din avatar."),
-        new("Tøj", "Fancy Friday-sæt", 1, 150, "Åbnes med Fancy Friday-badget."),
-        new("Tøj", "Developer-T-shirt", 8, 160, "Kode på brystet, fra level 8."),
-        new("Tøj", "Mentor-jakke", 10, 190, "Kræver Core Loop på Stor."),
-        new("Tøj", "Rumjakke", 12, 230, "Til dit næste store projekt."),
-        new("Møbler", "Bogreol", 6, 130, "Plads til dine næste idéer."),
-        new("Møbler", "Sofa", 8, 180, "En pause mellem projekterne."),
-        new("Møbler", "Monstera", 5, 100, "En grøn krog i dit rum."),
-        new("Møbler", "Arbejdsstation", 12, 300, "Kræver API Architect på Mellem."),
-        new("Møbler", "Arkadekabinet", 10, 260, "Kræver level og Game Designer på Mellem.")
-    ];
-
     public static readonly GiftItem Gift = new("Opslagstavle", 4, "Gives direkte, når level nås. Den står ikke til salg.");
 
     public static readonly Unlock[] Unlocks =
@@ -151,14 +126,6 @@ public static class DemoCatalog
     {
         public bool Special => Id is "hawaii" or "friday";
         public string Icon => Id switch { "loop" => "loop", "playtest" => "test", "gdd" => "game", "mqtt" => "wifi", "cpp" => "chip", "api" => "code", "sql" => "database", "security" => "shield", "hawaii" => "flower", "friday" => "shirt", "git" => "loop", "ui" => "chart", _ => "book" };
-    }
-    public sealed record ShopItem(string Kind, string Name, int Level, int Cost, string Desc)
-    {
-        public string Design => Name switch { "Basis-T-shirt" => "basic", "Stribet T-shirt" => "striped", "Grøn hoodie" => "hoodie", "Hawaii-skjorte" => "hawaii", "Skrivebord" => "desk", "Seng" => "bed", "Stol" => "chair", "Plante" => "plant", "Vævet tæppe" => "rug", "Bordlampe" => "lamp", "Trofæ" => "trophy", "Arkadekabinet" => "arcade", "Bogreol" => "bookcase", "Sofa" => "sofa", "Monstera" => "monstera", "Arbejdsstation" => "workstation", "Fancy Friday-sæt" => "friday", "Developer-T-shirt" => "developer", "Mentor-jakke" => "mentor", "Rumjakke" => "space", _ => "blazer" };
-        public string Color => Design switch { "hoodie" => "#38785e", "hawaii" => "#468f9a", "friday" => "#684e83", "developer" => "#304f56", "mentor" => "#5d5276", "space" => "#425b87", _ => "#387d8c" };
-        public string? BadgeId => Design switch { "hawaii" => "hawaii", "friday" => "friday", "arcade" => "gdd", "mentor" => "loop", "workstation" => "api", _ => null };
-        public int BadgeRank => Design is "arcade" or "workstation" ? 2 : Design == "mentor" ? 3 : 1;
-        public bool Available => Level <= DemoCatalog.Level && (BadgeId is null || Badges.Any(b => b.Id == BadgeId && b.Rank >= BadgeRank));
     }
     public sealed record GiftItem(string Name, int Level, string Desc);
     public sealed record Unlock(string Type, string Name, int Level, bool Open);

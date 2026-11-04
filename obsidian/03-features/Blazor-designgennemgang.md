@@ -46,9 +46,9 @@ En lyskæde ligger ved headeren. Gaven åbner en lille julepause, kan lukkes og 
 
 Dette arbejde genskaber designet i den eksisterende Blazor-app. Der er ikke indført en ny frontendstack, et iframe med den gamle app eller et ekstra login. Auth, controllers, hold, medlemskaber og Lectio beholdes.
 
-Avatarens udseende og møblernes placering gemmes lokalt med en brugerspecifik nøgle. Det giver ikke servervalideret ejerskab. Badges, saldo, aktivitetsantal, kalenderaktiviteter, afstemningsresultater og indhold i designkataloget er fortsat fixturedata. Nye emnesider er korte indholdsskabeloner; de er ikke en fuld import af Notion eller formelle målpinde.
+Efter sammenfletningen bruges Mathias’ fælles DemoWorld til lokale køb, garderobe, udseende, rum, spil, questmarkeringer og afstemningssvar. Eksisterende DemoWorld-lagring bevares. Tidligere lokale avatar- og rumvalg importeres, når der ikke allerede findes en gemt verden. Lokal tilstand giver ikke servervalideret ejerskab. Badges, saldo, aktivitetsantal, kalenderaktiviteter, afstemningsresultater og indhold i designkataloget er fortsat fixturedata. Nye emnesider er korte indholdsskabeloner; de er ikke en fuld import af Notion eller formelle målpinde.
 
-Resterende leverancer er stadig [[LUP-design-og-leveranceplan]] og issues #11, #12, #24–#34: vedvarende quests/afleveringer, lærerens kalendereditor/træk-og-slip, rigtige afstemninger på tværs af klienter, adgangsfiltreret søgning, automatisk status, økonomi og køb. Disse funktioner markeres ikke færdige af designrettelserne; køb og aflevering er fortsat deaktiveret. Ingen issues lukkes eller sprintstatus ændres her.
+Resterende leverancer er stadig [[LUP-design-og-leveranceplan]] og issues #11, #12, #24–#34: vedvarende quests/afleveringer, lærerens kalendereditor/træk-og-slip, rigtige afstemninger på tværs af klienter, adgangsfiltreret søgning, automatisk status, økonomi og køb. Disse backendfunktioner markeres ikke færdige af designrettelserne. Køb, egne questmarkeringer og afstemningssvar virker nu lokalt i browseren; rigtig aflevering og serverøkonomi er fortsat udestående. Ingen issues lukkes eller sprintstatus ændres her.
 
 Undervisningsplanerne under /lup/index.html bevares som særskilt eksisterende indhold; denne gennemgang vedrører Blazor-appens LUP-flade.
 
@@ -64,3 +64,18 @@ Undervisningsplanerne under /lup/index.html bevares som særskilt eksisterende i
 - Git diff-kontrol uden whitespace-fejl.
 
 Browserdata er isolerede testfixtures. Der er ikke skrevet til rigtige hold eller elevdata. API-integration med den rigtige server og database er ikke testet i denne designgennemgang.
+
+## Sammenfletning med Mathias · 4. november 2026
+
+Mathias’ commits 9fa4888 og be5e70d er flettet med designarbejdet i 4c1cd58. De 10 konfliktfiler er løst ved at bevare den nye forløbsnavigation, dokumentvisning, søgning og temaer samt tilkoble hans fælles lokale tilstand. Der vælges ikke ensidigt en hel gammel eller ny version.
+
+- Genbrugelige visninger er samlet i web/Components. Der findes kun én avatar-, spil-, kalender- og oplåsningskomponent samt én route til prøvespillet.
+- DemoWorld.Goods er det fælles varekatalog; de parallelle prisdefinitioner er fjernet. Køb opdaterer saldo, inventar, garderobe, header og spil.
+- Aktiviteter, questdetaljer, afstemningsdetaljer og underviserens resultatvisning deler tilstand. Ændring af et svar tælles én gang. Udført giver stadig ikke automatisk XP/guld.
+- Kalenderen beholder Mathias’ forskellige aktiviteter og tidspunkter samt de nye forløbs- og emnelinks. Fremmødeform følger grøn/blå/gul-betydningen fra designaftalen.
+- System/lys/mørk/jul/hacker og sne/gave/lys er bevaret. Rainbow er ikke genindført.
+- Mathias’ rettelse af navigation og oprydning af eventabonnementer er bevaret uden dobbelte abonnementer.
+
+Sammenfletningen er kontrolleret med Debug- og Release-build (0 fejl/advarsler), 39 elevindgange, syv underviserindgange og 174 interne indholdsadresser uden døde links eller registrerede runtime-fejl. Køb → garderobe → spil, saldo i headeren, møbelkøb/placering/flytning/fjernelse, egne questmarkeringer uden belønning, ændring af afstemningssvar uden dobbeltoptælling samt level-/badgekrav er afprøvet. Eksisterende DemoWorld-lagring og import af den tidligere avatar/lejlighed er testet separat. Mobilbredder 320/390/768/1024 px har ingen konstaterede vandrette overløb på de gennemgåede hovedsider.
+
+Ingen eksisterende sprintopgaver lukkes på baggrund af lokal designfunktionalitet.

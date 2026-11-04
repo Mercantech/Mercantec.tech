@@ -28,15 +28,7 @@ else if (PathKey == "calendar" || PathKey.EndsWith("/calendar")) {
 else if (PathKey == "activities") {
     <header class="page-title"><div><h1>Det sker lige nu</h1><p>Dine afstemninger og quests, samlet ét sted.</p></div></header>
     <div class="lup-status-legend"><span class="lup-state-important"><i class="lup-status-dot"></i>Vigtigt</span><span class="lup-state-optional"><i class="lup-status-dot"></i>Kan gøre</span><span class="lup-state-ready"><i class="lup-status-dot"></i>Intet mangler</span></div>
-    <div class="filters">@foreach (var f in new[] { "Alle", "Afstemninger", "Main", "Side", "Daily" }) { <button class="filter" aria-pressed="@(_filter == f)" @onclick="() => _filter = f">@f</button> }</div>
-    @if (_filter is "Alle" or "Afstemninger") {
-        <div class="headrow"><h2>Aktive afstemninger</h2><span>Giv din stemme</span></div>
-        <div class="v4-activity-list">@foreach (var p in DemoCatalog.Polls.Select((poll, index) => (poll, index)).Where(p => CourseContext.CourseId == "h3" ? p.index == 0 : p.index == 1)) { <article class="v4-activity"><span class="activity-icon"><UiIcon Name="chart" /></span><div class="v4-activity-main"><p class="v4-type"><strong>@p.poll.Type</strong><span>@p.poll.Course</span></p><h3><a href="/polls/@p.index">@p.poll.Question</a></h3><span class="v4-status lup-important-text">Venter på dit svar</span></div><a class="secondary" href="/polls/@p.index">Deltag</a></article> }</div>
-    }
-    @if (_filter != "Afstemninger") {
-        <div class="headrow"><h2>Quests at arbejde på</h2><a href="/quests">Alle quests</a></div>
-        <QuestList Filter="@(_filter == "Alle" ? "Alle" : _filter)" CourseId="@CourseContext.CourseId" />
-    }
+    <ActivitiesBoard />
 }
 else if (PathKey == "quests") {
     <header class="page-title"><div><h1>Quests og afleveringer</h1><p>Questen er opgaven. Afleveringen er dit svar på den.</p></div></header>

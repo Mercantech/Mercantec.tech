@@ -12,6 +12,7 @@
 @using Mercantec.Tech.Web.Demo
 @inject NavigationManager Nav
 @inject AuthService Auth
+@inject DemoWorld World
 @implements IDisposable
 
 <PageTitle>@Title</PageTitle>
@@ -27,7 +28,7 @@ else if (!Auth.IsAuthenticated)
 else if (PathKey == "progress")
 {
     <header class="page-title"><div><h1>Din udvikling</h1><p>Det, du lærer, bygger videre. På tværs af forløb og projekter.</p></div><a class="secondary" href="/universe/unlocks">Se kommende oplåsninger</a></header>
-    <div class="v3-wallet-panel"><div><strong>Level @DemoCatalog.Level</strong><span>Dit karriere-level</span></div><div><strong>1.240</strong><span>Samlet XP</span></div><div class="v3-gold"><strong><i class="v3-gold-dot"></i>320</strong><span>Guld</span></div></div>
+    <div class="v3-wallet-panel"><div><strong>Level @DemoCatalog.Level</strong><span>Dit karriere-level</span></div><div><strong>1.240</strong><span>Samlet XP</span></div><div class="v3-gold"><strong><i class="v3-gold-dot"></i>@World.Gold</strong><span>Guld</span></div></div>
     <section class="panel progress-overview"><h2>På vej mod level 8</h2><div class="v3-level-track"><span style="width:20%"></span></div><p>40 af 200 XP · 160 XP til næste level</p></section>
     <div class="cols"><section class="panel"><h2>Forløbs-XP</h2><div class="row"><span class="mark"><UiIcon Name="chip" /></span><div><h3><a href="/learning/h3">H3 · 2026</a></h3><p>Fra sensor til dashboard</p></div><strong>420 XP</strong></div><div class="row"><span class="mark"><UiIcon Name="game" /></span><div><h3><a href="/learning/game">Game design fra bunden</a></h3><p>Rune Run og dit eget spil</p></div><strong>320 XP</strong></div></section><aside class="panel"><h2>Brug dine fremskridt</h2><p>Find nyt avatartøj og møbler, og se de badges, der åbner særlige ting.</p><div class="actions"><a class="secondary" href="/universe/shop">Til butikken</a><a class="secondary" href="/progress/badges">Mine badges</a></div></aside></div>
 }
@@ -54,11 +55,8 @@ else if (PathKey == "universe/shop")
 else if (PathKey == "universe/unlocks")
 {
     <header class="page-title"><div><h1>Det næste, du kan låse op</h1><p>Se både levelkrav og badges. En oplåsning åbner for køb med guld.</p></div><a class="secondary" href="/universe/shop">Til butikken</a></header>
-    <div class="v4-shop-summary"><div><strong>Level @DemoCatalog.Level</strong><p>160 XP til næste level · @DemoCatalog.Gold guld</p></div></div>
-    <div class="v4-roadmap">@foreach (var level in DemoCatalog.Shop.Select(i => i.Level).Distinct().Order().Where(l => l > DemoCatalog.Level)) { <section class="v4-level-node @(level == 8 ? "next" : "")"><h2>Level @level <span class="pill">@(level == 8 ? "Næste oplåsning" : "Låst")</span></h2>@foreach (var item in DemoCatalog.Shop.Where(i => i.Level == level)) { <UnlockRow Item="item" /> }</section> }</div>
-    <details class="v4-past-levels"><summary>Se allerede nåede levels</summary><div class="v4-roadmap">@foreach (var level in DemoCatalog.Shop.Select(i => i.Level).Distinct().Order().Where(l => l <= DemoCatalog.Level)) { <section class="v4-level-node reached"><h2>Level @level <span class="pill green">Level nået</span></h2>@foreach (var item in DemoCatalog.Shop.Where(i => i.Level == level)) { <UnlockRow Item="item" /> }</section> }</div></details>
-    <div class="headrow"><h2>Badges åbner særlige ting</h2></div><section class="panel">@foreach (var item in DemoCatalog.Shop.Where(i => i.BadgeId is not null)) { <UnlockRow Item="item" /> }</section>
-    <section class="panel" style="margin-top:20px"><h2>En gave på vejen</h2><p>@DemoCatalog.Gift.Name gives direkte ved level @DemoCatalog.Gift.Level. Gaven står ikke til salg.</p><UiIcon Name="gift" /></section>
+    <UnlockRoadmap />
+    <section class="panel" style="margin-top:18px"><h2>Titler og ekstra profiltemaer</h2>@foreach (var unlock in DemoCatalog.Unlocks.Where(u => u.Type is "Titel" or "Tema")) { <div class="row"><span class="mark">@unlock.Level</span><div><h3>@unlock.Name</h3><p>@unlock.Type · level @unlock.Level · @(unlock.Open ? "Åben" : "Låst")</p></div></div> }</section>
 }
 else if (PathKey == "games/avatar-demo")
 {
@@ -137,8 +135,8 @@ else
         _ => "Tomt felt"
     };
 
-    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; }
+    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; World.Changed += OnAuth; await World.EnsureAsync(); }
     private void OnAuth() => InvokeAsync(StateHasChanged);
     private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
-    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; }
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; World.Changed -= OnAuth; }
 }

@@ -6,6 +6,7 @@
 @inject NavigationManager Nav
 @inject HttpClient Http
 @inject LearningContext CourseContext
+@inject DemoWorld World
 @implements IDisposable
 
 <PageTitle>Dit overblik · LUP</PageTitle>
@@ -24,7 +25,7 @@ else {
     else { @foreach (var m in _memberships) { <div class="row"><span class="mark"><UiIcon Name="book" /></span><div><h3><a href="@($"/courses/{m.ForloebId}")">@m.ForloebName</a></h3><p>@m.HoldName</p></div><a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a></div> } }
     </section>
     @if (_showLectioCta) { <div class="callout"><strong>Dit skema kan følge med</strong><p>Kobl din Lectio-profil for at finde dine elevdata.</p><div class="actions"><a class="secondary" href="/lectio">Kobl Lectio</a></div></div> }
-    </div><aside class="aside"><section class="panel"><h2>Din udvikling</h2><div class="v3-wallet-panel"><div><strong>7</strong><span>Level</span></div><div class="v3-gold"><strong>320</strong><span>Guld</span></div></div><div class="v3-level-track"><span style="width:20%"></span></div><p>160 XP til level 8</p><a href="/progress">Se XP og belønninger</a></section><section class="panel"><h2>Dit eget sted</h2><div class="person"><AvatarSprite /><div><p>Din figur og dine idéer har også et hjem her.</p></div></div><div class="actions"><a class="secondary" href="/profile/character">Min avatar</a><a class="secondary" href="/apartment">Min lejlighed</a></div></section><section class="panel"><h2>Dit næste badge</h2><BadgeMark Rank="0" Icon="wifi" /><p>MQTT Explorer</p><a href="/badges/mqtt">Se dit næste skridt</a></section></aside></div>
+    </div><aside class="aside"><section class="panel"><h2>Din udvikling</h2><div class="v3-wallet-panel"><div><strong>7</strong><span>Level</span></div><div class="v3-gold"><strong>@World.Gold</strong><span>Guld</span></div></div><div class="v3-level-track"><span style="width:20%"></span></div><p>160 XP til level 8</p><a href="/progress">Se XP og belønninger</a></section><section class="panel"><h2>Dit eget sted</h2><div class="person"><AvatarSprite /><div><p>Din figur og dine idéer har også et hjem her.</p></div></div><div class="actions"><a class="secondary" href="/profile/character">Min avatar</a><a class="secondary" href="/apartment">Min lejlighed</a></div></section><section class="panel"><h2>Dit næste badge</h2><BadgeMark Rank="0" Icon="wifi" /><p>MQTT Explorer</p><a href="/badges/mqtt">Se dit næste skridt</a></section></aside></div>
 }
 
 @code {
@@ -38,6 +39,8 @@ else {
     {
         Auth.AuthStateChanged += OnAuth;
         CourseContext.Changed += OnContext;
+        World.Changed += OnContext;
+        await World.EnsureAsync();
         EnsureAccess();
         await CheckLectioLinkAsync();
         await LoadMembershipsAsync();
@@ -117,7 +120,7 @@ else {
         }
     }
 
-    public void Dispose() { Auth.AuthStateChanged -= OnAuth; CourseContext.Changed -= OnContext; }
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; CourseContext.Changed -= OnContext; World.Changed -= OnContext; }
 
     private sealed record MembershipRow(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 }
