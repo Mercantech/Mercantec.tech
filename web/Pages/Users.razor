@@ -17,7 +17,7 @@ else if (!Auth.IsAuthenticated)
 {
     <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
 }
-else if (Redirect.CurrentAppRole() != AppRole.Underviser)
+else if (!Redirect.ShowsTeacherChrome)
 {
     <p>Siden er for undervisere. <a href="/student">Gå til elevoverblik</a></p>
 }
@@ -164,7 +164,7 @@ else
 
     private async Task LoadAsync()
     {
-        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Underviser)
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || !Redirect.ShowsTeacherChrome)
             return;
 
         _error = null;
@@ -245,7 +245,7 @@ else
 
         var name = string.IsNullOrWhiteSpace(link.Name) ? user.DisplayName : link.Name;
         ViewAs.Enter(link.LectioId, name, link.ClassName, user.Id, "/users");
-        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(link.LectioId)}");
+        Nav.NavigateTo("/student");
     }
 
     private void OnAuth() => _ = InvokeAsync(async () =>
