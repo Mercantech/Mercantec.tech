@@ -43,7 +43,7 @@ WebSocket: same-origin /collaboration?schemaVersion=4, room notion:<pageId>. A m
 - /callout: highlighted note (info / tip / warning / important).
 - /kodeblok (default BlockNote code block): language picker (C#, JS/TS, Python, …), Shiki syntax highlighting via `@blocknote/code-block`, and a **Kopiér** button. Default language is C#.
 - /ai (toolbar **AI**): teacher-only OpenAI helper — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).
-- Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, callout, læringsmål) or **Slet**. Selection toolbar also offers block type change.
+- Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, callout, læringsmål), **AI** (samme hjælper på den blok, med blokkens tekst som udgangspunkt) or **Slet**. Selection toolbar also offers block type change.
 
 Each custom block stores schemaVersion1. Add future schema migrations deliberately; never seed collaborative initialContent independently in each browser. Editing pauses on connection loss and pending edits stay in memory in the open tab. A beforeunload listener warns before losing unpersisted local edits. No persistent offline editing is enabled.
 

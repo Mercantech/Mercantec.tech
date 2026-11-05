@@ -16,7 +16,8 @@ import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionDragHandleMenu, turnIntoSelectItems } from './turn-into';
-import { AiHelperPanel } from './ai-helper';
+import { blockPlainText } from './ai-block-text';
+import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 
 export interface EditorContext {
@@ -267,6 +268,20 @@ function ConnectedEditor({session}:{session:Session}) {
   useEffect(() => () => { session.editor=undefined; },[session]);
   const enabled=canEdit(session);
   const [aiOpen,setAiOpen]=useState(false);
+  const [aiAnchor,setAiAnchor]=useState<{id:string;text:string}|null>(null);
+  const openAi=(blockId?:string)=>{
+    if(!canEdit(session))return;
+    if(!blockId){setAiAnchor(null);setAiOpen(true);return;}
+    const block=editor.getBlock(blockId);
+    if(!block)return;
+    if(block.content!==undefined){
+      editor.focus();
+      try{editor.setTextCursorPosition(block,'end');}catch{/* Void blocks have no caret. */}
+    }
+    setAiAnchor({id:block.id,text:blockPlainText(block)});
+    setAiOpen(true);
+  };
+  const onAiOpenChange=(open:boolean)=>{setAiOpen(open);if(!open)setAiAnchor(null);};
   const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'pageLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
     if(!enabled) return;
     editor.focus();
@@ -301,9 +316,9 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Læringsmål',subtext:'Fremhæv målet for aktiviteten',aliases:['læringsmål','mål','learning'],group:'Undervisning',icon:<span aria-hidden="true">◎</span>,onItemClick:()=>insert('learningGoal')},
     {title:'Diagram',subtext:'Mermaid flowchart, sequence m.m.',aliases:['diagram','mermaid','flowchart','graf'],group:'Undervisning',icon:<span aria-hidden="true">◈</span>,onItemClick:()=>insert('mermaidDiagram')},
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
-    {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>enabled && setAiOpen(true)},
+    {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
   ];
-  return <>
+  return <OpenAiOnBlockProvider openOnBlock={openAi}>
     <div className="notion-editor-tools" role="toolbar" aria-label="Dokumentværktøjer">
       {!session.readOnly && <>
       <button type="button" onClick={()=>editor.undo()} disabled={!enabled} title="Fortryd (Ctrl+Z)">↶ <span>Fortryd</span></button>
@@ -316,7 +331,7 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('mermaidDiagram')} disabled={!enabled}>Diagram</button>
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
-      <button type="button" onClick={()=>setAiOpen(true)} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
+      <button type="button" onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
@@ -327,7 +342,9 @@ function ConnectedEditor({session}:{session:Session}) {
         pageTitle={session.context.title}
         getToken={()=>validToken(session)}
         open={aiOpen}
-        onOpenChange={setAiOpen}
+        onOpenChange={onAiOpenChange}
+        anchorBlockId={aiAnchor?.id ?? null}
+        anchorText={aiAnchor?.text ?? null}
       />
     )}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
@@ -340,7 +357,7 @@ function ConnectedEditor({session}:{session:Session}) {
       </>}
     </BlockNoteView>
     <footer className="notion-editor-footnote"><span>{session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold og <kbd>@</kbd> for sider og elever.</>}</span><a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
-  </>;
+  </OpenAiOnBlockProvider>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {
   const editor=useCreateBlockNote({schema,dictionary:danish,extensions:[syntaxHighlighter],initialContent:blocks as NonNullable<Parameters<typeof useCreateBlockNote>[0]>['initialContent']});
