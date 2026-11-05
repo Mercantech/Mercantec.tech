@@ -1,0 +1,24 @@
+{
+  "name": "@mercantec/notion-collaboration",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted LUP document collaboration with scoped ASP.NET authorization and binary Yjs persistence",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:unit": "node --test test/api-client.test.mjs"
+  },
+  "dependencies": {
+    "@hocuspocus/server": "4.8.0",
+    "yjs": "13.6.33",
+    "y-protocols": "1.0.6"
+  },
+  "devDependencies": {
+    "@hocuspocus/provider": "4.8.0",
+    "ws": "8.18.3"
+  }
+}

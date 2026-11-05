@@ -32,6 +32,8 @@ Det er UI-skabelonen til samarbejdet, ikke en erstatning for Blazor-/API-appen. 
 
 ## Den eksisterende .NET-app
 
+[Forløbseditor på `/notion`](obsidian/03-features/Forloebseditor.md) er en selvhostet testversion med BlockNote, Yjs, Hocuspocus og holdbaseret adgang. Dokumentationen beskriver opsætning, kommandoer og deployment.
+
 **Stack:** .NET 10 — Blazor WebAssembly PWA (`web/`) + ASP.NET Core API med controllers (`api/`) + Postgres.
 
 Planlægning: [`obsidian/`](obsidian/) — [Start her](obsidian/00-home/Start%20her.md).  

@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<Mercantec.Tech.Api.Learning.CourseAccess>();
 
 builder.Services.Configure<LectioOptions>(builder.Configuration.GetSection(LectioOptions.SectionName));
 builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>

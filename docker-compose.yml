@@ -107,7 +107,11 @@ services:
       ObjectStorage__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin}
       ObjectStorage__Bucket: ${MINIO_BUCKET:-mercantec-tech}
       ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_BASE_URL:-}
+      Notion__ServiceSecret: ${NOTION_SERVICE_SECRET:-}
+      Notion__ServiceSecretFile: /run/notion/service-key
     depends_on:
+      notion-init:
+        condition: service_healthy
       db:
         condition: service_healthy
       minio:
@@ -116,6 +120,61 @@ services:
       default:
         aliases:
           - mercantec-tech-api
+    volumes:
+      - mercantec_notion_key:/run/notion:ro
+    restart: unless-stopped
+
+  notion-init:
+    build:
+      context: ./collaboration
+    command: ["node", "src/init-key.mjs"]
+    user: "0:0"
+    network_mode: none
+    environment:
+      NOTION_SERVICE_SECRET_FILE: /run/notion/service-key
+    volumes:
+      - mercantec_notion_key:/run/notion
+    labels:
+      - traefik.enable=false
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "node", "-e", "const fs=require('node:fs');if(fs.readFileSync('/run/notion/service-key','utf8').trim().length<32)process.exit(1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  collaboration:
+    build:
+      context: ./collaboration
+    environment:
+      PORT: "1234"
+      API_BASE_URL: http://mercantec-tech-api:8080
+      NOTION_SERVICE_SECRET: ${NOTION_SERVICE_SECRET:-}
+      NOTION_SERVICE_SECRET_FILE: /run/notion/service-key
+      ALLOWED_ORIGINS: https://mercantec.tech
+    depends_on:
+      notion-init:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      default:
+        aliases:
+          - mercantec-tech-collaboration
+    volumes:
+      - mercantec_notion_key:/run/notion:ro
+    labels:
+      - traefik.enable=false
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     restart: unless-stopped
 
   web:
@@ -133,6 +192,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  mercantec_notion_key:
   mercantec_tech_pg:
   mercantec_tech_minio:
 

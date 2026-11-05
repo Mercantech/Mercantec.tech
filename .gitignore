@@ -28,3 +28,8 @@ publish/
 
 # Lokale udviklingsværktøjer
 .tools/
+
+## Notion editor and collaboration dependencies / generated browser bundle
+editor/node_modules/
+collaboration/node_modules/
+web/wwwroot/notion-editor/

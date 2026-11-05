@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mercantec.Tech.Api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Forloeb> Forloeb => Set<Forloeb>();
     public DbSet<Hold> Hold => Set<Hold>();
@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ConfigureNotion(modelBuilder);
         modelBuilder.Entity<PollRound>(e =>
         {
             e.ToTable("poll_rounds");

@@ -1,0 +1,23 @@
+using Mercantec.Tech.Api.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace Mercantec.Tech.Api.Data;
+
+public partial class AppDbContext
+{
+    public DbSet<NotionPage> NotionPages => Set<NotionPage>();
+
+    private static void ConfigureNotion(ModelBuilder model)
+    {
+        model.Entity<NotionPage>(e =>
+        {
+            e.ToTable("notion_pages");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => new { x.HoldId, x.ParentPageId });
+            e.HasIndex(x => x.ParentPageId);
+            e.HasOne<Hold>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<NotionPage>().WithMany().HasForeignKey(x => x.ParentPageId).OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+}

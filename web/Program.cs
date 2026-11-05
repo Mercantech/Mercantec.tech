@@ -35,6 +35,7 @@ builder.Services.AddScoped<Mercantec.Tech.Web.Courses.CourseTheoryDocumentLoader
 
 builder.Services.AddScoped<Mercantec.Tech.Web.Gifts.GiftMailboxClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Polls.PollClient>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Notion.NotionClient>();
 
 builder.Services.AddScoped<TokenStore>();
 builder.Services.AddScoped<AuthService>();
