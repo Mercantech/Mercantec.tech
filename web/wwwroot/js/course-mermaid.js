@@ -26,6 +26,46 @@
         return String(code ?? "").replace(/\u00A0/g, " ").trim();
     }
 
+    function repairAccidentalProseAfterEdgeTarget(line) {
+        const arrow = line.lastIndexOf("-->");
+        if (arrow === -1) return line;
+        const head = line.slice(0, arrow + 3);
+        const tail = line.slice(arrow + 3);
+        const targetMatch = tail.match(
+            /^(\s*(?:[\w-]+|\[[^\]]*\]|\{[^}]*\}|\([^)]*\)))(?:\s+(.*))?$/
+        );
+        if (!targetMatch?.[2]) return line;
+        const rest = targetMatch[2].trim();
+        if (!rest || rest.startsWith("%%")) return line;
+        if (/^(style|class|classDef|subgraph|end|click|linkStyle|direction)\b/i.test(rest)) return line;
+        return head + targetMatch[1];
+    }
+
+    function prepareMermaidSource(raw) {
+        const normalized = sanitizeSource(raw);
+        if (!normalized) return { source: "", repaired: false };
+        let repaired = false;
+        const out = normalized.split("\n").map((line) => {
+            const fixed = repairAccidentalProseAfterEdgeTarget(line);
+            if (fixed !== line) repaired = true;
+            return fixed;
+        });
+        return { source: out.join("\n"), repaired };
+    }
+
+    function formatMermaidRenderError(err) {
+        const base = "Diagrammet kunne ikke tegnes.";
+        const message = typeof err?.message === "string" ? err.message.trim() : "";
+        if (!message) return `${base} Ret Mermaid-koden, og prøv igen.`;
+        const lineNo = err?.hash?.loc?.first_line ?? (typeof err?.hash?.line === "number" ? err.hash.line + 1 : undefined);
+        const snippet = err?.hash?.text ? ` «${err.hash.text}»` : "";
+        const lineHint = lineNo ? ` (linje ${lineNo}${snippet})` : snippet ? ` (${snippet.trim()})` : "";
+        if (/^Parse error/i.test(message)) {
+            return `${base} ${message.split("\n")[0]}${lineHint}.`;
+        }
+        return `${base} ${message.split("\n")[0]}`;
+    }
+
     function showError(host, code, message) {
         host.replaceChildren();
         host.classList.add("course-mermaid-error");
@@ -43,7 +83,8 @@
     }
 
     async function drawInto(host, code) {
-        const source = sanitizeSource(code);
+        const prepared = prepareMermaidSource(code);
+        const source = prepared.source;
         if (!source) {
             host.replaceChildren();
             host.dataset.mermaidDone = "empty";
@@ -75,8 +116,8 @@
             host.dataset.mermaidDone = "1";
             host.dataset.mermaidSource = source;
             return true;
-        } catch {
-            showError(host, source, "Diagrammet kunne ikke tegnes.");
+        } catch (err) {
+            showError(host, source, formatMermaidRenderError(err));
             return false;
         }
     }

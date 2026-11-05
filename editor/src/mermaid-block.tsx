@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import {
+  formatMermaidRenderError,
+  MERMAID_RENDER_CONFIG,
+  prepareMermaidSource,
+  stripScriptsFromSvg,
+} from './mermaid-utils';
 
 /** Default sample matches the pyramid / test-layer diagram teachers often paste from Notion. */
 export const DEFAULT_MERMAID_SOURCE = `flowchart TB
@@ -26,14 +32,7 @@ function loadMermaid() {
   if (!mermaidPromise) {
     mermaidPromise = import('mermaid').then((mod) => {
       const mermaid = (mod.default ?? mod) as MermaidApi;
-      mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: 'strict',
-        theme: 'neutral',
-        flowchart: { useMaxWidth: true, htmlLabels: false },
-        sequence: { useMaxWidth: true },
-        suppressErrorRendering: true,
-      });
+      mermaid.initialize({ ...MERMAID_RENDER_CONFIG, theme: 'neutral' });
       return mermaid;
     });
   }
@@ -45,17 +44,19 @@ function readEditorTheme(): 'light' | 'dark' {
   return host?.dataset.notionTheme === 'dark' ? 'dark' : 'light';
 }
 
-function stripScriptsFromSvg(svg: string): string {
-  if (!/<script[\s>]/i.test(svg)) return svg;
-  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
-  doc.querySelectorAll('script').forEach((node) => node.remove());
-  return doc.documentElement.outerHTML;
-}
-
-function MermaidPreview({ source }: { source: string }) {
+function MermaidPreview({
+  source,
+  onSourceRepaired,
+}: {
+  source: string;
+  onSourceRepaired?: (fixed: string) => void;
+}) {
   const [svgMarkup, setSvgMarkup] = useState('');
   const [error, setError] = useState('');
+  const [repairNote, setRepairNote] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>(readEditorTheme);
+  const onRepairedRef = useRef(onSourceRepaired);
+  onRepairedRef.current = onSourceRepaired;
 
   useEffect(() => {
     const sync = () => setTheme(readEditorTheme());
@@ -66,10 +67,11 @@ function MermaidPreview({ source }: { source: string }) {
   }, []);
 
   useEffect(() => {
-    const code = source.replace(/\u00A0/g, ' ').trim();
+    const { source: code, repaired } = prepareMermaidSource(source);
     if (!code) {
       setSvgMarkup('');
       setError('');
+      setRepairNote('');
       return;
     }
     let cancelled = false;
@@ -78,21 +80,24 @@ function MermaidPreview({ source }: { source: string }) {
       try {
         const mermaid = await loadMermaid();
         mermaid.initialize({
-          startOnLoad: false,
-          securityLevel: 'strict',
+          ...MERMAID_RENDER_CONFIG,
           theme: theme === 'dark' ? 'dark' : 'neutral',
-          flowchart: { useMaxWidth: true, htmlLabels: false },
-          sequence: { useMaxWidth: true },
-          suppressErrorRendering: true,
         });
         const { svg } = await mermaid.render(renderId, code);
         if (cancelled) return;
         setSvgMarkup(stripScriptsFromSvg(svg));
         setError('');
-      } catch {
+        if (repaired) {
+          setRepairNote('Fjernede fri tekst efter en kant; koden er rettet automatisk.');
+          onRepairedRef.current?.(code);
+        } else {
+          setRepairNote('');
+        }
+      } catch (err) {
         if (!cancelled) {
           setSvgMarkup('');
-          setError('Diagrammet kunne ikke tegnes. Ret Mermaid-koden, og prøv igen.');
+          setRepairNote('');
+          setError(formatMermaidRenderError(err));
         }
       }
     })();
@@ -110,6 +115,7 @@ function MermaidPreview({ source }: { source: string }) {
         />
       ) : null}
     </div>
+    {repairNote && <p className="notion-mermaid-hint">{repairNote}</p>}
     {error && <p className="notion-mermaid-error" role="alert">{error}</p>}
   </>;
 }
@@ -190,7 +196,14 @@ function MermaidDiagramBlock({
           }
         }}
       >
-        <MermaidPreview source={draft} />
+        <MermaidPreview
+          source={draft}
+          onSourceRepaired={(fixed) => {
+            if (fixed === draft) return;
+            setDraft(fixed);
+            onChange(fixed);
+          }}
+        />
         {!draft.trim() && <p className="notion-block-hint">Dobbeltklik for at skrive Mermaid-kode.</p>}
       </div>
     )}
