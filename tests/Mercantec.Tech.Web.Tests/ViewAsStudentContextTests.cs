@@ -33,4 +33,19 @@ public class ViewAsStudentContextTests
         Assert.Null(ctx.LectioId);
         Assert.Equal("", ctx.BannerLabel);
     }
+
+    [Theory]
+    [InlineData("/teacher", true)]
+    [InlineData("/teacher/polls", true)]
+    [InlineData("/teacher/reviews", true)]
+    [InlineData("/users", true)]
+    [InlineData("/teacher/view-as/abc", false)]
+    [InlineData("/student", false)]
+    [InlineData("/lectio", false)]
+    [InlineData("/courses", false)]
+    [InlineData("/learning", false)]
+    public void IsTeacherOnlyPath_blocks_teacher_chrome_routes(string path, bool expected)
+    {
+        Assert.Equal(expected, ViewAsStudentContext.IsTeacherOnlyPath(path));
+    }
 }

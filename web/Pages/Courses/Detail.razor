@@ -95,7 +95,7 @@ else if (_forloeb is not null)
                 <p>Shadow betyder, at eleven er med fra Lectio uden Auth-kobling endnu.</p>
             }
 
-            @if (Redirect.CurrentAppRole() == AppRole.Underviser)
+            @if (Redirect.ShowsTeacherChrome)
             {
                 <h3>Tilføj elev</h3>
                 <label class="field">Navn<input @bind="_memberName" maxlength="200" /></label>
