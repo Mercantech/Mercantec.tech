@@ -31,6 +31,10 @@ public static class CourseTemplateCatalog
         "Refleksion — kan forklare hvad der gik godt/skidt, hvad der er lært, og næste skridt."
     ];
 
+    /// <summary>Uger uden ekstra emneliste — kun titel.</summary>
+    private static CourseWeekPlan[] W(params string[] titles) =>
+        titles.Select(t => new CourseWeekPlan(t)).ToArray();
+
     public static readonly CourseTemplate Blank = new(
         Slug: "template",
         Short: "Skabelon",
@@ -57,12 +61,11 @@ public static class CourseTemplateCatalog
             new("Tema 2", "Kort beskrivelse af indhold og praksis."),
             new("Tema 3", "Kort beskrivelse af indhold og praksis.")
         ],
-        Weeks:
-        [
+        Weeks: W(
             "Uge 1 · Introduktion og fundament",
             "Uge 2 · Opbygning og afprøvning",
             "Uge 3 · Projekt og afslutning"
-        ],
+        ),
         Holistic: "Beskriv, hvordan fagene samles i ét projekt eller én rød tråd.",
         Practice: "Beskriv koblingen til virksomhedspraksis og værktøjer.",
         Differentiation: "Beskriv, hvordan kompleksitet og tempo kan tilpasses.",
@@ -99,7 +102,7 @@ public static class CourseTemplateCatalog
             new("Frontend", "Blazor, databinding, komponenter, HTML/CSS."),
             new("Proces", "SCRUM, sprint-planlægning og versionsstyring med GitHub.")
         ],
-        [
+        W(
             "C# og grundlæggende OOP",
             "SQL og datamodel",
             "HTTP og Blazor",
@@ -110,7 +113,7 @@ public static class CourseTemplateCatalog
             "Test og polish",
             "Dokumentation",
             "Overhøring"
-        ],
+        ),
         "Alle H1-fag integreres i Niche Markedsplads, så teori og praksis hænger sammen.",
         "Visual Studio, GitHub, PostgreSQL og Blazor i et setup, der minder om reelle udviklingsprojekter.",
         "Grupper kan tilpasse kompleksitet. Ekstra udfordringer efter aftale med underviseren.",
@@ -119,44 +122,205 @@ public static class CourseTemplateCatalog
 
     private static readonly CourseTemplate H2 = new(
         "h2", "H2", "Hovedforløb 2", 10,
-        "Fullstack med EF Core, REST API, Blazor og avancerede relationer.",
+        "Fullstack hotelbooking: RESTful API, EF Core, SPA (Blazor), JWT/roller, AD, SignalR-tickets og mail.",
         CourseKind.Hovedforlob, "Hotelbookingsystemet",
         [
-            "Udvikle skalerbare fullstack-løsninger med API, database og frontend.",
-            "Modellere data med EF Core og relationer.",
-            "Designe REST API’er med validering og fejlhåndtering.",
-            "Bygge mere avancerede Blazor-grænseflader.",
-            "Anvende SCRUM og Git i et større systemprojekt."
+            "Udvikle skalerbare fullstack-løsninger med API, database og SPA-frontend.",
+            "Modellere data med EF Core (1:1, 1:n, n:m) og PostgreSQL.",
+            "Designe REST API’er med DTO’er, validering, fejlhåndtering og OpenAPI-dokumentation.",
+            "Implementere autentifikation/autorisation med BCrypt, roller og JWT.",
+            "Bygge Blazor WASM-frontend med state management, login og PWA-elementer.",
+            "Integrere Active Directory, mail (bookingbekræftelse) og SignalR-ticketflow.",
+            "Anvende SCRUM, GitHub-releases og løbende refleksion i gruppeprojektet."
         ],
         [
-            "Bygge API + EF Core + Blazor i samme løsning.",
-            "Håndtere relationer og forespørgsler meningsfuldt.",
-            "Forklare arkitekturvalg i et hotelbookingsystem."
+            "Bygge API + EF Core + Blazor i samme hotelbooking-løsning.",
+            "Håndtere relationer, seed-data og forespørgsler meningsfuldt.",
+            "Forklare arkitekturvalg (3-lags, DTO, auth, real-time) i projektet.",
+            "Arbejde i grupper (typisk 3, max 4; højst én genbrugt H1-makker)."
         ],
         [
-            new("EF Core", "ORM, migrationer, relationer og forespørgsler."),
-            new("REST API", "Endpoints, DTO’er, validering og fejlhåndtering."),
-            new("Blazor", "Komponenter, state og integration mod API."),
-            new("Systemdesign", "Krav, datamodel og afgrænset MVP."),
-            new("Proces", "SCRUM, review og dokumentation.")
+            new("EF Core & database", "ORM, migrationer, Neon/Postgres, relationer, Bogus-seed og repository-struktur."),
+            new("REST API", "ASP.NET Core, CRUD, DTO’er, XML/OpenAPI-dokumentation, fejlhåndtering og CORS."),
+            new("Sikkerhed", "AuthN vs AuthZ, RBAC, BCrypt, JWT, rate limiting og clientside-risici (fx XSS)."),
+            new("SPA / Blazor", "API-kald, login, state (memory/localStorage), services og PWA."),
+            new("AD & drift", "Active Directory-brugere/grupper/tilladelser og admin-integration."),
+            new("Service & real-time", "ITSM/ticket-tænkning, SignalR og mail til bookingbekræftelse."),
+            new("Proces", "SCRUM, GitHub-releases med semver, refleksion og overhøring.")
         ],
         [
-            "EF Core og datamodel",
-            "API-fundament",
-            "Relationer og forespørgsler",
-            "Blazor-integration",
-            "Bookingflows",
-            "Validering og fejl",
-            "Projektuge",
-            "Test og sikkerhed",
-            "Polish og dokumentation",
-            "Overhøring"
+            new(
+                "API-kald, grupper og projektstart",
+                "Intro til H2, hotelbooking-case og API-kald fra frontend",
+                [
+                    "Forløbsintro, grupperammer og starter-repo",
+                    "Hotel Booking-case (fx luksushotel, hotelkæde, hostel-netværk)",
+                    "API-kald fra frontend og error handling",
+                    "Data-serialisering",
+                    "GitHub-arbejdsgange og første fremlæggelse/video"
+                ]),
+            new(
+                "API med EF Core, brugere og JWT",
+                "Backend-fundament: Web API, Postgres, roller, BCrypt og JWT",
+                [
+                    "ASP.NET Core Web API og filgennemgang (Controllers, Program.cs)",
+                    "EF Core med PostgreSQL (Docker/Neon) og User-model",
+                    "Roller, hashing (BCrypt) og DataAnnotations",
+                    "Relationer (1:1, 1:n, n:m), DTO’er og claims",
+                    "JWT-opsætning, Bearer-auth og /me-endpoint",
+                    "Release: API V0.1.0"
+                ]),
+            new(
+                "Hotelsystem-logik, fejlhåndtering og seed",
+                "Dokumentation, sikkerhed, repository pattern og testdata",
+                [
+                    "XML-dokumentation og OpenAPI/Swagger (valgfrit Scalar)",
+                    "Fejlhåndtering, logging og HTTP-statuskoder",
+                    "Validering, rate limiting og CORS",
+                    "Bogus/Faker til realistisk seed-data",
+                    "Repository pattern og struktur",
+                    "Udvidet EF Core, deployment og release"
+                ]),
+            new(
+                "SPA-frontend på API’et",
+                "Blazor WASM (plus React-oplæg), login, state og PWA",
+                [
+                    "Opstart af Blazor-projekt med API-kald",
+                    "State management i Blazor WASM",
+                    "Login-flow mod API med JWT",
+                    "Skalerbare frontend-services og PWA-elementer",
+                    "Release: frontend koblet til API (fx V0.2.0)"
+                ]),
+            new(
+                "Udvidelse, værktøjer og projektstyring",
+                "Ekstra emner, API-testværktøjer og projektarbejde",
+                [
+                    "Projektstyring og backlog",
+                    "API-test med Postman/Bruno",
+                    "Projektudvidelser efter gruppens plan",
+                    "Release med anbefalede krav"
+                ]),
+            new(
+                "Active Directory-integration",
+                "AD, roller/tilladelser og admin-login",
+                [
+                    "Opsætning af Active Directory",
+                    "Roller, brugere og tilladelser",
+                    "Integration af lokalt AD til admin-side",
+                    "Login-system med AD",
+                    "Release med AD-integration"
+                ]),
+            new(
+                "Mail-service og projektudvidelse",
+                "Bookingbekræftelse, vejledning og fremlæggelse",
+                [
+                    "Fremlæggelse og feedback på klassen",
+                    "Mail-service (SMTP m.m.) til bookingbekræftelse",
+                    "Bookingdetaljer i mail/dashboard",
+                    "Gruppevejledning og projektarbejde",
+                    "Release"
+                ]),
+            new(
+                "Ticket-system med SignalR",
+                "Support-tickets og real-time kommunikation",
+                [
+                    "Design af ticket-system med EF Core",
+                    "Introduktion til SignalR (hubs, klient, grupper)",
+                    "Real-time opdateringer i SPA",
+                    "Mesterdag og projektarbejde",
+                    "Release med ticket/real-time (fx V0.4.0)"
+                ]),
+            new(
+                "Færdiggørelse og Aspire",
+                "Projektpolish, dokumentation og .NET Aspire-oplæg",
+                [
+                    "Feature-lukning og polish",
+                    "Oplæg om .NET Aspire",
+                    "Dokumentation og demo-forberedelse",
+                    "Release før overhøring"
+                ]),
+            new(
+                "Eksamensforberedelse og overhøring",
+                "Sidste release, AI som værktøj og overhøring",
+                [
+                    "Eksamensforberedelse og AI som arbejdsværktøj",
+                    "Sidste release (API V1.0.0)",
+                    "Overhøring / eksamen",
+                    "Afslutning"
+                ])
         ],
-        "API, database og frontend samles i hotelbookingsystemet som ét erhvervsnært projekt.",
-        "Arbejde med moderne fullstack-værktøjer og professionelle Git-arbejdsgange.",
-        "Kompleksitet i features og datamodel kan justeres i dialog med underviseren.",
-        "Løbende dialog, sprintfeedback og afsluttende overhøring.",
-        StandardCriteria);
+        "Alle H2-fag samles i hotelbookingsystemet: API, database, SPA, auth, AD, tickets og mail i ét erhvervsnært gruppeprojekt.",
+        "Visual Studio, GitHub, EF Core, PostgreSQL/Neon, Blazor, Docker, Postman/Bruno og professionelle release-arbejdsgange (semver + refleksion).",
+        "Grupper (typisk 3, max 4) tilpasser feature-dybde — ekstra relationer, auth, AD, SignalR eller test — i dialog med underviseren. Online og fysisk må blandes.",
+        "Løbende dialog, sprint-/release-feedback, individuel refleksion ved releases og afsluttende overhøring.",
+        StandardCriteria,
+        Theory:
+        [
+            new(
+                "Programmering (C# / OOP)",
+                "Bygger videre på H1 med mere kompleksitet, asynkronitet og domænemodellering (fagmål 16880-2).",
+                [
+                    "Override vs overload, access modifiers og selvudviklede interfaces",
+                    "UML-klassediagrammer og simpel domænemodel med løs kobling",
+                    "Asynkron programmering, thread safety, deadlocks og lambda/anonyme metoder",
+                    "Funktion pointers/callbacks hvor det er relevant i .NET"
+                ]),
+            new(
+                "Database (SQL / EF Core)",
+                "Fra ADO.NET på H1 til EF Core og avanceret SQL (fagmål 16474-3).",
+                [
+                    "Avanceret SQL: parametre, constraints, rettigheder og normalisering",
+                    "Relationer, referenceintegritet og konsistenskrav",
+                    "EF Core: modeller, DbContext, migrationer og forespørgsler",
+                    "SQL injection-sikring, indexes og grundlæggende performance"
+                ]),
+            new(
+                "Clientsideprogrammering",
+                "SPA der taler med backend — Blazor (samt kendskab til React) i stedet for klassisk jQuery/AJAX (fagmål 16476-2).",
+                [
+                    "Klientlogik, objekter og kommunikation med webservices",
+                    "DOM/UI-manipulation via komponentmodel",
+                    "Best practice for sikkerhed og performance på clientside",
+                    "Bevidsthed om XSS og test af webapplikationens funktionalitet"
+                ]),
+            new(
+                "GUI-programmering",
+                "Udvider Blazor/GUI-kompetencer fra H1 (fagmål 16475-3).",
+                [
+                    "Layout, kontroller og event-handling",
+                    "UI design patterns og custom controls",
+                    "State og application lifetime i SPA",
+                    "Simpel usability-test af bookingflows"
+                ]),
+            new(
+                "API-sikkerhed og arkitektur",
+                "Teori og praksis bag 3-lags API, roller og tokens.",
+                [
+                    "3-lags arkitektur: præsentation, applikation og data",
+                    "AuthN vs AuthZ; RBAC vs ABAC",
+                    "BCrypt (hash + salt) og JWT (header, payload, signature)",
+                    "DTO’er, DataAnnotations, logging og struktureret fejlhåndtering",
+                    "CORS, rate limiting og OpenAPI-dokumentation"
+                ]),
+            new(
+                "Serveradministration og Active Directory",
+                "Domæne, brugere og tilladelser koblet til admin-delen af hotelprojektet (fagmål 16858-2 / 16857-2).",
+                [
+                    "Installere/konfigurere client-server og AD domain services",
+                    "Bruger-/gruppekonti, objekter og tilladelser til ressourcer",
+                    "Grundlæggende serversikkerhed, politikker og firewall",
+                    "Integration af lokalt AD til admin-login i applikationen"
+                ]),
+            new(
+                "IT Service Management & real-time",
+                "Ticket-tænkning og real-time support i bookingplatformen (fagmål 16853-2).",
+                [
+                    "1st level support: roller, forventninger og eskalering",
+                    "Service requests vs fejl; kategori og prioritet",
+                    "Ticket-system modelleret i EF Core",
+                    "SignalR til real-time opdateringer; mail til bookingbekræftelse"
+                ])
+        ]);
 
     private static readonly CourseTemplate H3 = new(
         "h3", "H3", "Hovedforløb 3", 9,
@@ -181,7 +345,7 @@ public static class CourseTemplateCatalog
             new("Dashboard", "Fra rå data til forståelig visning."),
             new("Test & sikkerhed", "Fejltilstande, adgang og dokumentation.")
         ],
-        [
+        W(
             "Arduino og IoT",
             "Mere Arduino",
             "Serverside",
@@ -191,7 +355,7 @@ public static class CourseTemplateCatalog
             "MVP færdig",
             "Projektuge",
             "Eksamen"
-        ],
+        ),
         "Hardware, API, database og dashboard samles i én kæde fra sensor til brugergrænseflade.",
         "Arduino, .NET, database og frontend i et setup, der spejler reelle IoT-projekter.",
         "Sensoropsætning, API-features og dashboard kan differentieres efter niveau.",
@@ -221,7 +385,7 @@ public static class CourseTemplateCatalog
             new("Test", "Widget-/integrationstest af centrale flows."),
             new("Proces", "SCRUM og afleveringsklar app.")
         ],
-        [
+        W(
             "Flutter-fundament",
             "UI og navigation",
             "API-integration",
@@ -229,7 +393,7 @@ public static class CourseTemplateCatalog
             "Test",
             "Projektuge",
             "Overhøring"
-        ],
+        ),
         "Mobilapp, API og data samles i én kundestyringscase.",
         "Arbejde med mobiludvikling mod realistiske API- og offlinekrav.",
         "Feature-omfang og teknisk dybde tilpasses i dialog med underviseren.",
@@ -259,7 +423,7 @@ public static class CourseTemplateCatalog
             new("Pipelines", "Fra data til anvendelig applikation."),
             new("Mini-svendeprøve", "Plan, produkt, dokumentation og fremlæggelse.")
         ],
-        [
+        W(
             "Linux-fundament",
             "Services og drift",
             "Docker",
@@ -269,7 +433,7 @@ public static class CourseTemplateCatalog
             "Mini-svendeprøve start",
             "Dokumentation",
             "Fremlæggelse"
-        ],
+        ),
         "Drift, containere, IoT og data samles i mini-svendeprøven.",
         "Spejler erhvervsnær drift og udviklingsopgaver med realistisk infrastruktur.",
         "Dybde i Linux/Docker/data kan differentieres; prøverammen er fælles.",
@@ -298,13 +462,13 @@ public static class CourseTemplateCatalog
             new("Projektstyring", "Plan, prioritering og opfølgning."),
             new("Prøveforberedelse", "Fremlæggelse og demonstration.")
         ],
-        [
+        W(
             "Plan og krav",
             "Udvikling",
             "Dokumentation",
             "Polish og forberedelse",
             "Prøve"
-        ],
+        ),
         "H6 samler kompetencer fra tidligere hovedforløb i én afsluttende opgave.",
         "Spejler en professionel aflevering: ansvar, tidspres, dokumentation og mundtligt forsvar.",
         "Teknologivalg tilpasses inden for svendeprøvens formelle krav.",
@@ -334,11 +498,11 @@ public static class CourseTemplateCatalog
             new("Observability", "Logs, healthchecks og simple alarmer."),
             new("Dokumentation", "Runbook: hvordan andre deployer samme løsning.")
         ],
-        [
+        W(
             "Fra kode til container",
             "Pipeline og første deploy",
             "Drift, fejl og dokumentation"
-        ],
+        ),
         "Udvikling, build, deploy og drift behandles som én kæde — ikke separate øvelser.",
         "Spejler reelle release-arbejdsgange med Docker, GitHub Actions/CI og hosting.",
         "Stack og hostingdybde kan tilpasses; kravet er et gentageligt deploy af egen app.",
@@ -368,11 +532,11 @@ public static class CourseTemplateCatalog
             new("Playtest", "Observation før fortolkning."),
             new("Showcase", "Spilbar version fra start til slut.")
         ],
-        [
+        W(
             "Rune Run og fælles teori",
             "Eget spil og side quests",
             "Afslutning og aflevering"
-        ],
+        ),
         "Fælles Rune Run først, derefter eget godkendte projekt — teori før individuel bygning.",
         "Designvalg afprøves i spilbare builds; GDD er arbejdsdokument, ikke rapport for rapportens skyld.",
         "Spillets kompleksitet tilpasses, så første version kan gøres færdig.",
@@ -402,11 +566,11 @@ public static class CourseTemplateCatalog
             new("Demo", "Lille grænseflade eller notebook til afprøvning."),
             new("Ansvar", "Bias, privatliv og dokumentation af antagelser.")
         ],
-        [
+        W(
             "Data og problemformulering",
             "Model og evaluering",
             "Demo, begrænsninger og præsentation"
-        ],
+        ),
         "Problem, data, model og demo hænger sammen — ikke tre løsrevne øvelser.",
         "Spejler en lille erhvervsnær ML-opgave: tydeligt formål, målbare resultater og ærlig evaluering.",
         "Datasæt og modelkompleksitet tilpasses; kravet er forståelse og en afprøvbar demo.",
@@ -423,6 +587,16 @@ public enum CourseKind
 
 public sealed record CourseTheme(string Name, string Desc);
 
+/// <summary>Uge i undervisningsplanen — titel plus valgfri emner (uden datoer).</summary>
+public sealed record CourseWeekPlan(string Title, string Focus = "", string[]? Topics = null)
+{
+    public bool HasDetail =>
+        !string.IsNullOrWhiteSpace(Focus) || Topics is { Length: > 0 };
+}
+
+/// <summary>Teori-/kompetenceblok til pensum (generel template-indhold).</summary>
+public sealed record CourseTheoryBlock(string Title, string Summary, string[] Points);
+
 public sealed record CourseTemplate(
     string Slug,
     string Short,
@@ -434,12 +608,13 @@ public sealed record CourseTemplate(
     string[] Goals,
     string[] Expectations,
     CourseTheme[] Themes,
-    string[] Weeks,
+    CourseWeekPlan[] Weeks,
     string Holistic,
     string Practice,
     string Differentiation,
     string Evaluation,
-    string[] Criteria)
+    string[] Criteria,
+    CourseTheoryBlock[]? Theory = null)
 {
     public string DurationLabel => DurationWeeks is int w ? $"{w} uger" : "Fleksibel";
     public string KindLabel => Kind switch
@@ -449,4 +624,5 @@ public sealed record CourseTemplate(
         _ => "Skabelon"
     };
     public string Path => $"/courses/template/{Slug}";
+    public bool HasTheory => Theory is { Length: > 0 };
 }

@@ -31,6 +31,10 @@ else
             <a href="#about">Om forløbet</a>
             <a href="#goals">Mål</a>
             <a href="#content">Indhold</a>
+            @if (Course.HasTheory)
+            {
+                <a href="#theory">Teori og pensum</a>
+            }
             <a href="#weeks">Ugeplan</a>
             <a href="#evaluation">Evaluering</a>
             <a href="/courses/template">Skabelon-katalog</a>
@@ -80,18 +84,55 @@ else
                 <p>@Course.Differentiation</p>
             </section>
 
+            @if (Course.HasTheory)
+            {
+                <section id="theory">
+                    <div class="headrow"><h2>Teori og pensum</h2><span>@Course.Theory!.Length blokke</span></div>
+                    <p class="course-theory-lead">Generelt platform-pensum — uden holddatoer eller elevdata. Emnerne følger undervisningens teoriblokke og fagmål.</p>
+                    @foreach (var block in Course.Theory!)
+                    {
+                        <article class="course-theory-block">
+                            <h3>@block.Title</h3>
+                            <p>@block.Summary</p>
+                            <ul class="goals">
+                                @foreach (var point in block.Points)
+                                {
+                                    <li>@point</li>
+                                }
+                            </ul>
+                        </article>
+                    }
+                </section>
+            }
+
             <section id="weeks">
                 <div class="headrow"><h2>Ugeplan</h2><span>@Course.Weeks.Length uger</span></div>
                 @for (var i = 0; i < Course.Weeks.Length; i++)
                 {
+                    var week = Course.Weeks[i];
                     <details class="course-week" open="@(i == 0)">
                         <summary>
                             <span class="week-number">@(i + 1)</span>
-                            <span><strong>@Course.Weeks[i]</strong><small>@Course.Short</small></span>
+                            <span>
+                                <strong>@week.Title</strong>
+                                <small>@(string.IsNullOrWhiteSpace(week.Focus) ? Course.Short : week.Focus)</small>
+                            </span>
                             <span class="week-chevron">⌄</span>
                         </summary>
                         <div class="week-days">
-                            <p>Ugens retning følger forløbets temaer og projektet <strong>@Course.Project</strong>.</p>
+                            @if (week.HasDetail && week.Topics is { Length: > 0 })
+                            {
+                                <ul class="goals week-topics">
+                                    @foreach (var topic in week.Topics)
+                                    {
+                                        <li>@topic</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p>Ugens retning følger forløbets temaer og projektet <strong>@Course.Project</strong>.</p>
+                            }
                         </div>
                     </details>
                 }
