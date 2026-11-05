@@ -38,11 +38,23 @@ Porteret fra generelle Cursor-rules — gælder Mercantec.tech.
 - **client_id:** `mercantec-tech` (offentlig SPA, PKCE)
 - Redirect-URIs:
   - `https://mercantec.tech/auth/callback`
+  - `https://lup.dk/auth/callback`
+  - `https://www.lup.dk/auth/callback`
   - `http://localhost:3000/auth/callback`
   - `http://127.0.0.1:3000/auth/callback`
   - `http://localhost:5173/auth/callback`
-- SPA-origin i `Cors:SpaOrigins` (apex: `https://mercantec.tech`)
+- SPA-origins i Auth-serverens `Cors:SpaOrigins` **og** appens `Cors__SpaOrigins` / `CORS_SPA_ORIGINS`:
+  - `https://mercantec.tech`
+  - `https://lup.dk`
+  - `https://www.lup.dk`
 - Kontakt: mags@mercantec.dk
+
+### Manuel Auth-admin (når MCP-nøgle mangler)
+
+1. Åbn Auth-admin → **Klienter** → `mercantec-tech`.
+2. Tilføj redirect-URIs ovenfor (eksakt match, inkl. `/auth/callback`).
+3. Tilføj `https://lup.dk` og `https://www.lup.dk` til Auth-serverens `Cors:SpaOrigins` (nødvendigt for browser-POST til `/oauth/token` og evt. `/signout?returnUrl=`).
+4. Gem — ingen ny `client_id`; samme offentlige PKCE-klient.
 
 ## Relateret
 
