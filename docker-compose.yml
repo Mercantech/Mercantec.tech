@@ -156,7 +156,7 @@ services:
       API_BASE_URL: http://mercantec-tech-api:8080
       NOTION_SERVICE_SECRET: ${NOTION_SERVICE_SECRET:-}
       NOTION_SERVICE_SECRET_FILE: /run/notion/service-key
-      ALLOWED_ORIGINS: https://mercantec.tech
+      ALLOWED_ORIGINS: ${NOTION_ALLOWED_ORIGINS:-https://mercantec.tech,https://lup.dk}
     depends_on:
       notion-init:
         condition: service_healthy
