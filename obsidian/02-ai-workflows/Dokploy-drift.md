@@ -25,9 +25,10 @@ Dokploy: domain på service **`web`**, port **3000**. For mercantec.tech bag Clo
 Hosten har opbrugte address pools → **ingen nye bridge-net**.
 
 1. `dokploy-network` som compose `default` (`external: true`)
-2. Aliases: **`mercantec-tech-api`**, **`mercantec-tech-db`**
+2. Aliases: **`mercantec-tech-api`**, **`mercantec-tech-db`**, **`mercantec-tech-minio`**
 3. Nginx: `resolver 127.0.0.11` + `set $upstream_api http://mercantec-tech-api:8080`
 4. Connection string: `Host=mercantec-tech-db`
+5. Object storage: API → `http://mercantec-tech-minio:9000` (S3 path-style). MinIO credentials via Dokploy env (`MINIO_ROOT_*`) — **ikke** i git.
 
 Proxyér **aldrig** til generisk `http://api:...` på det delte net.
 

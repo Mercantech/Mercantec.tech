@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.511.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

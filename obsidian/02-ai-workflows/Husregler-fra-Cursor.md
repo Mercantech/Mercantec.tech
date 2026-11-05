@@ -47,7 +47,7 @@ Projekt-specifik udgave til Mercantec.tech. Kilde: generelle Cursor-retningslinj
 ## Hosting (dette projekt)
 
 - **Prod-URL: `https://mercantec.tech`** — **apex**, **uden** subdomæne (`www` kun hvis I eksplicit sætter redirect).
-- Dokploy + `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db`.
+- Dokploy + `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` / `mercantec-tech-minio`.
 - Drift via **Dokploy MCP** — se [[Dokploy-drift]].
 
 ## Relateret

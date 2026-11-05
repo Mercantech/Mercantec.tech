@@ -16,6 +16,7 @@ Faste rammer for Mercantec.tech. Detaljerede AI-workflows: [[Husregler-fra-Curso
 - **Backend / API:** .NET 10, ASP.NET Core, **controller pattern** (`api/`).
 - **Frontend:** Blazor WebAssembly **PWA** (`web/`), nginx i Docker.
 - **DB:** Postgres (`mercantec-tech-db`).
+- **Object storage:** MinIO S3 (`mercantec-tech-minio`) til uploads og store assets uden for GitHub.
 - **Alt Docker-klart** — env-baseret config.
 
 ## Auth
@@ -28,7 +29,7 @@ Se [[Auth-Mercantec]] (Mercantec Auth, PKCE, lokal logout).
 |--|--|
 | **Prod** | **`https://mercantec.tech`** — **apex, uden subdomæne** |
 | Platform | Dokploy (`deploy.mags.dk`) |
-| Net | `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` |
+| Net | `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` / `mercantec-tech-minio` |
 | Web | Traefik → service `web` port **3000** |
 | Secrets / CORS | Env pr. miljø — `Cors:SpaOrigins` inkl. `https://mercantec.tech` |
 

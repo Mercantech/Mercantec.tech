@@ -48,7 +48,7 @@ Sprints: [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1) · 
 | `design/lup/` | Selvstændig klikbar LUP-designreference (port 3001) |
 | `obsidian/` | AI-workflows, features, badges |
 
-**Aliases:** `mercantec-tech-api` · `mercantec-tech-db`  
+**Aliases:** `mercantec-tech-api` · `mercantec-tech-db` · `mercantec-tech-minio`  
 **Prod:** [`https://mercantec.tech`](https://mercantec.tech) (apex)  
 **Auth:** client_id `mercantec-tech` — se [Auth-Mercantec](obsidian/02-ai-workflows/Auth-Mercantec.md)
 
@@ -66,9 +66,13 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml down
 |---------|-----|
 | Web | http://localhost:3000 |
 | API health | http://localhost:8080/api/health (eller `/api/health` via web) |
+| MinIO S3 API | http://localhost:9000 |
+| MinIO Console | http://localhost:9001 |
 | Login | http://localhost:3000/login |
 
-Kopiér `.env.example` → `.env` ved behov (secrets commit'tes ikke).
+Kopiér `.env.example` → `.env` ved behov (secrets commit'tes ikke). MinIO-credentials sættes via `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` (aldrig i git).
+
+Fil-upload (underviser, kræver JWT): `POST /api/files` (multipart). Status: `GET /api/files/status`. Download: `GET /api/files/{key}`.
 
 ## Lokal udvikling (uden Docker)
 
