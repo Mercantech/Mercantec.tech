@@ -1,5 +1,6 @@
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Learning;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -368,6 +369,9 @@ public partial class Assignments
             }
         }
     }
+
+    private void InsertDraftEmoji(CustomEmojiItem emoji) => _draftText = EmojiInsert.Append(_draftText, emoji.Name, 20000);
+    private void InsertReviewEmoji(CustomEmojiItem emoji) => _reviewText = EmojiInsert.Append(_reviewText, emoji.Name, 10000);
 
     public void Dispose()
     {

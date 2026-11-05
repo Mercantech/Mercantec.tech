@@ -1,0 +1,236 @@
+@page "/emojis"
+@using Mercantec.Tech.Web.Emojis
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject EmojiClient Emojis
+@implements IDisposable
+
+<PageTitle>Emojis</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+}
+else
+{
+    <header class="page-title">
+        <div>
+            <h1>Emojis</h1>
+            <p>Platformens egne billeder. I forløbseditoren skriver du <kbd>:navn:</kbd> eller vælger dem med kolon-menuen og knappen Emoji. Samme vælger kan sættes ind i sidetitler, afleveringer og feedback.</p>
+        </div>
+    </header>
+
+    @if (_error is not null)
+    {
+        <p class="callout" role="alert">@_error</p>
+    }
+    @if (_notice is not null)
+    {
+        <p class="callout" role="status">@_notice</p>
+    }
+
+    @if (CanManage)
+    {
+        <form class="panel emoji-upload" @onsubmit="Upload" @onsubmit:preventDefault>
+            <h2>Tilføj emoji</h2>
+            <label class="field">Kort navn
+                <input @bind="_name" maxlength="32" required placeholder="lup" autocomplete="off" />
+            </label>
+            <p class="emoji-hint">2–32 tegn: bogstaver, tal og _. I teksten bliver det <kbd>:navn:</kbd>.</p>
+            <label class="field">Billede
+                <InputFile @key="_fileKey" OnChange="ChooseFile" accept="image/png,image/jpeg,image/gif,image/webp" />
+            </label>
+            <p class="emoji-hint">PNG, JPEG, GIF eller WebP. Højst 256 KB.@if (_file is not null) { <span> Valgt: @_file.Name</span> }</p>
+            <button class="action" disabled="@(_busy || _file is null || string.IsNullOrWhiteSpace(_name))">Upload</button>
+        </form>
+    }
+    else
+    {
+        <p class="emoji-hint">Kun undervisere kan uploade, omdøbe og slette. Du kan se og bruge emojis.</p>
+    }
+
+    <section class="panel" aria-labelledby="emoji-library-title">
+        <h2 id="emoji-library-title">Bibliotek</h2>
+        @if (_items is null)
+        {
+            <p role="status">Henter emojis…</p>
+        }
+        else if (_items.Count == 0)
+        {
+            <div class="empty"><h3>Ingen emojis endnu</h3><p>@(CanManage ? "Upload det første billede ovenfor." : "Underviseren har ikke lagt billeder op endnu.")</p></div>
+        }
+        else
+        {
+            <ul class="emoji-library">
+                @foreach (var item in _items)
+                {
+                    <li>
+                        <img src="@item.ContentUrl" alt="@($":{item.Name}:")" />
+                        <div>
+                            <strong>:@item.Name:</strong>
+                            @if (CanManage && _renaming == item.Id)
+                            {
+                                <form @onsubmit="() => SaveRename(item.Id)" @onsubmit:preventDefault>
+                                    <label class="field">Nyt navn
+                                        <input @bind="_rename" maxlength="32" required />
+                                    </label>
+                                    <div class="actions">
+                                        <button class="action" disabled="@_busy">Gem</button>
+                                        <button type="button" class="secondary" @onclick="CancelRename">Annuller</button>
+                                    </div>
+                                </form>
+                            }
+                            else if (CanManage)
+                            {
+                                <div class="actions">
+                                    <button type="button" class="secondary" disabled="@_busy" @onclick="() => BeginRename(item)">Omdøb</button>
+                                    @if (_confirmDelete == item.Id)
+                                    {
+                                        <button type="button" class="secondary" disabled="@_busy" @onclick="() => Delete(item.Id)">Slet :@item.Name:</button>
+                                        <button type="button" class="secondary" @onclick="() => _confirmDelete = null">Annuller</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="secondary" disabled="@_busy" @onclick="() => _confirmDelete = item.Id">Slet</button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="panel" aria-labelledby="emoji-try-title">
+        <h2 id="emoji-try-title">Prøv vælgeren</h2>
+        <p class="emoji-hint">Komponenten bruges også i sidetitler og i afleveringstekst.</p>
+        <label class="field">Tekst
+            <input @bind="_sample" maxlength="200" placeholder="Skriv :navn: eller vælg en emoji" />
+        </label>
+        <EmojiPicker Disabled="_items is null" OnPick="InsertSample" />
+        <p class="emoji-prose"><EmojiText @key="_catalogVersion" Text="@_sample" /></p>
+    </section>
+}
+
+@code {
+    private readonly CancellationTokenSource _life = new();
+    private IReadOnlyList<CustomEmojiItem>? _items;
+    private IBrowserFile? _file;
+    private string _name = "";
+    private string _sample = "";
+    private string _rename = "";
+    private string? _error, _notice;
+    private Guid? _renaming, _confirmDelete;
+    private int _fileKey, _catalogVersion;
+    private bool _busy;
+    private bool CanManage => Redirect.ShowsTeacherChrome;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        if (Auth.IsInitialized && Auth.IsAuthenticated) await Load();
+    }
+
+    private void OnAuth() => InvokeAsync(async () =>
+    {
+        if (Auth.IsAuthenticated) await Load();
+        StateHasChanged();
+    });
+
+    private async Task Load()
+    {
+        try
+        {
+            _items = await Emojis.List(refresh: true, _life.Token);
+            _error = null;
+            _catalogVersion++;
+        }
+        catch (EmojiException ex) { _error = ex.Message; }
+        catch (OperationCanceledException) { }
+    }
+
+    private void ChooseFile(InputFileChangeEventArgs e)
+    {
+        _file = e.File;
+        _error = null;
+    }
+
+    private async Task Upload()
+    {
+        if (!CanManage || _file is null || _busy) return;
+        if (_file.Size > EmojiClient.MaxBytes) { _error = "Billedet må højst være 256 KB."; return; }
+        _busy = true;
+        _error = _notice = null;
+        try
+        {
+            await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes);
+            var created = await Emojis.Upload(_name, stream, _file.Name, _life.Token);
+            _name = "";
+            _file = null;
+            _fileKey++;
+            _notice = $":{created.Name}: er lagt i biblioteket.";
+            await Load();
+        }
+        catch (IOException) { _error = "Billedet må højst være 256 KB."; }
+        catch (EmojiException ex) { _error = ex.Message; }
+        catch (OperationCanceledException) { }
+        finally { _busy = false; }
+    }
+
+    private void BeginRename(CustomEmojiItem item)
+    {
+        _renaming = item.Id;
+        _rename = item.Name;
+        _confirmDelete = null;
+    }
+
+    private void CancelRename() => _renaming = null;
+
+    private async Task SaveRename(Guid id)
+    {
+        if (!CanManage || _busy) return;
+        _busy = true;
+        _error = _notice = null;
+        try
+        {
+            var updated = await Emojis.Rename(id, _rename, _life.Token);
+            _renaming = null;
+            _notice = $"Navnet er nu :{updated.Name}:. Allerede indsatte emojis i editoren følger med.";
+            await Load();
+        }
+        catch (EmojiException ex) { _error = ex.Message; }
+        catch (OperationCanceledException) { }
+        finally { _busy = false; }
+    }
+
+    private async Task Delete(Guid id)
+    {
+        if (!CanManage || _busy) return;
+        _busy = true;
+        _error = _notice = null;
+        try
+        {
+            await Emojis.Delete(id, _life.Token);
+            _confirmDelete = null;
+            _notice = "Emojien er slettet. Steder der brugte den, viser det korte navn i stedet.";
+            await Load();
+        }
+        catch (EmojiException ex) { _error = ex.Message; }
+        catch (OperationCanceledException) { }
+        finally { _busy = false; }
+    }
+
+    private void InsertSample(CustomEmojiItem emoji) => _sample = EmojiInsert.Append(_sample, emoji.Name, 200);
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        _life.Cancel();
+        _life.Dispose();
+    }
+}

@@ -25,7 +25,8 @@ kbd{font-size:11px;background:var(--tint);color:var(--blue);padding:2px 5px;bord
 .notion-save-status i{display:block;width:7px;height:7px;border-radius:50%;background:var(--muted)}
 .notion-save-status.saved i,.notion-save-status.synced i{background:var(--green)}
 .notion-save-status.offline i,.notion-save-status.error i{background:var(--orange)}
-.notion-title-form{display:flex;align-items:center;gap:10px;padding:35px 50px 0}
+.notion-title-form{display:flex;align-items:center;gap:10px;padding:35px 50px 0;flex-wrap:wrap}
+.notion-title-preview{margin:8px 50px 0;font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:600;line-height:1.2;letter-spacing:-.8px}
 .notion-title{width:100%;min-width:0;font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:600;line-height:1.2;color:var(--ink);border:0;background:transparent;padding:4px 0;letter-spacing:-.8px}
 .notion-document-meta{padding:8px 50px 24px;font-size:11px;color:var(--muted)}
 .notion-editor-root{min-height:400px}

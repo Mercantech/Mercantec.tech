@@ -1,0 +1,187 @@
+using System.Security.Claims;
+using Mercantec.Tech.Api.Controllers;
+using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Storage;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+
+namespace Mercantec.Tech.Api.Tests;
+
+public sealed class EmojisControllerTests : IAsyncLifetime
+{
+    private readonly SqliteConnection _connection = new("Data Source=:memory:");
+    private AppDbContext _db = null!;
+    private readonly FakeEmojiStorage _storage = new();
+    private readonly IDataProtectionProvider _protection = new EphemeralDataProtectionProvider();
+    private readonly Guid _teacher = Guid.NewGuid();
+    private readonly Guid _student = Guid.NewGuid();
+
+    public async Task InitializeAsync()
+    {
+        SQLitePCL.Batteries_V2.Init();
+        await _connection.OpenAsync();
+        _db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(_connection).Options);
+        await _db.Database.EnsureCreatedAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _db.DisposeAsync();
+        await _connection.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task AnonymousCannotListAndStudentsCannotUpload()
+    {
+        Assert.IsType<UnauthorizedResult>(await As(null).List(default));
+        Assert.IsType<UnauthorizedResult>(await As(null).Upload(Png("lup.png"), "lup", default));
+        Assert.IsType<ForbidResult>(await As(_student).Upload(Png("lup.png"), "lup", default));
+        Assert.Empty(ReadList(await As(_student).List(default)));
+    }
+
+    [Fact]
+    public async Task TeacherAndAdminCanUploadAndEveryoneLoggedInCanRead()
+    {
+        var created = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), ":Lup:", default));
+        Assert.Equal("lup", created.Name);
+        Assert.Equal("image/png", created.ContentType);
+        Assert.StartsWith($"/api/emojis/{created.Id}/content?ticket=", created.ContentUrl);
+        Assert.Equal("lup", Assert.Single(ReadList(await As(_student).List(default))).Name);
+
+        var admin = Read(await As(Guid.NewGuid(), admin: true).Upload(Gif("ok.gif"), "ok", default));
+        Assert.Equal("image/gif", admin.ContentType);
+        Assert.Equal(2, ReadList(await As(_student).List(default)).Count);
+    }
+
+    [Fact]
+    public async Task ContentRequiresLoginOrAMatchingTicket()
+    {
+        var created = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), "lup", default));
+        Assert.IsType<UnauthorizedResult>(await As(null).Content(created.Id, default));
+        var ticket = QueryHelpers.ParseQuery(new Uri("https://lup.test" + created.ContentUrl).Query)["ticket"].ToString();
+        var viaTicket = Assert.IsType<FileStreamResult>(await As(null).Content(created.Id, default, ticket));
+        Assert.Equal("image/png", viaTicket.ContentType);
+        using var buffer = new MemoryStream();
+        await viaTicket.FileStream.CopyToAsync(buffer);
+        Assert.Equal(PngBytes, buffer.ToArray());
+        Assert.IsType<UnauthorizedResult>(await As(null).Content(Guid.NewGuid(), default, ticket));
+        Assert.IsType<UnauthorizedResult>(await As(null).Content(created.Id, default, "not-a-ticket"));
+        var viaLogin = Assert.IsType<FileStreamResult>(await As(_student).Content(created.Id, default));
+        Assert.Equal("image/png", viaLogin.ContentType);
+    }
+
+    [Fact]
+    public async Task InvalidNamesTypesAndDuplicatesAreRejected()
+    {
+        var teacher = As(_teacher, teacher: true);
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Png("lup.png"), "l", default));
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Png("lup.png"), "med mellemrum", default));
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Png("lup.png"), "æble", default));
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Form("note.svg", "<svg>"u8.ToArray()), "svg", default));
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Form("fake.png", "ikke-et-billede"u8.ToArray()), "fake", default));
+        Assert.IsType<BadRequestObjectResult>(await teacher.Upload(Form("big.png", new byte[EmojisController.MaxBytes + 1]), "big", default));
+        await teacher.Upload(Png("lup.png"), "lup", default);
+        Assert.Equal("name_taken", Error(await teacher.Upload(Png("anden.png"), "LUP", default)));
+        Assert.Single(await _db.CustomEmojis.ToListAsync());
+        Assert.Single(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task RenameAndDeleteAreTeacherOnlyAndFreeTheName()
+    {
+        var created = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), "lup", default));
+        Assert.IsType<ForbidResult>(await As(_student).Rename(created.Id, new("wolf"), default));
+        Assert.IsType<ForbidResult>(await As(_student).Delete(created.Id, default));
+        Assert.Equal("invalid_name", Error(await As(_teacher, teacher: true).Rename(created.Id, new("x"), default)));
+        var renamed = Read(await As(_teacher, teacher: true).Rename(created.Id, new(":Wolf:"), default));
+        Assert.Equal("wolf", renamed.Name);
+        Assert.Equal(created.Id, renamed.Id);
+        var again = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), "lup", default));
+        Assert.NotEqual(created.Id, again.Id);
+        Assert.Equal("name_taken", Error(await As(_teacher, teacher: true).Rename(again.Id, new("wolf"), default)));
+        Assert.IsType<NoContentResult>(await As(_teacher, teacher: true).Delete(created.Id, default));
+        Assert.IsType<NotFoundResult>(await As(_student).Content(created.Id, default));
+        Assert.DoesNotContain(_storage.Objects.Keys, key => key.Contains(created.Id.ToString("N")));
+        Assert.Equal("lup", Assert.Single(ReadList(await As(_student).List(default))).Name);
+    }
+
+    [Fact]
+    public async Task UploadIsRejectedWhenStorageIsDisabled()
+    {
+        var controller = As(_teacher, teacher: true, storage: new DisabledObjectStorage());
+        Assert.Equal(503, Assert.IsType<ObjectResult>(await controller.Upload(Png("lup.png"), "lup", default)).StatusCode);
+        Assert.Empty(await _db.CustomEmojis.ToListAsync());
+    }
+
+    private EmojisController As(Guid? sub, bool teacher = false, bool admin = false, IObjectStorage? storage = null)
+    {
+        var claims = new List<Claim>();
+        if (sub is Guid id) claims.Add(new("sub", id.ToString()));
+        if (teacher) claims.Add(new(ClaimTypes.Role, "Underviser"));
+        if (admin) claims.Add(new(ClaimTypes.Role, "Admin"));
+        return new EmojisController(_db, storage ?? _storage, _protection)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(claims, sub is null ? null : "test"))
+                }
+            }
+        };
+    }
+
+    private static EmojisController.CustomEmojiView Read(IActionResult result) =>
+        Assert.IsType<EmojisController.CustomEmojiView>(Assert.IsType<OkObjectResult>(result).Value);
+
+    private static List<EmojisController.CustomEmojiView> ReadList(IActionResult result) =>
+        Assert.IsType<List<EmojisController.CustomEmojiView>>(Assert.IsType<OkObjectResult>(result).Value);
+
+    private static string? Error(IActionResult result) =>
+        result switch
+        {
+            BadRequestObjectResult bad => bad.Value?.GetType().GetProperty("error")?.GetValue(bad.Value)?.ToString(),
+            ConflictObjectResult conflict => conflict.Value?.GetType().GetProperty("error")?.GetValue(conflict.Value)?.ToString(),
+            _ => null
+        };
+
+    private static FormFile Png(string name) => Form(name, PngBytes);
+    private static FormFile Gif(string name) => Form(name, "GIF89a"u8.ToArray());
+    private static readonly byte[] PngBytes = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0];
+
+    private static FormFile Form(string name, byte[] bytes) =>
+        new(new MemoryStream(bytes), 0, bytes.Length, "file", name) { Headers = new HeaderDictionary(), ContentType = "application/octet-stream" };
+
+    private sealed class FakeEmojiStorage : IObjectStorage
+    {
+        public Dictionary<string, (byte[] Bytes, string Mime)> Objects { get; } = new();
+        public bool IsConfigured => true;
+        public string Bucket => "test";
+
+        public async Task<ObjectPutResult> PutAsync(string key, Stream content, string contentType, CancellationToken cancellationToken = default)
+        {
+            using var buffer = new MemoryStream();
+            await content.CopyToAsync(buffer, cancellationToken);
+            Objects[key] = (buffer.ToArray(), contentType);
+            return new(key, Bucket, contentType, buffer.Length);
+        }
+
+        public Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default) =>
+            Task.FromResult<ObjectGetResult?>(Objects.TryGetValue(key, out var obj)
+                ? new ObjectGetResult(new MemoryStream(obj.Bytes), obj.Mime, obj.Bytes.Length) : null);
+
+        public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
+        {
+            Objects.Remove(key);
+            return Task.CompletedTask;
+        }
+
+        public Task<Uri?> GetPresignedGetUrlAsync(string key, TimeSpan expiry, CancellationToken cancellationToken = default) =>
+            Task.FromResult<Uri?>(null);
+    }
+}

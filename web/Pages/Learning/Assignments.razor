@@ -146,6 +146,7 @@ else
                     {
                         <fieldset disabled="@_busy">
                             <label class="field">Tekst til afleveringen<textarea @bind="_draftText" maxlength="20000"></textarea></label>
+                            <EmojiPicker Disabled="_busy" OnPick="InsertDraftEmoji" />
                             @foreach (var file in _draftFiles)
                             {
                                 <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button> <button class="secondary" @onclick="() => RemoveDraftFile(file.Id)">Fjern fra kladde</button></p>
@@ -161,14 +162,14 @@ else
                         <article>
                             <h3>Version @revision.Number</h3>
                             <p>@revision.SubmittedAtUtc.ToLocalTime().ToString("g") · @string.Join(", ", revision.Participants.Select(p => p.DisplayName))</p>
-                            <p style="white-space:pre-wrap">@revision.Text</p>
+                            <p class="emoji-prose"><EmojiText Text="@revision.Text" /></p>
                             @foreach (var file in revision.Files) { <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button></p> }
                             @foreach (var feedback in revision.Feedback.OrderBy(f => f.CreatedAtUtc))
                             {
                                 <blockquote>
                                     <p>@feedback.CreatedAtUtc.ToLocalTime().ToString("g") @if (feedback.Decision is not null) { <strong>· @StateLabel(feedback.Decision)</strong> }</p>
                                     @if (feedback.FileAssetId is Guid fileId) { <p>Vedrører @revision.Files.FirstOrDefault(f => f.Id == fileId)?.OriginalName</p> }
-                                    <p style="white-space:pre-wrap">@feedback.Text</p>
+                                    <p class="emoji-prose"><EmojiText Text="@feedback.Text" /></p>
                                     @foreach (var file in feedback.Attachments) { <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button></p> }
                                 </blockquote>
                             }
@@ -181,6 +182,7 @@ else
                             <label class="field">Version<select value="@_reviewRevision" @onchange="ChangeReviewRevision"><option value="">Vælg version</option>@foreach (var revision in _submission.Revisions.OrderByDescending(r => r.Number)) { <option value="@revision.Id">Version @revision.Number</option> }</select></label>
                             <label class="field">Feedback på<select @bind="_reviewFile"><option value="">Hele afleveringen</option>@foreach (var file in ReviewFiles) { <option value="@file.Id">@file.OriginalName</option> }</select></label>
                             <label class="field">Feedback<textarea @bind="_reviewText" maxlength="10000"></textarea></label>
+                            <EmojiPicker Disabled="_busy" OnPick="InsertReviewEmoji" />
                             <label class="field">Vedhæft feedbackfiler<InputFile OnChange="UploadFeedbackFiles" multiple /></label>
                             @foreach (var file in _feedbackFiles) { <p>@file.OriginalName <button class="secondary" @onclick="() => RemoveFeedbackFile(file.Id)">Fjern</button></p> }
                             <label class="field">Vurdering<select @bind="_reviewDecision" disabled="@(!ReviewIsLatest)"><option value="">Kun kommentar</option><option value="changes-requested">Kræver rettelser</option><option value="approved">Godkendt</option></select></label>

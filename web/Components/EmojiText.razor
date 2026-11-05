@@ -1,0 +1,51 @@
+@using Mercantec.Tech.Web.Emojis
+@inject EmojiClient Emojis
+
+<span class="emoji-text">@foreach (var part in _parts)
+{
+    if (part.Emoji is null)
+    {
+        @part.Text
+    }
+    else
+    {
+        <img class="custom-emoji" src="@part.Emoji.ContentUrl" alt="@($":{part.Emoji.Name}:")" title="@($":{part.Emoji.Name}:")" @onerror="Reload" />
+    }
+}</span>
+
+@code {
+    [Parameter] public string? Text { get; set; }
+    private IReadOnlyList<EmojiTextPart> _parts = [];
+    private string? _loadedFor;
+    private bool _loaded;
+    private bool _retried;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loaded && _loadedFor == Text) return;
+        _retried = false;
+        await Load();
+    }
+
+    private async Task Reload()
+    {
+        if (_retried) return;
+        _retried = true;
+        Emojis.Invalidate();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            _parts = EmojiTextParts.Split(Text, await Emojis.List());
+        }
+        catch (EmojiException)
+        {
+            _parts = [new(Text ?? "", null)];
+        }
+        _loadedFor = Text;
+        _loaded = true;
+    }
+}
