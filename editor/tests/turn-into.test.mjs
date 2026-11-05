@@ -13,6 +13,11 @@ test('drag handle exposes Turn into and callout is a first-class block', () => {
   assert.match(turnInto, /Omdan til/);
   assert.match(turnInto, /type: 'callout'/);
   assert.match(turnInto, /type: 'learningGoal'/);
+  assert.match(turnInto, /type: 'mermaidDiagram'/);
+  assert.match(turnInto, /Diagram/);
+  assert.match(turnInto, /buildTurnIntoUpdate/);
+  assert.match(turnInto, /NotionBlockTypeSelect/);
+  assert.match(editor, /NotionBlockTypeSelect/);
   assert.match(callout, /type: 'callout'/);
   assert.match(callout, /tone/);
   assert.match(editor, /NotionDragHandleMenu/);
