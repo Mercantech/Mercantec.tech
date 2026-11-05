@@ -18,6 +18,10 @@ const TONE_MARK: Record<CalloutTone, string> = {
   important: '★',
 };
 
+function nextTone(tone: CalloutTone): CalloutTone {
+  return TONES[(TONES.indexOf(tone) + 1) % TONES.length];
+}
+
 export const createCallout = createReactBlockSpec({
   type: 'callout',
   propSchema: {
@@ -29,16 +33,22 @@ export const createCallout = createReactBlockSpec({
   render: ({ block, editor, contentRef }) => {
     const tone = (TONES.includes(block.props.tone as CalloutTone) ? block.props.tone : 'info') as CalloutTone;
     const editable = editor.isEditable;
+    const cycleTone = () => {
+      if (!editable) return;
+      editor.updateBlock(block, { props: { tone: nextTone(tone) } });
+    };
     return <section className={`notion-callout notion-callout-${tone}`} data-tone={tone} aria-label={`Callout · ${TONE_LABEL[tone]}`}>
-      <span className="notion-callout-mark" contentEditable={false} aria-hidden="true">{TONE_MARK[tone]}</span>
+      {editable
+        ? <button
+            type="button"
+            className="notion-callout-mark"
+            contentEditable={false}
+            aria-label={`Skift callout-type (nu ${TONE_LABEL[tone]})`}
+            title={`Skift type · ${TONE_LABEL[tone]}`}
+            onClick={cycleTone}
+          >{TONE_MARK[tone]}</button>
+        : <span className="notion-callout-mark" contentEditable={false} aria-hidden="true">{TONE_MARK[tone]}</span>}
       <div className="notion-callout-body">
-        {editable && <label className="notion-callout-tone" contentEditable={false}>
-          <span className="notion-visually-hidden">Callout-type</span>
-          <select value={tone} onChange={(event) => editor.updateBlock(block, { props: { tone: event.target.value as CalloutTone } })}>
-            {TONES.map((value) => <option key={value} value={value}>{TONE_LABEL[value]}</option>)}
-          </select>
-        </label>}
-        {!editable && <strong className="notion-callout-label" contentEditable={false}>{TONE_LABEL[tone]}</strong>}
         <div ref={contentRef} />
       </div>
     </section>;
