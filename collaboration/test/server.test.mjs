@@ -196,12 +196,23 @@ test('lost hold access closes idle sessions and blocks further edits', async t =
 
 test('expired token is rejected even if the stub API would grant it', async t => {
   const f = await fixture(t);
-  const expired = token('teacher', -1);
+  // Beyond the 5-minute authorize skew that mirrors ASP.NET JWT validation.
+  const expired = token('teacher', -400);
   f.grants.set(expired, new Set([documentName]));
   const editor = f.connect(expired);
   await waitFor(() => editor.denied, 'expired token denied');
   assert.equal(f.state.authorizations, 0);
   assert.equal(f.state.loads, 0);
+});
+
+test('a token within clock skew still authorizes against the API', async t => {
+  const f = await fixture(t);
+  const skewed = token('teacher', -30);
+  f.grants.set(skewed, new Set([documentName]));
+  const editor = f.connect(skewed);
+  await waitFor(() => editor.provider.isSynced, 'skewed token synced');
+  assert.ok(f.state.authorizations > 0);
+  assert.equal(editor.denied, false);
 });
 
 test('a failed initial load does not create or save a blank replacement', async t => {

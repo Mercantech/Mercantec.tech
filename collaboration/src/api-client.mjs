@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
 
 export const MAX_DOCUMENT_BYTES = 16 * 1024 * 1024;
+// Match ASP.NET's default JWT clock skew so collaboration does not reject tokens
+// the API would still accept after a short client/server time drift.
+export const TOKEN_CLOCK_SKEW_MS = 5 * 60 * 1000;
 const DOCUMENT_NAME = /^notion:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 
 export function resolveServiceSecret(serviceSecret, serviceSecretFile) {
@@ -21,16 +24,25 @@ export function documentIdFromName(name) {
   return match[1].toLowerCase();
 }
 
-// This only bounds the lifetime of an already API-verified JWT. The ASP.NET API
+function decodeJwtPayload(part) {
+  const normalized = String(part).replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
+}
+
+// Bounds collaboration session lifetime from the JWT exp claim. The ASP.NET API
 // remains responsible for signature, issuer, audience and document permissions.
-export function tokenExpiresAt(token, now = Date.now()) {
+export function tokenExpiresAt(token, now = Date.now(), skewMs = TOKEN_CLOCK_SKEW_MS) {
   try {
     if (typeof token !== 'string' || token.length > 16384) throw new Error();
-    const parts = token.split('.');
+    const value = token.startsWith('Bearer ') ? token.slice(7) : token;
+    const parts = value.split('.');
     if (parts.length !== 3) throw new Error();
-    const { exp } = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-    if (!Number.isSafeInteger(exp) || exp * 1000 <= now) throw new Error();
-    return exp * 1000;
+    const { exp } = decodeJwtPayload(parts[1]);
+    if (!Number.isSafeInteger(exp)) throw new Error();
+    const expiresAt = exp * 1000;
+    if (expiresAt + skewMs <= now) throw new Error();
+    return expiresAt;
   } catch {
     throw new Error('A valid, unexpired access token is required');
   }
@@ -61,11 +73,13 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
   return {
     async authorize(documentName, token) {
       const documentId = documentIdFromName(documentName);
-      const expiresAt = tokenExpiresAt(token);
+      const accessToken = typeof token === 'string' && token.startsWith('Bearer ') ? token.slice(7) : token;
+      const expiresAt = tokenExpiresAt(accessToken);
+      const canonicalName = `notion:${documentId}`;
       const response = await request('/api/notion/collaboration/authorize', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentName }),
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentName: canonicalName }),
       });
       if (!response.ok) throw new Error('Document access denied');
       const permission = await response.json().catch(() => null);

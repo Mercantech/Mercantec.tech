@@ -171,10 +171,9 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
     public static bool TryDocumentId(string? name, out Guid id)
     {
         id = Guid.Empty;
-        // Only canonical document names become WebSocket rooms or storage keys.
+        // Only notion:<guid> rooms are accepted. Hex casing may vary from JS/Blazor.
         return name is not null && name.Length == 43 && name.StartsWith("notion:", StringComparison.Ordinal)
-            && Guid.TryParseExact(name.AsSpan(7), "D", out id) && id != Guid.Empty
-            && name.AsSpan(7).SequenceEqual(id.ToString("D").AsSpan());
+            && Guid.TryParseExact(name.AsSpan(7), "D", out id) && id != Guid.Empty;
     }
 
     private async Task<NotionPage?> FindEditable(Guid id, CancellationToken ct)
