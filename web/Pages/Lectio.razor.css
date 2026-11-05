@@ -314,10 +314,10 @@ button.stat.is-active {
 
 .lectio-row-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    white-space: nowrap;
 }
 
 .lectio-auth-status {

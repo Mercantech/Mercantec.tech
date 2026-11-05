@@ -1,0 +1,29 @@
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+@if (ViewAs.IsActive)
+{
+    <div class="view-as-banner" role="status" aria-live="polite">
+        <div class="view-as-banner-copy">
+            <strong>Du ser som @ViewAs.BannerLabel</strong>
+            <span>Preview af elev-overblik — din egen underviser-login er uændret.</span>
+        </div>
+        <button type="button" class="secondary" @onclick="Exit">Tilbage til underviser</button>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized() => ViewAs.Changed += OnChanged;
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private void Exit()
+    {
+        var returnUrl = ViewAs.ReturnUrl ?? "/lectio";
+        ViewAs.Exit();
+        Nav.NavigateTo(returnUrl);
+    }
+
+    public void Dispose() => ViewAs.Changed -= OnChanged;
+}

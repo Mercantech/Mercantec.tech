@@ -1,0 +1,264 @@
+@page "/teacher/view-as/{LectioId}"
+@using System.Text.Json
+@using Mercantec.Tech.Web.Lectio
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@inject HttpClient Http
+@implements IDisposable
+
+<PageTitle>Se som elev · LUP</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else if (!_ready)
+{
+    <p>Indlæser elev-overblik…</p>
+}
+else
+{
+    <div class="view-as-page">
+        <header class="page-title view-as-head">
+            <div>
+                <p class="view-as-kicker">Elev-preview</p>
+                <h1>@(_snapshot?.Name ?? ViewAs.DisplayName ?? "Elev")</h1>
+                <p>
+                    Samme elev-overblik som eleven ser (VUF, status og forløbstidslinje).
+                    @if (!string.IsNullOrWhiteSpace(_snapshot?.ClassName))
+                    {
+                        <text> Klasse: @_snapshot.ClassName.</text>
+                    }
+                </p>
+            </div>
+            <div class="view-as-head-actions">
+                <button type="button" class="secondary" @onclick="ExitPreview">Afslut preview</button>
+                <a class="secondary" href="/lectio">Lectio-elever</a>
+            </div>
+        </header>
+
+        @if (_listError is not null)
+        {
+            <p class="callout bad">@_listError</p>
+        }
+
+        <StudentElevOverview Snapshot="_snapshot"
+                             Plan="_plan"
+                             Timeline="_timeline"
+                             LoadingSnapshot="_loadingSnapshot"
+                             LoadingPlan="_loadingPlan"
+                             PlanError="_planError"
+                             ShowDashboardLink="false" />
+    </div>
+}
+
+@code {
+    [Parameter] public string LectioId { get; set; } = "";
+
+    private bool _ready;
+    private bool _loadingSnapshot;
+    private bool _loadingPlan;
+    private string? _listError;
+    private string? _planError;
+    private StudentSnapshot? _snapshot;
+    private StudentPlan? _plan;
+    private TimelineView? _timeline;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        ViewAs.Changed += OnViewAsChanged;
+        EnsureAccess();
+        if (Auth.IsInitialized && Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser)
+            await EnterAndLoadAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Underviser)
+            return;
+        if (string.IsNullOrWhiteSpace(LectioId))
+            return;
+        if (ViewAs.IsActive && string.Equals(ViewAs.LectioId, LectioId, StringComparison.OrdinalIgnoreCase)
+            && _snapshot is not null)
+            return;
+        await EnterAndLoadAsync();
+    }
+
+    private void EnsureAccess()
+    {
+        if (!Auth.IsInitialized)
+            return;
+
+        if (!Auth.IsAuthenticated)
+        {
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        if (Redirect.CurrentAppRole() != AppRole.Underviser)
+        {
+            ViewAs.Exit();
+            Nav.NavigateTo(Redirect.PostLoginPath());
+        }
+    }
+
+    private async Task EnterAndLoadAsync()
+    {
+        var id = (LectioId ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            Nav.NavigateTo("/lectio");
+            return;
+        }
+
+        if (!ViewAs.IsActive || !string.Equals(ViewAs.LectioId, id, StringComparison.OrdinalIgnoreCase))
+            ViewAs.Enter(id, ViewAs.DisplayName, ViewAs.ClassName, ViewAs.AuthSub, "/lectio");
+
+        _ready = true;
+        await LoadPreviewAsync(id);
+    }
+
+    private async Task LoadPreviewAsync(string lectioId)
+    {
+        _loadingSnapshot = true;
+        _loadingPlan = true;
+        _listError = null;
+        _planError = null;
+        _snapshot = null;
+        _plan = null;
+        _timeline = null;
+        StateHasChanged();
+
+        try
+        {
+            var listRes = await Http.GetAsync("lectio/programmeringselever");
+            var listBody = await listRes.Content.ReadAsStringAsync();
+            if (!listRes.IsSuccessStatusCode)
+            {
+                _listError = $"Elevlisten kunne ikke hentes ({(int)listRes.StatusCode}).";
+            }
+            else
+            {
+                _snapshot = Studieplan.FindStudentSnapshot(listBody, lectioId);
+                if (_snapshot is null)
+                {
+                    _listError = "Eleven findes ikke i programmeringselever-listen. Tidslinje hentes alligevel, hvis studieplanen findes.";
+                    _snapshot = new StudentSnapshot(
+                        LectioId: lectioId,
+                        Name: ViewAs.DisplayName,
+                        ClassName: ViewAs.ClassName,
+                        WorkplaceName: null,
+                        ForloebName: null,
+                        ForloebDates: null,
+                        ForloebStart: null,
+                        ForloebEnd: null,
+                        Vuf: new VufStatus(null, null, null, null));
+                }
+                else
+                {
+                    ViewAs.Enter(
+                        lectioId,
+                        _snapshot.Name ?? ViewAs.DisplayName,
+                        _snapshot.ClassName ?? ViewAs.ClassName,
+                        ViewAs.AuthSub,
+                        ViewAs.ReturnUrl ?? "/lectio");
+                }
+
+                await ResolveAuthSubAsync(lectioId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _listError = ex.Message;
+        }
+        finally
+        {
+            _loadingSnapshot = false;
+        }
+
+        try
+        {
+            var planRes = await Http.GetAsync($"lectio/students/{Uri.EscapeDataString(lectioId)}/studieplan");
+            var planBody = await planRes.Content.ReadAsStringAsync();
+            if (!planRes.IsSuccessStatusCode)
+            {
+                _planError = $"Studieplan kunne ikke hentes ({(int)planRes.StatusCode}).";
+            }
+            else
+            {
+                _plan = Studieplan.ParsePlan(planBody);
+                _timeline = Studieplan.BuildTimeline(_plan.Periods);
+            }
+        }
+        catch (Exception ex)
+        {
+            _planError = ex.Message;
+        }
+        finally
+        {
+            _loadingPlan = false;
+        }
+    }
+
+    private async Task ResolveAuthSubAsync(string lectioId)
+    {
+        if (ViewAs.AuthSub is not null)
+            return;
+
+        try
+        {
+            var res = await Http.PostAsJsonAsync("lectio/auth-links/resolve", new { lectioIds = new[] { lectioId } });
+            if (!res.IsSuccessStatusCode)
+                return;
+
+            await using var stream = await res.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
+            if (!doc.RootElement.TryGetProperty("links", out var links) || links.ValueKind != JsonValueKind.Array)
+                return;
+
+            foreach (var item in links.EnumerateArray())
+            {
+                var id = item.TryGetProperty("lectioId", out var lid) && lid.ValueKind == JsonValueKind.String
+                    ? lid.GetString()
+                    : null;
+                if (!string.Equals(id, lectioId, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (!item.TryGetProperty("authSub", out var subEl))
+                    continue;
+                var raw = subEl.ValueKind == JsonValueKind.String ? subEl.GetString() : subEl.ToString();
+                if (Guid.TryParse(raw, out var sub) && sub != Guid.Empty)
+                    ViewAs.Enter(lectioId, ViewAs.DisplayName, ViewAs.ClassName, sub, ViewAs.ReturnUrl);
+            }
+        }
+        catch
+        {
+            // Auth-kobling er nice-to-have i preview — ignorer fejl.
+        }
+    }
+
+    private void ExitPreview()
+    {
+        var returnUrl = ViewAs.ReturnUrl ?? "/lectio";
+        ViewAs.Exit();
+        Nav.NavigateTo(returnUrl);
+    }
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        EnsureAccess();
+        if (Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser)
+            await EnterAndLoadAsync();
+        StateHasChanged();
+    });
+
+    private void OnViewAsChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        ViewAs.Changed -= OnViewAsChanged;
+    }
+}

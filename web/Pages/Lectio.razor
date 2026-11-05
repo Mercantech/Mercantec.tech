@@ -4,6 +4,7 @@
 @using LectioData = Mercantec.Tech.Web.Lectio
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject HttpClient Http
 @inject NavigationManager Nav
 @implements IDisposable
@@ -558,6 +559,12 @@ else
                                                                     <div class="lectio-row-actions">
                                                                         <button type="button"
                                                                                 class="secondary"
+                                                                                title="Se elev-overblik som denne elev"
+                                                                                @onclick="() => ViewAsMember(m)">
+                                                                            Se som elev
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                class="secondary"
                                                                                 title="@(IsAuthLinked(m.LectioId) ? "Skift Auth-kobling" : "Kobl Auth-bruger")"
                                                                                 @onclick="() => BeginTeacherLinkForMember(m)">
                                                                             @(IsAuthLinked(m.LectioId) ? "Skift" : "Kobl Auth")
@@ -874,6 +881,12 @@ else
                                         @AuthLinkStatusMarkup(s.LectioId)
                                     </td>
                                     <td class="lectio-row-actions">
+                                        <button type="button"
+                                                class="secondary"
+                                                title="Se elev-overblik som denne elev"
+                                                @onclick="() => ViewAsStudent(s)">
+                                            Se som elev
+                                        </button>
                                         <button type="button"
                                                 class="secondary"
                                                 title="@(IsAuthLinked(s.LectioId) ? "Skift Auth-kobling" : "Kobl Auth-bruger")"
@@ -1935,6 +1948,25 @@ else
         _teacherLinkOk = false;
         _teacherLinkError = null;
         await EnsureAuthUsersAsync();
+    }
+
+    private void ViewAsStudent(StudentRow student)
+    {
+        if (string.IsNullOrWhiteSpace(student.LectioId))
+            return;
+        Guid? authSub = _authLinks.TryGetValue(student.LectioId, out var sub) ? sub : null;
+        ViewAs.Enter(student.LectioId, student.Name, student.ClassName, authSub, "/lectio");
+        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(student.LectioId)}");
+    }
+
+    private void ViewAsMember(HoldMember member)
+    {
+        if (string.IsNullOrWhiteSpace(member.LectioId))
+            return;
+        var profile = FindStudent(member.LectioId);
+        Guid? authSub = _authLinks.TryGetValue(member.LectioId, out var sub) ? sub : null;
+        ViewAs.Enter(member.LectioId, member.Name, profile?.ClassName, authSub, "/lectio");
+        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(member.LectioId)}");
     }
 
     private Task BeginTeacherLinkForStudent(StudentRow student)

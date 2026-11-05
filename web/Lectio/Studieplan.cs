@@ -96,7 +96,34 @@ public static class Studieplan
     public static StudentSnapshot? ParseStudentSnapshot(string json)
     {
         using var doc = JsonDocument.Parse(json);
-        var root = UnwrapStudent(doc.RootElement);
+        return ParseStudentElement(UnwrapStudent(doc.RootElement));
+    }
+
+    /// <summary>
+    /// Finder én elev i <c>programmeringselever</c>-listen (<c>students[]</c>) til underviser-preview.
+    /// </summary>
+    public static StudentSnapshot? FindStudentSnapshot(string listJson, string lectioId)
+    {
+        if (string.IsNullOrWhiteSpace(lectioId))
+            return null;
+
+        using var doc = JsonDocument.Parse(listJson);
+        var root = doc.RootElement;
+        if (!root.TryGetProperty("students", out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return ParseStudentSnapshot(listJson);
+
+        foreach (var item in arr.EnumerateArray())
+        {
+            var id = GetString(item, "lectioId");
+            if (string.Equals(id, lectioId, StringComparison.OrdinalIgnoreCase))
+                return ParseStudentElement(item);
+        }
+
+        return null;
+    }
+
+    private static StudentSnapshot? ParseStudentElement(JsonElement root)
+    {
         if (root.ValueKind != JsonValueKind.Object)
             return null;
 
