@@ -15,3 +15,7 @@ public sealed record NotionPageContext(Guid PageId, Guid HoldId, string Title, b
 public sealed record PublishNotionPage(long ExpectedRevision, string ExpectedFingerprint, Guid[] AssetIds);
 public sealed record AuthorizeNotionCollaboration(string DocumentName);
 public sealed record NotionCollaborationAccess(Guid DocumentId, bool CanEdit);
+public sealed record NotionGraph(Guid HoldId, Guid CollectionId, string Title, bool CanRename,
+    NotionGraphNode[] Nodes, NotionGraphEdge[] Edges);
+public sealed record NotionGraphNode(Guid Id, string Title);
+public sealed record NotionGraphEdge(Guid FromId, Guid ToId);

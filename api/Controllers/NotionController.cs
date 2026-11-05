@@ -3,6 +3,7 @@ using System.Text.Json;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Learning;
+using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,68 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
             manage ? p.UpdatedAtUtc : p.PublishedAtUtc!.Value, p.PublishedAtUtc,
             manage && p.PublishedAtUtc is not null && (p.DraftRevision != p.PublishedRevision || p.Title != p.PublishedTitle)))
             .OrderBy(p => p.Title).ToList());
+    }
+
+    /// <summary>Pages in one sidebar collection and the internal page links between them.</summary>
+    [HttpGet("graph/{collectionId:guid}")]
+    public async Task<IActionResult> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false)
+    {
+        var root = await db.NotionPages.AsNoTracking().Where(p => p.Id == collectionId)
+            .Select(p => new { p.Id, p.HoldId, p.Title, p.PublishedTitle, p.PublishedAtUtc, HasPublication = p.PublishedState != null })
+            .SingleOrDefaultAsync(ct);
+        if (root is null || !await access.CanAccessAsync(root.HoldId, User, ct)) return NotFound();
+        var manage = !publishedOnly && await access.CanManageAsync(root.HoldId, User, ct);
+        if (!manage && (root.PublishedAtUtc is null || root.PublishedTitle is null || !root.HasPublication)) return NotFound();
+
+        var meta = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == root.HoldId)
+            .Select(p => new PageMeta(p.Id, p.ParentPageId, p.Title, p.PublishedTitle, p.PublishedAtUtc, p.PublishedState != null))
+            .ToListAsync(ct);
+        var byParent = meta.ToLookup(p => p.ParentPageId);
+        var subtree = new List<Guid>();
+        var pending = new Stack<Guid>();
+        var seen = new HashSet<Guid>();
+        pending.Push(root.Id);
+        while (pending.Count > 0)
+        {
+            var id = pending.Pop();
+            if (!seen.Add(id)) continue;
+            subtree.Add(id);
+            foreach (var child in byParent[id]) pending.Push(child.Id);
+        }
+
+        bool Visible(PageMeta page) => manage || page.PublishedAtUtc is not null && page.PublishedTitle is not null && page.HasPublication;
+        var ordered = subtree.Select(id => meta.First(p => p.Id == id)).Where(Visible)
+            .OrderBy(p => manage ? p.Title : p.PublishedTitle, StringComparer.CurrentCultureIgnoreCase).ThenBy(p => p.Id)
+            .ToList();
+        if (ordered.Count > 400)
+        {
+            var rootNode = ordered.First(p => p.Id == root.Id);
+            ordered = [rootNode, .. ordered.Where(p => p.Id != root.Id).Take(399)];
+        }
+        var nodes = ordered.ToArray();
+        var nodeIds = nodes.Select(p => p.Id).ToHashSet();
+        var stateQuery = db.NotionPages.AsNoTracking().Where(p => nodeIds.Contains(p.Id));
+        var states = manage
+            ? (await stateQuery.Select(p => new { p.Id, p.YjsState }).ToListAsync(ct)).Select(p => (p.Id, Bytes: p.YjsState))
+            : (await stateQuery.Select(p => new { p.Id, p.PublishedState }).ToListAsync(ct)).Select(p => (p.Id, Bytes: p.PublishedState));
+        var edges = new List<NotionGraphEdge>();
+        var seenEdges = new HashSet<(Guid From, Guid To)>();
+        foreach (var state in states)
+        {
+            if (state.Bytes is not { Length: > 0 and <= MaxGraphStateBytes } bytes) continue;
+            var targets = new HashSet<Guid>();
+            if (!YjsPageLinks.TryRead(bytes, targets)) continue;
+            foreach (var target in targets)
+            {
+                if (target == state.Id || !nodeIds.Contains(target)) continue;
+                if (seenEdges.Add((state.Id, target))) edges.Add(new NotionGraphEdge(state.Id, target));
+            }
+        }
+
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new NotionGraph(root.HoldId, root.Id, manage ? root.Title : root.PublishedTitle!, manage,
+            nodes.Select(p => new NotionGraphNode(p.Id, manage ? p.Title : p.PublishedTitle!)).ToArray(),
+            edges.OrderBy(e => e.FromId).ThenBy(e => e.ToId).ToArray()));
     }
 
     [HttpPost("pages")]
@@ -181,6 +244,10 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
         var page = await db.NotionPages.AsNoTracking().SingleOrDefaultAsync(p => p.Id == id, ct);
         return page is not null && await access.CanManageAsync(page.HoldId, User, ct) ? page : null;
     }
+
+    private const int MaxGraphStateBytes = 1_500_000;
+    private sealed record PageMeta(Guid Id, Guid? ParentPageId, string Title, string? PublishedTitle,
+        DateTimeOffset? PublishedAtUtc, bool HasPublication);
 
     private static bool ValidTitle(string? title) => !string.IsNullOrWhiteSpace(title)
         && title.Length <= 200 && !title.Any(char.IsControl);
