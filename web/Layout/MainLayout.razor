@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
 @inject IJSRuntime Js
 @inject LearningContext CourseContext
@@ -118,6 +119,7 @@
             }
         </header>
         <main class="body" id="main-content">
+            <ViewAsStudentBanner />
             @Body
         </main>
         <footer class="footer">
@@ -287,6 +289,7 @@
                 || path.StartsWith("/teacher/planner", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/reviews", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/students", StringComparison.Ordinal)
+                || path.StartsWith("/teacher/view-as", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/content", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/badges", StringComparison.Ordinal),
             "Udforsk" => path.StartsWith("/explore", StringComparison.Ordinal) || path is "/badges" || path.StartsWith("/badges/", StringComparison.Ordinal),
@@ -332,6 +335,7 @@
 
     private async Task Logout()
     {
+        ViewAs.Exit();
         await Auth.LogoutLocalAsync();
         Nav.NavigateTo("/");
     }

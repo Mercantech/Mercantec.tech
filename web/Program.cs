@@ -12,6 +12,7 @@ builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(AuthOpt
 builder.Services.Configure<RoleOptions>(builder.Configuration.GetSection(RoleOptions.SectionName));
 builder.Services.AddScoped<RoleResolver>();
 builder.Services.AddScoped<AuthRedirect>();
+builder.Services.AddScoped<ViewAsStudentContext>();
 
 var apiBase = builder.Configuration["ApiBaseUrl"]?.Trim() ?? "/api/";
 Uri apiBaseUri;
