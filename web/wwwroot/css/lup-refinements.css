@@ -106,8 +106,14 @@ html[data-bs-theme="dark"] .lup .course-code-body .htmlTagDelimiter,
 html[data-bs-theme="dark"] .lup .course-code-body .htmlElementName { color:#7ee787; }
 html[data-bs-theme="dark"] .lup .course-code-body .htmlOperator { color:#c9d1d9; }
 .lup .course-theory-body blockquote { margin:0 0 1em; padding:.2em 0 .2em 14px; border-left:3px solid var(--rule); color:var(--muted); }
-.lup .course-theory-body table { width:100%; border-collapse:collapse; margin:0 0 1.1em; font-size:13px; }
+/* Notion/Lectio-tabeller (Markdig pipe tables → <table>) */
+.lup .course-theory-body table { display:table; width:100%; border-collapse:collapse; margin:0 0 1.1em; font-size:13px; line-height:1.45; overflow-x:auto; max-width:100%; }
+.lup .course-theory-body thead th,
+.lup .course-theory-body th { background:var(--tint, rgba(31,107,87,.08)); font-weight:600; color:var(--ink); }
 .lup .course-theory-body th,.lup .course-theory-body td { border:1px solid var(--rule); padding:8px 10px; text-align:left; vertical-align:top; }
+.lup .course-theory-body td { color:var(--ink); }
+.lup .course-theory-body tr:nth-child(even) td { background:rgba(0,0,0,.03); }
+html[data-bs-theme="dark"] .lup .course-theory-body tr:nth-child(even) td { background:rgba(255,255,255,.04); }
 .lup .course-theory-body img { max-width:100%; height:auto; }
 /* Mermaid-diagrammer (```mermaid → CourseMermaidDiagram) */
 .lup .course-mermaid-panel { margin:0 0 1.1em; border:1px solid var(--rule); border-radius:8px; background:var(--bg); overflow:hidden; }

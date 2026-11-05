@@ -217,4 +217,154 @@ public class CourseMarkdownTests
         Assert.Equal("cs", fence.Language);
         Assert.Contains("var x = 1;", fence.Code, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void NormalizeImportedTables_rebuilds_notion_fordel_forklaring()
+    {
+        const string md = """
+            ### Fordele ved 1:n multirolle
+
+            Fordel
+
+            Forklaring
+
+            ✅ Simpelt
+
+            Nemmere end n:m – ingen join-tabel nødvendig
+
+            ✅ JWT-venlig
+
+            Du kan stadig sende flere roller som claims i JWT-tokenet
+
+            ---
+
+            ### Claims
+            """;
+
+        var normalized = CourseMarkdown.NormalizeImportedTables(md);
+        Assert.Contains("| Fordel | Forklaring |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| --- | --- |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| ✅ Simpelt | Nemmere end n:m – ingen join-tabel nødvendig |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| ✅ JWT-venlig | Du kan stadig sende flere roller som claims i JWT-tokenet |", normalized, StringComparison.Ordinal);
+
+        var html = CourseMarkdown.ToHtml(md).Value;
+        Assert.Contains("<table", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<th", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Fordel", html, StringComparison.Ordinal);
+        Assert.Contains("Forklaring", html, StringComparison.Ordinal);
+        Assert.Contains("Simpelt", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<p>Fordel</p>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NormalizeImportedTables_rebuilds_three_column_stacked_table()
+    {
+        const string md = """
+            ### Oversigt
+
+            Entitet
+
+            Relation
+
+            Type
+
+            User → Role
+
+            1:1
+
+            Én bruger har én rolle
+
+            Hotel → Room
+
+            1:n
+
+            Et hotel har mange værelser
+            """;
+
+        var normalized = CourseMarkdown.NormalizeImportedTables(md);
+        Assert.Contains("| Entitet | Relation | Type |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| --- | --- | --- |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| User → Role | 1:1 | Én bruger har én rolle |", normalized, StringComparison.Ordinal);
+
+        var html = CourseMarkdown.ToHtml(md).Value;
+        Assert.Contains("<table", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Entitet", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NormalizeImportedTables_leaves_existing_pipe_tables()
+    {
+        const string md = """
+            | Parameter | Forklaring |
+            | --- | --- |
+            | `-d` | Baggrund |
+            """;
+
+        var normalized = CourseMarkdown.NormalizeImportedTables(md);
+        Assert.Equal(md.Replace("\r\n", "\n").TrimEnd(), normalized.TrimEnd());
+    }
+
+    [Fact]
+    public void NormalizeImportedTables_rebuilds_rolle_rettigheder_two_columns()
+    {
+        const string md = """
+            ### Hierarki
+
+            Rolle
+
+            Rettigheder
+
+            **Admin**
+
+            Alt, inkl. oprettelse af brugere og systemstyring
+
+            **Receptionist**
+
+            Alt hvad **Rengøring** kan, plus bookinger
+
+            **Rengøring**
+
+            Se værelser, som skal gøres rene
+
+            **Kunde**
+
+            Book værelser og se egne bookinger
+
+            Det vil sige at en **Receptionist** kan både se værelser.
+            """;
+
+        var normalized = CourseMarkdown.NormalizeImportedTables(md);
+        Assert.Contains("| Rolle | Rettigheder |", normalized, StringComparison.Ordinal);
+        Assert.DoesNotContain("| Rolle | Rettigheder | **Admin** |", normalized, StringComparison.Ordinal);
+        Assert.Contains("| **Admin** | Alt, inkl. oprettelse af brugere og systemstyring |", normalized, StringComparison.Ordinal);
+        Assert.Contains("Det vil sige at en **Receptionist**", normalized, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ToHtml_renders_h2_multirolle_section_as_table()
+    {
+        var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "web", "wwwroot", "content", "courses", "h2-teori.json"));
+        Assert.True(File.Exists(path), $"Mangler {path}");
+
+        var json = File.ReadAllText(path);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        string? section = null;
+        foreach (var block in doc.RootElement.EnumerateArray())
+        {
+            var md = block.GetProperty("markdown").GetString() ?? "";
+            var idx = md.IndexOf("### Fordele ved 1:n multirolle", StringComparison.Ordinal);
+            if (idx < 0)
+                continue;
+            section = md[idx..];
+            break;
+        }
+
+        Assert.False(string.IsNullOrEmpty(section));
+        var html = CourseMarkdown.ToHtml(section).Value;
+        Assert.Contains("<table", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Fordel", html, StringComparison.Ordinal);
+        Assert.Contains("Forklaring", html, StringComparison.Ordinal);
+        Assert.Contains("Simpelt", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<p>Fordel</p>", html, StringComparison.Ordinal);
+    }
 }

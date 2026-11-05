@@ -1225,25 +1225,12 @@ Det betyder, at **hver bruger kun har én rolle ad gangen**, og det skaber et **
 
 Rollerne er designet sådan, at **hver højere rolle nedarver rettighederne fra den forrige**:
 
-Rolle
-
-Rettigheder
-
-**Admin**
-
-Alt, inkl. oprettelse af brugere og systemstyring
-
-**Receptionist**
-
-Alt hvad **Rengøring** kan, plus bookinger
-
-**Rengøring**
-
-Se værelser, som skal gøres rene
-
-**Kunde**
-
-Book værelser og se egne bookinger
+| Rolle | Rettigheder |
+| --- | --- |
+| **Admin** | Alt, inkl. oprettelse af brugere og systemstyring |
+| **Receptionist** | Alt hvad **Rengøring** kan, plus bookinger |
+| **Rengøring** | Se værelser, som skal gøres rene |
+| **Kunde** | Book værelser og se egne bookinger |
 
 Det vil sige at en **Receptionist** kan både se værelser (som rengøringspersonalet) **og** administrere bookinger. En **Admin** kan det hele – inkl. oprette brugere, slette data, mv.
 
@@ -1330,23 +1317,10 @@ Hash (uden salt)
 
 ### Scenario 2: Med BCrypt's Automatiske Salt (Sikkert)
 
-Bruger
-
-Salt (Auto-genereret)
-
-Resulterende Hash (Unik)
-
-Alice
-
-`salt_ABC`
-
-`$2a$11$salt_ABC...hash_result_1`
-
-Bob
-
-`salt_XYZ`
-
-`$2a$11$salt_XYZ...hash_result_2`
+| Bruger | Salt (Auto-genereret) | Resulterende Hash (Unik) |
+| --- | --- | --- |
+| Alice | `salt_ABC` | `$2a$11$salt_ABC...hash_result_1` |
+| Bob | `salt_XYZ` | `$2a$11$salt_XYZ...hash_result_2` |
 
 ### Brug det i en Controller
 
@@ -1547,25 +1521,12 @@ modelBuilder.Entity()
 
 ### Fordele ved denne 1:1-normalisering
 
-Fordel
-
-Forklaring
-
-⚡ Hurtigere queries
-
-“Hot” data er samlet i en lille tabel med få kolonner
-
-📦 Mindre payload
-
-Frontend får kun det nødvendige – hurtigere svar og mindre JSON
-
-🛠 Let at vedligeholde
-
-Profiloplysninger kan ændres uden at røre ved login-tabellen
-
-🔒 Sikkerhed
-
-Loginoplysninger og personfølsomme oplysninger ligger i adskilte tabeller
+| Fordel | Forklaring |
+| --- | --- |
+| ⚡ Hurtigere queries | “Hot” data er samlet i en lille tabel med få kolonner |
+| 📦 Mindre payload | Frontend får kun det nødvendige – hurtigere svar og mindre JSON |
+| 🛠 Let at vedligeholde | Profiloplysninger kan ændres uden at røre ved login-tabellen |
+| 🔒 Sikkerhed | Loginoplysninger og personfølsomme oplysninger ligger i adskilte tabeller |
 
 ---
 
@@ -1701,25 +1662,12 @@ modelBuilder.Entity()
 
 ### Fordele ved 1:n multirolle
 
-Fordel
-
-Forklaring
-
-✅ Simpelt
-
-Nemmere end n:m – ingen join-tabel nødvendig
-
-✅ Håndterer flere roller pr. bruger
-
-Brugeren kan være både receptionist og rengøring
-
-✅ God introduktion til multirolle-tankegangen
-
-Gør det let at bygge videre senere
-
-✅ JWT-venlig
-
-Du kan stadig sende flere roller som claims i JWT-tokenet
+| Fordel | Forklaring |
+| --- | --- |
+| ✅ Simpelt | Nemmere end n:m – ingen join-tabel nødvendig |
+| ✅ Håndterer flere roller pr. bruger | Brugeren kan være både receptionist og rengøring |
+| ✅ God introduktion til multirolle-tankegangen | Gør det let at bygge videre senere |
+| ✅ JWT-venlig | Du kan stadig sende flere roller som claims i JWT-tokenet |
 
 ---
 
@@ -1807,29 +1755,11 @@ modelBuilder.Entity()
 
 ### 📊 Oversigt over relationerne i databasen
 
-Entitet
-
-Relation
-
-Type
-
-User → Role
-
-1:1
-
-Én bruger har én rolle
-
-Hotel → Room
-
-1:n
-
-Et hotel har mange værelser
-
-User ↔ Room via Booking
-
-n:m
-
-En bruger kan booke mange værelser, og et værelse kan bookes af mange brugere
+| Entitet | Relation | Type |
+| --- | --- | --- |
+| User → Role | 1:1 | Én bruger har én rolle |
+| Hotel → Room | 1:n | Et hotel har mange værelser |
+| User ↔ Room via Booking | n:m | En bruger kan booke mange værelser, og et værelse kan bookes af mange brugere |
 
 ---
 
@@ -2099,25 +2029,12 @@ public async Task>> GetUsers()
 
 Her er de mest brugte tags du skal kende:
 
-Tag
-
-Funktion
-
-``
-
-Kort beskrivelse af hvad metoden gør
-
-``
-
-Beskriver en indparameter
-
-``
-
-Forklarer hvad metoden returnerer
-
-``
-
-(Til Web API) Hvilke HTTP-statuskoder der kan returneres og hvorfor
+| Tag | Funktion |
+| --- | --- |
+| `` | Kort beskrivelse af hvad metoden gør |
+| `` | Beskriver en indparameter |
+| `` | Forklarer hvad metoden returnerer |
+| `` | (Til Web API) Hvilke HTTP-statuskoder der kan returneres og hvorfor |
 
 ### Best Practice - Hvad I burde gøre, jo mindre I har en god grund til at gøre noget andet!
 
@@ -3103,21 +3020,11 @@ var hotel = _context.Hotels
 
 ### 🧠 Hvornår bruger vi hvad?
 
-Situation
-
-Anbefalet loading
-
-Du bygger en API og returnerer komplekse objekter
-
-**Eager Loading**
-
-Du arbejder med simpel data i konsol/wpf
-
-**Lazy Loading (valgfrit)**
-
-Du har dybe relationer (booking → room → hotel)
-
-Eager – evt. med `ThenInclude`
+| Situation | Anbefalet loading |
+| --- | --- |
+| Du bygger en API og returnerer komplekse objekter | **Eager Loading** |
+| Du arbejder med simpel data i konsol/wpf | **Lazy Loading (valgfrit)** |
+| Du har dybe relationer (booking → room → hotel) | Eager – evt. med `ThenInclude` |
 
 ---
 
@@ -3258,25 +3165,12 @@ public IActionResult GetBookings([FromQuery] string? userId, [FromQuery] DateTim
 
 ### Eksempler på kald
 
-URL
-
-Effekt
-
-`/bookings`
-
-Returnerer alle bookinger
-
-`/bookings?userId=abc123`
-
-Returnerer alle bookinger for bruger med ID `abc123`
-
-`/bookings?from=2024-08-01`
-
-Bookinger med startdato senere end 1. august
-
-`/bookings?userId=abc123&from=2024-08-01`
-
-Begge filtre aktivt
+| URL | Effekt |
+| --- | --- |
+| `/bookings` | Returnerer alle bookinger |
+| `/bookings?userId=abc123` | Returnerer alle bookinger for bruger med ID `abc123` |
+| `/bookings?from=2024-08-01` | Bookinger med startdato senere end 1. august |
+| `/bookings?userId=abc123&from=2024-08-01` | Begge filtre aktivt |
 
 ---
 
@@ -3387,25 +3281,12 @@ public IActionResult GetRooms([FromQuery] string? sortBy, [FromQuery] bool desc 
 
 ### 🧪 Eksempler på kald
 
-URL
-
-Sortering
-
-`/rooms`
-
-Sortér efter værelsesnummer (default)
-
-`/rooms?sortBy=price`
-
-Sortér stigende efter pris
-
-`/rooms?sortBy=price&desc=true`
-
-Sortér faldende efter pris
-
-`/rooms?sortBy=capacity`
-
-Sortér efter kapacitet (antal senge)
+| URL | Sortering |
+| --- | --- |
+| `/rooms` | Sortér efter værelsesnummer (default) |
+| `/rooms?sortBy=price` | Sortér stigende efter pris |
+| `/rooms?sortBy=price&desc=true` | Sortér faldende efter pris |
+| `/rooms?sortBy=capacity` | Sortér efter kapacitet (antal senge) |
 
 ---
 
@@ -3448,77 +3329,30 @@ REST står for **Representational State Transfer**. Det betyder, at vi organiser
 
 Vi bruger **HTTP-metoder** til at angive handlingen:
 
-HTTP-metode
-
-Hvad den betyder
-
-`GET`
-
-Hent data
-
-`POST`
-
-Opret ny ressource
-
-`PUT` / `PATCH`
-
-Opdater en ressource
-
-`DELETE`
-
-Slet en ressource
+| HTTP-metode | Hvad den betyder |
+| --- | --- |
+| `GET` | Hent data |
+| `POST` | Opret ny ressource |
+| `PUT` / `PATCH` | Opdater en ressource |
+| `DELETE` | Slet en ressource |
 
 ---
 
 ### 🏨 Eksempel: Ressourcen “rooms”
 
-Formål
-
-Route
-
-HTTP
-
-Beskrivelse
-
-Hent alle værelser
-
-`/rooms`
-
-`GET`
-
-Returnerer alle værelser
-
-Hent ét værelse
-
-`/rooms/{id}`
-
-`GET`
-
-Returnerer værelse med bestemt ID
-
-Opret værelse
-
-`/rooms`
-
-`POST`
-
-Opretter nyt værelse
-
-Opdater værelse
-
-`/rooms/{id}`
-
-`PUT`
-
-Ændrer info om værelse
-
-Slet værelse
-
-`/rooms/{id}`
-
-`DELETE`
-
-Fjerner værelse fra databasen
+| Formål | Route |
+| --- | --- |
+| HTTP | Beskrivelse |
+| Hent alle værelser | `/rooms` |
+| `GET` | Returnerer alle værelser |
+| Hent ét værelse | `/rooms/{id}` |
+| `GET` | Returnerer værelse med bestemt ID |
+| Opret værelse | `/rooms` |
+| `POST` | Opretter nyt værelse |
+| Opdater værelse | `/rooms/{id}` |
+| `PUT` | Ændrer info om værelse |
+| Slet værelse | `/rooms/{id}` |
+| `DELETE` | Fjerner værelse fra databasen |
 
 ---
 
@@ -3539,29 +3373,13 @@ Det giver mening, fordi:
 
 ### ✅ Best Practices
 
-Gør dette ✅
-
-Undgå dette ❌
-
-`/users`
-
-`/getUsers`, `/fetchAllUsers`
-
-`/rooms/{id}`
-
-`/getRoomById?id=123`
-
-`/bookings?userId=abc`
-
-`/getBookingsForUser`
-
-Brug flertal (`/rooms`)
-
-Brug ikke ental (`/room`)
-
-Brug understregning i body (ikke i routes)
-
-Brug ikke camelCase i routes
+| Gør dette ✅ | Undgå dette ❌ |
+| --- | --- |
+| `/users` | `/getUsers`, `/fetchAllUsers` |
+| `/rooms/{id}` | `/getRoomById?id=123` |
+| `/bookings?userId=abc` | `/getBookingsForUser` |
+| Brug flertal (`/rooms`) | Brug ikke ental (`/room`) |
+| Brug understregning i body (ikke i routes) | Brug ikke camelCase i routes |
 
 ---
 
@@ -3607,25 +3425,12 @@ Og lad **HTTP-metoden** fortælle, hvad du vil.
 
 I nogle tilfælde kan du bruge **custom routes**, men de skal stadig være beskrivende og læsbare:
 
-Funktion
-
-Route
-
-Hent mine bookinger
-
-`/bookings/mine`
-
-Check ledige værelser
-
-`/rooms/available?from=2024-08-01&to=2024-08-05`
-
-Registrer en bruger
-
-`/Users/register`
-
-Login som bruger
-
-`/Users/login`
+| Funktion | Route |
+| --- | --- |
+| Hent mine bookinger | `/bookings/mine` |
+| Check ledige værelser | `/rooms/available?from=2024-08-01&to=2024-08-05` |
+| Registrer en bruger | `/Users/register` |
+| Login som bruger | `/Users/login` |
 
 Brug kun disse når du **ikke** nemt kan repræsentere funktionen som en klassisk ressourcerute.
 
@@ -3663,23 +3468,10 @@ Caching betyder at **gemme et svar midlertidigt**, så vi slipper for at hente d
 
 ## 🗃️ Typer af caching i .NET
 
-Type
-
-Beskrivelse
-
-Pensum på H2?
-
-`MemoryCache`
-
-Lokal cache i serverens hukommelse
-
-✅ Ja, nem og god til udvikling
-
-Redis :redis: 
-
-Delt cache over netværk (fx mellem flere servere)
-
-🚫 Ikke på H2, men god til produktion. Endelig leg med det!
+| Type | Beskrivelse | Pensum på H2? |
+| --- | --- | --- |
+| `MemoryCache` | Lokal cache i serverens hukommelse | ✅ Ja, nem og god til udvikling |
+| Redis :redis: | Delt cache over netværk (fx mellem flere servere) | 🚫 Ikke på H2, men god til produktion. Endelig leg med det! |
 
 ---
 
@@ -3742,25 +3534,12 @@ public class RoomsController : ControllerBase
 
 Det afhænger af dataens "friskhed":
 
-Data
-
-Anbefalet cachetid
-
-Værelsesliste
-
-30-60 sekunder
-
-Brugeres bookinger
-
-5-10 sekunder
-
-Priser eller statistik
-
-1-5 minutter
-
-Realtime info
-
-Skal ikke caches!
+| Data | Anbefalet cachetid |
+| --- | --- |
+| Værelsesliste | 30-60 sekunder |
+| Brugeres bookinger | 5-10 sekunder |
+| Priser eller statistik | 1-5 minutter |
+| Realtime info | Skal ikke caches! |
 
 ---
 
