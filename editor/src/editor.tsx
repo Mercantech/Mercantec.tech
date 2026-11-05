@@ -14,6 +14,7 @@ import { canonicalFingerprint, publishedDocumentFromBase64 } from './persistence
 import { pollUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPublicationAssetIds } from './document-utils.mjs';
 import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
+import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionDragHandleMenu, turnIntoSelectItems } from './turn-into';
 import { AiHelperPanel } from './ai-helper';
 
@@ -193,7 +194,7 @@ const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersi
   toExternalHTML:()=> <p>Vedhæftet undervisningsfil</p>,
 });
 const schema = BlockNoteSchema.create({
-  blockSpecs: {...defaultBlockSpecs, classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout()},
+  blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout()},
   inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention},
 });
 type Editor = BlockNoteEditor<typeof schema.blockSchema, typeof schema.inlineContentSchema, typeof schema.styleSchema>;
@@ -228,7 +229,7 @@ function openPresentation(session: Session) {
 
 function ConnectedEditor({session}:{session:Session}) {
   const editor=useCreateBlockNote(withCollaboration({
-    schema, dictionary:danish,
+    schema, dictionary:danish, extensions:[syntaxHighlighter],
     collaboration:{fragment:session.doc.getXmlFragment('document-store'),provider:{awareness:session.provider?.awareness ?? undefined},user:{name:session.context.userName || 'Underviser',color:'#2452e8'},showCursorLabels:'activity'},
   }),[session]);
   session.editor=editor;
@@ -311,7 +312,7 @@ function ConnectedEditor({session}:{session:Session}) {
   </>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {
-  const editor=useCreateBlockNote({schema,dictionary:danish,initialContent:blocks as NonNullable<Parameters<typeof useCreateBlockNote>[0]>['initialContent']});
+  const editor=useCreateBlockNote({schema,dictionary:danish,extensions:[syntaxHighlighter],initialContent:blocks as NonNullable<Parameters<typeof useCreateBlockNote>[0]>['initialContent']});
   return <BlockNoteView editor={editor} editable={false} theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} />;
 }
 function SlideDeck({session}:{session:Session}) {

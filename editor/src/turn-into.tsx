@@ -32,7 +32,7 @@ export function turnIntoSelectItems(editor: Parameters<typeof blockTypeSelectIte
   });
   return [
     ...defaults,
-    { name: 'Kodeblok', type: 'codeBlock', props: { language: 'javascript' }, icon: icon('</>') },
+    { name: 'Kodeblok', type: 'codeBlock', props: { language: 'csharp' }, icon: icon('</>') },
     { name: 'Callout', type: 'callout', props: { tone: 'info' }, icon: icon('▣') },
     { name: 'Læringsmål', type: 'learningGoal', icon: icon('◎') },
   ];
