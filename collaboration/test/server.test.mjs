@@ -85,7 +85,7 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     await new Promise(resolve => http.close(resolve));
   });
 
-  const connect = (accessToken, name = documentName, schemaVersion = '2') => {
+  const connect = (accessToken, name = documentName, schemaVersion = '3') => {
     const doc = new Y.Doc();
     const messages = [];
     let denied = false;
@@ -141,7 +141,7 @@ test('missing or incompatible editor schemas are rejected before authorization a
   const f = await fixture(t);
   const accessToken = token('teacher');
   f.grants.set(accessToken, new Set([documentName]));
-  for (const version of [null, '1', '999']) {
+  for (const version of [null, '1', '2', '999']) {
     const editor = f.connect(accessToken, documentName, version);
     await waitFor(() => editor.denied, 'incompatible editor rejected');
     assert.match(editor.denialReason, /editor_version_mismatch/);
