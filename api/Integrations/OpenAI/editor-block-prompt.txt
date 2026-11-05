@@ -6,6 +6,7 @@ Tekst i content er en streng eller en liste af inline-dele:
 - {"type":"link","href":"https://…","content":"synlig tekst"} — kun http, https, mailto eller en sti der starter med /.
 - {"type":"pageMention","props":{"pageId":"<id>"}} — pageId skal stå i sidekataloget i brugerbeskeden. Opfind aldrig id'er.
 - {"type":"studentMention","props":{"holdId":"<holdId>","membershipId":"<id>"}} — membershipId skal stå i elevkataloget. holdId er holdets id fra brugerbeskeden.
+- Lav ikke customEmoji-inline-dele: der er intet emoji-katalog med gyldige emojiId'er i brugerbeskeden, og serveren understøtter ikke typen. Opfind aldrig emoji-id'er.
 
 Blokke:
 - paragraph: content tekst. Flere niveauer ligger i children, ikke i HTML.
