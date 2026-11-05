@@ -598,6 +598,68 @@ button.stat.is-active {
     color: var(--muted);
 }
 
+.lectio-link-panel h2 {
+    font-size: 18px;
+    letter-spacing: -0.4px;
+    margin: 0 0 6px;
+}
+
+.lectio-link-panel h3 {
+    font-size: 13px;
+    font-weight: 650;
+    margin: 0 0 10px;
+}
+
+.lectio-link-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.lectio-link-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    min-width: 0;
+}
+
+.lectio-link-picks {
+    max-width: none;
+    max-height: 18rem;
+    overflow: auto;
+    margin: 0;
+}
+
+.lectio-link-selected {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+}
+
+.lectio-link-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.lectio-link-field .form-control {
+    font-weight: 400;
+    color: var(--ink);
+}
+
 .lectio-raw {
     margin: 12px 0 0;
     white-space: pre-wrap;
@@ -617,6 +679,10 @@ button.stat.is-active {
 
 @media (max-width: 900px) {
     .forloeb-expand {
+        grid-template-columns: 1fr;
+    }
+
+    .lectio-link-grid {
         grid-template-columns: 1fr;
     }
 }
