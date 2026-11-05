@@ -23,7 +23,15 @@ public static class CourseMarkdown
         .DisableHtml()
         .Build();
 
-    private static readonly HtmlClassFormatter Highlighter = new();
+    // HtmlClassFormatter er ikke trådsikker pr. instans — én pr. highlight-kald.
+    private static readonly RazorLanguage Razor = CreateRazorLanguage();
+
+    private static RazorLanguage CreateRazorLanguage()
+    {
+        var lang = new RazorLanguage();
+        Languages.Load(lang);
+        return lang;
+    }
 
     public static MarkupString ToHtml(string? markdown) =>
         new(Markdown.ToHtml(markdown ?? string.Empty, Pipeline));
@@ -81,7 +89,8 @@ public static class CourseMarkdown
             return new MarkupString($"<pre><code>{escaped}</code></pre>");
         }
 
-        return new MarkupString(Highlighter.GetHtmlString(code, lang));
+        // Ny formatter pr. kald — HtmlClassFormatter muterer intern Writer under GetHtmlString.
+        return new MarkupString(new HtmlClassFormatter().GetHtmlString(code, lang));
     }
 
     /// <summary>Kort label til toolbar (dansk UI viser tekniske sprog-navne).</summary>
@@ -101,6 +110,7 @@ public static class CourseMarkdown
             "bash" or "shell" or "sh" => "Bash",
             "powershell" or "ps1" => "PowerShell",
             "python" or "py" => "Python",
+            "razor" or "blazor" or "cshtml" => "Razor",
             "txt" or "text" or "plaintext" => "Tekst",
             "mermaid" => "Mermaid",
             "" => "Kode",
@@ -113,6 +123,9 @@ public static class CourseMarkdown
         var key = NormalizeLanguageKey(language);
         if (key.Length == 0)
             return null;
+
+        if (key is "razor" or "blazor" or "cshtml")
+            return Razor;
 
         // ColorCode FindById kender bl.a. cs, c#, csharp, js, json, ts, …
         var found = Languages.FindById(key);

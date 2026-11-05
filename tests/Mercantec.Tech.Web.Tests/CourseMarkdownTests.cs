@@ -46,6 +46,9 @@ public class CourseMarkdownTests
     [InlineData("sql", "SQL")]
     [InlineData("bash", "Bash")]
     [InlineData("shell", "Bash")]
+    [InlineData("razor", "Razor")]
+    [InlineData("blazor", "Razor")]
+    [InlineData("cshtml", "Razor")]
     [InlineData("", "Kode")]
     public void DisplayLanguage_maps_aliases(string raw, string expected) =>
         Assert.Equal(expected, CourseMarkdown.DisplayLanguage(raw));
@@ -62,6 +65,9 @@ public class CourseMarkdownTests
     [InlineData("sql")]
     [InlineData("ts")]
     [InlineData("xml")]
+    [InlineData("razor")]
+    [InlineData("blazor")]
+    [InlineData("cshtml")]
     public void ResolveLanguage_knows_teaching_langs(string raw) =>
         Assert.NotNull(CourseMarkdown.ResolveLanguage(raw));
 
@@ -79,6 +85,49 @@ public class CourseMarkdownTests
         var html = CourseMarkdown.HighlightCode("public class Foo {}", "cs").Value;
         Assert.Contains("keyword", html, StringComparison.Ordinal);
         Assert.Contains("public", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("razor")]
+    [InlineData("blazor")]
+    [InlineData("cshtml")]
+    public void HighlightCode_emits_razor_tokens(string language)
+    {
+        const string code = """
+            @page "/hello"
+            @* note *@
+            <h1>Hej @name</h1>
+            <button @onclick="Save">Gem</button>
+            @code {
+                private string name = "Verden";
+            }
+            """;
+
+        var html = CourseMarkdown.HighlightCode(code, language).Value;
+        Assert.Contains("htmlServerSideScript", html, StringComparison.Ordinal);
+        Assert.Contains("htmlElementName", html, StringComparison.Ordinal);
+        Assert.Contains("htmlComment", html, StringComparison.Ordinal);
+        Assert.Contains("keyword", html, StringComparison.Ordinal);
+        Assert.Contains("@page", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<script>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ToSegments_keeps_razor_fence_language()
+    {
+        const string md = """
+            Blazor-komponent:
+
+            ```blazor
+            @page "/demo"
+            <p>@msg</p>
+            ```
+            """;
+
+        var fence = Assert.Single(CourseMarkdown.ToSegments(md).OfType<CourseMarkdownCodeSegment>());
+        Assert.Equal("blazor", fence.Language);
+        Assert.Equal("Razor", CourseMarkdown.DisplayLanguage(fence.Language));
+        Assert.NotNull(CourseMarkdown.ResolveLanguage(fence.Language));
     }
 
     [Fact]

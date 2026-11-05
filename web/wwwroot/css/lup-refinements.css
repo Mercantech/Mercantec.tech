@@ -80,6 +80,7 @@
 .lup .course-code-body .htmlAttributeValue { color:#0a3069; }
 .lup .course-code-body .htmlOperator { color:#24292f; }
 .lup .course-code-body .htmlComment { color:#6a737d; }
+.lup .course-code-body .htmlServerSideScript { color:#8250df; font-weight:600; }
 .lup .course-code-body .cssPropertyName { color:#0550ae; }
 .lup .course-code-body .cssPropertyValue,
 .lup .course-code-body .cssSelector { color:#953800; }
@@ -99,7 +100,8 @@ html[data-bs-theme="dark"] .lup .course-code-body .type,
 html[data-bs-theme="dark"] .lup .course-code-body .cssPropertyValue,
 html[data-bs-theme="dark"] .lup .course-code-body .cssSelector { color:#ffa657; }
 html[data-bs-theme="dark"] .lup .course-code-body .preprocessor,
-html[data-bs-theme="dark"] .lup .course-code-body .sqlSystemFunction { color:#d2a8ff; }
+html[data-bs-theme="dark"] .lup .course-code-body .sqlSystemFunction,
+html[data-bs-theme="dark"] .lup .course-code-body .htmlServerSideScript { color:#d2a8ff; }
 html[data-bs-theme="dark"] .lup .course-code-body .htmlTagDelimiter,
 html[data-bs-theme="dark"] .lup .course-code-body .htmlElementName { color:#7ee787; }
 html[data-bs-theme="dark"] .lup .course-code-body .htmlOperator { color:#c9d1d9; }
