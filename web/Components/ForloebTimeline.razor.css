@@ -1,0 +1,146 @@
+.forloeb-timeline-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.student-timeline .timeline-axis {
+    position: relative;
+    height: 1.4rem;
+    margin: 0 0 10px 7.5rem;
+    border-bottom: 1px solid var(--rule);
+}
+
+.student-timeline .timeline-tick {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.student-timeline .timeline-today,
+.student-timeline .timeline-today-track {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 2px dashed var(--orange);
+    transform: translateX(-1px);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.student-timeline .timeline-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.student-timeline .timeline-row {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-height: 1.55rem;
+}
+
+.student-timeline .timeline-label {
+    font-size: 12px;
+    line-height: 1.25;
+    color: var(--ink);
+    font-weight: 550;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.student-timeline .timeline-track {
+    position: relative;
+    height: 12px;
+    background: color-mix(in srgb, var(--rule) 70%, var(--paper));
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.student-timeline .timeline-bar {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 999px;
+    min-width: 4px;
+    background: var(--muted);
+    transform-origin: left center;
+    animation: student-bar-grow 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.student-timeline .timeline-bar.is-past {
+    background: color-mix(in srgb, var(--muted) 55%, var(--paper));
+}
+
+.student-timeline .timeline-bar.is-current {
+    background: var(--blue);
+}
+
+.student-timeline .timeline-bar.is-future {
+    background: color-mix(in srgb, var(--blue) 42%, var(--paper));
+}
+
+.student-timeline .timeline-legend {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+}
+
+.student-timeline .timeline-legend-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 8px;
+    border-radius: 999px;
+    vertical-align: middle;
+    margin-right: 4px;
+    background: color-mix(in srgb, var(--muted) 55%, var(--paper));
+}
+
+.student-timeline .timeline-legend-swatch.is-current {
+    background: var(--blue);
+}
+
+.student-timeline .timeline-legend-swatch.is-future {
+    background: color-mix(in srgb, var(--blue) 42%, var(--paper));
+}
+
+.student-timeline .timeline-legend-today {
+    color: var(--orange);
+}
+
+@keyframes student-bar-grow {
+    from { transform: scaleX(0); opacity: 0.35; }
+    to { transform: scaleX(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .student-timeline .timeline-bar {
+        animation: none;
+    }
+}
+
+@media (max-width: 620px) {
+    .student-timeline .timeline-axis {
+        margin-left: 0;
+    }
+
+    .student-timeline .timeline-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .student-timeline .timeline-label {
+        white-space: normal;
+    }
+}

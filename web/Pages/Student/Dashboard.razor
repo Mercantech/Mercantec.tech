@@ -1,49 +1,262 @@
 @page "/student"
-@using System.Text.Json
+@using System.Globalization
 @using System.Net.Http.Json
+@using System.Text.Json
+@using Mercantec.Tech.Web.Lectio
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @inject HttpClient Http
 @inject LearningContext CourseContext
-@inject DemoWorld World
 @implements IDisposable
 
 <PageTitle>Dit overblik · LUP</PageTitle>
-@if (!Auth.IsInitialized) { <p>Indlæser…</p> }
-else {
-    <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div></header>
-    <div class="cols"><div>
-    @if (ActiveCourse is not null) {
-    <section class="v3-next"><div class="v3-next-copy"><span class="pill">@ActiveCourse.Name</span><h2>@(ActiveCourse.Id == "h3" ? "Fra sensor til noget, der virker." : "Byg et spil. Forstå valgene.")</h2><p>@ActiveCourse.Desc</p><div class="actions"><a class="action" href="/learning/@ActiveCourse.Id">Åbn mit forløb <UiIcon Name="arrow" /></a></div><div class="v3-quick-links"><a href="/calendar">Min uge</a><a href="/quests">Quests og afleveringer</a><a href="/journal">Min logbog</a></div></div><img src="lup/assets/@LearningContent.Cover(ActiveCourse.Id)" alt="" /></section>
-    } else { <section class="hero-empty"><h2>Dit næste kapitel starter her</h2><p>Udforsk faglige emner, og byg videre i dit univers, mens du venter på dit næste forløb.</p><div class="actions"><a class="action" href="/learning">Udforsk forløb</a><a class="secondary" href="/projects/mine">Mine projekter</a></div></section> }
-    <div class="dashboard-links"><a href="/learning"><UiIcon Name="book" /><h2>Min læring</h2><p>Forløb, fag og emner</p></a>@if (ActiveCourse is not null) { <a href="/calendar"><UiIcon Name="calendar" /><h2>Min uge</h2><p>Undervisning og quests</p></a> }<a href="/projects/mine"><UiIcon Name="code" /><h2>Mine projekter</h2><p>Fra idé til løsning</p></a></div>
-    <section class="panel"><h2>Mine hold</h2>
-    @if (_membershipError is not null) { <p role="status">Dine hold kunne ikke hentes. Prøv at åbne forløbsoversigten igen.</p><a class="secondary" href="/courses">Åbn mine forløb</a> }
-    else if (_memberships is null) { <p>Henter dine hold…</p> }
-    else if (_memberships.Count == 0) { <div class="empty"><h3>Dit næste kapitel starter her</h3><p>Når en underviser tilføjer dig til et hold, kan du finde det her.</p></div> }
-    else { @foreach (var m in _memberships) { <div class="row"><span class="mark"><UiIcon Name="book" /></span><div><h3><a href="@($"/courses/{m.ForloebId}")">@m.ForloebName</a></h3><p>@m.HoldName</p></div><a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a></div> } }
-    </section>
-    @if (_showLectioCta) { <div class="callout"><strong>Dit skema kan følge med</strong><p>Kobl din Lectio-profil for at finde dine elevdata.</p><div class="actions"><a class="secondary" href="/lectio">Kobl Lectio</a></div></div> }
-    </div><aside class="aside"><section class="panel"><h2>Din udvikling</h2><div class="v3-wallet-panel"><div><strong>7</strong><span>Level</span></div><div class="v3-gold"><strong>@World.Gold</strong><span>Guld</span></div></div><div class="v3-level-track"><span style="width:20%"></span></div><p>160 XP til level 8</p><a href="/progress">Se XP og belønninger</a></section><section class="panel"><h2>Dit eget sted</h2><div class="person"><AvatarSprite /><div><p>Din figur og dine idéer har også et hjem her.</p></div></div><div class="actions"><a class="secondary" href="/profile/character">Min avatar</a><a class="secondary" href="/apartment">Min lejlighed</a></div></section><section class="panel"><h2>Dit næste badge</h2><BadgeMark Rank="0" Icon="wifi" /><p>MQTT Explorer</p><a href="/badges/mqtt">Se dit næste skridt</a></section></aside></div>
+
+@if (!Auth.IsInitialized)
+{
+    <p>Indlæser…</p>
+}
+else
+{
+    var firstName = string.IsNullOrEmpty(Auth.DisplayName) ? null : Auth.DisplayName.Split(' ')[0];
+    var next = ResolveNextStep();
+
+    <div class="student-home">
+        <section class="student-hero" aria-labelledby="student-hero-title">
+            <div class="student-hero-atmosphere" aria-hidden="true"></div>
+            <div class="student-hero-copy">
+                <p class="student-brand">LUP</p>
+                <h1 id="student-hero-title">@(firstName is null ? "Din vej gennem uddannelsen" : $"{firstName} — din vej gennem uddannelsen")</h1>
+                <p class="student-lead">@HeroLead()</p>
+                <div class="actions student-hero-actions">
+                    <a class="action" href="@next.Href">@next.Label <UiIcon Name="arrow" /></a>
+                    @if (_linked && !string.IsNullOrWhiteSpace(_lectioId))
+                    {
+                        <a class="secondary" href="/lectio">Lectio-profil</a>
+                    }
+                    else if (!_linked)
+                    {
+                        <a class="secondary" href="/lectio">Kobl Lectio</a>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <div class="student-status" role="list" aria-label="Din status">
+            <div class="student-status-item" role="listitem">
+                <span class="student-status-label">Lectio</span>
+                @if (_lectioLoading)
+                {
+                    <strong>Henter…</strong>
+                }
+                else if (_linked)
+                {
+                    <strong class="is-ok">Koblet</strong>
+                    <span>@(_snapshot?.ClassName ?? "Din elevprofil er klar")</span>
+                }
+                else
+                {
+                    <strong class="is-warn">Ikke koblet</strong>
+                    <span>Skema og VUF venter på kobling</span>
+                }
+            </div>
+            <div class="student-status-item" role="listitem">
+                <span class="student-status-label">Hold</span>
+                @if (_memberships is null && _membershipError is null)
+                {
+                    <strong>Henter…</strong>
+                }
+                else if (_membershipError is not null)
+                {
+                    <strong class="is-warn">Kunne ikke hentes</strong>
+                }
+                else if (_memberships!.Count == 0)
+                {
+                    <strong>Ingen hold endnu</strong>
+                    <span>Når du tilføjes, lander de her</span>
+                }
+                else
+                {
+                    <strong>@_memberships.Count hold</strong>
+                    <span>@_memberships[0].ForloebName · @_memberships[0].HoldName</span>
+                }
+            </div>
+            <div class="student-status-item" role="listitem">
+                <span class="student-status-label">Næste skridt</span>
+                <strong>@next.Title</strong>
+                <span>@next.Detail</span>
+            </div>
+        </div>
+
+        <section class="student-section student-vuf @_vufTone" aria-labelledby="student-vuf-title">
+            <div class="student-section-head">
+                <h2 id="student-vuf-title">VUF</h2>
+                <p>Status fra Lectio — vi viser kun det, Collector allerede har beregnet.</p>
+            </div>
+            @if (!_linked)
+            {
+                <p class="student-inline-note">Kobl din Lectio-profil for at se, om du har VUF nok.</p>
+                <div class="actions"><a class="secondary" href="/lectio">Kobl Lectio</a></div>
+            }
+            else if (_lectioLoading)
+            {
+                <p class="student-inline-note">Henter VUF…</p>
+            }
+            else if (_snapshot?.Vuf is { IsMissing: true } or null)
+            {
+                <p class="student-inline-note">VUF-data mangler i Lectio lige nu. Prøv igen senere, eller spørg din underviser.</p>
+            }
+            else
+            {
+                var vuf = _snapshot!.Vuf;
+                var width = Studieplan.VufWidth(vuf);
+                <div class="student-vuf-readout">
+                    <div class="student-vuf-score">
+                        <strong>@(vuf.Earned?.ToString() ?? "?")<span>/@(vuf.Required?.ToString() ?? "?")</span></strong>
+                        <span class="student-vuf-state">
+                            @if (vuf.Ok == true)
+                            {
+                                <text>Du har VUF nok</text>
+                            }
+                            else if (vuf.Ok == false)
+                            {
+                                <text>Du mangler VUF</text>
+                            }
+                            else
+                            {
+                                <text>VUF-status ukendt</text>
+                            }
+                        </span>
+                    </div>
+                    @if (width is double w)
+                    {
+                        <div class="student-vuf-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@((int)Math.Round(w))" aria-label="VUF-fremgang">
+                            <span style="width: @(w.ToString("0.###", CultureInfo.InvariantCulture))%"></span>
+                        </div>
+                        <p class="student-vuf-meta">
+                            @(vuf.Percent is double p ? $"{p.ToString("0.#", CultureInfo.GetCultureInfo("da-DK"))} %" : $"{w.ToString("0.#", CultureInfo.GetCultureInfo("da-DK"))} %")
+                            @if (!string.IsNullOrWhiteSpace(_snapshot.ForloebName))
+                            {
+                                <text> · @_snapshot.ForloebName</text>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_snapshot.ForloebDates))
+                            {
+                                <text> · @_snapshot.ForloebDates</text>
+                            }
+                        </p>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="student-section" aria-labelledby="student-timeline-title">
+            <div class="student-section-head">
+                <h2 id="student-timeline-title">Din forløbstidslinje</h2>
+                <p>Skoleperioder fra din Lectio-studieplan — hvor du er, og hvad der kommer.</p>
+            </div>
+            @if (!_linked)
+            {
+                <p class="student-inline-note">Tidslinjen åbner, når Lectio er koblet.</p>
+            }
+            else if (_planLoading)
+            {
+                <p class="student-inline-note">Henter studieplan…</p>
+            }
+            else if (_planError is not null)
+            {
+                <p class="student-inline-note" role="status">@_planError</p>
+            }
+            else if (_plan is null || _plan.Periods.Count == 0)
+            {
+                <p class="student-inline-note">Ingen forløb i den cachede studieplan endnu.</p>
+            }
+            else
+            {
+                @if (!string.IsNullOrWhiteSpace(_plan.ClassName))
+                {
+                    <p class="student-inline-note">Klasse i studieplan: @_plan.ClassName · @_plan.Periods.Count forløb</p>
+                }
+                <ForloebTimeline Timeline="_timeline" />
+            }
+        </section>
+
+        <section class="student-section" aria-labelledby="student-holds-title">
+            <div class="student-section-head">
+                <h2 id="student-holds-title">Mine hold</h2>
+                <p>Forløb du er medlem af her på LUP.</p>
+            </div>
+            @if (_membershipError is not null)
+            {
+                <p class="student-inline-note" role="status">Dine hold kunne ikke hentes.</p>
+                <div class="actions"><a class="secondary" href="/courses">Åbn mine forløb</a></div>
+            }
+            else if (_memberships is null)
+            {
+                <p class="student-inline-note">Henter dine hold…</p>
+            }
+            else if (_memberships.Count == 0)
+            {
+                <p class="student-inline-note">Når en underviser tilføjer dig til et hold, kan du finde det her.</p>
+                <div class="actions"><a class="secondary" href="/learning">Udforsk forløb</a></div>
+            }
+            else
+            {
+                <ul class="student-hold-list">
+                    @foreach (var m in _memberships)
+                    {
+                        <li>
+                            <a href="@($"/courses/{m.ForloebId}")">
+                                <span class="mark"><UiIcon Name="book" /></span>
+                                <span>
+                                    <strong>@m.ForloebName</strong>
+                                    <em>@m.HoldName</em>
+                                </span>
+                                <span class="student-hold-open">Åbn</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        @if (ActiveCourse is not null)
+        {
+            <section class="student-section student-continue" aria-labelledby="student-continue-title">
+                <div class="student-section-head">
+                    <h2 id="student-continue-title">Fortsæt hvor du slap</h2>
+                    <p>@ActiveCourse.Name — dit aktive læringsforløb i LUP.</p>
+                </div>
+                <div class="actions">
+                    <a class="action" href="/learning/@ActiveCourse.Id">Åbn mit forløb <UiIcon Name="arrow" /></a>
+                    <a class="secondary" href="/calendar">Min uge</a>
+                    <a class="secondary" href="/quests">Quests</a>
+                </div>
+            </section>
+        }
+    </div>
 }
 
 @code {
     private DemoCatalog.Course? ActiveCourse => DemoCatalog.Courses.FirstOrDefault(c => c.Id == CourseContext.CourseId);
-    private void OnContext() => InvokeAsync(StateHasChanged);
-    private bool _showLectioCta;
+
+    private bool _linked;
+    private bool _lectioLoading;
+    private bool _planLoading;
+    private string? _lectioId;
+    private string? _planError;
     private string? _membershipError;
+    private StudentSnapshot? _snapshot;
+    private StudentPlan? _plan;
+    private TimelineView? _timeline;
     private List<MembershipRow>? _memberships;
+    private string _vufTone = "";
 
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
         CourseContext.Changed += OnContext;
-        World.Changed += OnContext;
-        await World.EnsureAsync();
         EnsureAccess();
-        await CheckLectioLinkAsync();
-        await LoadMembershipsAsync();
+        await LoadElevDataAsync();
     }
 
     private void EnsureAccess()
@@ -61,47 +274,92 @@ else {
             Nav.NavigateTo(Redirect.PostLoginPath());
     }
 
-    private async Task CheckLectioLinkAsync()
+    private async Task LoadElevDataAsync()
     {
-        _showLectioCta = false;
         if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Elev)
             return;
 
+        await Task.WhenAll(LoadLectioAsync(), LoadMembershipsAsync());
+    }
+
+    private async Task LoadLectioAsync()
+    {
+        _lectioLoading = true;
+        _linked = false;
+        _lectioId = null;
+        _snapshot = null;
+        _plan = null;
+        _timeline = null;
+        _planError = null;
+        _vufTone = "";
         try
         {
-            var res = await Http.GetAsync("lectio/me");
-            if (!res.IsSuccessStatusCode)
+            var meRes = await Http.GetAsync("lectio/me");
+            if (!meRes.IsSuccessStatusCode)
             {
-                _showLectioCta = true;
+                _linked = false;
                 return;
             }
 
-            var body = await res.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(body);
-            if (!doc.RootElement.TryGetProperty("lectio", out var lectio)
-                || lectio.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            {
-                _showLectioCta = true;
+            var meBody = await meRes.Content.ReadAsStringAsync();
+            _lectioId = Studieplan.ExtractLectioId(meBody);
+            _linked = !string.IsNullOrWhiteSpace(_lectioId);
+            if (!_linked)
                 return;
+
+            var studentRes = await Http.GetAsync("lectio/me/student");
+            if (studentRes.IsSuccessStatusCode)
+            {
+                var studentBody = await studentRes.Content.ReadAsStringAsync();
+                _snapshot = Studieplan.ParseStudentSnapshot(studentBody);
+                if (!string.IsNullOrWhiteSpace(_snapshot?.LectioId))
+                    _lectioId = _snapshot.LectioId;
+                _vufTone = _snapshot?.Vuf.Ok switch
+                {
+                    true => "is-ok",
+                    false => "is-bad",
+                    _ => _snapshot?.Vuf.IsMissing == true ? "is-missing" : ""
+                };
             }
 
-            _showLectioCta = !(lectio.TryGetProperty("lectioId", out var id)
-                               && id.ValueKind == JsonValueKind.String
-                               && !string.IsNullOrWhiteSpace(id.GetString()));
+            await LoadStudieplanAsync(_lectioId!);
         }
         catch
         {
-            _showLectioCta = true;
+            _linked = false;
+        }
+        finally
+        {
+            _lectioLoading = false;
         }
     }
 
-    private void OnAuth() => _ = InvokeAsync(async () =>
+    private async Task LoadStudieplanAsync(string lectioId)
     {
-        EnsureAccess();
-        await CheckLectioLinkAsync();
-        await LoadMembershipsAsync();
-        StateHasChanged();
-    });
+        _planLoading = true;
+        _planError = null;
+        try
+        {
+            var res = await Http.GetAsync($"lectio/students/{Uri.EscapeDataString(lectioId)}/studieplan");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _planError = $"Studieplan kunne ikke hentes ({(int)res.StatusCode}).";
+                return;
+            }
+
+            _plan = Studieplan.ParsePlan(body);
+            _timeline = Studieplan.BuildTimeline(_plan.Periods);
+        }
+        catch (Exception ex)
+        {
+            _planError = ex.Message;
+        }
+        finally
+        {
+            _planLoading = false;
+        }
+    }
 
     private async Task LoadMembershipsAsync()
     {
@@ -120,7 +378,58 @@ else {
         }
     }
 
-    public void Dispose() { Auth.AuthStateChanged -= OnAuth; CourseContext.Changed -= OnContext; World.Changed -= OnContext; }
+    private string HeroLead()
+    {
+        if (!_linked)
+            return "Kobl Lectio, se din VUF og følg forløbene på én tidslinje.";
+        if (_snapshot?.Vuf.Ok == false)
+            return "Du mangler VUF ifølge Lectio — se status og din tidslinje herunder.";
+        if (_snapshot?.Vuf.Ok == true)
+            return "VUF er på plads. Her er dit overblik over hold, forløb og næste skridt.";
+        if (_timeline?.Bars.Any(b => b.IsCurrent) == true)
+            return "Du er midt i et forløb — tidslinjen viser, hvor du står, og hvad der venter.";
+        return "Dit overblik over Lectio-kobling, VUF og gang gennem uddannelsen.";
+    }
+
+    private NextStep ResolveNextStep()
+    {
+        if (!_linked)
+            return new NextStep("Kobl Lectio", "Få skema, VUF og studieplan med over", "/lectio", "Kobl Lectio");
+
+        if (_snapshot?.Vuf.Ok == false)
+            return new NextStep("Få VUF på plads", "Lectio siger, at du mangler VUF", "/lectio", "Se VUF i Lectio");
+
+        if (ActiveCourse is not null)
+            return new NextStep("Fortsæt forløbet", ActiveCourse.Name, $"/learning/{ActiveCourse.Id}", "Åbn mit forløb");
+
+        if (_memberships is { Count: > 0 })
+        {
+            var m = _memberships[0];
+            return new NextStep("Åbn dit hold", m.ForloebName, $"/courses/{m.ForloebId}", "Åbn hold");
+        }
+
+        var current = _timeline?.Bars.FirstOrDefault(b => b.IsCurrent);
+        if (current is not null)
+            return new NextStep("Du er i gang", current.Name, "/learning", "Udforsk læring");
+
+        return new NextStep("Udforsk læring", "Find dit næste kapitel", "/learning", "Udforsk forløb");
+    }
+
+    private void OnContext() => InvokeAsync(StateHasChanged);
+
+    private void OnAuth() => _ = InvokeAsync(async () =>
+    {
+        EnsureAccess();
+        await LoadElevDataAsync();
+        StateHasChanged();
+    });
+
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        CourseContext.Changed -= OnContext;
+    }
 
     private sealed record MembershipRow(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
+    private sealed record NextStep(string Title, string Detail, string Href, string Label);
 }

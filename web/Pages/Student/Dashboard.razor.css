@@ -1,0 +1,381 @@
+.student-home {
+    --student-hero-ink: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin: -8px 0 12px;
+}
+
+.student-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    border-radius: 16px;
+    min-height: min(52vh, 420px);
+    display: grid;
+    align-items: end;
+    padding: clamp(28px, 5vw, 48px);
+    color: var(--student-hero-ink);
+    background:
+        radial-gradient(120% 90% at 12% 8%, color-mix(in srgb, var(--blue) 22%, transparent), transparent 55%),
+        radial-gradient(90% 80% at 88% 18%, color-mix(in srgb, var(--orange) 14%, transparent), transparent 50%),
+        linear-gradient(160deg, var(--sky) 0%, var(--paper) 58%, color-mix(in srgb, var(--tint) 55%, var(--paper)) 100%);
+    border: 1px solid var(--rule);
+    animation: student-hero-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.student-hero-atmosphere {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.55;
+    background-image:
+        repeating-linear-gradient(
+            -18deg,
+            transparent 0 18px,
+            color-mix(in srgb, var(--blue) 7%, transparent) 18px 19px
+        ),
+        radial-gradient(circle at 70% 70%, color-mix(in srgb, var(--green) 10%, transparent), transparent 42%);
+    animation: student-atmosphere 14s ease-in-out infinite alternate;
+}
+
+.student-hero-copy {
+    max-width: 38rem;
+}
+
+.student-brand {
+    margin: 0 0 10px;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(42px, 8vw, 72px);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    line-height: 0.9;
+    color: var(--blue);
+}
+
+.student-hero h1 {
+    margin: 0;
+    font-size: clamp(28px, 4.6vw, 42px);
+    letter-spacing: -1.3px;
+    line-height: 1.12;
+    max-width: 16ch;
+}
+
+.student-lead {
+    margin: 14px 0 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 42ch;
+}
+
+.student-hero-actions {
+    margin-top: 22px;
+}
+
+.student-status {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    animation: student-rise 0.65s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.student-status-item {
+    padding: 18px 16px 18px 0;
+    border-right: 1px solid var(--rule);
+    min-width: 0;
+}
+
+.student-status-item:last-child {
+    border-right: 0;
+    padding-right: 0;
+}
+
+.student-status-item:not(:first-child) {
+    padding-left: 18px;
+}
+
+.student-status-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.student-status-item strong {
+    display: block;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 18px;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+}
+
+.student-status-item strong.is-ok {
+    color: var(--green);
+}
+
+.student-status-item strong.is-warn {
+    color: var(--orange);
+}
+
+.student-status-item span {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 36ch;
+}
+
+.student-section {
+    animation: student-rise 0.7s 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.student-section-head {
+    margin-bottom: 16px;
+}
+
+.student-section-head h2 {
+    margin: 0;
+    font-size: 24px;
+    letter-spacing: -0.6px;
+}
+
+.student-section-head p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 58ch;
+}
+
+.student-inline-note {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.student-vuf {
+    padding: 22px 0 4px;
+    border-top: 1px solid var(--rule);
+}
+
+.student-vuf-readout {
+    max-width: 36rem;
+}
+
+.student-vuf-score {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 16px;
+    margin-bottom: 12px;
+}
+
+.student-vuf-score strong {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(36px, 6vw, 52px);
+    letter-spacing: -1.6px;
+    line-height: 1;
+    color: var(--ink);
+}
+
+.student-vuf-score strong span {
+    font-size: 0.48em;
+    color: var(--muted);
+    letter-spacing: -0.6px;
+}
+
+.student-vuf-state {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.student-vuf.is-ok .student-vuf-state,
+.student-vuf.is-ok .student-vuf-score strong {
+    color: var(--green);
+}
+
+.student-vuf.is-bad .student-vuf-state,
+.student-vuf.is-bad .student-vuf-score strong {
+    color: var(--orange);
+}
+
+.student-vuf-track {
+    height: 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rule) 80%, var(--paper));
+    overflow: hidden;
+}
+
+.student-vuf-track > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--blue);
+    transform-origin: left center;
+    animation: student-bar-fill 0.9s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.student-vuf.is-ok .student-vuf-track > span {
+    background: var(--green);
+}
+
+.student-vuf.is-bad .student-vuf-track > span {
+    background: var(--orange);
+}
+
+.student-vuf-meta {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.student-hold-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.student-hold-list li + li {
+    border-top: 1px solid var(--rule);
+}
+
+.student-hold-list a {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 13px;
+    align-items: center;
+    padding: 14px 0;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.student-hold-list a:hover {
+    color: var(--blue);
+}
+
+.student-hold-list a:hover .student-hold-open {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.student-hold-list .mark {
+    width: 35px;
+    height: 37px;
+    display: grid;
+    place-items: center;
+    background: var(--tint);
+    color: var(--blue);
+    border-radius: 9px;
+}
+
+.student-hold-list strong {
+    display: block;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+}
+
+.student-hold-list em {
+    display: block;
+    margin-top: 3px;
+    font-style: normal;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.student-hold-open {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 7px 11px;
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    min-height: 35px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.student-continue {
+    padding-top: 8px;
+    border-top: 1px solid var(--rule);
+}
+
+@keyframes student-hero-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes student-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes student-atmosphere {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(-1.5%, 1%, 0) scale(1.03); }
+}
+
+@keyframes student-bar-fill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .student-hero,
+    .student-status,
+    .student-section,
+    .student-hero-atmosphere,
+    .student-vuf-track > span {
+        animation: none;
+    }
+}
+
+@media (max-width: 850px) {
+    .student-status {
+        grid-template-columns: 1fr;
+    }
+
+    .student-status-item,
+    .student-status-item:not(:first-child),
+    .student-status-item:last-child {
+        border-right: 0;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .student-status-item:last-child {
+        border-bottom: 0;
+    }
+}
+
+@media (max-width: 620px) {
+    .student-home {
+        gap: 22px;
+        margin-top: 0;
+    }
+
+    .student-hero {
+        min-height: 0;
+        padding: 24px 20px 26px;
+        border-radius: 13px;
+    }
+
+    .student-hero h1 {
+        max-width: none;
+    }
+
+    .student-hold-list a {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .student-hold-open {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
