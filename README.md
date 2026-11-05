@@ -12,7 +12,7 @@ Den aktuelle LUP-flade ligger i web/. Start lokalt fra repoets rod:
 dotnet run --project web
 ~~~
 
-Åbn **http://localhost:3000**. HTTP-startprofilen bruger denne port, fordi den er registreret til Mercantec Auths lokale callback. Login bruger fortsat Mercantec Auth. For rigtige hold- og Lectio-data skal API og Postgres også køre; se Docker-opstart nedenfor. Grundtemaerne vælges under **profil → Udseende**: System, Lyst, Mørkt, Jul, Nytår og Hacker. Temavalg findes også før login. I Nytår kan du starte raketspillet og skyde dele af interfacet midlertidigt væk; afslutning gendanner siden. Temaoverblik: [Temaer og nytår](obsidian/03-features/Temaer-og-nytaar.md).
+Åbn **http://localhost:3000**. HTTP-startprofilen bruger denne port, fordi den er registreret til Mercantec Auths lokale callback. Login bruger fortsat Mercantec Auth. For rigtige hold- og Lectio-data skal API og Postgres også køre; se Docker-opstart nedenfor. Grundtemaerne vælges under **profil → Udseende**: System, Lyst, Mørkt, Jul, Nytår og Hacker. Temavalg findes også før login. I Nytår kan den lilla figur skyde fyrværkeri mod seks slags faldende mål og dele af interfacet. Spillet fortsætter uden timer og får gradvist flere og hurtigere mål; afslutning gendanner siden. Temaoverblik: [Temaer og nytår](obsidian/03-features/Temaer-og-nytaar.md).
 
 [Julegaver og sne](obsidian/03-features/Julegaver-og-sne.md) beskriver rigtig gavelevering mellem konti, modtagere og sneindstillinger. Begge brugere skal bruge samme API/database.
 

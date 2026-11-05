@@ -11,6 +11,15 @@
     @if (_loading) { <p role="status">Henter elever og grupper…</p> }
     else
     {
+        @if (_canManage)
+        {
+            <form class="hold-group-form" @onsubmit="Save" @onsubmit:preventDefault>
+                <h3>@(_editing is null ? "Opret gruppe med valgte elever" : "Redigér gruppe")</h3>
+                <p>@_selected.Count elever valgt. Markér elever i listen herunder.</p>
+                <label class="field">Gruppenavn<input @bind="_name" maxlength="120" required placeholder="Fx Projektgruppe 1" disabled="@_busy" /></label>
+                <div class="actions"><button class="action" disabled="@(_busy || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name))">@(_editing is null ? "Gem gruppe" : "Gem ændringer")</button>@if (_editing is not null || _selected.Count > 0) { <button type="button" class="secondary" @onclick="Reset" disabled="@_busy">Nulstil valg</button> }</div>
+            </form>
+        }
         <div class="hold-members-scroll"><table class="hold-members-table"><thead><tr>@if (_canManage) { <th scope="col">Vælg</th> }<th scope="col">Elev</th><th scope="col">Grupper</th>@if (_canManage) { <th scope="col"><span class="hold-visually-hidden">Opret gruppe</span></th> }</tr></thead><tbody>
             @foreach (var member in _members)
             {
@@ -18,15 +27,6 @@
             }
         </tbody></table></div>
         @if (_members.Length == 0) { <p>Holdet har endnu ingen elever.</p> }
-        @if (_canManage)
-        {
-            <form class="hold-group-form" @onsubmit="Save" @onsubmit:preventDefault>
-                <h3>@(_editing is null ? "Opret gruppe med valgte elever" : "Redigér gruppe")</h3>
-                <p>@_selected.Count elever valgt. Du kan markere flere i elevlisten.</p>
-                <label class="field">Gruppenavn<input @bind="_name" maxlength="120" required placeholder="Fx Projektgruppe 1" disabled="@_busy" /></label>
-                <div class="actions"><button class="action" disabled="@(_busy || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name))">@(_editing is null ? "Gem gruppe" : "Gem ændringer")</button>@if (_editing is not null || _selected.Count > 0) { <button type="button" class="secondary" @onclick="Reset" disabled="@_busy">Nulstil valg</button> }</div>
-            </form>
-        }
         <div class="hold-saved-groups"><h3>Gemte grupper</h3>@if (_groups.Length == 0) { <p>Der er ingen gemte grupper endnu.</p> }@foreach (var group in _groups) { <article><div class="hold-groups-heading"><strong>@group.Name</strong>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(group)" disabled="@_busy">Redigér</button> }</div><p>@string.Join(", ", group.Members.Select(m => m.DisplayName))</p></article> }</div>
     }
 </section>

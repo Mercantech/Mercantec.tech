@@ -112,7 +112,7 @@ public sealed class NotionGroupsMediaTests : IAsyncLifetime
         Assert.IsType<BadRequestObjectResult>(await Media(teacher, true).Upload(pageId, Form(Encoding.UTF8.GetBytes("<script>bad</script>"), "bad.png"), default));
         Assert.IsType<BadRequestObjectResult>(await Media(teacher, true).Upload(pageId, Form(Mp4(), "bad.html"), default));
         Assert.Single(storage.Objects);
-        var old = new FilesController(storage) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = User(student) } } };
+        var old = new FilesController(storage, db, protection) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = User(student) } } };
         Assert.IsType<NotFoundResult>(await old.Download(Assert.Single(storage.Objects).Key, default));
         Assert.IsType<NotFoundResult>(await old.Download("./" + Assert.Single(storage.Objects).Key, default));
     }

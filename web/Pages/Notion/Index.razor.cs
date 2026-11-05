@@ -203,12 +203,13 @@ public partial class Index
     }
     [JSInvokable] public Task<string?> GetNotionToken() => Auth.IsAuthenticated ? Auth.GetValidAccessTokenAsync() : Task.FromResult<string?>(null);
     [JSInvokable] public Task OnNotionStatus(string status, string detail) => InvokeAsync(() => { if (_disposed) return; _status = status; _statusDetail = detail; StateHasChanged(); });
-    [JSInvokable] public Task OnNotionCreateGroup(string membershipIdsJson) => InvokeAsync(() =>
+    [JSInvokable] public Task OnNotionCreateGroup(string membershipIdsJson) => InvokeAsync(async () =>
     {
         if (!IsEditing || _disposed) return;
         var ids = JsonSerializer.Deserialize<Guid[]>(membershipIdsJson) ?? [];
         _groupSelection = ids.Where(id => _current!.Members.Any(m => m.Id == id)).Distinct().ToArray();
         _groupPanelGeneration++; _showGroups = true; StateHasChanged();
+        try { await Js.InvokeVoidAsync("window.scrollTo", 0, 0); } catch (JSException) { }
     });
     private IEnumerable<(NotionPageSummary Page, int Depth)> OrderedPages()
     {

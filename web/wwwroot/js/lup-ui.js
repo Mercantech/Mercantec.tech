@@ -5,6 +5,38 @@
     const signedIn = () => { try { return !!sessionStorage.getItem("mt_access_token"); } catch { return false; } };
     const normalize = value => themes.has(value) ? value : "light";
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
+
+    let dockFrame = 0, dockFooter, dockObserver, dockClearance = -1;
+    function updateSeasonalDock() {
+        dockFrame = 0;
+        const footer = dockFooter?.isConnected ? dockFooter : document.querySelector?.(".lup .footer");
+        const rect = footer?.getBoundingClientRect();
+        const clearance = rect && rect.top < innerHeight && rect.bottom > 0
+            ? Math.ceil(innerHeight - rect.top) : 0;
+        if (clearance === dockClearance) return;
+        dockClearance = clearance;
+        document.documentElement.style?.setProperty("--lup-footer-clearance", clearance + "px");
+    }
+    function scheduleSeasonalDock() {
+        if (!dockFrame) dockFrame = requestAnimationFrame(updateSeasonalDock);
+    }
+    function mountSeasonalDock() {
+        const footer = document.querySelector?.(".lup .footer");
+        if (footer !== dockFooter) {
+            dockObserver?.disconnect();
+            dockFooter = footer;
+            if (footer && typeof ResizeObserver === "function") {
+                dockObserver = new ResizeObserver(scheduleSeasonalDock);
+                dockObserver.observe(footer);
+                for (const selector of [".lup .body", ".lup .lup-header", ".lup .app"]) {
+                    const region = document.querySelector(selector);
+                    if (region) dockObserver.observe(region);
+                }
+            }
+        }
+        updateSeasonalDock();
+    }
+
     let canvas, context, frame = 0, flakes = [], previous = 0, wind = 0, pointerX = -1000, pointerY = -1000;
     let width = 0, height = 0;
     const snowMode = () => {
@@ -75,10 +107,12 @@
             const value = normalize(theme || this.get());
             document.documentElement.dataset.theme = value;
             document.documentElement.dataset.bsTheme = this.resolved(value);
+            updateSeasonalDock();
             syncSnow();
         },
         set(value) { const theme = normalize(value); save("lup-theme", theme); this.apply(theme); },
         mount() {
+            mountSeasonalDock();
             const host = document.getElementById("lup-snow-host");
             if (!host || canvas?.isConnected) return;
             canvas = document.createElement("canvas"); context = canvas.getContext("2d");
@@ -97,6 +131,8 @@
         },
         toggleSnow() { this.setSnowMode(snowPaused() ? "on" : "off"); return snowPaused(); }
     };
+    addEventListener("scroll", scheduleSeasonalDock, { passive: true });
+    addEventListener("resize", scheduleSeasonalDock, { passive: true });
     addEventListener("resize", resize, { passive: true });
     addEventListener("pointermove", event => {
         pointerX = event.clientX; pointerY = event.clientY;

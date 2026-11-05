@@ -71,26 +71,6 @@ namespace Mercantec.Tech.Api.Data.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "learning_groups",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    HoldId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
-                    Version = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_learning_groups", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_learning_groups_hold_HoldId",
-                        column: x => x.HoldId,
-                        principalTable: "hold",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "notion_assets",
                 columns: table => new
                 {
@@ -115,44 +95,10 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "learning_group_members",
-                columns: table => new
-                {
-                    GroupId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MembershipId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_learning_group_members", x => new { x.GroupId, x.MembershipId });
-                    table.ForeignKey(
-                        name: "FK_learning_group_members_learning_groups_GroupId",
-                        column: x => x.GroupId,
-                        principalTable: "learning_groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_learning_group_members_memberships_MembershipId",
-                        column: x => x.MembershipId,
-                        principalTable: "memberships",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_notion_pages_HoldId_PublishedAtUtc",
                 table: "notion_pages",
                 columns: new[] { "HoldId", "PublishedAtUtc" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_learning_group_members_MembershipId",
-                table: "learning_group_members",
-                column: "MembershipId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_learning_groups_HoldId",
-                table: "learning_groups",
-                column: "HoldId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_notion_assets_Key",
@@ -170,13 +116,7 @@ namespace Mercantec.Tech.Api.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "learning_group_members");
-
-            migrationBuilder.DropTable(
                 name: "notion_assets");
-
-            migrationBuilder.DropTable(
-                name: "learning_groups");
 
             migrationBuilder.DropIndex(
                 name: "IX_notion_pages_HoldId_PublishedAtUtc",

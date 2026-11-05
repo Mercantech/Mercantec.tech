@@ -9,7 +9,7 @@ public static class ThemeCatalog
         new("light", "Lyst", "star", "Platformens lyse grundtema."),
         new("dark", "Mørkt", "star", "Platformens mørke grundtema."),
         new("christmas", "Jul", "snow", "Julelys, gaver og interaktiv sne."),
-        new("newyear", "Nytår", "rocket", "Nattehimmel, fyrværkeri og et raketspil."),
+        new("newyear", "Nytår", "firework", "Den lilla figur, fyrværkeri og faldende mål med stigende fart."),
         new("hacker", "Hacker", "terminal", "Grønne terminalfarver og monospace-overskrifter.")
     ]);
 

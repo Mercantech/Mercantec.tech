@@ -1,0 +1,199 @@
+@page "/afleveringer"
+@using Mercantec.Tech.Web.Learning
+@implements IDisposable
+
+<PageTitle>Materialer og afleveringer · LUP</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <p><a href="/login">Log ind</a> for at åbne materialer og afleveringer.</p>
+}
+else if (ViewAs.IsActive)
+{
+    <p>Afslut elevvisningen for at arbejde med din egen kontos materialer og afleveringer.</p>
+}
+else
+{
+    <header class="page-title">
+        <div><h1>Materialer og afleveringer</h1><p>Filer, quests og feedback fra dit forløb.</p></div>
+        <button class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button>
+    </header>
+    @if (_error is not null) { <div class="poll-error" role="alert">@_error</div> }
+    @if (_notice is not null) { <p role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter forløbet…</p> }
+    @if (_holds.Length == 0 && !_loading)
+    {
+        <p>Din konto er endnu ikke tilknyttet et forløb.</p>
+    }
+    else
+    {
+        <label class="field">Forløb
+            <select value="@_holdId" @onchange="ChangeHold" disabled="@_busy">
+                @foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }
+            </select>
+        </label>
+        <section class="panel" aria-labelledby="materials-title">
+            <h2 id="materials-title">Materialer</h2>
+            @if (_materials.Length == 0) { <p>Der er endnu ingen materialer tilgængelige.</p> }
+            @foreach (var material in _materials)
+            {
+                <article>
+                    <h3>@material.Title @if (!material.Published) { <small>· Kladde</small> }</h3>
+                    @if (!string.IsNullOrWhiteSpace(material.Description)) { <p>@material.Description</p> }
+                    <button class="secondary" @onclick="() => OpenFile(material.FileAssetId)">Åbn fil</button>
+                    @if (CanManage)
+                    {
+                        <button class="secondary" disabled="@_busy" @onclick="() => ToggleMaterial(material)">@(material.Published ? "Skjul for elever" : "Udgiv til elever")</button>
+                    }
+                </article>
+            }
+            @if (CanManage)
+            {
+                <details>
+                    <summary>Tilføj undervisningsmateriale</summary>
+                    <fieldset disabled="@_busy">
+                        <label class="field">Titel<input @bind="_materialTitle" maxlength="200" /></label>
+                        <label class="field">Beskrivelse<textarea @bind="_materialDescription" maxlength="4000"></textarea></label>
+                        <label><input type="checkbox" @bind="_materialPublished" /> Udgiv til forløbets elever</label>
+                        <label class="field">Vælg filer<InputFile OnChange="SelectMaterials" multiple /></label>
+                        <p>Højst 100 MiB pr. fil. @_materialFiles.Count fil(er) valgt.</p>
+                        <button class="action" disabled="@(_materialFiles.Count == 0)" @onclick="UploadMaterials">Upload materiale</button>
+                    </fieldset>
+                </details>
+            }
+        </section>
+
+        @if (CanManage)
+        {
+            <section class="panel">
+                <details>
+                    <summary>Opret quest</summary>
+                    <fieldset disabled="@_busy">
+                        <label class="field">Titel<input @bind="_questTitle" maxlength="200" /></label>
+                        <label class="field">Opgave og afleveringskrav<textarea @bind="_questDescription" maxlength="10000"></textarea></label>
+                        <label class="field">Afleveringsform<select @bind="_questMode"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label>
+                        <label><input type="checkbox" @bind="_questPublished" /> Udgiv til eleverne</label>
+                        <button class="action" disabled="@string.IsNullOrWhiteSpace(_questTitle)" @onclick="CreateQuest">Opret quest</button>
+                    </fieldset>
+                </details>
+                <details>
+                    <summary>Administrér grupper</summary>
+                    <fieldset disabled="@_busy">
+                        <label class="field">Gruppe<select value="@_editGroupId" @onchange="EditGroup"><option value="">Ny gruppe</option>@foreach (var group in _groups) { <option value="@group.Id">@group.Name</option> }</select></label>
+                        <label class="field">Gruppenavn<input @bind="_groupName" maxlength="200" /></label>
+                        <fieldset><legend>Deltagere fra forløbet</legend>
+                            @foreach (var member in _members)
+                            {
+                                <label><input type="checkbox" checked="@_groupMembers.Contains(member.Id)" @onchange="e => ToggleMember(member.Id, e)" /> @member.DisplayName</label><br />
+                            }
+                        </fieldset>
+                        <button class="action" disabled="@(string.IsNullOrWhiteSpace(_groupName) || _groupMembers.Count == 0)" @onclick="SaveGroup">Gem gruppe</button>
+                    </fieldset>
+                </details>
+            </section>
+        }
+
+        <section class="panel" aria-labelledby="quests-title">
+            <h2 id="quests-title">Quests</h2>
+            @if (_quests.Length == 0) { <p>Der er endnu ingen quests tilgængelige.</p> }
+            @foreach (var quest in _quests)
+            {
+                <article>
+                    <h3>@quest.Title @if (!quest.Published) { <small>· Kladde</small> }</h3>
+                    <p style="white-space:pre-wrap">@quest.Description</p>
+                    <p>@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is not null) { <span>· Frist @quest.DeadlineUtc.Value.ToLocalTime().ToString("g")</span> }</p>
+                    <button class="secondary" disabled="@_busy" @onclick="() => SelectQuest(quest)">@(CanManage ? "Se afleveringer" : "Åbn aflevering")</button>
+                    @if (CanManage)
+                    {
+                        <button class="secondary" disabled="@_busy" @onclick="() => ToggleQuest(quest)">@(quest.Published ? "Skjul quest" : "Udgiv quest")</button>
+                    }
+                </article>
+            }
+        </section>
+
+        @if (_quest is not null)
+        {
+            <section class="panel" aria-labelledby="submission-title">
+                <h2 id="submission-title">@_quest.Title · Afleveringer</h2>
+                @if (!CanManage && _quest.Published)
+                {
+                    <fieldset disabled="@_busy">
+                        @if (_quest.SubmissionMode != "individual")
+                        {
+                            <label class="field">Aflevér som<select @bind="_submissionGroup">
+                                @if (_quest.SubmissionMode == "either") { <option value="">Mig selv</option> }
+                                else { <option value="">Vælg gruppe</option> }
+                                @foreach (var group in _groups) { <option value="@group.Id">@group.Name</option> }
+                            </select></label>
+                        }
+                        <button class="action" disabled="@(_quest.SubmissionMode == "group" && _submissionGroup.Length == 0)" @onclick="StartSubmission">Åbn kladde</button>
+                    </fieldset>
+                }
+                @if (_submissions.Length == 0) { <p>Der er endnu ingen afleveringer.</p> }
+                @foreach (var submission in _submissions)
+                {
+                    <p><button class="secondary" disabled="@_busy" @onclick="() => OpenSubmission(submission.Id)">@SubmissionLabel(submission) · @StateLabel(submission.State)</button></p>
+                }
+                @if (_submission is not null)
+                {
+                    <h3>@SubmissionLabel(_submission)</h3>
+                    <p>@StateLabel(_submission.State)</p>
+                    @if (_submission.CanEdit)
+                    {
+                        <fieldset disabled="@_busy">
+                            <label class="field">Tekst til afleveringen<textarea @bind="_draftText" maxlength="20000"></textarea></label>
+                            @foreach (var file in _draftFiles)
+                            {
+                                <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button> <button class="secondary" @onclick="() => RemoveDraftFile(file.Id)">Fjern fra kladde</button></p>
+                            }
+                            <label class="field">Tilføj filer<InputFile OnChange="UploadDraftFiles" multiple /></label>
+                            <p>Højst 100 MiB pr. fil. Gem kladden før aflevering. Gruppens deltagere deler kladden.</p>
+                            <button class="secondary" @onclick="SaveDraft">Gem kladde</button>
+                            <button class="action" @onclick="Submit">Aflevér</button>
+                        </fieldset>
+                    }
+                    @foreach (var revision in _submission.Revisions.OrderByDescending(r => r.Number))
+                    {
+                        <article>
+                            <h3>Version @revision.Number</h3>
+                            <p>@revision.SubmittedAtUtc.ToLocalTime().ToString("g") · @string.Join(", ", revision.Participants.Select(p => p.DisplayName))</p>
+                            <p style="white-space:pre-wrap">@revision.Text</p>
+                            @foreach (var file in revision.Files) { <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button></p> }
+                            @foreach (var feedback in revision.Feedback.OrderBy(f => f.CreatedAtUtc))
+                            {
+                                <blockquote>
+                                    <p>@feedback.CreatedAtUtc.ToLocalTime().ToString("g") @if (feedback.Decision is not null) { <strong>· @StateLabel(feedback.Decision)</strong> }</p>
+                                    @if (feedback.FileAssetId is Guid fileId) { <p>Vedrører @revision.Files.FirstOrDefault(f => f.Id == fileId)?.OriginalName</p> }
+                                    <p style="white-space:pre-wrap">@feedback.Text</p>
+                                    @foreach (var file in feedback.Attachments) { <p><button class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button></p> }
+                                </blockquote>
+                            }
+                        </article>
+                    }
+                    @if (_submission.CanReview && _submission.Revisions.Length > 0)
+                    {
+                        <fieldset disabled="@_busy">
+                            <legend>Feedback og vurdering</legend>
+                            <label class="field">Version<select value="@_reviewRevision" @onchange="ChangeReviewRevision"><option value="">Vælg version</option>@foreach (var revision in _submission.Revisions.OrderByDescending(r => r.Number)) { <option value="@revision.Id">Version @revision.Number</option> }</select></label>
+                            <label class="field">Feedback på<select @bind="_reviewFile"><option value="">Hele afleveringen</option>@foreach (var file in ReviewFiles) { <option value="@file.Id">@file.OriginalName</option> }</select></label>
+                            <label class="field">Feedback<textarea @bind="_reviewText" maxlength="10000"></textarea></label>
+                            <label class="field">Vedhæft feedbackfiler<InputFile OnChange="UploadFeedbackFiles" multiple /></label>
+                            @foreach (var file in _feedbackFiles) { <p>@file.OriginalName <button class="secondary" @onclick="() => RemoveFeedbackFile(file.Id)">Fjern</button></p> }
+                            <label class="field">Vurdering<select @bind="_reviewDecision" disabled="@(!ReviewIsLatest)"><option value="">Kun kommentar</option><option value="changes-requested">Kræver rettelser</option><option value="approved">Godkendt</option></select></label>
+                            <p>Vurdering gælder den seneste indsendte version. Gruppens deltagere kan alle se feedbacken.</p>
+                            <button class="action" disabled="@(_reviewRevision.Length == 0)" @onclick="Review">Gem feedback</button>
+                        </fieldset>
+                    }
+                }
+            </section>
+        }
+        @if (_viewer is Guid fileToView)
+        {
+            <section aria-label="Filvisning"><button class="secondary" @onclick="CloseFile">Luk filvisning</button><FileViewer FileId="fileToView" @key="fileToView" /></section>
+        }
+    }
+}

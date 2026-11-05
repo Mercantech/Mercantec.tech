@@ -1,0 +1,12 @@
+Mode: built-in image_gen edit; transparent_background: true
+Source reference: user-provided purple clay mascot image.
+Generated with built-in imagegen on 2026-11-05.
+
+Use case: identity-preserve
+Asset type: transparent PNG player sprite for a browser New Year's fireworks game.
+Input image 1 is the EDIT TARGET. Preserve this exact friendly purple clay mascot's identity: rounded square purple body, huge cream eyes with black pupils, small curved smile, stubby purple legs and feet, soft hand-worked clay texture, proportions and face. It must remain immediately recognisable as this same character, not a redesign.
+Primary edit: use a cheerful ready full-body front-facing pose. Lower the arm on image-left into a relaxed pose. On image-right, the character's hand holds a small festive striped FIREWORK TUBE pointing straight vertically UP. The tube is clearly a cardboard firework launcher with champagne-gold and coral bands and a tiny fuse, not a gun. Its top opening must be located near 80% of the image width and 16–20% of image height so a game can launch fireworks from there.
+Composition: square PNG. Entire mascot, both feet, both arms and the entire upward-pointing tube visible. Tight framing with about 3% transparent margin. Character large and readable as a small game sprite.
+Style and lighting: preserve the reference's tactile purple clay 3D appearance, cream-and-black eyes, soft studio lighting, cheerful expression.
+Background: actual fully transparent alpha. Clean purple silhouette edges, no white halo, no opaque background, no floor, no cast ground shadow.
+Constraints: exactly one character; no text, no lettering, no logos, no watermark; no spacecraft, no spaceship, no space rocket, no gun, no extra characters. Change only pose, add the small festive firework tube, and remove the white background. Preserve mascot identity very strongly.

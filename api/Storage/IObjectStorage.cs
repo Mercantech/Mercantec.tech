@@ -11,14 +11,14 @@ public interface IObjectStorage
         string contentType,
         CancellationToken cancellationToken = default);
 
-    Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default);
-
     bool SupportsRanges => false;
 
     Task<ObjectGetResult?> GetRangeAsync(string key, long start, long end,
         CancellationToken cancellationToken = default) => throw new NotSupportedException("Byte ranges are unavailable.");
 
     Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default);
 
     Task<Uri?> GetPresignedGetUrlAsync(
         string key,
