@@ -4,24 +4,30 @@
     <div class="course-code-bar">
         <span class="course-code-lang">Diagram</span>
     </div>
-    <div @ref="_host" class="course-mermaid-host"></div>
+    <div @ref="_host" @key="_diagramKey" class="course-mermaid-host"></div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public string Code { get; set; } = string.Empty;
 
     private ElementReference _host;
-    private string? _drawn;
+    private string? _lastCode;
+    private int _diagramKey;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_lastCode, Code, StringComparison.Ordinal))
+        {
+            _lastCode = Code;
+            _diagramKey++;
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (string.Equals(_drawn, Code, StringComparison.Ordinal))
-            return;
-
         try
         {
             await Js.InvokeVoidAsync("courseMermaid.renderDefinition", _host, Code ?? string.Empty);
-            _drawn = Code;
         }
         catch (JSException)
         {

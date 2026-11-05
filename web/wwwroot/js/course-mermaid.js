@@ -50,7 +50,7 @@
             return false;
         }
 
-        if (host.dataset.mermaidDone === "1" && host.dataset.mermaidSource === source)
+        if (host.dataset.mermaidDone === "1" && host.dataset.mermaidSource === source && host.querySelector("svg"))
             return true;
 
         let mermaid;
