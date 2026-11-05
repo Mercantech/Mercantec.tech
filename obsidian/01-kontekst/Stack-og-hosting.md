@@ -16,7 +16,7 @@ Faste rammer for Mercantec.tech. Detaljerede AI-workflows: [[Husregler-fra-Curso
 - **Backend / API:** .NET 10, ASP.NET Core, **controller pattern** (`api/`).
 - **Frontend:** Blazor WebAssembly **PWA** (`web/`), nginx i Docker.
 - **DB:** Postgres (`mercantec-tech-db`).
-- **Object storage:** S3 via **Silo**/MinIO-kompatibel (`pgsty/silo`, alias `mercantec-tech-minio`) til uploads og store assets uden for GitHub. Console lokalt på `:9001`.
+- **Object storage:** S3 via **Silo**/MinIO-kompatibel (`pgsty/silo`, alias `mercantec-tech-minio`) til uploads og store assets uden for GitHub. Console: lokalt `:9001`, prod **`https://minio.mercantec.tech`** (S3 API ikke publiceret).
 - **Alt Docker-klart** — env-baseret config.
 
 ## Auth
@@ -31,6 +31,7 @@ Se [[Auth-Mercantec]] (Mercantec Auth, PKCE, lokal logout).
 | Platform | Dokploy (`deploy.mags.dk`) |
 | Net | `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` / `mercantec-tech-minio` |
 | Web | Traefik → service `web` port **3000** |
+| MinIO Console | Traefik → `minio.mercantec.tech` → service `minio` port **9001** |
 | Secrets / CORS | Env pr. miljø — `Cors:SpaOrigins` inkl. `https://mercantec.tech` |
 
 Lokal: `docker compose -f docker-compose.yml -f docker-compose.local.yml up --build`
