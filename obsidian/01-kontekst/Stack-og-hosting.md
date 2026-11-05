@@ -28,11 +28,12 @@ Se [[Auth-Mercantec]] (Mercantec Auth, PKCE, lokal logout).
 | | |
 |--|--|
 | **Prod** | **`https://mercantec.tech`** — **apex, uden subdomæne** |
+| **Alias** | **`https://lup.dk`** (+ `www.lup.dk`) — samme app/stack |
 | Platform | Dokploy (`deploy.mags.dk`) |
 | Net | `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` / `mercantec-tech-minio` |
-| Web | Traefik → service `web` port **3000** |
+| Web | Traefik → service `web` port **3000** (`mercantec.tech` + `lup.dk`) |
 | MinIO Console | Traefik → `minio.mercantec.tech` → service `minio` port **9001** |
-| Secrets / CORS | Env pr. miljø — `Cors:SpaOrigins` inkl. `https://mercantec.tech` |
+| Secrets / CORS | Env pr. miljø — `Cors:SpaOrigins` inkl. `https://mercantec.tech`, `https://lup.dk`, `https://www.lup.dk` |
 
 Lokal: `docker compose -f docker-compose.yml -f docker-compose.local.yml up --build`
 

@@ -47,6 +47,7 @@ Projekt-specifik udgave til Mercantec.tech. Kilde: generelle Cursor-retningslinj
 ## Hosting (dette projekt)
 
 - **Prod-URL: `https://mercantec.tech`** — **apex**, **uden** subdomæne (`www` kun hvis I eksplicit sætter redirect).
+- **Alias: `https://lup.dk`** (+ `www.lup.dk`) — samme Dokploy-`web`-service; CORS/Auth-redirects skal inkludere begge.
 - Dokploy + `dokploy-network` + aliases `mercantec-tech-api` / `mercantec-tech-db` / `mercantec-tech-minio` (Silo/MinIO via `pgsty/silo`, ikke `quay.io/minio/*`).
 - Drift via **Dokploy MCP** — se [[Dokploy-drift]].
 
