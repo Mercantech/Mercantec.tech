@@ -44,6 +44,7 @@ public partial class Index
     private IEnumerable<NotionPageSummary> VisiblePages => ForceReadOnly ? _pages.Where(p => p.PublishedAtUtc is not null) : _pages;
     private string PageHref(Guid id) => $"/notion/{id}" + (ForceReadOnly ? "?published=true" : "");
     private string GraphHref(Guid id) => $"/notion/graph/{id}" + (ForceReadOnly ? "?published=true" : "");
+    private string HoldGraphHref => $"/notion/holds/{_holdId}/graph" + (ForceReadOnly ? "?published=true" : "");
     private bool IsCollection(NotionPageSummary page) =>
         page.ParentPageId is null || !VisiblePages.Any(p => p.Id == page.ParentPageId) || VisiblePages.Any(p => p.ParentPageId == page.Id);
     private Guid CollectionRoot(Guid id)

@@ -15,6 +15,7 @@ public partial class Graph
     [Inject] private NotionClient Client { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? CollectionId { get; set; }
+    [Parameter] public Guid? HoldId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
     [SupplyParameterFromQuery(Name = "published")] public bool PublishedPreview { get; set; }
 
@@ -33,12 +34,29 @@ public partial class Graph
     private string _renameTitle = "";
     private bool _loading = true, _busy, _needsMount, _mounted, _disposed, _redirecting, _scriptFailed, _renaming, _focusMenu, _focusRename;
     private bool ForceReadOnly => PublishedPreview || ViewAs.IsActive;
-    private string RouteKey => $"{CollectionId}:{HoldQuery}:{ForceReadOnly}";
+    private bool RouteIsHoldGraph
+    {
+        get
+        {
+            var path = Nav.ToBaseRelativePath(Nav.Uri);
+            var query = path.IndexOf('?');
+            if (query >= 0) path = path[..query];
+            return path.StartsWith("notion/holds/", StringComparison.OrdinalIgnoreCase)
+                && path.EndsWith("/graph", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+    private bool ViewingHold => RouteIsHoldGraph || _graph?.WholeHold == true;
+    private string RouteKey => $"{CollectionId}:{HoldId}:{HoldQuery}:{ForceReadOnly}:{RouteIsHoldGraph}";
+    private string GraphHostKey => _graph is null ? "" : _graph.WholeHold ? $"hold:{_graph.HoldId}" : $"page:{_graph.CollectionId}";
+    private string ScopeValue => _graph?.WholeHold == true ? "hold" : _graph?.CollectionId.ToString() ?? "";
     private string PagesHref
     {
         get
         {
-            var path = _graph is not null ? $"/notion/{_graph.CollectionId}" : _holdId == Guid.Empty ? "/notion" : $"/notion?hold={_holdId}";
+            var hold = _holdId != Guid.Empty ? _holdId : HoldId ?? HoldQuery ?? Guid.Empty;
+            var path = _graph is { WholeHold: false }
+                ? $"/notion/{_graph.CollectionId}"
+                : hold == Guid.Empty ? "/notion" : $"/notion?hold={hold}";
             if (!ForceReadOnly) return path;
             return path.Contains('?') ? path + "&published=true" : path + "?published=true";
         }
@@ -58,12 +76,12 @@ public partial class Graph
         if (_focusRename) { _focusRename = false; try { await _renameInput.FocusAsync(); } catch (Exception) { } }
         if (!_needsMount || _graph is null || _graph.Edges.Length == 0 || _disposed) return;
         _needsMount = false;
-        var collection = _graph.CollectionId;
+        var mountKey = GraphHostKey;
         try
         {
             _module ??= await Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-graph.js");
             _callbacks ??= DotNetObjectReference.Create(this);
-            if (collection != _graph?.CollectionId || _disposed) return;
+            if (mountKey != GraphHostKey || _disposed) return;
             await _module.InvokeVoidAsync("mount", _host, _callbacks, GraphPayload());
             _mounted = true;
         }
@@ -104,7 +122,15 @@ public partial class Graph
             var holds = await Client.Holds(ct);
             if (account != _account || ct.IsCancellationRequested) return;
             _holds = holds;
-            if (CollectionId is Guid collection)
+            if (RouteIsHoldGraph && HoldId is Guid hold)
+            {
+                _graph = await Client.HoldGraph(hold, ct, ForceReadOnly);
+                if (account != _account || ct.IsCancellationRequested) return;
+                _holdId = _graph.HoldId;
+                _pages = await Client.Pages(_holdId, ct, ForceReadOnly);
+                _needsMount = _graph.Edges.Length > 0;
+            }
+            else if (CollectionId is Guid collection)
             {
                 _graph = await Client.Graph(collection, ct, ForceReadOnly);
                 if (account != _account || ct.IsCancellationRequested) return;
@@ -148,7 +174,7 @@ public partial class Graph
     private IEnumerable<(NotionPageSummary Page, int Depth)> Collections()
     {
         var items = OrderedPages().Where(item => IsCollection(item.Page)).ToList();
-        if (_graph is not null && items.All(item => item.Page.Id != _graph.CollectionId))
+        if (_graph is { WholeHold: false } && items.All(item => item.Page.Id != _graph.CollectionId))
         {
             var current = _pages.FirstOrDefault(p => p.Id == _graph.CollectionId);
             if (current is not null) items.Insert(0, (current, 0));
@@ -162,15 +188,25 @@ public partial class Graph
     private IEnumerable<NotionGraphNode> Isolated() => _graph is null ? [] : _graph.Nodes.Where(n => _graph.Edges.All(e => e.FromId != n.Id && e.ToId != n.Id));
     private string PagePath(Guid id) => WithPreview($"/notion/{id}");
     private string GraphPath(Guid id) => WithPreview($"/notion/graph/{id}");
+    private string HoldGraphPath(Guid id) => WithPreview($"/notion/holds/{id}/graph");
     private string WithPreview(string path) => ForceReadOnly ? path + "?published=true" : path;
-    private void ChangeCollection(ChangeEventArgs args)
+    private void ChangeScope(ChangeEventArgs args)
     {
-        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _graph?.CollectionId) Nav.NavigateTo(GraphPath(id));
+        var value = args.Value?.ToString();
+        if (value == "hold")
+        {
+            if (_graph?.WholeHold != true && _holdId != Guid.Empty) Nav.NavigateTo(HoldGraphPath(_holdId));
+            return;
+        }
+        if (Guid.TryParse(value, out var id) && (_graph?.WholeHold == true || id != _graph?.CollectionId))
+            Nav.NavigateTo(GraphPath(id));
     }
     private void ChangeHold(ChangeEventArgs args)
     {
-        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId)
-            Nav.NavigateTo("/notion/graph?hold=" + id + (ForceReadOnly ? "&published=true" : ""));
+        if (!Guid.TryParse(args.Value?.ToString(), out var id) || id == _holdId) return;
+        Nav.NavigateTo(ViewingHold
+            ? HoldGraphPath(id)
+            : "/notion/graph?hold=" + id + (ForceReadOnly ? "&published=true" : ""));
     }
     private async Task Zoom(int direction)
     {

@@ -1,5 +1,6 @@
 @page "/notion/graph"
 @page "/notion/graph/{CollectionId:guid}"
+@page "/notion/holds/{HoldId:guid}/graph"
 @implements IAsyncDisposable
 
 <PageTitle>@(_graph?.Title is { Length: > 0 } title ? $"{title} · Graf" : "Graf") · LUP</PageTitle>
@@ -12,10 +13,10 @@ else
 {
     <header class="page-title">
         <div>
-            <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><a href="@PagesHref">Holdets indhold</a><span>›</span><span>Graf</span></nav>
-            <p class="notion-graph-kicker">Graph view</p>
-            <h1>@(_graph?.Title ?? "Graf")</h1>
-            <p>Siderne i kollektionen og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil.</p>
+            <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><a href="@PagesHref">Holdets indhold</a><span>›</span><span>@(ViewingHold ? "Graf for holdet" : "Graf")</span></nav>
+            <p class="notion-graph-kicker">@(ViewingHold ? "Graf for holdet" : "Graph view")</p>
+            <h1>@(_graph?.Title ?? (ViewingHold ? "Graf for holdet" : "Graf"))</h1>
+            <p>@(ViewingHold ? "Alle rodsider på holdet, deres undersider og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil." : "Siderne i kollektionen og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil.")</p>
         </div>
         <a class="secondary" href="@PagesHref">Tilbage til siderne</a>
     </header>
@@ -34,8 +35,12 @@ else
             }
             @if (Collections().Any())
             {
+                @if (_holdId != Guid.Empty)
+                {
+                    <a class="secondary" href="@HoldGraphPath(_holdId)">Graf for holdet</a>
+                }
                 <h2>Vælg en kollektion</h2>
-                <p>Grafen viser siderne under den valgte rod eller mappe.</p>
+                <p>En kollektion er én rodside og dens undersider. Graf for holdet samler alle rodsider.</p>
                 <ul>
                     @foreach (var item in Collections())
                     {
@@ -54,8 +59,9 @@ else
     else
     {
         <div class="notion-graph-bar">
-            <label class="field">Kollektion
-                <select value="@_graph.CollectionId" @onchange="ChangeCollection">
+            <label class="field">Visning
+                <select value="@ScopeValue" @onchange="ChangeScope">
+                    <option value="hold">Hele holdet</option>
                     @foreach (var item in Collections()) { <option value="@item.Page.Id">@OptionLabel(item)</option> }
                 </select>
             </label>
@@ -64,11 +70,19 @@ else
                 <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
             }
         </div>
-        @if (_graph.Edges.Length == 0)
+        @if (ViewingHold && _graph.Nodes.Length == 0)
         {
             <section class="notion-graph-empty panel">
-                <h2>Der er ingen interne links i denne kollektion</h2>
-                <p>Grafen tegnes, når en side linker til en anden side i samme kollektion. Skriv <kbd>@@</kbd> og vælg en side, eller indsæt et link til en side.</p>
+                <h2>Der er endnu ingen sider på holdet</h2>
+                <p>Opret en side under holdets indhold. Grafen kan tegnes, når siderne linker til hinanden.</p>
+                <a class="secondary" href="@PagesHref">Holdets indhold</a>
+            </section>
+        }
+        else if (_graph.Edges.Length == 0)
+        {
+            <section class="notion-graph-empty panel">
+                <h2>@(ViewingHold ? "Der er ingen interne links på holdet" : "Der er ingen interne links i denne kollektion")</h2>
+                <p>@(ViewingHold ? "Grafen tegnes, når en side linker til en anden side på holdet." : "Grafen tegnes, når en side linker til en anden side i samme kollektion.") Skriv <kbd>@@</kbd> og vælg en side, eller indsæt et link til en side.</p>
                 @if (_graph.Nodes.Length > 0)
                 {
                     <ul>
@@ -80,7 +94,7 @@ else
         else
         {
             <div class="notion-graph-stage" @ref="_stage" tabindex="0" aria-label="Graf over sidernes links. Piletaster flytter grafen, plus og minus zoomer." @oncontextmenu:preventDefault>
-                <div class="notion-graph-host" @ref="_host" @key="_graph.CollectionId"></div>
+                <div class="notion-graph-host" @ref="_host" @key="GraphHostKey"></div>
                 <div class="notion-graph-controls">
                     <button type="button" class="secondary" @onclick="() => Zoom(-1)" aria-label="Zoom ud">−</button>
                     <button type="button" class="secondary" @onclick="() => Zoom(1)" aria-label="Zoom ind">+</button>
@@ -97,7 +111,7 @@ else
                     }
                     @foreach (var node in Isolated())
                     {
-                        <li><a href="@PagePath(node.Id)">@node.Title</a> har ingen links i kollektionen</li>
+                        <li><a href="@PagePath(node.Id)">@node.Title</a> @(ViewingHold ? "har ingen links på holdet" : "har ingen links i kollektionen")</li>
                     }
                 </ul>
             </details>
