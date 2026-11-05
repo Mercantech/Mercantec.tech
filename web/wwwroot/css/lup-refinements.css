@@ -4,6 +4,7 @@
 .lup .app { display:flex; flex-direction:column; min-height:100dvh; border-radius:0; }
 .lup .body { flex:1; min-width:0; width:100%; max-width:1440px; margin-inline:auto; }
 .lup .ui-icon { width:18px; height:18px; flex-shrink:0; display:inline-block; vertical-align:middle; }
+.lup .emoji-prose { white-space: pre-wrap; }
 .lup .v3-medal .ui-icon { width:31px; height:31px; }
 .lup .lup-header .v3-menu { max-height:calc(100dvh - 90px); overflow-y:auto; }
 .lup .lup-header .v3-menu a.active { color:var(--blue); background:var(--tint); }

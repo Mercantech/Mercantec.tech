@@ -65,6 +65,8 @@ The build generates public/THIRD-PARTY-NOTICES.txt from locked runtime packages,
 
 `context.pages` består af `{ id, title, parentPageId }` fra holdets autoriserede sider. `@` indsætter ID-baserede links til sider eller enkelte elever. `/side` indsætter en linkblok med sidevalg. Titler og elevnavne slås op fra konteksten, så ukendte eller ikke-udgivne mål ikke viser skjulte etiketter i elevvisningen.
 
+Egne emojis hentes fra `GET /api/emojis` med det samme login. Skriv `:navn:` (fx `:lup:`), vælg i kolon-menuen, eller brug knappen **Emoji**. Dokumentet gemmer emoji-id, så et omdøb i `/emojis` følger med. En slettet emoji vises som utilgængelig. Unicode-emojis fra kolon-menuen er uændrede.
+
 `context.groups` kan indeholde `{ id, name, members:[{ id, displayName }] }`. Elevblokkens gruppeknap kalder `OnNotionCreateGroup(membershipIdsJson)`; værten viser gruppedialogen og gemmer gennem holdets gruppe-API. Opdatér konteksten med `setContext` efter oprettelse. `/gruppe` henviser til en gemt gruppe.
 
 `/video`, `/billede`, `/lyd` og `/fil` indsætter uploadblokke. Uploadgrænsen er 100 MiB. Dokumentet gemmer kun assetId/pageId/kind. Medieadgang hentes med normal Bearer-auth og udløbende URL'er fra `/api/notion/assets/{id}/access`, der fornys før udløb. MP4/WebM, lyd og billeder bruger browserens egne medieelementer; der er altid et downloadlink, og der foretages ingen automatisk videokonvertering.

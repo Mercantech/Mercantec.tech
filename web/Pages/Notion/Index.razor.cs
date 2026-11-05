@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Notion;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
@@ -156,6 +157,8 @@ public partial class Index
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
         await Work(async ct => { var page = await Client.Create(_holdId, _newTitle.Trim(), _newParent, ct); _creating = false; Nav.NavigateTo($"/notion/{page.Id}"); });
     }
+    private void InsertTitleEmoji(CustomEmojiItem emoji) => _title = EmojiInsert.Append(_title, emoji.Name, 200);
+    private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
     private async Task RenamePage()
     {
         if (!IsEditing || _current is null || string.IsNullOrWhiteSpace(_title)) return;

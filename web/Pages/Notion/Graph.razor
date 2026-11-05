@@ -15,7 +15,7 @@ else
         <div>
             <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><a href="@PagesHref">Holdets indhold</a><span>›</span><span>@(ViewingHold ? "Graf for holdet" : "Graf")</span></nav>
             <p class="notion-graph-kicker">@(ViewingHold ? "Graf for holdet" : "Graph view")</p>
-            <h1>@(_graph?.Title ?? (ViewingHold ? "Graf for holdet" : "Graf"))</h1>
+            <h1>@if (_graph?.Title is { Length: > 0 } graphTitle) { <EmojiText Text="@graphTitle" /> } else { @(ViewingHold ? "Graf for holdet" : "Graf") }</h1>
             <p>@(ViewingHold ? "Alle rodsider på holdet, deres undersider og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil." : "Siderne i kollektionen og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil.")</p>
         </div>
         <a class="secondary" href="@PagesHref">Tilbage til siderne</a>
@@ -44,7 +44,7 @@ else
                 <ul>
                     @foreach (var item in Collections())
                     {
-                        <li style="--page-depth:@item.Depth"><a href="@GraphPath(item.Page.Id)">@item.Page.Title</a></li>
+                        <li style="--page-depth:@item.Depth"><a href="@GraphPath(item.Page.Id)"><EmojiText Text="@item.Page.Title" /></a></li>
                     }
                 </ul>
             }
@@ -86,7 +86,7 @@ else
                 @if (_graph.Nodes.Length > 0)
                 {
                     <ul>
-                        @foreach (var node in _graph.Nodes) { <li><a href="@PagePath(node.Id)">@node.Title</a></li> }
+                        @foreach (var node in _graph.Nodes) { <li><a href="@PagePath(node.Id)"><EmojiText Text="@node.Title" /></a></li> }
                     </ul>
                 }
             </section>
@@ -107,11 +107,11 @@ else
                 <ul>
                     @foreach (var edge in _graph.Edges)
                     {
-                        <li><a href="@PagePath(edge.FromId)">@Title(edge.FromId)</a> linker til <a href="@PagePath(edge.ToId)">@Title(edge.ToId)</a></li>
+                        <li><a href="@PagePath(edge.FromId)"><EmojiText Text="@Title(edge.FromId)" /></a> linker til <a href="@PagePath(edge.ToId)"><EmojiText Text="@Title(edge.ToId)" /></a></li>
                     }
                     @foreach (var node in Isolated())
                     {
-                        <li><a href="@PagePath(node.Id)">@node.Title</a> @(ViewingHold ? "har ingen links på holdet" : "har ingen links i kollektionen")</li>
+                        <li><a href="@PagePath(node.Id)"><EmojiText Text="@node.Title" /></a> @(ViewingHold ? "har ingen links på holdet" : "har ingen links i kollektionen")</li>
                     }
                 </ul>
             </details>
@@ -122,7 +122,7 @@ else
 {
     <button type="button" class="notion-graph-backdrop" @onclick="CloseMenu" aria-label="Luk menu"></button>
     <div class="notion-graph-menu" role="menu" style="left:@(_menuX.ToString(System.Globalization.CultureInfo.InvariantCulture))px;top:@(_menuY.ToString(System.Globalization.CultureInfo.InvariantCulture))px" @onkeydown="MenuKey">
-        <p>@Title(menuId)</p>
+        <p><EmojiText Text="@Title(menuId)" /></p>
         <a class="secondary" role="menuitem" href="@PagePath(menuId)" @ref="_menuFirst">Åbn</a>
         @if (_graph?.CanRename == true)
         {

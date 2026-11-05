@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, type BlockNoteEditor } from '@blocknote/core';
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
 import { withCollaboration } from '@blocknote/core/yjs';
-import { createReactBlockSpec, createReactInlineContentSpec, FormattingToolbar, FormattingToolbarController, getDefaultReactSlashMenuItems, getFormattingToolbarItems, SideMenu, SideMenuController, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
+import { createReactBlockSpec, createReactInlineContentSpec, FormattingToolbar, FormattingToolbarController, getDefaultReactEmojiPickerItems, getDefaultReactSlashMenuItems, getFormattingToolbarItems, GridSuggestionMenuController, SideMenu, SideMenuController, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
@@ -19,6 +19,7 @@ import { NotionBlockTypeSelect, NotionDragHandleMenu } from './turn-into';
 import { blockPlainText } from './ai-block-text';
 import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
+import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 
 export interface EditorContext {
   pageId: string;
@@ -39,6 +40,9 @@ type Status = 'connecting' | 'synced' | 'saving' | 'saved' | 'offline' | 'error'
 const Context = createContext<EditorContext | null>(null);
 const useData = () => useContext(Context);
 const Runtime = createContext<Session | null>(null);
+type CustomEmojiRecord = { id: string; name: string; contentUrl: string };
+const EmojiCatalog = createContext<CustomEmojiRecord[]>([]);
+const EmojiReload = createContext<() => void>(() => {});
 
 const createRoster = createReactBlockSpec({
   type: 'classRoster',
@@ -106,6 +110,22 @@ const pageMention=createReactInlineContentSpec({type:'pageMention',propSchema:{p
 });
 const studentMention=createReactInlineContentSpec({type:'studentMention',propSchema:{holdId:{default:''},membershipId:{default:''}},content:'none'},{
   render:({inlineContent})=>{const context=useData();const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>Elev er ikke tilgængelig</span>;},
+});
+function CustomEmojiImage({emoji,label}:{emoji:CustomEmojiRecord;label:string}) {
+  const reload=useContext(EmojiReload);
+  const tried=useRef(false);
+  useEffect(()=>{tried.current=false;},[emoji.contentUrl]);
+  return <img className="notion-custom-emoji" src={emoji.contentUrl} alt={label} title={label} draggable={false} contentEditable={false} onError={()=>{if(tried.current)return;tried.current=true;reload();}} />;
+}
+const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{emojiId:{default:''},name:{default:''}},content:'none'},{
+  render:({inlineContent})=>{
+    const emojis=useContext(EmojiCatalog);
+    const match=emojis.find(item=>item.id===inlineContent.props.emojiId);
+    const label=`:${match?.name || inlineContent.props.name || 'emoji'}:`;
+    return match
+      ? <CustomEmojiImage emoji={match} label={label} />
+      : <span className="notion-unavailable" contentEditable={false}>{label}</span>;
+  },
 });
 const createPageLink=createReactBlockSpec({type:'pageLink',propSchema:{schemaVersion:{default:1},pageId:{default:''}},content:'none'},{
   render:({block,editor})=>{const context=useData();const page=context?.pages?.find(item=>item.id===block.props.pageId);return <section className="notion-link-block" contentEditable={false} aria-label="Link til side">
@@ -227,7 +247,7 @@ const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersi
 });
 const schema = BlockNoteSchema.create({
   blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout()},
-  inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention},
+  inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention,customEmoji},
 });
 type Editor = BlockNoteEditor<typeof schema.blockSchema, typeof schema.inlineContentSchema, typeof schema.styleSchema>;
 
@@ -267,6 +287,8 @@ function ConnectedEditor({session}:{session:Session}) {
   session.editor=editor;
   useEffect(() => () => { session.editor=undefined; },[session]);
   const enabled=canEdit(session);
+  const emojis=useContext(EmojiCatalog);
+  const [emojiOpen,setEmojiOpen]=useState(false);
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<{id:string;text:string}|null>(null);
   const openAi=(blockId?:string)=>{
@@ -282,6 +304,45 @@ function ConnectedEditor({session}:{session:Session}) {
     setAiOpen(true);
   };
   const onAiOpenChange=(open:boolean)=>{setAiOpen(open);if(!open)setAiAnchor(null);};
+  const placeEmoji=(item:CustomEmojiRecord)=>{
+    if(!canEdit(session))return;
+    editor.focus();
+    const node={type:'customEmoji' as const,props:{emojiId:item.id,name:item.name}};
+    try { editor.insertInlineContent([node,' ']); }
+    catch {
+      try {
+        const cursor=editor.getTextCursorPosition().block;
+        const inserted=editor.insertBlocks([{type:'paragraph',content:[node]}],cursor,'after');
+        editor.setTextCursorPosition(inserted[0],'end');
+      } catch { /* Void blocks without a following paragraph keep their content. */ }
+    }
+    setEmojiOpen(false);
+  };
+  useEffect(()=>{
+    if(session.readOnly)return;
+    let expanding=false;
+    return editor.onChange((_,ctx)=>{
+      if(expanding || !canEdit(session) || emojis.length===0)return;
+      const replacements:{id:string;content:unknown}[]=[];
+      for(const change of ctx.getChanges()){
+        if(change.type==='delete' || change.block.type==='codeBlock' || !Array.isArray(change.block.content))continue;
+        const expanded=expandEmojiShortcodes(change.block.content,emojis);
+        if(expanded.changed) replacements.push({id:change.block.id,content:expanded.content});
+      }
+      if(!replacements.length)return;
+      expanding=true;
+      queueMicrotask(()=>{
+        try {
+          if(session.destroyed)return;
+          for(const item of replacements){
+            const block=editor.getBlock(item.id);
+            if(!block)continue;
+            editor.updateBlock(block,{content:item.content as never});
+          }
+        } finally { expanding=false; }
+      });
+    },false);
+  },[editor,emojis,session]);;
   const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'pageLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
     if(!enabled) return;
     editor.focus();
@@ -332,9 +393,14 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
       <button type="button" onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
+      <button type="button" onClick={()=>setEmojiOpen(open=>!open)} disabled={!enabled} aria-expanded={emojiOpen} title="Vælg emoji (:navn)">Emoji</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
+    {!session.readOnly && emojiOpen && <div className="notion-emoji-panel" role="listbox" aria-label="Egne emojis">
+      {emojis.length===0 ? <p>Ingen egne emojis endnu. <a href="/emojis">Tilføj dem i biblioteket</a>.</p> : emojis.map(item=>
+        <button key={item.id} type="button" title={`:${item.name}:`} aria-label={`:${item.name}:`} onClick={()=>placeEmoji(item)}><img src={item.contentUrl} alt="" /></button>)}
+    </div>}
     {!session.readOnly && (
       <AiHelperPanel
         editor={editor}
@@ -351,20 +417,29 @@ function ConnectedEditor({session}:{session:Session}) {
       />
     )}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
-    <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false}>
+    <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false} emojiPicker={false}>
       {!session.readOnly && <>
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
         <SuggestionMenuController triggerCharacter="@" getItems={async query=>filterSuggestionItems(mentionItems,query)} />
+        <GridSuggestionMenuController triggerCharacter=":" columns={8} minQueryLength={2} getItems={async query=>{
+          const custom=filterCustomEmojis(emojis,query).map((item:CustomEmojiRecord)=>({
+            id:`custom-${item.id}`,
+            icon:<img className="notion-custom-emoji" src={item.contentUrl} alt="" />,
+            onItemClick:()=>placeEmoji(item),
+          }));
+          try { return [...custom, ...await getDefaultReactEmojiPickerItems(editor,query)]; }
+          catch { return custom; }
+        }} />
       </>}
     </BlockNoteView>
-    <footer className="notion-editor-footnote"><span>{session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold og <kbd>@</kbd> for sider og elever.</>}</span><a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
+    <footer className="notion-editor-footnote"><span>{session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold, <kbd>@</kbd> for sider og <kbd>:</kbd> for emoji.</>}</span><a href="/emojis">Emojis</a><a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
   </OpenAiOnBlockProvider>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {
   const editor=useCreateBlockNote({schema,dictionary:danish,extensions:[syntaxHighlighter],initialContent:blocks as NonNullable<Parameters<typeof useCreateBlockNote>[0]>['initialContent']});
-  return <BlockNoteView editor={editor} editable={false} theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} />;
+  return <BlockNoteView editor={editor} editable={false} theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} emojiPicker={false} />;
 }
 function SlideDeck({session}:{session:Session}) {
   const [index,setIndex]=useState(0);
@@ -393,10 +468,28 @@ class EditorBoundary extends React.Component<{session:Session;children:React.Rea
   render(){return this.state.failed ? <p className="notion-editor-error" role="alert">Editoren kunne ikke åbne dokumentet. Genindlæs siden for at prøve igen.</p> : this.props.children;}
 }
 function App({session}:{session:Session}) {
-  return <Runtime.Provider value={session}><Context.Provider value={session.context}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
+  const [emojis,setEmojis]=useState<CustomEmojiRecord[]>([]);
+  const loadRef=useRef<() => Promise<void>>(async()=>{});
+  loadRef.current=async()=>{
+    try {
+      const token=await validToken(session);
+      const response=await fetch('/api/emojis',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+      if(!response.ok || session.destroyed)return;
+      const data=await response.json();
+      if(!Array.isArray(data) || session.destroyed)return;
+      const next:CustomEmojiRecord[]=[];
+      for(const item of data){
+        if(item && typeof item.id==='string' && typeof item.name==='string' && typeof item.contentUrl==='string')
+          next.push({id:item.id,name:item.name,contentUrl:item.contentUrl});
+      }
+      setEmojis(next);
+    } catch { /* Editoren virker også uden emoji-biblioteket. */ }
+  };
+  useEffect(()=>{void loadRef.current();},[session]);
+  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
     <EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary>
-  </div></Context.Provider></Runtime.Provider>;
+  </div></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
 }
 
 export async function mount(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {

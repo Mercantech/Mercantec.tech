@@ -35,14 +35,14 @@ else
                 <nav class="notion-page-list" aria-label="Dokumentsider">
                     @foreach (var item in OrderedPages())
                     {
-                        <div class="notion-page-row" style="--page-depth:@item.Depth"><button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span>@item.Page.Title@if (Authoring) { <small>@(item.Page.PublishedAtUtc is null ? "Kladde" : item.Page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet")</small> }</span></button>@if (IsCollection(item.Page)) { <a class="notion-graph-link" href="@GraphHref(item.Page.Id)" title="Graf for kollektionen" aria-label="@($"Graf for {item.Page.Title}")">Graf</a> }</div>
+                        <div class="notion-page-row" style="--page-depth:@item.Depth"><button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span><EmojiText Text="@item.Page.Title" />@if (Authoring) { <small>@(item.Page.PublishedAtUtc is null ? "Kladde" : item.Page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet")</small> }</span></button>@if (IsCollection(item.Page)) { <a class="notion-graph-link" href="@GraphHref(item.Page.Id)" title="Graf for kollektionen" aria-label="@($"Graf for {item.Page.Title}")">Graf</a> }</div>
                     }
                 </nav>
                 @if (_creating && Authoring)
                 {
-                    <form class="notion-create" @onsubmit="CreatePage" @onsubmit:preventDefault><label class="field">@(_newParent is null ? "Ny side" : "Ny underside")<input @bind="_newTitle" maxlength="200" required placeholder="Sidens titel" /></label><div class="notion-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newTitle))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annuller</button></div></form>
+                    <form class="notion-create" @onsubmit="CreatePage" @onsubmit:preventDefault><label class="field">@(_newParent is null ? "Ny side" : "Ny underside")<input @bind="_newTitle" maxlength="200" required placeholder="Sidens titel" /></label><EmojiPicker Disabled="_busy" OnPick="InsertNewTitleEmoji" /><div class="notion-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newTitle))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annuller</button></div></form>
                 }
-                @if (Authoring) { <div class="notion-guide"><h3>Indhold og relationer</h3><p><kbd>@@</kbd> Link til en side eller elev</p><p>Graf for holdet viser links på tværs af rodsider</p><p><kbd>/elever</kbd> Vælg elever og gem grupper</p><p><kbd>/video</kbd> Upload en video</p><p><kbd>/fil</kbd> Vedhæft materiale</p><p><kbd>/slide</kbd> Start et nyt slide</p></div> }
+                @if (Authoring) { <div class="notion-guide"><h3>Indhold og relationer</h3><p><kbd>@@</kbd> Link til en side eller elev</p><p><kbd>:</kbd> Emoji fra <a href="/emojis">biblioteket</a></p><p>Graf for holdet viser links på tværs af rodsider</p><p><kbd>/elever</kbd> Vælg elever og gem grupper</p><p><kbd>/video</kbd> Upload en video</p><p><kbd>/fil</kbd> Vedhæft materiale</p><p><kbd>/slide</kbd> Start et nyt slide</p></div> }
             </aside>
             <section class="notion-document" aria-label="@(IsEditing ? "Dokumenteditor" : "Udgivet dokument")">
                 @if (_current is null)
@@ -58,9 +58,9 @@ else
                     }
                     else { <p class="notion-reader-banner">Du læser den udgivne version. Underviserens kladde vises kun ved en ny udgivelse.</p> }
                     @if (_statusDetail.Length > 0 && _status is "error" or "offline") { <p class="notion-connection-warning" role="alert">@_statusDetail</p> }
-                    @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" maxlength="200" placeholder="Sidens titel" disabled="@_busy" /><button class="secondary" disabled="@(_busy || string.IsNullOrWhiteSpace(_title) || _title.Trim() == _current.Title)">Gem titel</button></form> }
-                    else { <h2 class="notion-published-title">@_current.Title</h2> }
-                    <p class="notion-document-meta">@_holds.FirstOrDefault(h => h.Id == _holdId)?.Name @if (IsEditing) { <span>· Skriv <kbd>/</kbd> for indhold eller <kbd>@@</kbd> for at linke</span> }</p>
+                    @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" maxlength="200" placeholder="Sidens titel" disabled="@_busy" /><EmojiPicker Disabled="_busy" OnPick="InsertTitleEmoji" /><button class="secondary" disabled="@(_busy || string.IsNullOrWhiteSpace(_title) || _title.Trim() == _current.Title)">Gem titel</button></form> @if (_title.Contains(':')) { <p class="notion-title-preview" aria-label="Sådan vises titlen"><EmojiText Text="@_title" /></p> } }
+                    else { <h2 class="notion-published-title"><EmojiText Text="@_current.Title" /></h2> }
+                    <p class="notion-document-meta">@_holds.FirstOrDefault(h => h.Id == _holdId)?.Name @if (IsEditing) { <span>· Skriv <kbd>/</kbd> for indhold, <kbd>@@</kbd> for at linke eller <kbd>:</kbd> for emoji</span> }</p>
                     <div class="notion-editor-root" @ref="_editorElement"></div>
                 }
             </section>
