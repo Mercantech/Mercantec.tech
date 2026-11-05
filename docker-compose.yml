@@ -119,7 +119,7 @@ services:
       Azure__TeacherUpnMap: ${AZURE_TEACHER_UPN_MAP:-d969fced-f7be-46d4-9bb9-5a2f03ca6974=mags@mercantec.dk;mathiasgsteenberg@gmail.com=mags@mercantec.dk;mags@mercantec.dk=mags@mercantec.dk;kasc@mercantec.dk=kasc@mercantec.dk}
       # OpenAI — nøgle kun via Dokploy/env, aldrig i git
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
-      OpenAI__Model: ${OPENAI_MODEL:-gpt-4o-mini}
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-6-luna}
     depends_on:
       notion-init:
         condition: service_healthy

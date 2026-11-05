@@ -51,12 +51,14 @@ public sealed class OpenAiEditorClient(
         if (action is "rewrite" && selection.Length == 0)
             throw new ArgumentException("selection_required");
 
-        var model = string.IsNullOrWhiteSpace(_options.Model) ? "gpt-4o-mini" : _options.Model.Trim();
+        var model = string.IsNullOrWhiteSpace(_options.Model) ? "gpt-6-luna" : _options.Model.Trim();
+        // gpt-6-luna kræver reasoning_effort=none for temperature; max_completion_tokens (ikke max_tokens).
         var payload = new
         {
             model,
+            reasoning_effort = "none",
             temperature = 0.4,
-            max_tokens = 2500,
+            max_completion_tokens = 2500,
             response_format = new { type = "json_object" },
             messages = new object[]
             {
