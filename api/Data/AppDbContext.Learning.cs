@@ -41,6 +41,7 @@ public partial class AppDbContext
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
             e.Property(x => x.Description).HasMaxLength(20000).IsRequired();
             e.Property(x => x.SubmissionMode).HasMaxLength(16).IsRequired();
+            e.Property(x => x.Kind).HasMaxLength(12).HasDefaultValue("main").IsRequired();
             e.HasOne<Hold>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<LearningGroup>(e =>

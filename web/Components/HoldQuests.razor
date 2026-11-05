@@ -1,0 +1,120 @@
+@using Mercantec.Tech.Web.Learning
+@inject LearningClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+
+<section class="hold-quests" aria-label="Holdets quests">
+    <div class="hq-heading"><div><h2>Quests og afleveringer</h2><p>Planlæg hovedopgaver, daglige øvelser og ekstra udfordringer.</p></div>
+        @if (_canManage) { <button type="button" class="action" @onclick="New" disabled="@_busy"><UiIcon Name="plus" /> Opret quest</button> }
+    </div>
+    @if (_error is not null) { <p class="hq-error" role="alert">@_error</p> }
+    @if (_notice is not null) { <p role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter quests…</p> }
+    else
+    {
+        @if (_editingOpen && _canManage)
+        {
+            <form class="hq-editor" @onsubmit="Save" @onsubmit:preventDefault>
+                <h3>@(_editing is null ? "Opret quest" : "Redigér quest")</h3>
+                <fieldset disabled="@_busy">
+                    <div class="hq-fields"><label class="field">Titel<input @bind="_title" maxlength="200" required placeholder="Hvad skal eleverne arbejde med?" /></label><label class="field">Questtype<select @bind="_kind"><option value="main">Main quest · hovedopgave</option><option value="daily">Daily quest · daglig øvelse</option><option value="side">Side quest · ekstra udfordring</option></select></label></div>
+                    <label class="field">Opgave og afleveringskrav<textarea @bind="_description" maxlength="20000" rows="5" placeholder="Beskriv opgaven, og hvad eleverne skal aflevere."></textarea></label>
+                    <div class="hq-fields"><label class="field">Afleveringsform<select @bind="_mode"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label><label class="field">Afleveringsfrist (valgfri)<input type="datetime-local" value="@_deadline" @onchange="e => _deadline = e.Value?.ToString() ?? string.Empty" /><small>Dansk tid. Daily quests gentages ikke automatisk.</small></label></div>
+                    <label class="hq-check"><input type="checkbox" @bind="_published" /> Udgiv til holdets elever</label>
+                    <div class="actions"><button type="submit" class="action" disabled="@string.IsNullOrWhiteSpace(_title)">@(_busy ? "Gemmer…" : "Gem quest")</button><button type="button" class="secondary" @onclick="Cancel">Annullér</button></div>
+                </fieldset>
+            </form>
+        }
+        <div class="hq-filters" role="group" aria-label="Filtrér quests">
+            @foreach (var filter in new[] { "all", "main", "daily", "side" })
+            {
+                <button type="button" class="secondary @(_filter == filter ? "active" : "")" aria-pressed="@(_filter == filter)" @onclick="() => _filter = filter">@(filter == "all" ? "Alle quests" : HoldTime.QuestKind(filter)) <span>@_quests.Count(q => filter == "all" || q.Kind == filter)</span></button>
+            }
+        </div>
+        @if (!Filtered.Any()) { <div class="hq-empty"><UiIcon Name="target" /><h3>@(_quests.Length == 0 ? "Plads til holdets næste udfordring" : "Ingen quests af denne type")</h3><p>@(_canManage ? "Opret en quest, og vælg om eleverne skal aflevere alene eller i grupper." : "Din underviser har endnu ikke udgivet quests her.")</p></div> }
+        <div class="hq-list">
+            @foreach (var quest in Filtered)
+            {
+                <article class="hq-quest @quest.Kind">
+                    <span class="hq-mark"><UiIcon Name="@(quest.Kind == "main" ? "target" : quest.Kind == "daily" ? "loop" : "star")" /></span>
+                    <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span>@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
+                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id">@(_canManage ? "Se afleveringer" : "Åbn quest")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button> }</div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public bool StartCreating { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private readonly CancellationTokenSource _life = new();
+    private QuestView[] _quests = [];
+    private (Guid Hold, string? Account, bool Preview, bool Authenticated)? _context;
+    private (Guid Hold, string? Account, bool Preview, bool Authenticated) CurrentContext => (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
+    private string? _error, _notice;
+    private bool _loading, _busy, _canManage, _editingOpen, _disposed, _startHandled;
+    private int _loadVersion;
+    private Guid? _editing;
+    private string _filter = "all", _title = "", _description = "", _kind = "main", _mode = "individual", _deadline = "";
+    private bool _published = true;
+    private IEnumerable<QuestView> Filtered => _quests.Where(q => _filter == "all" || q.Kind == _filter).OrderBy(q => q.DeadlineUtc ?? DateTimeOffset.MaxValue).ThenBy(q => q.Title);
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_context != CurrentContext)
+        {
+            _quests = []; _canManage = false; Cancel();
+            await Load();
+        }
+        if (StartCreating && !_startHandled && _canManage) { New(); _startHandled = true; }
+        if (!StartCreating) _startHandled = false;
+    }
+    private void Changed() => _ = InvokeAsync(async () =>
+    {
+        // Token renewal notifies subscribers too; retain an open draft for the same account.
+        if (_disposed || _context == CurrentContext) return;
+        _quests = []; _canManage = false; Cancel();
+        await Load();
+        if (!_disposed) StateHasChanged();
+    });
+    private async Task Load()
+    {
+        _context = CurrentContext;
+        var version = ++_loadVersion;
+        if (!Auth.IsAuthenticated || HoldId == Guid.Empty || _disposed) { _loading = false; return; }
+        var holdId = HoldId; var subject = Auth.Subject; var preview = ViewAs.IsActive; _loading = true; _error = null;
+        try
+        {
+            var holds = await Client.Holds(_life.Token); var quests = await Client.Quests(holdId, _life.Token);
+            if (holdId != HoldId || subject != Auth.Subject || preview != ViewAs.IsActive || version != _loadVersion || _disposed) return;
+            _quests = preview ? quests.Where(q => q.Published).ToArray() : quests; _canManage = !preview && holds.Any(h => h.Id == holdId && h.CanManage);
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject && preview == ViewAs.IsActive && version == _loadVersion) _error = ex is LearningException ? ex.Message : "Quests kunne ikke hentes. Prøv igen."; }
+        finally { if (version == _loadVersion) _loading = false; }
+    }
+    private void New() { _editing = null; _editingOpen = true; _title = _description = _deadline = ""; _kind = "main"; _mode = "individual"; _published = true; _notice = null; }
+    private void Cancel() { _editingOpen = false; _editing = null; }
+    private void Edit(QuestView quest) { _editing = quest.Id; _editingOpen = true; _title = quest.Title; _description = quest.Description; _kind = quest.Kind; _mode = quest.SubmissionMode; _published = quest.Published; _deadline = quest.DeadlineUtc is DateTimeOffset d ? HoldTime.Input(d) : ""; _notice = null; }
+    private async Task Save()
+    {
+        if (_busy || !_canManage || ViewAs.IsActive) return;
+        DateTimeOffset? deadline = null;
+        if (!string.IsNullOrWhiteSpace(_deadline)) { if (!HoldTime.TryUtc(_deadline, out var d)) { _error = "Vælg en gyldig frist i dansk tid. Undgå timen ved skift mellem sommer- og vintertid."; return; } deadline = d; }
+        var holdId = HoldId; var subject = Auth.Subject; _busy = true; _error = null;
+        try
+        {
+            var request = new SaveQuest(holdId, _title.Trim(), _description, _mode, _published, deadline, _kind);
+            var saved = _editing is Guid id ? await Client.UpdateQuest(id, request, _life.Token) : await Client.CreateQuest(request, _life.Token);
+            if (holdId != HoldId || subject != Auth.Subject || ViewAs.IsActive || _disposed) return;
+            _quests = [.. _quests.Where(q => q.Id != saved.Id), saved]; Cancel(); _notice = saved.Published ? "Questen er gemt og udgivet til holdet." : "Questen er gemt som kladde.";
+            await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed) _error = ex is LearningException ? ex.Message : "Questen kunne ikke gemmes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    private static string ModeLabel(string mode) => mode switch { "group" => "Gruppeaflevering", "either" => "Individuel eller gruppe", _ => "Individuel aflevering" };
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _life.Cancel(); _life.Dispose(); }
+}

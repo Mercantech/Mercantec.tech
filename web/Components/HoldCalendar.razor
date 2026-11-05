@@ -1,0 +1,170 @@
+@using System.Globalization
+@using Mercantec.Tech.Web.Learning
+@inject LearningClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+
+<section class="hold-calendar" aria-label="Holdets kalender">
+    <div class="hc-heading"><div><h2>Holdets kalender</h2><p>Undervisning, begivenheder og questfrister samlet. Alle tider er dansk tid.</p></div>@if (_canManage) { <button type="button" class="action" @onclick="() => New(_anchor)" disabled="@_busy"><UiIcon Name="plus" /> Opret begivenhed</button> }</div>
+    @if (_error is not null) { <p class="hc-error" role="alert">@_error</p> }
+    @if (_notice is not null) { <p role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter kalender…</p> }
+    else
+    {
+        @if (_editingOpen && _canManage)
+        {
+            <form class="hc-editor" @onsubmit="Save" @onsubmit:preventDefault>
+                <h3>@(_editing is null ? "Opret begivenhed" : "Redigér begivenhed")</h3>
+                <fieldset disabled="@_busy">
+                    <div class="hc-fields"><label class="field">Titel<input @bind="_title" maxlength="200" required /></label><label class="field">Type<select @bind="_kind"><option value="teaching">Undervisning</option><option value="workshop">Workshop</option><option value="exam">Prøve / eksamen</option><option value="other">Andet</option></select></label></div>
+                    <div class="hc-fields"><label class="field">Start (dansk tid)<input type="datetime-local" value="@_start" @onchange="e => _start = e.Value?.ToString() ?? string.Empty" required /></label><label class="field">Slut (dansk tid)<input type="datetime-local" value="@_end" @onchange="e => _end = e.Value?.ToString() ?? string.Empty" required /></label></div>
+                    <label class="field">Lokale / sted<input @bind="_location" maxlength="200" placeholder="Fx lokale 204 eller online" /></label>
+                    <label class="field">Beskrivelse<textarea @bind="_description" maxlength="4000" rows="3"></textarea></label>
+                    <div class="actions"><button type="submit" class="action" disabled="@string.IsNullOrWhiteSpace(_title)">@(_busy ? "Gemmer…" : "Gem begivenhed")</button><button type="button" class="secondary" @onclick="Cancel">Annullér</button></div>
+                </fieldset>
+            </form>
+        }
+        <div class="hc-toolbar"><div class="hc-period"><button type="button" class="secondary" aria-label="Forrige periode" @onclick="() => Move(-1)">‹</button><h3>@PeriodLabel</h3><button type="button" class="secondary" aria-label="Næste periode" @onclick="() => Move(1)">›</button><button type="button" class="secondary" @onclick="Today">I dag</button></div><div class="hc-views" role="group" aria-label="Kalendervisning">@foreach (var view in new[] { "week", "month", "list" }) { <button type="button" class="secondary @(_view == view ? "active" : "")" aria-pressed="@(_view == view)" @onclick="() => _view = view">@(view == "week" ? "Uge" : view == "month" ? "Måned" : "Liste")</button> }</div></div>
+        <div class="hc-legend"><span class="hc-event-dot"></span> Begivenhed <span class="hc-deadline-dot"></span> Questfrist</div>
+        @if (_view == "list")
+        {
+            var entries = Entries.Where(e => Day(e.End) >= _anchor && Day(e.Start) < _anchor.AddDays(31)).ToArray();
+            @if (entries.Length == 0) { <div class="hc-empty"><h3>Kalenderen er åben</h3><p>Ingen begivenheder eller questfrister de næste 31 dage.</p></div> }
+            @foreach (var dayGroup in entries.GroupBy(e => Day(e.Start) < _anchor ? _anchor : Day(e.Start)))
+            {
+                <div class="hc-agenda-day"><h4>@dayGroup.Key.ToString("dddd d. MMMM", Danish)</h4>@foreach (var entry in dayGroup) { <div class="hc-agenda-entry @(entry.QuestId is null ? "event" : "deadline")"><span>@HoldTime.Local(entry.Start).ToString("HH:mm")</span><div><strong>@entry.Title</strong>@if (entry.QuestId is Guid questId) { <p>Questfrist · <a href="/quests/@questId">Åbn quest</a></p> } else { <p>@TypeLabel(entry.Kind) @if (!string.IsNullOrWhiteSpace(entry.Location)) { <span>· @entry.Location</span> }</p>@if (!string.IsNullOrWhiteSpace(entry.Description)) { <p class="hc-description">@entry.Description</p> } }</div>@if (entry.Event is HoldCalendarEventView item && _canManage) { <button type="button" class="secondary" @onclick="() => Edit(item)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => AskDelete(item)" disabled="@_busy">Slet</button> }</div> }</div>
+            }
+        }
+        else
+        {
+            <div class="hc-scroll"><div class="hc-grid @(_view == "month" ? "month" : "week")" role="list" aria-label="Dage i kalenderen">
+                @foreach (var day in VisibleDays)
+                {
+                    var todaysEntries = Entries.Where(e => Day(e.Start) <= day && Day(e.End) >= day).ToArray();
+                    <div role="listitem" class="hc-day @(day == Day(DateTimeOffset.UtcNow) ? "today" : "") @(_view == "month" && day.Month != _anchor.Month ? "outside" : "")">
+                        <div class="hc-day-heading"><span>@day.ToString("ddd", Danish)</span><strong>@day.Day</strong>@if (_canManage) { <button type="button" class="hc-add" aria-label="@($"Opret begivenhed {day:dd.MM.yyyy}")" @onclick="() => New(day)" disabled="@_busy">+</button> }</div>
+                        @foreach (var entry in todaysEntries)
+                        {
+                            @if (entry.QuestId is Guid questId) { <a class="hc-grid-entry deadline" href="/quests/@questId"><span>@HoldTime.Local(entry.Start).ToString("HH:mm") · Questfrist</span><strong>@entry.Title</strong></a> }
+                            else { <button type="button" class="hc-grid-entry event" @onclick="() => _selected = entry.Event"><span>@(Day(entry.Start) < day ? "Fortsætter" : HoldTime.Local(entry.Start).ToString("HH:mm"))</span><strong>@entry.Title</strong>@if (!string.IsNullOrWhiteSpace(entry.Location)) { <small>@entry.Location</small> }</button> }
+                        }
+                    </div>
+                }
+            </div></div>
+            @if (!Entries.Any(e => Day(e.Start) <= VisibleDays.Last() && Day(e.End) >= VisibleDays.First())) { <p class="hc-hint">Ingen begivenheder eller frister i denne periode.@if (_canManage) { <span> Vælg + på en dag for at planlægge noget.</span> }</p> }
+        }
+        @if (_selected is HoldCalendarEventView selected)
+        {
+            <article class="hc-details"><div class="hc-heading"><h3>@selected.Title</h3><button type="button" class="secondary" @onclick="() => _selected = null" aria-label="Luk begivenhedsdetaljer">Luk</button></div><p>@TypeLabel(selected.Kind) · @HoldTime.Display(selected.StartUtc) – @HoldTime.Display(selected.EndUtc)</p>@if (!string.IsNullOrWhiteSpace(selected.Location)) { <p><UiIcon Name="pin" /> @selected.Location</p> }<p class="hc-description">@selected.Description</p>@if (_canManage) { <div class="actions"><button type="button" class="secondary" @onclick="() => Edit(selected)" disabled="@_busy">Redigér begivenhed</button><button type="button" class="secondary" @onclick="() => AskDelete(selected)" disabled="@_busy">Slet begivenhed</button></div> }</article>
+        }
+        @if (_deleting is HoldCalendarEventView deleting)
+        {
+            <div class="hc-delete" role="alert"><p>Slet <strong>@deleting.Title</strong> fra holdets kalender?</p><div class="actions"><button type="button" class="action" @onclick="Delete" disabled="@_busy">Slet begivenhed</button><button type="button" class="secondary" @onclick="() => _deleting = null" disabled="@_busy">Behold begivenhed</button></div></div>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public bool StartCreating { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private static readonly CultureInfo Danish = CultureInfo.GetCultureInfo("da-DK");
+    private readonly CancellationTokenSource _life = new();
+    private HoldCalendarEventView[] _events = [];
+    private QuestView[] _quests = [];
+    private (Guid Hold, string? Account, bool Preview, bool Authenticated)? _context;
+    private (Guid Hold, string? Account, bool Preview, bool Authenticated) CurrentContext => (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
+    private string? _error, _notice;
+    private bool _loading, _busy, _canManage, _editingOpen, _disposed, _startHandled;
+    private int _loadVersion;
+    private HoldCalendarEventView? _editing, _selected, _deleting;
+    private DateOnly _anchor = Day(DateTimeOffset.UtcNow);
+    private string _view = "week", _title = "", _description = "", _kind = "teaching", _location = "", _start = "", _end = "";
+    private static DateOnly Day(DateTimeOffset value) => DateOnly.FromDateTime(HoldTime.Local(value));
+    private IEnumerable<Entry> Entries => _events.Select(e => new Entry(e.Title, e.StartUtc, e.EndUtc.AddTicks(-1), e.Kind, e.Location, e.Description, e, null))
+        .Concat(_quests.Where(q => q.DeadlineUtc is not null).Select(q => new Entry(q.Title + (q.Published ? "" : " (kladde)"), q.DeadlineUtc!.Value, q.DeadlineUtc.Value, q.Kind, "", q.Description, null, q.Id))).OrderBy(e => e.Start);
+    private DateOnly[] VisibleDays
+    {
+        get
+        {
+            var start = _view == "month" ? new DateOnly(_anchor.Year, _anchor.Month, 1) : _anchor;
+            start = start.AddDays(-((int)start.DayOfWeek + 6) % 7);
+            var count = _view == "month" ? ((new DateOnly(_anchor.Year, _anchor.Month, DateTime.DaysInMonth(_anchor.Year, _anchor.Month)).DayNumber - start.DayNumber) / 7 + 1) * 7 : 7;
+            return Enumerable.Range(0, count).Select(start.AddDays).ToArray();
+        }
+    }
+    private string PeriodLabel => _view == "month" ? _anchor.ToString("MMMM yyyy", Danish) : _view == "list" ? $"Fra {_anchor.ToString("d. MMMM", Danish)}" : $"{VisibleDays[0].ToString("d. MMM", Danish)} – {VisibleDays[^1].ToString("d. MMM yyyy", Danish)}";
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_context != CurrentContext)
+        {
+            _events = []; _quests = []; _canManage = false; Cancel(); _selected = _deleting = null;
+            await Load();
+        }
+        if (StartCreating && !_startHandled && _canManage) { New(_anchor); _startHandled = true; }
+        if (!StartCreating) _startHandled = false;
+    }
+    private void Changed() => _ = InvokeAsync(async () =>
+    {
+        // Token renewal does not change the editing context or discard the current event.
+        if (_disposed || _context == CurrentContext) return;
+        _events = []; _quests = []; _canManage = false; Cancel(); _selected = _deleting = null;
+        await Load();
+        if (!_disposed) StateHasChanged();
+    });
+    private async Task Load()
+    {
+        _context = CurrentContext;
+        var version = ++_loadVersion;
+        if (!Auth.IsAuthenticated || HoldId == Guid.Empty || _disposed) { _loading = false; return; }
+        var holdId = HoldId; var subject = Auth.Subject; var preview = ViewAs.IsActive; _loading = true; _error = null;
+        try
+        {
+            var holds = await Client.Holds(_life.Token); var events = await Client.Calendar(holdId, _life.Token); var quests = await Client.Quests(holdId, _life.Token);
+            if (holdId != HoldId || subject != Auth.Subject || preview != ViewAs.IsActive || version != _loadVersion || _disposed) return;
+            _events = events; _quests = preview ? quests.Where(q => q.Published).ToArray() : quests; _canManage = !preview && holds.Any(h => h.Id == holdId && h.CanManage);
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject && preview == ViewAs.IsActive && version == _loadVersion) _error = ex is LearningException ? ex.Message : "Kalenderen kunne ikke hentes. Prøv igen."; }
+        finally { if (version == _loadVersion) _loading = false; }
+    }
+    private void Move(int direction) { _anchor = _view == "month" ? _anchor.AddMonths(direction) : _anchor.AddDays(direction * (_view == "list" ? 31 : 7)); _selected = null; }
+    private void Today() { _anchor = Day(DateTimeOffset.UtcNow); _selected = null; }
+    private void New(DateOnly day) { _editing = null; _editingOpen = true; _title = _description = _location = ""; _kind = "teaching"; _start = day.ToString("yyyy-MM-dd") + "T08:00"; _end = day.ToString("yyyy-MM-dd") + "T09:00"; _deleting = _selected = null; _notice = null; }
+    private void Cancel() { _editingOpen = false; _editing = null; }
+    private void Edit(HoldCalendarEventView item) { _editing = item; _editingOpen = true; _title = item.Title; _description = item.Description; _kind = item.Kind; _location = item.Location; _start = HoldTime.Input(item.StartUtc); _end = HoldTime.Input(item.EndUtc); _deleting = _selected = null; _notice = null; }
+    private void AskDelete(HoldCalendarEventView item) { _deleting = item; _notice = null; }
+    private async Task Save()
+    {
+        if (_busy || !_canManage || ViewAs.IsActive) return;
+        if (!HoldTime.TryUtc(_start, out var start) || !HoldTime.TryUtc(_end, out var end)) { _error = "Vælg gyldige tidspunkter i dansk tid. Undgå timen ved skift mellem sommer- og vintertid."; return; }
+        if (end <= start || end - start > TimeSpan.FromDays(31)) { _error = "Slut skal være efter start. En begivenhed må højst vare 31 dage."; return; }
+        var holdId = HoldId; var subject = Auth.Subject; _busy = true; _error = null;
+        try
+        {
+            var body = new SaveHoldCalendarEvent(holdId, _title.Trim(), _description, start, end, _location, _kind, _editing?.Version ?? 0);
+            var saved = _editing is not null ? await Client.UpdateEvent(_editing.Id, body, _life.Token) : await Client.CreateEvent(body, _life.Token);
+            if (holdId != HoldId || subject != Auth.Subject || ViewAs.IsActive || _disposed) return;
+            _events = [.. _events.Where(e => e.Id != saved.Id), saved]; Cancel(); _anchor = Day(saved.StartUtc); _notice = "Begivenheden er gemt i holdets kalender."; await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed) _error = ex is LearningException ? ex.Message : "Begivenheden kunne ikke gemmes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    private async Task Delete()
+    {
+        if (_busy || !_canManage || ViewAs.IsActive || _deleting is null) return;
+        var item = _deleting; var holdId = HoldId; var subject = Auth.Subject; _busy = true; _error = null;
+        try
+        {
+            await Client.DeleteEvent(holdId, item.Id, item.Version, _life.Token);
+            if (holdId != HoldId || subject != Auth.Subject || ViewAs.IsActive || _disposed) return;
+            _events = _events.Where(e => e.Id != item.Id).ToArray(); _deleting = _selected = null; _notice = "Begivenheden er slettet."; await OnChanged.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed) _error = ex is LearningException ? ex.Message : "Begivenheden kunne ikke slettes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    private static string TypeLabel(string kind) => kind switch { "workshop" => "Workshop", "exam" => "Prøve / eksamen", "other" => "Begivenhed", _ => "Undervisning" };
+    private sealed record Entry(string Title, DateTimeOffset Start, DateTimeOffset End, string Kind, string Location, string Description, HoldCalendarEventView? Event, Guid? QuestId);
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _life.Cancel(); _life.Dispose(); }
+}

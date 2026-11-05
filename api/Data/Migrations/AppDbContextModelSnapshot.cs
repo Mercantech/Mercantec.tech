@@ -313,6 +313,52 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("hold", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldCalendarEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("EndUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("StartUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId", "StartUtc");
+
+                    b.ToTable("hold_calendar_events", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldLectioSource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -403,6 +449,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
                     b.Property<Guid>("HoldId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasDefaultValue("main");
 
                     b.Property<bool>("Published")
                         .HasColumnType("boolean");
@@ -971,6 +1024,15 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Forloeb");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldCalendarEvent", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldLectioSource", b =>

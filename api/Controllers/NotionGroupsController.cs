@@ -74,6 +74,33 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
         return Ok(View(await Query(holdId).AsNoTracking().SingleAsync(g => g.Id == groupId, ct)));
     }
 
+    [HttpPost("groups/batch")]
+    public async Task<IActionResult> CreateBatch(Guid holdId, SaveNotionGroupBatch request, CancellationToken ct)
+    {
+        if (!await access.CanManageAsync(holdId, User, ct)) return NotFound();
+        if (request.Groups is null || request.Groups.Length is < 1 or > 100
+            || request.Groups.Any(g => g is null || !ValidShape(g))
+            || request.Groups.Select(g => g.Name.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != request.Groups.Length)
+            return BadRequest(new { error = "invalid_group_batch" });
+
+        var ids = request.Groups.SelectMany(g => g.MembershipIds).ToArray();
+        // A roulette round assigns each pupil once; membership in older rounds is preserved.
+        if (ids.Length > 250 || ids.Distinct().Count() != ids.Length)
+            return BadRequest(new { error = "invalid_group_batch" });
+        var members = await db.Memberships.Where(m => m.HoldId == holdId && ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
+        if (members.Count != ids.Length) return BadRequest(new { error = "invalid_group_batch" });
+        var groups = request.Groups.Select(draft =>
+        {
+            var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = holdId, Name = draft.Name.Trim() };
+            foreach (var id in draft.MembershipIds) group.Members.Add(new() { MembershipId = id, Membership = members[id] });
+            return group;
+        }).ToArray();
+        db.LearningGroups.AddRange(groups);
+        // One SaveChanges transaction stores the complete preview or none of it.
+        await db.SaveChangesAsync(ct);
+        return Ok(groups.Select(View).ToArray());
+    }
+
     private async Task<NotionGroupView[]> AccessibleGroups(Guid holdId, CancellationToken ct)
     {
         var sub = UserClaims.GetSub(User);
@@ -87,12 +114,14 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
         .Include(g => g.Members).ThenInclude(m => m.Membership);
     private async Task<List<Membership>?> ValidMembers(Guid holdId, SaveNotionGroup request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 120 || request.Name.Any(char.IsControl)
-            || request.MembershipIds is null || request.MembershipIds.Length is < 1 or > 250
-            || request.MembershipIds.Distinct().Count() != request.MembershipIds.Length) return null;
+        if (!ValidShape(request)) return null;
         var members = await db.Memberships.Where(m => m.HoldId == holdId && request.MembershipIds.Contains(m.Id)).ToListAsync(ct);
         return members.Count == request.MembershipIds.Length ? members : null;
     }
+    private static bool ValidShape(SaveNotionGroup request) =>
+        !string.IsNullOrWhiteSpace(request.Name) && request.Name.Length <= 120 && !request.Name.Any(char.IsControl)
+        && request.MembershipIds is not null && request.MembershipIds.Length is >= 1 and <= 250
+        && request.MembershipIds.Distinct().Count() == request.MembershipIds.Length;
     private static NotionGroupView View(LearningGroup group) => new(group.Id, group.HoldId, group.Name, group.Version,
         group.Members.Where(m => m.Membership is not null).OrderBy(m => m.Membership.DisplayName)
             .Select(m => new NotionMember(m.MembershipId, m.Membership.DisplayName ?? "Elev")).ToArray());

@@ -12,6 +12,11 @@ public sealed class LearningClient(HttpClient http)
     public Task<LearningHold[]> Holds(CancellationToken ct) => Get<LearningHold[]>("quests/holds", ct);
     public Task<LearningMember[]> Members(Guid holdId, CancellationToken ct) => Get<LearningMember[]>($"quests/members?holdId={holdId}", ct);
     public Task<QuestView[]> Quests(Guid holdId, CancellationToken ct) => Get<QuestView[]>($"quests?holdId={holdId}", ct);
+    public Task<QuestView> Quest(Guid id, CancellationToken ct) => Get<QuestView>($"quests/{id}", ct);
+    public Task<HoldCalendarEventView[]> Calendar(Guid holdId, CancellationToken ct) => Get<HoldCalendarEventView[]>($"holds/{holdId}/calendar", ct);
+    public Task<HoldCalendarEventView> CreateEvent(SaveHoldCalendarEvent body, CancellationToken ct) => Send<HoldCalendarEventView>(HttpMethod.Post, $"holds/{body.HoldId}/calendar", body, ct);
+    public Task<HoldCalendarEventView> UpdateEvent(Guid id, SaveHoldCalendarEvent body, CancellationToken ct) => Send<HoldCalendarEventView>(HttpMethod.Put, $"holds/{body.HoldId}/calendar/{id}", body, ct);
+    public Task<System.Text.Json.JsonElement> DeleteEvent(Guid holdId, Guid id, int version, CancellationToken ct) => Send<System.Text.Json.JsonElement>(HttpMethod.Delete, $"holds/{holdId}/calendar/{id}?version={version}", new { }, ct);
     public Task<QuestView> CreateQuest(SaveQuest body, CancellationToken ct) => Send<QuestView>(HttpMethod.Post, "quests", body, ct);
     public Task<QuestView> UpdateQuest(Guid id, SaveQuest body, CancellationToken ct) => Send<QuestView>(HttpMethod.Put, $"quests/{id}", body, ct);
     public Task<LearningGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<LearningGroupView[]>($"groups?holdId={holdId}", ct);

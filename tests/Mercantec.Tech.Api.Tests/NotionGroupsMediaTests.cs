@@ -95,6 +95,40 @@ public sealed class NotionGroupsMediaTests : IAsyncLifetime
         Assert.Equal(own.Id, Assert.Single(profile.Groups).Id);
     }
 
+    [Fact]
+    public async Task RouletteBatchPreservesPreviousGroupsAndUsesSameGroupsAsQuests()
+    {
+        var api = Groups(teacher, true);
+        var original = Value<NotionGroupView>(await api.Create(holdId, new("Tidligere gruppe", [studentId, shadowId]), default));
+        var added = Value<NotionGroupView[]>(await api.CreateBatch(holdId,
+            new([new("Runde 2 A", [studentId]), new("Runde 2 B", [shadowId])]), default));
+        Assert.Equal(2, added.Length);
+        var groups = Value<NotionGroupView[]>(await api.Groups(holdId, default));
+        Assert.Equal(3, groups.Length);
+        Assert.Contains(groups, g => g.Id == original.Id && g.Members.Length == 2);
+        Assert.Equal(2, Value<NotionHoldMember[]>(await api.Members(holdId, default)).Single(m => m.Id == studentId).GroupIds.Length);
+        var learning = new GroupsController(db, new(db)) { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = User(teacher, true) } } };
+        var submissionGroups = Value<LearningGroupView[]>(await learning.List(holdId, default));
+        Assert.All(added, group => Assert.Contains(submissionGroups, g => g.Id == group.Id));
+    }
+
+    [Fact]
+    public async Task InvalidRouletteBatchCreatesNothingAndEnforcesHoldAccess()
+    {
+        var api = Groups(teacher, true);
+        Assert.IsType<BadRequestObjectResult>(await api.CreateBatch(holdId,
+            new([new("Gyldig", [studentId]), new("Udenfor holdet", [otherStudentId])]), default));
+        Assert.Empty(await db.LearningGroups.ToArrayAsync());
+        Assert.IsType<BadRequestObjectResult>(await api.CreateBatch(holdId,
+            new([new("A", [studentId]), new("B", [studentId])]), default));
+        Assert.IsType<BadRequestObjectResult>(await api.CreateBatch(holdId,
+            new([new("Samme", [studentId]), new(" samme ", [shadowId])]), default));
+        Assert.IsType<BadRequestObjectResult>(await api.CreateBatch(holdId, new([]), default));
+        Assert.IsType<NotFoundResult>(await Groups(student).CreateBatch(holdId, new([new("A", [studentId])]), default));
+        Assert.IsType<NotFoundResult>(await Groups(outsider, true).CreateBatch(holdId, new([new("A", [studentId])]), default));
+        Assert.Empty(await db.LearningGroups.ToArrayAsync());
+    }
+
     private static byte[] Mp4() => [0, 0, 0, 20, (byte)'f', (byte)'t', (byte)'y', (byte)'p', (byte)'i', (byte)'s', (byte)'o', (byte)'m', 0, 0, 0, 0, 1, 2, 3, 4];
     private static FormFile Form(byte[] bytes, string name, string contentType = "application/octet-stream") => new(new MemoryStream(bytes), 0, bytes.Length, "file", name)
         { Headers = new HeaderDictionary(), ContentType = contentType };

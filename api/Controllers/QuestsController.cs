@@ -39,6 +39,16 @@ public sealed class QuestsController(AppDbContext db, CourseAccess access) : Con
         return Ok(quests.OrderBy(q => q.CreatedAtUtc).Select(q => View(q, manage)).ToArray());
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+    {
+        var quest = await db.LearningQuests.AsNoTracking().SingleOrDefaultAsync(q => q.Id == id, ct);
+        if (quest is null || !await access.CanAccessAsync(quest.HoldId, User, ct)) return NotFound();
+        var manage = await access.CanManageAsync(quest.HoldId, User, ct);
+        if (!quest.Published && !manage) return NotFound();
+        return Ok(View(quest, manage));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(SaveQuest request, CancellationToken ct)
     {
@@ -47,13 +57,15 @@ public sealed class QuestsController(AppDbContext db, CourseAccess access) : Con
         if (!await access.CanManageAsync(request.HoldId, User, ct)) return NotFound();
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Length > 200
             || request.Description is null || request.Description.Length > 20000
-            || request.SubmissionMode is not ("individual" or "group" or "either"))
+            || request.SubmissionMode is not ("individual" or "group" or "either")
+            || request.Kind is not ("main" or "daily" or "side"))
             return BadRequest(new { error = "invalid_quest" });
         var quest = new LearningQuest
         {
             Id = Guid.NewGuid(), HoldId = request.HoldId, Title = request.Title.Trim(),
             Description = request.Description, SubmissionMode = request.SubmissionMode,
-            Published = request.Published, DeadlineUtc = request.DeadlineUtc, CreatedAtUtc = DateTimeOffset.UtcNow
+            Published = request.Published, DeadlineUtc = request.DeadlineUtc?.ToUniversalTime(), Kind = request.Kind,
+            CreatedAtUtc = DateTimeOffset.UtcNow
         };
         db.LearningQuests.Add(quest);
         await db.SaveChangesAsync(ct);
@@ -67,7 +79,8 @@ public sealed class QuestsController(AppDbContext db, CourseAccess access) : Con
         if (quest is null || !await access.CanManageAsync(quest.HoldId, User, ct)) return NotFound();
         if (request.HoldId != quest.HoldId || string.IsNullOrWhiteSpace(request.Title) || request.Title.Length > 200
             || request.Description is null || request.Description.Length > 20000
-            || request.SubmissionMode is not ("individual" or "group" or "either"))
+            || request.SubmissionMode is not ("individual" or "group" or "either")
+            || request.Kind is not ("main" or "daily" or "side"))
             return BadRequest(new { error = "invalid_quest" });
         if (request.SubmissionMode != quest.SubmissionMode
             && await db.QuestSubmissions.AnyAsync(s => s.QuestId == id, ct))
@@ -76,11 +89,12 @@ public sealed class QuestsController(AppDbContext db, CourseAccess access) : Con
         quest.Description = request.Description;
         quest.Published = request.Published;
         quest.SubmissionMode = request.SubmissionMode;
-        quest.DeadlineUtc = request.DeadlineUtc;
+        quest.DeadlineUtc = request.DeadlineUtc?.ToUniversalTime();
+        quest.Kind = request.Kind;
         await db.SaveChangesAsync(ct);
         return Ok(View(quest, true));
     }
 
     private static QuestView View(LearningQuest q, bool manage) =>
-        new(q.Id, q.HoldId, q.Title, q.Description, q.SubmissionMode, q.Published, q.DeadlineUtc, manage);
+        new(q.Id, q.HoldId, q.Title, q.Description, q.SubmissionMode, q.Published, q.DeadlineUtc, manage, q.Kind);
 }

@@ -31,6 +31,7 @@ public sealed class LearningQuest
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
     public string SubmissionMode { get; set; } = "individual";
+    public string Kind { get; set; } = "main";
     public bool Published { get; set; }
     public DateTimeOffset? DeadlineUtc { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }

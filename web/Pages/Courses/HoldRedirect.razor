@@ -1,0 +1,39 @@
+@page "/holds/{HoldId:guid}"
+@inject HttpClient Http
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Åbner hold · LUP</PageTitle>
+@if (_error is not null) { <p role="alert">@_error <a href="/courses">Alle hold</a></p> }
+else if (Auth.IsInitialized && !Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne holdet.</p> }
+else { <p role="status">Åbner holdet…</p> }
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [SupplyParameterFromQuery(Name = "view")] public string? View { get; set; }
+    [SupplyParameterFromQuery(Name = "create")] public bool Create { get; set; }
+    private readonly CancellationTokenSource _life = new();
+    private string? _error;
+    protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
+    protected override Task OnParametersSetAsync() => Open();
+    private void Changed() => _ = InvokeAsync(Open);
+    private async Task Open()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || _life.IsCancellationRequested) return;
+        try
+        {
+            var hold = HoldId;
+            using var response = await Http.GetAsync($"hold-workspace/holds/{hold}?publishedOnly={ViewAs.IsActive.ToString().ToLowerInvariant()}", _life.Token);
+            if (!response.IsSuccessStatusCode) { _error = "Holdet findes ikke, eller din konto har ikke adgang til det."; return; }
+            var workspace = await response.Content.ReadFromJsonAsync<HoldWorkspaceView>(_life.Token);
+            if (workspace is not null && hold == HoldId && !_life.IsCancellationRequested)
+                Nav.NavigateTo($"/courses/{workspace.CourseId}" + (string.IsNullOrWhiteSpace(View) ? "" : $"?view={Uri.EscapeDataString(View)}&create={Create.ToString().ToLowerInvariant()}"), replace:true);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException) { _error = "Holdet kunne ikke åbnes. Prøv igen fra holdoversigten."; }
+        StateHasChanged();
+    }
+    public void Dispose() { Auth.AuthStateChanged -= Changed; _life.Cancel(); _life.Dispose(); }
+}

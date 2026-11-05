@@ -18,6 +18,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureLearning(modelBuilder);
+        ConfigureHoldCalendar(modelBuilder);
         ConfigureNotion(modelBuilder);
         ConfigureNotionGroupsMedia(modelBuilder);
         ConfigurePreviews(modelBuilder);

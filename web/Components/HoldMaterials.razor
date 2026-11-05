@@ -1,0 +1,174 @@
+@using Mercantec.Tech.Web.Learning
+@using Mercantec.Tech.Web.Pages.Learning
+@inject LearningClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+
+<section class="hold-materials" aria-label="Holdets materialer">
+    <div class="materials-heading"><div><h2>Materialer <span class="materials-count">@VisibleMaterials.Count()</span></h2><p>Oplæg, øvelser og filer til undervisningen samlet på holdet.</p></div><button type="button" class="secondary" @onclick="Reload" disabled="@(_busy || _loading || !Auth.IsAuthenticated)">Opdatér</button></div>
+    @if (_error is not null) { <p class="materials-error" role="alert">@_error</p> }
+    @if (_notice is not null) { <p class="materials-notice" role="status">@_notice</p> }
+    @if (!Auth.IsInitialized || _loading) { <p role="status">Henter holdets materialer…</p> }
+    else if (!Auth.IsAuthenticated) { <p>Log ind for at åbne holdets materialer.</p> }
+    else
+    {
+        @if (MayManage)
+        {
+            <details class="materials-upload" open="@_uploadOpen">
+                <summary @onclick="() => _uploadOpen = !_uploadOpen" @onclick:preventDefault>Tilføj undervisningsmateriale</summary>
+                <form @onsubmit="Upload" @onsubmit:preventDefault>
+                    <fieldset disabled="@_busy">
+                        <div class="materials-fields"><label class="field">Titel<input @bind="_title" maxlength="200" placeholder="Fx Introduktion til versionsstyring" /></label><label class="field">Vælg fil<InputFile OnChange="SelectFile" @key="_fileInputKey" /></label></div>
+                        <label class="field">Beskrivelse<textarea @bind="_description" maxlength="4000" rows="3" placeholder="Hvad skal eleverne bruge materialet til?"></textarea></label>
+                        <label class="materials-check"><input type="checkbox" @bind="_published" /> Udgiv til eleverne</label>
+                        <div class="materials-actions"><button class="action" disabled="@(_busy || _file is null)">@(_busy ? "Gemmer materiale…" : "Gem materiale")</button><span class="materials-help">Højst 100 MiB. En tom titel bruger filens navn.</span></div>
+                        @if (_file is not null) { <p class="materials-help">Valgt: @_file.Name (@Size(_file.Size))</p> }
+                    </fieldset>
+                </form>
+            </details>
+        }
+        @if (!VisibleMaterials.Any())
+        {
+            <div class="materials-empty"><UiIcon Name="folder" /><div><h3>Ingen materialer endnu</h3><p>@(MayManage ? "Tilføj et oplæg eller en øvelse, og vælg hvornår eleverne skal se det." : "Her finder du materialerne, når din underviser udgiver dem.")</p></div></div>
+        }
+        else
+        {
+            <div class="materials-list">
+                @foreach (var material in VisibleMaterials)
+                {
+                    <article class="material-row"><div class="material-file-mark"><UiIcon Name="book" /></div><div class="material-copy"><div class="material-title"><h3>@material.Title</h3>@if (!material.Published) { <span class="material-draft">Kladde</span> }</div>@if (!string.IsNullOrWhiteSpace(material.Description)) { <p>@material.Description</p> }</div><div class="materials-actions"><button type="button" class="secondary" @onclick="() => OpenFile(material.FileAssetId)">Åbn fil</button>@if (MayManage) { <button type="button" class="secondary" disabled="@_busy" @onclick="() => Toggle(material)">@(material.Published ? "Skjul for elever" : "Udgiv til elever")</button> }</div></article>
+                }
+            </div>
+        }
+        @if (_viewer is Guid fileId)
+        {
+            <section class="materials-viewer" aria-label="Filvisning"><div class="materials-heading"><h3>Filvisning</h3><button type="button" class="secondary" @onclick="() => _viewer = null">Luk filvisning</button></div><FileViewer FileId="fileId" @key="fileId" /></section>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public bool CanManage { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private CancellationTokenSource _scope = new();
+    private (Guid Hold, string? Subject, bool Preview)? _context;
+    private CourseMaterialView[] _materials = [];
+    private IBrowserFile? _file;
+    private UploadedFile? _uploaded;
+    private Guid? _viewer;
+    private int _generation, _fileInputKey;
+    private string _title = "", _description = "";
+    private string? _error, _notice;
+    private bool _published, _serverCanManage, _busy, _loading, _disposed, _uploadOpen;
+    private bool MayManage => CanManage && _serverCanManage && Auth.IsAuthenticated && !ViewAs.IsActive;
+    private IEnumerable<CourseMaterialView> VisibleMaterials => _materials.Where(m => MayManage || m.Published);
+
+    protected override void OnInitialized() { Auth.AuthStateChanged += ContextChanged; ViewAs.Changed += ContextChanged; }
+    protected override async Task OnParametersSetAsync()
+    {
+        await SyncContext();
+        if (_viewer is Guid file && !VisibleMaterials.Any(m => m.FileAssetId == file)) _viewer = null;
+    }
+    private void ContextChanged() => _ = InvokeAsync(async () => { await SyncContext(); if (!_disposed) StateHasChanged(); });
+    private async Task SyncContext()
+    {
+        if (_disposed || !Auth.IsInitialized) return;
+        var next = (HoldId, Auth.Subject, ViewAs.IsActive);
+        if (_context is { } current && current == next) return;
+        _context = next;
+        _scope.Cancel(); _scope.Dispose(); _scope = new(); _generation++;
+        _materials = []; _viewer = null; _serverCanManage = false; _busy = false; _loading = false;
+        _error = _notice = null; ResetUpload();
+        if (Auth.IsAuthenticated && HoldId != Guid.Empty) await Load(_generation, _scope.Token);
+    }
+    private bool Current(int generation) => !_disposed && generation == _generation && Auth.IsAuthenticated
+        && _context is { } current && current == (HoldId, Auth.Subject, ViewAs.IsActive);
+    private async Task Reload()
+    {
+        if (_busy || _loading || !Auth.IsAuthenticated) return;
+        _viewer = null;
+        await Load(_generation, _scope.Token);
+    }
+    private async Task Load(int generation, CancellationToken ct)
+    {
+        _loading = true; _error = null;
+        try
+        {
+            var holds = await Client.Holds(ct);
+            var materials = await Client.Materials(HoldId, ct);
+            if (!Current(generation) || ct.IsCancellationRequested) return;
+            _serverCanManage = holds.Any(h => h.Id == HoldId && h.CanManage);
+            _materials = materials;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException)
+        { if (Current(generation)) _error = ex is LearningException ? ex.Message : "Materialerne kunne ikke hentes. Prøv igen."; }
+        finally { if (Current(generation)) _loading = false; }
+    }
+    private void ResetUpload()
+    {
+        _file = null; _uploaded = null; _title = _description = ""; _published = false; _uploadOpen = false; _fileInputKey++;
+    }
+    private void SelectFile(InputFileChangeEventArgs e)
+    {
+        if (_busy || !MayManage) return;
+        _file = null; _uploaded = null; _error = null; _notice = null;
+        if (e.File.Size > LearningClient.MaxFileBytes) { _error = "Filen er for stor. Vælg en fil på højst 100 MiB."; return; }
+        _file = e.File;
+    }
+    private void OpenFile(Guid id)
+    {
+        if (Auth.IsAuthenticated && VisibleMaterials.Any(m => m.FileAssetId == id)) _viewer = id;
+    }
+    private async Task Upload()
+    {
+        if (_busy || !MayManage || _file is null) return;
+        var title = string.IsNullOrWhiteSpace(_title) ? _file.Name : _title.Trim();
+        if (title.Length > 200) { _error = "Titlen må højst være 200 tegn. Skriv en kortere titel."; return; }
+        var generation = _generation; var ct = _scope.Token; var hold = HoldId;
+        var file = _file; var description = _description; var published = _published;
+        _busy = true; _error = _notice = null;
+        try
+        {
+            var uploaded = _uploaded ?? await Client.Upload(file, hold, ct);
+            if (!Current(generation) || ct.IsCancellationRequested || !MayManage) return;
+            // Retain a successful upload if saving its material fails, so retries reuse the file.
+            _uploaded = uploaded;
+            var material = await Client.AddMaterial(new(hold, uploaded.Id, title, description, published), ct);
+            if (!Current(generation) || ct.IsCancellationRequested) return;
+            _materials = [material, .. _materials]; ResetUpload();
+            _notice = published ? "Materialet er gemt og udgivet til eleverne." : "Materialet er gemt som kladde.";
+            await OnChanged.InvokeAsync();
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException or IOException)
+        { if (Current(generation)) _error = ex is LearningException ? ex.Message : "Materialet kunne ikke gemmes. Prøv igen."; }
+        finally { if (Current(generation)) _busy = false; }
+    }
+    private async Task Toggle(CourseMaterialView material)
+    {
+        if (_busy || !MayManage) return;
+        var generation = _generation; var ct = _scope.Token;
+        _busy = true; _error = _notice = null;
+        try
+        {
+            var updated = await Client.UpdateMaterial(material.Id, new(material.Title, material.Description, !material.Published), ct);
+            if (!Current(generation) || ct.IsCancellationRequested) return;
+            _materials = _materials.Select(m => m.Id == updated.Id ? updated : m).ToArray();
+            _notice = updated.Published ? "Materialet er udgivet til eleverne." : "Materialet er skjult for eleverne.";
+            await OnChanged.InvokeAsync();
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException)
+        { if (Current(generation)) _error = ex is LearningException ? ex.Message : "Materialet kunne ikke ændres. Prøv igen."; }
+        finally { if (Current(generation)) _busy = false; }
+    }
+    private static string Size(long size) => size >= 1024 * 1024 ? $"{size / (1024d * 1024):0.#} MiB" : $"{size / 1024d:0.#} KiB";
+    public void Dispose()
+    {
+        _disposed = true; Auth.AuthStateChanged -= ContextChanged; ViewAs.Changed -= ContextChanged;
+        _scope.Cancel(); _scope.Dispose();
+    }
+}

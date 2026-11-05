@@ -8,6 +8,12 @@ tags:
 
 # Quests og planner
 
+## Aktuel implementering
+
+Main, Daily og Side oprettes på holdets kommandocentral med beskrivelse, individuel/gruppeaflevering, frist og kladde/udgivelse. `/quests/{questId}` åbner den rigtige quest og dens afleveringer; `/afleveringer?hold={holdId}` åbner holdets samlede materiale- og afleveringsside. Kalenderen viser questfrister sammen med holdets begivenheder. Se [[Hold-dashboard]].
+
+Daily er indtil videre en type, der oprettes manuelt. Automatisk gentagelse, forudsætninger og XP/guld ved godkendelse er fortsat planlagte funktioner.
+
 ## Problem
 
 Undervisere skal kunne planlægge obligatoriske og frivillige opgaver på et forløb; elever skal se hvad der skal laves og hvornår.
@@ -22,9 +28,9 @@ Undervisere skal kunne planlægge obligatoriske og frivillige opgaver på et for
 
 ## Acceptkriterier
 
-- [ ] Underviser kan oprette/placere Main/Side/Daily på forløb
-- [ ] Elev ser egne quests og deadlines
-- [ ] Quest kan have afleveringskrav
+- [x] Underviser kan oprette/placere Main/Side/Daily på forløb
+- [x] Elev ser egne quests og deadlines
+- [x] Quest kan have afleveringskrav
 - [ ] Godkendt quest giver XP efter reglerne
 
 ## Afhængigheder

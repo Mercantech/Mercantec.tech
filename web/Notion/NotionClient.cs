@@ -18,6 +18,7 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds }, ct);
     public Task<NotionPageSummary> Unpublish(Guid id, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/unpublish", new {}, ct);
     public Task<NotionGroupView> CreateGroup(Guid holdId, string name, Guid[] membershipIds, CancellationToken ct) => Post<NotionGroupView>($"notion/holds/{holdId}/groups", new { name, membershipIds }, ct);
+    public Task<NotionGroupView[]> CreateGroupBatch(Guid holdId, SaveNotionGroup[] groups, CancellationToken ct) => Post<NotionGroupView[]>($"notion/holds/{holdId}/groups/batch", new SaveNotionGroupBatch(groups), ct);
 
     public async Task<NotionGroupView> UpdateGroup(Guid holdId, Guid id, string name, Guid[] membershipIds, int version, CancellationToken ct)
     {
@@ -48,6 +49,7 @@ public sealed class NotionClient(HttpClient http)
             throw new NotionException(code switch
             {
                 "invalid_group" => "Giv gruppen et navn, og vælg elever fra dette hold.",
+                "invalid_group_batch" => "Giv grupperne forskellige navne, og fordel hver elev én gang i denne runde (højst 250 elever og 100 grupper).",
                 "group_changed" => "Gruppen er ændret af en anden. Opdatér listen, og prøv igen.",
                 "draft_changed" or "stale_draft" or "publication_conflict" => "Kladden er ændret. Vent på lagring, og prøv at udgive igen.",
                 "invalid_assets" => "En vedhæftning er ikke tilgængelig på denne side. Fjern den, eller upload den igen.",

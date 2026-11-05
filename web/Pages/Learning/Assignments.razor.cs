@@ -12,6 +12,9 @@ public partial class Assignments
     [Inject] private LearningClient Client { get; set; } = null!;
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
+    [Parameter] public Guid QuestId { get; set; }
+    [SupplyParameterFromQuery(Name = "hold")] public Guid? RequestedHoldId { get; set; }
+    private (Guid Quest, Guid? Hold) _loadedRoute;
 
     private LearningHold[] _holds = [];
     private CourseMaterialView[] _materials = [];
@@ -30,7 +33,7 @@ public partial class Assignments
     private string _materialTitle = "", _materialDescription = "";
     private bool _materialPublished;
     private IReadOnlyList<IBrowserFile> _materialFiles = [];
-    private string _questTitle = "", _questDescription = "", _questMode = "individual";
+    private string _questTitle = "", _questDescription = "", _questMode = "individual", _questKind = "main";
     private bool _questPublished = true;
     private string _editGroupId = "", _groupName = "", _submissionGroup = "";
     private readonly HashSet<Guid> _groupMembers = [];
@@ -45,6 +48,15 @@ public partial class Assignments
     private bool ReviewIsLatest => _submission?.Revisions.OrderByDescending(r => r.Number)
         .FirstOrDefault()?.Id.ToString() == _reviewRevision;
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // Blazor reuses this component between the quest routes and /afleveringer.
+        // Missing parameters must not retain the previous route's quest or hold.
+        QuestId = Guid.Empty;
+        RequestedHoldId = null;
+        return base.SetParametersAsync(parameters);
+    }
+
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += AccountChanged;
@@ -54,6 +66,12 @@ public partial class Assignments
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) await SyncAccount();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_accountLoaded && Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId))
+            await Reload();
     }
 
     private void AccountChanged() => _ = InvokeAsync(SyncAccount);
@@ -81,15 +99,28 @@ public partial class Assignments
 
     private Task Reload() => Run(async ct =>
     {
+        var route = (Quest: QuestId, Hold: RequestedHoldId);
+        _loadedRoute = route;
         _loading = true;
         try
         {
             var holds = await Client.Holds(ct);
             ct.ThrowIfCancellationRequested();
             _holds = holds;
+            QuestView? routeQuest = null;
+            if (route.Quest != Guid.Empty) routeQuest = await Client.Quest(route.Quest, ct);
+            if (route != (QuestId, RequestedHoldId)) return;
+            var requested = routeQuest?.HoldId ?? route.Hold;
+            if (requested is Guid requestedId && _holds.Any(h => h.Id == requestedId)) _holdId = requestedId;
             if (!_holds.Any(h => h.Id == _holdId)) _holdId = _holds.FirstOrDefault()?.Id ?? Guid.Empty;
             ClearHold();
             if (_holdId != Guid.Empty) await LoadHold(ct);
+            if (routeQuest is not null)
+            {
+                _quest = _quests.FirstOrDefault(q => q.Id == routeQuest.Id);
+                if (_quest is not null) _submissions = await Client.Submissions(_quest.Id, ct);
+            }
+            ct.ThrowIfCancellationRequested();
         }
         finally { _loading = false; }
     });
@@ -167,7 +198,7 @@ public partial class Assignments
     private Task CreateQuest() => Run(async ct =>
     {
         var quest = await Client.CreateQuest(new(_holdId, _questTitle, _questDescription,
-            _questMode, _questPublished, null), ct);
+            _questMode, _questPublished, null, _questKind), ct);
         ct.ThrowIfCancellationRequested();
         _quests = [.. _quests, quest];
         _questTitle = _questDescription = "";
@@ -177,7 +208,7 @@ public partial class Assignments
     private Task ToggleQuest(QuestView quest) => Run(async ct =>
     {
         var updated = await Client.UpdateQuest(quest.Id, new(quest.HoldId, quest.Title,
-            quest.Description, quest.SubmissionMode, !quest.Published, quest.DeadlineUtc), ct);
+            quest.Description, quest.SubmissionMode, !quest.Published, quest.DeadlineUtc, quest.Kind), ct);
         ct.ThrowIfCancellationRequested();
         _quests = _quests.Select(q => q.Id == updated.Id ? updated : q).ToArray();
         if (_quest?.Id == updated.Id) _quest = updated;
@@ -366,6 +397,7 @@ public partial class Assignments
             {
                 _busy = false;
                 StateHasChanged();
+                if (Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId)) await Reload();
             }
         }
     }

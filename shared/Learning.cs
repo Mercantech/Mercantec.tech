@@ -3,9 +3,9 @@ namespace Mercantec.Tech.Contracts;
 public sealed record LearningHold(Guid Id, string Name, bool CanManage);
 public sealed record LearningMember(Guid Id, Guid? UserSub, string DisplayName);
 public sealed record QuestView(Guid Id, Guid HoldId, string Title, string Description, string SubmissionMode,
-    bool Published, DateTimeOffset? DeadlineUtc, bool CanManage);
+    bool Published, DateTimeOffset? DeadlineUtc, bool CanManage, string Kind = "main");
 public sealed record SaveQuest(Guid HoldId, string Title, string Description, string SubmissionMode,
-    bool Published, DateTimeOffset? DeadlineUtc);
+    bool Published, DateTimeOffset? DeadlineUtc, string Kind = "main");
 public sealed record LearningGroupView(Guid Id, Guid HoldId, string Name, int Version, LearningMember[] Members);
 public sealed record SaveLearningGroup(Guid HoldId, string Name, Guid[] MembershipIds, int Version = 0);
 public sealed record SubmissionFileView(Guid Id, string OriginalName, string ContentType, long SizeBytes);

@@ -1,0 +1,89 @@
+.hold-workspace { max-width:1440px; margin:0 auto; }
+.hold-header { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:4px 0 26px; }
+.hold-identity { display:flex; gap:16px; align-items:center; min-width:0; }
+.hold-emblem { display:grid; place-items:center; flex-shrink:0; width:62px; height:62px; border-radius:18px 18px 18px 5px; background:var(--blue); color:var(--on-blue); }
+.hold-emblem ::deep .ui-icon { width:31px; height:31px; }
+.hold-header h1 { font-size:32px; letter-spacing:-1px; line-height:1.15; overflow-wrap:anywhere; }
+.hold-header p { color:var(--muted); margin-top:7px; font-size:13px; }
+.hold-header-actions { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:18px; }
+.hold-member-count { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; white-space:nowrap; }
+.hold-nav { display:flex; align-items:stretch; gap:5px; border-bottom:1px solid var(--rule); margin-bottom:28px; overflow-x:auto; }
+.hold-nav a { display:flex; align-items:center; gap:8px; padding:13px 14px; border-bottom:3px solid transparent; color:var(--muted); white-space:nowrap; font-size:12px; font-weight:600; text-decoration:none; }
+.hold-nav a:hover { color:var(--blue); background:var(--tint); }
+.hold-nav a.is-current { color:var(--blue); border-color:var(--blue); }
+.hold-nav small { font:inherit; font-size:10px; min-width:19px; text-align:center; padding:0 5px; border-radius:5px; background:var(--paper); border:1px solid var(--rule); }
+.hold-nav ::deep .ui-icon { width:16px; height:16px; }
+.hold-overview { display:grid; grid-template-columns:minmax(0,1fr) 340px; align-items:start; gap:30px; }
+.hold-main,.hold-aside { min-width:0; }
+.hold-section-heading { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.hold-section-heading h2 { font-size:20px; letter-spacing:-.5px; line-height:1.3; }
+.hold-section-heading p { color:var(--muted); margin-top:6px; font-size:13px; max-width:64ch; }
+.hold-section-heading>a { font-size:12px; flex-shrink:0; }
+.hold-editor-entry { display:flex; align-items:flex-start; gap:20px; padding:26px; background:var(--tint); border:1px solid color-mix(in srgb,var(--blue) 20%,var(--rule)); border-radius:16px; color:var(--ink); text-decoration:none; }
+.hold-editor-entry:hover { text-decoration:none; border-color:var(--blue); }
+.hold-editor-entry h3 { font-size:23px; letter-spacing:-.6px; }
+.hold-editor-entry p { max-width:52ch; margin:9px 0 17px; font-size:13px; color:var(--muted); line-height:1.7; }
+.hold-tool-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:12px; color:var(--blue); background:var(--paper); flex-shrink:0; }
+.hold-tool-icon ::deep .ui-icon { width:23px; height:23px; }
+.hold-entry-link { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--blue); }
+.hold-tool-list { padding:6px 0; margin-top:14px; }
+.hold-tool-list>a { display:flex; align-items:center; gap:16px; color:var(--ink); padding:17px 7px; border-bottom:1px solid var(--rule); text-decoration:none; }
+.hold-tool-list>a:hover h3 { color:var(--blue); }
+.hold-tool-list>a>div { flex:1; min-width:0; }
+.hold-tool-list h3 { font-size:16px; letter-spacing:-.25px; }
+.hold-tool-list p { color:var(--muted); font-size:12px; margin-top:4px; }
+.hold-tool-list>a>::deep .ui-icon { width:17px; color:var(--muted); }
+.hold-tool-icon.quest { color:var(--blue); background:var(--tint); }
+.hold-tool-icon.calendar { color:var(--orange); background:var(--peach); }
+.hold-tool-icon.groups { color:var(--green); background:var(--green-tint); }
+.hold-recent { margin-top:30px; }
+.hold-recent .hold-section-heading h2 { font-size:18px; }
+.hold-page-row { display:flex; align-items:center; gap:14px; padding:17px 4px; border-top:1px solid var(--rule); color:var(--ink); text-decoration:none; }
+.hold-page-row:hover { color:var(--blue); text-decoration:none; }
+.hold-page-row>div { flex:1; min-width:0; }
+.hold-page-row strong { display:block; font-size:13px; overflow-wrap:anywhere; }
+.hold-page-row small { display:block; font-size:11px; color:var(--muted); margin-top:3px; }
+.hold-page-row>::deep .ui-icon { color:var(--muted); flex-shrink:0; }
+.hold-state { padding:3px 8px; border-radius:5px; background:var(--green-tint); color:var(--green); font-size:10px; white-space:nowrap; }
+.hold-state.draft { background:var(--peach); color:var(--orange); }
+.hold-followup { background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:20px; margin-bottom:24px; }
+.hold-followup .hold-section-heading h2,.hold-agenda h2 { font-size:17px; }
+.hold-followup .hold-section-heading { margin-bottom:12px; }
+.hold-review-count { display:flex; align-items:center; gap:14px; color:var(--ink); text-decoration:none; }
+.hold-review-count strong { font-family:'Space Grotesk',sans-serif; font-size:42px; line-height:1.2; font-weight:600; }
+.hold-review-count span { max-width:17ch; color:var(--muted); font-size:12px; }
+.hold-review-row { display:flex; gap:14px; justify-content:space-between; padding-top:13px; margin-top:13px; border-top:1px solid var(--rule); font-size:12px; color:var(--ink); }
+.hold-review-row b { color:var(--blue); }
+.hold-draft-link { display:block; font-size:11px; padding-top:15px; margin-top:15px; border-top:1px solid var(--rule); }
+.hold-agenda { padding:0 1px; margin-bottom:25px; }
+.hold-agenda-item { display:flex; align-items:flex-start; gap:13px; color:var(--ink); padding:15px 0; border-bottom:1px solid var(--rule); text-decoration:none; }
+.hold-agenda-item:hover h3 { color:var(--blue); }
+.hold-agenda-item time { display:flex; flex-direction:column; align-items:center; width:44px; flex-shrink:0; padding:6px 3px; background:var(--paper); border:1px solid var(--rule); border-radius:8px; }
+.hold-agenda-item time strong { font-family:'Space Grotesk',sans-serif; font-size:20px; line-height:1.1; }
+.hold-agenda-item time span { color:var(--muted); font-size:10px; }
+.hold-agenda-item small { color:var(--muted); font-size:10px; }
+.hold-agenda-item h3 { font-size:13px; margin-top:4px; overflow-wrap:anywhere; }
+.hold-agenda-item p { font-size:11px; color:var(--muted); margin-top:4px; }
+.hold-aside-empty { font-size:12px; color:var(--muted); padding:8px 0 20px; }
+.hold-resource-link { display:flex; align-items:center; gap:12px; padding:17px 0; border-top:1px solid var(--rule); color:var(--ink); text-decoration:none; }
+.hold-resource-link>div { flex:1; }
+.hold-resource-link strong,.hold-resource-link span { display:block; }
+.hold-resource-link strong { font-size:12px; }
+.hold-resource-link span { color:var(--muted); font-size:11px; margin-top:3px; }
+.hold-resource-link>::deep .ui-icon { color:var(--muted); width:18px; }
+.hold-empty { display:flex; align-items:center; gap:16px; color:var(--muted); padding:24px; border:1px dashed var(--rule); border-radius:10px; font-size:13px; max-width:75ch; }
+.hold-empty ::deep .ui-icon { width:26px; height:26px; flex-shrink:0; }
+.hold-content-panel { padding:24px; border:1px solid var(--rule); border-radius:12px; background:var(--paper); }
+.hold-content-panel>p { color:var(--muted); font-size:13px; }
+.hold-error { background:var(--peach); color:var(--orange); border-radius:8px; padding:12px 15px; margin-bottom:18px; }
+.hold-notice { background:var(--green-tint); color:var(--green); border-radius:8px; padding:12px 15px; margin-bottom:18px; }
+.hold-lectio-list { padding-left:18px; }
+.hold-lectio-list li { padding:6px 0; }
+.hold-member-form { max-width:440px; padding-top:24px; margin-top:24px; border-top:1px solid var(--rule); }
+.hold-member-form h3 { font-size:18px; margin-bottom:18px; }
+.hold-member-form p { font-size:12px; color:var(--muted); margin:14px 0; }
+.hold-member-form details { margin:14px 0; }
+@media(min-width:1500px) { .hold-overview { grid-template-columns:minmax(0,1fr) 360px; gap:42px; } }
+@media(max-width:1050px) { .hold-overview { grid-template-columns:minmax(0,1fr) 285px; gap:24px; } .hold-header { align-items:flex-start; } .hold-header-actions { max-width:230px; gap:12px; } .hold-nav a { padding:12px 10px; } }
+@media(max-width:780px) { .hold-overview { grid-template-columns:1fr; } .hold-aside { display:grid; grid-template-columns:1fr 1fr; gap:20px; } .hold-followup,.hold-agenda { margin-bottom:0; } .hold-resource-link { align-self:start; } .hold-nav { margin-bottom:22px; } .hold-nav a { padding:12px 10px; } .hold-nav a ::deep .ui-icon { display:none; } .hold-header h1 { font-size:27px; } .hold-emblem { width:49px; height:49px; border-radius:13px 13px 13px 4px; } }
+@media(max-width:540px) { .hold-header { flex-direction:column; gap:17px; padding-bottom:20px; } .hold-header-actions { max-width:none; width:100%; justify-content:space-between; } .hold-identity { gap:12px; } .hold-header h1 { font-size:25px; } .hold-header p { font-size:12px; } .hold-aside { grid-template-columns:1fr; gap:22px; } .hold-editor-entry { padding:20px 16px; gap:13px; } .hold-editor-entry h3 { font-size:21px; } .hold-section-heading { flex-wrap:wrap; gap:10px; } .hold-section-heading h2 { font-size:19px; } .hold-tool-list>a { gap:12px; } .hold-tool-list p { font-size:11px; } .hold-content-panel { padding:18px; } .hold-page-row { gap:9px; } }

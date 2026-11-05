@@ -1,4 +1,6 @@
 @page "/afleveringer"
+@page "/quests/{QuestId:guid}"
+@page "/quests/{QuestId:guid}/submit"
 @using Mercantec.Tech.Web.Learning
 @implements IDisposable
 
@@ -19,7 +21,7 @@ else if (ViewAs.IsActive)
 else
 {
     <header class="page-title">
-        <div><h1>Materialer og afleveringer</h1><p>Filer, quests og feedback fra dit forløb.</p></div>
+        <div><h1>@(_quest?.Title ?? "Materialer og afleveringer")</h1><p>Filer, quests og feedback fra dit forløb.</p>@if (_holdId != Guid.Empty) { <a href="/holds/@_holdId">Tilbage til holdet</a> }</div>
         <button class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button>
     </header>
     @if (_error is not null) { <div class="poll-error" role="alert">@_error</div> }
@@ -74,6 +76,7 @@ else
                     <summary>Opret quest</summary>
                     <fieldset disabled="@_busy">
                         <label class="field">Titel<input @bind="_questTitle" maxlength="200" /></label>
+                        <label class="field">Questtype<select @bind="_questKind"><option value="main">Main quest</option><option value="daily">Daily quest</option><option value="side">Side quest</option></select></label>
                         <label class="field">Opgave og afleveringskrav<textarea @bind="_questDescription" maxlength="10000"></textarea></label>
                         <label class="field">Afleveringsform<select @bind="_questMode"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label>
                         <label><input type="checkbox" @bind="_questPublished" /> Udgiv til eleverne</label>
@@ -103,9 +106,9 @@ else
             @foreach (var quest in _quests)
             {
                 <article>
-                    <h3>@quest.Title @if (!quest.Published) { <small>· Kladde</small> }</h3>
+                    <h3>@quest.Title @if (!quest.Published) { <small>· Kladde</small> }</h3><span class="pill">@HoldTime.QuestKind(quest.Kind)</span>
                     <p style="white-space:pre-wrap">@quest.Description</p>
-                    <p>@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is not null) { <span>· Frist @quest.DeadlineUtc.Value.ToLocalTime().ToString("g")</span> }</p>
+                    <p>@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is not null) { <span>· Frist @HoldTime.Display(quest.DeadlineUtc.Value) (dansk tid)</span> }</p>
                     <button class="secondary" disabled="@_busy" @onclick="() => SelectQuest(quest)">@(CanManage ? "Se afleveringer" : "Åbn aflevering")</button>
                     @if (CanManage)
                     {
