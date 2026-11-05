@@ -70,8 +70,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
             foreach (var child in byParent[id]) pending.Push(child.Id);
         }
 
-        bool Visible(PageMeta page) => manage || page.PublishedAtUtc is not null && page.PublishedTitle is not null && page.HasPublication;
-        var ordered = subtree.Select(id => meta.First(p => p.Id == id)).Where(Visible)
+        var ordered = subtree.Select(id => meta.First(p => p.Id == id)).Where(p => PageVisible(p, manage))
             .OrderBy(p => manage ? p.Title : p.PublishedTitle, StringComparer.CurrentCultureIgnoreCase).ThenBy(p => p.Id)
             .ToList();
         if (ordered.Count > 400)
@@ -80,7 +79,40 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
             ordered = [rootNode, .. ordered.Where(p => p.Id != root.Id).Take(399)];
         }
         var nodes = ordered.ToArray();
-        var nodeIds = nodes.Select(p => p.Id).ToHashSet();
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new NotionGraph(root.HoldId, root.Id, manage ? root.Title : root.PublishedTitle!, manage,
+            ToNodes(nodes, manage), await ReadEdgesAsync(manage, nodes.Select(p => p.Id).ToHashSet(), ct)));
+    }
+
+    /// <summary>Every visible page on one hold, including every root, and the internal page links between them.</summary>
+    [HttpGet("holds/{holdId:guid}/graph")]
+    public async Task<IActionResult> HoldGraph(Guid holdId, CancellationToken ct, bool publishedOnly = false)
+    {
+        if (!await access.CanAccessAsync(holdId, User, ct)) return NotFound();
+        var hold = await db.Hold.AsNoTracking().Where(h => h.Id == holdId)
+            .Select(h => new { h.Id, h.Name }).SingleOrDefaultAsync(ct);
+        if (hold is null) return NotFound();
+        var manage = !publishedOnly && await access.CanManageAsync(holdId, User, ct);
+        var meta = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == holdId)
+            .Select(p => new PageMeta(p.Id, p.ParentPageId, p.Title, p.PublishedTitle, p.PublishedAtUtc, p.PublishedState != null))
+            .ToListAsync(ct);
+        var visible = meta.Where(p => PageVisible(p, manage)).ToList();
+        var visibleIds = visible.Select(p => p.Id).ToHashSet();
+        // Same cap as one collection. Roots stay ahead of descendants so a large hold still shows every collection.
+        var nodes = visible
+            .OrderBy(p => p.ParentPageId is Guid parent && visibleIds.Contains(parent) ? 1 : 0)
+            .ThenBy(p => manage ? p.Title : p.PublishedTitle, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(p => p.Id)
+            .Take(400)
+            .ToArray();
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new NotionGraph(hold.Id, Guid.Empty, hold.Name, manage, ToNodes(nodes, manage),
+            await ReadEdgesAsync(manage, nodes.Select(p => p.Id).ToHashSet(), ct), WholeHold: true));
+    }
+
+    private async Task<NotionGraphEdge[]> ReadEdgesAsync(bool manage, HashSet<Guid> nodeIds, CancellationToken ct)
+    {
+        if (nodeIds.Count == 0) return [];
         var stateQuery = db.NotionPages.AsNoTracking().Where(p => nodeIds.Contains(p.Id));
         var states = manage
             ? (await stateQuery.Select(p => new { p.Id, p.YjsState }).ToListAsync(ct)).Select(p => (p.Id, Bytes: p.YjsState))
@@ -98,12 +130,14 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
                 if (seenEdges.Add((state.Id, target))) edges.Add(new NotionGraphEdge(state.Id, target));
             }
         }
-
-        Response.Headers.CacheControl = "no-store";
-        return Ok(new NotionGraph(root.HoldId, root.Id, manage ? root.Title : root.PublishedTitle!, manage,
-            nodes.Select(p => new NotionGraphNode(p.Id, manage ? p.Title : p.PublishedTitle!)).ToArray(),
-            edges.OrderBy(e => e.FromId).ThenBy(e => e.ToId).ToArray()));
+        return edges.OrderBy(e => e.FromId).ThenBy(e => e.ToId).ToArray();
     }
+
+    private static bool PageVisible(PageMeta page, bool manage) =>
+        manage || page.PublishedAtUtc is not null && page.PublishedTitle is not null && page.HasPublication;
+
+    private static NotionGraphNode[] ToNodes(IReadOnlyList<PageMeta> nodes, bool manage) =>
+        nodes.Select(p => new NotionGraphNode(p.Id, manage ? p.Title : p.PublishedTitle!)).ToArray();
 
     [HttpPost("pages")]
     public async Task<IActionResult> Create(CreateNotionPage request, CancellationToken ct)

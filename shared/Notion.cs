@@ -16,6 +16,6 @@ public sealed record PublishNotionPage(long ExpectedRevision, string ExpectedFin
 public sealed record AuthorizeNotionCollaboration(string DocumentName);
 public sealed record NotionCollaborationAccess(Guid DocumentId, bool CanEdit);
 public sealed record NotionGraph(Guid HoldId, Guid CollectionId, string Title, bool CanRename,
-    NotionGraphNode[] Nodes, NotionGraphEdge[] Edges);
+    NotionGraphNode[] Nodes, NotionGraphEdge[] Edges, bool WholeHold = false);
 public sealed record NotionGraphNode(Guid Id, string Title);
 public sealed record NotionGraphEdge(Guid FromId, Guid ToId);

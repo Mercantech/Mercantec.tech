@@ -425,6 +425,7 @@ public sealed class NotionControllerTests : IAsyncLifetime
         var graph = Value<NotionGraph>(await teacher.Graph(root.Id, default));
         Assert.Equal("no-store", teacher.Response.Headers.CacheControl.ToString());
         Assert.Equal(root.Id, graph.CollectionId);
+        Assert.False(graph.WholeHold);
         Assert.Equal(holdId, graph.HoldId);
         Assert.True(graph.CanRename);
         Assert.Equal("Introduktion", graph.Title);
@@ -475,6 +476,84 @@ public sealed class NotionControllerTests : IAsyncLifetime
         Assert.False(publishedWeek.CanRename);
         Assert.Equal("Uge 1", publishedWeek.Nodes.Single(n => n.Id == WeekId).Title);
         Assert.Equal([(WeekId, TaskId)], Edges(publishedWeek));
+    }
+
+    [Fact]
+    public async Task HoldGraphIncludesEveryRootAndLinksAcrossThem()
+    {
+        var root = await Create();
+        var noteId = Guid.Parse("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee");
+        var draftRoot = Guid.Parse("11111111-1111-4111-8111-111111111111");
+        var publishedChild = Guid.Parse("22222222-2222-4222-8222-222222222222");
+        await AddPage(WeekId, "Uge 1", null);
+        await AddPage(TaskId, "Opgave", WeekId);
+        await AddPage(OutsideId, "Andet forløb", null);
+        await AddPage(noteId, "Noter", OutsideId);
+        await AddPage(draftRoot, "Kladde-rod", null);
+        await AddPage(publishedChild, "Udgivet barn", draftRoot);
+        var foreign = new NotionPage
+        {
+            Id = Guid.NewGuid(), HoldId = otherHoldId, Title = "Privat", CreatedBySub = outsider,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow,
+            PublishedTitle = "Privat", PublishedAtUtc = DateTimeOffset.UtcNow, PublishedState = GraphFixtures.Get("empty")
+        };
+        db.NotionPages.Add(foreign);
+        await db.SaveChangesAsync();
+        await SetDocument(root.Id, GraphFixtures.Get("basic"), GraphFixtures.Get("empty"), "Udgivet H3");
+        await SetDocument(publishedChild, GraphFixtures.Get("empty"), GraphFixtures.Get("empty"), "Udgivet barn");
+
+        var teacher = As(this.teacher, true);
+        var hold = Value<NotionGraph>(await teacher.HoldGraph(holdId, default));
+        Assert.Equal("no-store", teacher.Response.Headers.CacheControl.ToString());
+        Assert.True(hold.WholeHold);
+        Assert.Equal(Guid.Empty, hold.CollectionId);
+        Assert.Equal(holdId, hold.HoldId);
+        Assert.Equal("H3 spil", hold.Title);
+        Assert.True(hold.CanRename);
+        Assert.Equal("Introduktion", hold.Nodes.Single(n => n.Id == root.Id).Title);
+        Assert.Equal(
+            new HashSet<Guid> { root.Id, WeekId, TaskId, OutsideId, noteId, draftRoot, publishedChild },
+            hold.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.DoesNotContain(hold.Nodes, n => n.Id == foreign.Id);
+        Assert.Equal(new HashSet<(Guid, Guid)> { (root.Id, WeekId), (root.Id, TaskId) }, Edges(hold).ToHashSet());
+
+        var collection = Value<NotionGraph>(await teacher.Graph(root.Id, default));
+        Assert.False(collection.WholeHold);
+        Assert.Equal(root.Id, Assert.Single(collection.Nodes).Id);
+        Assert.Empty(collection.Edges);
+        var week = Value<NotionGraph>(await teacher.Graph(WeekId, default));
+        Assert.Equal(new HashSet<Guid> { WeekId, TaskId }, week.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.Empty(week.Edges);
+        Assert.DoesNotContain(week.Nodes, n => n.Id == root.Id);
+
+        var student = Value<NotionGraph>(await As(this.student).HoldGraph(holdId, default));
+        Assert.False(student.CanRename);
+        Assert.True(student.WholeHold);
+        Assert.Equal("H3 spil", student.Title);
+        Assert.Equal(new HashSet<Guid> { root.Id, publishedChild }, student.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.Equal("Udgivet H3", student.Nodes.Single(n => n.Id == root.Id).Title);
+        Assert.Equal("Udgivet barn", student.Nodes.Single(n => n.Id == publishedChild).Title);
+        Assert.Empty(student.Edges);
+
+        await SetDocument(root.Id, GraphFixtures.Get("basic"), GraphFixtures.Get("basic"), "Udgivet H3");
+        await SetDocument(WeekId, GraphFixtures.Get("empty"), GraphFixtures.Get("empty"), "Uge 1");
+        await SetDocument(TaskId, GraphFixtures.Get("empty"), GraphFixtures.Get("empty"), "Opgave");
+        var published = Value<NotionGraph>(await As(this.student).HoldGraph(holdId, default));
+        Assert.Equal(
+            new HashSet<Guid> { root.Id, WeekId, TaskId, publishedChild },
+            published.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.DoesNotContain(published.Nodes, n => n.Id == OutsideId || n.Id == noteId || n.Id == draftRoot);
+        Assert.Equal(new HashSet<(Guid, Guid)> { (root.Id, WeekId), (root.Id, TaskId) }, Edges(published).ToHashSet());
+        var preview = Value<NotionGraph>(await As(this.teacher, true).HoldGraph(holdId, default, publishedOnly: true));
+        Assert.False(preview.CanRename);
+        Assert.Equal(
+            published.Nodes.OrderBy(n => n.Id).Select(n => (n.Id, n.Title)),
+            preview.Nodes.OrderBy(n => n.Id).Select(n => (n.Id, n.Title)));
+        Assert.Equal(Edges(published), Edges(preview));
+
+        Assert.IsType<NotFoundResult>(await As(outsider, true).HoldGraph(holdId, default));
+        Assert.IsType<NotFoundResult>(await As(this.student).HoldGraph(otherHoldId, default));
+        Assert.IsType<NotFoundResult>(await As(this.teacher, true).HoldGraph(Guid.NewGuid(), default));
     }
 
     private static readonly Guid WeekId = Guid.Parse("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
