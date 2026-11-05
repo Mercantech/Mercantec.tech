@@ -3,6 +3,8 @@ import { praktik, praktikHtml } from "./praktik.js";
 import { tidslinje } from "./tidslinje.js";
 
 const byShort = Object.fromEntries(forlob.map((f) => [f.short.toLowerCase(), f]));
+const bySlug = Object.fromEntries(forlob.map((f) => [f.slug.toLowerCase(), f]));
+const findForlob = (key) => byShort[key] || bySlug[key] || null;
 
 const homeView = document.getElementById("home-view");
 const detailView = document.getElementById("detail-view");
@@ -287,6 +289,7 @@ const platformCatalog = () => {
     ? [
         ["Overblik", "/teacher", "Underviserfladen, når du er logget ind."],
         ["Forløb og hold", "/courses", "Forløb på tværs af uddannelsen."],
+        ["Undervisningsplaner", "/courses/template", "H1–H6, Deploy Or Die, Game Design og Machine Learning."],
         ["Lectio", "/lectio", "Skema og beskeder."],
         ["Planlægning", "/teacher/planner", "Planlæg uger og indhold."],
         ["Afleveringer", "/teacher/reviews", "Afleveringer til vurdering."],
@@ -299,6 +302,7 @@ const platformCatalog = () => {
         ["Overblik", "/", "Forsiden, eller dit dashboard når du er logget ind."],
         ["Min læring", "/learning", "Dit forløb, uger og opgaver."],
         ["Alle forløb", "/courses", "Forløb på tværs af uddannelsen."],
+        ["Undervisningsplaner", "/courses/template", "H1–H6, Deploy Or Die, Game Design og Machine Learning."],
         ["Lectio", "/lectio", "Skema og beskeder."],
         ["Uddannelse", "/education", "Uddannelse og læringsmål."]
       ];
@@ -555,7 +559,7 @@ const showTimeline = (stopId = "") => {
 };
 
 const showForlob = (key) => {
-  const item = byShort[key];
+  const item = findForlob(key);
   if (!item) {
     showTimeline();
     return;
@@ -566,10 +570,13 @@ const showForlob = (key) => {
   detailCode.textContent = item.uger != null ? `${item.short} · ${item.uger} uger` : item.short;
   detailTitle.innerHTML = lupTitleHtml(item.titel);
   detailLead.textContent = item.kort;
+  const blazorLink = item.blazor
+    ? `<p class="tl-bridge"><a href="${escapeHtml(item.blazor)}">Åbn samme plan i platformen (kursusskabelon)</a></p>`
+    : `<p class="tl-bridge"><a href="/courses/template/${escapeHtml(item.short.toLowerCase())}">Åbn samme plan i platformen (kursusskabelon)</a></p>`;
   detailBody.classList.add("lup-doc");
-  detailBody.innerHTML = renderLupMarkdown(item.markdown);
+  detailBody.innerHTML = `${blazorLink}${renderLupMarkdown(item.markdown)}`;
   document.title = `${item.short} · LUP`;
-  setActiveNav(key);
+  setActiveNav(item.short.toLowerCase());
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 

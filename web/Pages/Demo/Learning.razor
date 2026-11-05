@@ -41,7 +41,10 @@ else if (PathKey == "journal") {
 }
 else if (PathKey == "education") {
     <header class="page-title"><div><h1>Din vej gennem uddannelsen</h1><p>Fra fundament til svendeprøve. Se, hvad du bygger videre på.</p></div></header>
-    <div class="education-roadmap">@foreach (var step in DemoCatalog.Education) { <section class="education-step"><span class="education-number">@step.Name[..2]</span><div><h2>@step.Name</h2><p>@step.Desc</p><span class="pill">@step.Duration</span></div></section> }</div>
+    <div class="actions" style="margin-bottom:18px"><a class="action" href="/courses/template">Åbn alle undervisningsplaner</a><a class="secondary" href="/lup">LUP-tidslinje</a></div>
+    <div class="education-roadmap">@foreach (var plan in CourseTemplateCatalog.Hovedforlob) { <a class="education-step" href="@plan.Path"><span class="education-number">@plan.Short</span><div><h2>@plan.Short · @plan.Title</h2><p>@plan.Lead</p><span class="pill">@plan.DurationLabel</span></div></a> }</div>
+    <div class="headrow" style="margin-top:28px"><h2>Valgfag</h2></div>
+    <div class="tiles">@foreach (var plan in CourseTemplateCatalog.Valgfag) { <a class="course-card" href="@plan.Path"><div><span class="pill">@plan.DurationLabel</span><h2>@plan.Short</h2><p>@plan.Lead</p><span class="course-card-cta">Åbn planen <UiIcon Name="arrow" /></span></div></a> }</div>
 }
 else if (Course is not null) {
     <CourseNavigation Course="Course" Current="@ContextLabel" />

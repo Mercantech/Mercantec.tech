@@ -1,0 +1,118 @@
+@using Mercantec.Tech.Web.Courses
+
+@if (Course is null)
+{
+    <div class="empty">
+        <h1>Forløbet findes ikke</h1>
+        <p>Tjek staven, eller gå tilbage til oversigtet.</p>
+        <a class="action" href="/courses/template">Alle undervisningsplaner</a>
+    </div>
+}
+else
+{
+    <header class="page-title course-title">
+        <div>
+            <span class="context">@Course.KindLabel · @Course.DurationLabel</span>
+            <h1>@Course.Short · @Course.Title</h1>
+            <p>@Course.Lead</p>
+        </div>
+        <div class="actions">
+            <a class="secondary" href="/courses/template">Alle planer</a>
+            @if (Course.Kind != CourseKind.Skabelon && ShowLearningLink)
+            {
+                <a class="secondary" href="/learning">Min læring</a>
+            }
+        </div>
+    </header>
+
+    <div class="course-document">
+        <aside class="course-toc">
+            <h2>I denne plan</h2>
+            <a href="#about">Om forløbet</a>
+            <a href="#goals">Mål</a>
+            <a href="#content">Indhold</a>
+            <a href="#weeks">Ugeplan</a>
+            <a href="#evaluation">Evaluering</a>
+            <a href="/courses/template">Skabelon-katalog</a>
+        </aside>
+
+        <article class="course-paper">
+            <section id="about">
+                <h2>@(Course.Kind == CourseKind.Skabelon ? "Sådan bruges skabelonen" : "Om forløbet")</h2>
+                <p>@Course.Lead</p>
+                <div class="callout">
+                    <strong>Projekt · @Course.Project</strong>
+                    <p>@Course.Holistic</p>
+                </div>
+                <p>@Course.Practice</p>
+            </section>
+
+            <section id="goals">
+                <div class="headrow"><h2>Mål for undervisningen</h2><span>@Course.DurationLabel</span></div>
+                <ul class="goals">
+                    @foreach (var goal in Course.Goals)
+                    {
+                        <li>@goal</li>
+                    }
+                </ul>
+                <h3>Forventningsniveau</h3>
+                <ul class="goals">
+                    @foreach (var item in Course.Expectations)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            </section>
+
+            <section id="content">
+                <div class="headrow"><h2>Indhold i undervisningen</h2></div>
+                <div class="subject-grid">
+                    @foreach (var theme in Course.Themes)
+                    {
+                        <div class="subject-card">
+                            <h3>@theme.Name</h3>
+                            <p>@theme.Desc</p>
+                        </div>
+                    }
+                </div>
+                <h3>Helhedsorientering og differentiering</h3>
+                <p>@Course.Holistic</p>
+                <p>@Course.Differentiation</p>
+            </section>
+
+            <section id="weeks">
+                <div class="headrow"><h2>Ugeplan</h2><span>@Course.Weeks.Length uger</span></div>
+                @for (var i = 0; i < Course.Weeks.Length; i++)
+                {
+                    <details class="course-week" open="@(i == 0)">
+                        <summary>
+                            <span class="week-number">@(i + 1)</span>
+                            <span><strong>@Course.Weeks[i]</strong><small>@Course.Short</small></span>
+                            <span class="week-chevron">⌄</span>
+                        </summary>
+                        <div class="week-days">
+                            <p>Ugens retning følger forløbets temaer og projektet <strong>@Course.Project</strong>.</p>
+                        </div>
+                    </details>
+                }
+            </section>
+
+            <section id="evaluation">
+                <div class="headrow"><h2>Evaluering og bedømmelse</h2></div>
+                <p>@Course.Evaluation</p>
+                <h3>Kriterier</h3>
+                <ul class="goals">
+                    @foreach (var c in Course.Criteria)
+                    {
+                        <li>@c</li>
+                    }
+                </ul>
+            </section>
+        </article>
+    </div>
+}
+
+@code {
+    [Parameter] public CourseTemplate? Course { get; set; }
+    [Parameter] public bool ShowLearningLink { get; set; } = true;
+}

@@ -19,7 +19,7 @@ else if (!Auth.IsAuthenticated)
 }
 else if (Redirect.CurrentAppRole() != AppRole.Underviser)
 {
-    <header class="page-title"><div><h1>Mine forløb</h1><p>Hold, du er medlem af. Administration ligger hos underviseren.</p></div></header>
+    <header class="page-title"><div><h1>Mine forløb</h1><p>Hold, du er medlem af. Administration ligger hos underviseren.</p></div><a class="secondary" href="/courses/template">Undervisningsplaner</a></header>
     @if (_loading)
     {
         <p>Henter…</p>
@@ -50,6 +50,7 @@ else
             <p>Opret manuelt, eller hent et hold ind fra Lectio.</p>
         </div>
         <div class="actions">
+            <a class="secondary" href="/courses/template">Undervisningsplaner</a>
             <a class="secondary" href="/lectio">Fra Lectio-hold</a>
             <button type="button" class="action" @onclick="() => _showCreate = !_showCreate">@(_showCreate ? "Skjul" : "Nyt forløb")</button>
         </div>
