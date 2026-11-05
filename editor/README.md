@@ -39,7 +39,7 @@ WebSocket: same-origin /collaboration?schemaVersion=4, room notion:<pageId>. A m
 - /afstemning: reference to an existing poll from the same hold. Opens the existing activity or presenter page; poll answers remain in the existing API.
 - /slide: real slide boundary. Presentation is a frozen editorial snapshot with keyboard navigation.
 - /læringsmål: formatted inline learning goal.
-- /diagram (aliases: mermaid, flowchart): Mermaid diagram block with live preview; source is stored in the collaborative document.
+- /diagram (aliases: mermaid, flowchart): Mermaid diagram rendered without chrome; double-click to edit source.
 - /callout: highlighted note (info / tip / warning / important).
 - Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, callout, læringsmål) or **Slet**. Selection toolbar also offers block type change.
 
