@@ -107,6 +107,9 @@ services:
       ObjectStorage__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin}
       ObjectStorage__Bucket: ${MINIO_BUCKET:-mercantec-tech}
       ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_BASE_URL:-}
+      WebPreview__Origin: ${WEB_PREVIEW_ORIGIN:-}
+      WebPreview__AppOrigin: ${WEB_PREVIEW_APP_ORIGIN:-https://mercantec.tech}
+      ReverseProxy__KnownProxies: ${REVERSE_PROXY_KNOWN_PROXIES:-}
       Notion__ServiceSecret: ${NOTION_SERVICE_SECRET:-}
       Notion__ServiceSecretFile: /run/notion/service-key
     depends_on:
@@ -122,6 +125,67 @@ services:
           - mercantec-tech-api
     volumes:
       - mercantec_notion_key:/run/notion:ro
+    restart: unless-stopped
+
+  converter:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: preview-worker
+    network_mode: none
+    environment:
+      PreviewWorker__SpoolPath: /spool
+    volumes:
+      - mercantec_preview_spool:/spool
+    labels:
+      - traefik.enable=false
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2g
+    cpus: 1.0
+    pids_limit: 128
+    restart: unless-stopped
+
+  previews:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: storage-worker
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: ${CONNECTION_STRING:-Host=mercantec-tech-db;Port=5432;Database=mercantec;Username=mercantec;Password=mercantec}
+      ObjectStorage__Endpoint: http://mercantec-tech-minio:9000
+      ObjectStorage__AccessKey: ${MINIO_ROOT_USER:-minioadmin}
+      ObjectStorage__SecretKey: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      ObjectStorage__Bucket: ${MINIO_BUCKET:-mercantec-tech}
+    depends_on:
+      converter:
+        condition: service_started
+      api:
+        condition: service_started
+      minio-init:
+        condition: service_healthy
+    volumes:
+      - mercantec_preview_spool:/spool
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+    read_only: true
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2g
+    cpus: 1.0
+    pids_limit: 128
     restart: unless-stopped
 
   notion-init:
@@ -206,6 +270,7 @@ volumes:
   mercantec_notion_key:
   mercantec_tech_pg:
   mercantec_tech_minio:
+  mercantec_preview_spool:
 
 networks:
   default:

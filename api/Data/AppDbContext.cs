@@ -17,7 +17,9 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ConfigureLearning(modelBuilder);
         ConfigureNotion(modelBuilder);
+        ConfigurePreviews(modelBuilder);
         modelBuilder.Entity<PollRound>(e =>
         {
             e.ToTable("poll_rounds");

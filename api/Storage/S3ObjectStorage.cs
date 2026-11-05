@@ -30,6 +30,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
 
     public bool IsConfigured => true;
     public string Bucket => _options.Bucket;
+    public bool SupportsRanges => true;
 
     public async Task<ObjectPutResult> PutAsync(
         string key,
@@ -44,7 +45,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
             InputStream = content,
             ContentType = contentType,
             AutoCloseStream = false,
-            DisablePayloadSigning = true
+            DisablePayloadSigning = _options.Endpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
         };
 
         await _client.PutObjectAsync(request, cancellationToken);
@@ -53,17 +54,28 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
         return new ObjectPutResult(key, _options.Bucket, contentType, size);
     }
 
-    public async Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default)
+    public Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default) =>
+        ReadAsync(new GetObjectRequest { BucketName = _options.Bucket, Key = key }, cancellationToken);
+
+    public Task<ObjectGetResult?> GetRangeAsync(string key, long start, long end,
+        CancellationToken cancellationToken = default) =>
+        ReadAsync(new GetObjectRequest { BucketName = _options.Bucket, Key = key, ByteRange = new ByteRange(start, end) },
+            cancellationToken);
+
+    public async Task DeleteAsync(string key, CancellationToken cancellationToken = default) =>
+        await _client.DeleteObjectAsync(_options.Bucket, key, cancellationToken);
+
+    private async Task<ObjectGetResult?> ReadAsync(GetObjectRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var response = await _client.GetObjectAsync(_options.Bucket, key, cancellationToken);
+            var response = await _client.GetObjectAsync(request, cancellationToken);
             return new ObjectGetResult(
                 response.ResponseStream,
                 string.IsNullOrWhiteSpace(response.Headers.ContentType)
                     ? "application/octet-stream"
                     : response.Headers.ContentType,
-                response.ContentLength >= 0 ? response.ContentLength : null);
+                response.ContentLength >= 0 ? response.ContentLength : null, response);
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -89,16 +101,21 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
                 : Protocol.HTTP
         };
 
-        var url = _client.GetPreSignedURL(request);
+        if (string.IsNullOrWhiteSpace(_options.PublicBaseUrl))
+            return Task.FromResult<Uri?>(new Uri(_client.GetPreSignedURL(request)));
 
-        if (!string.IsNullOrWhiteSpace(_options.PublicBaseUrl)
-            && Uri.TryCreate(url, UriKind.Absolute, out var signed)
-            && Uri.TryCreate(_options.PublicBaseUrl.TrimEnd('/') + signed.PathAndQuery, UriKind.Absolute, out var rewritten))
-        {
-            return Task.FromResult<Uri?>(rewritten);
-        }
-
-        return Task.FromResult<Uri?>(new Uri(url));
+        // The host is part of the signature. Sign against the browser endpoint directly.
+        var publicEndpoint = new Uri(_options.PublicBaseUrl, UriKind.Absolute);
+        request.Protocol = publicEndpoint.Scheme == "https" ? Protocol.HTTPS : Protocol.HTTP;
+        using var signer = new AmazonS3Client(
+            new BasicAWSCredentials(_options.AccessKey, _options.SecretKey),
+            new AmazonS3Config
+            {
+                ServiceURL = publicEndpoint.ToString().TrimEnd('/'),
+                ForcePathStyle = true,
+                AuthenticationRegion = "us-east-1"
+            });
+        return Task.FromResult<Uri?>(new Uri(signer.GetPreSignedURL(request)));
     }
 
     public void Dispose() => _client.Dispose();

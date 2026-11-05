@@ -1,0 +1,154 @@
+@using Mercantec.Tech.Web.Learning
+@inject LearningClient Client
+@implements IDisposable
+
+@if (_error is not null)
+{
+    <p role="alert">@_error</p>
+    <button class="secondary" @onclick="Load">Prøv igen</button>
+}
+else if (_preview is null)
+{
+    <p role="status">Henter filvisning…</p>
+}
+else
+{
+    <article class="panel">
+        <header class="panel-head">
+            <h3>@_preview.OriginalName</h3>
+            <a class="secondary" href="@Client.FileUrl(_preview.DownloadUrl)" download rel="noreferrer">Hent original</a>
+        </header>
+        @switch (_preview.Kind)
+        {
+            case "image":
+                <img src="@Client.FileUrl(_preview.ContentUrl)" alt="@_preview.OriginalName" style="max-width:100%;max-height:70vh;object-fit:contain" />
+                break;
+            case "pdf":
+                <iframe src="@Client.FileUrl(_preview.ContentUrl)" title="@_preview.OriginalName" referrerpolicy="no-referrer" style="width:100%;height:70vh;border:0"></iframe>
+                break;
+            case "video":
+                <video src="@Client.FileUrl(_preview.ContentUrl)" controls preload="metadata" style="width:100%;max-height:70vh">Din browser understøtter ikke videoformatet.</video>
+                break;
+            case "audio":
+                <audio src="@Client.FileUrl(_preview.ContentUrl)" controls preload="metadata">Din browser understøtter ikke lydformatet.</audio>
+                break;
+            case "text":
+                @if (_text is not null)
+                {
+                    <pre style="max-height:70vh;overflow:auto;white-space:pre-wrap"><code>@_text.Text</code></pre>
+                    @if (_text.Truncated) { <p>Visningen er forkortet. Hent originalen for at se hele filen.</p> }
+                }
+                break;
+            case "archive":
+                @if (_archive is not null)
+                {
+                    <ul>
+                        @foreach (var entry in _archive.Entries)
+                        {
+                            <li><code>@entry.Path</code> @(entry.IsDirectory ? "(mappe)" : $"({entry.SizeBytes:N0} bytes)")</li>
+                        }
+                    </ul>
+                    @if (_archive.Truncated) { <p>Fillisten er forkortet. Hent originalen for at se hele arkivet.</p> }
+                }
+                break;
+        }
+        @if (!string.IsNullOrWhiteSpace(_preview.Message)) { <p>@_preview.Message</p> }
+        @if (_preview.Kind is "video" or "audio") { <p>Hvis formatet ikke kan afspilles i din browser, kan du hente originalen.</p> }
+        @if (CanLaunchWeb)
+        {
+            <button class="action" disabled="@_preparingWeb" @onclick="PrepareWeb">@(_preparingWeb ? "Forbereder…" : "Start webspil eller hjemmeside")</button>
+            @if (_webError is not null) { <p role="alert">@_webError</p> }
+            @if (_web is not null)
+            {
+                <p><a href="@_web.LaunchUrl" target="_blank" rel="noopener noreferrer">Åbn i ny fane</a></p>
+                <iframe src="@_web.LaunchUrl" title="@($"Webvisning af {_preview.OriginalName}")" allow="fullscreen; autoplay" allowfullscreen referrerpolicy="no-referrer" style="width:100%;height:70vh;border:0"></iframe>
+            }
+        }
+        <button class="secondary" @onclick="Load">Forny filadgang</button>
+    </article>
+}
+
+@code {
+    [Parameter] public Guid FileId { get; set; }
+    private Guid _loaded;
+    private FilePreview? _preview;
+    private FileTextPreview? _text;
+    private FileArchivePreview? _archive;
+    private string? _error;
+    private FileWebPreview? _web;
+    private string? _webError;
+    private bool _preparingWeb;
+    private CancellationTokenSource _request = new();
+    private bool CanLaunchWeb => _preview is not null &&
+        new[] { ".zip", ".html", ".htm" }.Contains(System.IO.Path.GetExtension(_preview.OriginalName).ToLowerInvariant());
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_loaded == FileId) return;
+        _loaded = FileId;
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _request.Cancel();
+        _request.Dispose();
+        _request = new();
+        var ct = _request.Token;
+        _preview = null;
+        _text = null;
+        _archive = null;
+        _web = null;
+        _webError = null;
+        _error = null;
+        try
+        {
+            var preview = await Client.Preview(FileId, ct);
+            ct.ThrowIfCancellationRequested();
+            _preview = preview;
+            var text = preview.Kind == "text" ? await Client.Text(FileId, ct) : null;
+            var archive = preview.Kind == "archive" ? await Client.Archive(FileId, ct) : null;
+            ct.ThrowIfCancellationRequested();
+            _preview = preview;
+            _text = text;
+            _archive = archive;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException)
+        {
+            if (!ct.IsCancellationRequested)
+            {
+                if (_preview is null)
+                    _error = ex is LearningException ? ex.Message : "Filen kunne ikke åbnes. Prøv igen.";
+                else
+                    _preview = _preview with { Message = "Forhåndsvisningen kunne ikke vises. Du kan stadig hente originalen eller åbne et understøttet web-build." };
+            }
+        }
+    }
+
+    private async Task PrepareWeb()
+    {
+        _preparingWeb = true;
+        _webError = null;
+        var ct = _request.Token;
+        try
+        {
+            var web = await Client.PrepareWebPreview(FileId, ct);
+            ct.ThrowIfCancellationRequested();
+            _web = web;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException)
+        {
+            if (!ct.IsCancellationRequested)
+                _webError = ex is LearningException ? ex.Message : "Webvisningen kunne ikke startes. Prøv igen.";
+        }
+        finally { _preparingWeb = false; }
+    }
+
+    public void Dispose()
+    {
+        _request.Cancel();
+        _request.Dispose();
+    }
+}

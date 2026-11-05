@@ -3,14 +3,36 @@ using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
+{
+    builder.Services.AddHostedService<PreviewConverter>();
+    var converter = builder.Build();
+    await converter.RunAsync();
+    return;
+}
+
 builder.Services.AddControllers();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    foreach (var address in (builder.Configuration["ReverseProxy:KnownProxies"] ?? "")
+        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        options.KnownProxies.Add(System.Net.IPAddress.Parse(address));
+});
+
+builder.Services.AddDataProtection();
 builder.Services.AddScoped<Mercantec.Tech.Api.Learning.CourseAccess>();
+builder.Services.AddScoped<Mercantec.Tech.Api.Learning.FileAuthorization>();
+if (builder.Configuration.GetValue<bool>("PreviewWorker:Enabled"))
+    builder.Services.AddHostedService<PreviewWorker>();
 
 builder.Services.Configure<LectioOptions>(builder.Configuration.GetSection(LectioOptions.SectionName));
 builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>
@@ -127,9 +149,11 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseForwardedHeaders();
 app.UseCors("Spa");
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+if (!builder.Configuration.GetValue<bool>("PreviewWorker:Only"))
+    app.MapControllers();
 
 app.Run();

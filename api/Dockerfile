@@ -8,10 +8,33 @@ COPY api/ api/
 WORKDIR /src/api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 EXPOSE 8080
-COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Mercantec.Tech.Api.dll"]
+
+# Only the dedicated conversion service includes document/video tooling.
+FROM base AS preview-tools
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice-writer libreoffice-calc libreoffice-impress ffmpeg fonts-liberation fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /spool && chown $APP_UID /spool
+
+FROM preview-tools AS preview-worker
+COPY --from=build /app/publish .
+USER $APP_UID
+ENV PreviewConverter__Only=true
+
+FROM base AS final
+COPY --from=build /app/publish .
+
+FROM final AS storage-worker
+RUN mkdir -p /spool && chown $APP_UID /spool
+USER $APP_UID
+ENV PreviewWorker__Enabled=true
+ENV PreviewWorker__Only=true
+
+FROM final AS runtime

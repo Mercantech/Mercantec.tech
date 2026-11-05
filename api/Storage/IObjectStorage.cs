@@ -11,6 +11,13 @@ public interface IObjectStorage
         string contentType,
         CancellationToken cancellationToken = default);
 
+    bool SupportsRanges => false;
+
+    Task<ObjectGetResult?> GetRangeAsync(string key, long start, long end,
+        CancellationToken cancellationToken = default) => throw new NotSupportedException("Byte ranges are unavailable.");
+
+    Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     Task<ObjectGetResult?> GetAsync(string key, CancellationToken cancellationToken = default);
 
     Task<Uri?> GetPresignedGetUrlAsync(
@@ -21,7 +28,11 @@ public interface IObjectStorage
 
 public sealed record ObjectPutResult(string Key, string Bucket, string ContentType, long SizeBytes);
 
-public sealed record ObjectGetResult(Stream Content, string ContentType, long? ContentLength) : IAsyncDisposable
+public sealed record ObjectGetResult(Stream Content, string ContentType, long? ContentLength, IDisposable? Owner = null) : IAsyncDisposable
 {
-    public ValueTask DisposeAsync() => Content.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        try { await Content.DisposeAsync(); }
+        finally { Owner?.Dispose(); }
+    }
 }
