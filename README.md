@@ -67,10 +67,20 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml down
 | Web | http://localhost:3000 |
 | API health | http://localhost:8080/api/health (eller `/api/health` via web) |
 | MinIO S3 API | http://localhost:9000 |
-| MinIO Console | http://localhost:9001 |
+| MinIO Console (admin UI) | http://localhost:9001 |
 | Login | http://localhost:3000/login |
 
-Kopiér `.env.example` → `.env` ved behov (secrets commit'tes ikke). MinIO-credentials sættes via `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` (aldrig i git).
+Kopiér `.env.example` → `.env` ved behov (secrets commit'tes ikke). MinIO-credentials sættes via `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` (aldrig i git). Image: `pgsty/silo` (ikke `quay.io/minio/*` — de returnerer 401).
+
+### MinIO Console (admin UI)
+
+1. Start med lokal overlay (porte **9000** / **9001**):  
+   `docker compose -f docker-compose.yml -f docker-compose.local.yml up -d minio`
+2. Åbn **http://localhost:9001** (eller http://127.0.0.1:9001).
+3. Log ind med `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` fra `.env`.
+
+I prod (Dokploy) er Console **ikke** publiceret på mercantec.tech — hold den privat. Adgang fx via SSH-tunnel til hosten:  
+`ssh -L 9001:mercantec-tech-minio:9001 <dokploy-host>` → derefter http://localhost:9001.
 
 Fil-upload (underviser, kræver JWT): `POST /api/files` (multipart). Status: `GET /api/files/status`. Download: `GET /api/files/{key}`.
 

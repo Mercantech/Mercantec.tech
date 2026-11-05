@@ -16,7 +16,7 @@ Faste rammer for Mercantec.tech. Detaljerede AI-workflows: [[Husregler-fra-Curso
 - **Backend / API:** .NET 10, ASP.NET Core, **controller pattern** (`api/`).
 - **Frontend:** Blazor WebAssembly **PWA** (`web/`), nginx i Docker.
 - **DB:** Postgres (`mercantec-tech-db`).
-- **Object storage:** MinIO S3 (`mercantec-tech-minio`) til uploads og store assets uden for GitHub.
+- **Object storage:** S3 via **Silo**/MinIO-kompatibel (`pgsty/silo`, alias `mercantec-tech-minio`) til uploads og store assets uden for GitHub. Console lokalt på `:9001`.
 - **Alt Docker-klart** — env-baseret config.
 
 ## Auth
