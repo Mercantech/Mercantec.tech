@@ -118,6 +118,7 @@ function MermaidDiagramBlock({
   const [draft, setDraft] = useState(source);
   const [editing, setEditing] = useState(editable && !source.trim());
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const area = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setDraft(source);
@@ -125,37 +126,60 @@ function MermaidDiagramBlock({
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  useEffect(() => {
+    if (editing) area.current?.focus();
+  }, [editing]);
+
   const update = (value: string) => {
     setDraft(value);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => onChange(value), 400);
   };
 
-  return <section className="notion-mermaid-block" contentEditable={false} aria-label="Mermaid-diagram">
-    <header>
-      <span className="notion-block-symbol" aria-hidden="true">◈</span>
-      <div>
-        <strong>Diagram</strong>
-        <small>Mermaid — flowchart, sequence, class m.m.</small>
-      </div>
-      {editable && <button type="button" className="notion-mermaid-toggle" onClick={() => setEditing((value) => !value)}>
-        {editing ? 'Skjul kode' : 'Rediger kode'}
-      </button>}
-    </header>
-    {editable && editing && <label className="notion-mermaid-editor">
-      <span className="notion-visually-hidden">Mermaid-kode</span>
-      <textarea
-        value={draft}
-        spellCheck={false}
-        rows={Math.min(18, Math.max(8, draft.split('\n').length + 1))}
-        onChange={(event) => update(event.target.value)}
-        onBlur={() => onChange(draft)}
-        placeholder={'flowchart TB\n  A --> B'}
-      />
-    </label>}
-    <MermaidPreview source={draft} />
-    {!draft.trim() && <p className="notion-block-hint">Skriv Mermaid-kode ovenfor, eller indsæt et flowchart fra Notion.</p>}
-  </section>;
+  const finish = () => {
+    onChange(draft);
+    if (draft.trim()) setEditing(false);
+  };
+
+  return <div
+    className={`notion-mermaid-block${editing ? ' is-editing' : ''}`}
+    contentEditable={false}
+    data-mermaid="true"
+    aria-label="Diagram"
+  >
+    {editable && editing ? (
+      <label className="notion-mermaid-editor">
+        <span className="notion-visually-hidden">Mermaid-kode</span>
+        <textarea
+          ref={area}
+          value={draft}
+          spellCheck={false}
+          rows={Math.min(16, Math.max(6, draft.split('\n').length + 1))}
+          onChange={(event) => update(event.target.value)}
+          onBlur={finish}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              finish();
+            }
+          }}
+          placeholder={'flowchart TB\n  A --> B'}
+        />
+        <span className="notion-mermaid-hint">Esc eller klik udenfor gemmer koden</span>
+      </label>
+    ) : (
+      <button
+        type="button"
+        className="notion-mermaid-surface"
+        disabled={!editable}
+        title={editable ? 'Dobbeltklik for at redigere Mermaid-kode' : undefined}
+        onDoubleClick={() => { if (editable) setEditing(true); }}
+      >
+        <MermaidPreview source={draft} />
+        {!draft.trim() && <p className="notion-block-hint">Dobbeltklik for at skrive Mermaid-kode.</p>}
+      </button>
+    )}
+  </div>;
 }
 
 export const createMermaidDiagram = createReactBlockSpec({

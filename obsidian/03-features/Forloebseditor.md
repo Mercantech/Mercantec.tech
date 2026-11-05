@@ -24,7 +24,7 @@ Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer de
 - `/video`, `/lyd`, `/billede`, `/fil`: upload medier og vedhæftninger.
 - `/slide`: indsæt en slidegrænse; **Præsenter** viser samme indhold som slides.
 - `/læringsmål`: fremhæv aktivitetens mål.
-- `/diagram` (eller `/mermaid`): indsæt et Mermaid-diagram (flowchart, sequence m.m.). Klik **Rediger kode** for at ændre kilden; forhåndsvisningen opdateres løbende.
+- `/diagram` (eller `/mermaid`): indsæt et Mermaid-diagram (flowchart, sequence m.m.). Diagrammet vises uden ramme; dobbeltklik for at redigere koden.
 - `/callout`: indsæt en fremhævet note (info, tip, advarsel eller vigtigt).
 - Blokmenu (⋮⋮ til venstre for blokken): **Omdan til** (overskrift, citat, liste, kode, callout, læringsmål) og **Slet**. Markér tekst for at ændre bloktype i værktøjslinjen.
 
