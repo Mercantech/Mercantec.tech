@@ -4918,7 +4918,7 @@ public class TicketSignalRService : INotifyPropertyChanged, IAsyncDisposable
 
 ### **Blazor UI - TicketChat Component**
 
-```txt
+```razor
 @* H2-MAGS/Blazor/Components/TicketChat.razor *@
 
     
