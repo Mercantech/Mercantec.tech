@@ -43,6 +43,16 @@ public partial class Index
     private string StatusLabel => _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Forbindelsen kræver opmærksomhed", _ => "Forbinder…" };
     private IEnumerable<NotionPageSummary> VisiblePages => ForceReadOnly ? _pages.Where(p => p.PublishedAtUtc is not null) : _pages;
     private string PageHref(Guid id) => $"/notion/{id}" + (ForceReadOnly ? "?published=true" : "");
+    private string GraphHref(Guid id) => $"/notion/graph/{id}" + (ForceReadOnly ? "?published=true" : "");
+    private bool IsCollection(NotionPageSummary page) =>
+        page.ParentPageId is null || !VisiblePages.Any(p => p.Id == page.ParentPageId) || VisiblePages.Any(p => p.ParentPageId == page.Id);
+    private Guid CollectionRoot(Guid id)
+    {
+        var pages = VisiblePages.ToDictionary(p => p.Id);
+        for (var guard = 0; guard < 32 && pages.TryGetValue(id, out var page) && page.ParentPageId is Guid parent && pages.ContainsKey(parent); guard++)
+            id = parent;
+        return id;
+    }
 
     protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; ViewAs.Changed += AccountChanged; }
     protected override async Task OnParametersSetAsync()

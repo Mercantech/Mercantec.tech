@@ -1,0 +1,34 @@
+.notion-graph-kicker{margin:0 0 4px;font-size:12px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--blue)}
+.notion-welcome{display:grid;justify-items:start;gap:16px}
+.notion-welcome p{max-width:55ch;color:var(--muted)}
+.notion-error{padding:13px 16px;border:1px solid var(--orange);background:var(--peach);color:var(--ink);border-radius:7px;margin:0 0 16px;font-size:13px}
+.notion-error button{margin-left:10px}
+.notion-graph-bar{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.notion-graph-bar .field{min-width:min(100%,280px);font-size:12px}
+.notion-graph-stage{position:relative;height:min(72vh,760px);min-height:460px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:hidden}
+.notion-graph-stage:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.notion-graph-host{position:absolute;inset:0}
+.notion-graph-host ::deep canvas{display:block;width:100%;height:100%;touch-action:none}
+.notion-graph-controls{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:2}
+.notion-graph-hint{margin:12px 2px 0;font-size:12px;color:var(--muted);max-width:78ch}
+.notion-graph-empty{display:grid;justify-items:center;text-align:center;gap:12px;padding:48px 24px}
+.notion-graph-empty p{max-width:58ch;color:var(--muted)}
+.notion-graph-empty ul,.notion-graph-picker-panel ul,.notion-graph-links ul{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:6px}
+.notion-graph-picker-panel{display:grid;justify-items:start;gap:10px}
+.notion-graph-picker-panel .field{min-width:min(100%,280px)}
+.notion-graph-picker-panel li{padding-left:calc(var(--page-depth,0)*16px)}
+.notion-graph-links{margin-top:16px;font-size:13px}
+.notion-graph-links summary{cursor:pointer;color:var(--muted)}
+.notion-graph-menu{position:fixed;z-index:50;min-width:210px;max-width:min(280px,calc(100vw - 24px));padding:10px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:10px;box-shadow:0 16px 40px color-mix(in srgb, var(--ink) 14%, transparent);display:grid;gap:8px}
+.notion-graph-menu p{margin:0;font-size:13px;font-weight:650}
+.notion-graph-menu form{display:grid;gap:8px}
+.notion-graph-menu label{font-size:12px;display:grid;gap:6px}
+.notion-graph-menu input{width:100%;min-height:36px;border:1px solid var(--rule);border-radius:7px;padding:8px;background:var(--bg);color:var(--ink)}
+.notion-graph-menu-actions{display:flex;gap:6px}
+.notion-graph-backdrop{position:fixed;inset:0;z-index:40;border:0;padding:0;background:transparent;cursor:default}
+kbd{font-size:11px;background:var(--tint);color:var(--blue);padding:2px 5px;border-radius:4px}
+@media(max-width:640px){
+    .notion-graph-stage{height:68vh;min-height:380px}
+    .notion-graph-controls{top:8px;right:8px}
+    .notion-graph-empty{padding:32px 16px}
+}

@@ -404,6 +404,109 @@ public sealed class NotionControllerTests : IAsyncLifetime
         else Assert.Equal("Introduktion", Value<NotionPageContext>(await As(student).Context(page.Id, default)).Title);
     }
 
+    [Fact]
+    public async Task GraphUsesLivePageLinksInsideTheCollection()
+    {
+        var root = await Create();
+        await AddPage(WeekId, "Uge 1", root.Id);
+        await AddPage(TaskId, "Opgave", WeekId);
+        await AddPage(OutsideId, "Andet forløb", null);
+        var foreign = new NotionPage
+        {
+            Id = Guid.NewGuid(), HoldId = otherHoldId, Title = "Privat", CreatedBySub = outsider,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow,
+            PublishedTitle = "Privat", PublishedAtUtc = DateTimeOffset.UtcNow, PublishedState = GraphFixtures.Get("empty")
+        };
+        db.NotionPages.Add(foreign);
+        await db.SaveChangesAsync();
+        await SetDocument(root.Id, GraphFixtures.Get("basic"), GraphFixtures.Get("empty"), "Udgivet H3");
+
+        var teacher = As(this.teacher, true);
+        var graph = Value<NotionGraph>(await teacher.Graph(root.Id, default));
+        Assert.Equal("no-store", teacher.Response.Headers.CacheControl.ToString());
+        Assert.Equal(root.Id, graph.CollectionId);
+        Assert.Equal(holdId, graph.HoldId);
+        Assert.True(graph.CanRename);
+        Assert.Equal("Introduktion", graph.Title);
+        Assert.Equal(new HashSet<Guid> { root.Id, WeekId, TaskId }, graph.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.DoesNotContain(graph.Nodes, n => n.Id == OutsideId);
+        Assert.Equal([(root.Id, WeekId), (root.Id, TaskId)], Edges(graph));
+
+        var student = Value<NotionGraph>(await As(this.student).Graph(root.Id, default));
+        Assert.False(student.CanRename);
+        Assert.Equal("Udgivet H3", student.Title);
+        Assert.Equal(root.Id, Assert.Single(student.Nodes).Id);
+        Assert.Empty(student.Edges);
+        var preview = Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default, publishedOnly: true));
+        Assert.False(preview.CanRename);
+        Assert.Empty(preview.Edges);
+        Assert.Equal("Udgivet H3", preview.Title);
+
+        Assert.IsType<NotFoundResult>(await As(outsider, true).Graph(root.Id, default));
+        Assert.IsType<NotFoundResult>(await As(this.student).Graph(WeekId, default));
+        Assert.IsType<NotFoundResult>(await As(this.student).Graph(foreign.Id, default));
+
+        var week = Value<NotionGraph>(await As(this.teacher, true).Graph(WeekId, default));
+        Assert.Equal(new HashSet<Guid> { WeekId, TaskId }, week.Nodes.Select(n => n.Id).ToHashSet());
+        Assert.Empty(week.Edges);
+
+        await SetDocument(WeekId, GraphFixtures.Get("basic"));
+        Assert.Equal([(WeekId, TaskId)], Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(WeekId, default))));
+        Assert.Contains((WeekId, TaskId), Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default))));
+        await SetDocument(WeekId, null);
+
+        await SetDocument(root.Id, GraphFixtures.Get("deleted"));
+        Assert.Equal([(root.Id, TaskId)], Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default))));
+        await SetDocument(root.Id, GraphFixtures.Get("overwrite"));
+        Assert.Equal([(root.Id, TaskId)], Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default))));
+        await SetDocument(root.Id, GraphFixtures.Get("merged"));
+        Assert.Equal([(root.Id, WeekId), (root.Id, TaskId)], Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default))));
+        await SetDocument(root.Id, GraphFixtures.Get("nested"));
+        Assert.Equal([(root.Id, WeekId)], Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default))));
+        await SetDocument(root.Id, [1, 2, 3, 4, 5]);
+        var corrupt = Value<NotionGraph>(await As(this.teacher, true).Graph(root.Id, default));
+        Assert.Contains(corrupt.Nodes, n => n.Id == root.Id);
+        Assert.Empty(corrupt.Edges);
+
+        await SetDocument(WeekId, GraphFixtures.Get("empty"), GraphFixtures.Get("basic"), "Uge 1");
+        await SetDocument(TaskId, GraphFixtures.Get("empty"), GraphFixtures.Get("empty"), "Opgave");
+        Assert.Empty(Edges(Value<NotionGraph>(await As(this.teacher, true).Graph(WeekId, default))));
+        var publishedWeek = Value<NotionGraph>(await As(this.student).Graph(WeekId, default));
+        Assert.False(publishedWeek.CanRename);
+        Assert.Equal("Uge 1", publishedWeek.Nodes.Single(n => n.Id == WeekId).Title);
+        Assert.Equal([(WeekId, TaskId)], Edges(publishedWeek));
+    }
+
+    private static readonly Guid WeekId = Guid.Parse("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    private static readonly Guid TaskId = Guid.Parse("cccccccc-cccc-4ccc-8ccc-cccccccccccc");
+    private static readonly Guid OutsideId = Guid.Parse("dddddddd-dddd-4ddd-8ddd-dddddddddddd");
+
+    private async Task AddPage(Guid id, string title, Guid? parent)
+    {
+        db.NotionPages.Add(new NotionPage
+        {
+            Id = id, HoldId = holdId, ParentPageId = parent, Title = title, CreatedBySub = teacher,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
+        await db.SaveChangesAsync();
+    }
+
+    private async Task SetDocument(Guid id, byte[]? draft, byte[]? published = null, string? publishedTitle = null)
+    {
+        var page = await db.NotionPages.SingleAsync(p => p.Id == id);
+        page.YjsState = draft;
+        if (published is not null)
+        {
+            page.PublishedState = published;
+            page.PublishedTitle = publishedTitle ?? page.Title;
+            page.PublishedAtUtc = DateTimeOffset.UtcNow;
+            page.PublishedRevision = 1;
+        }
+        await db.SaveChangesAsync();
+    }
+
+    private static (Guid From, Guid To)[] Edges(NotionGraph graph) => graph.Edges.Select(e => (e.FromId, e.ToId)).ToArray();
+
     private sealed class BeforePublicationUpdate(Func<DbCommand, Task> before) : DbCommandInterceptor
     {
         public bool Intercepted { get; private set; }

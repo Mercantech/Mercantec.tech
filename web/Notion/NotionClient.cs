@@ -7,6 +7,7 @@ public sealed class NotionClient(HttpClient http)
 {
     public Task<NotionHold[]> Holds(CancellationToken ct) => Get<NotionHold[]>("notion/holds", ct);
     public Task<NotionPageSummary[]> Pages(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?holdId={holdId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionGraph> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/graph/{collectionId}?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionPageContext> Context(Guid id, CancellationToken ct) => Get<NotionPageContext>($"notion/pages/{id}/context", ct);
     public Task<NotionPageContext> PublishedContext(Guid id, CancellationToken ct) => Get<NotionPageContext>($"notion/pages/{id}/published-context", ct);
     public Task<NotionGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<NotionGroupView[]>($"notion/holds/{holdId}/groups", ct);

@@ -5,6 +5,10 @@
 .notion-sidebar-heading{display:flex;align-items:center;justify-content:space-between;margin:24px 0 8px}
 .notion-sidebar-heading h2{font-size:14px}
 .notion-page-list{display:grid;gap:4px;max-height:420px;overflow-y:auto}
+.notion-page-row{display:flex;align-items:stretch;gap:2px;min-width:0}
+.notion-page-row .notion-page{flex:1;width:auto}
+.notion-graph-link{flex:none;align-self:center;font-size:10px;font-weight:650;padding:4px 6px;border-radius:5px;color:var(--muted)}
+.notion-graph-link:hover{color:var(--blue);background:var(--paper);text-decoration:none}
 .notion-page{display:flex;gap:9px;align-items:center;min-width:0;text-align:left;border:0;background:transparent;border-radius:6px;padding:10px 8px 10px calc(8px + var(--page-depth,0)*12px);width:100%;font-size:12px}
 .notion-page span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .notion-page.is-current{background:var(--tint);color:var(--blue);font-weight:600}
