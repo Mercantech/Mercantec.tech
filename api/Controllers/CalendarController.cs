@@ -41,7 +41,8 @@ public sealed class CalendarController(AzureGraphCalendarClient graph) : Control
         try
         {
             var events = await graph.GetCalendarViewAsync(upn, start, end, ct);
-            var visible = events.Where(e => !e.IsCancelled).ToList();
+            var visible = TeacherCalendarHoldFilter.HideDuplicateHolds(
+                events.Where(e => !e.IsCancelled).ToList());
             return Ok(new TeacherCalendarView(upn, start, end, Configured: true, Events: visible));
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
