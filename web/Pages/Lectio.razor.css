@@ -320,6 +320,31 @@ button.stat.is-active {
     white-space: nowrap;
 }
 
+.lectio-auth-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 6.5rem;
+}
+
+.lectio-auth-status.is-pending {
+    font-size: 11px;
+}
+
+.lectio-auth-sub {
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lectio-auth-inline {
+    margin-top: 6px;
+}
+
 .lectio-empty {
     margin: 0;
     padding: 28px;
