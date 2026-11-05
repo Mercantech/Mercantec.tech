@@ -10,6 +10,22 @@
 .notion-editor-tools button:focus-visible,.notion-slide-deck button:focus-visible{outline:3px solid var(--notion-blue);outline-offset:2px}
 .notion-editor-tools .notion-present-button{margin-left:auto;background:var(--notion-tint);color:var(--notion-blue);font-weight:600}
 .notion-tool-divider{height:18px;border-left:1px solid var(--notion-rule);margin:0 6px}
+.notion-ai-panel{margin:0 16px 10px;padding:12px 14px;border:1px solid var(--notion-rule);border-radius:8px;background:var(--notion-paper);display:flex;flex-direction:column;gap:8px}
+.notion-ai-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.notion-ai-panel-head strong{font-size:13px}
+.notion-ai-panel-head button{border:0;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer;padding:4px 6px;border-radius:6px}
+.notion-ai-panel-head button:hover{background:var(--notion-tint)}
+.notion-ai-actions{display:flex;flex-wrap:wrap;gap:6px}
+.notion-ai-actions button{border:1px solid var(--notion-rule);border-radius:6px;padding:6px 10px;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer}
+.notion-ai-actions button.is-active{border-color:var(--notion-blue);background:var(--notion-tint);color:var(--notion-blue);font-weight:600}
+.notion-ai-panel textarea{width:100%;min-height:72px;resize:vertical;border:1px solid var(--notion-rule);border-radius:6px;padding:8px 10px;font:inherit;font-size:13px;background:transparent;color:inherit}
+.notion-ai-panel textarea:focus{outline:2px solid var(--notion-blue);outline-offset:1px}
+.notion-ai-panel-foot{display:flex;align-items:center;gap:10px}
+.notion-ai-submit{border:1px solid transparent;border-radius:6px;padding:7px 12px;background:var(--notion-tint);color:var(--notion-blue);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.notion-ai-submit:disabled{opacity:.45;cursor:default}
+.notion-ai-hint{font-size:11px;opacity:.65}
+.notion-ai-error{margin:0;font-size:12px;color:#b42318}
+.notion-ai-note{margin:0;font-size:12px;opacity:.8}
 .notion-editor-footnote{display:flex;justify-content:space-between;gap:12px;padding:12px 22px;font-size:11px;color:var(--notion-muted);border-top:1px solid var(--notion-rule)}
 .notion-editor-footnote a{color:inherit}.notion-editor-footnote kbd{font:inherit;background:var(--notion-tint);padding:1px 5px;border-radius:3px}
 .notion-editor-loading,.notion-editor-error{padding:48px 28px;min-height:240px;color:var(--notion-muted)}
