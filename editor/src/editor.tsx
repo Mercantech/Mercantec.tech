@@ -340,6 +340,9 @@ function ConnectedEditor({session}:{session:Session}) {
         editor={editor}
         enabled={enabled}
         pageTitle={session.context.title}
+        holdId={session.context.holdId}
+        pages={session.context.pages}
+        members={session.context.members}
         getToken={()=>validToken(session)}
         open={aiOpen}
         onOpenChange={onAiOpenChange}

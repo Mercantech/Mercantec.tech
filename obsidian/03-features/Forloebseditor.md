@@ -26,7 +26,7 @@ Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer de
 - `/læringsmål`: fremhæv aktivitetens mål.
 - `/diagram` (eller `/mermaid`): indsæt et Mermaid-diagram (flowchart, sequence m.m.). Diagrammet vises uden ramme; dobbeltklik for at redigere koden.
 - `/callout`: indsæt en fremhævet note (info, tip, advarsel eller vigtigt).
-- `/ai` (eller knappen **AI**): OpenAI-hjælper til underviser — generér blokke, omskriv markering eller lav Mermaid-diagram. Default-model: `gpt-6-luna` (`OPENAI_MODEL`). Nøglen ligger kun på API (`OPENAI_API_KEY`); browseren ser den aldrig.
+- `/ai` (eller knappen **AI**): OpenAI-hjælper til underviser — generér blokke, omskriv markering eller lav Mermaid-diagram. Default-model: `gpt-6-luna` (`OPENAI_MODEL`). Nøglen ligger kun på API (`OPENAI_API_KEY`); browseren ser den aldrig. Systemprompten med editorens bloktyper ligger i `api/Integrations/OpenAI/editor-block-prompt.txt` og sendes med hvert kald til `POST /api/ai/editor`. Opdatér filen når block specs i `editor/src` ændres.
 - Blokmenu (⋮⋮ til venstre for blokken): **Omdan til** (overskrift, citat, liste, kode, callout, læringsmål) og **Slet**. Markér tekst for at ændre bloktype i værktøjslinjen.
 
 Sidelinks og elevrelationer bruger stabile ID'er. Elevfelter bruger MembershipId, også når en Lectio-elev endnu ikke har login. Links giver ikke i sig selv ekstra adgang. Grupper og andre tilknyttede holddata vises fra den aktuelle, autoriserede holdkontekst; selve dokumentteksten fastholdes i udgivelsen.

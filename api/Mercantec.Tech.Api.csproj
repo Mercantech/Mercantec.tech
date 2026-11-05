@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Integrations\OpenAI\editor-block-prompt.txt">
+      <LogicalName>Mercantec.Tech.Api.EditorBlockPrompt.txt</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.511.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />

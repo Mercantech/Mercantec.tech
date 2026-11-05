@@ -8,6 +8,7 @@ import {
   selectionTextForAi,
   type AiAction,
 } from './ai-block-text';
+import { toEditorBlock } from './ai-blocks.mjs';
 
 export type { AiAction };
 
@@ -15,6 +16,17 @@ export interface AiBlockDto {
   type: string;
   props?: Record<string, unknown>;
   content?: unknown;
+  children?: AiBlockDto[];
+}
+
+export interface AiPageRef {
+  id: string;
+  title: string;
+}
+
+export interface AiMemberRef {
+  id: string;
+  displayName: string;
 }
 
 interface AiResponse {
@@ -29,7 +41,15 @@ type TokenFn = () => Promise<string>;
 
 export async function requestEditorAi(
   getToken: TokenFn,
-  body: { action: AiAction; prompt: string; selectionText?: string; pageTitle?: string },
+  body: {
+    action: AiAction;
+    prompt: string;
+    selectionText?: string;
+    pageTitle?: string;
+    holdId?: string;
+    pages?: AiPageRef[];
+    members?: AiMemberRef[];
+  },
   signal?: AbortSignal,
 ): Promise<AiResponse> {
   const token = await getToken();
@@ -66,17 +86,6 @@ export async function requestEditorAi(
   return data;
 }
 
-function toEditorBlock(block: AiBlockDto): Record<string, unknown> {
-  const out: Record<string, unknown> = { type: block.type };
-  if (block.props && typeof block.props === 'object') out.props = block.props;
-  if (block.type === 'mermaidDiagram') return out;
-  if (typeof block.content === 'string') out.content = block.content;
-  else if (Array.isArray(block.content)) out.content = block.content;
-  else if (block.content != null) out.content = String(block.content);
-  else out.content = '';
-  return out;
-}
-
 function placeCursor(editor: BlockNoteEditor<any, any, any>, block: { id: string } | undefined) {
   if (!block) return;
   try {
@@ -94,7 +103,8 @@ export function insertAiBlocks(
 ): void {
   if (!blocks.length) return;
   editor.focus();
-  const mapped = blocks.map(toEditorBlock) as any[];
+  const mapped = blocks.map(toEditorBlock).filter(Boolean) as any[];
+  if (!mapped.length) return;
 
   if (anchorBlockId) {
     const anchor = editor.getBlock(anchorBlockId);
@@ -196,6 +206,9 @@ export function AiHelperPanel({
   editor,
   enabled,
   pageTitle,
+  holdId,
+  pages,
+  members,
   getToken,
   open,
   onOpenChange,
@@ -205,6 +218,9 @@ export function AiHelperPanel({
   editor: BlockNoteEditor<any, any, any>;
   enabled: boolean;
   pageTitle: string;
+  holdId?: string;
+  pages?: AiPageRef[];
+  members?: AiMemberRef[];
   getToken: TokenFn;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -268,7 +284,15 @@ export function AiHelperPanel({
     try {
       const data = await requestEditorAi(
         getToken,
-        { action, prompt: text, selectionText, pageTitle },
+        {
+          action,
+          prompt: text,
+          selectionText,
+          pageTitle,
+          holdId,
+          pages: (pages ?? []).map((page) => ({ id: page.id, title: page.title })),
+          members: (members ?? []).map((member) => ({ id: member.id, displayName: member.displayName })),
+        },
         controller.signal,
       );
       const blocks = data.blocks ?? [];
