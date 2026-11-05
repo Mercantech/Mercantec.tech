@@ -94,3 +94,14 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-tip{background:#1a2f24;border-color:#2d4d3a}
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-warning{background:#322818;border-color:#5a4420}
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-important{background:#2a2340;border-color:#4a3d6a}
+.notion-code-block{display:flex;flex-direction:column;gap:0;width:100%;margin:6px 0;border:1px solid var(--notion-rule);border-radius:8px;background:color-mix(in srgb,var(--notion-ink) 3%,var(--notion-paper));overflow:hidden}
+.notion-code-toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--notion-rule);background:color-mix(in srgb,var(--notion-ink) 4%,var(--notion-paper))}
+.notion-code-toolbar select{appearance:auto;max-width:min(100%,220px);padding:4px 8px;border:1px solid var(--notion-rule);border-radius:5px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px}
+.notion-code-copy{margin-left:auto;border:1px solid var(--notion-rule);border-radius:5px;padding:4px 10px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px;cursor:pointer}
+.notion-code-copy:hover{border-color:var(--notion-blue);background:var(--notion-tint);color:var(--notion-blue)}
+.notion-code-copy:focus-visible{outline:2px solid var(--notion-blue);outline-offset:1px}
+.notion-code-copy.is-copied{border-color:var(--notion-blue);color:var(--notion-blue);font-weight:600}
+.notion-code-block pre{margin:0;padding:12px 14px;overflow-x:auto;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2;background:transparent}
+.notion-code-block code{font:inherit;background:transparent}
+.notion-blocknote-host[data-notion-theme=dark] .notion-code-block{background:color-mix(in srgb,#000 35%,var(--notion-paper))}
+.notion-blocknote-host[data-notion-theme=dark] .notion-code-toolbar{background:color-mix(in srgb,#000 25%,var(--notion-paper))}

@@ -41,6 +41,7 @@ WebSocket: same-origin /collaboration?schemaVersion=4, room notion:<pageId>. A m
 - /læringsmål: formatted inline learning goal.
 - /diagram (aliases: mermaid, flowchart): Mermaid diagram rendered without chrome; double-click to edit source.
 - /callout: highlighted note (info / tip / warning / important).
+- /kodeblok (default BlockNote code block): language picker (C#, JS/TS, Python, …), Shiki syntax highlighting via `@blocknote/code-block`, and a **Kopiér** button. Default language is C#.
 - /ai (toolbar **AI**): teacher-only OpenAI helper — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).
 - Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, callout, læringsmål) or **Slet**. Selection toolbar also offers block type change.
 

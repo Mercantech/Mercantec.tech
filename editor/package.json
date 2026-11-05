@@ -8,6 +8,7 @@
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@blocknote/code-block": "0.56.0",
     "@blocknote/core": "0.56.0",
     "@blocknote/mantine": "0.56.0",
     "@blocknote/react": "0.56.0",
