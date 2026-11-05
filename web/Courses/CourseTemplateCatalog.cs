@@ -254,73 +254,7 @@ public static class CourseTemplateCatalog
         "Grupper (typisk 3, max 4) tilpasser feature-dybde — ekstra relationer, auth, AD, SignalR eller test — i dialog med underviseren. Online og fysisk må blandes.",
         "Løbende dialog, sprint-/release-feedback, individuel refleksion ved releases og afsluttende overhøring.",
         StandardCriteria,
-        Theory:
-        [
-            new(
-                "Programmering (C# / OOP)",
-                "Bygger videre på H1 med mere kompleksitet, asynkronitet og domænemodellering (fagmål 16880-2).",
-                [
-                    "Override vs overload, access modifiers og selvudviklede interfaces",
-                    "UML-klassediagrammer og simpel domænemodel med løs kobling",
-                    "Asynkron programmering, thread safety, deadlocks og lambda/anonyme metoder",
-                    "Funktion pointers/callbacks hvor det er relevant i .NET"
-                ]),
-            new(
-                "Database (SQL / EF Core)",
-                "Fra ADO.NET på H1 til EF Core og avanceret SQL (fagmål 16474-3).",
-                [
-                    "Avanceret SQL: parametre, constraints, rettigheder og normalisering",
-                    "Relationer, referenceintegritet og konsistenskrav",
-                    "EF Core: modeller, DbContext, migrationer og forespørgsler",
-                    "SQL injection-sikring, indexes og grundlæggende performance"
-                ]),
-            new(
-                "Clientsideprogrammering",
-                "SPA der taler med backend — Blazor (samt kendskab til React) i stedet for klassisk jQuery/AJAX (fagmål 16476-2).",
-                [
-                    "Klientlogik, objekter og kommunikation med webservices",
-                    "DOM/UI-manipulation via komponentmodel",
-                    "Best practice for sikkerhed og performance på clientside",
-                    "Bevidsthed om XSS og test af webapplikationens funktionalitet"
-                ]),
-            new(
-                "GUI-programmering",
-                "Udvider Blazor/GUI-kompetencer fra H1 (fagmål 16475-3).",
-                [
-                    "Layout, kontroller og event-handling",
-                    "UI design patterns og custom controls",
-                    "State og application lifetime i SPA",
-                    "Simpel usability-test af bookingflows"
-                ]),
-            new(
-                "API-sikkerhed og arkitektur",
-                "Teori og praksis bag 3-lags API, roller og tokens.",
-                [
-                    "3-lags arkitektur: præsentation, applikation og data",
-                    "AuthN vs AuthZ; RBAC vs ABAC",
-                    "BCrypt (hash + salt) og JWT (header, payload, signature)",
-                    "DTO’er, DataAnnotations, logging og struktureret fejlhåndtering",
-                    "CORS, rate limiting og OpenAPI-dokumentation"
-                ]),
-            new(
-                "Serveradministration og Active Directory",
-                "Domæne, brugere og tilladelser koblet til admin-delen af hotelprojektet (fagmål 16858-2 / 16857-2).",
-                [
-                    "Installere/konfigurere client-server og AD domain services",
-                    "Bruger-/gruppekonti, objekter og tilladelser til ressourcer",
-                    "Grundlæggende serversikkerhed, politikker og firewall",
-                    "Integration af lokalt AD til admin-login i applikationen"
-                ]),
-            new(
-                "IT Service Management & real-time",
-                "Ticket-tænkning og real-time support i bookingplatformen (fagmål 16853-2).",
-                [
-                    "1st level support: roller, forventninger og eskalering",
-                    "Service requests vs fejl; kategori og prioritet",
-                    "Ticket-system modelleret i EF Core",
-                    "SignalR til real-time opdateringer; mail til bookingbekræftelse"
-                ])
-        ]);
+        TheoryDocumentPath: "content/courses/h2-teori.json");
 
     private static readonly CourseTemplate H3 = new(
         "h3", "H3", "Hovedforløb 3", 9,
@@ -597,6 +531,9 @@ public sealed record CourseWeekPlan(string Title, string Focus = "", string[]? T
 /// <summary>Teori-/kompetenceblok til pensum (generel template-indhold).</summary>
 public sealed record CourseTheoryBlock(string Title, string Summary, string[] Points);
 
+/// <summary>Fuld teoriblok med markdown-brødtekst (fx «Teori for dagen»).</summary>
+public sealed record CourseTheoryDocumentBlock(int Number, string Title, string Markdown);
+
 public sealed record CourseTemplate(
     string Slug,
     string Short,
@@ -614,7 +551,8 @@ public sealed record CourseTemplate(
     string Differentiation,
     string Evaluation,
     string[] Criteria,
-    CourseTheoryBlock[]? Theory = null)
+    CourseTheoryBlock[]? Theory = null,
+    string? TheoryDocumentPath = null)
 {
     public string DurationLabel => DurationWeeks is int w ? $"{w} uger" : "Fleksibel";
     public string KindLabel => Kind switch
@@ -624,5 +562,6 @@ public sealed record CourseTemplate(
         _ => "Skabelon"
     };
     public string Path => $"/courses/template/{Slug}";
-    public bool HasTheory => Theory is { Length: > 0 };
+    public bool HasTheoryDocument => !string.IsNullOrWhiteSpace(TheoryDocumentPath);
+    public bool HasTheory => Theory is { Length: > 0 } || HasTheoryDocument;
 }

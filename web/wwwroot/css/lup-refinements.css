@@ -23,10 +23,39 @@
 .lup .course-title .context { display:block; }
 .lup .v2-cover { width:100%; object-fit:cover; border-radius:12px; height:230px; }
 .lup .course-theory-lead { color:var(--muted); margin:0 0 18px; }
+.lup .course-theory-error { color:#b42318; margin:0 0 18px; }
 .lup .course-theory-block { padding:16px 0; border-top:1px solid var(--rule); }
 .lup .course-theory-block:first-of-type { border-top:0; padding-top:0; }
 .lup .course-theory-block h3 { margin:0 0 6px; font-size:16px; }
 .lup .course-theory-block p { margin:0 0 10px; color:var(--muted); }
+.lup .course-theory-index { display:flex; flex-direction:column; gap:4px; margin:0 0 20px; padding:12px 14px; background:var(--bg); border:1px solid var(--rule); border-radius:8px; }
+.lup .course-theory-index a { font-size:13px; color:var(--ink); text-decoration:none; padding:4px 0; }
+.lup .course-theory-index a:hover { color:var(--blue); }
+.lup .course-theory-full { border-top:1px solid var(--rule); }
+.lup .course-theory-full:last-child { border-bottom:1px solid var(--rule); }
+.lup .course-theory-full > summary { display:flex; align-items:center; list-style:none; gap:13px; padding:18px 0; cursor:pointer; }
+.lup .course-theory-full > summary::-webkit-details-marker { display:none; }
+.lup .course-theory-full > summary small { display:block; font-size:11px; color:var(--muted); margin-top:3px; }
+.lup .course-theory-full > summary strong { font-size:15px; }
+.lup .course-theory-full[open] .week-number { color:var(--blue); background:var(--tint); }
+.lup .course-theory-full[open] .week-chevron { transform:rotate(180deg); }
+/* Fuld teori — ingen truncation / max-height */
+.lup .course-theory-body { padding:0 0 22px 44px; max-width:78ch; overflow:visible; max-height:none; }
+.lup .course-theory-body :is(h1,h2,h3,h4) { margin:1.25em 0 .45em; letter-spacing:-.3px; line-height:1.25; }
+.lup .course-theory-body h1 { font-size:22px; }
+.lup .course-theory-body h2 { font-size:18px; }
+.lup .course-theory-body h3 { font-size:16px; }
+.lup .course-theory-body p,.lup .course-theory-body li { font-size:14px; line-height:1.75; color:var(--ink); }
+.lup .course-theory-body p { margin:0 0 .85em; }
+.lup .course-theory-body ul,.lup .course-theory-body ol { margin:0 0 1em; padding-left:1.35em; }
+.lup .course-theory-body a { color:var(--blue); }
+.lup .course-theory-body pre { margin:0 0 1.1em; padding:14px 16px; background:var(--bg); border:1px solid var(--rule); border-radius:8px; overflow-x:auto; font-size:12.5px; line-height:1.55; }
+.lup .course-theory-body code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.92em; }
+.lup .course-theory-body :not(pre) > code { padding:.1em .35em; background:var(--tint); border-radius:4px; }
+.lup .course-theory-body blockquote { margin:0 0 1em; padding:.2em 0 .2em 14px; border-left:3px solid var(--rule); color:var(--muted); }
+.lup .course-theory-body table { width:100%; border-collapse:collapse; margin:0 0 1.1em; font-size:13px; }
+.lup .course-theory-body th,.lup .course-theory-body td { border:1px solid var(--rule); padding:8px 10px; text-align:left; vertical-align:top; }
+.lup .course-theory-body img { max-width:100%; height:auto; }
 .lup .week-topics { margin:0; }
 .lup .course-week { border-top:1px solid var(--rule); }
 .lup .course-week:last-child { border-bottom:1px solid var(--rule); }

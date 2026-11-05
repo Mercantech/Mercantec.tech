@@ -1,0 +1,175 @@
+@using System.Globalization
+@using Mercantec.Tech.Web.Lectio
+
+<div class="student-elev-overview">
+    @if (ShowLinkSaved)
+    {
+        <p class="callout ok">Kobling gemt.</p>
+    }
+
+    <div class="student-status" role="list" aria-label="Din Lectio-status">
+        <div class="student-status-item" role="listitem">
+            <span class="student-status-label">Lectio</span>
+            @if (LoadingSnapshot)
+            {
+                <strong>Henter…</strong>
+            }
+            else
+            {
+                <strong class="is-ok">Koblet</strong>
+                <span>@(Snapshot?.ClassName ?? Snapshot?.Name ?? "Din elevprofil er klar")</span>
+            }
+        </div>
+        <div class="student-status-item" role="listitem">
+            <span class="student-status-label">Forløb</span>
+            @if (LoadingSnapshot)
+            {
+                <strong>Henter…</strong>
+            }
+            else if (!string.IsNullOrWhiteSpace(Snapshot?.ForloebName))
+            {
+                <strong>@Snapshot!.ForloebName</strong>
+                @if (!string.IsNullOrWhiteSpace(Snapshot.ForloebDates))
+                {
+                    <span>@Snapshot.ForloebDates</span>
+                }
+            }
+            else
+            {
+                <strong>Ingen aktuelt H6</strong>
+                <span>Se tidslinjen for hele studieplanen</span>
+            }
+        </div>
+        <div class="student-status-item" role="listitem">
+            <span class="student-status-label">VUF</span>
+            @if (LoadingSnapshot)
+            {
+                <strong>Henter…</strong>
+            }
+            else if (Snapshot?.Vuf is { IsMissing: true } or null)
+            {
+                <strong class="is-warn">Mangler</strong>
+                <span>Ingen VUF-data i Lectio lige nu</span>
+            }
+            else if (Snapshot!.Vuf.Ok == true)
+            {
+                <strong class="is-ok">Ok</strong>
+                <span>@(Snapshot.Vuf.Earned?.ToString() ?? "?")/@(Snapshot.Vuf.Required?.ToString() ?? "?")</span>
+            }
+            else if (Snapshot.Vuf.Ok == false)
+            {
+                <strong class="is-warn">Ikke ok</strong>
+                <span>@(Snapshot.Vuf.Earned?.ToString() ?? "?")/@(Snapshot.Vuf.Required?.ToString() ?? "?")</span>
+            }
+            else
+            {
+                <strong>Ukendt</strong>
+                <span>@(Snapshot.Vuf.Earned?.ToString() ?? "?")/@(Snapshot.Vuf.Required?.ToString() ?? "?")</span>
+            }
+        </div>
+    </div>
+
+    <section class="student-section student-vuf @VufTone" aria-labelledby="elev-vuf-title">
+        <div class="student-section-head">
+            <h2 id="elev-vuf-title">VUF</h2>
+            <p>Status fra Lectio — vi viser kun det, Collector allerede har beregnet.</p>
+        </div>
+        @if (LoadingSnapshot)
+        {
+            <p class="student-inline-note">Henter VUF…</p>
+        }
+        else if (Snapshot?.Vuf is { IsMissing: true } or null)
+        {
+            <p class="student-inline-note">VUF-data mangler i Lectio lige nu. Prøv igen senere, eller spørg din underviser.</p>
+        }
+        else
+        {
+            var vuf = Snapshot!.Vuf;
+            var width = Studieplan.VufWidth(vuf);
+            <div class="student-vuf-readout">
+                <div class="student-vuf-score">
+                    <strong>@(vuf.Earned?.ToString() ?? "?")<span>/@(vuf.Required?.ToString() ?? "?")</span></strong>
+                    <span class="student-vuf-state">
+                        @if (vuf.Ok == true)
+                        {
+                            <text>Du har VUF nok</text>
+                        }
+                        else if (vuf.Ok == false)
+                        {
+                            <text>Du mangler VUF</text>
+                        }
+                        else
+                        {
+                            <text>VUF-status ukendt</text>
+                        }
+                    </span>
+                </div>
+                @if (width is double w)
+                {
+                    <div class="student-vuf-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@((int)Math.Round(w))" aria-label="VUF-fremgang">
+                        <span style="width: @(w.ToString("0.###", CultureInfo.InvariantCulture))%"></span>
+                    </div>
+                    <p class="student-vuf-meta">
+                        @(vuf.Percent is double p ? $"{p.ToString("0.#", CultureInfo.GetCultureInfo("da-DK"))} %" : $"{w.ToString("0.#", CultureInfo.GetCultureInfo("da-DK"))} %")
+                        @if (!string.IsNullOrWhiteSpace(Snapshot.WorkplaceName))
+                        {
+                            <text> · @Snapshot.WorkplaceName</text>
+                        }
+                    </p>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="student-section" aria-labelledby="elev-timeline-title">
+        <div class="student-section-head">
+            <h2 id="elev-timeline-title">Din forløbstidslinje</h2>
+            <p>Skoleperioder fra din Lectio-studieplan — hvor du er, og hvad der kommer.</p>
+        </div>
+        @if (LoadingPlan)
+        {
+            <p class="student-inline-note">Henter studieplan…</p>
+        }
+        else if (PlanError is not null)
+        {
+            <p class="student-inline-note" role="status">@PlanError</p>
+        }
+        else if (Plan is null || Plan.Periods.Count == 0)
+        {
+            <p class="student-inline-note">Ingen forløb i den cachede studieplan endnu.</p>
+        }
+        else
+        {
+            @if (!string.IsNullOrWhiteSpace(Plan.ClassName))
+            {
+                <p class="student-inline-note">Klasse i studieplan: @Plan.ClassName · @Plan.Periods.Count forløb</p>
+            }
+            <ForloebTimeline Timeline="Timeline" />
+        }
+    </section>
+
+    @if (ShowDashboardLink)
+    {
+        <p class="student-elev-footer">
+            <a href="/student">Åbn fuldt elev-overblik</a>
+        </p>
+    }
+</div>
+
+@code {
+    [Parameter] public StudentSnapshot? Snapshot { get; set; }
+    [Parameter] public StudentPlan? Plan { get; set; }
+    [Parameter] public TimelineView? Timeline { get; set; }
+    [Parameter] public bool LoadingSnapshot { get; set; }
+    [Parameter] public bool LoadingPlan { get; set; }
+    [Parameter] public string? PlanError { get; set; }
+    [Parameter] public bool ShowLinkSaved { get; set; }
+    [Parameter] public bool ShowDashboardLink { get; set; } = true;
+
+    private string VufTone => Snapshot?.Vuf.Ok switch
+    {
+        true => "is-ok",
+        false => "is-bad",
+        _ => Snapshot?.Vuf.IsMissing == true ? "is-missing" : ""
+    };
+}
