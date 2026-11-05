@@ -13,7 +13,7 @@ html[data-theme="newyear"] .lup .body { background-image:radial-gradient(circle 
 html[data-theme="newyear"] .lup .v3-next { background:#24354e; }
 .newyear-launcher { display:none; }
 html[data-theme="newyear"] .newyear-launcher { display:flex; }
-.newyear-launcher { position:fixed; left:22px; bottom:calc(16px + var(--lup-footer-clearance,0px)); z-index:45; align-items:center; gap:16px; padding:8px 8px 8px 16px; border:1px solid #78694f; border-radius:12px; color:#f7d89a; background:#15253f; box-shadow:0 4px 20px #07101d40; font:14px 'DM Sans',sans-serif; }
+.newyear-launcher { position:fixed; left:22px; bottom:calc(16px + var(--lup-footer-clearance,0px)); z-index:45; align-items:center; gap:16px; padding:8px 8px 8px 16px; border:1px solid #78694f; border-radius:12px; color:#f7d89a; background:#1b203e; box-shadow:0 4px 20px #07101d40; font:14px 'DM Sans',sans-serif; }
 .newyear-launcher-label { display:flex; align-items:center; gap:8px; }
 .newyear-launcher-label .ui-icon { width:22px; height:26px; }
 .newyear-launcher button,.newyear-game button { cursor:pointer; min-height:44px; border:1px solid #65718a; border-radius:8px; padding:9px 15px; background:#1c304e; color:#edf3ff; font:600 14px 'DM Sans',sans-serif; touch-action:manipulation; }
@@ -29,7 +29,7 @@ html:has(#lup-newyear-game[open]) :is(.newyear-launcher,.christmas-corner) { vis
 .newyear-game * { box-sizing:border-box; }
 #lup-newyear-canvas { position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair; outline:none; }
 #lup-newyear-canvas:focus-visible { box-shadow:inset 0 0 0 3px #91dded; }
-.newyear-hud { position:absolute; inset:0 0 auto; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:24px; min-height:94px; padding:15px max(22px,env(safe-area-inset-right)) 15px max(22px,env(safe-area-inset-left)); background:#101c36f5; border-bottom:1px solid #78694f; }
+.newyear-hud { position:absolute; inset:0 0 auto; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:10px 24px; min-height:132px; flex-wrap:wrap; padding:15px max(22px,env(safe-area-inset-right)) 15px max(22px,env(safe-area-inset-left)); background-color:#151730f5; background-image:var(--newyear-confetti); background-repeat:repeat-x; background-position:center top; border-bottom:1px solid #a38a5d; }
 .newyear-game-name { display:flex; gap:12px; align-items:center; }
 .newyear-game-name>.ui-icon { color:#f7d89a; width:28px; height:36px; }
 .newyear-game-name h2 { margin:0; color:#f7d89a; font:600 22px 'Space Grotesk',sans-serif; letter-spacing:-.6px; }
@@ -38,11 +38,20 @@ html:has(#lup-newyear-game[open]) :is(.newyear-launcher,.christmas-corner) { vis
 .newyear-scoreboard dt { font-size:12px; font-weight:400; color:#b5c2dd; }
 .newyear-scoreboard dd { margin:0; color:#f7d89a; font:600 25px 'Space Grotesk',sans-serif; font-variant-numeric:tabular-nums; }
 .newyear-scoreboard small { font:400 14px 'DM Sans',sans-serif; }
+.newyear-boost-strip { order:4; flex-basis:100%; display:flex; align-items:center; justify-content:center; gap:7px; height:30px; min-width:0; }
+.newyear-boost-empty { color:#c7bed6; font-size:12px; }
+.newyear-boost-chip { --boost-color:#f7d89a; position:relative; display:inline-flex; align-items:center; justify-content:center; height:28px; min-width:58px; padding:3px 12px 5px; border:1px solid color-mix(in srgb,var(--boost-color) 55%,#354768); border-radius:7px; background:#192944; color:var(--boost-color); overflow:hidden; font-size:12px; font-weight:600; }
+.newyear-boost-chip[data-newyear-boost="mega"] { --boost-color:#c39af1; }
+.newyear-boost-chip[data-newyear-boost="rapid"] { --boost-color:#ff927e; }
+.newyear-boost-chip[data-newyear-boost="comet"] { --boost-color:#80dce8; }
+.newyear-boost-chip[data-newyear-boost="speed"] { --boost-color:#9ed7be; }
+.newyear-boost-chip [data-newyear-boost-meter] { position:absolute; left:0; bottom:0; height:3px; width:var(--boost-left,100%); background:var(--boost-color); }
+.newyear-boost-short { display:none; }
 .newyear-hud-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .newyear-game .newyear-restart { padding:6px; width:44px; font-size:24px; line-height:1; background:transparent; }
 .newyear-game .newyear-exit { display:flex; align-items:center; gap:12px; background:transparent; }
 .newyear-exit span { font-size:24px; font-weight:400; line-height:1; }
-.newyear-controls { position:absolute; inset:auto 0 0; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:16px; min-height:80px; padding:10px max(22px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left)); background:#101c36f5; border-top:1px solid #354768; }
+.newyear-controls { position:absolute; inset:auto 0 0; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:16px; min-height:80px; padding:10px max(22px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left)); background:#151730f5; border-top:1px solid #66516d; }
 .newyear-controls p { margin:0; max-width:650px; font-size:12px; color:#edf3ff; }
 .newyear-controls p span { display:block; color:#b5c2dd; margin-top:4px; }
 .newyear-controls kbd { display:inline-block; padding:1px 5px; border:1px solid #65718a; border-radius:4px; background:#24354e; color:#edf3ff; font:inherit; }
@@ -53,7 +62,7 @@ html:has(#lup-newyear-game[open]) :is(.newyear-launcher,.christmas-corner) { vis
 .newyear-destroyed { visibility:hidden!important; }
 @media(max-width:700px) {
     .newyear-launcher { left:12px; bottom:calc(12px + var(--lup-footer-clearance,0px)); gap:10px; padding-left:12px; }
-    .newyear-hud { gap:6px; padding:10px 12px; flex-wrap:wrap; min-height:108px; }
+    .newyear-hud { gap:6px; padding:10px 12px; flex-wrap:wrap; min-height:146px; }
     .newyear-game-name { gap:7px; }
     .newyear-game-name h2 { font-size:16px; }
     .newyear-game-name span { display:none; }
@@ -63,6 +72,10 @@ html:has(#lup-newyear-game[open]) :is(.newyear-launcher,.christmas-corner) { vis
     .newyear-scoreboard { order:3; width:100%; justify-content:center; gap:38px; }
     .newyear-scoreboard>div { display:flex; align-items:center; gap:8px; }
     .newyear-scoreboard dd { font-size:21px; }
+    .newyear-boost-strip { gap:5px; height:28px; }
+    .newyear-boost-chip { min-width:42px; padding:3px 8px 5px; font-size:11px; }
+    .newyear-boost-full { display:none; }
+    .newyear-boost-short { display:inline; }
     .newyear-scoreboard dt { font-size:11px; }
     .newyear-controls { padding:8px 12px max(8px,env(safe-area-inset-bottom)); min-height:114px; justify-content:center; flex-direction:column; gap:7px; }
     .newyear-controls p { font-size:11px; text-align:center; }
@@ -72,7 +85,7 @@ html:has(#lup-newyear-game[open]) :is(.newyear-launcher,.christmas-corner) { vis
     .newyear-touch-controls .newyear-restart { min-width:44px; }
 }
 @media(max-height:430px) {
-    .newyear-hud { min-height:62px; flex-wrap:nowrap; padding:6px 12px; }
+    .newyear-hud { min-height:96px; flex-wrap:wrap; padding:6px 12px; gap:4px 12px; }
     .newyear-game-name span { display:none; }
     .newyear-scoreboard { order:0; width:auto; gap:16px; }
     .newyear-scoreboard>div { display:block; }

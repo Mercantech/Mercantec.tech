@@ -4,22 +4,31 @@
 
     const colors = ["#f6d889", "#ff927e", "#80dce8", "#c39af1"];
     const kinds = [
-        { type: "balloon", hp: 1, points: 50, width: 34, height: 45, color: "#ff927e" },
-        { type: "star", hp: 1, points: 75, width: 38, height: 38, color: "#f6d889" },
-        { type: "gift", hp: 2, points: 150, width: 40, height: 38, color: "#c39af1" },
-        { type: "disco", hp: 3, points: 250, width: 42, height: 42, color: "#80dce8" },
-        { type: "hat", hp: 1, points: 100, width: 38, height: 44, color: "#ffb37f" },
-        { type: "window", hp: 2, points: 200, width: 60, height: 42, color: "#9ed7be" }
+        { type: "bug", hp: 1, points: 50, width: 50, height: 44, color: "#ff927e", fixed: "Bug fixed" },
+        { type: "syntax", hp: 1, points: 75, width: 108, height: 48, color: "#f6d889", fixed: "Syntax OK" },
+        { type: "null", hp: 1, points: 100, width: 70, height: 42, color: "#c39af1", fixed: "Null-fejl rettet" },
+        { type: "merge", hp: 2, points: 150, width: 102, height: 50, color: "#ffb37f", fixed: "Merged" },
+        { type: "test", hp: 2, points: 200, width: 88, height: 48, color: "#ff92b7", fixed: "PASS" },
+        { type: "build", hp: 4, points: 400, width: 120, height: 60, color: "#80dce8", fixed: "Build succeeded" }
     ];
-    const limits = { falling: 28, rockets: 36, particles: 360 };
+    const boostKinds = [
+        { type: "multishot", label: "3 skud", symbol: "×3", color: "#f6d889" },
+        { type: "mega", label: "Store skud", symbol: "XL", color: "#c39af1" },
+        { type: "rapid", label: "Hurtig ild", symbol: "++", color: "#ff927e" },
+        { type: "comet", label: "Komet", symbol: "◆", color: "#80dce8" },
+        { type: "speed", label: "Turbo", symbol: ">>", color: "#9ed7be" }
+    ];
+    const boostDuration = 12;
+    const boosts = Object.fromEntries(boostKinds.map(kind => [kind.type, 0]));
+    const limits = { falling: 28, rockets: 72, particles: 720, bursts: 12, labels: 20, pickups: 8 };
     const keys = new Set(), destroyed = new Set(), pointers = new Map();
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let dialog, canvas, ctx, observer, previousFocus, playerImage, controls;
     let running = false, paused = false, frame = 0, previous = null;
     let width = 0, height = 0, playerX = 0, floor = 0, targetTop = 106;
     let elapsed = 0, score = 0, hits = 0, total = 0, level = 1, cooldown = 0, announced = 0;
-    let spawnWait = 0, spawned = 0, escaped = 0;
-    let targets = [], falling = [], rockets = [], particles = [];
+    let spawnWait = 0, spawned = 0, escaped = 0, nextId = 0, dropped = 0, collected = 0;
+    let targets = [], falling = [], rockets = [], particles = [], bursts = [], labels = [], pickups = [];
     let pointerHeld = false, steering = 0;
 
     const query = selector => dialog?.querySelector(selector);
@@ -51,18 +60,43 @@
         playerX = clamp(value, margin, width - margin);
     }
     function aimPlayer(value) { movePlayer(value - (muzzle().x - playerX)); }
+    const fireCooldown = () => boosts.rapid > 0 ? .075 : .18;
+    const projectileSpeed = () => 590 * (boosts.comet > 0 ? 1.25 : 1) * (boosts.speed > 0 ? 1.35 : 1);
+    const playerSpeed = () => 410 * (boosts.speed > 0 ? 1.6 : 1);
     const state = () => ({
         running, paused, score, hits, level, remaining: remaining(), total,
         fallingCount: falling.length, projectileCount: rockets.length, particleCount: particles.length,
-        spawned, escaped, playerX, fireOriginX: muzzle().x, spawnInterval: spawnInterval(), fallSpeed: fallSpeed(),
-        falling: falling.map(({ type, x, y, width, height, hp, points }) => ({ type, x, y, width, height, hp, points }))
+        burstCount: bursts.length, labelCount: labels.length, pickupCount: pickups.length,
+        spawned, escaped, dropped, collected, playerX, fireOriginX: muzzle().x,
+        spawnInterval: spawnInterval(), fallSpeed: fallSpeed(), playerSpeed: playerSpeed(),
+        projectileSpeed: projectileSpeed(), fireCooldown: fireCooldown(), boosts: { ...boosts },
+        falling: falling.map(({ id, type, x, y, width, height, hp, points }) => ({ id, type, x, y, width, height, hp, points })),
+        pickups: pickups.map(({ id, type, x, y, width, height }) => ({ id, type, x, y, width, height })),
+        rockets: rockets.map(({ x, y, vx, vy, radius, damage, pierceLeft, kind }) => ({ x, y, vx, vy, radius, damage, pierceLeft, kind })),
+        bursts: bursts.map(({ x, y, age, life, maxRadius, static: still }) => ({ x, y, age, life, radius: still ? maxRadius * .55 : maxRadius * (1 - Math.pow(1 - age / life, 3)), static: still })),
+        labels: labels.map(({ text, x, y, life }) => ({ text, x, y, life })),
+        particles: particles.map(({ x, y, previousX, previousY, life }) => ({ x, y, previousX, previousY, life }))
     });
 
     function announce(message) { setText("[data-newyear-status]", message); }
+    function updateBoostHud() {
+        let active = false;
+        for (const kind of boostKinds) {
+            const node = query('[data-newyear-boost="' + kind.type + '"]');
+            if (node) {
+                node.hidden = boosts[kind.type] <= 0;
+                node.style?.setProperty?.("--boost-left", clamp(boosts[kind.type] / boostDuration * 100, 0, 100) + "%");
+            }
+            active ||= boosts[kind.type] > 0;
+        }
+        const empty = query("[data-newyear-boost-empty]");
+        if (empty) empty.hidden = active;
+    }
     function updateHud() {
         setText("[data-newyear-score]", score);
         setText("[data-newyear-level]", level);
         setText("[data-newyear-hits]", hits);
+        updateBoostHud();
     }
     function restore() {
         for (const element of destroyed) element.classList.remove("newyear-destroyed");
@@ -97,40 +131,73 @@
     }
     function fire() {
         if (!running || paused || cooldown > 0 || rockets.length >= limits.rockets) return;
-        const origin = muzzle();
-        rockets.push({ x: origin.x, y: origin.y, previousY: origin.y });
-        cooldown = .18;
+        const origin = muzzle(), speed = projectileSpeed();
+        const angles = boosts.multishot > 0 ? [-.16, 0, .16] : [0];
+        for (const angle of angles) {
+            if (rockets.length >= limits.rockets) break;
+            rockets.push({ x: origin.x, y: origin.y, previousX: origin.x, previousY: origin.y,
+                vx: Math.sin(angle) * speed, vy: -Math.cos(angle) * speed,
+                radius: boosts.mega > 0 ? 8 : 3, damage: boosts.mega > 0 ? 2 : 1,
+                pierceLeft: boosts.comet > 0 ? 3 : 1, kind: boosts.comet > 0 ? "comet" : "firework", struck: new Set(), dead: false });
+        }
+        cooldown = fireCooldown();
     }
-    function burst(x, y, color, count = 24) {
+    function addLabel(text, x, y, color = "#9ee8bc") {
+        if (labels.length >= limits.labels) labels.shift();
+        labels.push({ text, x: clamp(x, 76, Math.max(76, width - 76)), y, color, life: motion.matches ? .75 : 1.25, duration: motion.matches ? .75 : 1.25 });
+    }
+    function burst(x, y, color, destroyedTarget = true, large = false) {
+        if (bursts.length >= limits.bursts) bursts.shift();
+        bursts.push({ x, y, color, age: 0, life: motion.matches ? .45 : destroyedTarget ? (large ? 1.8 : 1.3) : .5,
+            maxRadius: destroyedTarget ? (large ? 105 : 76) : 25, static: motion.matches, rings: destroyedTarget ? 2 : 1 });
         if (motion.matches) return;
-        for (let i = 0; i < count && particles.length < limits.particles; i++) {
-            const angle = Math.PI * 2 * i / count, speed = 45 + Math.random() * 95;
-            particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: .65 + Math.random() * .3, color });
+        const count = destroyedTarget ? (large ? 88 : 56) : 10;
+        if (particles.length + count > limits.particles) particles.splice(0, particles.length + count - limits.particles);
+        for (let i = 0; i < count; i++) {
+            const ring = i % 2, angle = Math.PI * 2 * Math.floor(i / 2) / (count / 2) + ring * .15;
+            const speed = (ring ? 105 : 65) * (large ? 1.35 : 1) * (.85 + Math.random() * .3);
+            const life = destroyedTarget ? 1.05 + Math.random() * .55 : .4;
+            particles.push({ x, y, previousX: x, previousY: y, vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed, life, duration: life, seed: Math.random() * 6.28,
+                color: i % 4 === 0 ? color : colors[i % colors.length] });
         }
     }
-    function hit(target, x, y) {
-        target.hp--;
-        burst(x, y, target.color, target.hp > 0 ? 7 : 24);
+    function dropPickup(x, y) {
+        if (pickups.length >= limits.pickups) return;
+        const kind = boostKinds[dropped % boostKinds.length], w = Math.min(94, width - 36);
+        pickups.push({ ...kind, id: ++nextId, pickup: true, hit: false,
+            x: clamp(x - w / 2, 18, width - w - 18), y: clamp(y - 14, targetTop + 6, floor - 48),
+            previousY: clamp(y - 14, targetTop + 6, floor - 48), width: w, height: 29 });
+        dropped++;
+    }
+    function activateBoost(item) {
+        if (item.hit) return;
+        item.hit = true; boosts[item.type] = boostDuration; collected++;
+        addLabel(item.label + "!", item.x + item.width / 2, item.y - 6, item.color);
+        burst(item.x + item.width / 2, item.y + item.height / 2, item.color, false);
+        announce("Boost: " + item.label + ". Aktivt i 12 sekunders spilletid.");
+        updateBoostHud();
+    }
+    function hit(target, x, y, damage = 1) {
+        target.hp = Math.max(0, target.hp - damage);
+        burst(x, y, target.color, target.hp === 0, target.type === "build");
         if (target.hp > 0) return;
         target.hit = true;
-        if (target.element) {
-            target.element.classList.add("newyear-destroyed");
-            destroyed.add(target.element);
-        }
+        if (target.element) { target.element.classList.add("newyear-destroyed"); destroyed.add(target.element); }
         score += target.points; hits++;
+        addLabel(target.fixed || "+" + target.points, target.x + target.width / 2, target.y, "#9ee8bc");
+        if (hits === 1 || (hits - 1) % 4 === 0) dropPickup(target.x + target.width / 2, target.y + target.height / 2);
         updateHud();
-        if (score - announced >= 500) {
-            announced = score;
-            announce(score + " point. " + hits + " mål ramt. Der kommer flere!");
-        }
+        if (score - announced >= 500) { announced = score; announce(score + " point. " + hits + " fejl rettet. Skyd eller grib de lysende boosts!"); }
     }
     function spawn(lane) {
         if (falling.length >= Math.min(limits.falling, 7 + level)) return;
         const kind = kinds[spawned % kinds.length];
         const available = Math.max(0, width - kind.width - 36);
-        const fraction = typeof lane === "number" ? lane : .08 + Math.random() * .84;
+        const fraction = .08 + Math.random() * .84;
+        const spawnX = typeof lane === "number" ? clamp(width * lane - kind.width / 2, 18, width - kind.width - 18) : 18 + available * fraction;
         const y = targetTop + 12;
-        falling.push({ ...kind, maxHp: kind.hp, x: 18 + available * fraction, y, previousY: y, hit: false, speedFactor: .85 + Math.random() * .3 });
+        falling.push({ ...kind, id: ++nextId, maxHp: kind.hp, x: spawnX, y, previousY: y, hit: false, speedFactor: .85 + Math.random() * .3 });
         spawned++;
     }
     function roundRect(x, y, w, h, radius) {
@@ -142,64 +209,82 @@
     }
     function drawFalling(item) {
         const { x, y, width: w, height: h, type, color } = item;
-        ctx.fillStyle = color; ctx.strokeStyle = "#f0efffcc"; ctx.lineWidth = 1.5;
-        if (type === "balloon") {
-            ctx.beginPath(); ctx.ellipse(x + w / 2, y + h * .35, w * .42, h * .32, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = "#fff9"; ctx.beginPath(); ctx.ellipse(x + w * .37, y + h * .25, 2.5, 5, .3, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = "#f6d889"; ctx.beginPath(); ctx.moveTo(x + w / 2, y + h * .68); ctx.quadraticCurveTo(x + w * .2, y + h * .82, x + w * .55, y + h); ctx.stroke();
-        } else if (type === "star") {
-            ctx.beginPath();
-            for (let i = 0; i < 10; i++) {
-                const angle = i * Math.PI / 5 - Math.PI / 2, radius = w * (i % 2 ? .23 : .49);
-                const px = x + w / 2 + Math.cos(angle) * radius, py = y + h / 2 + Math.sin(angle) * radius;
-                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        ctx.save(); ctx.lineWidth = 1.5; ctx.strokeStyle = color;
+        if (type === "bug") {
+            ctx.strokeStyle = "#ffb1a4"; ctx.lineWidth = 2;
+            for (const side of [-1, 1]) for (const at of [.28, .5, .72]) {
+                ctx.beginPath(); ctx.moveTo(x + w / 2 + side * 8, y + h * at); ctx.lineTo(x + w / 2 + side * 18, y + h * at - 5); ctx.stroke();
             }
-            ctx.closePath(); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = "#a26b28"; ctx.fillRect(x + 13, y + 16, 3, 3); ctx.fillRect(x + 23, y + 16, 3, 3);
-        } else if (type === "gift") {
-            roundRect(x + 2, y + 9, w - 4, h - 9, 4); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = "#f6d889"; ctx.fillRect(x + w / 2 - 3, y + 9, 6, h - 9); ctx.fillRect(x, y + 9, w, 7);
-            ctx.strokeStyle = "#f6d889"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + w / 2, y + 9);
-            ctx.quadraticCurveTo(x + 4, y - 5, x + 9, y + 5); ctx.quadraticCurveTo(x + 14, y + 10, x + w / 2, y + 9);
-            ctx.quadraticCurveTo(x + w - 4, y - 5, x + w - 9, y + 5); ctx.quadraticCurveTo(x + w - 14, y + 10, x + w / 2, y + 9); ctx.stroke();
-        } else if (type === "disco") {
-            const r = w / 2 - 2;
-            ctx.save(); ctx.beginPath(); ctx.arc(x + w / 2, y + h / 2, r, 0, Math.PI * 2); ctx.fill(); ctx.clip();
-            ctx.strokeStyle = "#254e70"; ctx.lineWidth = 1;
-            for (let i = 1; i < 5; i++) {
-                ctx.beginPath(); ctx.moveTo(x, y + i * h / 5); ctx.lineTo(x + w, y + i * h / 5); ctx.stroke();
-                ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, i * w / 10, r, 0, 0, Math.PI * 2); ctx.stroke();
-            }
-            ctx.fillStyle = "#fffa"; ctx.fillRect(x + 11, y + 9, 6, 6); ctx.fillRect(x + 24, y + 23, 5, 5);
-            ctx.restore(); ctx.strokeStyle = "#eaffff"; ctx.beginPath(); ctx.arc(x + w / 2, y + h / 2, r, 0, Math.PI * 2); ctx.stroke();
-        } else if (type === "hat") {
-            ctx.beginPath(); ctx.moveTo(x + w / 2, y + 3); ctx.lineTo(x + w - 2, y + h - 4); ctx.lineTo(x + 2, y + h - 4); ctx.closePath(); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = "#c39af1"; ctx.beginPath(); ctx.arc(x + w / 2, y + 3, 4, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = "#8f52ad"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x + 9, y + h - 17); ctx.lineTo(x + w - 9, y + h - 17); ctx.stroke();
-            ctx.fillStyle = "#f6d889"; ctx.fillRect(x, y + h - 5, w, 5);
+            ctx.fillStyle = "#9b3f59"; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, 12, 17, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = "#f6d889"; ctx.beginPath(); ctx.moveTo(x + w / 2, y + 7); ctx.lineTo(x + w / 2, y + h - 7); ctx.stroke();
+            ctx.fillStyle = "#fff0d4"; ctx.beginPath(); ctx.arc(x + w / 2 - 5, y + 12, 2.5, 0, Math.PI * 2); ctx.arc(x + w / 2 + 5, y + 12, 2.5, 0, Math.PI * 2); ctx.fill();
+            ctx.font = "700 10px 'DM Sans',sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#ffcdc3"; ctx.fillText("bug", x + w / 2, y + h + 10);
         } else {
-            ctx.fillStyle = "#1d3850"; roundRect(x, y, w, h, 6); ctx.fill(); ctx.strokeStyle = color; ctx.stroke();
+            ctx.fillStyle = type === "build" ? "#292a4c" : "#33233e";
+            roundRect(x, y, w, h, type === "null" ? 12 : 6); ctx.fill(); ctx.stroke();
             ctx.fillStyle = color; ctx.fillRect(x + 1, y + 8, w - 2, 2);
-            for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x + 7 + i * 6, y + 5, 1.3, 0, Math.PI * 2); ctx.fill(); }
-            ctx.fillStyle = "#80dce8"; ctx.fillRect(x + 7, y + 17, 12, 15);
-            ctx.fillStyle = "#f6d889"; ctx.fillRect(x + 25, y + 17, w - 32, 3); ctx.fillRect(x + 25, y + 25, w - 38, 3);
-        }
-        if (item.maxHp > 1) {
-            for (let i = 0; i < item.maxHp; i++) {
-                ctx.fillStyle = i < item.hp ? "#edf3ff" : "#66728b";
-                ctx.fillRect(x + w / 2 - item.maxHp * 4 + i * 8, y - 7, 5, 3);
+            for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x + 7 + i * 6, y + 5, 1.2, 0, Math.PI * 2); ctx.fill(); }
+            ctx.textAlign = "center"; ctx.fillStyle = "#fff1dd";
+            if (type === "syntax") {
+                ctx.font = "700 12px Consolas,monospace"; ctx.fillText("SyntaxError", x + w / 2, y + 27);
+                ctx.font = "10px Consolas,monospace"; ctx.fillStyle = color; ctx.fillText("missing ;", x + w / 2, y + 41);
+            } else if (type === "null") {
+                ctx.font = "700 20px Consolas,monospace"; ctx.fillText("null", x + w / 2, y + 31);
+            } else if (type === "merge") {
+                ctx.font = "700 12px Consolas,monospace"; ctx.fillText("<<<<<<<", x + w / 2, y + 27);
+                ctx.font = "10px 'DM Sans',sans-serif"; ctx.fillStyle = color; ctx.fillText("Mergekonflikt", x + w / 2, y + 42);
+            } else if (type === "test") {
+                ctx.font = "700 19px Consolas,monospace"; ctx.fillStyle = "#ffa1b7"; ctx.fillText("FAIL", x + w / 2, y + 31);
+                ctx.font = "10px Consolas,monospace"; ctx.fillStyle = "#f5cad5"; ctx.fillText("test()", x + w / 2, y + 43);
+            } else {
+                ctx.font = "700 12px Consolas,monospace"; ctx.fillText("Build failed", x + w / 2, y + 28);
+                ctx.font = "10px 'DM Sans',sans-serif"; ctx.fillStyle = color; ctx.fillText("Ret alle fejl", x + w / 2, y + 44); ctx.fillRect(x + 12, y + h - 8, w - 24, 2);
             }
         }
+        if (item.maxHp > 1) for (let i = 0; i < item.maxHp; i++) {
+            ctx.fillStyle = i < item.hp ? "#fff0cb" : "#64718a"; ctx.fillRect(x + w / 2 - item.maxHp * 4 + i * 8, y - 7, 5, 3);
+        }
+        ctx.restore();
+    }
+    function drawPickup(item) {
+        ctx.save(); ctx.lineWidth = 2; ctx.fillStyle = "#173d39"; ctx.strokeStyle = item.color;
+        roundRect(item.x, item.y, item.width, item.height, 12); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = item.color; ctx.textAlign = "center"; ctx.font = "700 11px 'DM Sans',sans-serif";
+        ctx.fillText("++ " + item.label, item.x + item.width / 2, item.y + 19);
+        ctx.fillStyle = "#fff7dd"; ctx.fillRect(item.x + 8, item.y - 4, 3, 3); ctx.fillRect(item.x + item.width - 10, item.y + item.height + 2, 3, 3); ctx.restore();
     }
     function drawRocket(rocket) {
-        ctx.fillStyle = "#ff927e"; ctx.fillRect(rocket.x - 3, rocket.y - 9, 6, 15);
-        ctx.fillStyle = "#f6d889";
-        ctx.beginPath(); ctx.moveTo(rocket.x, rocket.y - 15); ctx.lineTo(rocket.x + 5, rocket.y - 8); ctx.lineTo(rocket.x - 5, rocket.y - 8); ctx.closePath(); ctx.fill();
-        ctx.fillRect(rocket.x - 1, rocket.y + 6, 2, 7);
-        if (!motion.matches) {
-            ctx.fillStyle = "#f6d889aa"; ctx.fillRect(rocket.x - 1.5, rocket.y + 14, 3, 9);
-            ctx.fillStyle = "#ff927e88"; ctx.fillRect(rocket.x - 1, rocket.y + 25, 2, 5);
+        const scale = rocket.radius > 3 ? 1.65 : 1;
+        ctx.save(); ctx.translate(rocket.x, rocket.y); ctx.rotate(Math.atan2(rocket.vx, -rocket.vy));
+        if (rocket.kind === "comet") {
+            if (!motion.matches) for (let i = 3; i > 0; i--) {
+                ctx.globalAlpha = .6 / i; ctx.fillStyle = i % 2 ? "#c39af1" : "#f6d889";
+                ctx.beginPath(); ctx.moveTo(-4 * scale / i, 5); ctx.lineTo(0, 12 + i * 14); ctx.lineTo(4 * scale / i, 5); ctx.closePath(); ctx.fill();
+            }
+            ctx.globalAlpha = 1; ctx.fillStyle = "#ead3ff"; ctx.beginPath(); ctx.arc(0, -2, rocket.radius + 3, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = "#f6d889"; ctx.lineWidth = 1.5; ctx.stroke();
+        } else {
+            ctx.fillStyle = "#ff927e"; ctx.fillRect(-3 * scale, -9 * scale, 6 * scale, 15 * scale);
+            ctx.fillStyle = "#f6d889"; ctx.fillRect(-3 * scale, -3 * scale, 6 * scale, 3 * scale);
+            ctx.beginPath(); ctx.moveTo(0, -15 * scale); ctx.lineTo(5 * scale, -8 * scale); ctx.lineTo(-5 * scale, -8 * scale); ctx.closePath(); ctx.fill(); ctx.fillRect(-scale, 6 * scale, 2 * scale, 7 * scale);
+            if (!motion.matches) { ctx.fillStyle = "#f6d889aa"; ctx.fillRect(-1.5 * scale, 14 * scale, 3 * scale, 9 * scale); ctx.fillStyle = "#ff927e88"; ctx.fillRect(-scale, 25 * scale, 2 * scale, 5 * scale); }
         }
+        ctx.restore();
+    }
+    function drawBurst(effect) {
+        const progress = clamp(effect.age / effect.life, 0, 1);
+        const radius = effect.static ? effect.maxRadius * .55 : effect.maxRadius * (1 - Math.pow(1 - progress, 3));
+        ctx.save(); ctx.globalAlpha = (1 - progress) * .85; ctx.lineWidth = effect.static ? 2 : 1.5;
+        for (let ring = 0; ring < effect.rings; ring++) {
+            const r = radius * (ring ? .6 : 1);
+            for (let i = 0; i < 18; i++) {
+                const angle = i * Math.PI / 9 + ring * .17;
+                ctx.strokeStyle = i % 3 === 0 ? effect.color : colors[(i + ring) % colors.length];
+                ctx.beginPath(); ctx.moveTo(effect.x + Math.cos(angle) * r * .77, effect.y + Math.sin(angle) * r * .77);
+                ctx.lineTo(effect.x + Math.cos(angle) * r, effect.y + Math.sin(angle) * r); ctx.stroke();
+            }
+        }
+        ctx.restore();
     }
     function drawPlayer() {
         const size = playerSize(), x = playerX - size.width / 2, y = playerTop();
@@ -235,21 +320,36 @@
             ctx.fillStyle = target.color; ctx.fillRect(target.x - 4, target.y - 4, 9, 2); ctx.fillRect(target.x + target.width - 5, target.y + target.height + 2, 9, 2);
         }
         for (const item of falling) if (!item.hit) drawFalling(item);
+        for (const pickup of pickups) if (!pickup.hit) drawPickup(pickup);
         for (const rocket of rockets) drawRocket(rocket);
+        for (const effect of bursts) drawBurst(effect);
         for (const particle of particles) {
-            ctx.globalAlpha = clamp(particle.life * 1.5, 0, 1); ctx.fillStyle = particle.color;
-            ctx.fillRect(particle.x - 1.5, particle.y - 1.5, 3, 3);
+            const age = particle.duration - particle.life;
+            ctx.globalAlpha = clamp(particle.life / particle.duration, 0, 1) * (.4 + .6 * Math.pow(Math.sin(age * 28 + particle.seed), 2));
+            ctx.strokeStyle = particle.color; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(particle.x - particle.vx * .055, particle.y - particle.vy * .055); ctx.lineTo(particle.x, particle.y); ctx.stroke();
+            ctx.fillStyle = particle.color; ctx.fillRect(particle.x - 1, particle.y - 1, 2.4, 2.4);
+        }
+        ctx.globalAlpha = 1;
+        for (const label of labels) {
+            const w = Math.min(180, Math.max(72, label.text.length * 7 + 18));
+            ctx.globalAlpha = Math.min(1, label.life * 3); ctx.fillStyle = "#102c32e8"; roundRect(label.x - w / 2, label.y - 21, w, 26, 6); ctx.fill();
+            ctx.fillStyle = label.color; ctx.font = "700 12px 'DM Sans',sans-serif"; ctx.textAlign = "center"; ctx.fillText(label.text, label.x, label.y - 3);
         }
         ctx.globalAlpha = 1; drawPlayer();
     }
     function impactAt(rocket, target) {
-        if (target.hit || target.element && !target.element.isConnected || rocket.x < target.x - 4 || rocket.x > target.x + target.width + 4) return null;
-        const start = rocket.previousY - (target.previousY ?? target.y), end = rocket.y - target.y;
-        const velocity = end - start, low = -5, high = target.height + 15;
-        if (start >= low && start <= high) return 0;
-        if (velocity >= 0 || start < low || end > high) return null;
-        const at = (high - start) / velocity;
-        return at >= 0 && at <= 1 ? at : null;
+        if (target.hit || target.element && !target.element.isConnected || rocket.struck.has(target)) return null;
+        const from = [rocket.previousX - target.x, rocket.previousY - (target.previousY ?? target.y)];
+        const to = [rocket.x - target.x, rocket.y - target.y];
+        const lo = [-rocket.radius, -6], hi = [target.width + rocket.radius, target.height + (rocket.radius > 3 ? 22 : 15)];
+        let near = 0, far = 1;
+        for (let axis = 0; axis < 2; axis++) {
+            const delta = to[axis] - from[axis];
+            if (Math.abs(delta) < .00001) { if (from[axis] < lo[axis] || from[axis] > hi[axis]) return null; continue; }
+            const a = (lo[axis] - from[axis]) / delta, b = (hi[axis] - from[axis]) / delta;
+            near = Math.max(near, Math.min(a, b)); far = Math.min(far, Math.max(a, b)); if (near > far) return null;
+        }
+        return near >= 0 && near <= 1 ? near : null;
     }
     function tick(now) {
         frame = 0;
@@ -257,36 +357,44 @@
         if (!canvas.isConnected || !dialog.open || document.documentElement.dataset.theme !== "newyear") { stop(); return; }
         const delta = previous === null ? 0 : Math.max(0, (now - previous) / 1000), step = Math.min(delta, .05);
         previous = now; elapsed += delta; cooldown = Math.max(0, cooldown - step);
+        const expired = [];
+        for (const kind of boostKinds) { const before = boosts[kind.type]; boosts[kind.type] = Math.max(0, before - delta); if (before > 0 && boosts[kind.type] === 0) expired.push(kind.label); }
+        if (expired.length) announce("Boost udløbet: " + expired.join(", ") + ". Skyd eller fang et nyt boost.");
         const nextLevel = Math.min(20, 1 + Math.floor(elapsed / 16) + Math.floor(hits / 12));
-        if (nextLevel !== level) { level = nextLevel; announce("Niveau " + level + ". Flere mål og mere fart!"); }
+        if (nextLevel !== level) { level = nextLevel; announce("Niveau " + level + ". Flere kodefejl og mere fart!"); }
         const horizontal = steering || (keys.has("ArrowRight") || keys.has("d") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("a") ? 1 : 0);
-        movePlayer(playerX + horizontal * 410 * step);
+        movePlayer(playerX + horizontal * playerSpeed() * step);
         if (pointerHeld || keys.has(" ") || keys.has("Enter")) fire();
         spawnWait -= delta;
         let spawnBudget = 3;
         while (spawnWait <= 0 && spawnBudget-- > 0) { spawn(); spawnWait += spawnInterval(); }
         if (spawnWait <= 0) spawnWait = spawnInterval();
         for (const item of falling) { item.previousY = item.y; item.y += fallSpeed() * item.speedFactor * step; }
+        for (const pickup of pickups) { pickup.previousY = pickup.y; pickup.y += 70 * step; }
         for (const rocket of rockets) {
-            rocket.previousY = rocket.y; rocket.y -= 590 * step;
-            let target = null, firstImpact = 2;
-            for (const candidate of [...falling, ...targets]) {
-                const impact = impactAt(rocket, candidate);
-                if (impact !== null && impact < firstImpact) { target = candidate; firstImpact = impact; }
-            }
-            if (target) {
-                hit(target, rocket.x, rocket.previousY + (rocket.y - rocket.previousY) * firstImpact);
-                rocket.y = -100;
+            rocket.previousX = rocket.x; rocket.previousY = rocket.y; rocket.x += rocket.vx * step; rocket.y += rocket.vy * step;
+            const impacts = [];
+            for (const candidate of [...pickups, ...falling, ...targets]) { const at = impactAt(rocket, candidate); if (at !== null) impacts.push({ candidate, at }); }
+            impacts.sort((a, b) => a.at - b.at);
+            for (const { candidate, at } of impacts) {
+                if (candidate.hit || rocket.dead) continue; rocket.struck.add(candidate);
+                if (candidate.pickup) { activateBoost(candidate); rocket.dead = true; continue; }
+                hit(candidate, rocket.previousX + (rocket.x - rocket.previousX) * at, rocket.previousY + (rocket.y - rocket.previousY) * at, rocket.damage);
+                if (--rocket.pierceLeft <= 0) rocket.dead = true;
             }
         }
-        rockets = rockets.filter(rocket => rocket.y > -35);
-        falling = falling.filter(item => {
-            if (item.hit) return false;
-            if (item.y > floor) { escaped++; return false; }
-            return true;
-        });
-        for (const particle of particles) { particle.x += particle.vx * step; particle.y += particle.vy * step; particle.vy += 80 * step; particle.life -= step; }
+        const size = playerSize(), playerLeft = playerX - size.width * .42, playerRight = playerX + size.width * .42, playerHead = playerTop() + size.height * .15;
+        for (const pickup of pickups) if (!pickup.hit && pickup.x < playerRight && pickup.x + pickup.width > playerLeft && pickup.y + pickup.height >= playerHead && pickup.y <= floor) activateBoost(pickup);
+        rockets = rockets.filter(rocket => !rocket.dead && rocket.y > -60 && rocket.x > -50 && rocket.x < width + 50);
+        pickups = pickups.filter(item => !item.hit && item.y <= floor + 32);
+        falling = falling.filter(item => { if (item.hit) return false; if (item.y > floor) { escaped++; return false; } return true; });
+        for (const particle of particles) {
+            particle.previousX = particle.x; particle.previousY = particle.y; particle.x += particle.vx * step; particle.y += particle.vy * step;
+            particle.vx *= Math.exp(-.8 * step); particle.vy += 75 * step; particle.life -= step;
+        }
         particles = particles.filter(particle => particle.life > 0);
+        for (const effect of bursts) effect.age += step; bursts = bursts.filter(effect => effect.age < effect.life);
+        for (const label of labels) { label.life -= step; if (!motion.matches) label.y -= 18 * step; } labels = labels.filter(label => label.life > 0);
         updateHud(); draw(); frame = requestAnimationFrame(tick);
     }
     function listen(target, name, callback, options = {}) { target.addEventListener(name, callback, { ...options, signal: controls.signal }); }
@@ -311,9 +419,10 @@
         if (!dialog || !canvas || typeof dialog.showModal !== "function") return false;
         ctx = canvas.getContext("2d"); if (!ctx) return false;
         previousFocus = document.activeElement; restore(); keys.clear(); pointers.clear();
-        targets = []; falling = []; rockets = []; particles = [];
+        targets = []; falling = []; rockets = []; particles = []; bursts = []; labels = []; pickups = [];
+        for (const kind of boostKinds) boosts[kind.type] = 0;
         score = 0; hits = 0; level = 1; total = 0; elapsed = 0; cooldown = 0; announced = 0; previous = null;
-        spawnWait = .65; spawned = 0; escaped = 0; paused = false; steering = 0; pointerHeld = false;
+        spawnWait = .65; spawned = 0; escaped = 0; nextId = 0; dropped = 0; collected = 0; paused = false; steering = 0; pointerHeld = false;
         try { dialog.showModal(); } catch { return false; }
         resizeCanvas(); targets = collectTargets(); total = targets.length;
         spawn(.13); spawn(.48); spawn(.83); running = true;
@@ -346,7 +455,7 @@
         listen(window, "resize", stop); listen(window, "popstate", stop); listen(window, "hashchange", stop); listen(window, "pagehide", stop);
         observer = new MutationObserver(() => { if (document.documentElement.dataset.theme !== "newyear") stop(); });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-        updateHud(); announce("Fyrværkerifesten er startet. Skyd faldende festting og dele af siden. Der kommer flere og hurtigere mål. Escape gendanner siden.");
+        updateHud(); announce("Fyrværkerifesten er startet. Skyd kodefejl og dele af siden. Skyd eller fang de lysende boosts. Escape gendanner siden.");
         canvas.focus({ preventScroll: true }); draw(); frame = requestAnimationFrame(tick); return true;
     }
     function stop() {
@@ -354,7 +463,8 @@
         cancelAnimationFrame(frame); frame = 0; previous = null;
         controls?.abort(); controls = null; observer?.disconnect(); observer = null;
         keys.clear(); pointers.clear(); pointerHeld = false; steering = 0;
-        restore(); targets = []; falling = []; rockets = []; particles = [];
+        restore(); targets = []; falling = []; rockets = []; particles = []; bursts = []; labels = []; pickups = [];
+        for (const kind of boostKinds) boosts[kind.type] = 0; updateBoostHud();
         if (ctx) ctx.clearRect(0, 0, width, height);
         if (dialog?.open) dialog.close();
         if (wasRunning && previousFocus?.isConnected && getComputedStyle(previousFocus).display !== "none") previousFocus.focus({ preventScroll: true });
@@ -367,7 +477,7 @@
         else if (action === "restart" || action === "replay") { event.preventDefault(); stop(); start(); }
         else if (running && action === "fire") { event.preventDefault(); fire(); }
         else if (running && (action === "left" || action === "right")) {
-            event.preventDefault(); movePlayer(playerX + (action === "left" ? -34 : 34)); draw();
+            event.preventDefault(); movePlayer(playerX + (action === "left" ? -34 : 34) * (boosts.speed > 0 ? 1.6 : 1)); draw();
         }
     });
     window.lupNewYear = { start, stop, state };
