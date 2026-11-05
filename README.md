@@ -51,7 +51,7 @@ Sprints: [Project #9](https://github.com/orgs/Mercantech/projects/9/views/1) · 
 | `obsidian/` | AI-workflows, features, badges |
 
 **Aliases:** `mercantec-tech-api` · `mercantec-tech-db` · `mercantec-tech-minio`  
-**Prod:** [`https://mercantec.tech`](https://mercantec.tech) (apex)  
+**Prod:** [`https://mercantec.tech`](https://mercantec.tech) (apex) · alias [`https://lup.dk`](https://lup.dk)  
 **Auth:** client_id `mercantec-tech` — se [Auth-Mercantec](obsidian/02-ai-workflows/Auth-Mercantec.md)
 
 ## Docker (anbefalet lokalt)
@@ -126,7 +126,7 @@ Gave- og afstemningstestene bruger en isoleret SQLite-database; ingen rigtige ga
 ## Dokploy
 
 `docker-compose.yml` med eksternt `dokploy-network`. Env fra Dokploy / `.env.example`.  
-Domain: service `web`, port `3000`, host `mercantec.tech`. Se [Dokploy-drift](obsidian/02-ai-workflows/Dokploy-drift.md).
+Domain: service `web`, port `3000`, hosts `mercantec.tech` + `lup.dk` (+ `www.lup.dk`). Se [Dokploy-drift](obsidian/02-ai-workflows/Dokploy-drift.md).
 
 ## Scaffold-check (#1)
 

@@ -15,10 +15,13 @@ Porteret fra generelle Cursor-rules — tilpasset Mercantec.tech.
 
 | Miljø | Host |
 |-------|------|
-| **Prod** | **`mercantec.tech`** (apex — **intet** subdomæne) |
+| **Prod (primær)** | **`mercantec.tech`** (apex — **intet** subdomæne) |
+| **Prod (alias)** | **`lup.dk`** (+ `www.lup.dk`) — samme `web`:3000 |
 | Dev (senere) | aftales separat (branch + env) — ikke hardcod i kode |
 
-Dokploy: domain på service **`web`**, port **3000**. For mercantec.tech bag Cloudflare: følg org-praksis (`certificateType` / https ift. tunnel).
+Dokploy: domain på service **`web`**, port **3000**. For mercantec.tech / lup.dk bag Cloudflare: følg org-praksis (`certificateType` / https ift. tunnel).
+
+`lup.dk` er Traefik-labels på `web` (Host `lup.dk` eller `www.lup.dk`). Alternativt Dokploy MCP `domain-create` for begge hosts. DNS/Cloudflare skal pege apex + www til **samme origin/tunnel** som `mercantec.tech`.
 
 ## Netværk (påkrævet)
 
@@ -50,11 +53,12 @@ Proxyér **aldrig** til generisk `http://api:...` på det delte net.
 Brug **Dokploy MCP** (ikke ad hoc curl):
 
 1. Compose peger på GitHub repo/branch + `composePath`
-2. `compose-saveEnvironment` (`createEnvFile: true`)
+2. `compose-saveEnvironment` (`createEnvFile: true`) — `CORS_SPA_ORIGINS` skal inkludere `https://mercantec.tech;https://lup.dk;https://www.lup.dk` (+ lokale origins efter behov)
 3. `domain-create` → host **`mercantec.tech`**, service `web`, port 3000
-4. (valgfrit hvis labels mangler) `domain-create` → host **`minio.mercantec.tech`**, service `minio`, port **9001**
-5. `compose-deploy`
-6. Fejl: `deployment-readLogs` / `compose-readLogs`
+4. `domain-create` → host **`lup.dk`**, service `web`, port 3000 (og evt. `www.lup.dk`) — eller stol på Traefik-labels i compose
+5. (valgfrit hvis labels mangler) `domain-create` → host **`minio.mercantec.tech`**, service `minio`, port **9001**
+6. `compose-deploy`
+7. Fejl: `deployment-readLogs` / `compose-readLogs`
 
 Typiske fejl: subnet-pool, inotify, localhost-DB, nginx upstream DNS.
 

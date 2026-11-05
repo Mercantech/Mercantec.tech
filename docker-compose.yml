@@ -97,7 +97,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: "false"
       ConnectionStrings__Default: ${CONNECTION_STRING:-Host=mercantec-tech-db;Port=5432;Database=mercantec;Username=mercantec;Password=mercantec}
-      Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-http://localhost:3000;https://mercantec.tech}
+      Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-http://localhost:3000;https://mercantec.tech;https://lup.dk;https://www.lup.dk}
       AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.mercantec.tech}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-mercantec-apps}
       JWKS_URI: ${JWKS_URI:-https://auth.mercantec.tech/.well-known/jwks.json}
@@ -189,6 +189,17 @@ services:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
       - traefik.http.services.mercantec-tech-web.loadbalancer.server.port=3000
+      # lup.dk (+ www) → samme Blazor-SPA som mercantec.tech (Dokploy domain-create eller labels)
+      - traefik.http.routers.mercantec-tech-web-lup.rule=Host(`lup.dk`) || Host(`www.lup.dk`)
+      - traefik.http.routers.mercantec-tech-web-lup.entrypoints=web
+      - traefik.http.routers.mercantec-tech-web-lup.service=mercantec-tech-web
+      - traefik.http.routers.mercantec-tech-web-lup.middlewares=mercantec-tech-web-lup-headers
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.browserXssFilter=true
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.frameDeny=true
+      - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.referrerPolicy=no-referrer
     restart: unless-stopped
 
 volumes:
