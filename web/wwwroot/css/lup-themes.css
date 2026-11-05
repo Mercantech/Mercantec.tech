@@ -12,7 +12,7 @@ html[data-theme="christmas"] .lup .lup-header { border-bottom-color:#6b6845; }
 html[data-theme="christmas"] .lup .brand { color:#f2cd83; }
 html[data-theme="christmas"] .lup .v3-next { background:#1a4034; }
 html[data-theme="christmas"] .lup .page-title h1:after { content:'✧'; color:#f2cd83; font-size:.7em; margin-left:12px; }
-html[data-theme="christmas"] .lup .footer { background:#0f2b24; padding-bottom:70px; }
+html[data-theme="christmas"] .lup .footer { background:#0f2b24; }
 #lup-snow-host { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
 #lup-snow-host canvas { width:100%; height:100%; display:block; }
 .lup { position:relative; z-index:1; }
@@ -24,7 +24,7 @@ html[data-theme="christmas"] .christmas-lights { display:flex; }
 .christmas-lights span:nth-child(4n+3) { background:#8cd5b4; box-shadow:0 2px 9px #8bdcb580; }
 .christmas-lights span:nth-child(4n) { background:#a5bfdc; box-shadow:0 2px 9px #a5bfdc80; }
 html[data-theme="christmas"] .christmas-corner { display:flex; }
-.christmas-corner { position:fixed; right:22px; bottom:16px; align-items:center; gap:8px; z-index:45; }
+.christmas-corner { position:fixed; right:22px; bottom:calc(16px + var(--lup-footer-clearance, 0px)); align-items:center; gap:8px; z-index:45; }
 .christmas-present,.snow-toggle { border:1px solid #5a6b51; border-radius:9px; background:#173a31; color:#f2cd83; display:flex; align-items:center; justify-content:center; cursor:pointer; min-height:42px; padding:9px 12px; font:500 12px 'DM Sans',sans-serif; }
 .christmas-present .ui-icon { width:25px; height:25px; }
 .christmas-present:hover { background:#264e3f; transform:rotate(-5deg); }
@@ -46,7 +46,7 @@ html[data-theme="hacker"] .lup .panel,html[data-theme="hacker"] .lup .article,ht
 html[data-theme="hacker"] .lup .v3-next { background:#132f24; border:1px solid #345d43; }
 html[data-theme="hacker"] .lup .page-title h1:before { content:'~/ '; font-size:.7em; color:#79b98e; }
 html[data-theme="hacker"] .lup .v2-avatar-stage { background-color:#0d2119; background-image:linear-gradient(#29513a40 1px,transparent 1px),linear-gradient(90deg,#29513a40 1px,transparent 1px); background-size:24px 24px; }
-@media(max-width:620px) { .christmas-corner { right:12px; bottom:12px; } .snow-toggle span { display:none; } .christmas-lights span:nth-child(even) { display:none; } }
+@media(max-width:620px) { .christmas-corner { right:12px; bottom:calc(12px + var(--lup-footer-clearance, 0px)); } .snow-toggle span { display:none; } .christmas-lights span:nth-child(even) { display:none; } }
 @media(prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } .christmas-present:hover { transform:none; } }
 
 .ui-icon { width:18px; height:18px; flex-shrink:0; display:inline-block; vertical-align:middle; }
@@ -56,8 +56,6 @@ html[data-theme="hacker"] .lup .v2-avatar-stage { background-color:#0d2119; back
 html[data-theme="christmas"] #lup-snow-host { display:block; }
 html[data-theme="hacker"] .lup .body { background-image:linear-gradient(#85db9c05 1px,transparent 1px),linear-gradient(90deg,#85db9c05 1px,transparent 1px); background-size:32px 32px; }
 
-html[data-theme="christmas"] .lup .footer { padding-right:230px; }
-@media(max-width:620px) { html[data-theme="christmas"] .lup .footer { padding-right:120px; } }
 
 .snow-controls { display:flex; position:relative; border:1px solid #5a6b51; border-radius:9px; background:#173a31; }
 .snow-controls .snow-toggle { border:0; background:transparent; }
@@ -68,7 +66,6 @@ html[data-theme="christmas"] .lup .footer { padding-right:230px; }
 .snow-panel p { color:#c0d1c7; margin:12px 0 0; font-size:12px; }
 .snow-panel select { display:block; margin-top:6px; width:100%; padding:10px; border:1px solid #63765a; border-radius:7px; color:#f6f4e9; background:#102c24; font:inherit; }
 .snow-settings>summary:focus-visible { outline:3px solid #f2cd83; outline-offset:3px; }
-@media(max-width:620px) { html[data-theme="christmas"] .lup .footer { padding-right:160px; } }
 
 /* Gift wrapping uses the same pine, berry and warm gold as the Christmas theme. */
 .christmas-corner:has(.gift-launcher[data-unread=true]) { display:flex; }

@@ -1,31 +1,29 @@
 <aside class="newyear-launcher" aria-label="Nytårstema">
-    <span class="newyear-launcher-label"><UiIcon Name="rocket" />Nytår</span>
-    <button type="button" data-newyear-action="start" aria-haspopup="dialog" aria-controls="lup-newyear-game">Start raketspil</button>
+    <span class="newyear-launcher-label"><UiIcon Name="firework" />Nytår</span>
+    <button type="button" data-newyear-action="start" aria-haspopup="dialog" aria-controls="lup-newyear-game">Start fyrværkeri</button>
 </aside>
 <dialog id="lup-newyear-game" class="newyear-game" aria-labelledby="newyear-game-title" aria-describedby="newyear-game-help">
-    <canvas id="lup-newyear-canvas" tabindex="0" aria-label="Raketspil. Flyt med piletasterne og skyd med mellemrum." aria-describedby="newyear-game-help"></canvas>
+    <img id="lup-newyear-player" src="images/newyear/lup-fireworks-player.png" data-muzzle-x="0.810" data-muzzle-y="0.158" data-foot-y="0.889" hidden alt="" />
+    <canvas id="lup-newyear-canvas" tabindex="0" aria-label="Fyrværkerispil med den lilla figur. Flyt med piletasterne og skyd med mellemrum." aria-describedby="newyear-game-help"></canvas>
     <header class="newyear-hud" data-newyear-hud>
-        <div class="newyear-game-name"><UiIcon Name="rocket" /><div><h2 id="newyear-game-title">Nytårsraketter</h2><span>Skyd siden til konfetti</span></div></div>
+        <div class="newyear-game-name"><UiIcon Name="firework" /><div><h2 id="newyear-game-title">Fyrværkerifest</h2><span>Skyd mål og siden til konfetti</span></div></div>
         <dl class="newyear-scoreboard">
             <div><dt>Point</dt><dd data-newyear-score>0</dd></div>
-            <div><dt>Tid</dt><dd><span data-newyear-time>60</span><small> s</small></dd></div>
-            <div><dt>Mål tilbage</dt><dd data-newyear-remaining>0</dd></div>
+            <div><dt>Niveau</dt><dd data-newyear-level>1</dd></div>
+            <div><dt>Ramt</dt><dd data-newyear-hits>0</dd></div>
         </dl>
-        <button type="button" class="newyear-exit" data-newyear-action="stop">Afslut og gendan <span aria-hidden="true">×</span></button>
+        <div class="newyear-hud-actions">
+            <button type="button" class="newyear-exit" data-newyear-action="stop">Afslut og gendan <span aria-hidden="true">×</span></button>
+        </div>
     </header>
     <div class="newyear-controls" data-newyear-controls>
-        <p id="newyear-game-help">Flyt med musen eller <kbd>←</kbd> <kbd>→</kbd>. Klik eller tryk <kbd>mellemrum</kbd> for at skyde. <span>Alt kommer tilbage, når du afslutter.</span></p>
+        <p id="newyear-game-help">Flyt med musen eller <kbd>←</kbd> <kbd>→</kbd>. Klik eller hold <kbd>mellemrum</kbd> for at skyde. <span>Spil så længe du vil. Der kommer flere mål og mere fart. Alt gendannes, når du afslutter.</span></p>
         <div class="newyear-touch-controls" aria-label="Spilstyring">
+            <button type="button" class="newyear-restart" data-newyear-action="restart" aria-label="Start forfra" title="Start forfra">↻</button>
             <button type="button" data-newyear-action="left" aria-label="Flyt til venstre">←</button>
-            <button type="button" class="newyear-fire" data-newyear-action="fire"><UiIcon Name="rocket" />Skyd</button>
+            <button type="button" class="newyear-fire" data-newyear-action="fire"><UiIcon Name="firework" />Skyd</button>
             <button type="button" data-newyear-action="right" aria-label="Flyt til højre">→</button>
         </div>
     </div>
-    <section class="newyear-result" data-newyear-result hidden aria-labelledby="newyear-result-title">
-        <UiIcon Name="rocket" />
-        <h2 id="newyear-result-title" data-newyear-result-title>Godt nytår!</h2>
-        <p data-newyear-result-copy></p>
-        <div><button type="button" class="newyear-replay" data-newyear-action="replay">Spil igen</button><button type="button" data-newyear-action="stop">Gendan siden</button></div>
-    </section>
     <p class="newyear-live" data-newyear-status role="status" aria-live="polite" aria-atomic="true"></p>
 </dialog>

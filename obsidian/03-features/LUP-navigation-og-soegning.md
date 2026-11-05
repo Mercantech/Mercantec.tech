@@ -12,7 +12,7 @@ tags: [feature, navigation, search, design]
 
 Profilmenuen samler tema, brugerprofil og valg af aktiv rolle. Et aktivt forløb er en UI-kontekst blandt autoriserede medlemskaber; det giver ikke i sig selv adgang. Funktioner til afstemninger, egne quests og logbog skjules, når de ikke er relevante. Materialer, egne projekter og univers kan bruges mellem forløb.
 
-System, lyst, mørkt, jul, nytår og hacker kan vælges frit. [[Temaer-og-nytaar]] er det fælles temakatalog og beskriver nytårstemaets frivillige raketspil. Jul har interaktiv sne, lys og en lille gave; sne kan pauses og følger reduceret bevægelse. Rainbow er udgået. En fast sti og forløbsmenu gør det muligt at vende tilbage fra emne, quest og aflevering.
+System, lyst, mørkt, jul, nytår og hacker kan vælges frit. [[Temaer-og-nytaar]] er det fælles temakatalog og beskriver nytårstemaets frivillige fyrværkerispil. Jul har interaktiv sne, lys og en lille gave; sne kan pauses og følger reduceret bevægelse. Rainbow er udgået. En fast sti og forløbsmenu gør det muligt at vende tilbage fra emne, quest og aflevering.
 
 ## Global søgning
 
