@@ -78,8 +78,12 @@
                     <details class="lup-account v3-navgroup">
                         <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarSprite Mini="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
-                            <p class="lup-account-name">@(Auth.DisplayName ?? "Bruger")</p>
-                            <p class="lup-account-sub">@(IsTeacher ? "Underviser" : "Elev") · LUP</p>
+                            <p class="lup-account-name">@(AccountDisplayName)</p>
+                            <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elev (preview)" : "Elev") · LUP</p>
+                            @if (ViewAs.IsActive)
+                            {
+                                <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button>
+                            }
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
                             <NavLink href="/rights" Match="NavLinkMatch.All">Mine rettigheder</NavLink>
                             <NavLink href="/profile/character" Match="NavLinkMatch.All">Min avatar</NavLink>
@@ -118,8 +122,8 @@
                 </div>
             }
         </header>
+        <ViewAsStudentBanner />
         <main class="body" id="main-content">
-            <ViewAsStudentBanner />
             @Body
         </main>
         <footer class="footer">
@@ -139,9 +143,14 @@
     private bool _loginBusy;
     private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
 
-    private bool IsTeacher => Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser;
+    // Under «se som elev» er chrome elev — underviserens Auth-rolle er uændret.
+    private bool IsTeacher => Redirect.ShowsTeacherChrome;
     private bool HasDemoCourse => !string.IsNullOrEmpty(_demoCourse);
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
+    private string AccountDisplayName =>
+        ViewAs.IsActive
+            ? (ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev")
+            : (Auth.DisplayName ?? "Bruger");
 
     // Fragment-only (#main-content) resolves against <base href="/"> to /#main-content (= forsiden).
     private string SkipToContentHref
@@ -222,7 +231,7 @@
     {
         get
         {
-            var name = Auth.DisplayName;
+            var name = AccountDisplayName;
             if (string.IsNullOrWhiteSpace(name))
                 return "?";
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -235,9 +244,11 @@
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuthChanged;
+        ViewAs.Changed += OnAuthChanged;
         Nav.LocationChanged += OnLocation;
         World.Changed += OnAuthChanged;
         _demoCourse = "h3";
+        EnforceViewAsRoutes();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -289,7 +300,6 @@
                 || path.StartsWith("/teacher/planner", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/reviews", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/students", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/view-as", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/content", StringComparison.Ordinal)
                 || path.StartsWith("/teacher/badges", StringComparison.Ordinal),
             "Udforsk" => path.StartsWith("/explore", StringComparison.Ordinal) || path is "/badges" || path.StartsWith("/badges/", StringComparison.Ordinal),
@@ -340,12 +350,40 @@
         Nav.NavigateTo("/");
     }
 
-    private void OnAuthChanged() => InvokeAsync(StateHasChanged);
-    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+    private void ExitViewAs()
+    {
+        var returnUrl = ViewAs.ReturnUrl ?? "/lectio";
+        ViewAs.Exit();
+        Nav.NavigateTo(returnUrl);
+    }
+
+    private void EnforceViewAsRoutes()
+    {
+        if (!ViewAs.IsActive)
+            return;
+
+        if (!ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath))
+            return;
+
+        Nav.NavigateTo("/student");
+    }
+
+    private void OnAuthChanged() => InvokeAsync(() =>
+    {
+        EnforceViewAsRoutes();
+        StateHasChanged();
+    });
+
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(() =>
+    {
+        EnforceViewAsRoutes();
+        StateHasChanged();
+    });
 
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuthChanged;
+        ViewAs.Changed -= OnAuthChanged;
         World.Changed -= OnAuthChanged;
         Nav.LocationChanged -= OnLocation;
     }

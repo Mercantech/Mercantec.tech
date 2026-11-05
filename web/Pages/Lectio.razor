@@ -22,7 +22,7 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    var isTeacher = Redirect.CurrentAppRole() == AppRole.Underviser;
+    var isTeacher = Redirect.ShowsTeacherChrome;
 
     @if (isTeacher)
     {
@@ -1704,7 +1704,13 @@ else
             _elevLectioId = LectioData.Studieplan.ExtractLectioId(meBody);
             _linked = !string.IsNullOrWhiteSpace(_elevLectioId);
 
-            if (Redirect.CurrentAppRole() == AppRole.Elev)
+            if (ViewAs.IsActive)
+            {
+                _elevLectioId = ViewAs.LectioId;
+                _linked = true;
+                await LoadViewAsElevOverviewAsync(ViewAs.LectioId!);
+            }
+            else if (Redirect.CurrentAppRole() == AppRole.Elev)
             {
                 if (_linked)
                 {
@@ -1770,6 +1776,62 @@ else
             _elevSnapshotLoading = false;
         }
 
+        await LoadElevStudieplanAsync(lectioId);
+    }
+
+    private async Task LoadViewAsElevOverviewAsync(string lectioId)
+    {
+        _elevSnapshotLoading = true;
+        _elevPlanLoading = true;
+        _elevPlanError = null;
+        _elevSnapshot = null;
+        try
+        {
+            var listRes = await Http.GetAsync("lectio/programmeringselever");
+            var listBody = await listRes.Content.ReadAsStringAsync();
+            if (listRes.IsSuccessStatusCode)
+            {
+                _elevSnapshot = LectioData.Studieplan.FindStudentSnapshot(listBody, lectioId)
+                    ?? new LectioData.StudentSnapshot(
+                        LectioId: lectioId,
+                        Name: ViewAs.DisplayName,
+                        ClassName: ViewAs.ClassName,
+                        WorkplaceName: null,
+                        ForloebName: null,
+                        ForloebDates: null,
+                        ForloebStart: null,
+                        ForloebEnd: null,
+                        Vuf: new LectioData.VufStatus(null, null, null, null));
+            }
+            else
+            {
+                _error = $"Elevlisten kunne ikke hentes ({(int)listRes.StatusCode}).";
+                _elevSnapshot = new LectioData.StudentSnapshot(
+                    LectioId: lectioId,
+                    Name: ViewAs.DisplayName,
+                    ClassName: ViewAs.ClassName,
+                    WorkplaceName: null,
+                    ForloebName: null,
+                    ForloebDates: null,
+                    ForloebStart: null,
+                    ForloebEnd: null,
+                    Vuf: new LectioData.VufStatus(null, null, null, null));
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _elevSnapshotLoading = false;
+        }
+
+        await LoadElevStudieplanAsync(lectioId);
+    }
+
+    private async Task LoadElevStudieplanAsync(string lectioId)
+    {
         try
         {
             var res = await Http.GetAsync($"lectio/students/{Uri.EscapeDataString(lectioId)}/studieplan");
@@ -1956,7 +2018,7 @@ else
             return;
         Guid? authSub = _authLinks.TryGetValue(student.LectioId, out var sub) ? sub : null;
         ViewAs.Enter(student.LectioId, student.Name, student.ClassName, authSub, "/lectio");
-        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(student.LectioId)}");
+        Nav.NavigateTo("/student");
     }
 
     private void ViewAsMember(HoldMember member)
@@ -1966,7 +2028,7 @@ else
         var profile = FindStudent(member.LectioId);
         Guid? authSub = _authLinks.TryGetValue(member.LectioId, out var sub) ? sub : null;
         ViewAs.Enter(member.LectioId, member.Name, profile?.ClassName, authSub, "/lectio");
-        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(member.LectioId)}");
+        Nav.NavigateTo("/student");
     }
 
     private Task BeginTeacherLinkForStudent(StudentRow student)

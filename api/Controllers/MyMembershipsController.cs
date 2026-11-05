@@ -11,16 +11,28 @@ namespace Mercantec.Tech.Api.Controllers;
 [Authorize]
 public class MyMembershipsController(AppDbContext db) : ControllerBase
 {
+    /// <summary>
+    /// Egne hold-medlemskaber. Undervisere kan angive <paramref name="asUser"/>
+    /// for at se en elevs medlemskaber (fx under «se som elev»).
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<object>>> List(CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<object>>> List([FromQuery] Guid? asUser, CancellationToken ct)
     {
         var sub = UserClaims.GetSub(User);
         if (sub is null)
             return Unauthorized(new { error = "missing_sub" });
 
+        var target = sub.Value;
+        if (asUser is Guid requested && requested != Guid.Empty && requested != sub.Value)
+        {
+            if (!UserClaims.IsTeacher(User))
+                return Forbid();
+            target = requested;
+        }
+
         var items = await db.Memberships
             .AsNoTracking()
-            .Where(m => m.UserSub == sub.Value)
+            .Where(m => m.UserSub == target)
             .Include(m => m.Hold)
             .ThenInclude(h => h.Forloeb)
             .OrderBy(m => m.Hold.Name)

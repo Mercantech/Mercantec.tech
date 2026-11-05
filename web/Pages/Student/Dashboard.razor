@@ -5,6 +5,7 @@
 @using Mercantec.Tech.Web.Lectio
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
 @inject HttpClient Http
 @inject LearningContext CourseContext
@@ -15,11 +16,14 @@
 
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
 else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
-else if (Redirect.CurrentAppRole() != AppRole.Elev) { <p><a href="@Redirect.PostLoginPath()">Gå til dit overblik</a></p> }
+else if (!CanUseStudentUi) { <p><a href="@Redirect.PostLoginPath()">Gå til dit overblik</a></p> }
 else
 {
+    var displayName = ViewAs.IsActive ? ViewAs.DisplayName : Auth.DisplayName;
+    var firstName = string.IsNullOrEmpty(displayName) ? null : displayName.Split(' ')[0];
+
     <div class="student-home">
-        <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div><a class="secondary student-activities-link" href="/activities"><UiIcon Name="chart" />Mine aktiviteter</a></header>
+        <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(firstName) ? "" : $", {firstName}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div><a class="secondary student-activities-link" href="/activities"><UiIcon Name="chart" />Mine aktiviteter</a></header>
         <div class="cols student-dashboard">
             <div class="student-main">
                 @if (ActiveCourse is not null)
@@ -111,9 +115,14 @@ else
     private List<MembershipRow>? _memberships;
     private string _vufTone = "";
 
+    private bool CanUseStudentUi =>
+        Auth.IsAuthenticated
+        && (Redirect.CurrentAppRole() == AppRole.Elev || ViewAs.IsActive);
+
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
+        ViewAs.Changed += OnViewAs;
         CourseContext.Changed += OnContext;
         World.Changed += OnContext;
         await World.EnsureAsync();
@@ -132,13 +141,13 @@ else
             return;
         }
 
-        if (Redirect.CurrentAppRole() != AppRole.Elev)
+        if (Redirect.CurrentAppRole() != AppRole.Elev && !ViewAs.IsActive)
             Nav.NavigateTo(Redirect.PostLoginPath());
     }
 
     private async Task LoadElevDataAsync()
     {
-        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Elev)
+        if (!Auth.IsInitialized || !CanUseStudentUi)
             return;
 
         await Task.WhenAll(LoadLectioAsync(), LoadMembershipsAsync());
@@ -157,6 +166,12 @@ else
         _vufTone = "";
         try
         {
+            if (ViewAs.IsActive)
+            {
+                await LoadViewAsLectioAsync(ViewAs.LectioId!);
+                return;
+            }
+
             var meRes = await Http.GetAsync("lectio/me");
             if (!meRes.IsSuccessStatusCode)
             {
@@ -177,12 +192,7 @@ else
                 _snapshot = Studieplan.ParseStudentSnapshot(studentBody);
                 if (!string.IsNullOrWhiteSpace(_snapshot?.LectioId))
                     _lectioId = _snapshot.LectioId;
-                _vufTone = _snapshot?.Vuf.Ok switch
-                {
-                    true => "is-ok",
-                    false => "is-bad",
-                    _ => _snapshot?.Vuf.IsMissing == true ? "is-missing" : ""
-                };
+                ApplyVufTone();
             }
 
             else
@@ -200,6 +210,71 @@ else
         {
             _lectioLoading = false;
         }
+    }
+
+    private async Task LoadViewAsLectioAsync(string lectioId)
+    {
+        _lectioId = lectioId;
+        _linked = true;
+        try
+        {
+            var listRes = await Http.GetAsync("lectio/programmeringselever");
+            var listBody = await listRes.Content.ReadAsStringAsync();
+            if (listRes.IsSuccessStatusCode)
+            {
+                _snapshot = Studieplan.FindStudentSnapshot(listBody, lectioId)
+                    ?? new StudentSnapshot(
+                        LectioId: lectioId,
+                        Name: ViewAs.DisplayName,
+                        ClassName: ViewAs.ClassName,
+                        WorkplaceName: null,
+                        ForloebName: null,
+                        ForloebDates: null,
+                        ForloebStart: null,
+                        ForloebEnd: null,
+                        Vuf: new VufStatus(null, null, null, null));
+                ApplyVufTone();
+            }
+            else
+            {
+                _snapshot = new StudentSnapshot(
+                    LectioId: lectioId,
+                    Name: ViewAs.DisplayName,
+                    ClassName: ViewAs.ClassName,
+                    WorkplaceName: null,
+                    ForloebName: null,
+                    ForloebDates: null,
+                    ForloebStart: null,
+                    ForloebEnd: null,
+                    Vuf: new VufStatus(null, null, null, null));
+            }
+
+            await LoadStudieplanAsync(lectioId);
+        }
+        catch
+        {
+            _linked = true;
+            _snapshot ??= new StudentSnapshot(
+                LectioId: lectioId,
+                Name: ViewAs.DisplayName,
+                ClassName: ViewAs.ClassName,
+                WorkplaceName: null,
+                ForloebName: null,
+                ForloebDates: null,
+                ForloebStart: null,
+                ForloebEnd: null,
+                Vuf: new VufStatus(null, null, null, null));
+        }
+    }
+
+    private void ApplyVufTone()
+    {
+        _vufTone = _snapshot?.Vuf.Ok switch
+        {
+            true => "is-ok",
+            false => "is-bad",
+            _ => _snapshot?.Vuf.IsMissing == true ? "is-missing" : ""
+        };
     }
 
     private async Task LoadStudieplanAsync(string lectioId)
@@ -231,13 +306,23 @@ else
 
     private async Task LoadMembershipsAsync()
     {
-        if (!Auth.IsInitialized || !Auth.IsAuthenticated || Redirect.CurrentAppRole() != AppRole.Elev)
+        if (!Auth.IsInitialized || !CanUseStudentUi)
             return;
 
         _membershipError = null;
         try
         {
-            _memberships = await Http.GetFromJsonAsync<List<MembershipRow>>("me/memberships") ?? [];
+            var url = ViewAs.IsActive && ViewAs.AuthSub is Guid sub
+                ? $"me/memberships?asUser={sub:D}"
+                : "me/memberships";
+            // Under view-as uden Auth-kobling: ingen elev-medlemskaber at vise.
+            if (ViewAs.IsActive && ViewAs.AuthSub is null)
+            {
+                _memberships = [];
+                return;
+            }
+
+            _memberships = await Http.GetFromJsonAsync<List<MembershipRow>>(url) ?? [];
         }
         catch (Exception ex)
         {
@@ -255,9 +340,17 @@ else
         StateHasChanged();
     });
 
+    private void OnViewAs() => _ = InvokeAsync(async () =>
+    {
+        EnsureAccess();
+        await LoadElevDataAsync();
+        StateHasChanged();
+    });
+
     public void Dispose()
     {
         Auth.AuthStateChanged -= OnAuth;
+        ViewAs.Changed -= OnViewAs;
         CourseContext.Changed -= OnContext;
         World.Changed -= OnContext;
     }

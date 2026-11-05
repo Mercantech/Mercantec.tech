@@ -91,3 +91,7 @@ Elevforsiden på `/student` bruger igen det oprindelige layout: billedbåret akt
 - Mobilvisningen samler indholdet i én kolonne. Temaernes eksisterende farver og komponenter genbruges.
 
 Kontrolleret med isolerede elev- og API-fixtures: koblet/ukoblet Lectio, utilgængelig Lectio med genforsøg, manglende VUF/studieplan, utilstrækkelig VUF samt udvidet tidslinje. Lokalt køb ændrer både forsidens og headerens saldo; avatar- og forløbsskift slår igennem. Mobilbredder 320 og 390 px samt lyst, jul og hacker er gennemgået. Debug-build og Docker Release-publish er gennemført uden fejl; SDK’ets anbefaling om den valgfrie wasm-tools-workload er uændret. Rigtige elevdata er ikke ændret under kontrollen.
+
+Mathias’ samtidige ændring til fuld elevvisning (#51) er bevaret i sammenfletningen: underviser-preview bruger den valgte elevs navn, Lectio-ID, VUF, studieplan og eventuelle Auth-medlemskaber i det genskabte layout. JWT og den faktiske Auth-rolle ændres ikke.
+
+Efter sammenfletningen er normal elevvisning samt start/afslutning af underviserens elevpreview kontrolleret med isolerede fixtures. Preview henter den valgte elevs medlemskaber med `asUser`. De 60 eksisterende webtests består, og Debug-build har 0 fejl/advarsler.

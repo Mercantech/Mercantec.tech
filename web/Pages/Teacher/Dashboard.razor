@@ -1,6 +1,7 @@
 @page "/teacher"
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -26,6 +27,7 @@ else
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuth;
+        ViewAs.Changed += OnAuth;
         EnsureAccess();
     }
 
@@ -40,6 +42,12 @@ else
             return;
         }
 
+        if (ViewAs.IsActive)
+        {
+            Nav.NavigateTo("/student");
+            return;
+        }
+
         if (Redirect.CurrentAppRole() != AppRole.Underviser)
             Nav.NavigateTo(Redirect.PostLoginPath());
     }
@@ -50,5 +58,9 @@ else
         StateHasChanged();
     });
 
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    public void Dispose()
+    {
+        Auth.AuthStateChanged -= OnAuth;
+        ViewAs.Changed -= OnAuth;
+    }
 }

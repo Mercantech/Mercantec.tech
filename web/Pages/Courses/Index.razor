@@ -3,6 +3,7 @@
 @using System.Text.Json
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject HttpClient Http
 @inject NavigationManager Nav
 @implements IDisposable
@@ -17,7 +18,7 @@ else if (!Auth.IsAuthenticated)
 {
     <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
 }
-else if (Redirect.CurrentAppRole() != AppRole.Underviser)
+else if (!Redirect.ShowsTeacherChrome)
 {
     <header class="page-title"><div><h1>Mine forløb</h1><p>Hold, du er medlem af. Administration ligger hos underviseren.</p></div><a class="secondary" href="/courses/template">Undervisningsplaner</a></header>
     @if (_loading)
@@ -129,7 +130,7 @@ else
         if (!Auth.IsInitialized || !Auth.IsAuthenticated)
             return;
 
-        if (Redirect.CurrentAppRole() != AppRole.Underviser)
+        if (!Redirect.ShowsTeacherChrome)
         {
             await LoadMembershipsAsync();
             return;
@@ -196,7 +197,13 @@ else
         _memberships.Clear();
         try
         {
-            var rows = await Http.GetFromJsonAsync<List<MembershipCard>>("me/memberships") ?? [];
+            if (ViewAs.IsActive && ViewAs.AuthSub is null)
+                return;
+
+            var url = ViewAs.IsActive && ViewAs.AuthSub is Guid sub
+                ? $"me/memberships?asUser={sub:D}"
+                : "me/memberships";
+            var rows = await Http.GetFromJsonAsync<List<MembershipCard>>(url) ?? [];
             _memberships.AddRange(rows);
         }
         catch (Exception ex)

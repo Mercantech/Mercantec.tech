@@ -18,9 +18,11 @@ services:
       timeout: 5s
       retries: 10
 
+  # quay.io/minio/{minio,mc} returnerer 401 (community-images fjernet sep. 2026).
+  # pgsty/silo er AGPL-community-fork med server + mc i samme image.
   minio:
-    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
-    command: server /data --console-address ":9001"
+    image: pgsty/silo:RELEASE.2026-10-26T00-00-00Z
+    command: server /data --address ":9000" --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -39,7 +41,7 @@ services:
       start_period: 10s
 
   minio-init:
-    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    image: pgsty/silo:RELEASE.2026-10-26T00-00-00Z
     depends_on:
       minio:
         condition: service_healthy
@@ -51,12 +53,22 @@ services:
       - /bin/sh
       - -c
       - |
+        set -e
         mc alias set local http://mercantec-tech-minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
         mc mb --ignore-existing "local/$$MINIO_BUCKET"
-        exit 0
+        echo "minio-init: bucket $$MINIO_BUCKET klar"
+        touch /tmp/minio-init-done
+        # Bliv kørende — Dokploy behandler one-shot exit som fejlet deploy
+        exec tail -f /dev/null
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/minio-init-done"]
+      interval: 5s
+      timeout: 3s
+      retries: 18
+      start_period: 5s
     networks:
       - default
-    restart: "no"
+    restart: unless-stopped
 
   api:
     build:

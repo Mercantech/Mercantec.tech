@@ -27,7 +27,7 @@ Aflevering knyttet til quests/opgaver med krav (fx link, video, fil). **Undervis
 
 - [[Quests-og-planner]]
 - [[Notifikationer]]
-- Object storage: MinIO i Compose (`mercantec-tech-minio`) + API `POST/GET /api/files`
+- Object storage: Silo/MinIO i Compose (`pgsty/silo`, alias `mercantec-tech-minio`) + API `POST/GET /api/files`
 
 ## Risks
 
