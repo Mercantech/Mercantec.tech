@@ -22,7 +22,8 @@ public sealed class AzureGraphCalendarClient(
 
     public bool IsConfigured => _options.IsConfigured;
 
-    public string? ResolveTeacherUpn(string? email) => _options.ResolveTeacherUpn(email);
+    public string? ResolveTeacherUpn(string? sub, string? email = null) =>
+        _options.ResolveTeacherUpn(sub, email);
 
     public async Task<IReadOnlyList<TeacherCalendarEvent>> GetCalendarViewAsync(
         string azureUpn,
