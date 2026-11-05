@@ -1,44 +1,298 @@
+@using Mercantec.Tech.Contracts
+@using Mercantec.Tech.Web.Calendar
+@using Mercantec.Tech.Web.Demo
+@inject TeacherCalendarClient CalendarApi
+@implements IDisposable
+
 <div class="v2-toolbar">
-    <div class="calendar-buttons"><button class="secondary" aria-label="Forrige uge" @onclick="() => _offset--">‹</button><button class="secondary" @onclick="() => _offset = 0">Denne uge</button><button class="secondary" aria-label="Næste uge" @onclick="() => _offset++">›</button></div>
+    <div class="calendar-buttons">
+        <button class="secondary" aria-label="Forrige uge" @onclick="PrevWeekAsync">‹</button>
+        <button class="secondary" @onclick="ThisWeekAsync">Denne uge</button>
+        <button class="secondary" aria-label="Næste uge" @onclick="NextWeekAsync">›</button>
+    </div>
     <h2>@Monday.ToString("dd. MMM", Danish) – @Monday.AddDays(4).ToString("dd. MMM yyyy", Danish)</h2>
 </div>
-<div class="v2-legend"><span class="v2-presence"><i class="v2-dot physical"></i>Fuldt fremmøde</span><span class="v2-presence"><i class="v2-dot online"></i>Online fremmøde</span><span class="v2-presence"><i class="v2-dot home"></i>Arbejde hjemme</span></div>
+
+@if (Teacher)
+{
+    <div class="v2-legend">
+        <span class="v2-presence"><i class="v2-dot physical"></i>Outlook</span>
+        @if (!string.IsNullOrEmpty(_azureUpn))
+        {
+            <span class="v2-presence">@_azureUpn</span>
+        }
+        @if (!_configured && string.IsNullOrEmpty(_error))
+        {
+            <span class="v2-presence">Azure Graph er ikke konfigureret endnu</span>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <p class="calendar-empty" role="alert">@_error</p>
+    }
+    else if (_loading)
+    {
+        <p class="calendar-empty">Henter Outlook-kalender…</p>
+    }
+}
+else
+{
+    <div class="v2-legend"><span class="v2-presence"><i class="v2-dot physical"></i>Fuldt fremmøde</span><span class="v2-presence"><i class="v2-dot online"></i>Online fremmøde</span><span class="v2-presence"><i class="v2-dot home"></i>Arbejde hjemme</span></div>
+}
+
 <div class="@(Teacher ? "v2-planning" : "")">
-    <div class="v2-calendar" aria-label="Ugekalender">
-        <div class="v2-hours" aria-hidden="true">@for (var hour = 8; hour < 15; hour++) { <div>@hour.00</div> }</div>
+    <div class="v2-calendar @(Teacher ? "v2-calendar-teacher" : "")" aria-label="@(Teacher ? "Underviserkalender" : "Ugekalender")">
+        <div class="v2-hours" aria-hidden="true">
+            @for (var hour = HourStart; hour < HourEnd; hour++)
+            {
+                <div>@hour.00</div>
+            }
+        </div>
         @for (var d = 0; d < 5; d++)
         {
             var date = Monday.AddDays(d);
             var mode = d == 3 ? "online" : d == 4 ? "home" : "physical";
             <section class="v2-cal-col">
-                <div class="v2-cal-head"><strong><a href="/learning/@CourseId/days/@date.ToString("yyyy-MM-dd")">@date.ToString("ddd d.", Danish)</a></strong><span class="v2-presence"><i class="v2-dot @mode"></i>@(mode == "physical" ? "Fremmøde" : mode == "online" ? "Online" : "Hjemme")</span></div>
-                <div class="v2-cal-body">
-                    @if (_offset == 0)
+                <div class="v2-cal-head">
+                    @if (Teacher)
                     {
-                        @foreach (var entry in Entries.Where(e => e.Course == CourseId && e.Day == d))
+                        <strong>@date.ToString("ddd d.", Danish)</strong>
+                        <span class="v2-presence">Outlook</span>
+                    }
+                    else
+                    {
+                        <strong><a href="/learning/@CourseId/days/@date.ToString("yyyy-MM-dd")">@date.ToString("ddd d.", Danish)</a></strong>
+                        <span class="v2-presence"><i class="v2-dot @mode"></i>@(mode == "physical" ? "Fremmøde" : mode == "online" ? "Online" : "Hjemme")</span>
+                    }
+                </div>
+                <div class="v2-cal-body" style="@($"--cal-hours:{HourEnd - HourStart}")">
+                    @if (Teacher)
+                    {
+                        var dayEvents = EventsForDay(date).ToList();
+                        @if (dayEvents.Count == 0 && !_loading && string.IsNullOrEmpty(_error))
                         {
-                            var href = entry.Link ?? $"/learning/{CourseId}/days/{date:yyyy-MM-dd}";
-                            <a class="v2-event @(entry.Quest ? "quest" : "") @(entry.Minutes <= 45 ? "is-short" : "")" href="@href" style="@($"--event-top:{(entry.Start - 480) * 65 / 60}px;--event-height:{Math.Max(28, entry.Minutes * 65 / 60 - 4)}px")"><small>@Clock(entry.Start)–@Clock(entry.Start + entry.Minutes)</small><strong>@entry.Title</strong></a>
+                            <p class="calendar-empty">Ingen aftaler</p>
+                        }
+                        @foreach (var entry in dayEvents)
+                        {
+                            var top = Math.Max(0, (entry.StartMinutes - HourStart * 60) * 65 / 60);
+                            var height = Math.Max(28, entry.Minutes * 65 / 60 - 4);
+                            var css = entry.IsPrivate ? "is-private" : entry.IsOnline ? "is-online" : "";
+                            @if (!string.IsNullOrEmpty(entry.Href))
+                            {
+                                <a class="v2-event azure @css @(entry.Minutes <= 45 ? "is-short" : "")"
+                                   href="@entry.Href" target="_blank" rel="noopener"
+                                   title="@entry.Title"
+                                   style="@($"--event-top:{top}px;--event-height:{height}px")">
+                                    <small>@Clock(entry.StartMinutes)–@Clock(entry.StartMinutes + entry.Minutes)</small>
+                                    <strong>@entry.Title</strong>
+                                    @if (!string.IsNullOrEmpty(entry.Location))
+                                    {
+                                        <small>@entry.Location</small>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="v2-event azure @css @(entry.Minutes <= 45 ? "is-short" : "")"
+                                     title="@entry.Title"
+                                     style="@($"--event-top:{top}px;--event-height:{height}px")">
+                                    <small>@Clock(entry.StartMinutes)–@Clock(entry.StartMinutes + entry.Minutes)</small>
+                                    <strong>@entry.Title</strong>
+                                    @if (!string.IsNullOrEmpty(entry.Location))
+                                    {
+                                        <small>@entry.Location</small>
+                                    }
+                                </div>
+                            }
                         }
                     }
-                    else { <p class="calendar-empty">Ingen aktiviteter planlagt</p> }
+                    else if (_offset == 0)
+                    {
+                        @foreach (var entry in DemoEntries.Where(e => e.Course == CourseId && e.Day == d))
+                        {
+                            var href = entry.Link ?? $"/learning/{CourseId}/days/{date:yyyy-MM-dd}";
+                            <a class="v2-event @(entry.Quest ? "quest" : "") @(entry.Minutes <= 45 ? "is-short" : "")"
+                               href="@href"
+                               style="@($"--event-top:{(entry.Start - 480) * 65 / 60}px;--event-height:{Math.Max(28, entry.Minutes * 65 / 60 - 4)}px")">
+                                <small>@Clock(entry.Start)–@Clock(entry.Start + entry.Minutes)</small>
+                                <strong>@entry.Title</strong>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <p class="calendar-empty">Ingen aktiviteter planlagt</p>
+                    }
                 </div>
             </section>
         }
     </div>
     @if (Teacher)
     {
-        <aside class="panel"><h2>Quests at planlægge</h2><p>Vælg en quest for at se mål og afleveringskrav.</p><div class="v2-backlog">@foreach (var q in DemoCatalog.Quests.Where(q => q.Course == CourseId)) { <a href="/quests/@q.Id">@q.Name<small>@q.Type quest</small></a> }</div></aside>
+        <aside class="panel">
+            <h2>Din uge</h2>
+            <p>Aftaler hentes live fra Outlook via Azure Graph for din egen postkasse.</p>
+            @if (_events.Count > 0)
+            {
+                <p><strong>@_events.Count</strong> aftaler i ugen.</p>
+            }
+            <div class="v2-backlog">
+                @foreach (var q in DemoCatalog.Quests.Where(q => q.Course == CourseId).Take(4))
+                {
+                    <a href="/quests/@q.Id">@q.Name<small>@q.Type quest</small></a>
+                }
+            </div>
+        </aside>
     }
 </div>
+
 @code {
     [Parameter] public string CourseId { get; set; } = "h3";
     [Parameter] public bool Teacher { get; set; }
+
     private int _offset;
+    private bool _loading;
+    private bool _configured = true;
+    private string? _error;
+    private string? _azureUpn;
+    private IReadOnlyList<TeacherCalendarEvent> _events = [];
+    private CancellationTokenSource? _loadCts;
+
+    private int HourStart => Teacher ? 7 : 8;
+    private int HourEnd => Teacher ? 17 : 15;
+
     private static readonly System.Globalization.CultureInfo Danish = System.Globalization.CultureInfo.GetCultureInfo("da-DK");
-    private DateOnly Monday => LearningContent.Start(CourseId).AddDays((CourseId == "h3" ? 14 : 0) + _offset * 7);
+    private DateOnly Monday => Teacher
+        ? StartOfWeek(DateOnly.FromDateTime(DateTime.Today)).AddDays(_offset * 7)
+        : LearningContent.Start(CourseId).AddDays((CourseId == "h3" ? 14 : 0) + _offset * 7);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Teacher)
+            await LoadTeacherWeekAsync();
+    }
+
+    private async Task PrevWeekAsync()
+    {
+        _offset--;
+        if (Teacher) await LoadTeacherWeekAsync();
+    }
+
+    private async Task NextWeekAsync()
+    {
+        _offset++;
+        if (Teacher) await LoadTeacherWeekAsync();
+    }
+
+    private async Task ThisWeekAsync()
+    {
+        _offset = 0;
+        if (Teacher) await LoadTeacherWeekAsync();
+    }
+
+    private async Task LoadTeacherWeekAsync()
+    {
+        _loadCts?.Cancel();
+        _loadCts = new CancellationTokenSource();
+        var ct = _loadCts.Token;
+        _loading = true;
+        _error = null;
+        try
+        {
+            var from = new DateTimeOffset(Monday.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+            var to = from.AddDays(5);
+            var view = await CalendarApi.MineAsync(from, to, ct);
+            if (ct.IsCancellationRequested) return;
+            _configured = view.Configured;
+            _azureUpn = view.AzureUpn;
+            _events = view.Events;
+        }
+        catch (OperationCanceledException) { }
+        catch (TeacherCalendarException ex)
+        {
+            _error = ex.Message;
+            _events = [];
+        }
+        catch (Exception)
+        {
+            _error = "Kalenderen kunne ikke hentes. Prøv igen om lidt.";
+            _events = [];
+        }
+        finally
+        {
+            if (!ct.IsCancellationRequested)
+                _loading = false;
+        }
+    }
+
+    private IEnumerable<DisplayEvent> EventsForDay(DateOnly date)
+    {
+        var tz = ResolveDkTimeZone();
+        foreach (var e in _events)
+        {
+            DateOnly startDay;
+            int startMinutes;
+            int endMinutes;
+            if (e.IsAllDay)
+            {
+                startDay = DateOnly.FromDateTime(e.Start.UtcDateTime);
+                var endDay = DateOnly.FromDateTime(e.End.UtcDateTime.AddMinutes(-1));
+                if (date < startDay || date > endDay) continue;
+                startMinutes = HourStart * 60;
+                endMinutes = Math.Min(HourEnd * 60, startMinutes + 60);
+            }
+            else
+            {
+                var localStart = TimeZoneInfo.ConvertTime(e.Start, tz);
+                var localEnd = TimeZoneInfo.ConvertTime(e.End, tz);
+                startDay = DateOnly.FromDateTime(localStart.DateTime);
+                if (startDay != date) continue;
+                startMinutes = localStart.Hour * 60 + localStart.Minute;
+                endMinutes = localEnd.Hour * 60 + localEnd.Minute;
+                if (endMinutes <= startMinutes) endMinutes = startMinutes + 30;
+            }
+
+            // Klip til synligt tidsrum
+            var clippedStart = Math.Max(startMinutes, HourStart * 60);
+            var clippedEnd = Math.Min(endMinutes, HourEnd * 60);
+            if (clippedEnd <= clippedStart) continue;
+
+            yield return new DisplayEvent(
+                e.Subject,
+                clippedStart,
+                clippedEnd - clippedStart,
+                e.Location,
+                e.IsOnlineMeeting,
+                e.IsPrivate,
+                e.WebLink ?? e.OnlineMeetingUrl);
+        }
+    }
+
+    private static DateOnly StartOfWeek(DateOnly day) =>
+        day.AddDays(-((int)day.DayOfWeek + 6) % 7);
+
+    private static TimeZoneInfo ResolveDkTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(
+                OperatingSystem.IsWindows() ? "Romance Standard Time" : "Europe/Copenhagen");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.Utc;
+        }
+    }
+
     private static string Clock(int minutes) => $"{minutes / 60:00}.{minutes % 60:00}";
-    private static readonly CalendarEntry[] Entries =
+
+    public void Dispose() => _loadCts?.Cancel();
+
+    private sealed record DisplayEvent(
+        string Title, int StartMinutes, int Minutes, string? Location, bool IsOnline, bool IsPrivate, string? Href);
+
+    private static readonly CalendarEntry[] DemoEntries =
     [
         new("h3", 0, 495, 90, "Serverside · API", false, "/learning/h3/subjects/server/api"),
         new("h3", 0, 615, 75, "Målinger i dashboard", false, "/learning/h3/subjects/dashboard/dashboard"),

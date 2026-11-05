@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Integrations.Azure;
 using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
@@ -49,6 +50,12 @@ builder.Services.AddHttpClient("auth-admin", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(45);
 });
+builder.Services.Configure<AzureGraphOptions>(builder.Configuration.GetSection(AzureGraphOptions.SectionName));
+builder.Services.AddHttpClient("azure-graph", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
+builder.Services.AddSingleton<AzureGraphCalendarClient>();
 builder.Services.AddScoped<MembershipClaimService>();
 
 builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));
@@ -71,6 +78,17 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Azure Graph: understøt både Azure__* (compose) og flade AZURE_* env-navne
+var azure = builder.Configuration.GetSection(AzureGraphOptions.SectionName);
+if (string.IsNullOrWhiteSpace(azure["TenantId"]))
+    builder.Configuration["Azure:TenantId"] = builder.Configuration["AZURE_TENANT_ID"];
+if (string.IsNullOrWhiteSpace(azure["ClientId"]))
+    builder.Configuration["Azure:ClientId"] = builder.Configuration["AZURE_CLIENT_ID"];
+if (string.IsNullOrWhiteSpace(azure["ClientSecret"]))
+    builder.Configuration["Azure:ClientSecret"] = builder.Configuration["AZURE_CLIENT_SECRET"];
+if (string.IsNullOrWhiteSpace(azure["TeacherUpnMap"]) && !string.IsNullOrWhiteSpace(builder.Configuration["AZURE_TEACHER_UPN_MAP"]))
+    builder.Configuration["Azure:TeacherUpnMap"] = builder.Configuration["AZURE_TEACHER_UPN_MAP"];
 
 var authIssuer = builder.Configuration["AUTH_ISSUER"]
     ?? "https://auth.mercantec.tech";
