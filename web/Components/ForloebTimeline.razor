@@ -1,0 +1,52 @@
+@using Mercantec.Tech.Web.Lectio
+@using System.Globalization
+
+@if (Timeline is null)
+{
+    <p class="forloeb-timeline-empty">@EmptyMessage</p>
+}
+else
+{
+    <div class="forloeb-timeline student-timeline" aria-label="Forløbstidslinje">
+        <div class="timeline-axis">
+            @foreach (var tick in Timeline.Ticks)
+            {
+                <span class="timeline-tick" style="left: @(tick.Left.ToString("0.###", CultureInfo.InvariantCulture))%">@tick.Label</span>
+            }
+            @if (Timeline.TodayLeft is double todayLeft)
+            {
+                <span class="timeline-today" style="left: @(todayLeft.ToString("0.###", CultureInfo.InvariantCulture))%" title="I dag"></span>
+            }
+        </div>
+        <div class="timeline-rows">
+            @foreach (var bar in Timeline.Bars)
+            {
+                <div class="timeline-row" title="@bar.Tooltip">
+                    <div class="timeline-label">@bar.Name</div>
+                    <div class="timeline-track">
+                        <div class="timeline-bar @(bar.IsCurrent ? "is-current" : null) @(bar.IsPast ? "is-past" : null) @(bar.IsFuture ? "is-future" : null)"
+                             style="left: @(bar.Left.ToString("0.###", CultureInfo.InvariantCulture))%; width: @(bar.Width.ToString("0.###", CultureInfo.InvariantCulture))%"></div>
+                        @if (Timeline.TodayLeft is double t2)
+                        {
+                            <span class="timeline-today-track" style="left: @(t2.ToString("0.###", CultureInfo.InvariantCulture))%"></span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="timeline-legend">
+            <span class="timeline-legend-swatch is-past"></span> Afsluttet
+            <span class="timeline-legend-swatch is-current"></span> Igangværende
+            <span class="timeline-legend-swatch is-future"></span> Kommende
+            @if (Timeline.TodayLeft is not null)
+            {
+                <span class="timeline-legend-today">· stiplet = i dag</span>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public TimelineView? Timeline { get; set; }
+    [Parameter] public string EmptyMessage { get; set; } = "Ingen forløb med datoer i studieplanen.";
+}
