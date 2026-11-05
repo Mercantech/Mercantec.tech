@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { Server, IncomingMessage, MessageType } from '@hocuspocus/server';
 import * as Y from 'yjs';
-import { createApiClient, documentIdFromName, resolveServiceSecret } from './api-client.mjs';
+import { createApiClient, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
 import { fingerprintHash } from './fingerprint.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
@@ -24,7 +24,7 @@ export function createCollaborationServer({
   const sessions = new Set();
 
   async function checkAccess(context, documentName, force = false) {
-    if (!context?.token || Date.now() >= context.expiresAt) throw DENIED;
+    if (!context?.token || Date.now() >= context.expiresAt + TOKEN_CLOCK_SKEW_MS) throw DENIED;
     if (!force && Date.now() - context.authorizedAt < reauthorizeMs) return;
     // Share a pending check between the timer and arriving document updates.
     context.pendingAuthorization ??= api.authorize(documentName, context.token).then(permission => {
@@ -78,7 +78,11 @@ export function createCollaborationServer({
     async connected({ context, documentName, connection }) {
       sessions.add(context);
       const close = () => { stopSession(context); connection.close(DENIED); };
-      context.expiryTimer = setTimeout(close, Math.min(context.expiresAt - Date.now(), 2147483647));
+      // Keep the socket open through the same skew window the authorize check allows.
+      context.expiryTimer = setTimeout(close, Math.min(
+        Math.max(context.expiresAt + TOKEN_CLOCK_SKEW_MS - Date.now(), 1000),
+        2147483647,
+      ));
       context.expiryTimer.unref();
       context.reauthorizationTimer = setInterval(() => {
         checkAccess(context, documentName, true).catch(close);

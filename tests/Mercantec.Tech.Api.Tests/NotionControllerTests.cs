@@ -149,6 +149,11 @@ public sealed class NotionControllerTests : IAsyncLifetime
         Assert.IsType<BadRequestObjectResult>(await controller.AuthorizeDocument(new("../../private"), default));
         Assert.IsType<BadRequestObjectResult>(await controller.AuthorizeDocument(new("notion:" + Guid.Empty), default));
         Assert.IsType<NotFoundResult>(await controller.AuthorizeDocument(new("notion:" + Guid.NewGuid()), default));
+        var page = await Create();
+        Assert.True(NotionController.TryDocumentId("notion:" + page.Id.ToString("D").ToUpperInvariant(), out var parsed));
+        Assert.Equal(page.Id, parsed);
+        Assert.Equal(page.Id, Value<NotionCollaborationAccess>(await As(teacher, true)
+            .AuthorizeDocument(new("notion:" + page.Id.ToString("D").ToUpperInvariant()), default)).DocumentId);
     }
 
     [Fact]

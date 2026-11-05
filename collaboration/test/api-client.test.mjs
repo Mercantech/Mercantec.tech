@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createApiClient, documentIdFromName, tokenExpiresAt, MAX_DOCUMENT_BYTES } from '../src/api-client.mjs';
+import { createApiClient, documentIdFromName, tokenExpiresAt, MAX_DOCUMENT_BYTES, TOKEN_CLOCK_SKEW_MS } from '../src/api-client.mjs';
 
 const id = '11111111-2222-4333-8444-555555555555';
 const name = `notion:${id}`;
 const secret = 'unit-test-service-key-not-a-real-secret';
 const fingerprint = 'a'.repeat(64);
 const jwt = exp => `header.${Buffer.from(JSON.stringify({ exp })).toString('base64url')}.signature`;
+const jwtPadded = exp => {
+  const payload = Buffer.from(JSON.stringify({ exp })).toString('base64');
+  return `header.${payload}.signature`;
+};
 const validToken = () => jwt(Math.floor(Date.now() / 1000) + 120);
 const client = fetchImpl => createApiClient({ apiBaseUrl: 'http://api.test:8080', serviceSecret: secret, fetchImpl });
 
@@ -15,7 +19,10 @@ test('only scoped notion UUID names and unexpired JWT-shaped tokens reach the AP
   for (const value of ['room', `notion:${id}/../../state`, 'notion:1', null]) {
     assert.throws(() => documentIdFromName(value));
   }
-  assert.throws(() => tokenExpiresAt(jwt(1)));
+  assert.throws(() => tokenExpiresAt(jwt(Math.floor(Date.now() / 1000) - TOKEN_CLOCK_SKEW_MS / 1000 - 30)));
+  assert.ok(tokenExpiresAt(jwt(Math.floor(Date.now() / 1000) - 30)) > Date.now() - 60_000);
+  assert.ok(tokenExpiresAt(jwtPadded(Math.floor(Date.now() / 1000) + 120)) > Date.now());
+  assert.ok(tokenExpiresAt(`Bearer ${validToken()}`) > Date.now());
   assert.throws(() => tokenExpiresAt('opaque-token'));
   assert.throws(() => tokenExpiresAt(jwt('9999999999')));
   assert.ok(tokenExpiresAt(validToken()) > Date.now());
@@ -43,6 +50,7 @@ test('authorization needs an explicit write grant for the exact document', async
     return Response.json({ documentId: id, canEdit: true });
   });
   assert.equal((await api.authorize(name, token)).documentId, id);
+  assert.equal((await api.authorize(name.toUpperCase(), `Bearer ${token}`)).documentId, id);
 });
 
 test('only explicit 204 means an empty document; errors never produce a blank replacement', async () => {
