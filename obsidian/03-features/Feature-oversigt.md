@@ -58,6 +58,7 @@ Den klikbare reference er leveret i [design/lup](../../design/lup/README.md). De
 | Feature | Status | Omfang |
 | --- | --- | --- |
 | [[LUP-navigation-og-soegning]] | plan | LUP-branding, én header, temaer, kontekst og global søgning |
+| [[Temaer-og-nytaar]] | active | Fælles temakatalog; nytår med et frivilligt raketspil og gendannelse af interfacet |
 | [[Forloebsvisning-og-kalender]] | plan | Dokumentforløb, uge-/dagsplan, fremmødeform og visuel planner |
 | [[Afstemninger-og-stemning]] | plan | Fire svartyper, elevdeltagelse og tavlevisning |
 | [[Aktiviteter-og-status]] | plan | Samlet aktivitetsindgang, Daily og rød/orange/grøn handlingsstatus |

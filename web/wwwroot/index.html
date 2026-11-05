@@ -7,7 +7,7 @@
     <title>LUP · Lokal UndervisningsPlatform</title>
     <script>
         (() => {
-            const themes = new Set(["system", "light", "dark", "christmas", "hacker"]);
+            const themes = new Set(["system", "light", "dark", "christmas", "newyear", "hacker"]);
             let stored = null;
             let authed = false;
             try { stored = localStorage.getItem("lup-theme"); } catch { /* Tomt lager starter lyst. */ }
@@ -15,7 +15,7 @@
             let theme = "light";
             if (authed) theme = themes.has(stored) ? stored : "light";
             else if (stored && stored !== "system" && themes.has(stored)) theme = stored;
-            const dark = theme === "dark" || theme === "christmas" || theme === "hacker"
+            const dark = theme === "dark" || theme === "christmas" || theme === "newyear" || theme === "hacker"
                 || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
             document.documentElement.dataset.theme = theme;
             document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
@@ -31,6 +31,7 @@
     <link rel="stylesheet" href="lup/lup.css?v=8" />
     <link rel="stylesheet" href="css/lup-refinements.css?v=10" />
     <link rel="stylesheet" href="css/lup-themes.css?v=9" />
+    <link rel="stylesheet" href="css/lup-newyear.css?v=1" />
     <link rel="stylesheet" href="css/lup-social.css?v=9" />
     <style>
         img.lc-mark {
@@ -67,7 +68,8 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="lup/vendor/lucide.min.js"></script>
-    <script src="js/lup-ui.js?v=10"></script>
+    <script src="js/lup-ui.js?v=11"></script>
+    <script src="js/lup-newyear.js?v=1"></script>
     <script src="js/course-mermaid.js?v=1"></script>
     <script>
         window.lupTheme.apply(window.lupTheme.get());

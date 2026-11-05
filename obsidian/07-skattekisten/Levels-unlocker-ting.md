@@ -48,4 +48,4 @@ Først synlig XP/levels; unlock-katalog kommer efter.
 
 Den nye butik skelner mellem oplåst, ejet og taget på/placeret. Level eller badge kan åbne adgang til køb; direkte tildelte gaver fra #26 er en anden tildelingstype. Se [[Guld-butik-og-oplaasninger]].
 
-System/lys/mørk/jul/hacker er frit tilgængelige grundtemaer. Level-låste temaer i #25 vedrører yderligere kosmetiske profiltemaer. Karriere-level og emnebadgeniveau blandes ikke sammen.
+System/lys/mørk/jul/nytår/hacker er frit tilgængelige grundtemaer. Level-låste temaer i #25 vedrører yderligere kosmetiske profiltemaer. Karriere-level og emnebadgeniveau blandes ikke sammen.

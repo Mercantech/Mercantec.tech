@@ -98,3 +98,17 @@ test('courseCode.copy writes via clipboard API', async () => {
     assert.equal(await window.courseCode.copy('using System;'), true);
     assert.equal(written, 'using System;');
 });
+
+test('New Year selection survives reload before login and uses the dark palette', () => {
+    const app = scene(false);
+    app.theme.set('newyear');
+    assert.equal(app.document.documentElement.dataset.theme, 'newyear');
+    assert.equal(app.document.documentElement.dataset.bsTheme, 'dark');
+    assert.equal(app.pending.size, 0);
+    const reloaded = scene(false, Object.fromEntries(app.storage));
+    assert.equal(reloaded.theme.get(), 'newyear');
+    reloaded.theme.apply(reloaded.theme.get());
+    assert.equal(reloaded.document.documentElement.dataset.theme, 'newyear');
+    assert.equal(reloaded.document.documentElement.dataset.bsTheme, 'dark');
+    assert.equal(reloaded.pending.size, 0);
+});

@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using Mercantec.Tech.Web.Theming
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject ViewAsStudentContext ViewAs
@@ -99,11 +100,7 @@
                             <label class="field">
                                 Udseende
                                 <select value="@_theme" @onchange="SetTheme">
-                                    <option value="system">System</option>
-                                    <option value="light">Lyst</option>
-                                    <option value="dark">Mørkt</option>
-                                    <option value="christmas">Jul</option>
-                                    <option value="hacker">Hacker</option>
+                                    @foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }
                                 </select>
                             </label>
                             <NavLink href="/help" Match="NavLinkMatch.All">Hjælp</NavLink>
@@ -119,7 +116,7 @@
                     <NavLink href="/privacy" Match="NavLinkMatch.All">Privatliv</NavLink>
                 </nav>
                 <div class="lup-tools">
-                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@(_theme == "christmas" ? "snow" : _theme == "hacker" ? "terminal" : "star")" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme"><option value="system">System</option><option value="light">Lyst</option><option value="dark">Mørkt</option><option value="christmas">Jul</option><option value="hacker">Hacker</option></select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
+                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@ThemeCatalog.Find(_theme).Icon" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
             }
         </header>
@@ -375,8 +372,9 @@
         StateHasChanged();
     });
 
-    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(() =>
+    private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(async () =>
     {
+        await Js.InvokeVoidAsync("lupNewYear.stop");
         EnforceViewAsRoutes();
         StateHasChanged();
     });

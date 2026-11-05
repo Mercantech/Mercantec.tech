@@ -1,5 +1,5 @@
 (() => {
-    const themes = new Set(["system", "light", "dark", "christmas", "hacker"]);
+    const themes = new Set(["system", "light", "dark", "christmas", "newyear", "hacker"]);
     const read = (key, fallback = null) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
     const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* Themes also work without storage. */ } };
     const signedIn = () => { try { return !!sessionStorage.getItem("mt_access_token"); } catch { return false; } };
@@ -69,7 +69,7 @@
         },
         resolved(theme) {
             const value = normalize(theme || this.get());
-            return ["dark", "christmas", "hacker"].includes(value) ? "dark" : value === "light" ? "light" : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            return ["dark", "christmas", "newyear", "hacker"].includes(value) ? "dark" : value === "light" ? "light" : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         },
         apply(theme) {
             const value = normalize(theme || this.get());

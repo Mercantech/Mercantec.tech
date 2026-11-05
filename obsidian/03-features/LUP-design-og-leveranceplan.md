@@ -66,7 +66,7 @@ GitHub Issues og Project #9 er fortsat sandheden for prioritering og status. Nye
 - **Badge-ID:** UI kan samle fem niveauer under samme emne, selv om [[Emne-badges]] har separate badge-ID'er pr. niveau. Designets lokale `rank` er ikke et databasevalg.
 - **Offentliggørelse:** den gamle projektplan siger åben som standard. Skabelonen starter private projekter og kræver et aktivt delingsvalg. Den endelige standard afklares fælles, før publicering implementeres.
 - **Økonomi:** 200 XP pr. level, 100 XP/20 guld for en standardquest og de viste priser er eksempelværdier til afklaring, ikke fastlagte backendkrav.
-- **Levels og tema:** system/lys/mørk/jul/hacker er frit tilgængelige grundtemaer. Level-unlocks i #25 vedrører yderligere kosmetik/profiltemaer.
+- **Levels og tema:** system/lys/mørk/jul/nytår/hacker er frit tilgængelige grundtemaer. Level-unlocks i #25 vedrører yderligere kosmetik/profiltemaer.
 - **Gratis gave eller køb:** #26 giver et møbel direkte. Den nye butik bruger adgang til køb. Begge tildelingstyper skal være entydige, så et unlock ikke både uddeler og sælger samme eksemplar.
 - **Sikkerhed:** rolle-/forløbsskift i designvisningen erstatter ikke Auth og medlemskabskontrol. Køb, belønninger, datoafgrænsning af Daily og synlighed skal valideres af API'et.
 - **Indhold:** H3-/Game Design-planerne er inspireret af de delte Notion-forløb. De viste H3-Side/Daily-quests og kosmetiske belønninger er nye designforslag, ikke formelle målpinde.
