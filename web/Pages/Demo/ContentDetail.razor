@@ -1,7 +1,6 @@
 @page "/quests/{QuestId}"
 @page "/quests/{QuestId}/submit"
 @page "/badges/{BadgeId}"
-@page "/polls/{PollId:int}"
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject DemoWorld World
@@ -24,23 +23,16 @@ else if (Badge is not null) {
     else { @for (var i = 0; i < 5; i++) { <section class="v2-rank"><span class="rank-dot @(i < Badge.Rank ? "achieved" : "")">@(i < Badge.Rank ? "✓" : i + 1)</span><div><h3>@DemoCatalog.RankNames[i]</h3><p>@DemoCatalog.RankCriteria[i]</p><small class="muted">@(i < Badge.Rank ? "Opnået" : i == Badge.Rank ? "Dit næste skridt" : "Ikke opnået endnu")</small></div></section> } }
     </article><aside class="panel"><h2>Arbejd videre</h2><p>Et badge viser din forståelse af et emne. Du og underviseren vurderer dit næste niveau sammen.</p><div class="actions"><a class="secondary" href="/learning">Find fagligt indhold</a><a class="secondary" href="/universe/unlocks">Se oplåsninger</a></div></aside></div>
 }
-else if (Poll is not null) {
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/activities">Aktiviteter</a><span>›</span><span>Afstemning</span></nav><header class="page-title"><div><span class="pill green">Åben afstemning</span><h1>@Poll.Question</h1><p>@Poll.Course · @Poll.Type</p></div></header>
-    <section class="panel poll-content"><div class="v4-poll-options @(Poll.Type == "Stemning" ? "mood" : "")">@for (var i = 0; i < Poll.Options.Length; i++) { var option = i; <button class="v4-poll-option" aria-pressed="@(_answer == i)" @onclick="() => World.Vote(Poll.Question, option)">@if (Poll.Type == "Stemning") { <span class="v4-mood-emoji">@Faces[i]</span> } else { <span class="v4-choice-key">@(i + 1)</span> }@Poll.Options[i]</button> }</div>@if (_answer is int selected) { <p class="v4-poll-receipt" role="status">✓ Dit svar: @Poll.Options[selected]</p><PollResults Poll="Poll" /> }</section>
-}
+
 else { <div class="empty"><h1>Siden findes ikke</h1><a href="/learning">Tilbage til min læring</a></div> }
 @code {
     [Parameter] public string? QuestId { get; set; }
     [Parameter] public string? BadgeId { get; set; }
-    [Parameter] public int? PollId { get; set; }
-    private int? _answer => Poll is null ? null : World.VoteOf(Poll.Question);
-    private static readonly string[] Faces = ["😊", "🙂", "😐", "😴", "😟"];
     private DemoCatalog.Quest? Quest => DemoCatalog.Quests.FirstOrDefault(q => q.Id == QuestId);
     private DemoCatalog.Course? Course => DemoCatalog.Courses.FirstOrDefault(c => c.Id == Quest?.Course);
     private DemoCatalog.Badge? Badge => DemoCatalog.Badges.FirstOrDefault(b => b.Id == BadgeId);
-    private DemoCatalog.Poll? Poll => PollId is int i && i >= 0 && i < DemoCatalog.Polls.Length ? DemoCatalog.Polls[i] : null;
-    private string Title => Quest?.Name ?? Badge?.Name ?? Poll?.Question ?? "Indhold";
-    public override Task SetParametersAsync(ParameterView parameters) { QuestId = null; BadgeId = null; PollId = null; return base.SetParametersAsync(parameters); }
+    private string Title => Quest?.Name ?? Badge?.Name ?? "Indhold";
+    public override Task SetParametersAsync(ParameterView parameters) { QuestId = null; BadgeId = null; return base.SetParametersAsync(parameters); }
     protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; World.Changed += OnAuth; await World.EnsureAsync(); }
     private void OnAuth() => InvokeAsync(StateHasChanged);
     public void Dispose() { Auth.AuthStateChanged -= OnAuth; World.Changed -= OnAuth; }

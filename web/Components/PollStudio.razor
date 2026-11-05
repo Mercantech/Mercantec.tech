@@ -1,0 +1,43 @@
+@inject PollClient Client
+<div class="poll-studio">
+    <section class="poll-editor">
+        <div class="poll-editor-heading"><span class="poll-editor-symbol"><UiIcon Name="sliders" /></span><div><h2>Form spørgsmålet</h2><p>Et godt spørgsmål giver alle en vej ind i samtalen.</p></div></div>
+        <label class="poll-field">Hold<select @bind="_hold"><option value="@Guid.Empty">Vælg et hold</option>@foreach (var hold in Holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+        @if (!Holds.Any(h => h.CanManage)) { <p class="poll-inline-note">Opret et forløb, eller bliv tilknyttet som underviser på holdet, før du starter en afstemning. <a href="/courses">Se forløb og hold</a></p> }
+        <fieldset class="poll-field"><legend>Hvordan skal klassen svare?</legend><div class="poll-format-picker">@foreach (var kind in PollDesign.Kinds) { <button type="button" aria-pressed="@DemoWorld.Pressed(_kind == kind)" @onclick="() => ChangeKind(kind)"><UiIcon Name="@PollDesign.Icon(kind)" /><span>@PollDesign.Label(kind)</span></button> }</div></fieldset>
+        <label class="poll-field">Dit spørgsmål<textarea class="poll-question-input" @bind="_question" @bind:event="oninput" maxlength="200" rows="2" placeholder="Hvad vil du gerne spørge om?"></textarea><small>@_question.Length / 200</small></label>
+        @if (_kind == "choice")
+        {
+            <fieldset class="poll-field"><legend>Svarmuligheder</legend><div class="poll-option-editor">@for (var i = 0; i < _options.Count; i++) { var index = i; <div><span class="poll-answer-letter" style="@($"--option-color:{PollDesign.Color(i)}")">@((char)('A' + i))</span><input aria-label="Svarmulighed @(i + 1)" maxlength="100" @bind="_options[index]" @bind:event="oninput" /><button type="button" class="poll-remove-option" disabled="@(_options.Count <= 2)" @onclick="() => _options.RemoveAt(index)" aria-label="Fjern svarmulighed @(i + 1)">×</button></div> }</div><button type="button" class="poll-add-option" disabled="@(_options.Count >= 6)" @onclick='() => _options.Add("")'>+ Tilføj svarmulighed</button></fieldset>
+        }
+        else if (_kind == "mood") { <div class="poll-format-note"><MoodFace Index="1" /><p>Fem følelser, plads til alle. De faste svar hjælper jer med at sammenligne fra dag til dag.</p></div> }
+        else if (_kind == "scale") { <p class="poll-inline-note">Skalaen går fra 1 · Slet ikke til 5 · Helt med. Brug et spørgsmål, der passer til skalaen.</p> }
+        else { <p class="poll-inline-note">Hvert svar må være på 280 tegn. Korte svar vises kun hos dig, så du kan gennemgå dem, før du viser tavlen.</p> }
+        <label class="poll-field">Hvornår må elever se resultatet?<select @bind="_results" disabled="@(_kind == "text")"><option value="after-vote">Når de har svaret</option><option value="closed">Når afstemningen er afsluttet</option><option value="teacher">Kun underviseren</option></select></label>
+        @if (_error is not null) { <p class="poll-error" role="alert">@_error</p> }
+        <div class="poll-studio-actions"><button type="button" class="secondary" disabled="@_saving" @onclick='() => Save("draft")'>Gem kladde</button><button type="button" class="action" disabled="@(_saving || _hold == Guid.Empty)" @onclick='() => Save("open")'>@(_saving ? "Gemmer…" : "Start afstemning")<UiIcon Name="arrow" /></button></div>
+        <p class="poll-editor-footnote">Når du starter, kan holdets medlemmer svare fra deres egen computer.</p>
+    </section>
+    <aside class="poll-preview"><div class="poll-preview-label"><UiIcon Name="eye" /><span>Det ser eleverne</span><small>Prøv at vælge et svar</small></div><PollSurface Poll="Preview" Preview="true" @key="_kind" /></aside>
+</div>
+@code {
+    [Parameter] public IReadOnlyList<PollHold> Holds { get; set; } = [];
+    [Parameter] public string InitialKind { get; set; } = "mood";
+    [Parameter] public EventCallback<PollView> OnCreated { get; set; }
+    private Guid _hold;
+    private string _kind = "mood", _question = PollDesign.Question("mood"), _results = "after-vote";
+    private readonly List<string> _options = ["API og requests", "Database og målinger", "Realtime med SignalR"];
+    private bool _saving, _initialized;
+    private string? _error;
+    private string[] Options => _kind switch { "mood" => PollDesign.MoodNames, "scale" => ["1", "2", "3", "4", "5"], "text" => [], _ => _options.ToArray() };
+    private PollView Preview => new(Guid.Empty, _hold, Holds.FirstOrDefault(h => h.Id == _hold)?.Name ?? "Dit hold", string.IsNullOrWhiteSpace(_question) ? "Dit spørgsmål vises her" : _question, _kind, Options, "open", _results, false, 0, false, null, null, null, null, null, DateTime.UtcNow);
+    protected override void OnParametersSet() { if (!_initialized) { _initialized = true; _hold = Holds.FirstOrDefault(h => h.CanManage)?.Id ?? Guid.Empty; ChangeKind(PollDesign.Kinds.Contains(InitialKind) ? InitialKind : "mood"); } }
+    private void ChangeKind(string kind) { if (_question == PollDesign.Question(_kind)) _question = PollDesign.Question(kind); _kind = kind; if (kind == "text") _results = "teacher"; }
+    private async Task Save(string state)
+    {
+        if (_saving) return; _saving = true; _error = null;
+        try { var saved = await Client.Create(new(_hold, _question, _kind, Options, _results, state)); await OnCreated.InvokeAsync(saved); }
+        catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { _error = ex is PollException ? ex.Message : "Forbindelsen blev afbrudt. Dine valg er bevaret; prøv igen."; }
+        finally { _saving = false; }
+    }
+}

@@ -1,0 +1,41 @@
+@page "/polls/{PollId:guid}"
+@page "/teacher/polls/{PollId:guid}/present"
+@inject PollClient Client
+@inject AuthService Auth
+@inject NavigationManager Nav
+@implements IAsyncDisposable
+<PageTitle>@(_poll?.Question ?? "Afstemning") · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p>Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne afstemningen.</p> }
+else
+{
+    <div class="@(Presenter && _poll?.CanManage == true ? "poll-presenter" : "poll-session")">
+        <nav class="poll-session-nav"><a href="@(_poll?.CanManage == true ? "/teacher/polls" : "/activities")">‹ Tilbage til @(_poll?.CanManage == true ? "afstemninger" : "aktiviteter")</a>@if (_poll?.CanManage == true) { <span class="poll-live-note"><i></i>Opdaterer hver 6. sekund</span> }</nav>
+        @if (_error is not null) { <div class="poll-error" role="alert">@_error <button class="secondary" @onclick="Load">Prøv igen</button></div> }
+        @if (_poll is not null)
+        {
+            <PollSurface Poll="_poll" ResultsOnly="_poll.CanManage" Busy="_busy" OnAnswer="Answer" @key="_poll.Id" />
+            @if (_poll.CanManage) { <div class="poll-session-actions">@if (!Presenter) { <a class="secondary" href="/teacher/polls/@_poll.Id/present"><UiIcon Name="screen" />Åbn tavlevisning</a> }<button class="@(_poll.State == "open" ? "secondary" : "action")" disabled="@_busy" @onclick="ToggleState">@(_poll.State == "open" ? "Afslut afstemning" : "Åbn for svar")</button><span>@(_poll.State == "open" ? "Holdets medlemmer kan svare nu." : "Der modtages ingen svar, mens afstemningen er lukket.")</span></div> }
+        }
+        else if (_error is null) { <p class="poll-loading" role="status">Henter afstemningen…</p> }
+    </div>
+}
+@code {
+    [Parameter] public Guid PollId { get; set; }
+    private PollView? _poll;
+    private bool _busy, _loading;
+    private string? _error;
+    private Guid _current;
+    private readonly CancellationTokenSource _life = new();
+    private Task? _polling;
+    private bool Presenter => Nav.ToBaseRelativePath(Nav.Uri).StartsWith("teacher/");
+    protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; }
+    protected override async Task OnParametersSetAsync() { if (_current != PollId) { _current = PollId; _poll = null; _error = null; await Load(); } }
+    protected override Task OnAfterRenderAsync(bool firstRender) { if (firstRender) _polling = Poll(); return Task.CompletedTask; }
+    private void AccountChanged() => _ = InvokeAsync(async () => { _poll = null; await Load(); StateHasChanged(); });
+    private async Task Poll() { try { using var timer = new PeriodicTimer(TimeSpan.FromSeconds(6)); while (await timer.WaitForNextTickAsync(_life.Token)) if (!_busy) await Load(); } catch (OperationCanceledException) { } }
+    private async Task Load() { if (_loading || !Auth.IsAuthenticated) return; _loading = true; var subject = Auth.Subject; var id = PollId; try { var poll = await Client.Get(id, _life.Token); if (subject == Auth.Subject && id == PollId) { _poll = poll; _error = null; } } catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { if (!_life.IsCancellationRequested && subject == Auth.Subject && id == PollId) _error = ex is PollException ? ex.Message : "Afstemningen kunne ikke hentes. Prøv igen."; } finally { _loading = false; if (!_life.IsCancellationRequested) await InvokeAsync(StateHasChanged); } }
+    private async Task Answer(PollAnswer answer) { if (_busy) return; _busy = true; var subject = Auth.Subject; var id = PollId; try { var poll = await Client.Answer(id, answer, _life.Token); if (subject == Auth.Subject && id == PollId) { _poll = poll; _error = null; } } catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { if (subject == Auth.Subject) _error = ex is PollException ? ex.Message : "Svaret kunne ikke gemmes. Prøv igen."; } finally { _busy = false; } }
+    private async Task ToggleState() { if (_poll is null || _busy) return; _busy = true; var subject = Auth.Subject; try { var poll = await Client.State(PollId, _poll.State == "open" ? "closed" : "open", _life.Token); if (subject == Auth.Subject) _poll = poll; } catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { _error = ex is PollException ? ex.Message : "Afstemningen kunne ikke ændres. Prøv igen."; } finally { _busy = false; } }
+    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= AccountChanged; await _life.CancelAsync(); if (_polling is not null) await _polling; _life.Dispose(); }
+}

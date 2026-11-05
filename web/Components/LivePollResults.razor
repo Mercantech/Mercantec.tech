@@ -1,0 +1,19 @@
+<section class="poll-results" aria-label="Samlede svar">
+    <div class="poll-result-heading"><div><h3>@(Poll.Kind == "mood" ? "Sådan lander klassen" : "Klassens svar")</h3><p>Navne vises ikke i resultatet.</p></div><span class="poll-participation"><strong>@(Poll.TotalResponses ?? 0)</strong> svar
+        @if (Poll.ExpectedResponses > 0) { <small>af @Poll.ExpectedResponses på holdet</small> }
+    </span></div>
+    @if (Poll.Counts is not null && Poll.Kind != "text")
+    {
+        @if (Poll.Kind == "mood")
+        {
+            <div class="poll-mood-distribution" aria-hidden="true">@for (var i = 0; i < Poll.Counts.Length; i++) { @if (Poll.Counts[i] > 0) { <span style="@($"flex:{Poll.Counts[i]};background:{PollDesign.Color(i)}")"></span> } }</div>
+        }
+        <div class="poll-bars">@for (var i = 0; i < Poll.Options.Length; i++) { var count = Poll.Counts[i]; var percent = Poll.TotalResponses > 0 ? (int)Math.Round(100.0 * count / Poll.TotalResponses.Value) : 0; <div class="poll-result" style="@($"--option-color:{PollDesign.Color(i)}")"><div class="poll-result-name">@if (Poll.Kind == "mood") { <MoodFace Index="i" /> } else { <span class="poll-answer-letter">@((char)('A' + i))</span> }<strong>@Poll.Options[i]</strong><span>@count <small>svar · @percent%</small></span></div><div class="poll-result-track" aria-hidden="true"><span style="@($"width:{percent}%")"></span></div></div> }</div>
+    }
+    @if (Poll.Texts is not null)
+    {
+        <div class="poll-text-results">@foreach (var text in Poll.Texts) { <blockquote>@text</blockquote> }</div>
+    }
+    @if (Poll.TotalResponses == 0) { <p class="poll-no-answers">Der er plads til alle svar. Det første dukker op her.</p> }
+</section>
+@code { [Parameter, EditorRequired] public PollView Poll { get; set; } = default!; }

@@ -1,0 +1,25 @@
+@inject PollClient Client
+@inject AuthService Auth
+@implements IAsyncDisposable
+<section class="poll-feed">
+    <div class="poll-list-heading"><div><h2>Afstemninger lige nu</h2><p>Fra dine hold. Ét spørgsmål ad gangen.</p></div><span class="poll-feed-count">@Visible.Count() åbne</span></div>
+    @if (_error is not null) { <p class="poll-error" role="alert">@_error <button class="secondary" @onclick="Load">Prøv igen</button></p> }
+    else if (_polls is null) { <p class="poll-loading" role="status">Henter afstemninger…</p> }
+    else if (!Visible.Any()) { <div class="poll-feed-empty"><UiIcon Name="check" /><div><h3>@(OnlyPending ? "Du er ajour" : "Der er ro på lige nu")</h3><p>@(OnlyPending ? "Du har ingen åbne afstemninger, der mangler dit svar." : "Nye spørgsmål fra dine undervisere dukker op her.")</p></div></div> }
+    <div class="poll-feed-grid">@foreach (var poll in Visible) { <a class="poll-feed-card kind-@poll.Kind" href="/polls/@poll.Id"><div class="poll-surface-meta"><span class="poll-format"><UiIcon Name="@PollDesign.Icon(poll.Kind)" />@PollDesign.Label(poll.Kind)</span><span class="poll-state @(poll.HasResponded ? "answered" : "open")"><i></i>@(poll.HasResponded ? "Du har svaret" : "Mangler dit svar")</span></div><h3>@poll.Question</h3><p>@poll.HoldName</p>@if (poll.Kind == "mood") { <span class="poll-mini-faces">@for (var i = 0; i < 5; i++) { <MoodFace Index="i" /> }</span> }<span class="poll-feed-cta">@(poll.HasResponded ? "Se eller ændr dit svar" : "Giv dit svar")<UiIcon Name="arrow" /></span></a> }</div>
+</section>
+@code {
+    [Parameter] public bool OnlyPending { get; set; }
+    private List<PollView>? _polls;
+    private string? _error;
+    private bool _loading;
+    private readonly CancellationTokenSource _life = new();
+    private Task? _polling;
+    private IEnumerable<PollView> Visible => (_polls ?? []).Where(p => p.State == "open" && (!OnlyPending || !p.HasResponded));
+    protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; }
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (firstRender) { await Load(); _polling = Poll(); } }
+    private void AccountChanged() => _ = InvokeAsync(async () => { _polls = null; _error = null; await Load(); StateHasChanged(); });
+    private async Task Poll() { try { using var timer = new PeriodicTimer(TimeSpan.FromSeconds(6)); while (await timer.WaitForNextTickAsync(_life.Token)) await Load(); } catch (OperationCanceledException) { } }
+    private async Task Load() { if (_loading || !Auth.IsAuthenticated) return; _loading = true; var subject = Auth.Subject; try { var polls = await Client.List(_life.Token); if (subject == Auth.Subject) { _polls = polls; _error = null; } } catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { if (!_life.IsCancellationRequested && subject == Auth.Subject) _error = ex is PollException ? ex.Message : "Forbindelsen til afstemningerne er afbrudt. Prøv igen."; } finally { _loading = false; if (!_life.IsCancellationRequested) await InvokeAsync(StateHasChanged); } }
+    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= AccountChanged; await _life.CancelAsync(); if (_polling is not null) await _polling; _life.Dispose(); }
+}

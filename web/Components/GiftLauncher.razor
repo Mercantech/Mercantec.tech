@@ -21,10 +21,11 @@
                 @if (_tab == "send")
                 {
                     <div class="gift-composer">
-                        <fieldset><legend>Hvem skal have en gave?</legend><input class="gift-input" type="search" @bind="_search" @bind:event="oninput" aria-label="Find modtager" placeholder="Søg efter et navn" />
+                        <fieldset><legend>Hvem skal have en gave?</legend><p class="gift-scope">@(Auth.Roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || r.Equals("Underviser", StringComparison.OrdinalIgnoreCase) || r.Equals("Teacher", StringComparison.OrdinalIgnoreCase) || r.Equals("Instructor", StringComparison.OrdinalIgnoreCase)) ? "Vælg mellem registrerede personer i LUP." : "Du kan give til undervisere og personer fra dit hold. Mangler dit hold, skal din konto kobles til det i Lectio.")</p><button class="gift-refresh" disabled="@_loading" @onclick="Reload">@(_loading ? "Opdaterer…" : "Opdatér modtagere")</button><input class="gift-input" type="search" @bind="_search" @bind:event="oninput" aria-label="Find modtager" placeholder="Søg efter et navn" />
                             @if (_loading) { <p class="gift-muted" role="status">Henter modtagere…</p> }
-                            <div class="gift-recipients">@foreach (var person in Mailbox.Recipients.Where(p => p.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase))) { <label class="gift-recipient"><input type="radio" name="gift-recipient" checked="@(_recipient == person.UserSub)" @onchange="() => _recipient = person.UserSub" /><span class="gift-initials">@Initials(person.DisplayName)</span><span><strong>@person.DisplayName</strong><small>@(person.IsTeacher ? "Underviser" : "Fra dit hold")</small></span></label> }</div>
-                            @if (!_loading && Mailbox.Error is null && Mailbox.Recipients.Count == 0) { <p class="gift-muted">Ingen modtagere endnu. Modtagere vises, når de har åbnet LUP med deres konto.</p> }
+                            <div class="gift-recipients">@foreach (var person in Mailbox.Recipients.Where(p => p.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase))) { <label class="gift-recipient"><input type="radio" name="gift-recipient" checked="@(_recipient == person.UserSub)" @onchange="() => _recipient = person.UserSub" /><span class="gift-initials">@Initials(person.DisplayName)</span><span><strong>@person.DisplayName</strong><small>@(person.IsTeacher ? "Underviser" : "Elev")</small></span></label> }</div>
+                            @if (!_loading && Mailbox.Recipients.Count > 0 && !Mailbox.Recipients.Any(p => p.DisplayName.Contains(_search, StringComparison.OrdinalIgnoreCase))) { <p class="gift-muted">Ingen navne matcher din søgning. Prøv et andet navn.</p> }
+                            @if (!_loading && Mailbox.Error is null && Mailbox.Recipients.Count == 0) { <p class="gift-muted">Ingen modtagere endnu. Undervisere og personer fra dit hold vises, når de har besøgt LUP med deres konto.</p> }
                         </fieldset>
                         <fieldset><legend>Hvad vil du give?</legend><div class="gift-kinds">@foreach (var kind in Kinds) { <button class="gift-kind" aria-pressed="@(_kind == kind.Id)" @onclick="() => _kind = kind.Id"><UiIcon Name="@kind.Icon" /><span>@kind.Title</span></button> }</div></fieldset>
                         <label class="gift-label">Din hilsen<textarea class="gift-input" maxlength="240" @bind="_message" @bind:event="oninput" placeholder="Skriv en lille hilsen til modtageren…"></textarea><small>@_message.Length / 240</small></label>
@@ -43,11 +44,7 @@
         @if (_selected is not null)
         {
             var opened = _selected.OpenedAtUtc is not null;
-            <section class="gift-reveal @(_preview ? "is-preview" : "")" aria-label="Din gave"><span class="gift-reveal-caption">@(_preview ? "Sådan ser gaven ud" : _tab == "sent" ? "Til " + _selected.RecipientName : "Fra " + _selected.SenderName)</span>
-                <button class="gift-parcel @_selected.Wrapping @(opened ? "is-open" : "")" disabled="@(opened || _busy || (!_preview && _tab == "sent"))" @onclick="OpenGift" aria-label="@(_preview ? "Åbn gavevisningen" : "Åbn gaven fra " + _selected.SenderName)"><span class="parcel-shadow"></span><span class="parcel-box"><span></span></span><span class="parcel-lid"><span class="parcel-bow left"></span><span class="parcel-bow right"></span></span><span class="parcel-spark one">✧</span><span class="parcel-spark two">✦</span><span class="parcel-spark three">✧</span><UiIcon Name="@Kinds.First(k => k.Id == _selected.Kind).Icon" /></button>
-                @if (opened || (!_preview && _tab == "sent")) { <div class="gift-letter" role="status"><h3>@Kinds.First(k => k.Id == _selected.Kind).Title</h3><p>@(string.IsNullOrWhiteSpace(_selected.Message) ? "En lille hilsen og et ønske om en dejlig dag." : _selected.Message)</p><span>Fra @_selected.SenderName</span></div> } else { <p class="gift-muted">@(_busy ? "Åbner pakken…" : "Klik på pakken for at åbne din gave")</p> }
-                <button class="gift-secondary" @onclick="BackToList">@(_preview ? "Tilbage" : "Tilbage til gaver")</button>
-            </section>
+            <GiftReveal Sender="@_selected.SenderName" Title="@Kinds.First(k => k.Id == _selected.Kind).Title" Icon="@Kinds.First(k => k.Id == _selected.Kind).Icon" Message="@_selected.Message" Wrapping="@_selected.Wrapping" Revealed="@(opened || (!_preview && _tab == "sent"))" Busy="_busy" CanOpen="@(_preview || _tab != "sent")" Preview="_preview" OnOpen="OpenGift" OnBack="BackToList" @key="_selected.Id" />
         }
         @if (_notice is not null) { <p class="gift-feedback" role="status">@_notice</p> }
         @if (_error is not null) { <p class="gift-error" role="alert">@_error</p> }
@@ -85,12 +82,12 @@
     }
     private async Task Poll(CancellationToken ct)
     {
-        try { await Mailbox.RefreshAsync(ct: ct); using var timer = new PeriodicTimer(TimeSpan.FromSeconds(20)); while (await timer.WaitForNextTickAsync(ct)) await Mailbox.RefreshAsync(ct: ct); }
+        try { await Mailbox.RefreshAsync(ct: ct); using var timer = new PeriodicTimer(TimeSpan.FromSeconds(20)); while (await timer.WaitForNextTickAsync(ct)) await Mailbox.RefreshAsync(recipients: _open && _tab == "send", ct: ct); }
         catch (OperationCanceledException) { }
     }
     private async Task StopPolling() { if (_session is null) return; await _session.CancelAsync(); if (_poll is not null) await _poll; _session.Dispose(); _session = null; }
-    private async Task Show() { _request = Guid.NewGuid(); _open = _showDialog = true; _selected = null; _preview = false; _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null; if (Auth.IsAuthenticated) await Reload(); }
-    private async Task Reload() { _loading = true; try { await Mailbox.RefreshAsync(recipients: true, ct: _session?.Token ?? default); } catch (OperationCanceledException) { } finally { _loading = false; } }
+    private async Task Show() { _request = Guid.NewGuid(); _search = ""; _open = _showDialog = true; _selected = null; _preview = false; _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null; if (Auth.IsAuthenticated) await Reload(); }
+    private async Task Reload() { _loading = true; try { await Mailbox.RefreshAsync(recipients: true, ct: _session?.Token ?? default); if (_recipient is Guid selected && !Mailbox.Recipients.Any(p => p.UserSub == selected)) _recipient = null; } catch (OperationCanceledException) { } finally { _loading = false; } }
     private async Task Close() { _open = false; _selected = null; _notice = _error = null; await Js.InvokeVoidAsync("lupGiftUi.close", "lup-gift-dialog"); }
     private async Task DialogKey(KeyboardEventArgs e) { if (e.Key == "Escape") await Close(); }
     private void SetTab(string tab) { _tab = tab; _selected = null; _preview = false; _notice = _error = null; }

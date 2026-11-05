@@ -7,3 +7,8 @@
 **/*.md
 **/.vs
 **/.idea
+
+.tools
+.env
+.env.*
+!.env.example

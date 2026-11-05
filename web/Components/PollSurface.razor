@@ -1,0 +1,41 @@
+<article class="poll-surface kind-@Poll.Kind @(Preview ? "is-preview" : "")">
+    <div class="poll-surface-meta"><span class="poll-format"><UiIcon Name="@PollDesign.Icon(Poll.Kind)" />@PollDesign.Label(Poll.Kind)</span><span class="poll-state @Poll.State"><i></i>@(Preview ? "Forhåndsvisning" : PollDesign.StateLabel(Poll.State))</span></div>
+    <div class="poll-question"><span>@Poll.HoldName</span>@if (Preview) { <h2>@Poll.Question</h2> } else { <h1>@Poll.Question</h1> }<p>@(Poll.Kind == "text" ? "Et par ord er nok. Hvad tænker du?" : Poll.Kind == "mood" ? "Der er ikke et rigtigt svar. Vælg det, der passer dig lige nu." : "Vælg det svar, der passer bedst. Din stemme tæller.")</p></div>
+    @if (!ResultsOnly)
+    {
+        @if (Poll.Kind == "text") { <label class="poll-text-answer"><span>Dit svar</span><textarea maxlength="280" @bind="_text" @bind:event="oninput" disabled="@Locked" placeholder="Skriv din tanke her…"></textarea><small>@_text.Length / 280</small></label> }
+        else
+        {
+            <div class="poll-answer-grid @Poll.Kind" role="group" aria-label="Vælg dit svar">@for (var i = 0; i < Poll.Options.Length; i++) { var index = i; <button type="button" class="poll-answer" style="@($"--option-color:{PollDesign.Color(i)}")" disabled="@Locked" aria-pressed="@DemoWorld.Pressed(_choice == i)" @onclick="() => _choice = index">@if (Poll.Kind == "mood") { <MoodFace Index="i" /> } else { <span class="poll-answer-letter">@(Poll.Kind == "scale" ? (i + 1).ToString() : ((char)('A' + i)).ToString())</span> }<strong>@(Poll.Kind == "scale" ? ScaleLabels[i] : Poll.Options[i])</strong><span class="poll-answer-check" aria-hidden="true">@(_choice == i ? "✓" : "")</span></button> }</div>
+        }
+        @if (!Preview)
+        {
+        <div class="poll-submit-row"><button type="button" class="@(Poll.State == "closed" ? "secondary" : "action")" disabled="@(Locked || !Valid || !Changed)" @onclick="Submit">@(Poll.State == "closed" ? "Afstemningen er afsluttet" : Busy ? "Gemmer dit svar…" : Poll.HasResponded ? "Opdatér mit svar" : "Send mit svar")<UiIcon Name="arrow" /></button><span role="status">@if (Poll.HasResponded) { <UiIcon Name="check" /><span>Dit svar er gemt
+        @if (Poll.State == "open") { <small>Du kan ændre det, mens afstemningen er åben.</small> }</span> } else if (Poll.State == "closed") { <span>Afstemningen er afsluttet.</span> }</span></div>
+        }
+        else { <p class="poll-preview-hint">Dine valg her er kun en forhåndsvisning.</p> }
+        <p class="poll-privacy"><UiIcon Name="shield" />Svaret knyttes til din konto. Navne vises ikke i resultaterne.</p>
+    }
+    @if (Poll.TotalResponses is not null && !Preview) { <LivePollResults Poll="Poll" /> }
+    else if (Poll.HasResponded && !Preview) { <div class="poll-results-wait"><UiIcon Name="chart" /><p>@(Poll.ResultsMode == "teacher" ? "Din underviser kan se de samlede svar." : "Klassens resultater vises, når afstemningen lukkes.")</p></div> }
+</article>
+@code {
+    [Parameter, EditorRequired] public PollView Poll { get; set; } = default!;
+    [Parameter] public bool Preview { get; set; }
+    [Parameter] public bool ResultsOnly { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback<PollAnswer> OnAnswer { get; set; }
+    private Guid? _id;
+    private int? _choice, _savedChoice;
+    private string _text = "", _savedText = "";
+    private static readonly string[] ScaleLabels = ["Slet ikke", "Lidt", "Nogenlunde", "Godt", "Helt med"];
+    private bool Locked => Busy || !Preview && Poll.State != "open";
+    private bool Valid => Poll.Kind == "text" ? !string.IsNullOrWhiteSpace(_text) : _choice is not null;
+    private bool Changed => Preview || !Poll.HasResponded || _choice != Poll.YourChoice || _text.Trim() != (Poll.YourText ?? "");
+    protected override void OnParametersSet()
+    {
+        if (_id != Poll.Id || _savedChoice != Poll.YourChoice || _savedText != (Poll.YourText ?? ""))
+        { _id = Poll.Id; _choice = _savedChoice = Poll.YourChoice; _text = _savedText = Poll.YourText ?? ""; }
+    }
+    private Task Submit() => Preview ? Task.CompletedTask : OnAnswer.InvokeAsync(new PollAnswer(Poll.Kind == "text" ? null : _choice, Poll.Kind == "text" ? _text : null));
+}

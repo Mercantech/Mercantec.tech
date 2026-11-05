@@ -1,0 +1,11 @@
+<svg class="mood-face" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+    <circle cx="40" cy="40" r="36" fill="@PollDesign.Color(Index)" />
+    <g stroke="#243b35" stroke-width="3.2" stroke-linecap="round" fill="none">
+        @if (Index == 3) { <path d="m23 33 9 2m16 0 9-2" /> }
+        else if (Index == 4) { <path d="m24 30 8-3m16 0 8 3" /><path d="M28 36v2m24-2v2" /> }
+        else { <path d="M27 32v4m26-4v4" /> }
+        <path d="@(Index switch { 0 => "M24 46q16 25 32 0Z", 1 => "M27 48q13 13 26 0", 2 => "M30 51h20", 3 => "M35 51q5-7 10 0q-5 10-10 0", _ => "M29 54q11-12 22 0" })" />
+    </g>
+    @if (Index < 2) { <ellipse cx="19" cy="44" rx="5" ry="3" fill="#d98b6970" /><ellipse cx="61" cy="44" rx="5" ry="3" fill="#d98b6970" /> }
+</svg>
+@code { [Parameter] public int Index { get; set; } }

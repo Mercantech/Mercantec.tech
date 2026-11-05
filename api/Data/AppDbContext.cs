@@ -12,9 +12,31 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<ChristmasGift> ChristmasGifts => Set<ChristmasGift>();
     public DbSet<GiftContact> GiftContacts => Set<GiftContact>();
+    public DbSet<PollRound> PollRounds => Set<PollRound>();
+    public DbSet<PollResponse> PollResponses => Set<PollResponse>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PollRound>(e =>
+        {
+            e.ToTable("poll_rounds");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Question).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Kind).HasMaxLength(12).IsRequired();
+            e.Property(x => x.State).HasMaxLength(12).IsRequired();
+            e.Property(x => x.ResultsMode).HasMaxLength(16).IsRequired();
+            e.Property(x => x.OptionsJson).IsRequired();
+            e.HasIndex(x => new { x.HoldId, x.CreatedAtUtc });
+            e.HasOne(x => x.Hold).WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<PollResponse>(e =>
+        {
+            e.ToTable("poll_responses");
+            e.HasKey(x => new { x.PollId, x.UserSub });
+            e.Property(x => x.Text).HasMaxLength(280);
+            e.HasIndex(x => x.UserSub);
+            e.HasOne(x => x.Poll).WithMany(x => x.Responses).HasForeignKey(x => x.PollId).OnDelete(DeleteBehavior.Cascade);
+        });
         modelBuilder.Entity<GiftContact>(e =>
         {
             e.ToTable("gift_contacts");

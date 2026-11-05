@@ -3,7 +3,6 @@
 @page "/teacher/students"
 @page "/teacher/content"
 @page "/teacher/badges"
-@page "/teacher/polls"
 @using Mercantec.Tech.Web.Demo
 @inject NavigationManager Nav
 @inject AuthService Auth
@@ -76,17 +75,6 @@ else if (PathKey == "teacher/badges")
         <label class="field">Grundlag<textarea disabled>Alex forklarede core loop med Rune Run.</textarea></label>
         <button type="button" class="action" disabled>Tildel</button>
     </form>
-}
-else
-{
-    <header class="page-title"><div><h1>Afstemninger</h1><p>Giv klassen en stemme. Et hurtigt tjek eller et fælles valg.</p></div><button class="action" disabled title="Oprettelse bliver tilgængelig, når afstemninger er tilkoblet holdet">Ny afstemning</button></header>
-    <div class="tiles">
-        @foreach (var poll in DemoCatalog.Polls)
-        {
-            <section class="panel"><div class="project-card-meta"><span class="pill green">Åben</span><span class="pill">@poll.Type</span><span class="tiny muted">@poll.Course</span></div><h2>@poll.Question</h2><PollResults Poll="poll" /><p>@(poll.Counts.Sum() + (World.VoteOf(poll.Question) is null ? 0 : 1)) svar</p></section>
-        }
-    </div>
-    <div class="headrow"><h2>Start med et godt spørgsmål</h2></div><div class="tiles"><section class="panel"><UiIcon Name="heart" /><h2>Stemningstjek</h2><p>Hvordan er I landet i dag? Fem enkle svar giver et fælles udgangspunkt.</p></section><section class="panel"><UiIcon Name="chart" /><h2>Et valg i fællesskab</h2><p>Hvad skal vi bruge mere tid på? Få klassens perspektiv frem.</p></section></div>
 }
 
 @code {

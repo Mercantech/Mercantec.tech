@@ -22,6 +22,12 @@ Designet er nu flyttet ind i Blazor-komponenter. [[Blazor-designgennemgang]] bes
 
 [[Julegaver-og-sne]] tilføjer rigtig levering af gratis julehilsner via API/Postgres med modtagervalg, indbakke, uåbnet-tæller og åbnet-status. Begge brugere skal være registreret ved besøg i samme installation. Gaver overfører ikke butiksting eller guld. Sneen har system/aktiv/stille og en Start-knap, der kan tilsidesætte reduceret bevægelse for sneen. Produktionsdeployment kontrolleres særskilt; øvrige backendleverancer nedenfor er ikke ændret.
 
+## Fælles afstemninger og gaveløft · 5. november 2026
+
+[[Afstemninger-og-stemning]] er nu implementeret med fælles API/Postgres, fire svartyper, kladder, start/luk/genåbn, nye runder, adgangsfiltrerede svar/resultater og tavlevisning. De tidligere lokale afstemningsindgange er erstattet; quests og økonomi er fortsat separate leverancer. Opdatering på tværs af klienter sker hvert 6. sekund. Fritekst er kun for underviseren; videre moderation og redigering af gemte kladder er opfølgninger. Deployment og fælles accepttest af #31 kontrolleres særskilt.
+
+[[Julegaver-og-sne]] beskriver elevens adgang til registrerede undervisere uden holdkobling, opdateret modtagervælger og den nye gaveceremoni. Der er ikke tildelt nye Auth-roller eller overført butiksting/guld.
+
 ## Omfang og opfølgning
 
 | Område | Beslutning / ønsket adfærd | Plan |

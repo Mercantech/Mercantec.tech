@@ -231,6 +231,80 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollResponse", b =>
+                {
+                    b.Property<Guid>("PollId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Choice")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PollId", "UserSub");
+
+                    b.HasIndex("UserSub");
+
+                    b.ToTable("poll_responses", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollRound", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBySub")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<string>("OptionsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<long>("ResponseRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ResultsMode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId", "CreatedAtUtc");
+
+                    b.ToTable("poll_rounds", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Hold", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Forloeb", "Forloeb")
@@ -264,6 +338,28 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Hold");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollResponse", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.PollRound", "Poll")
+                        .WithMany("Responses")
+                        .HasForeignKey("PollId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Poll");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollRound", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", "Hold")
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hold");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>
                 {
                     b.Navigation("Hold");
@@ -274,6 +370,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("LectioSources");
 
                     b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollRound", b =>
+                {
+                    b.Navigation("Responses");
                 });
 #pragma warning restore 612, 618
         }

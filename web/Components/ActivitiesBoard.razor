@@ -21,40 +21,7 @@ else
 
     @if (_filter is "Alle" or "Afstemninger")
     {
-        <section>
-            <div class="v4-section"><h2>Afstemninger lige nu</h2><p>@(CourseContext.CourseId == "game" ? "Game Design" : "H3 · 2026")</p></div>
-            <div class="v4-activity-list">
-                @foreach (var poll in DemoCatalog.Polls.Where(p => CourseContext.CourseId == "game" ? p.Course == "Game Design" : p.Course == "H3 · 2026"))
-                {
-                    var vote = World.VoteOf(poll.Question);
-                    if (_onlyPending && vote is not null)
-                        continue;
-                    <article class="v4-activity">
-                        <div class="v4-activity-main">
-                            <div class="v4-type"><strong>@poll.Type</strong><span>@poll.Course</span></div>
-                            <h3><a href="/polls/@Array.IndexOf(DemoCatalog.Polls, poll)">@poll.Question</a></h3>
-                            <div class="v4-poll-options @(poll.Type == "Stemning" ? "mood" : null)">
-                                @for (var i = 0; i < poll.Options.Length; i++)
-                                {
-                                    var index = i;
-                                    <button type="button" class="v4-poll-option" aria-pressed="@DemoWorld.Pressed(vote == index)" @onclick="() => World.Vote(poll.Question, index)">
-                                        @if (poll.Type != "Stemning")
-                                        {
-                                            <span class="v4-choice-key" aria-hidden="true">@((char)('A' + index))</span>
-                                        }
-                                        @if (poll.Type == "Stemning") { <span class="v4-mood-emoji" aria-hidden="true">@Faces[index]</span> }<span>@poll.Options[index]</span>
-                                    </button>
-                                }
-                            </div>
-                            @if (vote is not null)
-                            {
-                                <h2>Svarfordeling</h2><PollResults Poll="poll" />
-                            }
-                        </div>
-                    </article>
-                }
-            </div>
-        </section>
+        <PollFeed OnlyPending="_onlyPending" />
     }
 
     @foreach (var type in new[] { "Main", "Side", "Daily" })
@@ -95,7 +62,6 @@ else
 }
 
 @code {
-    private static readonly string[] Faces = ["😊", "🙂", "😐", "😴", "😟"];
     private static readonly string[] Filters = ["Alle", "Afstemninger", "Main", "Side", "Daily"];
     private string _filter = "Alle";
     private bool _onlyPending;

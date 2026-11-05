@@ -59,6 +59,13 @@ public sealed class GiftsControllerTests : IAsyncLifetime
         var recipients = Assert.IsType<List<GiftsController.RecipientDto>>(Assert.IsType<OkObjectResult>(await As(Sender, true).Recipients(default)).Value);
         Assert.Contains(recipients, r => r.UserSub == Stranger);
     }
+    [Fact] public async Task StudentWithoutAHoldCanReachTeachersButNotUnrelatedStudents()
+    {
+        var recipients = Assert.IsType<List<GiftsController.RecipientDto>>(Assert.IsType<OkObjectResult>(await As(Stranger).Recipients(default)).Value);
+        Assert.Equal(Teacher, Assert.Single(recipients).UserSub);
+        Assert.IsType<CreatedResult>(await As(Stranger).Send(Draft(Teacher), default));
+        Assert.IsType<BadRequestObjectResult>(await As(Stranger).Send(Draft(Receiver), default));
+    }
     [Fact] public async Task RecipientAndPayloadAreValidated()
     {
         Assert.IsType<BadRequestObjectResult>(await As(Sender).Send(Draft(Stranger), default));

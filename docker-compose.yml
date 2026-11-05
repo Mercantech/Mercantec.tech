@@ -20,8 +20,8 @@ services:
 
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api/Dockerfile
     environment:
       ASPNETCORE_URLS: http://+:8080
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: "false"
@@ -42,8 +42,8 @@ services:
 
   web:
     build:
-      context: ./web
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: web/Dockerfile
     depends_on:
       - api
     networks:

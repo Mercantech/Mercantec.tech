@@ -94,6 +94,8 @@ Kræver Bearer JWT. Underviser/Admin til create.
 
 Julegaver: `POST /api/gifts/profile`, `GET /api/gifts/recipients`, `GET/POST /api/gifts` og `POST /api/gifts/{id}/open`. Alle kræver login; se [adgangsregler og drift](obsidian/03-features/Julegaver-og-sne.md).
 
+Afstemninger: `GET /api/polls/holds`, `GET/POST /api/polls`, `GET /api/polls/{id}`, `POST /api/polls/{id}/answer` og `POST /api/polls/{id}/state`. Se [oprettelse, adgang og tavlevisning](obsidian/03-features/Afstemninger-og-stemning.md). Delte API-/Blazor-kontrakter ligger i `shared/`; begge Docker-builds bruger repoets rod som kontekst.
+
 Migreringer køres automatisk ved API-start (`Database.Migrate()`).
 
 ## Test
@@ -104,7 +106,7 @@ node --test tests/lup-ui.test.cjs
 dotnet build web
 ```
 
-Gavetestene bruger en isoleret SQLite-database; ingen rigtige gaver sendes. Sneens tre regressionstests bruger Nodes indbyggede testkører uden npm-afhængigheder.
+Gave- og afstemningstestene bruger en isoleret SQLite-database; ingen rigtige gaver eller elevsvar sendes. Sneens tre regressionstests bruger Nodes indbyggede testkører uden npm-afhængigheder.
 
 ## Dokploy
 

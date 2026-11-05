@@ -18,7 +18,7 @@
 <PageTitle>@Title · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
 else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
-else if (CourseId is null && string.IsNullOrEmpty(CourseContext.CourseId) && PathKey is "calendar" or "quests" or "journal" or "activities") { <section class="hero-empty"><h1>Dit næste forløb venter</h1><p>Dine aktiviteter og din uge vises, når du er aktiv på et forløb.</p><div class="actions"><a class="action" href="/learning">Udforsk læring</a><a class="secondary" href="/projects/mine">Mine projekter</a></div></section> }
+else if (CourseId is null && string.IsNullOrEmpty(CourseContext.CourseId) && PathKey is "calendar" or "quests" or "journal") { <section class="hero-empty"><h1>Dit næste forløb venter</h1><p>Dine aktiviteter og din uge vises, når du er aktiv på et forløb.</p><div class="actions"><a class="action" href="/learning">Udforsk læring</a><a class="secondary" href="/projects/mine">Mine projekter</a></div></section> }
 else if (CourseId is not null && Course is null) { <div class="empty"><h1>Forløbet findes ikke</h1><a href="/learning">Tilbage til min læring</a></div> }
 else if (PathKey == "calendar" || PathKey.EndsWith("/calendar")) {
     @if (Course is not null) { <CourseNavigation Course="Course" Current="Ugekalender" /> }

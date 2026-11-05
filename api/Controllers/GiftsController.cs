@@ -113,7 +113,9 @@ public sealed class GiftsController(AppDbContext db) : ControllerBase
         var peers = db.Memberships.Where(m => ownHolds.Contains(m.HoldId) && m.UserSub != null).Select(m => m.UserSub!.Value);
         var teachers = db.Hold.Where(h => ownHolds.Contains(h.Id)).Select(h => h.Forloeb.CreatedBySub);
         var isTeacher = UserClaims.IsTeacher(User);
-        return db.GiftContacts.AsNoTracking().Where(p => p.UserSub != sub && (isTeacher || peers.Contains(p.UserSub) || teachers.Contains(p.UserSub)));
+        // A student without a linked hold can still reach a registered teacher.
+        // Other students remain limited to their actual hold memberships.
+        return db.GiftContacts.AsNoTracking().Where(p => p.UserSub != sub && (isTeacher || p.IsTeacher || peers.Contains(p.UserSub) || teachers.Contains(p.UserSub)));
     }
 
     private IActionResult Repeat(ChristmasGift gift, SendGiftRequest request) =>

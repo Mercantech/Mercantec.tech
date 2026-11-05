@@ -19,7 +19,7 @@ Det er gratis hilsner: En pose juleglæde, Tak for hjælpen og Lidt ekstra varme
 ## Modtagere og adgang
 
 - Begge personer skal have åbnet den opdaterede LUP med deres rigtige Mercantec Auth-konto. Der registreres en gavekontakt med Auth-sub, visningsnavn og underviserflag.
-- Elever kan vælge registrerede personer fra egne faktiske hold og holdets forløbsopretter. Undervisere/admin kan vælge andre registrerede LUP-kontakter.
+- Elever kan vælge registrerede undervisere, også uden en holdkobling, samt personer fra egne faktiske hold og holdets forløbsopretter. Undervisere/admin kan vælge andre registrerede LUP-kontakter.
 - E-mailadresser vises ikke i modtagervælgeren. Admin-kataloget i Auth udleveres ikke til elever.
 - API'et validerer modtageradgang igen ved afsendelse. Identitet og afsendernavn kommer fra serveren. Kun afsender og modtager kan læse en gave, og kun modtageren kan åbne den.
 
@@ -59,3 +59,9 @@ dotnet run --project web --launch-profile http
 Kontrolleret: Blazor-build, tre sne-regressionstests (bevægelse under reduceret bevægelse, genindlæsning og skjult fane), otte relationelle API-tests (adgang, modtagere, validering, gensendelse, indbakke, åbning og kontaktprofil), lokal Postgres-migrering og API-health. Gavevisning, åbning, mobilbredde og sneens eksplicitte start under reduceret bevægelse er afprøvet i browseren. Ingen gaver er sendt til rigtige personer som led i testen. API-build har fortsat de eksisterende NuGet-advarsler om System.Security.Cryptography.Pkcs 9.0.0; de kommer ikke fra gavefunktionens afhængigheder.
 
 Produktionsdeployment følger [[Dokploy-drift]]. Begge tjenester skal opdateres; et web-deployment alene opretter ikke tabeller eller endpoints.
+
+## Opfølgning · 5. november 2026
+
+Kaspers tomme liste på mercantec.tech hang sammen med elevrollen og holdfiltreringen. Adgangen til registrerede undervisere er derfor udvidet til alle indloggede elever; andre elever er fortsat filtreret efter faktiske hold. Modtagervælgeren forklarer adgangen, har en Opdatér-knap og opdaterer listen hvert 20. sekund, mens Send en gave er åben. En gemt søgning nulstilles, når vinduet åbnes. Auth-roller ændres ikke af gavefunktionen. Hvis Kasper skal oprette afstemninger, skal den korrekte underviserrolle tildeles i Mercantec Auth.
+
+Åbning har fået sin egen scene med papirfolder, bånd, løftet låg, lys, konfetti og et personligt kort. På stor skærm står pakke og hilsen ved siden af hinanden; på mobil under hinanden. Afspil åbningen genafspiller kun animationen og sender ikke API-kald eller belønninger igen. Almindelig åbning respekterer reduceret bevægelse; knappen Afspil åbningen er et aktivt valg af animation også under den præference.
