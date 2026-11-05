@@ -99,6 +99,34 @@ public class LectioController(LectioCollectorClient lectio, MembershipClaimServi
 
     public sealed record LinkBody(string LectioId, Guid? AuthSub);
 
+    public sealed record ResolveAuthLinksBody(string[]? LectioIds);
+
+    /// <summary>
+    /// Underviser: slå Auth↔Lectio-koblinger op for en liste af Lectio-id'er (Collector auth-links/resolve).
+    /// </summary>
+    [HttpPost("auth-links/resolve")]
+    public async Task<IActionResult> ResolveAuthLinks([FromBody] ResolveAuthLinksBody body, CancellationToken ct)
+    {
+        if (!UserClaims.IsTeacher(User))
+            return Forbid();
+
+        try
+        {
+            var ids = body.LectioIds ?? [];
+            var map = await lectio.ResolveAuthLinksAsync(ids, RequireBearer(), ct);
+            var links = map.Select(kv => new { lectioId = kv.Key, authSub = kv.Value }).ToList();
+            return Ok(new { links });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized(new { error = "missing_bearer" });
+        }
+        catch (LectioCollectorException ex)
+        {
+            return StatusCode(ex.StatusCode, ex.Body);
+        }
+    }
+
     [HttpPut("me/lectio-link")]
     public async Task<IActionResult> Link([FromBody] LinkBody body, CancellationToken ct)
     {

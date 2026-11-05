@@ -541,13 +541,16 @@ else
                                                                                 }
                                                                             </div>
                                                                         }
+                                                                        <div class="lectio-auth-inline">
+                                                                            @AuthLinkStatusMarkup(m.LectioId)
+                                                                        </div>
                                                                     </div>
                                                                     <div class="lectio-row-actions">
                                                                         <button type="button"
                                                                                 class="secondary"
-                                                                                title="Kobl Auth-bruger"
+                                                                                title="@(IsAuthLinked(m.LectioId) ? "Skift Auth-kobling" : "Kobl Auth-bruger")"
                                                                                 @onclick="() => BeginTeacherLinkForMember(m)">
-                                                                            Kobl Auth
+                                                                            @(IsAuthLinked(m.LectioId) ? "Skift" : "Kobl Auth")
                                                                         </button>
                                                                         <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                                                     </div>
@@ -588,10 +591,20 @@ else
         var students = VisibleStudents;
         <section class="lectio-panel">
             <div class="stats lectio-stats" role="group" aria-label="Elev-overblik">
-                <button type="button" class="stat @(_workplaceFilter == WorkplacePresence.All && _vufFilter == VufPresence.All ? "is-active" : null)"
+                <button type="button" class="stat @(_workplaceFilter == WorkplacePresence.All && _vufFilter == VufPresence.All && _authLinkFilter == AuthLinkPresence.All ? "is-active" : null)"
                         @onclick="ClearStudentQuickFilters">
                     <strong>@_students.Count</strong>
                     <span>elever</span>
+                </button>
+                <button type="button" class="stat @(_authLinkFilter == AuthLinkPresence.Unlinked ? "is-active" : null)"
+                        @onclick="() => SetAuthLink(AuthLinkPresence.Unlinked)">
+                    <strong>@UnlinkedAuthCount</strong>
+                    <span>uden Auth</span>
+                </button>
+                <button type="button" class="stat @(_authLinkFilter == AuthLinkPresence.Linked ? "is-active" : null)"
+                        @onclick="() => SetAuthLink(AuthLinkPresence.Linked)">
+                    <strong>@LinkedAuthCount</strong>
+                    <span>koblet Auth</span>
                 </button>
                 <button type="button" class="stat @(_workplaceFilter == WorkplacePresence.Missing ? "is-active" : null)"
                         @onclick="() => SetWorkplace(WorkplacePresence.Missing)">
@@ -756,9 +769,17 @@ else
                         {
                             <button type="button" class="lectio-chip" @onclick="() => _vufFilter = VufPresence.All">VUF: @VufLabel(_vufFilter) <span aria-hidden="true">×</span></button>
                         }
+                        @if (_authLinkFilter != AuthLinkPresence.All)
+                        {
+                            <button type="button" class="lectio-chip" @onclick="() => _authLinkFilter = AuthLinkPresence.All">Auth: @AuthLinkLabel(_authLinkFilter) <span aria-hidden="true">×</span></button>
+                        }
                     </div>
                 }
                 <p class="lectio-count">@students.Count af @_students.Count</p>
+                @if (_authLinksError is not null)
+                {
+                    <p class="callout warn mb-0">@_authLinksError</p>
+                }
                 <div class="lectio-table-wrap">
                     <table class="lectio-table">
                         <thead>
@@ -769,6 +790,7 @@ else
                                 <th><button type="button" class="lectio-sort @SortClass(StudentSort.Workplace)" @onclick="() => SetStudentSort(StudentSort.Workplace)">Læreplads @SortMark(StudentSort.Workplace)</button></th>
                                 <th><button type="button" class="lectio-sort @SortClass(StudentSort.Forloeb)" @onclick="() => SetStudentSort(StudentSort.Forloeb)">Forløb @SortMark(StudentSort.Forloeb)</button></th>
                                 <th><button type="button" class="lectio-sort @SortClass(StudentSort.Vuf)" @onclick="() => SetStudentSort(StudentSort.Vuf)">VUF @SortMark(StudentSort.Vuf)</button></th>
+                                <th>Auth</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -838,12 +860,15 @@ else
                                             <span class="text-muted">—</span>
                                         }
                                     </td>
+                                    <td>
+                                        @AuthLinkStatusMarkup(s.LectioId)
+                                    </td>
                                     <td class="lectio-row-actions">
                                         <button type="button"
                                                 class="secondary"
-                                                title="Kobl Auth-bruger"
+                                                title="@(IsAuthLinked(s.LectioId) ? "Skift Auth-kobling" : "Kobl Auth-bruger")"
                                                 @onclick="() => BeginTeacherLinkForStudent(s)">
-                                            Kobl Auth
+                                            @(IsAuthLinked(s.LectioId) ? "Skift" : "Kobl Auth")
                                         </button>
                                         <a class="lc-link" href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                     </td>
@@ -851,7 +876,7 @@ else
                                 @if (expanded)
                                 {
                                     <tr class="lectio-expand-row">
-                                        <td colspan="7" class="py-3">
+                                        <td colspan="8" class="py-3">
                                             @if (_loadingPlanId == s.LectioId)
                                             {
                                                 <span class="text-muted">Henter studieplan…</span>
@@ -1078,6 +1103,7 @@ else
     private readonly HashSet<string> _fagFilter = new(StringComparer.CurrentCultureIgnoreCase);
     private WorkplacePresence _workplaceFilter = WorkplacePresence.All;
     private VufPresence _vufFilter = VufPresence.All;
+    private AuthLinkPresence _authLinkFilter = AuthLinkPresence.All;
     private HoldStatusFilter _holdStatus = HoldStatusFilter.All;
     private HoldPeriod _holdPeriod = HoldPeriod.All;
     private StudentSort _studentSort = StudentSort.Name;
@@ -1098,6 +1124,7 @@ else
     private string? _teacherLinkError;
     private string? _teacherLinkSummary;
     private string? _authUsersError;
+    private string? _authLinksError;
     private string _linkLectioQuery = "";
     private string _linkLectioId = "";
     private string _linkAuthQuery = "";
@@ -1112,6 +1139,8 @@ else
     private readonly Dictionary<string, string> _planErrors = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<HoldMember>> _holdMembers = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> _holdMemberErrors = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Guid> _authLinks = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _authLinkChecked = new(StringComparer.OrdinalIgnoreCase);
 
     private List<StudentRow> VisibleStudents
     {
@@ -1148,6 +1177,12 @@ else
                 VufPresence.Ok => rows.Where(s => s.VufOk == true),
                 VufPresence.NotOk => rows.Where(s => s.VufOk == false),
                 VufPresence.Missing => rows.Where(IsVufMissing),
+                _ => rows
+            };
+            rows = _authLinkFilter switch
+            {
+                AuthLinkPresence.Linked => rows.Where(s => IsAuthLinked(s.LectioId)),
+                AuthLinkPresence.Unlinked => rows.Where(s => IsAuthUnlinked(s.LectioId)),
                 _ => rows
             };
 
@@ -1216,7 +1251,8 @@ else
         || _agreementFilter.Count > 0
         || _forloebFilter.Count > 0
         || _workplaceFilter != WorkplacePresence.All
-        || _vufFilter != VufPresence.All;
+        || _vufFilter != VufPresence.All
+        || _authLinkFilter != AuthLinkPresence.All;
 
     private bool HasHoldFilters =>
         !string.IsNullOrWhiteSpace(_holdQuery)
@@ -1228,6 +1264,8 @@ else
     private int MissingWorkplaceCount => _students.Count(s => string.IsNullOrWhiteSpace(s.WorkplaceName));
     private int VufNotOkCount => _students.Count(s => s.VufOk == false);
     private int VufMissingCount => _students.Count(IsVufMissing);
+    private int LinkedAuthCount => _students.Count(s => IsAuthLinked(s.LectioId));
+    private int UnlinkedAuthCount => _students.Count(s => IsAuthUnlinked(s.LectioId));
     private int OngoingHoldCount => _holds.Count(h => ClassifyHold(h) == HoldPeriod.Ongoing);
 
     private List<string> ClassOptions => Distinct(_students.Select(s => s.ClassName));
@@ -1431,6 +1469,9 @@ else
     private void SetVuf(VufPresence value) =>
         _vufFilter = _vufFilter == value ? VufPresence.All : value;
 
+    private void SetAuthLink(AuthLinkPresence value) =>
+        _authLinkFilter = _authLinkFilter == value ? AuthLinkPresence.All : value;
+
     private void SetHoldPeriod(HoldPeriod value) =>
         _holdPeriod = _holdPeriod == value ? HoldPeriod.All : value;
 
@@ -1438,6 +1479,7 @@ else
     {
         _workplaceFilter = WorkplacePresence.All;
         _vufFilter = VufPresence.All;
+        _authLinkFilter = AuthLinkPresence.All;
     }
 
     private void ResetStudentFilters()
@@ -1449,6 +1491,7 @@ else
         _forloebFilter.Clear();
         _workplaceFilter = WorkplacePresence.All;
         _vufFilter = VufPresence.All;
+        _authLinkFilter = AuthLinkPresence.All;
         _openFacet = null;
     }
 
@@ -1475,6 +1518,79 @@ else
         VufPresence.NotOk => "ikke ok",
         VufPresence.Missing => "mangler",
         _ => "alle"
+    };
+
+    private static string AuthLinkLabel(AuthLinkPresence value) => value switch
+    {
+        AuthLinkPresence.Linked => "koblet",
+        AuthLinkPresence.Unlinked => "ikke koblet",
+        _ => "alle"
+    };
+
+    private bool IsAuthLinked(string lectioId) =>
+        !string.IsNullOrWhiteSpace(lectioId) && _authLinks.ContainsKey(lectioId);
+
+    private bool IsAuthUnlinked(string lectioId) =>
+        !string.IsNullOrWhiteSpace(lectioId)
+        && _authLinkChecked.Contains(lectioId)
+        && !_authLinks.ContainsKey(lectioId);
+
+    private string? AuthDisplayFor(string lectioId)
+    {
+        if (!_authLinks.TryGetValue(lectioId, out var sub))
+            return null;
+        var user = _authUsers?.FirstOrDefault(u => u.Id == sub);
+        if (user is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(user.DisplayName))
+                return user.DisplayName;
+            if (!string.IsNullOrWhiteSpace(user.Email))
+                return user.Email;
+        }
+
+        var raw = sub.ToString();
+        return raw.Length > 8 ? raw[..8] + "…" : raw;
+    }
+
+    private RenderFragment AuthLinkStatusMarkup(string lectioId) => builder =>
+    {
+        if (string.IsNullOrWhiteSpace(lectioId))
+            return;
+
+        if (!_authLinkChecked.Contains(lectioId))
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", "lectio-auth-status is-pending text-muted");
+            builder.AddContent(2, "Tjekker…");
+            builder.CloseElement();
+            return;
+        }
+
+        if (_authLinks.TryGetValue(lectioId, out var sub))
+        {
+            var label = AuthDisplayFor(lectioId) ?? sub.ToString();
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", "lectio-auth-status");
+            builder.OpenElement(2, "span");
+            builder.AddAttribute(3, "class", "pill green");
+            builder.AddContent(4, "Koblet");
+            builder.CloseElement();
+            builder.OpenElement(5, "span");
+            builder.AddAttribute(6, "class", "lectio-auth-sub");
+            builder.AddAttribute(7, "title", sub.ToString());
+            builder.AddContent(8, label);
+            builder.CloseElement();
+            builder.CloseElement();
+            return;
+        }
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "lectio-auth-status");
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "class", "pill orange");
+        builder.AddContent(4, "Ikke koblet");
+        builder.CloseElement();
+        builder.CloseElement();
     };
 
     private static string HoldStatusLabel(HoldStatusFilter value) => value switch
@@ -1536,6 +1652,9 @@ else
         _planErrors.Clear();
         _holdMembers.Clear();
         _holdMemberErrors.Clear();
+        _authLinks.Clear();
+        _authLinkChecked.Clear();
+        _authLinksError = null;
         _expandedId = null;
         _expandedHoldKey = null;
         _loadingPlanId = null;
@@ -1587,6 +1706,7 @@ else
 
                 ParseStudents(listBody);
                 await LoadHoldsAsync(clearError: false);
+                await EnsureAuthLinksAsync(_students.Select(s => s.LectioId));
             }
         }
         catch (Exception ex)
@@ -1895,6 +2015,7 @@ else
             var lectioLabel = _linkLectioStudent?.Name ?? lectioId.Trim();
             _teacherLinkSummary = $"{authLabel} ↔ {lectioLabel}";
             _teacherLinkOk = true;
+            RememberAuthLink(lectioId.Trim(), authSub.Value);
         }
         catch (Exception ex)
         {
@@ -1903,6 +2024,62 @@ else
         finally
         {
             _busy = false;
+        }
+    }
+
+    private void RememberAuthLink(string lectioId, Guid authSub)
+    {
+        if (string.IsNullOrWhiteSpace(lectioId))
+            return;
+        _authLinks[lectioId] = authSub;
+        _authLinkChecked.Add(lectioId);
+    }
+
+    private async Task EnsureAuthLinksAsync(IEnumerable<string> lectioIds)
+    {
+        var pending = lectioIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(id => !_authLinkChecked.Contains(id))
+            .ToList();
+        if (pending.Count == 0)
+            return;
+
+        try
+        {
+            var res = await Http.PostAsJsonAsync("lectio/auth-links/resolve", new { lectioIds = pending });
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _authLinksError = $"Auth-koblinger ({(int)res.StatusCode}): {Trim(body)}";
+                return;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("links", out var links) && links.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in links.EnumerateArray())
+                {
+                    var id = GetString(item, "lectioId");
+                    if (string.IsNullOrWhiteSpace(id))
+                        continue;
+                    if (!item.TryGetProperty("authSub", out var subEl))
+                        continue;
+                    var raw = subEl.ValueKind == JsonValueKind.String ? subEl.GetString() : subEl.ToString();
+                    if (Guid.TryParse(raw, out var sub) && sub != Guid.Empty)
+                        _authLinks[id] = sub;
+                }
+            }
+
+            foreach (var id in pending)
+                _authLinkChecked.Add(id);
+            _authLinksError = null;
+        }
+        catch (Exception ex)
+        {
+            _authLinksError = $"Auth-koblinger kunne ikke hentes: {ex.Message}";
         }
     }
 
@@ -2134,8 +2311,10 @@ else
                 return;
             }
 
-            _holdMembers[key] = ParseMembers(body);
+            var members = ParseMembers(body);
+            _holdMembers[key] = members;
             _holdMemberErrors.Remove(key);
+            await EnsureAuthLinksAsync(members.Select(m => m.LectioId));
         }
         catch (Exception ex)
         {
@@ -2451,6 +2630,8 @@ else
     private enum WorkplacePresence { All, Has, Missing }
 
     private enum VufPresence { All, Ok, NotOk, Missing }
+
+    private enum AuthLinkPresence { All, Linked, Unlinked }
 
     private enum HoldStatusFilter { All, Tracked, SavedOnly }
 
