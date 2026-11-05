@@ -60,6 +60,19 @@
 .notion-blocknote-host .notion-upload-label{display:grid;gap:12px;font-weight:600}
 .notion-blocknote-host .notion-upload-label span{font-size:12px;font-weight:400;color:var(--muted,#63728b)}
 .notion-blocknote-host .notion-upload-label input{font-size:13px;max-width:100%;padding:9px;border:1px dashed var(--rule,#dfe7f2);border-radius:6px}
+.notion-blocknote-host .notion-upload-progress{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.notion-blocknote-host .notion-upload-progress p{flex-basis:100%;margin:0;font-size:13px;overflow-wrap:anywhere}
+.notion-blocknote-host .notion-upload-progress p span{display:block;color:var(--muted,#63728b);font-size:12px;margin-top:4px}
+.notion-blocknote-host .notion-upload-progress progress{flex:1;min-width:100px;accent-color:var(--blue,#2452e8)}
+.notion-blocknote-host .notion-upload-progress button{padding:7px 10px;border:1px solid var(--rule,#dfe7f2);border-radius:5px;background:var(--paper,#fff);color:var(--ink,#17243b);font:inherit;font-size:12px;cursor:pointer}
+.notion-upload-confirm{width:min(480px,calc(100vw - 32px));padding:24px;border:1px solid var(--rule,#dfe7f2);border-radius:12px;background:var(--paper,#fff);color:var(--ink,#17243b);box-shadow:0 18px 70px #0003;font:14px/1.6 'DM Sans',sans-serif}
+.notion-upload-confirm::backdrop{background:#101b2c80}
+.notion-upload-confirm h2{font-size:21px;line-height:1.3;margin:0 0 16px}
+.notion-upload-confirm p{margin:0 0 16px;overflow-wrap:anywhere}
+.notion-upload-confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+.notion-upload-confirm-actions button{padding:9px 14px;border:1px solid var(--rule,#dfe7f2);border-radius:6px;background:var(--paper,#fff);color:inherit;font:inherit;cursor:pointer}
+.notion-upload-confirm-actions button:last-child{background:var(--blue,#2452e8);color:#fff;border-color:var(--blue,#2452e8)}
+.notion-upload-confirm-actions button:focus-visible{outline:2px solid var(--blue,#2452e8);outline-offset:3px}
 .notion-blocknote-host .notion-media-block video{display:block;max-width:100%;width:100%;max-height:65vh;background:#000;border-radius:5px}
 .notion-blocknote-host .notion-media-block audio{display:block;width:100%;max-width:600px}
 .notion-blocknote-host .notion-media-block img{display:block;max-width:100%;height:auto;max-height:70vh;object-fit:contain;margin:auto}

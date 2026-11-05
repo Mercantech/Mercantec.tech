@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, type BlockNoteEditor } from '@blocknote/core';
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
@@ -17,6 +17,7 @@ import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionDragHandleMenu, turnIntoSelectItems } from './turn-into';
 import { AiHelperPanel } from './ai-helper';
+import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 
 export interface EditorContext {
   pageId: string;
@@ -127,19 +128,43 @@ async function validToken(session:Session) {
   if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne filen.');
   return token;
 }
+function UploadConfirmation({file,onConfirm}:{file:File;onConfirm:(confirmed:boolean)=>void}) {
+  const dialog=useRef<HTMLDialogElement>(null);
+  const titleId=useId();
+  const descriptionId=useId();
+  useEffect(()=>{
+    const previouslyFocused=document.activeElement;
+    const element=dialog.current;element?.showModal();
+    return()=>{element?.close();if(previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected)previouslyFocused.focus();};
+  },[]);
+  return <dialog ref={dialog} className="notion-upload-confirm" aria-labelledby={titleId} aria-describedby={descriptionId} onCancel={event=>{event.preventDefault();onConfirm(false);}}>
+    <h2 id={titleId}>Upload stor fil?</h2>
+    <div id={descriptionId}><p><strong>{file.name}</strong><br/>{formatUploadSize(file.size)}</p><p>Filen er over 100 MiB. Uploaden kan tage tid og bruge en del af din internetforbindelse. Hold siden åben, indtil uploaden er færdig.</p></div>
+    <div className="notion-upload-confirm-actions"><button type="button" autoFocus onClick={()=>onConfirm(false)}>Annuller</button><button type="button" onClick={()=>onConfirm(true)}>Upload fil</button></div>
+  </dialog>;
+}
 function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;pageId:string;kind:string;onUpload:(id:string,kind:string)=>void;editable:boolean}) {
   const session=useContext(Runtime);
   const [access,setAccess]=useState<AssetAccess|null>(null);
   const [error,setError]=useState('');
   const [uploading,setUploading]=useState(false);
+  const [uploadProgress,setUploadProgress]=useState({sent:0,total:0});
+  const [uploadName,setUploadName]=useState('');
+  const uploadController=useRef<AbortController|null>(null);
+  const uploadInput=useRef<HTMLInputElement|null>(null);
+  const cancelUploadButton=useRef<HTMLButtonElement|null>(null);
+  const [confirmationFile,setConfirmationFile]=useState<File|null>(null);
+  const confirmationResolve=useRef<((confirmed:boolean)=>void)|null>(null);
   const [playbackError,setPlaybackError]=useState(false);
   const media=useRef<HTMLMediaElement|null>(null);
   const resumeAt=useRef(0);
   const resumePlaying=useRef(false);
   const [retry,setRetry]=useState(0);
+  useEffect(()=>()=>{uploadController.current?.abort();confirmationResolve.current?.(false);},[]);
   useEffect(()=>{
-    if(!assetId || !session)return;
     setAccess(null);setError('');setPlaybackError(false);
+    resumeAt.current=0;resumePlaying.current=false;
+    if(!assetId || !session)return;
     const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
     const load=async()=>{
       try {
@@ -158,23 +183,29 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     return()=>{controller.abort();if(timer)clearTimeout(timer);};
   },[assetId,retry,session]);
   const upload=async(file:File)=>{
-    if(!session || !editable || uploading)return;
-    if(file.size>100*1024*1024){setError('Filen må højst være 100 MiB.');return;}
-    setUploading(true);setError('');session.pendingUploads++;notify(session,'saving','Uploader fil…');
+    if(!session || !editable || uploadController.current)return;
+    const controller=new AbortController();uploadController.current=controller;
+    setUploading(true);setError('');setUploadName(file.name);setUploadProgress({sent:0,total:file.size});session.pendingUploads++;
     try {
-      const token=await validToken(session);const body=new FormData();body.append('file',file);
-      const response=await fetch('/api/notion/pages/'+encodeURIComponent(session.context.pageId)+'/assets',{method:'POST',headers:{Authorization:'Bearer '+token},body});
-      if(!response.ok)throw new Error(response.status===413?'Filen må højst være 100 MiB.':response.status===400?'Filtypen understøttes ikke, eller filen er ugyldig.':'Upload kunne ikke gennemføres. Prøv igen.');
-      const result=await response.json();if(session.destroyed)return;
+      const result=await uploadNotionAsset(file,{
+        pageId:session.context.pageId,getToken:()=>validToken(session),signal:controller.signal,
+        confirmLargeUpload:(selected:File)=>new Promise<boolean>(resolve=>{confirmationResolve.current=resolve;setConfirmationFile(selected);}),
+        onProgress:(sent:number,total:number)=>{
+          if(session.destroyed || controller.signal.aborted)return;
+          setUploadProgress({sent,total});notify(session,'saving',sent===total?'Færdiggør upload…':'Uploader fil — '+Math.floor(sent/total*100)+' %');
+        },
+      });
+      if(!result || session.destroyed || controller.signal.aborted)return;
       onUpload(result.id,result.kind);
-    }catch(ex){if(!session.destroyed)setError(ex instanceof Error?ex.message:'Upload kunne ikke gennemføres.');}
-    finally {session.pendingUploads--;if(!session.destroyed){setUploading(false);if(!session.dirty)notify(session,'synced','Forbundet til dokumentet');}}
+    }catch(ex){if(!session.destroyed && uploadController.current===controller)setError(controller.signal.aborted?'Upload annulleret.':ex instanceof Error?ex.message:'Upload kunne ikke gennemføres.');}
+    finally {session.pendingUploads--;if(uploadController.current===controller)uploadController.current=null;if(!session.destroyed){setUploading(false);if(!session.dirty && !session.pendingUploads)notify(session,'synced','Forbundet til dokumentet');}}
   };
   const loaded=()=>{if(media.current){media.current.currentTime=resumeAt.current;if(resumePlaying.current)void media.current.play().catch(()=>{});}};
   const accept=kind==='video'?'video/mp4,video/webm':kind==='image'?'image/png,image/jpeg,image/gif,image/webp':kind==='audio'?'audio/mpeg,audio/wav,audio/ogg':'.mp4,.webm,.mp3,.wav,.ogg,.jpg,.jpeg,.png,.gif,.webp,.pdf,.zip,.docx,.xlsx,.pptx,.txt';
   return <section className="notion-media-block" contentEditable={false} aria-label="Uploadet medie">
-    {!assetId && editable && <label className="notion-upload-label">{kind==='video'?'Upload video':kind==='image'?'Upload billede':kind==='audio'?'Upload lyd':'Upload fil'}<input type="file" accept={accept} disabled={uploading} onChange={event=>{const file=event.target.files?.[0];if(file)void upload(file);event.target.value='';}}/><span>Højst 100 MiB pr. fil. Filen deles med holdet, når siden udgives.</span></label>}
-    {uploading && <p role="status">Uploader fil… Hold siden åben.</p>}
+    {confirmationFile && <UploadConfirmation file={confirmationFile} onConfirm={confirmed=>{setConfirmationFile(null);confirmationResolve.current?.(confirmed);confirmationResolve.current=null;requestAnimationFrame(()=>{if(confirmed)cancelUploadButton.current?.focus();else uploadInput.current?.focus();});}}/>}
+    {!assetId && editable && <label className="notion-upload-label">{kind==='video'?'Upload video':kind==='image'?'Upload billede':kind==='audio'?'Upload lyd':'Upload fil'}<input ref={uploadInput} type="file" accept={accept} disabled={uploading} onChange={event=>{const file=event.target.files?.[0];if(file)void upload(file);event.target.value='';}}/><span>Filer over 100 MiB kræver din bekræftelse. Filen deles med holdet, når siden udgives.</span></label>}
+    {uploading && <div className="notion-upload-progress"><p role="status">{uploadProgress.sent===uploadProgress.total?'Færdiggør upload…':'Uploader '+uploadName+' — '+(uploadProgress.total?Math.floor(uploadProgress.sent/uploadProgress.total*100):0)+' %'} <span>{formatUploadSize(uploadProgress.sent)} af {formatUploadSize(uploadProgress.total)}. Hold siden åben.</span></p><progress max={uploadProgress.total || 1} value={uploadProgress.sent} aria-label="Uploadstatus"/><button ref={cancelUploadButton} type="button" onClick={()=>uploadController.current?.abort()}>Annuller upload</button></div>}
     {error && <div className="notion-media-error" role="alert">{error}{assetId && <button type="button" onClick={()=>setRetry(value=>value+1)}>Prøv igen</button>}</div>}
     {access && <>
       {access.kind==='video' && <video ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}>Din browser understøtter ikke denne video. Hent filen nedenfor.</video>}

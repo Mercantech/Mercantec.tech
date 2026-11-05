@@ -19,12 +19,14 @@ namespace Mercantec.Tech.Api.Controllers;
 public sealed class NotionAssetsController(AppDbContext db, CourseAccess access, IObjectStorage storage,
     IDataProtectionProvider protection) : ControllerBase
 {
-    public const long MaxUploadBytes = 100 * 1024 * 1024;
+    // Compatibility with already-open older editors. New editors use /assets/uploads, which accepts
+    // whole files above this bounded single-request size through authenticated multipart requests.
+    public const long MaxLegacyRequestBytes = 100 * 1024 * 1024;
     private readonly IDataProtector tickets = protection.CreateProtector("LUP.NotionMedia.v1");
 
     [HttpPost("pages/{pageId:guid}/assets")]
-    [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
-    [RequestFormLimits(MultipartBodyLengthLimit = MaxUploadBytes + 1024 * 1024)]
+    [RequestSizeLimit(MaxLegacyRequestBytes + 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxLegacyRequestBytes + 1024 * 1024)]
     public async Task<IActionResult> Upload(Guid pageId, IFormFile? file, CancellationToken ct)
     {
         if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
@@ -33,7 +35,7 @@ public sealed class NotionAssetsController(AppDbContext db, CourseAccess access,
         if (page is null || !await access.CanManageAsync(page.HoldId, User, ct)) return NotFound();
         if (!storage.IsConfigured) return StatusCode(503, new { error = "object_storage_disabled" });
         if (file is null || file.Length == 0) return BadRequest(new { error = "missing_file" });
-        if (file.Length > MaxUploadBytes) return StatusCode(413, new { error = "file_too_large", maxBytes = MaxUploadBytes });
+        if (file.Length > MaxLegacyRequestBytes) return StatusCode(413, new { error = "use_multipart_upload" });
         var name = Path.GetFileName(file.FileName.Replace('\\', '/')).Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length > 240 || name.Any(char.IsControl))
             return BadRequest(new { error = "invalid_filename" });
@@ -49,7 +51,7 @@ public sealed class NotionAssetsController(AppDbContext db, CourseAccess access,
             var buffer = new byte[81920]; int read;
             while ((read = await input.ReadAsync(buffer, ct)) > 0)
             {
-                if (temp.Length + read > MaxUploadBytes) return StatusCode(413, new { error = "file_too_large" });
+                if (temp.Length + read > MaxLegacyRequestBytes) return StatusCode(413, new { error = "use_multipart_upload" });
                 await temp.WriteAsync(buffer.AsMemory(0, read), ct);
             }
         }

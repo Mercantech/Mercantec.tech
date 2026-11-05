@@ -31,6 +31,48 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
     public bool IsConfigured => true;
     public string Bucket => _options.Bucket;
     public bool SupportsRanges => true;
+    public bool SupportsMultipart => true;
+
+    public async Task<string> InitiateMultipartAsync(string key, string contentType, CancellationToken cancellationToken = default)
+    {
+        var result = await _client.InitiateMultipartUploadAsync(new InitiateMultipartUploadRequest
+        {
+            BucketName = _options.Bucket, Key = key, ContentType = contentType
+        }, cancellationToken);
+        return result.UploadId;
+    }
+
+    public async Task<string> UploadPartAsync(string key, string uploadId, int partNumber, Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _client.UploadPartAsync(new UploadPartRequest
+        {
+            BucketName = _options.Bucket, Key = key, UploadId = uploadId, PartNumber = partNumber,
+            InputStream = content, PartSize = content.Length,
+            DisablePayloadSigning = _options.Endpoint.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+        }, cancellationToken);
+        return result.ETag;
+    }
+
+    public async Task CompleteMultipartAsync(string key, string uploadId, IReadOnlyList<ObjectUploadPart> parts,
+        CancellationToken cancellationToken = default) =>
+        await _client.CompleteMultipartUploadAsync(new CompleteMultipartUploadRequest
+        {
+            BucketName = _options.Bucket, Key = key, UploadId = uploadId,
+            PartETags = parts.Select(p => new PartETag(p.PartNumber, p.ETag)).ToList()
+        }, cancellationToken);
+
+    public async Task AbortMultipartAsync(string key, string uploadId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _client.AbortMultipartUploadAsync(new AbortMultipartUploadRequest
+            {
+                BucketName = _options.Bucket, Key = key, UploadId = uploadId
+            }, cancellationToken);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { }
+    }
 
     public async Task<ObjectPutResult> PutAsync(
         string key,

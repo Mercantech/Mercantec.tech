@@ -39,7 +39,13 @@ Undervisere administrerer egne hold. Elever kan se deres egne grupper; elevsider
 
 ## Video og filer
 
-Uploadgrænsen er 100 MiB pr. fil. MP4 og WebM kan afspilles i siden; lyd, rasterbilleder, PDF og udvalgte dokumenttyper understøttes også. Andre dokumentformater vises som download. Der er ingen automatisk videokonvertering i denne version.
+Underviseres uploads i forløbseditoren har ikke længere den tidligere grænse på 100 MiB pr. fil. Ved filer **over 100 MiB** vises en bekræftelse med filnavn og størrelse, inden uploaden starter. Filer på højst 100 MiB starter uden denne ekstra bekræftelse. Under upload vises fremdrift, og uploaden kan afbrydes.
+
+Browseren sender filen i mindre dele til privat S3-multipart-lagring. Det undgår, at hele videoen skal igennem proxyen i én forespørgsel eller ligge i serverens hukommelse. Lagerets kapacitet og multipart-grænser gælder fortsat. Almindelige holdmaterialer og elevafleveringer bruger fortsat deres eksisterende uploadflow.
+
+Uploadsessioner og kvitteringer for delene gemmes på serveren. Afbrudte og udløbne uploads ryddes automatisk op; færdige vedhæftninger bevares. Browseren skal blive på siden under uploaden. En genindlæst fane genoptager ikke automatisk en tidligere valgt lokal fil.
+
+MP4 og WebM kan afspilles i siden; lyd, rasterbilleder, PDF og udvalgte dokumenttyper understøttes også. Andre dokumentformater vises som download. Der er ingen automatisk videokonvertering i denne version.
 
 Filer ligger privat i den eksisterende S3-lagring. Dokumentet gemmer kun fil- og side-ID'er. En elev får først adgang til en vedhæftning, når den indgår i sidens udgivelse. Filen skal uploades til den side, hvor den skal udgives; tværgående genbrug kan tilføjes senere.
 
@@ -76,5 +82,7 @@ Deploy repoets Compose-fil fra main som normalt. EF-migrationen køres ved API-s
 Web-værten venter på en sund samarbejdsserver. Nye editorer bruger schemaVersion=4 i WebSocket-forbindelsen; ældre faner bliver bedt om at genindlæse, så de ikke redigerer ukendte bloktyper (fx Mermaid eller callout). Kør én samarbejdsinstans ad gangen. Flere samtidige instanser kræver fælles koordination af dokumenttilstanden.
 
 Sikkerhedskopiér Postgres og S3 sammen. Udgivne snapshots er en fast læseversion, ikke en komplet versionshistorik. Følg [Dokploy-drift](../02-ai-workflows/Dokploy-drift.md) for netværk, domæner og drift.
+
+Den medfølgende MinIO/Silo rydder også ufuldstændige lageruploads op med `api stale_uploads_expiry=24h` og `stale_uploads_cleanup_interval=6h`. Ved ekstern Amazon S3 bør bucketens eksisterende lifecycle-regler suppleres med [AbortIncompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpu-abort-incomplete-mpu-lifecycle-config.html) for `notion-private/`. Det dækker også et servernedbrud lige mellem lagerets oprettelse af et upload-ID og databasens registrering af ID'et. Brug ikke almindelig objektudløb til dette: færdige vedhæftninger skal bevares. MinIO bruger [automatisk oprydning af ufuldstændige uploads](https://docs.min.io/aistor/administration/object-lifecycle-management/lifecycle-rule-patterns/).
 
 BlockNote-kernen er MPL-2.0; Yjs og Hocuspocus er MIT. Der bruges ingen XL-pakker eller leverandørhostet samarbejdstjeneste. Licenser og kildehenvisninger leveres med browserbundle.

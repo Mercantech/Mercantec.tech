@@ -11,7 +11,8 @@ const pageId='ba72e62b-e57e-43af-b655-f8cdd2aeacbe',holdId='eda7caef-508e-46a7-9
 const nextPage='a4934c5c-c9a1-4a1e-bfa8-b680ca315680',draftPage='f4566031-ac07-4ef8-a3e2-974d35495aad';
 const token=sub=>'eyJhbGciOiJIUzI1NiJ9.'+Buffer.from(JSON.stringify({sub,exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.qa-fixture-only';
 const teacherToken=token('qa-teacher'),studentToken=token('qa-student');
-let state=null,publication=null,upgradeCount=0;
+let state=null,publication=null,upgradeCount=0,uploadCount=0,uploadBytes=0,abortedUploads=0,completedUploads=0;
+const uploads=new Map(),assets=new Map();
 const context={pageId,holdId,title:'Introduktion til spiludvikling',canEdit:true,members:[{id:'5c48e52c-558b-47f1-b110-e58078417c7e',displayName:'QA Elev Anna'},{id:'8a84d18b-2b66-4411-a57a-56df353f59dc',displayName:'QA Elev Emil'},{id:'2eb0e699-59a1-4471-953c-ed2a096b08ac',displayName:'QA Elev Noor'}],polls:[],pages:[{id:pageId,title:'Introduktion til spiludvikling'},{id:nextPage,title:'Øvelse: den første prototype',parentPageId:pageId},{id:draftPage,title:'Skjult lærerkladde'}],groups:[],updatedAtUtc:new Date().toISOString(),userName:'QA Underviser'};
 const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
 const body=async req=>{const chunks=[];for await(const chunk of req)chunks.push(chunk);return Buffer.concat(chunks);};
@@ -27,7 +28,30 @@ const server=http.createServer(async(req,res)=>{
       if(req.method==='PUT'){state=await body(req);return json(res,200,{savedAtUtc:new Date().toISOString()});}
     }
     if(req.method==='POST' && url.pathname==='/qa/publish'){if(!state)return json(res,409,{error:'not_saved'});publication={state:Buffer.from(state),at:new Date().toISOString()};return json(res,200,{published:true});}
-    if(url.pathname==='/qa/stats')return json(res,200,{upgradeCount,published:Boolean(publication)});
+    if(url.pathname==='/qa/stats')return json(res,200,{upgradeCount,published:Boolean(publication),uploadCount,uploadBytes,abortedUploads,completedUploads});
+    const uploadPath='/api/notion/pages/'+pageId+'/assets/uploads';
+    if(req.method==='POST' && url.pathname===uploadPath){
+      const input=JSON.parse((await body(req)).toString()),id='fixture-upload-'+(++uploadCount);uploads.set(id,{...input,bytes:0});return json(res,200,{id,chunkSizeBytes:8*1024*1024});
+    }
+    if(url.pathname.startsWith(uploadPath+'/')){
+      const [id,operation]=url.pathname.slice(uploadPath.length+1).split('/'),upload=uploads.get(id);
+      if(!upload)return json(res,404,{error:'missing_upload'});
+      if(req.method==='DELETE'){uploads.delete(id);abortedUploads++;return json(res,204,null);}
+      if(req.method==='PUT' && operation==='parts'){
+        let bytes=0;for await(const chunk of req)bytes+=chunk.length;
+        // Keep progress/cancellation observable without retaining the file in memory.
+        await new Promise(resolve=>setTimeout(resolve,350));upload.bytes+=bytes;uploadBytes+=bytes;return json(res,204,null);
+      }
+      if(req.method==='POST' && operation==='complete'){
+        if(upload.bytes!==upload.sizeBytes)return json(res,409,{error:'incomplete_upload'});
+        upload.contentType=upload.contentType || ({'.txt':'text/plain','.mp4':'video/mp4','.webm':'video/webm','.pdf':'application/pdf'}[extname(upload.originalName).toLowerCase()] || 'application/octet-stream');
+        upload.kind=upload.contentType.startsWith('video/')?'video':upload.contentType.startsWith('audio/')?'audio':upload.contentType.startsWith('image/')?'image':upload.contentType==='application/pdf'?'pdf':'download';
+        const id='3edb6a2d-f6ba-4a47-a9ad-4198e4317a7f';assets.set(id,upload);completedUploads++;return json(res,200,{id,kind:upload.kind,originalName:upload.originalName,contentType:upload.contentType,sizeBytes:upload.sizeBytes});
+      }
+    }
+    const accessMatch=url.pathname.match(/^\/api\/notion\/assets\/([^/]+)\/access$/);
+    if(accessMatch){const asset=assets.get(accessMatch[1]);return asset?json(res,200,{url:'/qa/asset/'+accessMatch[1],downloadUrl:'/qa/asset/'+accessMatch[1],expiresAtUtc:new Date(Date.now()+300000).toISOString(),originalName:asset.originalName,contentType:asset.contentType,kind:asset.kind,sizeBytes:asset.sizeBytes}):json(res,404,{error:'not_found'});}
+    if(url.pathname.startsWith('/qa/asset/')){const asset=assets.get(url.pathname.slice('/qa/asset/'.length));if(!asset)return json(res,404,{error:'not_found'});res.writeHead(200,{'Content-Type':asset.contentType});return res.end(Buffer.from('Fiktiv undervisningsfil til uploadtesten.'));}
     if(req.method==='POST' && url.pathname==='/qa/groups'){const ids=JSON.parse((await body(req)).toString());context.groups.push({id:'11111111-1111-4111-8111-111111111111',name:'Projektgruppe '+(context.groups.length+1),members:context.members.filter(item=>ids.includes(item.id))});return json(res,200,context.groups);}
     if(url.pathname==='/notion/'+nextPage){res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end('<h1>Øvelse: den første prototype</h1><p>Undersiden er åbnet fra dokumentet.</p>');}
     if(url.pathname.startsWith('/notion/holds/')){res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});return res.end('<h1>QA Elev Anna</h1><p>Elevens grundprofil på det fiktive hold.</p>');}

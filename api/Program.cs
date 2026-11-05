@@ -33,6 +33,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<Mercantec.Tech.Api.Learning.CourseAccess>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Learning.FileAuthorization>();
+builder.Services.AddHostedService<NotionUploadCleanup>();
 if (builder.Configuration.GetValue<bool>("PreviewWorker:Enabled"))
     builder.Services.AddHostedService<PreviewWorker>();
 
