@@ -130,6 +130,34 @@ public class CourseMarkdownTests
         Assert.Contains("flowchart LR", fence.Code, StringComparison.Ordinal);
         Assert.Equal("Mermaid", CourseMarkdown.DisplayLanguage(fence.Language));
         Assert.Null(CourseMarkdown.ResolveLanguage("mermaid"));
+        // Ukendt for ColorCode → escaped plain (CourseMermaidDiagram tegner SVG i stedet).
+        var highlighted = CourseMarkdown.HighlightCode(fence.Code, fence.Language).Value;
+        Assert.Contains("flowchart LR", highlighted, StringComparison.Ordinal);
+        Assert.DoesNotContain("keyword", highlighted, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ToSegments_extracts_h2_teori_mermaid_fences()
+    {
+        var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "web", "wwwroot", "content", "courses", "h2-teori.json"));
+        Assert.True(File.Exists(path), $"Mangler {path}");
+
+        var json = File.ReadAllText(path);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var mermaid = new List<CourseMarkdownCodeSegment>();
+        foreach (var block in doc.RootElement.EnumerateArray())
+        {
+            var md = block.GetProperty("markdown").GetString() ?? "";
+            foreach (var seg in CourseMarkdown.ToSegments(md))
+            {
+                if (seg is CourseMarkdownCodeSegment code
+                    && code.Language.Equals("mermaid", StringComparison.OrdinalIgnoreCase))
+                    mermaid.Add(code);
+            }
+        }
+
+        Assert.True(mermaid.Count >= 2, $"Forventede ≥2 Mermaid-blokke i H2-teori, fik {mermaid.Count}");
+        Assert.All(mermaid, m => Assert.Contains("graph TD", m.Code, StringComparison.Ordinal));
     }
 
     [Fact]

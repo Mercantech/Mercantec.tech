@@ -107,6 +107,18 @@ html[data-bs-theme="dark"] .lup .course-code-body .htmlOperator { color:#c9d1d9;
 .lup .course-theory-body table { width:100%; border-collapse:collapse; margin:0 0 1.1em; font-size:13px; }
 .lup .course-theory-body th,.lup .course-theory-body td { border:1px solid var(--rule); padding:8px 10px; text-align:left; vertical-align:top; }
 .lup .course-theory-body img { max-width:100%; height:auto; }
+/* Mermaid-diagrammer (```mermaid → CourseMermaidDiagram) */
+.lup .course-mermaid-panel { margin:0 0 1.1em; border:1px solid var(--rule); border-radius:8px; background:var(--bg); overflow:hidden; }
+.lup .course-mermaid-host { min-height:48px; padding:12px 14px; overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%; }
+.lup .course-mermaid-host .course-mermaid { margin:0; padding:0; border:0; background:transparent; overflow:visible; }
+.lup .course-mermaid-host .course-mermaid svg { display:block; max-width:100%; height:auto; margin:0 auto; }
+.lup .course-mermaid-host.course-mermaid-error { padding-bottom:14px; }
+.lup .course-mermaid-fallback { margin:0 0 8px; padding:0; border:0; background:transparent; white-space:pre-wrap; word-break:break-word; font-size:12.5px; line-height:1.55; color:var(--muted); }
+.lup .course-mermaid-error-msg { display:block; font-size:12px; color:#b42318; font-family:DM Sans,sans-serif; }
+@media (max-width:620px) {
+  .lup .course-theory-body { padding-left:0; }
+  .lup .course-mermaid-host { padding:10px; }
+}
 .lup .week-topics { margin:0; }
 .lup .course-week { border-top:1px solid var(--rule); }
 .lup .course-week:last-child { border-bottom:1px solid var(--rule); }
