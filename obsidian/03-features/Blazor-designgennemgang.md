@@ -79,3 +79,15 @@ Mathias’ commits 9fa4888 og be5e70d er flettet med designarbejdet i 4c1cd58. D
 Sammenfletningen er kontrolleret med Debug- og Release-build (0 fejl/advarsler), 39 elevindgange, syv underviserindgange og 174 interne indholdsadresser uden døde links eller registrerede runtime-fejl. Køb → garderobe → spil, saldo i headeren, møbelkøb/placering/flytning/fjernelse, egne questmarkeringer uden belønning, ændring af afstemningssvar uden dobbeltoptælling samt level-/badgekrav er afprøvet. Eksisterende DemoWorld-lagring og import af den tidligere avatar/lejlighed er testet separat. Mobilbredder 320/390/768/1024 px har ingen konstaterede vandrette overløb på de gennemgåede hovedsider.
 
 Ingen eksisterende sprintopgaver lukkes på baggrund af lokal designfunktionalitet.
+
+
+## Elevforsiden genskabt · 5. november 2026
+
+Elevforsiden på `/student` bruger igen det oprindelige layout: billedbåret aktivt forløb og genveje i hovedkolonnen samt XP, level, guld, avatar, lejlighed og næste badge i sidekolonnen. Den store Lectio-hero er fjernet. Lectio-profil og VUF vises i et kompakt panel, og den eksisterende forløbstidslinje ligger i et foldbart panel med den aktuelle skoleperiode i overskriften. Mine hold og direkte links til serverens forløb bevares.
+
+- Lectio, VUF og studieplan bruger de eksisterende API-kald og parsere. VUF-status følger serverens `ok`, og fravær af data vises som ukendt/manglende oplysninger. Netværksfejl får et genforsøg og præsenteres ikke som en manglende Lectio-kobling.
+- Guld og avatar bruger den fælles DemoWorld, så lokale køb og garderobevalg vises straks på forsiden. XP, level og badges bruger fortsat DemoCatalog; dette arbejde indfører ikke serverøkonomi eller automatisk badgeoptjening.
+- H3, Game Design og intet aktivt forløb beholder deres forløbskontekst. Kursusgenveje skjules, når intet forløb er aktivt; Lectio og medlemskaber er fortsat tilgængelige.
+- Mobilvisningen samler indholdet i én kolonne. Temaernes eksisterende farver og komponenter genbruges.
+
+Kontrolleret med isolerede elev- og API-fixtures: koblet/ukoblet Lectio, utilgængelig Lectio med genforsøg, manglende VUF/studieplan, utilstrækkelig VUF samt udvidet tidslinje. Lokalt køb ændrer både forsidens og headerens saldo; avatar- og forløbsskift slår igennem. Mobilbredder 320 og 390 px samt lyst, jul og hacker er gennemgået. Debug-build og Docker Release-publish er gennemført uden fejl; SDK’ets anbefaling om den valgfrie wasm-tools-workload er uændret. Rigtige elevdata er ikke ændret under kontrollen.

@@ -71,6 +71,10 @@ GitHub Issues og Project #9 er fortsat sandheden for prioritering og status. Nye
 - **Sikkerhed:** rolle-/forløbsskift i designvisningen erstatter ikke Auth og medlemskabskontrol. Køb, belønninger, datoafgrænsning af Daily og synlighed skal valideres af API'et.
 - **Indhold:** H3-/Game Design-planerne er inspireret af de delte Notion-forløb. De viste H3-Side/Daily-quests og kosmetiske belønninger er nye designforslag, ikke formelle målpinde.
 
+## Elevforsiden · 5. november 2026
+
+Det oprindelige layout er genskabt i Blazor med aktivt forløb, genveje og en sidekolonne til XP, guld, avatar og badges. Lectio/VUF og Mine hold indgår som kompakte paneler, og den eksisterende forløbstidslinje kan foldes ud. De nye datakilder er bevaret. Guld og avatar følger den eksisterende fælles lokale tilstand; serverbaseret økonomi er fortsat en separat leverance. Se [[Blazor-designgennemgang]].
+
 ## UI-retning
 
 Ingen prototype- eller demobannere i produktfladen. Dokumentationen skelner stadig mellem designreference og implementeret produkt. Forklarende status vises med tekst og farve, og aktuel forløbskontekst bevares gennem fag, emne, quest og aflevering.
