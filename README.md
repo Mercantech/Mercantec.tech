@@ -79,8 +79,7 @@ Kopiér `.env.example` → `.env` ved behov (secrets commit'tes ikke). MinIO-cre
 2. Åbn **http://localhost:9001** (eller http://127.0.0.1:9001).
 3. Log ind med `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` fra `.env`.
 
-I prod (Dokploy) er Console **ikke** publiceret på mercantec.tech — hold den privat. Adgang fx via SSH-tunnel til hosten:  
-`ssh -L 9001:mercantec-tech-minio:9001 <dokploy-host>` → derefter http://localhost:9001.
+**Prod:** [https://minio.mercantec.tech](https://minio.mercantec.tech) (kun Console via Traefik; S3 API forbliver intern på `mercantec-tech-minio:9000`). Login med Dokploy-env `MINIO_ROOT_*` (stærk adgangskode — ikke default).
 
 Fil-upload (underviser, kræver JWT): `POST /api/files` (multipart). Status: `GET /api/files/status`. Download: `GET /api/files/{key}`.
 

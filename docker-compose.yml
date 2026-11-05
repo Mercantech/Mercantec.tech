@@ -20,18 +20,37 @@ services:
 
   # quay.io/minio/{minio,mc} returnerer 401 (community-images fjernet sep. 2026).
   # pgsty/silo er AGPL-community-fork med server + mc i samme image.
+  # S3 API (:9000) forbliver intern via alias mercantec-tech-minio.
+  # Console (:9001) publiceres kun på minio.mercantec.tech (ikke apex).
   minio:
     image: pgsty/silo:RELEASE.2026-10-26T00-00-00Z
     command: server /data --address ":9000" --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      # Offentlig Console-URL bag Cloudflare/Traefik (lokalt overlaysættes i docker-compose.local.yml)
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-https://minio.mercantec.tech}
     volumes:
       - mercantec_tech_minio:/data
     networks:
       default:
         aliases:
           - mercantec-tech-minio
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      # Kun Console — S3 API eksponeres ikke via Traefik
+      - traefik.http.routers.mercantec-tech-minio-console.rule=Host(`minio.mercantec.tech`)
+      - traefik.http.routers.mercantec-tech-minio-console.entrypoints=web
+      - traefik.http.routers.mercantec-tech-minio-console.service=mercantec-tech-minio-console
+      - traefik.http.routers.mercantec-tech-minio-console.middlewares=mercantec-tech-minio-console-headers
+      - traefik.http.services.mercantec-tech-minio-console.loadbalancer.server.port=9001
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.browserXssFilter=true
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.frameDeny=true
+      - traefik.http.middlewares.mercantec-tech-minio-console-headers.headers.referrerPolicy=no-referrer
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
