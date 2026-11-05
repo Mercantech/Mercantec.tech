@@ -143,7 +143,11 @@ html{color-scheme:light dark}body{margin:0;background:light-dark(#f3f6fb,#101b2c
 .lup .v2-cal-head .v2-presence{font-size:10px}
 .lup .v2-cal-head .v2-dot{width:8px;height:8px}
 .lup .v2-cal-body{height:455px;position:relative;background:repeating-linear-gradient(to bottom,transparent 0,transparent 64px,var(--rule) 64px,var(--rule) 65px)}
+.lup .v2-calendar-teacher .v2-cal-body{height:650px}
 .lup .v2-event{position:absolute;left:4px;right:4px;top:var(--event-top);height:var(--event-height);padding:7px 6px;background:var(--tint);border-left:3px solid var(--blue);border-radius:4px;font-size:11px;line-height:1.35;overflow:hidden;color:var(--ink);display:block}
+.lup .v2-event.azure{background:color-mix(in srgb, var(--blue) 12%, var(--paper));border-color:var(--blue)}
+.lup .v2-event.azure.is-online{background:color-mix(in srgb, var(--green, #23915e) 14%, var(--paper));border-color:var(--green, #23915e)}
+.lup .v2-event.azure.is-private{background:var(--bg);border-color:var(--muted);opacity:.9}
 .lup .v2-event small{font-size:10px;display:block;color:var(--muted);margin-bottom:4px}
 .lup .v2-event.is-short{padding:5px 6px}
 .lup .v2-event.is-short small{margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
