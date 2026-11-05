@@ -12,49 +12,48 @@
         <header class="page-title"><div><h1>Login fejlede</h1><p>@_error</p></div></header>
         <button type="button" class="action" @onclick="StartLogin" disabled="@_busy">@(_busy ? "Sender…" : "Prøv igen")</button>
     }
+    else if (!Auth.IsInitialized)
+    {
+        <p>Indlæser…</p>
+    }
     else if (Auth.IsAuthenticated)
     {
         <header class="page-title"><div><h1>Log ind</h1><p>Sender dig til dit dashboard…</p></div></header>
     }
     else
     {
-        <header class="page-title"><div><h1>Log ind</h1><p>Sender dig til Mercantec Auth…</p></div></header>
+        <header class="page-title"><div><h1>Log ind</h1><p>Fortsæt med Mercantec Auth for at åbne LUP.</p></div></header>
+        <button type="button" class="action" @onclick="StartLogin" disabled="@_busy">@(_busy ? "Sender…" : "Log ind")</button>
     }
 </section>
 
 @code {
     private bool _busy;
-    private bool _started;
     private string? _error;
 
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuth;
-        _ = TryStartAsync();
+        RedirectIfAuthenticated();
     }
 
-    private void OnAuth() => _ = InvokeAsync(TryStartAsync);
-
-    private async Task TryStartAsync()
+    private void OnAuth() => InvokeAsync(() =>
     {
-        if (!Auth.IsInitialized || _started)
-            return;
+        RedirectIfAuthenticated();
+        StateHasChanged();
+    });
 
-        if (Auth.IsAuthenticated)
-        {
+    private void RedirectIfAuthenticated()
+    {
+        if (Auth.IsInitialized && Auth.IsAuthenticated)
             Nav.NavigateTo(Redirect.PostLoginPath());
-            return;
-        }
-
-        await StartLogin();
     }
 
     private async Task StartLogin()
     {
-        if (_busy)
+        if (_busy || !Auth.IsInitialized || Auth.IsAuthenticated)
             return;
 
-        _started = true;
         _busy = true;
         _error = null;
         try
@@ -65,7 +64,6 @@
         {
             _error = ex.Message;
             _busy = false;
-            _started = false;
         }
     }
 
