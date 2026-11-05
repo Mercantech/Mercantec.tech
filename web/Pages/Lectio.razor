@@ -27,7 +27,7 @@ else
         <header class="lectio-head page-title">
             <div>
                 <h1>Lectio</h1>
-                <p>Data fra Lectio-Collector. Som underviser kan du se alle elever og hold.</p>
+                <p>Data fra Lectio-Collector. Som underviser kan du se elever og hold — og manuelt koble Auth ↔ Lectio.</p>
             </div>
             <div class="lectio-head-actions">
                 <a class="secondary lc-link" href="@(_teacherTab == TeacherTab.Hold ? "https://lc.mags.dk/hold" : "https://lc.mags.dk/programmeringselever")" target="_blank" rel="noopener">
@@ -50,6 +50,11 @@ else
                     @onclick="() => SwitchToHoldTabAsync()">
                 Hold
             </button>
+            <button type="button" role="tab" class="@(_teacherTab == TeacherTab.Kobling ? "is-active" : null)"
+                    aria-selected="@(_teacherTab == TeacherTab.Kobling)"
+                    @onclick="() => SwitchToKoblingTabAsync()">
+                Kobling
+            </button>
         </div>
     }
     else
@@ -70,6 +75,185 @@ else
     @if (_loading)
     {
         <p>Henter Lectio-data…</p>
+    }
+    else if (isTeacher && _teacherTab == TeacherTab.Kobling)
+    {
+        <section class="lectio-panel lectio-link-panel">
+            <div>
+                <h2>Manuel Auth ↔ Lectio-kobling</h2>
+                <p class="lectio-hint mb-0">
+                    Brug når en elev ikke har navnematch. Vælg Lectio-elev og Mercantec Auth-bruger — eller indtast id’erne direkte.
+                </p>
+            </div>
+
+            @if (_teacherLinkOk)
+            {
+                <div class="callout ok">
+                    Kobling gemt
+                    @if (!string.IsNullOrWhiteSpace(_teacherLinkSummary))
+                    {
+                        <text>: @_teacherLinkSummary</text>
+                    }
+                    .
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_teacherLinkError))
+            {
+                <p class="callout bad">@_teacherLinkError</p>
+            }
+
+            <div class="lectio-link-grid">
+                <div class="lectio-link-col">
+                    <h3>Lectio-elev</h3>
+                    @if (_linkLectioStudent is not null)
+                    {
+                        <div class="lectio-link-selected">
+                            <div>
+                                <strong>@_linkLectioStudent.Name</strong>
+                                <div class="small text-muted">
+                                    @(_linkLectioStudent.ClassName ?? "Ukendt klasse")
+                                    · @_linkLectioStudent.LectioId
+                                </div>
+                            </div>
+                            <button type="button" class="secondary" disabled="@_busy" @onclick="ClearLinkLectio">Skift</button>
+                        </div>
+                    }
+                    else
+                    {
+                        var lectioPicks = LinkLectioPicks;
+                        <label class="lectio-search">
+                            <span class="visually-hidden">Søg Lectio-elev</span>
+                            <input class="form-control"
+                                   @bind="_linkLectioQuery"
+                                   @bind:event="oninput"
+                                   placeholder="Søg i elevlisten eller indtast Lectio-id"
+                                   disabled="@_busy" />
+                        </label>
+                        @if (lectioPicks.Count > 0)
+                        {
+                            <div class="lectio-picks lectio-link-picks">
+                                @foreach (var s in lectioPicks)
+                                {
+                                    <button type="button"
+                                            class="lectio-pick"
+                                            disabled="@_busy"
+                                            @onclick="() => SelectLinkLectio(s)">
+                                        <strong>@s.Name</strong>
+                                        <span>@(s.ClassName ?? "Ukendt klasse") · @s.LectioId</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else if (_students.Count == 0)
+                        {
+                            <p class="text-muted mb-0">Ingen elever indlæst endnu. Brug Genindlæs, eller indtast Lectio-id nedenfor.</p>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_linkLectioQuery))
+                        {
+                            <p class="text-muted mb-0">Ingen elev matcher. Indtast Lectio-id i feltet nedenfor.</p>
+                        }
+                        <label class="lectio-link-field">
+                            Lectio-id
+                            <input class="form-control"
+                                   @bind="_linkLectioId"
+                                   @bind:event="oninput"
+                                   placeholder="fx 12345678901"
+                                   disabled="@_busy"
+                                   autocomplete="off" />
+                        </label>
+                    }
+                </div>
+
+                <div class="lectio-link-col">
+                    <h3>Auth-bruger</h3>
+                    @if (_linkAuthUser is not null)
+                    {
+                        <div class="lectio-link-selected">
+                            <div>
+                                <strong>@_linkAuthUser.DisplayName</strong>
+                                <div class="small text-muted">
+                                    @(_linkAuthUser.Email ?? "Ingen e-mail")
+                                    · @_linkAuthUser.Id
+                                </div>
+                            </div>
+                            <button type="button" class="secondary" disabled="@_busy" @onclick="ClearLinkAuth">Skift</button>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (_authUsersLoading)
+                        {
+                            <p class="text-muted">Henter Auth-brugere…</p>
+                        }
+                        else if (_authUsersError is not null)
+                        {
+                            <p class="callout warn mb-0">@_authUsersError Indtast Auth <code>sub</code> (GUID) nedenfor.</p>
+                        }
+                        else if (_authUsers is not null)
+                        {
+                            var authPicks = LinkAuthPicks;
+                            <label class="lectio-search">
+                                <span class="visually-hidden">Søg Auth-bruger</span>
+                                <input class="form-control"
+                                       @bind="_linkAuthQuery"
+                                       @bind:event="oninput"
+                                       placeholder="Søg navn eller e-mail"
+                                       disabled="@_busy" />
+                            </label>
+                            @if (authPicks.Count > 0)
+                            {
+                                <div class="lectio-picks lectio-link-picks">
+                                    @foreach (var u in authPicks)
+                                    {
+                                        <button type="button"
+                                                class="lectio-pick"
+                                                disabled="@_busy"
+                                                @onclick="() => SelectLinkAuth(u)">
+                                            <strong>@u.DisplayName</strong>
+                                            <span>
+                                                @(u.Email ?? "Ingen e-mail")
+                                                · @(u.AppRole == "underviser" ? "Underviser" : "Elev")
+                                            </span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(_linkAuthQuery))
+                            {
+                                <p class="text-muted mb-0">Ingen Auth-bruger matcher søgningen.</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">Søg for at finde Auth-brugere, eller indtast GUID nedenfor.</p>
+                            }
+                        }
+                        <label class="lectio-link-field">
+                            Auth sub (GUID)
+                            <input class="form-control"
+                                   @bind="_linkAuthSubText"
+                                   @bind:event="oninput"
+                                   placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                                   disabled="@_busy"
+                                   autocomplete="off"
+                                   spellcheck="false" />
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button"
+                        class="action"
+                        disabled="@(_busy || !CanSubmitTeacherLink)"
+                        @onclick="TeacherLinkAsync">
+                    @(_busy ? "Kobler…" : "Kobl Auth ↔ Lectio")
+                </button>
+                <button type="button" class="secondary" disabled="@_busy" @onclick="ResetTeacherLinkForm">
+                    Nulstil
+                </button>
+            </div>
+        </section>
     }
     else if (isTeacher && _teacherTab == TeacherTab.Hold)
     {
@@ -358,7 +542,15 @@ else
                                                                             </div>
                                                                         }
                                                                     </div>
-                                                                    <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
+                                                                    <div class="lectio-row-actions">
+                                                                        <button type="button"
+                                                                                class="secondary"
+                                                                                title="Kobl Auth-bruger"
+                                                                                @onclick="() => BeginTeacherLinkForMember(m)">
+                                                                            Kobl Auth
+                                                                        </button>
+                                                                        <a class="lc-link" href="@($"https://lc.mags.dk/elev/{Uri.EscapeDataString(m.LectioId)}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
+                                                                    </div>
                                                                 </li>
                                                             }
                                                         </ul>
@@ -646,7 +838,13 @@ else
                                             <span class="text-muted">—</span>
                                         }
                                     </td>
-                                    <td>
+                                    <td class="lectio-row-actions">
+                                        <button type="button"
+                                                class="secondary"
+                                                title="Kobl Auth-bruger"
+                                                @onclick="() => BeginTeacherLinkForStudent(s)">
+                                            Kobl Auth
+                                        </button>
                                         <a class="lc-link" href="@($"https://lc.mags.dk/elev/{s.LectioId}")" target="_blank" rel="noopener" title="Åbn i Lectio-Collector" aria-label="Åbn i Lectio-Collector"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" /></a>
                                     </td>
                                 </tr>
@@ -842,8 +1040,9 @@ else
                 <div class="callout warn">
                     <p>Ingen automatisk match på dit Auth-navn.</p>
                     <p>
-                        Bed en underviser om at koble dig i Lectio-Collector
-                        (<a class="lc-link" href="https://lc.mags.dk" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />lc.mags.dk</a>).
+                        Bed en underviser om at koble dig under <strong>Lectio → Kobling</strong>
+                        (eller i Lectio-Collector
+                        <a class="lc-link" href="https://lc.mags.dk" target="_blank" rel="noopener"><img class="lc-mark" src="images/lc-logo.jpg" alt="" width="18" height="18" />lc.mags.dk</a>).
                         Af sikkerhedshensyn kan du ikke indtaste et vilkårligt Lectio-id her.
                     </p>
                 </div>
@@ -887,12 +1086,25 @@ else
     private bool _holdSortDesc;
     private bool _busy;
     private bool _linkOk;
+    private bool _teacherLinkOk;
     private bool _loading;
     private bool _linked;
     private bool _dismissed;
+    private bool _authUsersLoading;
+    private bool _authUsersLoaded;
     private TeacherTab _teacherTab = TeacherTab.Elever;
     private HoldScope _holdScope = HoldScope.Tracked;
     private HoldSummaryRow? _holdSummary;
+    private string? _teacherLinkError;
+    private string? _teacherLinkSummary;
+    private string? _authUsersError;
+    private string _linkLectioQuery = "";
+    private string _linkLectioId = "";
+    private string _linkAuthQuery = "";
+    private string _linkAuthSubText = "";
+    private StudentRow? _linkLectioStudent;
+    private AuthUserRow? _linkAuthUser;
+    private List<AuthUserRow>? _authUsers;
     private readonly List<StudentRow> _students = [];
     private readonly List<CandidateRow> _candidates = [];
     private readonly List<HoldRow> _holds = [];
@@ -1031,6 +1243,88 @@ else
         {
             var keys = VisibleHolds.Select(h => h.LectioHoldKey).Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
             return keys.Count > 0 && keys.All(k => _selectedHoldKeys.Contains(k));
+        }
+    }
+
+    private List<StudentRow> LinkLectioPicks
+    {
+        get
+        {
+            var q = _linkLectioQuery.Trim();
+            IEnumerable<StudentRow> rows = _students;
+            if (q.Length > 0)
+            {
+                rows = rows.Where(s =>
+                    Contains(s.Name, q)
+                    || Contains(s.ClassName, q)
+                    || Contains(s.LectioId, q));
+            }
+            else
+            {
+                return [];
+            }
+
+            return rows
+                .OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase)
+                .Take(12)
+                .ToList();
+        }
+    }
+
+    private List<AuthUserRow> LinkAuthPicks
+    {
+        get
+        {
+            if (_authUsers is null)
+                return [];
+
+            IEnumerable<AuthUserRow> rows = _authUsers.Where(u => !u.IsDisabled);
+            var q = _linkAuthQuery.Trim();
+            if (q.Length > 0)
+            {
+                rows = rows.Where(u =>
+                    Contains(u.DisplayName, q)
+                    || Contains(u.Email, q)
+                    || u.Id.ToString().Contains(q, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                // Uden søgning: vis elever først, begrænset liste
+                rows = rows.Where(u => u.AppRole != "underviser");
+            }
+
+            return rows
+                .OrderBy(u => u.AppRole == "underviser")
+                .ThenBy(u => u.DisplayName, StringComparer.CurrentCultureIgnoreCase)
+                .Take(12)
+                .ToList();
+        }
+    }
+
+    private bool CanSubmitTeacherLink
+    {
+        get
+        {
+            var lectioId = ResolvedLinkLectioId;
+            if (string.IsNullOrWhiteSpace(lectioId))
+                return false;
+            return ResolvedLinkAuthSub is not null;
+        }
+    }
+
+    private string ResolvedLinkLectioId =>
+        _linkLectioStudent?.LectioId?.Trim()
+        ?? _linkLectioId.Trim();
+
+    private Guid? ResolvedLinkAuthSub
+    {
+        get
+        {
+            if (_linkAuthUser is not null)
+                return _linkAuthUser.Id;
+            return Guid.TryParse(_linkAuthSubText.Trim(), out var id) && id != Guid.Empty
+                ? id
+                : null;
         }
     }
 
@@ -1451,6 +1745,165 @@ else
         _openFacet = null;
         if (_holds.Count == 0 && !_loading)
             await LoadHoldsAsync(clearError: true);
+    }
+
+    private async Task SwitchToKoblingTabAsync()
+    {
+        _teacherTab = TeacherTab.Kobling;
+        _openFacet = null;
+        _teacherLinkOk = false;
+        _teacherLinkError = null;
+        await EnsureAuthUsersAsync();
+    }
+
+    private Task BeginTeacherLinkForStudent(StudentRow student)
+    {
+        SelectLinkLectio(student);
+        _teacherTab = TeacherTab.Kobling;
+        _openFacet = null;
+        _teacherLinkOk = false;
+        _teacherLinkError = null;
+        return EnsureAuthUsersAsync();
+    }
+
+    private Task BeginTeacherLinkForMember(HoldMember member)
+    {
+        var profile = FindStudent(member.LectioId);
+        if (profile is not null)
+            SelectLinkLectio(profile);
+        else
+        {
+            _linkLectioStudent = null;
+            _linkLectioId = member.LectioId;
+            _linkLectioQuery = member.Name;
+        }
+
+        _teacherTab = TeacherTab.Kobling;
+        _openFacet = null;
+        _teacherLinkOk = false;
+        _teacherLinkError = null;
+        return EnsureAuthUsersAsync();
+    }
+
+    private void SelectLinkLectio(StudentRow student)
+    {
+        _linkLectioStudent = student;
+        _linkLectioId = student.LectioId;
+        _linkLectioQuery = "";
+    }
+
+    private void ClearLinkLectio()
+    {
+        _linkLectioStudent = null;
+        _linkLectioId = "";
+        _linkLectioQuery = "";
+    }
+
+    private void SelectLinkAuth(AuthUserRow user)
+    {
+        _linkAuthUser = user;
+        _linkAuthSubText = user.Id.ToString();
+        _linkAuthQuery = "";
+    }
+
+    private void ClearLinkAuth()
+    {
+        _linkAuthUser = null;
+        _linkAuthSubText = "";
+        _linkAuthQuery = "";
+    }
+
+    private void ResetTeacherLinkForm()
+    {
+        ClearLinkLectio();
+        ClearLinkAuth();
+        _teacherLinkOk = false;
+        _teacherLinkError = null;
+        _teacherLinkSummary = null;
+    }
+
+    private async Task EnsureAuthUsersAsync()
+    {
+        if (_authUsersLoaded || _authUsersLoading)
+            return;
+
+        _authUsersLoading = true;
+        _authUsersError = null;
+        try
+        {
+            var response = await Http.GetAsync("users");
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _authUsers = [];
+                _authUsersError = "Kun en administrator i Mercantec Auth kan hente brugerlisten.";
+                _authUsersLoaded = true;
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _authUsers = [];
+                _authUsersError = "Auth-brugerlisten kunne ikke hentes.";
+                _authUsersLoaded = true;
+                return;
+            }
+
+            _authUsers = await response.Content.ReadFromJsonAsync<List<AuthUserRow>>() ?? [];
+            _authUsersLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            _authUsers = [];
+            _authUsersError = ex.Message;
+            _authUsersLoaded = true;
+        }
+        finally
+        {
+            _authUsersLoading = false;
+        }
+    }
+
+    private async Task TeacherLinkAsync()
+    {
+        var lectioId = ResolvedLinkLectioId;
+        var authSub = ResolvedLinkAuthSub;
+        if (string.IsNullOrWhiteSpace(lectioId) || authSub is null)
+            return;
+
+        _busy = true;
+        _teacherLinkOk = false;
+        _teacherLinkError = null;
+        _teacherLinkSummary = null;
+        _error = null;
+        try
+        {
+            var res = await Http.PutAsJsonAsync("lectio/me/lectio-link", new
+            {
+                lectioId = lectioId.Trim(),
+                authSub
+            });
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _teacherLinkError = Trim(body);
+                return;
+            }
+
+            var authLabel = _linkAuthUser?.DisplayName
+                            ?? (_linkAuthUser?.Email)
+                            ?? authSub.Value.ToString();
+            var lectioLabel = _linkLectioStudent?.Name ?? lectioId.Trim();
+            _teacherLinkSummary = $"{authLabel} ↔ {lectioLabel}";
+            _teacherLinkOk = true;
+        }
+        catch (Exception ex)
+        {
+            _teacherLinkError = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private async Task SetHoldScopeAsync(HoldScope scope)
@@ -1983,7 +2436,15 @@ else
 
     private sealed record ImportResult(Guid ForloebId, string Name, int Total, int Claimed, int Shadows, int LectioHolds = 1);
 
-    private enum TeacherTab { Elever, Hold }
+    private enum TeacherTab { Elever, Hold, Kobling }
+
+    private sealed record AuthUserRow(
+        Guid Id,
+        string DisplayName,
+        string? Email,
+        bool IsDisabled,
+        string AppRole,
+        string[] Roles);
 
     private enum HoldScope { Tracked, Saved }
 
