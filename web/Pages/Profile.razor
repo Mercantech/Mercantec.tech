@@ -71,11 +71,9 @@ else
         if (!Auth.IsInitialized)
             return;
 
+        // Ingen redirect til /login her — det ville starte OAuth-race efter lokal logout.
         if (!Auth.IsAuthenticated)
-        {
-            Nav.NavigateTo("/login");
             return;
-        }
 
         await LoadMeAsync();
     }
@@ -98,7 +96,7 @@ else
     private async Task Logout()
     {
         await Auth.LogoutLocalAsync();
-        Nav.NavigateTo("/login");
+        Nav.NavigateTo("/");
     }
 
     private void OnAuth() => _ = InvokeAsync(async () =>

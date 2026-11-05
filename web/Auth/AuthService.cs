@@ -144,7 +144,11 @@ public sealed class AuthService(
 
     public async Task LogoutLocalAsync()
     {
+        // Kun lokal logout — ryd tokens/PKCE. Kald ikke auth-host /signout (SSO-session
+        // kan leve videre). Undgå at starte /oauth/authorize automatisk efter logud;
+        // ellers logger SSO brugeren stille ind igen.
         await tokens.ClearTokensAsync();
+        await tokens.ClearPkceAsync();
         ClearLocalState();
         IsInitialized = true;
         Notify();
