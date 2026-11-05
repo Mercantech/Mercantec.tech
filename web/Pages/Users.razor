@@ -1,6 +1,8 @@
 @page "/users"
+@using Mercantec.Tech.Web.Lectio
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
 @inject HttpClient Http
 @inject NavigationManager Nav
 @implements IDisposable
@@ -24,7 +26,10 @@ else
     <header class="page-title">
         <div>
             <h1>Brugere</h1>
-            <p>Konti i Mercantec Auth. Admin, Underviser, Teacher og Instructor vises som undervisere. Øvrige konti er elever.</p>
+            <p>
+                Konti i Mercantec Auth. Admin, Underviser, Teacher og Instructor vises som undervisere.
+                Øvrige konti er elever. Brugere koblet til Lectio er <em>på platformen</em> — åbn elev-overblikket med «Se som elev».
+            </p>
         </div>
     </header>
 
@@ -42,7 +47,12 @@ else
             <div class="stat"><strong>@_users.Count</strong><span>brugere</span></div>
             <div class="stat"><strong>@TeacherCount</strong><span>undervisere</span></div>
             <div class="stat"><strong>@StudentCount</strong><span>elever</span></div>
+            <div class="stat"><strong>@PlatformCount</strong><span>på platformen</span></div>
         </div>
+        @if (_linksError is not null)
+        {
+            <p class="callout warn">@_linksError</p>
+        }
         <label class="field">Find en bruger
             <input type="search" @bind="_query" @bind:event="oninput" placeholder="Navn eller e-mail" autocomplete="off" />
         </label>
@@ -50,6 +60,7 @@ else
             <button type="button" class="filter" aria-pressed="@(_filter == "alle")" @onclick='() => _filter = "alle"'>Alle</button>
             <button type="button" class="filter" aria-pressed="@(_filter == "underviser")" @onclick='() => _filter = "underviser"'>Undervisere</button>
             <button type="button" class="filter" aria-pressed="@(_filter == "elev")" @onclick='() => _filter = "elev"'>Elever</button>
+            <button type="button" class="filter" aria-pressed="@(_filter == "platform")" @onclick='() => _filter = "platform"'>På platformen</button>
         </div>
         @if (Visible.Count == 0)
         {
@@ -60,6 +71,7 @@ else
             <div class="panel">
                 @foreach (var user in Visible)
                 {
+                    var link = PlatformLinkFor(user.Id);
                     <div class="row">
                         <span class="mark">@Initial(user.DisplayName)</span>
                         <div>
@@ -71,12 +83,33 @@ else
                                     <span class="pill orange">Deaktiveret</span>
                                 }
                                 <span class="pill @(user.AppRole == "underviser" ? null : "green")">@(user.AppRole == "underviser" ? "Underviser" : "Elev")</span>
+                                @if (link is not null)
+                                {
+                                    <span class="pill green" title="Koblet til Lectio @link.LectioId">På platformen</span>
+                                    @if (!string.IsNullOrWhiteSpace(link.ClassName))
+                                    {
+                                        <span>@link.ClassName</span>
+                                    }
+                                }
+                                else if (_linksLoaded)
+                                {
+                                    <span class="pill">Ikke koblet</span>
+                                }
                                 @if (user.Roles.Length > 0)
                                 {
                                     <span>@string.Join(", ", user.Roles)</span>
                                 }
                             </p>
                         </div>
+                        @if (link is not null)
+                        {
+                            <button type="button"
+                                    class="secondary"
+                                    title="Se elev-overblik som denne Auth-bruger"
+                                    @onclick="() => ViewAsStudent(user, link)">
+                                Se som elev
+                            </button>
+                        }
                     </div>
                 }
             </div>
@@ -86,12 +119,17 @@ else
 
 @code {
     private string? _error;
+    private string? _linksError;
     private string _query = "";
     private string _filter = "alle";
     private List<UserRow>? _users;
+    private bool _linksLoaded;
+    private IReadOnlyDictionary<Guid, AuthPlatformLinks.Link> _platformByAuth =
+        new Dictionary<Guid, AuthPlatformLinks.Link>();
 
     private int TeacherCount => _users?.Count(user => user.AppRole == "underviser") ?? 0;
     private int StudentCount => _users?.Count(user => user.AppRole != "underviser") ?? 0;
+    private int PlatformCount => _users?.Count(user => _platformByAuth.ContainsKey(user.Id)) ?? 0;
 
     private IReadOnlyList<UserRow> Visible
     {
@@ -103,6 +141,8 @@ else
             IEnumerable<UserRow> rows = _users;
             if (_filter is "underviser" or "elev")
                 rows = rows.Where(user => user.AppRole == _filter);
+            else if (_filter == "platform")
+                rows = rows.Where(user => _platformByAuth.ContainsKey(user.Id));
 
             var query = _query.Trim();
             if (query.Length > 0)
@@ -146,12 +186,66 @@ else
             }
 
             _users = await response.Content.ReadFromJsonAsync<List<UserRow>>() ?? [];
+            await LoadPlatformLinksAsync();
         }
         catch (Exception ex)
         {
             _users = [];
             _error = ex.Message;
         }
+    }
+
+    private async Task LoadPlatformLinksAsync()
+    {
+        _linksError = null;
+        _linksLoaded = false;
+        _platformByAuth = new Dictionary<Guid, AuthPlatformLinks.Link>();
+
+        try
+        {
+            var listRes = await Http.GetAsync("lectio/programmeringselever");
+            var listBody = await listRes.Content.ReadAsStringAsync();
+            if (!listRes.IsSuccessStatusCode)
+            {
+                _linksError = $"Lectio-elever kunne ikke hentes ({(int)listRes.StatusCode}) — «Se som elev» er midlertidigt utilgængelig.";
+                return;
+            }
+
+            var lectioIds = AuthPlatformLinks.ExtractLectioIds(listBody);
+            if (lectioIds.Count == 0)
+            {
+                _linksLoaded = true;
+                return;
+            }
+
+            var resolveRes = await Http.PostAsJsonAsync("lectio/auth-links/resolve", new { lectioIds });
+            var resolveBody = await resolveRes.Content.ReadAsStringAsync();
+            if (!resolveRes.IsSuccessStatusCode)
+            {
+                _linksError = $"Auth-koblinger kunne ikke hentes ({(int)resolveRes.StatusCode}).";
+                return;
+            }
+
+            _platformByAuth = AuthPlatformLinks.MapByAuthSub(listBody, resolveBody);
+            _linksLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            _linksError = $"Platform-koblinger: {ex.Message}";
+        }
+    }
+
+    private AuthPlatformLinks.Link? PlatformLinkFor(Guid authSub) =>
+        _platformByAuth.TryGetValue(authSub, out var link) ? link : null;
+
+    private void ViewAsStudent(UserRow user, AuthPlatformLinks.Link link)
+    {
+        if (string.IsNullOrWhiteSpace(link.LectioId))
+            return;
+
+        var name = string.IsNullOrWhiteSpace(link.Name) ? user.DisplayName : link.Name;
+        ViewAs.Enter(link.LectioId, name, link.ClassName, user.Id, "/users");
+        Nav.NavigateTo($"/teacher/view-as/{Uri.EscapeDataString(link.LectioId)}");
     }
 
     private void OnAuth() => _ = InvokeAsync(async () =>

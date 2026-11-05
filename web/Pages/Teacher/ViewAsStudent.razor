@@ -35,6 +35,10 @@ else
             </div>
             <div class="view-as-head-actions">
                 <button type="button" class="secondary" @onclick="ExitPreview">Afslut preview</button>
+                @if (string.Equals(ViewAs.ReturnUrl, "/users", StringComparison.OrdinalIgnoreCase))
+                {
+                    <a class="secondary" href="/users">Tilbage til brugere</a>
+                }
                 <a class="secondary" href="/lectio">Lectio-elever</a>
             </div>
         </header>
@@ -115,7 +119,7 @@ else
         }
 
         if (!ViewAs.IsActive || !string.Equals(ViewAs.LectioId, id, StringComparison.OrdinalIgnoreCase))
-            ViewAs.Enter(id, ViewAs.DisplayName, ViewAs.ClassName, ViewAs.AuthSub, "/lectio");
+            ViewAs.Enter(id, ViewAs.DisplayName, ViewAs.ClassName, ViewAs.AuthSub, ViewAs.ReturnUrl ?? "/lectio");
 
         _ready = true;
         await LoadPreviewAsync(id);
