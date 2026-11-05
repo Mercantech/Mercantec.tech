@@ -445,5 +445,203 @@ H6 afsluttes med den formelle svendeprøve. Undervejs evaluerer vi stadig med fo
 ## Afsluttende overhøring
 Den afsluttende mundtlige del er den formelle fremlæggelse ved svendeprøven. Her demonstrerer lærlingen produktet, forsvarer valg og viser nysgerrighed, best practice og refleksion under overhøringen.
 `.trim()
+  },
+  {
+    slug: 'deploy-or-die',
+    short: 'Deploy',
+    titel: 'Deploy Or Die',
+    uger: 3,
+    kort: '3 uger · Fra lokal kode til kørende miljø: containere, pipelines, hosting og observation.',
+    blazor: '/courses/template/deploy-or-die',
+    markdown: `
+## Varighed
+Deploy Or Die er **3 skoleuger** (valgfag).
+
+## Mål for undervisningen
+Formålet er at give lærlingerne kompetencer til at få kode i drift på en gentagelig måde. Efter forløbet skal lærlingen kunne:
+
+- Pakke en applikation, så den kan køre uden for udviklingsmaskinen.
+- Opsætte en simpel CI/CD-pipeline med build og deploy.
+- Vælge hosting og forklare miljøer og hemmeligheder.
+- Observere en kørende tjeneste og reagere på fejl.
+- Dokumentere deploy-flowet, så andre kan gentage det.
+
+## Forventningsniveau
+**Kan typisk efter Deploy Or Die:**
+
+- Bygge et containerimage og køre det lokalt.
+- Få en pipeline til at bygge og udgive en version.
+- Forklare, hvorfor et deploy fejlede, og hvad der rettede det.
+
+## Indhold i undervisningen
+- Containere – Dockerfile, images og compose.
+- CI/CD – automatisk build, test og udgivelse.
+- Hosting – miljøer, secrets og rollback i grove træk.
+- Observability – logs, healthchecks og simple alarmer.
+- Dokumentation – runbook for deploy.
+
+Projektet **Deploy-lab** danner rammen om forløbet.
+
+## Helhedsorientering
+Udvikling, build, deploy og drift behandles som én kæde.
+
+## Praksisrelation
+Spejler reelle release-arbejdsgange med Docker, CI og hosting.
+
+## Tværfaglighed
+Forbinder applikationsudvikling med drift og infrastruktur.
+
+## Differentiering
+Stack og hostingdybde tilpasses; kravet er et gentageligt deploy af egen app.
+
+## Evaluering og bedømmelse
+Løbende lab-feedback og afsluttende demonstration af et grønt deploy med runbook.
+
+## Løbende evaluering
+- Dialog i lab og reviews af pipeline/fejl.
+- Feedback på dokumentation og gentagelighed.
+
+## Bedømmelsesgrundlag
+- Kørende deploy af egen løsning.
+- Pipeline og runbook.
+- Mundtlig forklaring af fejl og valg.
+
+## Bedømmelseskriterier
+- **Nysgerrighed:** undersøger fejl i hele kæden.
+- **Best practice:** følger aftalte deploy-arbejdsgange.
+- **Refleksion:** kan forklare næste skridt efter et failed/green deploy.
+
+## Afsluttende overhøring
+Demonstration af deploy, pipeline og runbook med faglige spørgsmål.
+`.trim()
+  },
+  {
+    slug: 'game-design',
+    short: 'Game',
+    titel: 'Game Design',
+    uger: 3,
+    kort: '3 uger · Rune Run, designbegreber og eget spil med godkendt GDD.',
+    blazor: '/courses/template/game-design',
+    markdown: `
+## Varighed
+Game Design er **3 skoleuger** (valgfag).
+
+## Mål for undervisningen
+Formålet er at give lærlingerne kompetencer til at designe, bygge og forklare spil. Efter forløbet skal lærlingen kunne:
+
+- Forklare mål, regler, mekanikker og core loop.
+- Undersøge valg, risiko, feedback og game feel.
+- Afgrænse et eget spil med pitch og GDD.
+- Afprøve, dele og begrunde ændringer.
+- Aflevere en spilbar prototype med opdateret GDD.
+
+## Forventningsniveau
+**Kan typisk efter Game Design:**
+
+- Tegne og forklare et core loop.
+- Bygge en Rune Run-variant med meningsfulde valg.
+- Få et indledende GDD godkendt før eget udviklingsarbejde.
+
+## Indhold i undervisningen
+- Core loop, regler og risiko.
+- Scope og GDD.
+- Playtest og showcase.
+
+Projektet går fra **Rune Run** til **eget spil**.
+
+## Helhedsorientering
+Fælles Rune Run først, derefter eget godkendte projekt.
+
+## Praksisrelation
+Designvalg afprøves i spilbare builds.
+
+## Tværfaglighed
+Design, implementering og formidling hænger sammen.
+
+## Differentiering
+Spillets kompleksitet tilpasses, så første version kan gøres færdig.
+
+## Evaluering og bedømmelse
+Main quests (GDD, prototype, kode/video) plus daily playtest/logbog. Ingen særskilt mundtlig eksamen.
+
+## Løbende evaluering
+- Dialog, playtest-feedback og GDD-godkendelse.
+
+## Bedømmelsesgrundlag
+- Produkt (spilbar version), GDD og proces.
+
+## Bedømmelseskriterier
+- **Nysgerrighed:** undersøger spilleradfærd og designvalg.
+- **Best practice:** arbejder iterativt med tydelig scope.
+- **Refleksion:** kan forklare ændringer efter playtest.
+
+## Afsluttende overhøring
+Showcase af spilbar version og centrale designvalg.
+`.trim()
+  },
+  {
+    slug: 'machine-learning',
+    short: 'ML',
+    titel: 'Machine Learning',
+    uger: 3,
+    kort: '3 uger · Fra data til model: forberedelse, træning, evaluering og en lille demo.',
+    blazor: '/courses/template/machine-learning',
+    markdown: `
+## Varighed
+Machine Learning er **3 skoleuger** (valgfag).
+
+## Mål for undervisningen
+Formålet er at give lærlingerne et praktisk fundament i ML. Efter forløbet skal lærlingen kunne:
+
+- Forberede et datasæt og forklare kvalitet, bias og lækage i grove træk.
+- Træne en simpel model til klassifikation eller regression.
+- Evaluere med relevante metrikker og holde testdata adskilt.
+- Forklare begrænsninger og etiske opmærksomhedspunkter.
+- Pakke en lille demo, hvor andre kan prøve modellens output.
+
+## Forventningsniveau
+**Kan typisk efter Machine Learning:**
+
+- Rense og splitte data meningsfuldt.
+- Træne og sammenligne mindst to enkle tilgange.
+- Forklare, hvad modellen kan — og hvad den ikke kan.
+
+## Indhold i undervisningen
+- Data, features og splits.
+- Enkle supervised modeller og baseline.
+- Evaluering og fejlanalyse.
+- Demo og ansvarlig brug.
+
+Projektet **ML-mini** danner rammen om forløbet.
+
+## Helhedsorientering
+Problem, data, model og demo hænger sammen.
+
+## Praksisrelation
+Spejler en lille erhvervsnær ML-opgave med målbare resultater.
+
+## Tværfaglighed
+Dataforståelse, modellering og formidling kombineres.
+
+## Differentiering
+Datasæt og modelkompleksitet tilpasses; kravet er forståelse og afprøvbar demo.
+
+## Evaluering og bedømmelse
+Løbende feedback på data/modelvalg og afsluttende demonstration med evaluering.
+
+## Løbende evaluering
+- Dialog om data, metrikker og begrænsninger.
+
+## Bedømmelsesgrundlag
+- Demo, evaluering og forklaring af valg.
+
+## Bedømmelseskriterier
+- **Nysgerrighed:** undersøger data og fejl ærligt.
+- **Best practice:** adskiller train/test og dokumenterer antagelser.
+- **Refleksion:** kan forklare begrænsninger og næste skridt.
+
+## Afsluttende overhøring
+Demonstration af demo og evaluering med faglige spørgsmål.
+`.trim()
   }
 ];

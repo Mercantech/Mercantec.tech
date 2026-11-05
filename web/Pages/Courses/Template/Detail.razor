@@ -1,0 +1,28 @@
+@page "/courses/template/{Slug}"
+@using Mercantec.Tech.Web.Courses
+
+@if (Course is null)
+{
+    <PageTitle>Ukendt forløb</PageTitle>
+}
+else
+{
+    <PageTitle>@Course.Short · Undervisningsplan</PageTitle>
+}
+
+<nav class="breadcrumbs" aria-label="Brødkrummer">
+    <a href="/courses/template">Undervisningsplaner</a>
+    <span>›</span>
+    <span aria-current="page">@(Course?.Short ?? Slug)</span>
+</nav>
+
+<CourseTemplateView Course="Course" />
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private CourseTemplate? Course =>
+        Slug.Equals("template", StringComparison.OrdinalIgnoreCase)
+            ? CourseTemplateCatalog.Blank
+            : CourseTemplateCatalog.Find(Slug);
+}
