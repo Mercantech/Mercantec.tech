@@ -1,0 +1,65 @@
+@using Mercantec.Tech.Web.Courses
+@inject IJSRuntime Js
+
+<div class="@_rootClass" data-language="@_langKey">
+    <div class="course-code-bar">
+        <span class="course-code-lang">@_label</span>
+        <button type="button"
+                class="course-code-copy@(_copied ? " is-copied" : "")"
+                @onclick="CopyAsync"
+                disabled="@_busy">
+            @_buttonText
+        </button>
+    </div>
+    <div class="course-code-body">
+        @CourseMarkdown.HighlightCode(Code, Language)
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = string.Empty;
+    [Parameter] public string Language { get; set; } = string.Empty;
+
+    private string _label = "Kode";
+    private string _langKey = "";
+    private string _rootClass = "course-code";
+    private string _buttonText = "Kopiér";
+    private bool _copied;
+    private bool _busy;
+
+    protected override void OnParametersSet()
+    {
+        _label = CourseMarkdown.DisplayLanguage(Language);
+        _langKey = (Language ?? string.Empty).Trim().ToLowerInvariant();
+        // Hook til separat Mermaid-PR: .course-code--mermaid[data-language=mermaid]
+        _rootClass = _langKey == "mermaid" ? "course-code course-code--mermaid" : "course-code";
+    }
+
+    private async Task CopyAsync()
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        try
+        {
+            var ok = await Js.InvokeAsync<bool>("courseCode.copy", Code ?? string.Empty);
+            _copied = ok;
+            _buttonText = ok ? "Kopieret" : "Fejl";
+        }
+        catch
+        {
+            _copied = false;
+            _buttonText = "Fejl";
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
+        }
+
+        await Task.Delay(1600);
+        _copied = false;
+        _buttonText = "Kopiér";
+    }
+}

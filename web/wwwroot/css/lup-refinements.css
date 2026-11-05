@@ -52,6 +52,57 @@
 .lup .course-theory-body pre { margin:0 0 1.1em; padding:14px 16px; background:var(--bg); border:1px solid var(--rule); border-radius:8px; overflow-x:auto; font-size:12.5px; line-height:1.55; }
 .lup .course-theory-body code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.92em; }
 .lup .course-theory-body :not(pre) > code { padding:.1em .35em; background:var(--tint); border-radius:4px; }
+/* Fenced code med syntax highlight + Kopiér */
+.lup .course-code { margin:0 0 1.1em; border:1px solid var(--rule); border-radius:8px; background:var(--bg); overflow:hidden; }
+.lup .course-code-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px 10px 7px 14px; border-bottom:1px solid var(--rule); background:var(--paper); }
+.lup .course-code-lang { font-size:11px; font-weight:600; letter-spacing:.02em; color:var(--muted); text-transform:none; }
+.lup .course-code-copy { font-size:12px; padding:5px 11px; border:1px solid var(--rule); border-radius:6px; background:var(--paper); color:var(--ink); line-height:1.2; }
+.lup .course-code-copy:hover { border-color:var(--blue); color:var(--blue); }
+.lup .course-code-copy.is-copied { border-color:var(--green, #43aa72); color:var(--green, #43aa72); }
+.lup .course-code-copy:disabled { opacity:.7; cursor:default; }
+.lup .course-code-body { min-width:0; }
+.lup .course-code-body > div { margin:0; }
+.lup .course-code-body pre,
+.lup .course-code-body > div > pre { margin:0; padding:14px 16px; border:0; border-radius:0; background:transparent; overflow-x:auto; font-size:12.5px; line-height:1.55; }
+.lup .course-code-body code { font-size:inherit; }
+.lup .course-code-body .comment { color:#6a737d; }
+.lup .course-code-body .keyword { color:#0550ae; }
+.lup .course-code-body .string { color:#0a3069; }
+.lup .course-code-body .number { color:#0550ae; }
+.lup .course-code-body .class-name,
+.lup .course-code-body .type { color:#953800; }
+.lup .course-code-body .preprocessor { color:#8250df; }
+.lup .course-code-body .xmlDocTag,
+.lup .course-code-body .xmlDocComment { color:#6a737d; }
+.lup .course-code-body .htmlTagDelimiter,
+.lup .course-code-body .htmlElementName { color:#116329; }
+.lup .course-code-body .htmlAttributeName { color:#0550ae; }
+.lup .course-code-body .htmlAttributeValue { color:#0a3069; }
+.lup .course-code-body .htmlOperator { color:#24292f; }
+.lup .course-code-body .htmlComment { color:#6a737d; }
+.lup .course-code-body .cssPropertyName { color:#0550ae; }
+.lup .course-code-body .cssPropertyValue,
+.lup .course-code-body .cssSelector { color:#953800; }
+.lup .course-code-body .sqlSystemFunction { color:#8250df; }
+html[data-bs-theme="dark"] .lup .course-code-body .comment,
+html[data-bs-theme="dark"] .lup .course-code-body .xmlDocTag,
+html[data-bs-theme="dark"] .lup .course-code-body .xmlDocComment,
+html[data-bs-theme="dark"] .lup .course-code-body .htmlComment { color:#8b949e; }
+html[data-bs-theme="dark"] .lup .course-code-body .keyword,
+html[data-bs-theme="dark"] .lup .course-code-body .number,
+html[data-bs-theme="dark"] .lup .course-code-body .htmlAttributeName,
+html[data-bs-theme="dark"] .lup .course-code-body .cssPropertyName { color:#79c0ff; }
+html[data-bs-theme="dark"] .lup .course-code-body .string,
+html[data-bs-theme="dark"] .lup .course-code-body .htmlAttributeValue { color:#a5d6ff; }
+html[data-bs-theme="dark"] .lup .course-code-body .class-name,
+html[data-bs-theme="dark"] .lup .course-code-body .type,
+html[data-bs-theme="dark"] .lup .course-code-body .cssPropertyValue,
+html[data-bs-theme="dark"] .lup .course-code-body .cssSelector { color:#ffa657; }
+html[data-bs-theme="dark"] .lup .course-code-body .preprocessor,
+html[data-bs-theme="dark"] .lup .course-code-body .sqlSystemFunction { color:#d2a8ff; }
+html[data-bs-theme="dark"] .lup .course-code-body .htmlTagDelimiter,
+html[data-bs-theme="dark"] .lup .course-code-body .htmlElementName { color:#7ee787; }
+html[data-bs-theme="dark"] .lup .course-code-body .htmlOperator { color:#c9d1d9; }
 .lup .course-theory-body blockquote { margin:0 0 1em; padding:.2em 0 .2em 14px; border-left:3px solid var(--rule); color:var(--muted); }
 .lup .course-theory-body table { width:100%; border-collapse:collapse; margin:0 0 1.1em; font-size:13px; }
 .lup .course-theory-body th,.lup .course-theory-body td { border:1px solid var(--rule); padding:8px 10px; text-align:left; vertical-align:top; }
