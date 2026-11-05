@@ -1,0 +1,165 @@
+/* New Year's night: champagne edges, purple confetti and quiet firework bouquets.
+   All decoration is static, scoped to this theme and outside document layout. */
+html[data-theme="newyear"] {
+    color-scheme:dark;
+    --newyear-sky:#10152f;
+    --newyear-gold:#f7d89a;
+    --newyear-purple:#ba8bea;
+    --newyear-ice:#9ae1ed;
+    --newyear-fireworks:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22480%22%20height%3D%22340%22%20viewBox%3D%220%200%20480%20340%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f7d89a%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.42%22%3E%3Cpath%20d%3D%22M413.7%2092.0l27.2%200.0%22%2F%3E%3Cpath%20d%3D%22M402.6%20100.6l40.3%2014.7%22%2F%3E%3Cpath%20d%3D%22M405.6%20114.3l25.5%2021.4%22%2F%3E%3Cpath%20d%3D%22M391.6%20113.8l18.4%2031.8%22%2F%3E%3Cpath%20d%3D%22M385.0%20126.2l5.8%2032.8%22%2F%3E%3Cpath%20d%3D%22M374.6%20116.8l-7.4%2042.2%22%2F%3E%3Cpath%20d%3D%22M361.7%20122.0l-13.6%2023.6%22%2F%3E%3Cpath%20d%3D%22M359.7%20108.2l-32.8%2027.5%22%2F%3E%3Cpath%20d%3D%22M346.4%20103.9l-31.3%2011.4%22%2F%3E%3Cpath%20d%3D%22M353.8%2092.0l-36.7%200.0%22%2F%3E%3Cpath%20d%3D%22M346.4%2080.1l-31.3%20-11.4%22%2F%3E%3Cpath%20d%3D%22M359.7%2075.8l-32.8%20-27.5%22%2F%3E%3Cpath%20d%3D%22M361.7%2062.0l-13.6%20-23.6%22%2F%3E%3Cpath%20d%3D%22M374.6%2067.2l-7.4%20-42.2%22%2F%3E%3Cpath%20d%3D%22M385.0%2057.8l5.8%20-32.8%22%2F%3E%3Cpath%20d%3D%22M391.6%2070.2l18.4%20-31.8%22%2F%3E%3Cpath%20d%3D%22M405.6%2069.7l25.5%20-21.4%22%2F%3E%3Cpath%20d%3D%22M402.6%2083.4l40.3%20-14.7%22%2F%3E%3Ccircle%20cx%3D%22454.6%22%20cy%3D%22105.8%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22428.1%22%20cy%3D%22151.1%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22378.6%22%20cy%3D%22168.8%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22329.3%22%20cy%3D%22150.6%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22303.3%22%20cy%3D%22104.9%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22312.7%22%20cy%3D%2253.2%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22353.1%22%20cy%3D%2219.7%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22405.7%22%20cy%3D%2219.9%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22445.8%22%20cy%3D%2253.9%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23ba8bea%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.32%22%3E%3Cpath%20d%3D%22M290.0%20249.0l18.8%200.0%22%2F%3E%3Cpath%20d%3D%22M282.3%20254.9l27.8%2010.1%22%2F%3E%3Cpath%20d%3D%22M284.4%20264.4l17.6%2014.8%22%2F%3E%3Cpath%20d%3D%22M274.7%20264.1l12.7%2022.0%22%2F%3E%3Cpath%20d%3D%22M270.2%20272.6l4.0%2022.7%22%2F%3E%3Cpath%20d%3D%22M263.0%20266.1l-5.1%2029.2%22%2F%3E%3Cpath%20d%3D%22M254.0%20269.8l-9.4%2016.3%22%2F%3E%3Cpath%20d%3D%22M252.7%20260.2l-22.7%2019.0%22%2F%3E%3Cpath%20d%3D%22M243.5%20257.2l-21.6%207.9%22%2F%3E%3Cpath%20d%3D%22M248.6%20249.0l-25.4%200.0%22%2F%3E%3Cpath%20d%3D%22M243.5%20240.8l-21.6%20-7.9%22%2F%3E%3Cpath%20d%3D%22M252.7%20237.8l-22.7%20-19.0%22%2F%3E%3Cpath%20d%3D%22M254.0%20228.2l-9.4%20-16.3%22%2F%3E%3Cpath%20d%3D%22M263.0%20231.9l-5.1%20-29.2%22%2F%3E%3Cpath%20d%3D%22M270.2%20225.4l4.0%20-22.7%22%2F%3E%3Cpath%20d%3D%22M274.7%20233.9l12.7%20-22.0%22%2F%3E%3Cpath%20d%3D%22M284.4%20233.6l17.6%20-14.8%22%2F%3E%3Cpath%20d%3D%22M282.3%20243.1l27.8%20-10.1%22%2F%3E%3Ccircle%20cx%3D%22318.3%22%20cy%3D%22258.5%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22299.9%22%20cy%3D%22289.9%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22265.7%22%20cy%3D%22302.1%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22231.6%22%20cy%3D%22289.5%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22213.6%22%20cy%3D%22257.9%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22220.2%22%20cy%3D%22222.2%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22248.1%22%20cy%3D%22199.0%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22284.4%22%20cy%3D%22199.2%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22312.1%22%20cy%3D%22222.7%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%239ae1ed%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.35%22%3E%3Cpath%20d%3D%22M449.3%20276.0l10.4%200.0%22%2F%3E%3Cpath%20d%3D%22M445.0%20279.3l15.4%205.6%22%2F%3E%3Cpath%20d%3D%22M446.2%20284.5l9.8%208.2%22%2F%3E%3Cpath%20d%3D%22M440.8%20284.3l7.0%2012.2%22%2F%3E%3Cpath%20d%3D%22M438.3%20289.1l2.2%2012.5%22%2F%3E%3Cpath%20d%3D%22M434.3%20285.5l-2.8%2016.1%22%2F%3E%3Cpath%20d%3D%22M429.4%20287.5l-5.2%209.0%22%2F%3E%3Cpath%20d%3D%22M428.6%20282.2l-12.5%2010.5%22%2F%3E%3Cpath%20d%3D%22M423.5%20280.5l-12.0%204.4%22%2F%3E%3Cpath%20d%3D%22M426.4%20276.0l-14.0%200.0%22%2F%3E%3Cpath%20d%3D%22M423.5%20271.5l-12.0%20-4.4%22%2F%3E%3Cpath%20d%3D%22M428.6%20269.8l-12.5%20-10.5%22%2F%3E%3Cpath%20d%3D%22M429.4%20264.5l-5.2%20-9.0%22%2F%3E%3Cpath%20d%3D%22M434.3%20266.5l-2.8%20-16.1%22%2F%3E%3Cpath%20d%3D%22M438.3%20262.9l2.2%20-12.5%22%2F%3E%3Cpath%20d%3D%22M440.8%20267.7l7.0%20-12.2%22%2F%3E%3Cpath%20d%3D%22M446.2%20267.5l9.8%20-8.2%22%2F%3E%3Cpath%20d%3D%22M445.0%20272.7l15.4%20-5.6%22%2F%3E%3Ccircle%20cx%3D%22464.9%22%20cy%3D%22281.3%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22454.8%22%20cy%3D%22298.6%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22435.8%22%20cy%3D%22305.4%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22417.0%22%20cy%3D%22298.4%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22407.0%22%20cy%3D%22280.9%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22410.6%22%20cy%3D%22261.2%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22426.1%22%20cy%3D%22248.3%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22446.2%22%20cy%3D%22248.4%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22461.5%22%20cy%3D%22261.4%22%20r%3D%221.5%22%20fill%3D%22%239ae1ed%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cg%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.5%22%3E%3Cpath%20d%3D%22m184%2030%204%206m145%20148%206-2m-201%2043%203%207m224%2079%206-1%22%20stroke%3D%22%23f7d89a%22%2F%3E%3Cpath%20d%3D%22m266%2026%205-3m171%20177-3%206m-280%2092%205%203%22%20stroke%3D%22%23ba8bea%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --newyear-confetti:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22700%22%20height%3D%2266%22%20viewBox%3D%220%200%20700%2066%22%3E%3Cg%20fill%3D%22none%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.28%22%3E%3Cpath%20stroke%3D%22%23f7d89a%22%20d%3D%22m25%2015%204%206m97%2020%207-3m191-17%203%206m110%2018%205%202m180-20%204-5%22%2F%3E%3Cpath%20stroke%3D%22%23ba8bea%22%20d%3D%22m69%2045%204-5m156-24%206%203m146%2028%203-5m175-28%204%205m93%2029%205-3%22%2F%3E%3Cpath%20stroke%3D%22%239ae1ed%22%20d%3D%22m181%2041%204%203m104-28%203-4m203%2033%206-3m173-25%203%205%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+    --newyear-feature-fireworks:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22460%22%20height%3D%22280%22%20viewBox%3D%220%200%20460%20280%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f7d89a%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.4%22%3E%3Cpath%20d%3D%22M309.8%2095.0l31.2%200.0%22%2F%3E%3Cpath%20d%3D%22M297.1%20104.9l46.2%2016.8%22%2F%3E%3Cpath%20d%3D%22M300.5%20120.6l29.3%2024.6%22%2F%3E%3Cpath%20d%3D%22M284.4%20120.0l21.1%2036.5%22%2F%3E%3Cpath%20d%3D%22M276.9%20134.2l6.6%2037.6%22%2F%3E%3Cpath%20d%3D%22M265.0%20123.4l-8.5%2048.4%22%2F%3E%3Cpath%20d%3D%22M250.1%20129.5l-15.6%2027.0%22%2F%3E%3Cpath%20d%3D%22M247.9%20113.6l-37.6%2031.6%22%2F%3E%3Cpath%20d%3D%22M232.6%20108.6l-35.9%2013.1%22%2F%3E%3Cpath%20d%3D%22M241.1%2095.0l-42.1%200.0%22%2F%3E%3Cpath%20d%3D%22M232.6%2081.4l-35.9%20-13.1%22%2F%3E%3Cpath%20d%3D%22M247.9%2076.4l-37.6%20-31.6%22%2F%3E%3Cpath%20d%3D%22M250.1%2060.5l-15.6%20-27.0%22%2F%3E%3Cpath%20d%3D%22M265.0%2066.6l-8.5%20-48.4%22%2F%3E%3Cpath%20d%3D%22M276.9%2055.8l6.6%20-37.6%22%2F%3E%3Cpath%20d%3D%22M284.4%2070.0l21.1%20-36.5%22%2F%3E%3Cpath%20d%3D%22M300.5%2069.4l29.3%20-24.6%22%2F%3E%3Cpath%20d%3D%22M297.1%2085.1l46.2%20-16.8%22%2F%3E%3Ccircle%20cx%3D%22356.7%22%20cy%3D%22110.8%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22326.3%22%20cy%3D%22162.8%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22269.5%22%20cy%3D%22183.1%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22213.0%22%20cy%3D%22162.2%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22183.1%22%20cy%3D%22109.8%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22193.9%22%20cy%3D%2250.5%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22240.3%22%20cy%3D%2212.0%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22300.6%22%20cy%3D%2212.3%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22346.6%22%20cy%3D%2251.3%22%20r%3D%221.5%22%20fill%3D%22%23f7d89a%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23ba8bea%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.55%22%3E%3Cpath%20d%3D%22M389.9%20216.0l15.6%200.0%22%2F%3E%3Cpath%20d%3D%22M383.6%20220.9l23.1%208.4%22%2F%3E%3Cpath%20d%3D%22M385.2%20228.8l14.6%2012.3%22%2F%3E%3Cpath%20d%3D%22M377.2%20228.5l10.5%2018.2%22%2F%3E%3Cpath%20d%3D%22M373.5%20235.6l3.3%2018.8%22%2F%3E%3Cpath%20d%3D%22M367.5%20230.2l-4.3%2024.2%22%2F%3E%3Cpath%20d%3D%22M360.1%20233.2l-7.8%2013.5%22%2F%3E%3Cpath%20d%3D%22M358.9%20225.3l-18.8%2015.8%22%2F%3E%3Cpath%20d%3D%22M351.3%20222.8l-18.0%206.5%22%2F%3E%3Cpath%20d%3D%22M355.6%20216.0l-21.1%200.0%22%2F%3E%3Cpath%20d%3D%22M351.3%20209.2l-18.0%20-6.5%22%2F%3E%3Cpath%20d%3D%22M358.9%20206.7l-18.8%20-15.8%22%2F%3E%3Cpath%20d%3D%22M360.1%20198.8l-7.8%20-13.5%22%2F%3E%3Cpath%20d%3D%22M367.5%20201.8l-4.3%20-24.2%22%2F%3E%3Cpath%20d%3D%22M373.5%20196.4l3.3%20-18.8%22%2F%3E%3Cpath%20d%3D%22M377.2%20203.5l10.5%20-18.2%22%2F%3E%3Cpath%20d%3D%22M385.2%20203.2l14.6%20-12.3%22%2F%3E%3Cpath%20d%3D%22M383.6%20211.1l23.1%20-8.4%22%2F%3E%3Ccircle%20cx%3D%22413.4%22%20cy%3D%22223.9%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22398.1%22%20cy%3D%22249.9%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22369.8%22%20cy%3D%22260.1%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22341.5%22%20cy%3D%22249.6%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22326.6%22%20cy%3D%22223.4%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22332.0%22%20cy%3D%22193.8%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22355.2%22%20cy%3D%22174.5%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22385.3%22%20cy%3D%22174.7%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%22408.3%22%20cy%3D%22194.2%22%20r%3D%221.5%22%20fill%3D%22%23ba8bea%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23f7d89a%22%20opacity%3D%22.6%22%3E%3Ccircle%20cx%3D%22140%22%20cy%3D%2261%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22417%22%20cy%3D%2291%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%22210%22%20cy%3D%22226%22%20r%3D%221.7%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%239ae1ed%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.45%22%3E%3Cpath%20d%3D%22m112%20156%204%205m313-1%206-3m-253%2092%202-6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+
+html[data-theme="newyear"] body { background:#10152f; }
+html[data-theme="newyear"] .lup {
+    --bg:#10152f;
+    --paper:#1b203e;
+    --ink:#f5f2ff;
+    --muted:#c5bed7;
+    --rule:#514866;
+    --blue:#f7d89a;
+    --on-blue:#241932;
+    --tint:#37304c;
+    --sky:#28243f;
+    --peach:#422c3c;
+    --orange:#ffb6a2;
+    --green:#a4e0c4;
+    --green-tint:#243d3b;
+    --lup-danger:#ffa8b7;
+    --lup-danger-bg:#482b40;
+    --lup-optional:#f7d89a;
+    --lup-optional-bg:#40362d;
+    --lup-ready:#a4e0c4;
+    --lup-ready-bg:#243d3b;
+    color:var(--ink);
+}
+html[data-theme="newyear"] .lup .app {
+    background:#10152f;
+    color:var(--ink);
+}
+html[data-theme="newyear"] .lup .lup-header {
+    background-color:#17172f;
+    background-image:var(--newyear-confetti);
+    background-repeat:repeat-x;
+    background-position:center top;
+    border-bottom-color:#a38a5d;
+    box-shadow:inset 0 2px 0 #f7d89a;
+}
+html[data-theme="newyear"] .lup .lup-header .brand { color:#ffe3aa; }
+html[data-theme="newyear"] .lup .lup-header :is(.mainnav>a,.v3-navgroup>summary,.lup-search-link) { color:#d8cfe4; }
+html[data-theme="newyear"] .lup .lup-header :is(.mainnav>a.active,.mainnav>a[aria-current],.v3-navgroup.is-current>summary) { color:#ffe3aa; }
+html[data-theme="newyear"] .lup :is(.v3-menu,.lup-status-panel,.lup-mobile-menu) {
+    background:#1b203e;
+    border-color:#927653;
+    box-shadow:0 12px 28px #05091f80,inset 0 1px 0 #f7d89a33;
+}
+html[data-theme="newyear"] .lup :is(.v3-menu a,.lup-mobile-menu>a):is(:hover,[aria-current],.active) {
+    background:#3b2d52;
+    color:#ffe5b2;
+}
+
+/* The bouquet lives on the edge of the page, leaving the reading column quiet. */
+html[data-theme="newyear"] .lup .body {
+    background-color:transparent;
+    background-image:var(--newyear-fireworks);
+    background-repeat:no-repeat;
+    background-size:480px 340px;
+    background-position:right 12px top 0;
+}
+html[data-theme="newyear"] .lup .page-title h1 { color:#fff0ce; }
+html[data-theme="newyear"] .lup .page-title p { color:#d0c8de; }
+html[data-theme="newyear"] .lup :is(.hero,.badge-hero,.v3-next,.v4-launch) {
+    background-color:#27213e;
+    background-image:var(--newyear-feature-fireworks);
+    background-repeat:no-repeat;
+    background-size:460px 280px;
+    background-position:right -20px center;
+    border-color:#917451;
+    box-shadow:inset 0 0 0 1px #e6c08780;
+}
+html[data-theme="newyear"] .lup :is(.hero,.badge-hero,.v3-next) :is(h1,h2) { color:#fff0ce; }
+html[data-theme="newyear"] .lup :is(.hero,.badge-hero,.v3-next) p { color:#d4cbe4; }
+
+/* Cards use the same night palette, with a champagne edge instead of a wash. */
+html[data-theme="newyear"] .lup :is(.panel,.tile,.v4-product,.badge-card,.empty,.v3-empty) {
+    background-color:#1b203e;
+    border-color:#6a566f;
+    box-shadow:inset 0 1px 0 #f7d89a33;
+}
+html[data-theme="newyear"] .lup :is(.article,.course-paper) {
+    background:#191f38;
+    border-color:#65516b;
+    box-shadow:inset 0 1px 0 #f7d89a29;
+}
+html[data-theme="newyear"] .lup .tiles>.tile:nth-child(even),
+html[data-theme="newyear"] .lup .v4-shop-grid>.v4-product:nth-child(even) { border-color:#796092; }
+html[data-theme="newyear"] .lup :is(.tile,.badge-card):hover { border-color:#d6b780; }
+html[data-theme="newyear"] .lup :is(.v4-product-art,.v3-wallet-panel) { background-color:#25213e; }
+html[data-theme="newyear"] .lup :is(.row .mark,.context,.v3-count) { color:#e4c5ff; }
+html[data-theme="newyear"] .lup :is(.pill,.row .mark) { background-color:#3b2d52; }
+html[data-theme="newyear"] .lup .pill { color:#f3d8b0; }
+html[data-theme="newyear"] .lup .pill.green { background:#243d3b; color:#a4e0c4; }
+html[data-theme="newyear"] .lup .pill.orange { background:#422c3c; color:#ffb6a2; }
+
+html[data-theme="newyear"] .lup .action,
+html[data-theme="newyear"] .lup .filter[aria-pressed="true"] {
+    background:#f7d89a;
+    color:#241932;
+    border-color:#f7d89a;
+    box-shadow:inset 0 0 0 1px #ffe9bd;
+}
+html[data-theme="newyear"] .lup .action:hover:not(:disabled) {
+    background:#d6b2f2;
+    color:#241932;
+    filter:none;
+    box-shadow:inset 0 0 0 1px #e9d4ff;
+}
+html[data-theme="newyear"] .lup .secondary {
+    background:#28223d;
+    color:#f0e5ff;
+    border-color:#7a618c;
+}
+html[data-theme="newyear"] .lup .secondary:hover { border-color:#f7d89a; color:#ffe3aa; }
+html[data-theme="newyear"] .lup .field :is(input,textarea,select),
+html[data-theme="newyear"] .lup :is(.v3-search input,.course-code-copy) {
+    background-color:#111a32;
+    color:#f5f2ff;
+    border-color:#776282;
+}
+html[data-theme="newyear"] .lup :is(button,a,input,textarea,select,summary):focus-visible {
+    outline-color:#9ae1ed;
+    outline-offset:3px;
+}
+html[data-theme="newyear"] .lup :is(.bar span,.v3-progress span) { background-color:#dab7f2; }
+html[data-theme="newyear"] .lup :is(.article pre,.course-code) { background-color:#11172d; border-color:#5f4c70; }
+html[data-theme="newyear"] .lup .course-code-body .keyword { color:#e7b7ff; }
+html[data-theme="newyear"] .lup .course-code-body .string { color:#a4e0c4; }
+html[data-theme="newyear"] .lup .course-code-body .comment { color:#adb2cb; }
+
+/* Colour only: the footer keeps the platform's normal dimensions. */
+html[data-theme="newyear"] .lup .footer {
+    background-color:#14162d;
+    border-top-color:#89704d;
+    color:#c5bed7;
+}
+html[data-theme="newyear"] .lup .footer a { color:#e0c9a6; }
+html[data-theme="newyear"] .lup .footer a:hover { color:#fff0ce; }
+
+@media(max-width:700px) {
+    html[data-theme="newyear"] .lup .body {
+        background-size:360px 255px;
+        background-position:right -155px top -12px;
+    }
+    html[data-theme="newyear"] .lup .lup-header {
+        background-size:560px 53px;
+        background-position:right top;
+    }
+    html[data-theme="newyear"] .lup :is(.hero,.badge-hero,.v3-next) {
+        background-size:410px 250px;
+        background-position:right -75px bottom 20px;
+    }
+}
+@media(forced-colors:active) {
+    html[data-theme="newyear"] .lup :is(.lup-header,.body,.hero,.badge-hero,.v3-next,.v4-launch) { background-image:none; }
+}

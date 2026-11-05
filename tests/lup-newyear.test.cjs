@@ -9,7 +9,7 @@ class BrowserAbortController extends AbortController {
 }
 const source = fs.readFileSync(path.join(__dirname, '../web/wwwroot/js/lup-newyear.js'), 'utf8');
 
-function scene({ reducedMotion = false, noTargets = false, protectedContent = null, viewportWidth = 800, canvasWidth = viewportWidth, loadedMascot = true } = {}) {
+function scene({ reducedMotion = false, noTargets = false, protectedContent = null, viewportWidth = 800, canvasWidth = viewportWidth, loadedMascot = true, targetCount = 2, reservePiercingTargets = false, reserveRadiusTargets = false, reserveCometTargets = false } = {}) {
     const pending = new Map(), observers = new Set(), closedEvents = [];
     let nextFrame = 0, clock = 0;
     const document = new EventTarget();
@@ -17,14 +17,15 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     document.documentElement = { dataset: { theme: 'newyear' } };
     const window = new EventTarget();
     const context = new Proxy({
-        rects: [], images: [],
-        clearRect() { this.rects = []; this.images = []; },
+        rects: [], images: [], texts: [],
+        clearRect() { this.rects = []; this.images = []; this.texts = []; },
         fillRect(...rect) { this.rects.push(rect); },
-        drawImage(image, ...args) { this.images.push({ image, args }); }
+        drawImage(image, ...args) { this.images.push({ image, args }); },
+        fillText(text, ...args) { this.texts.push({ text, args }); }
     }, { get(target, key) { return key in target ? target[key] : () => {}; } });
     function element(rect = {}) {
         const node = new EventTarget(), classes = new Set();
-        node.dataset = {}; node.style = {}; node.isConnected = true; node.textContent = ''; node.hidden = false;
+        node.dataset = {}; node.style = { setProperty(name, value) { this[name] = value; } }; node.isConnected = true; node.textContent = ''; node.hidden = false;
         node.classList = { add: value => classes.add(value), remove: value => classes.delete(value), contains: value => classes.has(value) };
         node.getBoundingClientRect = () => ({ left: 390, top: 300, width: 20, height: 20, right: 410, bottom: 320, ...rect });
         node.closest = () => null; node.querySelector = () => null; node.contains = other => other === node;
@@ -37,6 +38,14 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     const target = element();
     target.querySelector = selector => protectedContent && selector.split(',').includes(protectedContent) ? element() : null;
     const otherTarget = element({ left: 80, right: 110, top: 260, bottom: 280, width: 30 });
+    const interfaceTargets = [target, otherTarget];
+    for (let i = 2; i < targetCount; i++) interfaceTargets.push(element());
+    const piercingTargets = reservePiercingTargets ? [140, 540, 680].flatMap(left => [300, 260, 220].map(top => element({ left, right: left + 20, width: 20, top, bottom: top + 20 }))) : [];
+    interfaceTargets.push(...piercingTargets);
+    const radiusTargets = reserveRadiusTargets ? Array.from({ length: 11 }, (_, index) => element({ left: 120 + index * 55, right: 140 + index * 55, width: 20, top: 360, bottom: 380 })) : [];
+    interfaceTargets.push(...radiusTargets);
+    const cometTargets = reserveCometTargets ? Array.from({ length: 10 }, (_, index) => 120 + index * 60).flatMap(left => [360, 340, 320].map(top => element({ left, right: left + 20, width: 20, height: 12, top, bottom: top + 12 }))) : [];
+    interfaceTargets.push(...cometTargets);
     const canvas = element({ left: 0, top: 0, width: canvasWidth, height: 600, right: canvasWidth, bottom: 600 });
     canvas.getContext = () => context;
     const mascot = element(); mascot.complete = loadedMascot; mascot.naturalWidth = loadedMascot ? 1000 : 0; mascot.naturalHeight = loadedMascot ? 1000 : 0;
@@ -44,12 +53,18 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     const fields = Object.fromEntries(['score', 'level', 'hits', 'status'].map(name => ['[data-newyear-' + name + ']', element()]));
     fields['[data-newyear-hud]'] = element({ bottom: 94 });
     fields['[data-newyear-controls]'] = element({ top: 520 });
+    fields['[data-newyear-boost-empty]'] = element();
+    for (const kind of ['multishot', 'mega', 'rapid', 'comet', 'speed']) {
+        const chip = element(); chip.hidden = true;
+        fields['[data-newyear-boost="' + kind + '"]'] = chip;
+        fields["[data-newyear-boost='" + kind + "']"] = chip;
+    }
     const dialog = element(); dialog.open = false;
     dialog.showModal = () => { dialog.open = true; };
     dialog.close = () => { dialog.open = false; closedEvents.push(() => dialog.dispatchEvent(new Event('close'))); };
     dialog.querySelector = selector => fields[selector] || null;
     document.getElementById = id => ({ 'lup-newyear-game': dialog, 'lup-newyear-canvas': canvas, 'lup-newyear-player': mascot })[id] || null;
-    document.querySelectorAll = () => noTargets ? [] : [target, otherTarget];
+    document.querySelectorAll = () => noTargets ? [] : interfaceTargets;
     function emit(host, name, properties = {}) {
         const event = new Event(name, { cancelable: true });
         for (const [key, value] of Object.entries(properties)) Object.defineProperty(event, key, { value });
@@ -72,7 +87,7 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
         cancelAnimationFrame: id => pending.delete(id)
     });
     const app = {
-        game: window.lupNewYear, target, otherTarget, canvas, mascot, dialog, document, context, pending, observers, focusBefore, fields,
+        game: window.lupNewYear, target, otherTarget, interfaceTargets, piercingTargets, radiusTargets, cometTargets, canvas, mascot, dialog, document, context, pending, observers, focusBefore, fields,
         click(action) {
             const button = element(); button.dataset.newyearAction = action;
             button.closest = selector => selector === '[data-newyear-action]' || selector === 'button' ? button : null;
@@ -108,6 +123,31 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
         resize() { emit(window, 'resize'); }
     };
     return app;
+}
+
+
+function startChargedScene() {
+    const app = scene({ targetCount: 60 }); app.game.start(); app.aim(400); return app;
+}
+function chargeThrough(app, kind) {
+    app.aim(400); app.key(' ');
+    let attempts = 0;
+    while (!(app.game.state().boosts[kind] > 0) && attempts++ < 800) app.advance(20);
+    app.keyUp(' ');
+    assert.ok(app.game.state().boosts[kind] > 0, 'the ' + kind + ' boost is collected through ordinary shooting');
+    return app.game.state();
+}
+function clearShootingColumn(app) {
+    for (const target of app.interfaceTargets) target.isConnected = false;
+    app.aim(50); app.advance(1000);
+}
+function shootOnce(app, x = 400) {
+    app.aim(x); app.key(' '); app.keyUp(' ');
+    return app.game.state();
+}
+function clearTargetX(state, target) {
+    const candidates = [target.x + target.width - 6, target.x + 6, target.x + target.width / 2];
+    return candidates.find(x => !state.falling.some(other => other.id !== target.id && other.y > target.y && x >= other.x - 5 && x <= other.x + other.width + 5)) ?? candidates[0];
 }
 
 test('fireworks destroy actual interface content, award points and restore it on exit', () => {
@@ -157,37 +197,37 @@ test('the endless game adds faster and more frequent targets as play continues',
     app.game.stop();
 });
 
-test('six distinct falling target kinds appear, and a durable gift requires two physical hits', () => {
+test('six programming target kinds appear, and a merge conflict requires two physical hits', () => {
     const app = scene({ noTargets: true }); app.game.start();
     const kinds = new Set(app.game.state().falling.map(target => target.type));
     for (let i = 0; i < 5; i++) { app.advance(1400); app.game.state().falling.forEach(target => kinds.add(target.type)); }
-    assert.deepEqual([...kinds].sort(), ['balloon', 'disco', 'gift', 'hat', 'star', 'window']);
+    assert.deepEqual([...kinds].sort(), ['bug', 'build', 'merge', 'null', 'syntax', 'test']);
     app.game.stop();
-    const giftApp = scene({ noTargets: true }); giftApp.game.start();
-    const gift = giftApp.game.state().falling.find(target => target.type === 'gift');
-    assert.ok(gift); assert.equal(gift.hp, 2);
-    giftApp.aim(gift.x + gift.width / 2); giftApp.key(' '); giftApp.keyUp(' ');
+    const conflictApp = scene({ noTargets: true }); conflictApp.game.start(); conflictApp.advance(1000);
+    const conflict = conflictApp.game.state().falling.find(target => target.type === 'merge');
+    assert.ok(conflict); assert.equal(conflict.hp, 2);
+    conflictApp.aim(clearTargetX(conflictApp.game.state(), conflict)); conflictApp.key(' '); conflictApp.keyUp(' ');
     let damaged;
     for (let i = 0; i < 80; i++) {
-        giftApp.advance(20);
-        damaged = giftApp.game.state().falling.find(target => target.type === 'gift');
+        conflictApp.advance(20);
+        damaged = conflictApp.game.state().falling.find(target => target.id === conflict.id);
         if (damaged && damaged.hp === 1) break;
     }
-    assert.ok(damaged && damaged.hp === 1, 'first firework damages the gift');
-    assert.equal(giftApp.game.state().score, 0, 'partial damage does not award destruction points');
-    giftApp.aim(damaged.x + damaged.width / 2); giftApp.key(' '); giftApp.keyUp(' ');
-    for (let i = 0; i < 80 && giftApp.game.state().score === 0; i++) giftApp.advance(20);
-    assert.equal(giftApp.game.state().score, 150);
-    assert.equal(giftApp.game.state().hits, 1);
-    giftApp.game.stop();
+    assert.ok(damaged && damaged.hp === 1, 'the first firework damages the conflict');
+    assert.equal(conflictApp.game.state().score, 0, 'partial damage does not award destruction points');
+    conflictApp.aim(clearTargetX(conflictApp.game.state(), damaged)); conflictApp.key(' '); conflictApp.keyUp(' ');
+    for (let i = 0; i < 80 && conflictApp.game.state().score === 0; i++) conflictApp.advance(20);
+    assert.equal(conflictApp.game.state().score, 150);
+    assert.equal(conflictApp.game.state().hits, 1);
+    conflictApp.game.stop();
 });
 
 test('fireworks in another column cannot damage a falling target', () => {
     const app = scene({ noTargets: true }); app.game.start();
-    app.aim(45); app.key(' '); app.keyUp(' '); app.advance(1000);
+    app.aim(250); app.key(' '); app.keyUp(' '); app.advance(1000);
     assert.equal(app.game.state().score, 0);
     assert.equal(app.game.state().hits, 0);
-    assert.equal(app.game.state().falling.find(target => target.type === 'gift').hp, 2);
+    assert.ok(app.game.state().falling.every(target => target.hp > 0));
     app.game.stop();
 });
 
@@ -197,7 +237,8 @@ test('several minutes of spawning and held fire keep render resources bounded', 
     const state = app.game.state();
     assert.equal(state.running, true);
     assert.ok(state.spawned > 500); assert.ok(state.escaped > 0);
-    assert.ok(state.fallingCount <= 28); assert.ok(state.projectileCount <= 36); assert.ok(state.particleCount <= 360);
+    assert.ok(state.fallingCount <= 28); assert.ok(state.projectileCount <= 72); assert.ok(state.particleCount <= 720);
+    assert.ok(state.burstCount <= 12); assert.ok(state.labelCount <= 20); assert.ok(state.pickupCount <= 8);
     assert.ok(state.spawnInterval >= .19); assert.ok(state.fallSpeed <= 215); assert.ok(state.level <= 20);
     app.game.stop(); assert.equal(app.pending.size, 0);
 });
@@ -245,11 +286,17 @@ test('the supplied mascot image is rendered, and an unloaded image still allows 
     assert.equal(loading.context.images.length, 0); loading.game.stop();
 });
 
-test('reduced motion keeps shooting available while removing firework particles', () => {
+test('reduced motion keeps shooting and static explosion feedback without moving sparks', () => {
     const normal = scene(); normal.game.start(); normal.fireAtTarget();
     const reduced = scene({ reducedMotion: true }); reduced.game.start(); reduced.fireAtTarget();
     assert.equal(normal.game.state().score, 100); assert.equal(reduced.game.state().score, 100);
     assert.ok(normal.game.state().particleCount > 0); assert.equal(reduced.game.state().particleCount, 0);
+    assert.ok(reduced.game.state().burstCount > 0, 'reduced motion still communicates the hit');
+    const still = reduced.game.state().bursts[0], expanding = normal.game.state().bursts[0];
+    reduced.advance(100); normal.advance(100);
+    assert.equal(reduced.game.state().bursts[0].static, true);
+    assert.equal(reduced.game.state().bursts[0].radius, still.radius);
+    assert.ok(normal.game.state().bursts[0].radius > expanding.radius);
     normal.game.stop(); reduced.game.stop();
 });
 
@@ -303,5 +350,217 @@ test('pointer aiming follows the firing column and the sprite feet rest on the f
     assert.ok(draw, 'the supplied sprite is drawn');
     const [, top, , height] = draw.args;
     assert.ok(Math.abs(top + height * Number(app.mascot.dataset.footY) - 512) < .001, 'visible feet meet the floor rather than the transparent image edge');
+    app.game.stop();
+});
+
+
+test('the first destruction drops a boost that activates by being shot and has no free score', () => {
+    const app = scene(); app.game.start(); app.fireAtTarget();
+    let state = app.game.state();
+    assert.equal(state.pickupCount, 1);
+    assert.equal(state.pickups[0].type, 'multishot');
+    assert.equal(state.boosts.multishot, 0);
+    const score = state.score, hits = state.hits;
+    const pickup = state.pickups[0]; app.aim(pickup.x + pickup.width / 2); app.key(' '); app.keyUp(' ');
+    for (let i = 0; i < 100 && !app.game.state().boosts.multishot; i++) app.advance(20);
+    state = app.game.state();
+    assert.ok(state.boosts.multishot > 0 && state.boosts.multishot <= 12);
+    assert.equal(state.score, score); assert.equal(state.hits, hits);
+    const chip = app.fields['[data-newyear-boost="multishot"]'];
+    assert.equal(chip.hidden, false); assert.ok(chip.style['--boost-left']);
+    assert.equal(app.fields['[data-newyear-boost-empty]'].hidden, true);
+    app.game.stop();
+});
+
+test('a falling boost can be collected with the mascot without firing at it', () => {
+    const app = scene(); app.game.start(); app.fireAtTarget();
+    const pickup = app.game.state().pickups[0]; assert.ok(pickup);
+    const desiredPlayerCenter = pickup.x + pickup.width / 2;
+    app.aim(desiredPlayerCenter + (app.game.state().fireOriginX - app.game.state().playerX));
+    for (let i = 0; i < 600 && !app.game.state().boosts.multishot; i++) app.advance(20);
+    assert.ok(app.game.state().boosts.multishot > 0, 'touching the capsule activates it');
+    assert.equal(app.game.state().score, 100, 'catching a boost does not score as another target');
+    app.game.stop();
+});
+
+test('multi-shot fires a fan of three and mega fireworks become larger and deal more damage', () => {
+    const base = scene({ noTargets: true }); base.game.start(); shootOnce(base);
+    const ordinary = base.game.state().rockets[0]; assert.ok(ordinary); base.game.stop();
+    const app = startChargedScene(); chargeThrough(app, 'mega'); clearShootingColumn(app);
+    const before = app.game.state().projectileCount; const fired = shootOnce(app);
+    const volley = fired.rockets.slice(before);
+    assert.equal(volley.length, 3);
+    assert.ok(volley.some(projectile => projectile.vx < 0));
+    assert.ok(volley.some(projectile => projectile.vx === 0));
+    assert.ok(volley.some(projectile => projectile.vx > 0));
+    assert.ok(volley.every(projectile => projectile.radius > ordinary.radius));
+    assert.ok(volley.every(projectile => projectile.damage >= 2));
+    app.game.stop();
+});
+
+test('rapid fire increases firing cadence, comet pierces, and speed boosts real movement', () => {
+    const app = startChargedScene(); chargeThrough(app, 'speed'); clearShootingColumn(app);
+    const charged = app.game.state();
+    assert.ok(Object.values(charged.boosts).every(duration => duration > 0), 'different boost kinds stack');
+    const existing = app.game.state().projectileCount; app.key(' ');
+    const freshVolley = app.game.state().rockets.slice(existing);
+    assert.equal(freshVolley.length, 3);
+    assert.ok(freshVolley.every(projectile => projectile.pierceLeft === 3 && projectile.kind === 'comet'));
+    app.advance(170); app.keyUp(' ');
+    const volley = app.game.state().rockets;
+    assert.ok(volley.length >= 6, 'rapid fire launches more than one triple volley in 170ms');
+    const base = scene({ noTargets: true }); base.game.start(); shootOnce(base, 400);
+    const ordinary = base.game.state().rockets[0];
+    assert.ok(Math.abs(volley.find(projectile => projectile.vx === 0).vy) > Math.abs(ordinary.vy));
+    app.aim(400); base.aim(400); app.advance(20); base.advance(20);
+    const chargedX = app.game.state().playerX, normalX = base.game.state().playerX;
+    app.key('ArrowRight'); base.key('ArrowRight'); app.advance(100); base.advance(100);
+    const movedFast = app.game.state().playerX - chargedX, movedNormal = base.game.state().playerX - normalX;
+    assert.ok(movedFast > movedNormal * 1.3, 'speed changes actual movement, not only its HUD label');
+    app.keyUp('ArrowRight'); base.keyUp('ArrowRight'); app.game.stop(); base.game.stop();
+});
+
+test('boost duration pauses with the hidden tab, expires during active play, and restart clears it', () => {
+    const app = startChargedScene(); chargeThrough(app, 'mega'); clearShootingColumn(app);
+    const before = app.game.state().boosts;
+    app.visibility(true); app.advance(60000);
+    assert.deepEqual(app.game.state().boosts, before);
+    app.visibility(false); app.advance(20); app.advance(12500);
+    assert.ok(Object.values(app.game.state().boosts).every(duration => duration === 0));
+    assert.equal(app.fields['[data-newyear-boost="mega"]'].hidden, true);
+    const control = scene({ noTargets: true }); control.game.start(); const ordinary = shootOnce(control).rockets[0];
+    const normalShot = shootOnce(app).rockets;
+    assert.equal(normalShot.length, 1); assert.equal(normalShot[0].damage, ordinary.damage); assert.equal(normalShot[0].radius, ordinary.radius);
+    assert.equal(normalShot[0].pierceLeft, ordinary.pierceLeft); assert.equal(app.game.state().fireCooldown, control.game.state().fireCooldown);
+    control.game.stop();
+    for (const target of app.interfaceTargets) target.isConnected = true;
+    app.click('restart'); chargeThrough(app, 'multishot'); app.click('restart');
+    assert.ok(Object.values(app.game.state().boosts).every(duration => duration === 0));
+    assert.equal(app.game.state().pickupCount, 0);
+    app.game.stop();
+    assert.equal(app.game.state().projectileCount, 0); assert.equal(app.game.state().burstCount, 0);
+});
+
+test('a repeated boost refreshes its duration without extending it beyond twelve seconds', () => {
+    const app = startChargedScene(); chargeThrough(app, 'multishot'); app.advance(2500);
+    const before = app.game.state().boosts.multishot; assert.ok(before < 11);
+    app.aim(400); app.key(' ');
+    let previous = before, refreshed = false;
+    for (let i = 0; i < 700; i++) {
+        app.advance(20); const remaining = app.game.state().boosts.multishot;
+        if (remaining > previous + .1) { refreshed = true; assert.ok(remaining <= 12); break; }
+        previous = remaining;
+    }
+    app.keyUp(' '); assert.ok(refreshed, 'another earned capsule refreshes the same boost');
+    app.game.stop();
+});
+
+test('firework hits form a persistent radial bouquet with trails and then fade away', () => {
+    const app = scene(); app.game.start(); app.fireAtTarget();
+    let state = app.game.state();
+    assert.ok(state.burstCount > 0); assert.ok(state.particleCount >= 20);
+    const origin = state.bursts[0]; assert.ok(origin);
+    app.advance(100); state = app.game.state();
+    const left = state.particles.some(particle => particle.x < origin.x), right = state.particles.some(particle => particle.x > origin.x);
+    const up = state.particles.some(particle => particle.y < origin.y), down = state.particles.some(particle => particle.y > origin.y);
+    assert.ok(left && right && up && down, 'sparks expand in every direction');
+    app.advance(400); state = app.game.state();
+    assert.ok(state.burstCount > 0); assert.ok(state.particleCount > 0);
+    assert.ok(state.particles.some(particle => particle.previousX !== particle.x || particle.previousY !== particle.y), 'sparks retain a trailing segment');
+    for (const target of app.interfaceTargets) target.isConnected = false;
+    app.advance(2500);
+    assert.equal(app.game.state().particleCount, 0); assert.equal(app.game.state().burstCount, 0);
+    app.game.stop();
+});
+
+test('destroyed test and build targets show their programming success messages', () => {
+    for (const [kind, message] of [['test', 'PASS'], ['build', 'Build succeeded']]) {
+        const app = scene({ noTargets: true }); app.game.start();
+        let target;
+        for (let i = 0; i < 100 && !target; i++) { app.advance(100); target = app.game.state().falling.find(item => item.type === kind); }
+        assert.ok(target, kind + ' target spawns');
+        app.aim(clearTargetX(app.game.state(), target)); app.key(' ');
+        let success = false;
+        for (let i = 0; i < 160; i++) {
+            app.advance(20);
+            if (app.game.state().labels.some(label => label.text === message)) { success = true; break; }
+        }
+        app.keyUp(' '); assert.ok(success, message + ' is displayed after physical destruction'); app.game.stop();
+    }
+});
+
+
+test('a comet firework physically pierces three separate interface targets in one shot', () => {
+    const app = scene({ targetCount: 30, reserveCometTargets: true }); app.game.start();
+    chargeThrough(app, 'comet'); clearShootingColumn(app);
+    let waits = 0;
+    while (app.game.state().boosts.multishot > 0 && waits++ < 800) app.advance(20);
+    assert.equal(app.game.state().boosts.multishot, 0, 'the older fan boost expires naturally');
+    assert.ok(app.game.state().boosts.comet > 0, 'the later comet boost is still active');
+    const groups = Array.from({ length: 10 }, (_, index) => app.cometTargets.slice(index * 3, index * 3 + 3));
+    const selected = groups.find(group => {
+        const x = group[0].getBoundingClientRect().left + 10;
+        return !app.game.state().falling.some(item => item.y + item.height > 300 && x >= item.x - 8 && x <= item.x + item.width + 8);
+    });
+    assert.ok(selected, 'one physical shooting column is clear of unrelated falling targets');
+    for (const target of selected) target.isConnected = true;
+    const before = app.game.state(); assert.equal(before.remaining, 3);
+    const launched = shootOnce(app, selected[0].getBoundingClientRect().left + 10);
+    assert.equal(launched.projectileCount - before.projectileCount, 1);
+    for (let i = 0; i < 100 && app.game.state().remaining > 0; i++) app.advance(20);
+    assert.ok(selected.every(target => target.classList.contains('newyear-destroyed')));
+    assert.equal(app.game.state().hits - before.hits, 3);
+    assert.equal(app.game.state().score - before.score, 300);
+    app.game.stop();
+});
+
+
+test('a larger firework physically catches the edge that an ordinary shot misses', () => {
+    const app = scene({ targetCount: 30, reserveRadiusTargets: true }); app.game.start();
+    chargeThrough(app, 'mega'); clearShootingColumn(app);
+    let waits = 0;
+    while (app.game.state().boosts.multishot > 0 && waits++ < 800) app.advance(20);
+    assert.equal(app.game.state().boosts.multishot, 0);
+    assert.ok(app.game.state().boosts.mega > 0);
+    const selected = app.radiusTargets.find(target => {
+        const x = target.getBoundingClientRect().right + 4;
+        return !app.game.state().falling.some(item => item.y + item.height > 340 && x >= item.x - 8 && x <= item.x + item.width + 8);
+    });
+    assert.ok(selected, 'there is an unobstructed edge to aim at'); selected.isConnected = true;
+    const x = selected.getBoundingClientRect().right + 4;
+    const before = app.game.state().projectileCount, powered = shootOnce(app, x);
+    assert.equal(powered.projectileCount - before, 1);
+    assert.equal(powered.rockets.at(-1).damage, 2);
+    for (let i = 0; i < 100 && !selected.classList.contains('newyear-destroyed'); i++) app.advance(20);
+    assert.equal(selected.classList.contains('newyear-destroyed'), true);
+    const control = scene({ reserveRadiusTargets: true }); control.game.start();
+    const ordinaryTarget = control.radiusTargets.find(target => target.getBoundingClientRect().right + 4 === x);
+    shootOnce(control, x); control.advance(700);
+    assert.equal(ordinaryTarget.classList.contains('newyear-destroyed'), false, 'the same near-miss stays a miss without the larger radius');
+    app.game.stop(); control.game.stop();
+});
+
+
+test('a multi-shot side ray hits a target that the central firing column misses', () => {
+    const app = scene({ targetCount: 60, reservePiercingTargets: true }); app.game.start();
+    chargeThrough(app, 'multishot'); clearShootingColumn(app);
+    const target = app.piercingTargets[6]; target.isConnected = true;
+    const x = target.getBoundingClientRect().right + 21;
+    const before = app.game.state(); const fired = shootOnce(app, x);
+    assert.equal(fired.projectileCount - before.projectileCount, 3);
+    for (let i = 0; i < 100 && !target.classList.contains('newyear-destroyed'); i++) app.advance(20);
+    assert.equal(target.classList.contains('newyear-destroyed'), true);
+    const control = scene({ reservePiercingTargets: true }); control.game.start();
+    const ordinaryTarget = control.piercingTargets[6]; shootOnce(control, x); control.advance(700);
+    assert.equal(ordinaryTarget.classList.contains('newyear-destroyed'), false);
+    app.game.stop(); control.game.stop();
+});
+
+test('the first programming targets fit separately inside a narrow mobile canvas', () => {
+    const app = scene({ noTargets: true, viewportWidth: 320, canvasWidth: 305 }); app.game.start();
+    const initial = app.game.state().falling.toSorted((a, b) => a.x - b.x);
+    assert.equal(initial.length, 3);
+    for (const target of initial) { assert.ok(target.x >= 0); assert.ok(target.x + target.width <= 305); }
+    for (let i = 1; i < initial.length; i++) assert.ok(initial[i - 1].x + initial[i - 1].width <= initial[i].x);
     app.game.stop();
 });
