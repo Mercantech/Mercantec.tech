@@ -1,8 +1,10 @@
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Services;
+using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +27,13 @@ builder.Services.AddHttpClient("auth-admin", client =>
     client.Timeout = TimeSpan.FromSeconds(45);
 });
 builder.Services.AddScoped<MembershipClaimService>();
+
+builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));
+builder.Services.AddSingleton<IObjectStorage>(sp =>
+{
+    var opts = sp.GetRequiredService<IOptions<ObjectStorageOptions>>().Value;
+    return opts.IsConfigured ? new S3ObjectStorage(sp.GetRequiredService<IOptions<ObjectStorageOptions>>()) : new DisabledObjectStorage();
+});
 
 var connectionString =
     builder.Configuration.GetConnectionString("Default")

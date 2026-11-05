@@ -7,8 +7,13 @@ services:
   api:
     environment:
       Cors__SpaOrigins: http://localhost:3000;http://127.0.0.1:3000;http://localhost:5253;http://127.0.0.1:5253
+      ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_BASE_URL:-http://127.0.0.1:9000}
     ports:
       - "8080:8080"
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
 
 networks:
   default:
