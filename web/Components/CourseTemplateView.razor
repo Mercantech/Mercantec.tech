@@ -1,4 +1,5 @@
 @using Mercantec.Tech.Web.Courses
+@inject CourseTheoryDocumentLoader TheoryLoader
 
 @if (Course is null)
 {
@@ -34,7 +35,7 @@ else
             <a href="@($"{Course.Path}#content")">Indhold</a>
             @if (Course.HasTheory)
             {
-                <a href="@($"{Course.Path}#theory")">Teori og pensum</a>
+                <a href="@($"{Course.Path}#theory")">Teori for dagen</a>
             }
             <a href="@($"{Course.Path}#weeks")">Ugeplan</a>
             <a href="@($"{Course.Path}#evaluation")">Evaluering</a>
@@ -85,12 +86,58 @@ else
                 <p>@Course.Differentiation</p>
             </section>
 
-            @if (Course.HasTheory)
+            @if (Course.HasTheoryDocument)
             {
                 <section id="theory">
-                    <div class="headrow"><h2>Teori og pensum</h2><span>@Course.Theory!.Length blokke</span></div>
+                    <div class="headrow">
+                        <h2>Teori for dagen</h2>
+                        <span>@(_theoryBlocks?.Length.ToString() ?? "…") blokke · fuld tekst</span>
+                    </div>
+                    <p class="course-theory-lead">
+                        Komplet teori fra H2 Booking — alle 19 «Teori for dagen»-blokke med fuld brødtekst og kode.
+                        Uden holddatoer, elevdata eller secrets. Blokkene kan klappes sammen efter behov.
+                    </p>
+                    @if (_theoryError is not null)
+                    {
+                        <p class="course-theory-error">Kunne ikke hente teorien: @_theoryError</p>
+                    }
+                    else if (_theoryBlocks is null)
+                    {
+                        <p class="course-theory-lead">Henter teoriblokke…</p>
+                    }
+                    else
+                    {
+                        <nav class="course-theory-index" aria-label="Teoriblokke">
+                            @foreach (var block in _theoryBlocks)
+                            {
+                                <a href="@($"{Course.Path}#theory-{block.Number}")">@block.Number. @block.Title</a>
+                            }
+                        </nav>
+                        @foreach (var block in _theoryBlocks)
+                        {
+                            <details class="course-theory-full" id="@($"theory-{block.Number}")" open>
+                                <summary>
+                                    <span class="week-number">@block.Number</span>
+                                    <span>
+                                        <strong>@block.Title</strong>
+                                        <small>Teori for dagen · fuld tekst</small>
+                                    </span>
+                                    <span class="week-chevron">⌄</span>
+                                </summary>
+                                <div class="course-theory-body">
+                                    @CourseMarkdown.ToHtml(block.Markdown)
+                                </div>
+                            </details>
+                        }
+                    }
+                </section>
+            }
+            else if (Course.Theory is { Length: > 0 })
+            {
+                <section id="theory">
+                    <div class="headrow"><h2>Teori og pensum</h2><span>@Course.Theory.Length blokke</span></div>
                     <p class="course-theory-lead">Generelt platform-pensum — uden holddatoer eller elevdata. Emnerne følger undervisningens teoriblokke og fagmål.</p>
-                    @foreach (var block in Course.Theory!)
+                    @foreach (var block in Course.Theory)
                     {
                         <article class="course-theory-block">
                             <h3>@block.Title</h3>
@@ -157,4 +204,36 @@ else
 @code {
     [Parameter] public CourseTemplate? Course { get; set; }
     [Parameter] public bool ShowLearningLink { get; set; } = true;
+
+    private CourseTheoryDocumentBlock[]? _theoryBlocks;
+    private string? _theoryError;
+    private string? _loadedPath;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Course is null || !Course.HasTheoryDocument)
+        {
+            _theoryBlocks = null;
+            _theoryError = null;
+            _loadedPath = null;
+            return;
+        }
+
+        var path = Course.TheoryDocumentPath!;
+        if (string.Equals(_loadedPath, path, StringComparison.OrdinalIgnoreCase) && _theoryBlocks is not null)
+            return;
+
+        _theoryError = null;
+        try
+        {
+            _theoryBlocks = await TheoryLoader.LoadAsync(path);
+            _loadedPath = path;
+        }
+        catch (Exception ex)
+        {
+            _theoryBlocks = null;
+            _loadedPath = null;
+            _theoryError = ex.Message;
+        }
+    }
 }
