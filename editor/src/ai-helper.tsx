@@ -1,8 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { BlockNoteEditor } from '@blocknote/core';
-import { insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
+import { SideMenuExtension, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
+import { useBlockNoteEditor, useComponentsContext, useExtensionState } from '@blocknote/react';
+import {
+  anchoredApplyMode,
+  blockTextPreview,
+  selectionTextForAi,
+  type AiAction,
+} from './ai-block-text';
 
-export type AiAction = 'generate' | 'rewrite' | 'mermaid';
+export type { AiAction };
 
 export interface AiBlockDto {
   type: string;
@@ -70,20 +77,55 @@ function toEditorBlock(block: AiBlockDto): Record<string, unknown> {
   return out;
 }
 
+function placeCursor(editor: BlockNoteEditor<any, any, any>, block: { id: string } | undefined) {
+  if (!block) return;
+  try {
+    editor.setTextCursorPosition(block, 'end');
+  } catch {
+    /* Void blocks have no caret. */
+  }
+}
+
 export function insertAiBlocks(
   editor: BlockNoteEditor<any, any, any>,
   blocks: AiBlockDto[],
   mode: AiAction,
+  anchorBlockId?: string,
 ): void {
   if (!blocks.length) return;
   editor.focus();
   const mapped = blocks.map(toEditorBlock) as any[];
+
+  if (anchorBlockId) {
+    const anchor = editor.getBlock(anchorBlockId);
+    if (!anchor) throw new Error('Blokken findes ikke længere. Åbn AI igen fra blokmenuen.');
+    const apply = anchoredApplyMode(mode, anchor);
+    let last: { id: string } | undefined;
+    editor.transact(() => {
+      if (apply === 'replace') {
+        const replaced = editor.replaceBlocks([anchor], mapped);
+        last = replaced.insertedBlocks[replaced.insertedBlocks.length - 1];
+        return;
+      }
+      if (apply === 'fill-empty') {
+        const updated = editor.updateBlock(anchor, mapped[0]);
+        const rest = mapped.slice(1);
+        const inserted = rest.length ? editor.insertBlocks(rest, updated, 'after') : [];
+        last = inserted[inserted.length - 1] ?? updated;
+        return;
+      }
+      const inserted = editor.insertBlocks(mapped, anchor, 'after');
+      last = inserted[inserted.length - 1];
+    });
+    placeCursor(editor, last);
+    return;
+  }
+
   const cursor = editor.getTextCursorPosition().block;
 
   if (mode === 'rewrite') {
     const replaced = editor.replaceBlocks([cursor], mapped);
-    const last = replaced.insertedBlocks[replaced.insertedBlocks.length - 1];
-    if (last) editor.setTextCursorPosition(last, 'end');
+    placeCursor(editor, replaced.insertedBlocks[replaced.insertedBlocks.length - 1]);
     return;
   }
 
@@ -97,8 +139,7 @@ export function insertAiBlocks(
   }
 
   const inserted = editor.insertBlocks(mapped, cursor, 'after');
-  const last = inserted[inserted.length - 1];
-  if (last) editor.setTextCursorPosition(last, 'end');
+  placeCursor(editor, inserted[inserted.length - 1]);
 }
 
 function selectionOrBlockText(editor: BlockNoteEditor<any, any, any>): string {
@@ -122,6 +163,35 @@ function selectionOrBlockText(editor: BlockNoteEditor<any, any, any>): string {
   return '';
 }
 
+const OpenAiOnBlockContext = createContext<((blockId: string) => void) | null>(null);
+
+export function OpenAiOnBlockProvider({
+  openOnBlock,
+  children,
+}: {
+  openOnBlock: (blockId: string) => void;
+  children: React.ReactNode;
+}) {
+  return <OpenAiOnBlockContext.Provider value={openOnBlock}>{children}</OpenAiOnBlockContext.Provider>;
+}
+
+/** Drag-handle item. Label is the Danish menu name «AI». */
+export function AiDragHandleItem() {
+  const openOnBlock = useContext(OpenAiOnBlockContext);
+  const Components = useComponentsContext();
+  const editor = useBlockNoteEditor<any, any, any>();
+  const block = useExtensionState(SideMenuExtension, {
+    editor,
+    selector: (state) => state?.block,
+  });
+  if (!Components || !openOnBlock || !block) return null;
+  return (
+    <Components.Generic.Menu.Item className="bn-menu-item" onClick={() => openOnBlock(block.id)}>
+      AI
+    </Components.Generic.Menu.Item>
+  );
+}
+
 export function AiHelperPanel({
   editor,
   enabled,
@@ -129,6 +199,8 @@ export function AiHelperPanel({
   getToken,
   open,
   onOpenChange,
+  anchorBlockId = null,
+  anchorText = null,
 }: {
   editor: BlockNoteEditor<any, any, any>;
   enabled: boolean;
@@ -136,6 +208,10 @@ export function AiHelperPanel({
   getToken: TokenFn;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Set when the panel was opened from the drag handle. */
+  anchorBlockId?: string | null;
+  /** Snapshot of that block's text. null means toolbar or slash /ai. */
+  anchorText?: string | null;
 }) {
   const [action, setAction] = useState<AiAction>('generate');
   const [prompt, setPrompt] = useState('');
@@ -147,6 +223,9 @@ export function AiHelperPanel({
 
   useEffect(() => {
     if (open) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setBusy(false);
       setError('');
       setNote('');
       queueMicrotask(() => inputRef.current?.focus());
@@ -155,7 +234,7 @@ export function AiHelperPanel({
       abortRef.current = null;
       setBusy(false);
     }
-  }, [open]);
+  }, [open, anchorBlockId]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -168,9 +247,15 @@ export function AiHelperPanel({
       setError('Skriv en instruktion først.');
       return;
     }
-    const selectionText = action === 'rewrite' ? selectionOrBlockText(editor) : undefined;
+    if (anchorBlockId && !editor.getBlock(anchorBlockId)) {
+      setError('Blokken findes ikke længere. Åbn AI igen fra blokmenuen.');
+      return;
+    }
+    const selectionText = selectionTextForAi(action, anchorText, selectionOrBlockText(editor));
     if (action === 'rewrite' && !selectionText) {
-      setError('Markér tekst eller placér markøren i en blok med indhold for at omskrive.');
+      setError(anchorText !== null
+        ? 'Blokken har ingen tekst at omskrive.'
+        : 'Markér tekst eller placér markøren i en blok med indhold for at omskrive.');
       return;
     }
 
@@ -188,7 +273,7 @@ export function AiHelperPanel({
       );
       const blocks = data.blocks ?? [];
       if (!blocks.length) throw new Error('AI returnerede ingen blokke.');
-      insertAiBlocks(editor, blocks, action);
+      insertAiBlocks(editor, blocks, action, anchorBlockId ?? undefined);
       setNote(data.assistantNote?.trim() || 'Indsat.');
       setPrompt('');
     } catch (ex) {
@@ -201,13 +286,18 @@ export function AiHelperPanel({
   };
 
   return (
-    <div className="notion-ai-panel" role="dialog" aria-label="AI-hjælper">
+    <div className="notion-ai-panel" role="dialog" aria-label={anchorText !== null ? 'AI-hjælper for blokken' : 'AI-hjælper'}>
       <div className="notion-ai-panel-head">
         <strong>AI-hjælper</strong>
         <button type="button" onClick={() => onOpenChange(false)} disabled={busy} aria-label="Luk">
           Luk
         </button>
       </div>
+      {anchorText !== null && (
+        <p className="notion-ai-source">
+          {blockTextPreview(anchorText) ? <>Udgangspunkt: «{blockTextPreview(anchorText)}»</> : 'Udgangspunkt: tom blok'}
+        </p>
+      )}
       <div className="notion-ai-actions" role="group" aria-label="Handling">
         <button type="button" className={action === 'generate' ? 'is-active' : undefined} disabled={busy} onClick={() => setAction('generate')}>
           Generér

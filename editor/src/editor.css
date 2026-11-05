@@ -15,6 +15,7 @@
 .notion-ai-panel-head strong{font-size:13px}
 .notion-ai-panel-head button{border:0;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer;padding:4px 6px;border-radius:6px}
 .notion-ai-panel-head button:hover{background:var(--notion-tint)}
+.notion-ai-source{margin:0;font-size:12px;line-height:1.4;opacity:.8}
 .notion-ai-actions{display:flex;flex-wrap:wrap;gap:6px}
 .notion-ai-actions button{border:1px solid var(--notion-rule);border-radius:6px;padding:6px 10px;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer}
 .notion-ai-actions button.is-active{border-color:var(--notion-blue);background:var(--notion-tint);color:var(--notion-blue);font-weight:600}
