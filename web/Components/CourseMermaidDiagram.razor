@@ -1,0 +1,31 @@
+@inject IJSRuntime Js
+
+<div class="course-mermaid-panel">
+    <div class="course-code-bar">
+        <span class="course-code-lang">Diagram</span>
+    </div>
+    <div @ref="_host" class="course-mermaid-host"></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = string.Empty;
+
+    private ElementReference _host;
+    private string? _drawn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (string.Equals(_drawn, Code, StringComparison.Ordinal))
+            return;
+
+        try
+        {
+            await Js.InvokeVoidAsync("courseMermaid.renderDefinition", _host, Code ?? string.Empty);
+            _drawn = Code;
+        }
+        catch (JSException)
+        {
+            // Script mangler — host forbliver tom; næste render prøver igen.
+        }
+    }
+}

@@ -62,7 +62,7 @@ public static class CourseMarkdown
                 i++;
             }
 
-            // Mermaid m.fl. bevares som code-segment (sprog-hint) — diagram-rendering er separat PR.
+            // Mermaid bevares som code-segment; CourseMarkdownBody tegner dem via CourseMermaidDiagram.
             segments.Add(new CourseMarkdownCodeSegment(language, code.ToString()));
             // Lukke-``` er «brugt»; for-løkken stepper videre.
         }

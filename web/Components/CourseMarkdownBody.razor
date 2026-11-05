@@ -8,7 +8,14 @@
     }
     else if (segment is CourseMarkdownCodeSegment fence)
     {
-        <CourseCodeBlock Language="@fence.Language" Code="@fence.Code" />
+        @if (IsMermaid(fence.Language))
+        {
+            <CourseMermaidDiagram Code="@fence.Code" />
+        }
+        else
+        {
+            <CourseCodeBlock Language="@fence.Language" Code="@fence.Code" />
+        }
     }
 }
 
@@ -26,4 +33,7 @@
         _parsed = Markdown;
         _segments = CourseMarkdown.ToSegments(Markdown);
     }
+
+    private static bool IsMermaid(string? language) =>
+        string.Equals((language ?? string.Empty).Trim(), "mermaid", StringComparison.OrdinalIgnoreCase);
 }
