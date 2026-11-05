@@ -28,15 +28,16 @@ else
     <div class="course-document">
         <aside class="course-toc">
             <h2>I denne plan</h2>
-            <a href="#about">Om forløbet</a>
-            <a href="#goals">Mål</a>
-            <a href="#content">Indhold</a>
+            @* Path+hash: fragment-only (#about) resolves against <base href="/"> to /#about (= forsiden). *@
+            <a href="@($"{Course.Path}#about")">Om forløbet</a>
+            <a href="@($"{Course.Path}#goals")">Mål</a>
+            <a href="@($"{Course.Path}#content")">Indhold</a>
             @if (Course.HasTheory)
             {
-                <a href="#theory">Teori og pensum</a>
+                <a href="@($"{Course.Path}#theory")">Teori og pensum</a>
             }
-            <a href="#weeks">Ugeplan</a>
-            <a href="#evaluation">Evaluering</a>
+            <a href="@($"{Course.Path}#weeks")">Ugeplan</a>
+            <a href="@($"{Course.Path}#evaluation")">Evaluering</a>
             <a href="/courses/template">Skabelon-katalog</a>
         </aside>
 

@@ -8,7 +8,7 @@
 @implements IDisposable
 
 <ThemeDecorations />
-<a class="skip-link" href="#main-content">Spring til indhold</a>
+<a class="skip-link" href="@SkipToContentHref">Spring til indhold</a>
 <div class="lup">
     <div class="app">
         <header class="lup-header">
@@ -140,6 +140,16 @@
     private bool IsTeacher => Auth.IsAuthenticated && Redirect.CurrentAppRole() == AppRole.Underviser;
     private bool HasDemoCourse => !string.IsNullOrEmpty(_demoCourse);
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
+
+    // Fragment-only (#main-content) resolves against <base href="/"> to /#main-content (= forsiden).
+    private string SkipToContentHref
+    {
+        get
+        {
+            var path = Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath;
+            return string.IsNullOrEmpty(path) ? "/#main-content" : $"{path}#main-content";
+        }
+    }
 
     private IReadOnlyList<NavGroup> Groups => IsTeacher ? TeacherGroups : StudentGroups;
 
