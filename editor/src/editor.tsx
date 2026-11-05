@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, type BlockNoteEditor } from '@blocknote/core';
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
 import { withCollaboration } from '@blocknote/core/yjs';
-import { createReactBlockSpec, createReactInlineContentSpec, FormattingToolbar, FormattingToolbarController, getDefaultReactSlashMenuItems, SideMenu, SideMenuController, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
+import { createReactBlockSpec, createReactInlineContentSpec, FormattingToolbar, FormattingToolbarController, getDefaultReactSlashMenuItems, getFormattingToolbarItems, SideMenu, SideMenuController, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import * as Y from 'yjs';
@@ -15,7 +15,7 @@ import { pollUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPubl
 import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
-import { NotionDragHandleMenu, turnIntoSelectItems } from './turn-into';
+import { NotionBlockTypeSelect, NotionDragHandleMenu } from './turn-into';
 import { blockPlainText } from './ai-block-text';
 import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
@@ -353,7 +353,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false}>
       {!session.readOnly && <>
-        <FormattingToolbarController formattingToolbar={() => <FormattingToolbar blockTypeSelectItems={turnIntoSelectItems(editor)} />} />
+        <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
         <SuggestionMenuController triggerCharacter="@" getItems={async query=>filterSuggestionItems(mentionItems,query)} />
