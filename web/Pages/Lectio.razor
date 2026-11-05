@@ -1,6 +1,7 @@
 @page "/lectio"
 @using System.Net.Http.Json
 @using System.Text.Json
+@using LectioData = Mercantec.Tech.Web.Lectio
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject HttpClient Http
@@ -62,7 +63,16 @@ else
         <header class="page-title">
             <div>
                 <h1>Lectio</h1>
-                <p>Som elev ser du kun dig selv, efter din profil er koblet.</p>
+                <p>
+                    @if (_linked)
+                    {
+                        <text>Dit elev-overblik med VUF, status og forløbstidslinje fra Lectio.</text>
+                    }
+                    else
+                    {
+                        <text>Kobl din Lectio-profil for at se VUF, status og forløb.</text>
+                    }
+                </p>
             </div>
         </header>
     }
@@ -982,21 +992,14 @@ else
     }
     else if (_linked)
     {
-        <section class="panel">
-            <h2>Mine data</h2>
-            @if (_linkOk)
-            {
-                <p class="callout ok">Kobling gemt.</p>
-            }
-            @if (_meStudent is not null)
-            {
-                <pre class="lectio-raw">@_meStudent</pre>
-            }
-            else if (_meJson is not null)
-            {
-                <pre class="lectio-raw">@_meJson</pre>
-            }
-        </section>
+        <StudentElevOverview Snapshot="_elevSnapshot"
+                             Plan="_elevPlan"
+                             Timeline="_elevTimeline"
+                             LoadingSnapshot="_elevSnapshotLoading"
+                             LoadingPlan="_elevPlanLoading"
+                             PlanError="_elevPlanError"
+                             ShowLinkSaved="_linkOk"
+                             ShowDashboardLink="true" />
     }
     else
     {
@@ -1080,9 +1083,14 @@ else
 
 @code {
     private string? _error;
-    private string? _meJson;
-    private string? _meStudent;
     private string? _authName;
+    private string? _elevLectioId;
+    private string? _elevPlanError;
+    private LectioData.StudentSnapshot? _elevSnapshot;
+    private LectioData.StudentPlan? _elevPlan;
+    private LectioData.TimelineView? _elevTimeline;
+    private bool _elevSnapshotLoading;
+    private bool _elevPlanLoading;
     private string? _selectedLectioId;
     private string _studentQuery = "";
     private string _holdQuery = "";
@@ -1661,7 +1669,13 @@ else
         _loadingHoldKey = null;
         _holdMemberQuery = "";
         _linked = false;
-        _meStudent = null;
+        _elevLectioId = null;
+        _elevSnapshot = null;
+        _elevPlan = null;
+        _elevTimeline = null;
+        _elevPlanError = null;
+        _elevSnapshotLoading = false;
+        _elevPlanLoading = false;
         StateHasChanged();
 
         try
@@ -1674,19 +1688,14 @@ else
                 return;
             }
 
-            _meJson = Pretty(meBody);
-            _linked = HasLectioLink(meBody);
+            _elevLectioId = LectioData.Studieplan.ExtractLectioId(meBody);
+            _linked = !string.IsNullOrWhiteSpace(_elevLectioId);
 
             if (Redirect.CurrentAppRole() == AppRole.Elev)
             {
                 if (_linked)
                 {
-                    var studentRes = await Http.GetAsync("lectio/me/student");
-                    var studentBody = await studentRes.Content.ReadAsStringAsync();
-                    if (studentRes.IsSuccessStatusCode)
-                        _meStudent = Pretty(studentBody);
-                    else if ((int)studentRes.StatusCode != 403)
-                        _error = $"Mine data ({(int)studentRes.StatusCode}): {Trim(studentBody)}";
+                    await LoadElevOverviewAsync(_elevLectioId!);
                 }
                 else if (!_dismissed)
                 {
@@ -1716,6 +1725,58 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    private async Task LoadElevOverviewAsync(string lectioId)
+    {
+        _elevSnapshotLoading = true;
+        _elevPlanLoading = true;
+        _elevPlanError = null;
+        try
+        {
+            var studentRes = await Http.GetAsync("lectio/me/student");
+            var studentBody = await studentRes.Content.ReadAsStringAsync();
+            if (studentRes.IsSuccessStatusCode)
+            {
+                _elevSnapshot = LectioData.Studieplan.ParseStudentSnapshot(studentBody);
+                if (!string.IsNullOrWhiteSpace(_elevSnapshot?.LectioId))
+                    lectioId = _elevSnapshot.LectioId!;
+            }
+            else if ((int)studentRes.StatusCode != 403)
+            {
+                _error = $"Mine data ({(int)studentRes.StatusCode}): {Trim(studentBody)}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _elevSnapshotLoading = false;
+        }
+
+        try
+        {
+            var res = await Http.GetAsync($"lectio/students/{Uri.EscapeDataString(lectioId)}/studieplan");
+            var body = await res.Content.ReadAsStringAsync();
+            if (!res.IsSuccessStatusCode)
+            {
+                _elevPlanError = $"Studieplan kunne ikke hentes ({(int)res.StatusCode}).";
+                return;
+            }
+
+            _elevPlan = LectioData.Studieplan.ParsePlan(body);
+            _elevTimeline = LectioData.Studieplan.BuildTimeline(_elevPlan.Periods);
+        }
+        catch (Exception ex)
+        {
+            _elevPlanError = ex.Message;
+        }
+        finally
+        {
+            _elevPlanLoading = false;
         }
     }
 
@@ -2495,25 +2556,6 @@ else
         return false;
     }
 
-    private static bool HasLectioLink(string meJson)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(meJson);
-            if (!doc.RootElement.TryGetProperty("lectio", out var lectio))
-                return false;
-            if (lectio.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                return false;
-            return lectio.TryGetProperty("lectioId", out var id)
-                   && id.ValueKind == JsonValueKind.String
-                   && !string.IsNullOrWhiteSpace(id.GetString());
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     private static string? GetString(JsonElement el, string name) =>
         el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
 
@@ -2550,19 +2592,6 @@ else
         if (p.TryGetDateTimeOffset(out var dt))
             return DateOnly.FromDateTime(dt.Date);
         return null;
-    }
-
-    private static string Pretty(string json)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
-        }
-        catch
-        {
-            return json;
-        }
     }
 
     private static string Trim(string s) =>
