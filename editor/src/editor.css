@@ -68,9 +68,8 @@
 .notion-blocknote-host .notion-media-error button{margin-left:10px;padding:6px 9px;border:1px solid var(--rule,#dfe7f2);border-radius:5px;background:var(--paper,#fff)}
 .notion-mermaid-block{width:100%;margin:6px 0;background:transparent;border:0;padding:0}
 .notion-mermaid-surface{display:block;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:default}
-.notion-mermaid-surface:disabled{cursor:default}
-.notion-mermaid-surface:not(:disabled){cursor:pointer}
-.notion-mermaid-surface:focus-visible{outline:2px solid var(--notion-blue);outline-offset:3px;border-radius:4px}
+.notion-mermaid-surface[role="button"]{cursor:pointer}
+.notion-mermaid-surface[role="button"]:focus-visible{outline:2px solid var(--notion-blue);outline-offset:3px;border-radius:4px}
 .notion-mermaid-editor{display:grid;gap:6px;width:100%}
 .notion-mermaid-editor textarea{display:block;width:100%;min-height:120px;resize:vertical;padding:10px 12px;border:1px solid var(--notion-rule);border-radius:6px;background:var(--notion-paper);color:var(--notion-ink);font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2}
 .notion-mermaid-hint{font-size:11px;color:var(--notion-muted)}
