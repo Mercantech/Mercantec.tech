@@ -116,8 +116,8 @@ function create(host, dotnet, payload) {
     }
 
     function resize() {
-        width = host.clientWidth;
-        height = host.clientHeight;
+        width = host.clientWidth || stage.clientWidth;
+        height = host.clientHeight || stage.clientHeight;
         if (width < 2 || height < 2) return;
         dpr = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.round(width * dpr);
@@ -148,19 +148,35 @@ function create(host, dotnet, payload) {
         return set;
     }
 
-    function color(name, fallback) {
-        const value = getComputedStyle(host).getPropertyValue(name).trim();
-        return value || fallback;
+    const themeRoot = host.closest(".lup") ?? document.documentElement;
+    const themeProbe = document.createElement("span");
+    themeProbe.hidden = true;
+    themeProbe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;";
+    themeRoot.appendChild(themeProbe);
+
+    function themeColors() {
+        const style = themeProbe.style;
+        const read = (name, prop) => {
+            style.color = prop === "color" ? `var(${name})` : "";
+            style.backgroundColor = prop === "backgroundColor" ? `var(${name})` : "";
+            const computed = getComputedStyle(themeProbe);
+            const value = prop === "backgroundColor" ? computed.backgroundColor : computed.color;
+            return value && value !== "rgba(0, 0, 0, 0)" ? value : "";
+        };
+        const stageBg = getComputedStyle(stage).backgroundColor;
+        return {
+            paper: stageBg && stageBg !== "rgba(0, 0, 0, 0)" ? stageBg : read("--paper", "backgroundColor") || "#ffffff",
+            ink: read("--ink", "color") || "#17243b",
+            muted: read("--muted", "color") || "#63728b",
+            blue: read("--blue", "color") || "#2452e8",
+            rule: read("--rule", "backgroundColor") || read("--rule", "color") || "#dfe7f2",
+            tint: read("--tint", "backgroundColor") || read("--tint", "color") || "#eaf0ff"
+        };
     }
 
     function draw() {
         if (width < 2 || height < 2) return;
-        const paper = color("--paper", "#fff");
-        const ink = color("--ink", "#17243b");
-        const muted = color("--muted", "#63728b");
-        const blue = color("--blue", "#2452e8");
-        const rule = color("--rule", "#dfe7f2");
-        const tint = color("--tint", "#eaf0ff");
+        const { paper, ink, muted, blue, rule, tint } = themeColors();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
         ctx.fillStyle = paper;
@@ -336,6 +352,7 @@ function create(host, dotnet, payload) {
 
     const observer = new ResizeObserver(resize);
     observer.observe(host);
+    observer.observe(stage);
     const theme = new MutationObserver(draw);
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "style"] });
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -350,6 +367,7 @@ function create(host, dotnet, payload) {
             ac.abort();
             observer.disconnect();
             theme.disconnect();
+            themeProbe.remove();
             if (host.contains(canvas)) canvas.remove();
         }
     };
