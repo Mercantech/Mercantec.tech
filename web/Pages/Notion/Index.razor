@@ -3,70 +3,64 @@
 @using Mercantec.Tech.Web.Notion
 @implements IAsyncDisposable
 
-<PageTitle>Forløbseditor · LUP</PageTitle>
+<PageTitle>@(_current?.Title ?? "Holdets indhold") · LUP</PageTitle>
 <NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
 <link rel="stylesheet" href="/notion-editor/editor.css" />
-
-@if (!Auth.IsInitialized)
-{
-    <p role="status">Indlæser…</p>
-}
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
 else if (!Auth.IsAuthenticated)
 {
-    <section class="notion-welcome panel"><h1>Forløbseditor</h1><p>Log ind som underviser for at skrive og samarbejde om holdets indhold.</p><a class="action" href="/login">Log ind</a></section>
-}
-else if (!CanUse)
-{
-    <section class="notion-welcome panel"><h1>Forløbseditor for undervisere</h1><p>Testområdet er åbent for undervisere på deres egne hold. Afslut eventuel elevvisning for at redigere.</p><a class="secondary" href="/">Til overblik</a></section>
+    <section class="notion-welcome panel"><h1>Holdets indhold</h1><p>Log ind for at åbne undervisningssider fra dine hold.</p><a class="action" href="/login">Log ind</a></section>
 }
 else
 {
-    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/teacher">Underviser</a><span>›</span><span>Forløbseditor</span></nav><h1>Skriv undervisningen sammen.</h1><p>Dokumenter med holdets elever, afstemninger og plads til næste idé.</p></div><span class="pill">Testversion · Kun undervisere</span></header>
-    @if (_error is not null)
-    {
-        <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div>
-    }
-    @if (_loading)
-    {
-        <p role="status">Henter dine hold og dokumenter…</p>
-    }
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><span>Holdets indhold</span></nav><h1>@(_holds.Any(h => h.CanManage) && !ForceReadOnly ? "Skriv undervisningen sammen." : "Holdets indhold")</h1><p>@(_holds.Any(h => h.CanManage) && !ForceReadOnly ? "Arbejd i kladden, og udgiv en færdig version til eleverne." : "Læs de sider, din underviser har udgivet til holdet.")</p></div></header>
+    @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
+    @if (_notice is not null) { <p class="notion-notice" role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter holdets indhold…</p> }
     else if (_holds.Length == 0)
     {
-        <section class="panel notion-welcome"><h2>Start med et hold</h2><p>Der er endnu ingen hold, som din konto kan administrere. Opret et forløb med et hold, eller få adgang til et eksisterende hold.</p><a class="action" href="/courses">Forløb og hold</a></section>
+        <section class="panel notion-welcome"><h2>Du er ikke tilknyttet et hold endnu</h2><p>Når du bliver tilføjet til et hold, vises dets udgivne indhold her.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
     }
     else
     {
+        @if (_showGroups && CanManageHold)
+        {
+            <section class="panel notion-group-panel"><div class="notion-actions"><button class="secondary" @onclick="() => _showGroups = false">Luk gruppeværktøj</button><a href="/notion/holds/@_holdId/groups" class="secondary">Åbn holdets grupper</a></div><HoldGroups @key="(_holdId, _groupPanelGeneration)" HoldId="_holdId" InitialSelection="_groupSelection" OnSaved="RefreshContext" /></section>
+        }
         <div class="notion-workspace">
             <aside class="notion-sidebar" aria-label="Holdets dokumenter">
                 <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@_busy">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
-                <div class="notion-sidebar-heading"><h2>Dokumenter</h2><button class="secondary" @onclick="() => BeginCreate(false)" disabled="@_busy" aria-label="Opret dokument">+</button></div>
-                @if (_pages.Length == 0) { <p class="notion-hint">Opret den første side til holdets undervisning.</p> }
+                <a class="notion-hold-link" href="/notion/holds/@_holdId/groups">Elever og grupper</a>
+                <div class="notion-sidebar-heading"><h2>Sider</h2>@if (Authoring) { <button class="secondary" @onclick="() => BeginCreate(false)" disabled="@_busy" aria-label="Opret dokument">+</button> }</div>
                 <nav class="notion-page-list" aria-label="Dokumentsider">
                     @foreach (var item in OrderedPages())
                     {
-                        <button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" style="--page-depth:@item.Depth" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span>@item.Page.Title</span></button>
+                        <button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" style="--page-depth:@item.Depth" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span>@item.Page.Title@if (Authoring) { <small>@(item.Page.PublishedAtUtc is null ? "Kladde" : item.Page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet")</small> }</span></button>
                     }
                 </nav>
-                @if (_creating)
+                @if (_creating && Authoring)
                 {
-                    <form class="notion-create" @onsubmit="CreatePage" @onsubmit:preventDefault>
-                        <label class="field">@(_newParent is null ? "Ny side" : "Ny underside")<input @bind="_newTitle" maxlength="200" required placeholder="Sidens titel" /></label>
-                        <div class="notion-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newTitle))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annuller</button></div>
-                    </form>
+                    <form class="notion-create" @onsubmit="CreatePage" @onsubmit:preventDefault><label class="field">@(_newParent is null ? "Ny side" : "Ny underside")<input @bind="_newTitle" maxlength="200" required placeholder="Sidens titel" /></label><div class="notion-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newTitle))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annuller</button></div></form>
                 }
-                <div class="notion-guide"><h3>Prøv en kommando</h3><p><kbd>/elever</kbd> Holdets elevliste</p><p><kbd>/afstemning</kbd> Kobl en afstemning på</p><p><kbd>/slide</kbd> Start et nyt slide</p><p><kbd>/læringsmål</kbd> Gør målet tydeligt</p></div>
+                @if (Authoring) { <div class="notion-guide"><h3>Indhold og relationer</h3><p><kbd>@@</kbd> Link til en side eller elev</p><p><kbd>/elever</kbd> Vælg elever og gem grupper</p><p><kbd>/video</kbd> Upload en video</p><p><kbd>/fil</kbd> Vedhæft materiale</p><p><kbd>/slide</kbd> Start et nyt slide</p></div> }
             </aside>
-            <section class="notion-document" aria-label="Dokumenteditor">
+            <section class="notion-document" aria-label="@(IsEditing ? "Dokumenteditor" : "Udgivet dokument")">
                 @if (_current is null)
                 {
-                    <div class="notion-document-empty"><span aria-hidden="true">▤</span><h2>Et sted til hele forløbet</h2><p>Opret en side, skriv tekst og brug <kbd>/</kbd> til at tilføje indhold.</p><button class="action" @onclick="() => BeginCreate(false)">Opret første side</button></div>
+                    <div class="notion-document-empty"><span aria-hidden="true">▤</span><h2>@(Authoring ? "Et sted til hele forløbet" : "Der er endnu ingen udgivne sider")</h2><p>@(Authoring ? "Opret en side, og brug / til at tilføje indhold." : "Underviseren kan udgive sider, som du kan læse her.")</p>@if (Authoring) { <button class="action" @onclick="() => BeginCreate(false)">Opret første side</button> }</div>
                 }
                 else
                 {
-                    <div class="notion-document-toolbar"><span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>@StatusLabel</span><div class="notion-actions"><button class="secondary" disabled="@_busy" @onclick="RefreshContext">Opdatér holddata</button><button class="secondary" disabled="@_busy" @onclick="() => BeginCreate(true)">Ny underside</button></div></div>
+                    <div class="notion-document-toolbar">@if (IsEditing) { <span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>Kladde · @StatusLabel</span> } else { <span class="notion-save-status saved">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM yyyy HH:mm"))</span> }<div class="notion-actions"><button class="secondary" @onclick="CopyLink">Kopiér link</button>@if (IsEditing) { <button class="secondary" disabled="@_busy" @onclick="RefreshContext">Opdatér holddata</button><button class="secondary" disabled="@_busy" @onclick="() => BeginCreate(true)">Ny underside</button> } else { <button class="secondary" disabled="@_busy" @onclick="Retry">Opdatér siden</button>@if (CanManageHold) { <a class="secondary" href="/notion/@_current.PageId">Til kladden</a> } }</div></div>
+                    @if (IsEditing)
+                    {
+                        <div class="notion-publishing"><div><strong>@(_current.PublishedAtUtc is null ? "Kun i kladden" : "Eleverne læser den udgivne version")</strong><p>@(_current.PublishedAtUtc is null ? "Udgiv siden, når den er klar til holdet." : $"Sidst udgivet {_current.PublishedAtUtc.Value.ToLocalTime():d. MMM HH:mm}. Nye ændringer bliver i kladden, indtil du udgiver igen.")</p></div><div class="notion-actions"><button class="action" disabled="@(_busy || !_mounted || _status is "connecting" or "offline" or "error")" @onclick="PublishPage">@(_current.PublishedAtUtc is null ? "Udgiv til holdet" : "Opdatér udgivelsen")</button>@if (_current.PublishedAtUtc is not null) { <a class="secondary" href="/notion/@_current.PageId?published=true">Se udgivet</a><button class="secondary" disabled="@_busy" @onclick="UnpublishPage">Træk udgivelse tilbage</button> }</div></div>
+                    }
+                    else { <p class="notion-reader-banner">Du læser den udgivne version. Underviserens kladde vises kun ved en ny udgivelse.</p> }
                     @if (_statusDetail.Length > 0 && _status is "error" or "offline") { <p class="notion-connection-warning" role="alert">@_statusDetail</p> }
-                    <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" maxlength="200" placeholder="Sidens titel" disabled="@_busy" /><button class="secondary" disabled="@(_busy || string.IsNullOrWhiteSpace(_title) || _title.Trim() == _current.Title)">Gem titel</button></form>
-                    <p class="notion-document-meta">@_holds.FirstOrDefault(h => h.Id == _holdId)?.Name · @_current.Members.Length elever · Skriv <kbd>/</kbd> for at indsætte</p>
+                    @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" maxlength="200" placeholder="Sidens titel" disabled="@_busy" /><button class="secondary" disabled="@(_busy || string.IsNullOrWhiteSpace(_title) || _title.Trim() == _current.Title)">Gem titel</button></form> }
+                    else { <h2 class="notion-published-title">@_current.Title</h2> }
+                    <p class="notion-document-meta">@_holds.FirstOrDefault(h => h.Id == _holdId)?.Name @if (IsEditing) { <span>· Skriv <kbd>/</kbd> for indhold eller <kbd>@@</kbd> for at linke</span> }</p>
                     <div class="notion-editor-root" @ref="_editorElement"></div>
                 }
             </section>

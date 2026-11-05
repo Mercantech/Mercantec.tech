@@ -93,14 +93,17 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       return state;
     },
 
-    async store(documentName, state) {
+    async store(documentName, state, fingerprint) {
       const id = documentIdFromName(documentName);
       if (!(state instanceof Uint8Array) || state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
         throw new Error('Document exceeds the storage limit');
       }
+      if (typeof fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(fingerprint)) {
+        throw new Error('A canonical document fingerprint is required');
+      }
       const response = await request(`/api/internal/notion/documents/${id}/state`, {
         method: 'PUT',
-        headers: { ...storageHeaders, 'Content-Type': 'application/octet-stream' },
+        headers: { ...storageHeaders, 'Content-Type': 'application/octet-stream', 'X-Notion-State-Fingerprint': fingerprint },
         body: state,
       });
       if (!response.ok) throw new Error('Document state could not be saved');

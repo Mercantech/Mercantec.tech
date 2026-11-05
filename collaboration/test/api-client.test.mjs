@@ -5,6 +5,7 @@ import { createApiClient, documentIdFromName, tokenExpiresAt, MAX_DOCUMENT_BYTES
 const id = '11111111-2222-4333-8444-555555555555';
 const name = `notion:${id}`;
 const secret = 'unit-test-service-key-not-a-real-secret';
+const fingerprint = 'a'.repeat(64);
 const jwt = exp => `header.${Buffer.from(JSON.stringify({ exp })).toString('base64url')}.signature`;
 const validToken = () => jwt(Math.floor(Date.now() / 1000) + 120);
 const client = fetchImpl => createApiClient({ apiBaseUrl: 'http://api.test:8080', serviceSecret: secret, fetchImpl });
@@ -61,12 +62,15 @@ test('binary persistence uses the service key, preserves bytes and waits for suc
     assert.equal(request.headers.Authorization, undefined);
     if (request.method === 'PUT') {
       assert.deepEqual(request.body, bytes);
+      assert.equal(request.headers['X-Notion-State-Fingerprint'], fingerprint);
       return Response.json({ savedAtUtc: '2026-11-05T12:00:00Z' });
     }
     return new Response(bytes);
   });
   assert.deepEqual(await api.load(name), bytes);
-  assert.equal(await api.store(name, bytes), '2026-11-05T12:00:00Z');
-  await assert.rejects(client(async () => new Response(null, { status: 503 })).store(name, bytes), /could not be saved/);
-  await assert.rejects(api.store(name, new Uint8Array(MAX_DOCUMENT_BYTES + 1)), /storage limit/);
+  assert.equal(await api.store(name, bytes, fingerprint), '2026-11-05T12:00:00Z');
+  await assert.rejects(client(async () => new Response(null, { status: 503 })).store(name, bytes, fingerprint), /could not be saved/);
+  await assert.rejects(api.store(name, new Uint8Array(MAX_DOCUMENT_BYTES + 1), fingerprint), /storage limit/);
+  await assert.rejects(api.store(name, bytes), /fingerprint/);
+  await assert.rejects(api.store(name, bytes, 'invalid'), /fingerprint/);
 });

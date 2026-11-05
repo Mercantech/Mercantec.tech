@@ -1,0 +1,37 @@
+@page "/notion/holds/{HoldId:guid}/students/{MemberId:guid}"
+@using Mercantec.Tech.Web.Notion
+@inject NotionClient Client
+@inject AuthService Auth
+@implements IDisposable
+
+<PageTitle>@(_student?.DisplayName ?? "Elev") · LUP</PageTitle>
+@if (!Auth.IsInitialized || _loading) { <p role="status">Henter eleven…</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne eleven fra holdet.</p> }
+else if (_error is not null) { <div class="panel"><h1>Eleven er ikke tilgængelig</h1><p role="alert">@_error</p><a class="secondary" href="/courses">Til forløb og hold</a></div> }
+else if (_student is not null)
+{
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/notion?hold=@HoldId">Holdets indhold</a><span>›</span><span>Elev</span></nav><h1>@_student.DisplayName</h1><p>Elev på holdet.</p></div><a class="secondary" href="/notion/holds/@HoldId/groups?members=@MemberId">Elever og grupper</a></header>
+    <section class="panel"><h2>Grupper</h2>@if (_student.Groups.Length == 0) { <p>Der er ingen grupper at vise for din konto.</p> }@foreach (var group in _student.Groups) { <article style="padding:16px 0;border-bottom:1px solid var(--rule)"><div><h3>@group.Name</h3><p>@string.Join(", ", group.Members.Select(m => m.DisplayName))</p></div></article> }</section>
+}
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid MemberId { get; set; }
+    private NotionStudentProfile? _student;
+    private string? _error;
+    private bool _loading, _disposed;
+    private readonly CancellationTokenSource _life = new();
+    private int _generation;
+    protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
+    protected override Task OnParametersSetAsync() => Load();
+    private void Changed() => _ = InvokeAsync(async () => { await Load(); StateHasChanged(); });
+    private async Task Load()
+    {
+        var generation = ++_generation; _student = null; _error = null;
+        if (!Auth.IsAuthenticated || _disposed) { _loading = false; return; }
+        _loading = true;
+        try { var student = await Client.Student(HoldId, MemberId, _life.Token); if (generation == _generation && !_disposed) _student = student; }
+        catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (generation == _generation && !_disposed) _error = ex is NotionException ? ex.Message : "Eleven kunne ikke hentes. Prøv igen."; }
+        finally { if (generation == _generation) _loading = false; }
+    }
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; _life.Cancel(); _life.Dispose(); }
+}

@@ -23,3 +23,11 @@ export function canonicalFingerprint(doc) {
     });
   return JSON.stringify({ stateVector, deleteSet });
 }
+
+/** Decode a server-authorized immutable snapshot into an isolated, provider-free document. */
+export function publishedDocumentFromBase64(encoded) {
+  if(typeof encoded!=='string' || !encoded || encoded.length>24*1024*1024)throw new Error('Den udgivne side mangler eller er for stor.');
+  const doc=new Y.Doc();
+  try{Y.applyUpdate(doc,Uint8Array.from(atob(encoded),value=>value.charCodeAt(0)));return doc;}
+  catch{doc.destroy();throw new Error('Den udgivne side kunne ikke åbnes.');}
+}

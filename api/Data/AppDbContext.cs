@@ -18,6 +18,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureNotion(modelBuilder);
+        ConfigureNotionGroupsMedia(modelBuilder);
         modelBuilder.Entity<PollRound>(e =>
         {
             e.ToTable("poll_rounds");

@@ -48,6 +48,9 @@ public sealed class FilesController(IObjectStorage storage) : ControllerBase
     [HttpGet("{*key}")]
     public async Task<IActionResult> Download(string key, CancellationToken ct)
     {
+        // Document media has separate publication and hold authorization. The legacy catch-all must never bypass it.
+        if (!string.IsNullOrEmpty(key) && key.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Any(segment => segment.Equals("notion-private", StringComparison.OrdinalIgnoreCase))) return NotFound();
         if (!storage.IsConfigured)
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new { error = "object_storage_disabled" });
         if (string.IsNullOrWhiteSpace(key) || key.Contains("..", StringComparison.Ordinal))

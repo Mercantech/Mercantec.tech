@@ -30,6 +30,24 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
 
     public bool IsConfigured => true;
     public string Bucket => _options.Bucket;
+    public bool SupportsRanges => true;
+
+    public Task DeleteAsync(string key, CancellationToken cancellationToken = default) =>
+        _client.DeleteObjectAsync(_options.Bucket, key, cancellationToken);
+
+    public async Task<ObjectGetResult?> GetRangeAsync(string key, long start, long end, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _client.GetObjectAsync(new GetObjectRequest
+            {
+                BucketName = _options.Bucket, Key = key, ByteRange = new ByteRange(start, end)
+            }, cancellationToken);
+            return new ObjectGetResult(response.ResponseStream, response.Headers.ContentType ?? "application/octet-stream",
+                response.ContentLength >= 0 ? response.ContentLength : null, response);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
+    }
 
     public async Task<ObjectPutResult> PutAsync(
         string key,
@@ -63,7 +81,7 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
                 string.IsNullOrWhiteSpace(response.Headers.ContentType)
                     ? "application/octet-stream"
                     : response.Headers.ContentType,
-                response.ContentLength >= 0 ? response.ContentLength : null);
+                response.ContentLength >= 0 ? response.ContentLength : null, response);
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {

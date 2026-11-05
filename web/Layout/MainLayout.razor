@@ -173,6 +173,7 @@
         get
         {
             yield return new("Min læring", "/learning");
+            yield return new("Holdets indhold", "/notion");
             if (HasDemoCourse)
             {
                 yield return new("Mit forløb", _demoCourse == "game" ? "/learning/game" : "/learning/h3");

@@ -6,6 +6,7 @@ import { createApiClient, documentIdFromName, resolveServiceSecret } from './api
 import { fingerprintHash } from './fingerprint.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
+const SCHEMA_MISMATCH = { code: 4409, reason: 'editor_version_mismatch' };
 
 export function createCollaborationServer({
   apiBaseUrl = process.env.API_BASE_URL ?? 'http://mercantec-tech-api:8080',
@@ -65,7 +66,10 @@ export function createCollaborationServer({
       throw null;
     },
 
-    async onAuthenticate({ documentName, token }) {
+    async onAuthenticate({ documentName, token, requestParameters }) {
+      // Older editors do not know the publishing/media/reference node schema. Reject
+      // them before loading shared state so an old browser cannot discard new nodes.
+      if (requestParameters?.get('schemaVersion') !== '2') throw SCHEMA_MISMATCH;
       documentIdFromName(documentName);
       const permission = await api.authorize(documentName, token);
       return { token, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };
@@ -100,6 +104,9 @@ export function createCollaborationServer({
 
     async onLoadDocument({ documentName }) {
       const state = await api.load(documentName);
+      // Stamp legacy persisted documents with canonical publication metadata before editing.
+      // Re-saving an identical fingerprint does not advance the API's draft revision.
+      if (state) await api.store(documentName, state, fingerprintHash(state, Y.encodeStateVectorFromUpdate(state)));
       return state ?? undefined;
     },
 
@@ -108,7 +115,7 @@ export function createCollaborationServer({
       const vector = Y.encodeStateVector(document);
       const fingerprint = fingerprintHash(state, vector);
       try {
-        const savedAtUtc = await api.store(documentName, state);
+        const savedAtUtc = await api.store(documentName, state, fingerprint);
         // New edits, including deletes (which need not advance a state vector),
         // can arrive during PUT. Never call such a newer state "saved".
         if (fingerprint === fingerprintHash(Y.encodeStateAsUpdate(document), Y.encodeStateVector(document))) {

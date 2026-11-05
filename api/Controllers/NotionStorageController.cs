@@ -43,14 +43,24 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             await state.WriteAsync(buffer.AsMemory(0, count), ct);
         }
         if (state.Length == 0) return BadRequest(new { error = "empty_state" });
+        var hasFingerprint = Request.Headers.ContainsKey("X-Notion-State-Fingerprint");
+        string? fingerprint = hasFingerprint ? Request.Headers["X-Notion-State-Fingerprint"].ToString() : null;
+        if (hasFingerprint && !IsFingerprint(fingerprint)) return BadRequest(new { error = "invalid_fingerprint" });
         var updated = DateTimeOffset.UtcNow;
         var bytes = state.ToArray();
         // Atomic column update leaves concurrently renamed page metadata intact.
         var written = await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
-            .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, updated), ct);
+            .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, updated)
+            // The authenticated v1 service may still flush while Compose replaces it. Preserve
+            // those bytes, but require the v2 service to stamp them before publication.
+            .SetProperty(p => p.DraftRevision, p => fingerprint != null && p.DraftFingerprint == fingerprint ? p.DraftRevision : p.DraftRevision + 1)
+            .SetProperty(p => p.DraftFingerprint, fingerprint), ct);
         if (written == 0) return NotFound();
         return Ok(new { savedAtUtc = updated });
     }
+
+    public static bool IsFingerprint(string? fingerprint) => fingerprint is { Length: 64 }
+        && fingerprint.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f');
 
     private string? ReadConfiguredSecretFile()
     {

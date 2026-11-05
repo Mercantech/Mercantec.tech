@@ -1,68 +1,76 @@
-# Forløbseditor – selvhostet testversion
+# Forløbseditor: kladde, udgivelse, grupper og medier
 
-Testområdet er `/notion`. Det bruger eksisterende Mercantec-login og er kun åbent for undervisere, der kan administrere det konkrete hold. Det vises i underviserens menu under Læring → Forløbseditor · Test.
+Åbn `/notion` med Mercantec-login. Undervisere med adgang til at administrere holdet kan redigere; holdets elever kan læse de udgivne sider. Navigationen findes under Læring, og forløbets holdside linker til indhold og grupper.
 
-## Første version
+## Udgivelse og læsning
 
-- Dokumenter og undersider pr. eksisterende hold. Opret sider og redigér titler i venstre dokumentnavigation.
-- BlockNote med rich text, standardblokke, Markdown-genveje, slash-menu, simple tabeller og drag & drop.
-- `/elever`: holdets aktuelle elevliste. Relationer bruger MembershipId, også for Lectio-elever uden brugerkonto.
-- `/afstemning`: vælg en eksisterende afstemning fra samme hold. Blokken henviser til den eksisterende afstemningsside.
-- `/slide`: slidegrænse i samme dokument. Præsenter bruger en separat læsevisning og udelader elevlister.
-- `/læringsmål`: en redigerbar blok til aktivitetens mål.
-- Samtidig redigering med Yjs og Hocuspocus. Dokumenttilstanden gemmes binært i Postgres.
-- Gemmestatus skelner mellem forbindelse, ændringer der afventer lagring og bekræftet lagring. Hold dokumentet åbent ved forbindelsesfejl.
+1. Vælg et hold, opret en side eller underside, og skriv i kladden.
+2. Vent på **Gemt i skyen**. Gem også en ændret titel.
+3. Vælg **Udgiv til holdet**. Ved senere ændringer bruges **Opdatér udgivelsen**.
+4. **Se udgivet** viser samme faste dokumentversion som eleverne. Kladden kan fortsætte sideløbende.
+5. **Træk udgivelse tilbage** lukker elevadgangen til siden og dens vedhæftninger. Undersider udgives og trækkes tilbage hver for sig.
 
-Piloten omfatter ikke elevredigering, udgivelse til elever, generiske relationelle databasetabeller, versionshistorik, kolonner eller dokumentvedhæftninger. Standardblokke til medier kan indsættes med URL; det eksisterende filsystems autorisation skal udvides, før det kobles til dokumentupload.
+Elever bruger samme sidelinks og ser kun den udgivne titel og det udgivne indhold. Læsevisningen forbinder ikke til kladdens WebSocket-rum. Nye udgivelser hentes med **Opdatér siden** eller genindlæsning.
 
-## Arkitektur
+Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer den præcise revision og et fingerprint, så usavede eller samtidige ændringer ikke udgives ved en fejl. Snapshot og filrettigheder opdateres atomisk. Slettet undo-indhold GC-renses af serveren; private metadata skal fortsat opbevares uden for det delte dokument.
 
-`web/Pages/Notion` er Blazor-værten. `web/Notion/NotionClient.cs` taler med API'et. Editorens React/TypeScript-kode ligger i `editor/` og indlæses kun på dokumentruten. Blazor ejer editorens ydre container, mens React/BlockNote ejer indholdet.
+## Links og kommandoer
 
-`api/Controllers/NotionController.cs` og `shared/Notion.cs` definerer holdbaserede dokumenter, kontekst og adgang. Brugeren skal have `CourseAccess.CanManageAsync` for hver dokumentoperation og samarbejdsforbindelse. Der anvendes ingen adgangsgivende demo-token i produktion.
+- `@`: søg efter en side, underside eller elev fra holdet.
+- `/side`: indsæt et link til en side. Et elevlink åbner en minimal elevside med navn og relevante grupper.
+- `/elever`: indsæt holdets elevliste, vælg deltagere og opret en gemt gruppe.
+- `/gruppe`: vis en gemt gruppe i dokumentet.
+- `/afstemning`: vælg en eksisterende afstemning fra holdet.
+- `/video`, `/lyd`, `/billede`, `/fil`: upload medier og vedhæftninger.
+- `/slide`: indsæt en slidegrænse; **Præsenter** viser samme indhold som slides.
+- `/læringsmål`: fremhæv aktivitetens mål.
 
-`collaboration/` er en separat Node 22-service. Den validerer brugerens token og dokumentadgang gennem API'et. Browseren forbindes til samme origins `/collaboration`; nginx håndterer WebSocket-proxyen. Serveren henter og gemmer Yjs-data gennem interne API-endpoints med en særskilt servicehemmelighed. Det interne endpoint er blokeret i web-nginx.
+Sidelinks og elevrelationer bruger stabile ID'er. Elevfelter bruger MembershipId, også når en Lectio-elev endnu ikke har login. Links giver ikke i sig selv ekstra adgang. Grupper og andre tilknyttede holddata vises fra den aktuelle, autoriserede holdkontekst; selve dokumentteksten fastholdes i udgivelsen.
 
-`NotionPage.YjsState` er dokumentets autoritative indhold. Metadata og holdrelationer ligger i Postgres. Elevnavne og afstemninger hentes fra holdet; private besvarelser indgår ikke i det delte Yjs-dokument. Der bruges ingen localStorage/IndexedDB til dokumenter.
+## Holdgrupper
 
-Kør kun én samarbejdsinstans i piloten. Flere instanser kræver fælles koordination og lagerstrategi, før de aktiveres.
+Grupper gemmes på holdet i learning_groups og learning_group_members. De kan oprettes og redigeres under **Forløb og hold → holdets elever og grupper** samt fra valgte elever i editoren. Markér elever, giv gruppen et navn og vælg **Gem gruppe**. En elev kan være med i flere grupper.
 
-## Lokal udvikling
+Undervisere administrerer egne hold. Elever kan se deres egne grupper; elevsider deler kun fælles gruppedata. Alle ændringer kontrolleres på serveren, og en versionskonflikt kræver opdatering før et nyt gemmeforsøg.
 
-Krav: .NET 10, Node 22 og en eksisterende Postgres-konfiguration. Fra repoets rod:
+## Video og filer
 
-```powershell
+Uploadgrænsen er 100 MiB pr. fil. MP4 og WebM kan afspilles i siden; lyd, rasterbilleder, PDF og udvalgte dokumenttyper understøttes også. Andre dokumentformater vises som download. Der er ingen automatisk videokonvertering i denne version.
+
+Filer ligger privat i den eksisterende S3-lagring. Dokumentet gemmer kun fil- og side-ID'er. En elev får først adgang til en vedhæftning, når den indgår i sidens udgivelse. Filen skal uploades til den side, hvor den skal udgives; tværgående genbrug kan tilføjes senere.
+
+Video streames med byte ranges, så afspilning kan søge uden at hente hele filen. Korte mediebilletter fornyes automatisk. Hver forespørgsel kontrollerer stadig medlemskab, udgivelse og filreference. Tilbagetrækning og ny udgivelse ugyldiggør gamle elevbilletter. Den ældre /api/files-rute afviser det private dokumentområde.
+
+## Arkitektur og udvikling
+
+- web/Pages/Notion og web/Notion/NotionClient.cs: Blazor-vært, læsning og udgivelseshandlinger.
+- web/Components/HoldGroups.razor: fælles elev- og gruppeværktøj.
+- editor/: BlockNote/React/TypeScript, egne blokke, henvisninger og medievisning.
+- collaboration/: selvhostet Hocuspocus/Yjs; binær dokumentlagring gennem interne API-endpoints.
+- api/Controllers/Notion*: scoped dokument-, gruppe- og medie-API.
+- shared/Notion*.cs: fælles kontrakter.
+
+Krav: .NET 10, Node 22 og den eksisterende Postgres/S3-konfiguration.
+
+~~~powershell
 npm --prefix editor ci
+npm --prefix editor test
 npm --prefix editor run build
 npm --prefix collaboration ci
-dotnet build web
-dotnet test tests/Mercantec.Tech.Api.Tests
 npm --prefix collaboration test
-```
+dotnet test tests/Mercantec.Tech.Api.Tests
+dotnet test tests/Mercantec.Tech.Web.Tests
+dotnet build web
+~~~
 
-Docker Compose opretter automatisk en tilfældig servicehemmelighed i volumen `mercantec_notion_key`. Kun init-containeren skriver filen; API og samarbejdsserver monterer den skrivebeskyttet. Der findes ingen produktionsstandardnøgle. `NOTION_SERVICE_SECRET` kan bruges som et eksplicit override med mindst 32 tilfældige tegn i en git-ignoreret `.env`.
+Docker bygger editoren automatisk med lockfilen. Lokalt skal editorbundle genbygges efter ændringer i editor/src. Der bruges ingen localStorage eller IndexedDB til dokumentlagring. En loopback-only QA-fixture findes i editor/tests; den er ikke en produktions-loginvej.
 
-```powershell
-docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
-```
+## Selvhosting og opgradering
 
-Åbn `http://localhost:3000/notion`, og brug det normale login. API'et skal have rigtige hold og scoped underviseradgang. Docker bygger editoren automatisk med den committede lockfil. Lokalt genbygges editorbundle efter ændringer i `editor/src/`.
+Deploy repoets Compose-fil fra main som normalt. EF-migrationen køres ved API-start. Notion-init opretter automatisk en tilfældig servicehemmelighed i den vedvarende mercantec_notion_key-volumen. API og samarbejdsserver monterer den skrivebeskyttet. NOTION_SERVICE_SECRET kan bruges som eksplicit override, mindst 32 tilfældige tegn.
 
-Ved kørsel uden Compose sættes `Notion__ServiceSecret` på API'et og `NOTION_SERVICE_SECRET`, `API_BASE_URL`, `ALLOWED_ORIGINS` og `PORT` på samarbejdsserveren. Browserens origin skal gå gennem en reverse proxy, der sender `/api/` til API'et og `/collaboration` til samarbejdsserveren; Blazors egen devserver laver ikke denne WebSocket-proxy automatisk.
+Web-værten venter på en sund samarbejdsserver. Nye editorer bruger schemaVersion=2 i WebSocket-forbindelsen; ældre faner bliver bedt om at genindlæse, så de ikke redigerer ukendte bloktyper. Kør én samarbejdsinstans ad gangen. Flere samtidige instanser kræver fælles koordination af dokumenttilstanden.
 
-## Deployment på mercantec.tech
+Sikkerhedskopiér Postgres og S3 sammen. Udgivne snapshots er en fast læseversion, ikke en komplet versionshistorik. Følg [Dokploy-drift](../02-ai-workflows/Dokploy-drift.md) for netværk, domæner og drift.
 
-1. Brug repoets opdaterede Compose-konfiguration. Den opretter automatisk en tilfældig servicehemmelighed i en vedvarende volumen. Et eventuelt eksisterende `NOTION_SERVICE_SECRET` skal være mindst 32 tegn; lad variablen være tom for automatisk opsætning.
-2. Deploy den opdaterede kildekode med repoets eksisterende Compose-konfiguration. API'et kører EF-migrationen ved opstart.
-3. Kontrollér, at `collaboration` kører og er healthy. Den bruger aliaset `mercantec-tech-collaboration` på det eksisterende netværk.
-4. Åbn `https://mercantec.tech/notion`, vælg et hold og opret en side.
-5. Åbn samme dokument i en anden undervisersession med adgang til holdet. Skriv fra begge sessioner, kontrollér gemmestatus og genindlæs.
-6. Afprøv `/elever`, `/afstemning`, `/slide` og Præsenter. Kontrollér, at andre holds dokumenter ikke kan åbnes.
-
-Følg den eksisterende [Dokploy-drift](../02-ai-workflows/Dokploy-drift.md) for netværk, domæne og deployment-adgang. API'et og samarbejdsserveren skal benytte HTTPS via webproxyen i produktion. Sikkerhedskopiér Postgres sammen med platformens øvrige data; dokumentlagring alene er ikke en versionshistorik.
-
-## Videreudvikling og licenser
-
-BlockNotes kerne er MPL-2.0; Yjs og Hocuspocus er MIT. Der anvendes ingen BlockNote XL-pakker eller leverandørhostet samarbejdstjeneste. Bevar tredjepartslicenser og kildekodehenvisning for den leverede browserkode. Nye bloktyper registreres i editorens schema og slash-menu og skal testes med samtidige klienter og lagring/genindlæsning.
-
-Ved ændringer af blokformatet skal eksisterende dokumenter migreres, og kompatibiliteten med allerede åbne browserfaner vurderes. Nye elevdata og handlinger skal autoriseres på serveren; skjult brugerflade er ikke en adgangskontrol.
+BlockNote-kernen er MPL-2.0; Yjs og Hocuspocus er MIT. Der bruges ingen XL-pakker eller leverandørhostet samarbejdstjeneste. Licenser og kildehenvisninger leveres med browserbundle.

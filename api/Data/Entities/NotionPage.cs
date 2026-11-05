@@ -11,5 +11,14 @@ public sealed class NotionPage
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
     public byte[]? YjsState { get; set; }
+    public long DraftRevision { get; set; }
+    public string? DraftFingerprint { get; set; }
+    public byte[]? PublishedState { get; set; }
+    public string? PublishedTitle { get; set; }
+    public DateTimeOffset? PublishedAtUtc { get; set; }
+    public Guid? PublishedBySub { get; set; }
+    public long? PublishedRevision { get; set; }
+    public long PublicationVersion { get; set; }
+    public string PublishedAssetIdsJson { get; set; } = "[]";
     public int SchemaVersion { get; set; } = 1;
 }

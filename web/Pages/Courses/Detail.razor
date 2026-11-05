@@ -74,6 +74,11 @@ else if (_forloeb is not null)
                 </p>
             }
 
+            <div class="actions"><a class="secondary" href="/notion?hold=@_forloeb.Hold.Id">Holdets indhold</a><a class="secondary" href="/notion/holds/@_forloeb.Hold.Id/groups">Åbn grupper</a></div>
+            <HoldGroups HoldId="_forloeb.Hold.Id" />
+            @if (Redirect.ShowsTeacherChrome)
+            {
+                <details style="margin-top:20px"><summary>Lectio- og kontooplysninger</summary>
             @if (_forloeb.Hold.Members.Count == 0)
             {
                 <div class="empty"><h2>Ingen medlemmer endnu</h2><p>Tilføj en elev, eller hent holdet fra Lectio.</p></div>
@@ -93,6 +98,9 @@ else if (_forloeb is not null)
                     }
                 </div>
                 <p>Shadow betyder, at eleven er med fra Lectio uden Auth-kobling endnu.</p>
+            }
+
+                </details>
             }
 
             @if (Redirect.ShowsTeacherChrome)

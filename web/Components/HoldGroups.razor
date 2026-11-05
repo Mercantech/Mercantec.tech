@@ -1,0 +1,96 @@
+@using Mercantec.Tech.Web.Notion
+@inject NotionClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+
+<section class="hold-groups" aria-label="Holdets elever og grupper">
+    <div class="hold-groups-heading"><div><h2>Elever og grupper</h2><p>Gem grupper på holdet, og genbrug dem i undervisningen.</p></div><button type="button" class="secondary" @onclick="Load" disabled="@_busy">Opdatér</button></div>
+    @if (_error is not null) { <p class="hold-groups-error" role="alert">@_error</p> }
+    @if (_notice is not null) { <p role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter elever og grupper…</p> }
+    else
+    {
+        <div class="hold-members-scroll"><table class="hold-members-table"><thead><tr>@if (_canManage) { <th scope="col">Vælg</th> }<th scope="col">Elev</th><th scope="col">Grupper</th>@if (_canManage) { <th scope="col"><span class="hold-visually-hidden">Opret gruppe</span></th> }</tr></thead><tbody>
+            @foreach (var member in _members)
+            {
+                <tr>@if (_canManage) { <td><input type="checkbox" aria-label="@($"Vælg {member.DisplayName}")" checked="@_selected.Contains(member.Id)" disabled="@_busy" @onchange="e => SelectMember(member.Id, e)" /></td> }<td><a href="/notion/holds/@HoldId/students/@member.Id">@member.DisplayName</a></td><td>@if (member.GroupIds.Length == 0) { <span class="muted">Ingen gruppe</span> } else { @foreach (var group in _groups.Where(g => member.GroupIds.Contains(g.Id))) { <span class="pill">@group.Name</span> } }</td>@if (_canManage) { <td><button type="button" class="secondary" disabled="@_busy" @onclick="() => StartWith(member.Id)" aria-label="@($"Opret gruppe med {member.DisplayName}")">Ny gruppe</button></td> }</tr>
+            }
+        </tbody></table></div>
+        @if (_members.Length == 0) { <p>Holdet har endnu ingen elever.</p> }
+        @if (_canManage)
+        {
+            <form class="hold-group-form" @onsubmit="Save" @onsubmit:preventDefault>
+                <h3>@(_editing is null ? "Opret gruppe med valgte elever" : "Redigér gruppe")</h3>
+                <p>@_selected.Count elever valgt. Du kan markere flere i elevlisten.</p>
+                <label class="field">Gruppenavn<input @bind="_name" maxlength="120" required placeholder="Fx Projektgruppe 1" disabled="@_busy" /></label>
+                <div class="actions"><button class="action" disabled="@(_busy || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name))">@(_editing is null ? "Gem gruppe" : "Gem ændringer")</button>@if (_editing is not null || _selected.Count > 0) { <button type="button" class="secondary" @onclick="Reset" disabled="@_busy">Nulstil valg</button> }</div>
+            </form>
+        }
+        <div class="hold-saved-groups"><h3>Gemte grupper</h3>@if (_groups.Length == 0) { <p>Der er ingen gemte grupper endnu.</p> }@foreach (var group in _groups) { <article><div class="hold-groups-heading"><strong>@group.Name</strong>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(group)" disabled="@_busy">Redigér</button> }</div><p>@string.Join(", ", group.Members.Select(m => m.DisplayName))</p></article> }</div>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid[] InitialSelection { get; set; } = [];
+    [Parameter] public EventCallback OnSaved { get; set; }
+    private readonly CancellationTokenSource _life = new();
+    private NotionHoldMember[] _members = [];
+    private NotionGroupView[] _groups = [];
+    private readonly HashSet<Guid> _selected = [];
+    private Guid? _loadedHold, _editing;
+    private string? _selectionKey, _error, _notice, _account;
+    private string _name = "";
+    private int _version;
+    private bool _loading, _busy, _canManage, _disposed;
+
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated) return;
+        if (_loadedHold != HoldId || _account != Auth.Subject) { await Load(); _loadedHold = HoldId; }
+        var key = string.Join(",", InitialSelection.Order());
+        if (_selectionKey != key) { _selectionKey = key; _editing = null; _name = ""; _version = 0; _selected.Clear(); foreach (var id in InitialSelection.Where(id => _members.Any(m => m.Id == id))) _selected.Add(id); }
+    }
+    private void Changed() => _ = InvokeAsync(async () => { _members = []; _groups = []; Reset(); if (Auth.IsAuthenticated) await Load(); StateHasChanged(); });
+    private async Task Load()
+    {
+        if (!Auth.IsAuthenticated || HoldId == Guid.Empty || _disposed) return;
+        _loading = true; _error = null;
+        var subject = Auth.Subject; var holdId = HoldId;
+        try
+        {
+            var holds = await Client.Holds(_life.Token);
+            var members = await Client.Members(holdId, _life.Token);
+            var groups = await Client.Groups(holdId, _life.Token);
+            if (subject != Auth.Subject || holdId != HoldId || _disposed) return;
+            _account = subject; _canManage = !ViewAs.IsActive && holds.Any(h => h.Id == holdId && h.CanManage);
+            _members = members; _groups = groups; _selected.RemoveWhere(id => !members.Any(m => m.Id == id));
+        }
+        catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject) _error = ex is NotionException ? ex.Message : "Grupperne kunne ikke hentes. Prøv igen."; }
+        finally { _loading = false; }
+    }
+    private void SelectMember(Guid id, ChangeEventArgs e) { if (e.Value is true) _selected.Add(id); else _selected.Remove(id); }
+    private void StartWith(Guid id) { Reset(); _selected.Add(id); }
+    private void Reset() { _editing = null; _version = 0; _name = ""; _selected.Clear(); _notice = null; }
+    private void Edit(NotionGroupView group) { _editing = group.Id; _version = group.Version; _name = group.Name; _selected.Clear(); foreach (var m in group.Members) _selected.Add(m.Id); _notice = null; }
+    private async Task Save()
+    {
+        if (_busy || !_canManage || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name)) return;
+        _busy = true; _error = null;
+        var account = Auth.Subject; var hold = HoldId;
+        try
+        {
+            var ids = _selected.Order().ToArray();
+            if (_editing is Guid id) await Client.UpdateGroup(hold, id, _name.Trim(), ids, _version, _life.Token);
+            else await Client.CreateGroup(hold, _name.Trim(), ids, _life.Token);
+            if (account != Auth.Subject || hold != HoldId || _disposed) return;
+            Reset(); await Load(); _notice = "Gruppen er gemt på holdet.";
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (!_disposed) _error = ex is NotionException ? ex.Message : "Gruppen kunne ikke gemmes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _life.Cancel(); _life.Dispose(); }
+}

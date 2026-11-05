@@ -78,6 +78,27 @@ to prevent forged save notifications.
 A failed write emits `{"type":"persistenceError","message":"..."}`. A connected
 or synchronized provider alone is not proof of durable storage.
 
+Every binary storage PUT includes `X-Notion-State-Fingerprint`, the 64-character
+lowercase hexadecimal canonical fingerprint of that exact snapshot. The API
+stores it alongside the binary and advances the draft revision only if the
+fingerprint changes. Loading an older document stamps this metadata before
+synchronization; identical re-saves do not create false unpublished changes.
+During a rolling replacement, a v1 server with the valid internal service key
+may flush without the header. The API preserves those bytes and clears the
+fingerprint, making them unpublishable until the v2 server stamps the state.
+An explicitly supplied invalid fingerprint remains an error.
+
+Publishing is an ASP.NET operation that conditionally copies the persisted binary,
+title and attachment grants into a separate immutable snapshot. Its expected
+revision and fingerprint must still match. Students read that snapshot through
+the authorized page context, without joining this service or receiving draft
+state. Only teachers with management access can authenticate to draft rooms.
+
+WebSocket clients must connect with `?schemaVersion=2`. Missing or older schema
+versions are rejected with `editor_version_mismatch` before authorization or
+document loading. This forces already-open v1 browser tabs to reload before
+they can edit documents containing the newer reference and media node types.
+
 ## Operational limits
 
 The pilot runs **one collaboration replica**. Multiple independent replicas would

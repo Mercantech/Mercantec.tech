@@ -32,3 +32,25 @@ export function pollUrl(id, present = false) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
   return present ? '/teacher/polls/' + id + '/present' : '/polls/' + id;
 }
+
+export function pageUrl(id, published = false) {
+  return validId(id) ? '/notion/' + id + (published ? '?published=true' : '') : null;
+}
+export function studentUrl(holdId, membershipId) {
+  return validId(holdId) && validId(membershipId) ? '/notion/holds/' + holdId + '/students/' + membershipId : null;
+}
+function validId(id) { return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
+
+/** Publication grants are identifiers, never expiring URLs or caller-provided filenames. */
+export function collectPublicationAssetIds(blocks, pageId) {
+  const ids=new Set();
+  const visit=block=>{
+    if(block.type==='pageMedia' && block.props?.assetId) {
+      if(block.props.pageId!==pageId || !validId(block.props.assetId))throw new Error('En vedhæftet fil tilhører en anden side. Upload den igen på denne side.');
+      ids.add(block.props.assetId);
+    }
+    for(const child of block.children || [])visit(child);
+  };
+  for(const block of blocks)visit(block);
+  return [...ids].sort();
+}

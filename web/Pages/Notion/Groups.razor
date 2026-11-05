@@ -1,0 +1,16 @@
+@page "/notion/holds/{HoldId:guid}/groups"
+@inject AuthService Auth
+
+<PageTitle>Holdets grupper · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne holdets grupper.</p> }
+else
+{
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><span>Elever og grupper</span></nav><h1>Holdets grupper</h1><p>Grupperne hører til holdet og kan bruges på flere sider.</p></div><a class="secondary" href="/notion?hold=@HoldId">Holdets indhold</a></header>
+    <div class="panel"><HoldGroups HoldId="HoldId" InitialSelection="Selection" /></div>
+}
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [SupplyParameterFromQuery(Name="members")] public string? Members { get; set; }
+    private Guid[] Selection => (Members ?? "").Split(',').Select(s => Guid.TryParse(s, out var id) ? id : Guid.Empty).Where(id => id != Guid.Empty).Distinct().Take(100).ToArray();
+}

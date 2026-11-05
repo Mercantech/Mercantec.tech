@@ -16,6 +16,9 @@ public partial class AppDbContext
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
             e.HasIndex(x => new { x.HoldId, x.ParentPageId });
             e.HasIndex(x => x.ParentPageId);
+            e.Property(x => x.DraftFingerprint).HasMaxLength(64);
+            e.Property(x => x.PublishedTitle).HasMaxLength(200);
+            e.HasIndex(x => new { x.HoldId, x.PublishedAtUtc });
             e.HasOne<Hold>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<NotionPage>().WithMany().HasForeignKey(x => x.ParentPageId).OnDelete(DeleteBehavior.Restrict);
         });

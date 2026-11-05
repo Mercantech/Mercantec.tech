@@ -78,9 +78,6 @@ public sealed class ViewAsStudentContext
         if (string.Equals(p, "/teacher", StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (string.Equals(p, "/notion", StringComparison.OrdinalIgnoreCase)
-            || p.StartsWith("/notion/", StringComparison.OrdinalIgnoreCase))
-            return true;
 
         // /teacher/view-as/... er bootstrap og omdirigeres selv — ikke «chrome».
         if (p.StartsWith("/teacher/view-as", StringComparison.OrdinalIgnoreCase))

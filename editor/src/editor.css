@@ -34,3 +34,19 @@
 @media(prefers-reduced-motion:reduce){.notion-blocknote-host *,.notion-slide-deck *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 .notion-editor-persistence-error{margin:0!important;padding:13px 20px;background:var(--peach,#fff0e3);color:var(--orange,#a84613);border-bottom:1px solid var(--notion-rule);font-size:13px;line-height:1.6}
+.notion-blocknote-host .notion-mention{display:inline;padding:1px 5px;border-radius:4px;background:var(--tint,#edf1ff);color:var(--blue,#2452e8);font-weight:550;text-decoration:none}
+.notion-blocknote-host .notion-unavailable{color:var(--muted,#63728b);font-style:italic}
+.notion-blocknote-host .notion-link-block,.notion-blocknote-host .notion-group-block,.notion-blocknote-host .notion-media-block{border:1px solid var(--rule,#dfe7f2);border-radius:9px;padding:16px;background:var(--paper,#fff);width:100%;margin:5px 0}
+.notion-blocknote-host .notion-link-block label,.notion-blocknote-host .notion-group-block label{display:grid;gap:6px;font-size:12px;margin-bottom:12px}
+.notion-blocknote-host .notion-link-block select,.notion-blocknote-host .notion-group-block select{width:100%;border:1px solid var(--rule,#dfe7f2);padding:8px;border-radius:5px;background:var(--paper,#fff)}
+.notion-blocknote-host .notion-group-block ul{padding-left:22px;margin-bottom:0}
+.notion-blocknote-host .notion-group-create{border:1px solid var(--rule,#dfe7f2);border-radius:6px;padding:8px 11px;background:var(--tint,#edf1ff);color:var(--blue,#2452e8);font-size:12px;margin:12px 16px;cursor:pointer}
+.notion-blocknote-host .notion-upload-label{display:grid;gap:12px;font-weight:600}
+.notion-blocknote-host .notion-upload-label span{font-size:12px;font-weight:400;color:var(--muted,#63728b)}
+.notion-blocknote-host .notion-upload-label input{font-size:13px;max-width:100%;padding:9px;border:1px dashed var(--rule,#dfe7f2);border-radius:6px}
+.notion-blocknote-host .notion-media-block video{display:block;max-width:100%;width:100%;max-height:65vh;background:#000;border-radius:5px}
+.notion-blocknote-host .notion-media-block audio{display:block;width:100%;max-width:600px}
+.notion-blocknote-host .notion-media-block img{display:block;max-width:100%;height:auto;max-height:70vh;object-fit:contain;margin:auto}
+.notion-blocknote-host .notion-media-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;padding-top:10px;color:var(--muted,#63728b);flex-wrap:wrap}
+.notion-blocknote-host .notion-media-error{border-left:3px solid var(--orange,#a84613);padding:10px;font-size:13px;background:var(--peach,#fff0e3);margin:8px 0}
+.notion-blocknote-host .notion-media-error button{margin-left:10px;padding:6px 9px;border:1px solid var(--rule,#dfe7f2);border-radius:5px;background:var(--paper,#fff)}

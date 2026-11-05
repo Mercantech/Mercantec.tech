@@ -25,7 +25,7 @@ const waitFor = async (check, message = 'condition', timeout = 5000) => {
 };
 
 async function fixture(t, { reauthorizeMs = 15000 } = {}) {
-  const state = { binary: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null };
+  const state = { binary: null, fingerprint: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null };
   const grants = new Map();
   const http = createServer(async (request, response) => {
     const chunks = [];
@@ -49,9 +49,14 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
       response.end(state.binary);
     } else if (request.method === 'PUT') {
       state.storeAttempts++;
+      const fingerprint = request.headers['x-notion-state-fingerprint'];
+      if (fingerprint !== fingerprintHash(body, Y.encodeStateVectorFromUpdate(body))) {
+        response.writeHead(400).end(); return;
+      }
       if (state.saveGate) await state.saveGate;
       if (state.failStore) { response.writeHead(503).end(); return; }
       state.binary = body;
+      state.fingerprint = fingerprint;
       state.saves++;
       response.setHeader('Content-Type', 'application/json');
       response.end(JSON.stringify({ savedAtUtc: new Date().toISOString() }));
@@ -80,23 +85,25 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     await new Promise(resolve => http.close(resolve));
   });
 
-  const connect = (accessToken, name = documentName) => {
+  const connect = (accessToken, name = documentName, schemaVersion = '2') => {
     const doc = new Y.Doc();
     const messages = [];
     let denied = false;
+    let denialReason;
     const websocket = new HocuspocusProviderWebsocket({
-      url: `ws://127.0.0.1:${server.address.port}/collaboration`,
+      url: `ws://127.0.0.1:${server.address.port}/collaboration${schemaVersion === null ? '' : '?schemaVersion=' + encodeURIComponent(schemaVersion)}`,
       WebSocketPolyfill: WebSocket, autoConnect: false, maxAttempts: 1,
     });
     const provider = new HocuspocusProvider({
       name, token: accessToken, document: doc, websocketProvider: websocket,
-      onAuthenticationFailed: () => { denied = true; },
+      onAuthenticationFailed: ({ reason }) => { denied = true; denialReason = reason; },
       onStateless: ({ payload }) => messages.push(JSON.parse(payload)),
     });
     provider.attach();
     const result = {
       doc, provider, websocket, messages,
       get denied() { return denied; },
+      get denialReason() { return denialReason; },
       destroy() { provider.destroy(); websocket.destroy(); doc.destroy(); },
     };
     clients.push(result);
@@ -120,6 +127,7 @@ test('two real providers merge concurrent edits, acknowledge durable storage and
   assert.equal(acknowledgement.stateHash, createHash('sha256').update(f.state.binary).digest('hex'));
   assert.ok(acknowledgement.stateVector);
   assert.equal(acknowledgement.fingerprintHash, fingerprintHash(Y.encodeStateAsUpdate(a.doc), Y.encodeStateVector(a.doc)));
+  assert.equal(f.state.fingerprint, acknowledgement.fingerprintHash);
   const expected = a.doc.getText('test').toString();
   a.destroy(); b.destroy();
   await f.server.destroy();
@@ -127,6 +135,36 @@ test('two real providers merge concurrent edits, acknowledge durable storage and
   const reopened = f.connect(aToken);
   await waitFor(() => reopened.provider.isSynced && reopened.doc.getText('test').toString() === expected, 'reload after process restart');
   assert.ok(f.state.loads >= 2);
+});
+
+test('missing or incompatible editor schemas are rejected before authorization and document loading', async t => {
+  const f = await fixture(t);
+  const accessToken = token('teacher');
+  f.grants.set(accessToken, new Set([documentName]));
+  for (const version of [null, '1', '999']) {
+    const editor = f.connect(accessToken, documentName, version);
+    await waitFor(() => editor.denied, 'incompatible editor rejected');
+    assert.match(editor.denialReason, /editor_version_mismatch/);
+  }
+  assert.equal(f.state.authorizations, 0);
+  assert.equal(f.state.loads, 0);
+  assert.equal(f.state.saves, 0);
+});
+
+test('loading a legacy persisted document stamps its canonical publication fingerprint before synchronization', async t => {
+  const f = await fixture(t);
+  const legacy = new Y.Doc();
+  legacy.getText('test').insert(0, 'Existing lesson');
+  f.state.binary = Buffer.from(Y.encodeStateAsUpdate(legacy));
+  const expected = fingerprintHash(f.state.binary, Y.encodeStateVector(legacy));
+  legacy.destroy();
+  const accessToken = token('teacher');
+  f.grants.set(accessToken, new Set([documentName]));
+  const editor = f.connect(accessToken);
+  await waitFor(() => editor.provider.isSynced, 'legacy content synchronized');
+  assert.equal(editor.doc.getText('test').toString(), 'Existing lesson');
+  assert.equal(f.state.fingerprint, expected);
+  assert.ok(f.state.saves > 0);
 });
 
 test('wrong-hold token is denied before state loads or queued edits reach the document', async t => {

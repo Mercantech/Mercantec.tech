@@ -186,6 +186,46 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("hold_lectio_sources", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId");
+
+                    b.ToTable("learning_groups", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroupMember", b =>
+                {
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("GroupId", "MembershipId");
+
+                    b.HasIndex("MembershipId");
+
+                    b.ToTable("learning_group_members", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Membership", b =>
                 {
                     b.Property<Guid>("Id")
@@ -231,6 +271,54 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<Guid>("PageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("UploadedBySub")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.HasIndex("PageId");
+
+                    b.ToTable("notion_assets", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionPage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -243,11 +331,41 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<Guid>("CreatedBySub")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("DraftFingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("DraftRevision")
+                        .HasColumnType("bigint");
+
                     b.Property<Guid>("HoldId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ParentPageId")
                         .HasColumnType("uuid");
+
+                    b.Property<long>("PublicationVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PublishedAssetIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("PublishedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PublishedBySub")
+                        .HasColumnType("uuid");
+
+                    b.Property<long?>("PublishedRevision")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("PublishedState")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("PublishedTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("SchemaVersion")
                         .HasColumnType("integer");
@@ -268,6 +386,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.HasIndex("ParentPageId");
 
                     b.HasIndex("HoldId", "ParentPageId");
+
+                    b.HasIndex("HoldId", "PublishedAtUtc");
 
                     b.ToTable("notion_pages", (string)null);
                 });
@@ -368,6 +488,34 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Hold");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroup", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroupMember", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningGroup", "Group")
+                        .WithMany("Members")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Membership", "Membership")
+                        .WithMany()
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Membership");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Membership", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", "Hold")
@@ -377,6 +525,17 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Hold");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionAsset", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotionPage", "Page")
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Page");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionPage", b =>
@@ -425,6 +584,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("LectioSources");
 
                     b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroup", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.PollRound", b =>

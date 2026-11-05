@@ -20,7 +20,7 @@ Load /notion-editor/editor.css and import /notion-editor/editor.js dynamically. 
 
 - mount(element, context, accessToken, dotnetCallbacks): initializes a document and waits for authorized server sync before displaying the editor.
 - setContext(element, context): refreshes roster, polls, title and userName for the same page and hold.
-- hasUnsavedChanges(element): true while local edits await a matching durable storage acknowledgement.
+- hasUnsavedChanges(element): true while local edits await a matching durable storage acknowledgement or a media upload is still running.
 - setPresentation(element, true/false): shows or closes a snapshot of the document as slides.
 - destroy(element): disposes the React root, WebSocket, Yjs document and browser listeners. Confirm or prevent navigation first when there are unsaved changes.
 
@@ -29,9 +29,9 @@ Context shape: {pageId,holdId,title,canEdit,members:[{id,displayName}],polls:[{i
 DotNet object methods:
 
 - OnNotionStatus(status, detail): connecting, synced, saving, saved, offline or error. synced means connected; saved means a persisted snapshot matches the current Yjs state.
-- GetNotionToken(): returns a current access token for each connection/reconnection.
+- GetNotionToken(): returns a current access token for connections and private media access, including authenticated read-only students.
 
-WebSocket: same-origin /collaboration, room notion:<pageId>. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
+WebSocket: same-origin /collaboration?schemaVersion=2, room notion:<pageId>. A missing or incompatible client version is rejected before document loading; the current editor asks the user to reload. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
 
 ## Custom blocks
 
@@ -51,3 +51,17 @@ The browser test is intended to verify slash menus, roster selection, poll links
 ## Source and license notices
 
 The build generates public/THIRD-PARTY-NOTICES.txt from locked runtime packages, including license texts and source links. It is copied to the served assets. BlockNote source for the shipped version is linked there; project additions live in this directory. Preserve these notices in redistributions and update them with dependency changes.
+
+## Udgivne sider, links, grupper og medier
+
+`mountReadOnly(element, context, accessToken, callbacks)` anvender kun `publishedStateBase64` fra det autoriserede publicerings-API. Det opretter en lokal Y.Doc uden WebSocket-provider, så lærerens nye kladdeændringer ikke kan nå elevvisningen. Brug samme schema til redigering og læsning.
+
+`getPublicationData(element)` returnerer asynkront `{ expectedFingerprint, assetIds }`. Kaldet afvises ved afventende lagring, upload eller samtidige ændringer under hashberegningen. Værten sender også `expectedRevision` fra frisk API-kontekst; API'et kopierer kun den tilsvarende lagrede kladde.
+
+`context.pages` består af `{ id, title, parentPageId }` fra holdets autoriserede sider. `@` indsætter ID-baserede links til sider eller enkelte elever. `/side` indsætter en linkblok med sidevalg. Titler og elevnavne slås op fra konteksten, så ukendte eller ikke-udgivne mål ikke viser skjulte etiketter i elevvisningen.
+
+`context.groups` kan indeholde `{ id, name, members:[{ id, displayName }] }`. Elevblokkens gruppeknap kalder `OnNotionCreateGroup(membershipIdsJson)`; værten viser gruppedialogen og gemmer gennem holdets gruppe-API. Opdatér konteksten med `setContext` efter oprettelse. `/gruppe` henviser til en gemt gruppe.
+
+`/video`, `/billede`, `/lyd` og `/fil` indsætter uploadblokke. Uploadgrænsen er 100 MiB. Dokumentet gemmer kun assetId/pageId/kind. Medieadgang hentes med normal Bearer-auth og udløbende URL'er fra `/api/notion/assets/{id}/access`, der fornys før udløb. MP4/WebM, lyd og billeder bruger browserens egne medieelementer; der er altid et downloadlink, og der foretages ingen automatisk videokonvertering.
+
+Til browser-QA kan `tests/qa-publishing-harness.mjs` køres med Node 22. Den binder kun loopback og anvender fiktive elever. `/notion` er lærerkladde, knappen Udgiv gemmer en testsnapshot, og `/student` anvender den isolerede læsevisning. Tallet for WebSocket-forbindelser ændres ikke, når elevvisningen åbnes. Denne fixture afprøver ikke den rigtige database-/filautorisation; disse dækkes af API-testene.
