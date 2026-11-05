@@ -12,6 +12,7 @@
 <a class="skip-link" href="@SkipToContentHref">Spring til indhold</a>
 <div class="lup">
     <div class="app">
+        <ViewAsStudentBanner />
         <header class="lup-header">
             <a class="brand" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform">LUP</a>
             @if (Auth.IsAuthenticated)
@@ -122,7 +123,6 @@
                 </div>
             }
         </header>
-        <ViewAsStudentBanner />
         <main class="body" id="main-content">
             @Body
         </main>

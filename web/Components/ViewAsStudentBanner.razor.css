@@ -7,14 +7,21 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px 18px;
-    margin: 0 0 18px;
-    padding: 14px 16px;
-    border: 2px solid color-mix(in srgb, var(--blue) 55%, var(--rule));
-    border-radius: 10px;
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 8%, transparent);
+    margin: 0;
+    padding: 12px 22px;
+    border: 0;
+    border-bottom: 2px solid color-mix(in srgb, var(--blue) 55%, var(--rule));
+    border-radius: 0;
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--ink) 8%, transparent);
     background:
         linear-gradient(135deg, color-mix(in srgb, var(--tint) 88%, transparent), transparent),
         color-mix(in srgb, var(--blue) 12%, var(--panel, var(--bg)));
+}
+
+@media (max-width: 620px) {
+    .view-as-banner {
+        padding: 12px 15px;
+    }
 }
 
 .view-as-banner-copy {
