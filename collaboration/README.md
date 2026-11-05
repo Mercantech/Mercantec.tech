@@ -94,7 +94,7 @@ revision and fingerprint must still match. Students read that snapshot through
 the authorized page context, without joining this service or receiving draft
 state. Only teachers with management access can authenticate to draft rooms.
 
-WebSocket clients must connect with `?schemaVersion=3`. Missing or older schema
+WebSocket clients must connect with `?schemaVersion=4`. Missing or older schema
 versions are rejected with `editor_version_mismatch` before authorization or
 document loading. This forces already-open v1 browser tabs to reload before
 they can edit documents containing the newer reference and media node types.
