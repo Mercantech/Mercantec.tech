@@ -15,6 +15,7 @@ import { pollUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPubl
 import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { NotionDragHandleMenu, turnIntoSelectItems } from './turn-into';
+import { AiHelperPanel } from './ai-helper';
 
 export interface EditorContext {
   pageId: string;
@@ -233,6 +234,7 @@ function ConnectedEditor({session}:{session:Session}) {
   session.editor=editor;
   useEffect(() => () => { session.editor=undefined; },[session]);
   const enabled=canEdit(session);
+  const [aiOpen,setAiOpen]=useState(false);
   const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'pageLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
     if(!enabled) return;
     editor.focus();
@@ -267,6 +269,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Læringsmål',subtext:'Fremhæv målet for aktiviteten',aliases:['læringsmål','mål','learning'],group:'Undervisning',icon:<span aria-hidden="true">◎</span>,onItemClick:()=>insert('learningGoal')},
     {title:'Diagram',subtext:'Mermaid flowchart, sequence m.m.',aliases:['diagram','mermaid','flowchart','graf'],group:'Undervisning',icon:<span aria-hidden="true">◈</span>,onItemClick:()=>insert('mermaidDiagram')},
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
+    {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>enabled && setAiOpen(true)},
   ];
   return <>
     <div className="notion-editor-tools" role="toolbar" aria-label="Dokumentværktøjer">
@@ -281,9 +284,20 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('mermaidDiagram')} disabled={!enabled}>Diagram</button>
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
+      <button type="button" onClick={()=>setAiOpen(true)} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
+    {!session.readOnly && (
+      <AiHelperPanel
+        editor={editor}
+        enabled={enabled}
+        pageTitle={session.context.title}
+        getToken={()=>validToken(session)}
+        open={aiOpen}
+        onOpenChange={setAiOpen}
+      />
+    )}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false}>
       {!session.readOnly && <>

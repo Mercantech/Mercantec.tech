@@ -1,6 +1,7 @@
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Integrations.Azure;
 using Mercantec.Tech.Api.Integrations.Lectio;
+using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,6 +57,18 @@ builder.Services.AddHttpClient("azure-graph", client =>
     client.Timeout = TimeSpan.FromSeconds(45);
 });
 builder.Services.AddSingleton<AzureGraphCalendarClient>();
+
+builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.AddHttpClient("openai", (sp, client) =>
+{
+    var opts = sp.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+    var baseUrl = string.IsNullOrWhiteSpace(opts.BaseUrl)
+        ? "https://api.openai.com/v1/"
+        : opts.BaseUrl.TrimEnd('/') + "/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(90);
+});
+builder.Services.AddSingleton<OpenAiEditorClient>();
 builder.Services.AddScoped<MembershipClaimService>();
 
 builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));
@@ -89,6 +102,13 @@ if (string.IsNullOrWhiteSpace(azure["ClientSecret"]))
     builder.Configuration["Azure:ClientSecret"] = builder.Configuration["AZURE_CLIENT_SECRET"];
 if (string.IsNullOrWhiteSpace(azure["TeacherUpnMap"]) && !string.IsNullOrWhiteSpace(builder.Configuration["AZURE_TEACHER_UPN_MAP"]))
     builder.Configuration["Azure:TeacherUpnMap"] = builder.Configuration["AZURE_TEACHER_UPN_MAP"];
+
+// OpenAI: understøt både OpenAI__* (compose) og flade OPENAI_* env-navne
+var openAi = builder.Configuration.GetSection(OpenAiOptions.SectionName);
+if (string.IsNullOrWhiteSpace(openAi["ApiKey"]))
+    builder.Configuration["OpenAI:ApiKey"] = builder.Configuration["OPENAI_API_KEY"];
+if (string.IsNullOrWhiteSpace(openAi["Model"]) && !string.IsNullOrWhiteSpace(builder.Configuration["OPENAI_MODEL"]))
+    builder.Configuration["OpenAI:Model"] = builder.Configuration["OPENAI_MODEL"];
 
 var authIssuer = builder.Configuration["AUTH_ISSUER"]
     ?? "https://auth.mercantec.tech";
