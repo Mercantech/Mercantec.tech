@@ -1,5 +1,6 @@
 import React, { useMemo, type ReactNode } from 'react';
 import { editorHasBlockWithType } from '@blocknote/core';
+import { AiDragHandleItem } from './ai-helper';
 import { SideMenuExtension } from '@blocknote/core/extensions';
 import {
   BlockColorsItem,
@@ -148,11 +149,12 @@ function TurnIntoItem({ children }: { children: ReactNode }) {
   );
 }
 
-/** Drag-handle menu with Notion-style Turn into + delete + colors. */
+/** Drag-handle menu: Turn into, AI helper on this block, delete, colors. */
 export function NotionDragHandleMenu() {
   return (
     <DragHandleMenu>
       <TurnIntoItem>Omdan til</TurnIntoItem>
+      <AiDragHandleItem />
       <RemoveBlockItem>Slet</RemoveBlockItem>
       <BlockColorsItem>Farver</BlockColorsItem>
       <TableRowHeaderItem>Overskriftsrække</TableRowHeaderItem>
