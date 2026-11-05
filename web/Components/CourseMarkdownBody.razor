@@ -1,0 +1,29 @@
+@using Mercantec.Tech.Web.Courses
+
+@foreach (var segment in _segments)
+{
+    if (segment is CourseMarkdownHtmlSegment html)
+    {
+        @html.Html
+    }
+    else if (segment is CourseMarkdownCodeSegment fence)
+    {
+        <CourseCodeBlock Language="@fence.Language" Code="@fence.Code" />
+    }
+}
+
+@code {
+    [Parameter] public string? Markdown { get; set; }
+
+    private IReadOnlyList<CourseMarkdownSegment> _segments = Array.Empty<CourseMarkdownSegment>();
+    private string? _parsed;
+
+    protected override void OnParametersSet()
+    {
+        if (string.Equals(_parsed, Markdown, StringComparison.Ordinal))
+            return;
+
+        _parsed = Markdown;
+        _segments = CourseMarkdown.ToSegments(Markdown);
+    }
+}

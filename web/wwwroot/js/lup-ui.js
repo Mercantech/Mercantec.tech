@@ -147,3 +147,30 @@ window.lupGiftUi = {
     open(id) { const dialog = document.getElementById(id); if (dialog && !dialog.open) dialog.showModal(); },
     close(id) { const dialog = document.getElementById(id); if (dialog?.open) dialog.close(); }
 };
+
+/** Kopiér tekst til udklipsholder — bruges af kursus-kodeblokke. */
+window.courseCode = {
+    async copy(text) {
+        const value = text ?? "";
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(value);
+                return true;
+            }
+        } catch { /* fald tilbage til execCommand */ }
+        try {
+            const ta = document.createElement("textarea");
+            ta.value = value;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "fixed";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand("copy");
+            ta.remove();
+            return !!ok;
+        } catch {
+            return false;
+        }
+    }
+};

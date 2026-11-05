@@ -125,7 +125,7 @@ else
                                     <span class="week-chevron">⌄</span>
                                 </summary>
                                 <div class="course-theory-body">
-                                    @CourseMarkdown.ToHtml(block.Markdown)
+                                    <CourseMarkdownBody Markdown="@block.Markdown" />
                                 </div>
                             </details>
                         }

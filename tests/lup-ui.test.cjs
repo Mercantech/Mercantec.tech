@@ -71,3 +71,30 @@ test('System mode respects motion preference and hidden tabs never animate', () 
     assert.equal(app.pending.size, 0);
     assert.equal(scene(false).pending.size, 1);
 });
+
+test('courseCode.copy writes via clipboard API', async () => {
+    const storage = new Map();
+    const events = new Map();
+    const canvas = { getContext: () => ({ setTransform() {}, clearRect() {}, beginPath() {}, fill() {}, arc() {} }), isConnected: false };
+    const host = { appendChild() { canvas.isConnected = true; } };
+    const document = {
+        hidden: false, documentElement: { dataset: { theme: 'light' } },
+        getElementById: id => id === 'lup-snow-host' ? host : null,
+        createElement: () => canvas, addEventListener: (name, fn) => events.set(name, fn),
+        body: { appendChild() {}, }
+    };
+    let written = null;
+    const window = {};
+    vm.runInNewContext(source, {
+        window, document,
+        localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, val) => storage.set(key, val) },
+        sessionStorage: { getItem: () => null },
+        navigator: { clipboard: { writeText: async (t) => { written = t; } } },
+        innerWidth: 800, innerHeight: 600, devicePixelRatio: 1,
+        matchMedia: () => ({ matches: false, addEventListener() {} }),
+        addEventListener() {}, dispatchEvent() {},
+        requestAnimationFrame: () => 1, cancelAnimationFrame() {}
+    });
+    assert.equal(await window.courseCode.copy('using System;'), true);
+    assert.equal(written, 'using System;');
+});
