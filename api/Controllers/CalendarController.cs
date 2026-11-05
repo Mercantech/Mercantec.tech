@@ -20,10 +20,11 @@ public sealed class CalendarController(AzureGraphCalendarClient graph) : Control
         if (!UserClaims.IsTeacher(User))
             return Forbid();
 
+        var sub = UserClaims.GetSub(User)?.ToString();
         var email = User.FindFirstValue("email");
-        var upn = graph.ResolveTeacherUpn(email);
+        var upn = graph.ResolveTeacherUpn(sub, email);
         if (string.IsNullOrWhiteSpace(upn))
-            return BadRequest(new { error = "missing_email", message = "Din konto mangler e-mail til kalenderkobling." });
+            return BadRequest(new { error = "missing_mailbox_mapping", message = "Din konto er ikke koblet til en Outlook-postkasse." });
 
         var start = from ?? StartOfWeek(DateTimeOffset.UtcNow);
         var end = to ?? start.AddDays(7);

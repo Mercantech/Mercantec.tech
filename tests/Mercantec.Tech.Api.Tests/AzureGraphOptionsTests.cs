@@ -4,22 +4,49 @@ namespace Mercantec.Tech.Api.Tests;
 
 public sealed class AzureGraphOptionsTests
 {
+    private const string MathiasSub = "d969fced-f7be-46d4-9bb9-5a2f03ca6974";
+
+    [Fact]
+    public void DefaultMap_MathiasSubMapsToMagsUpn()
+    {
+        var opts = new AzureGraphOptions();
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(MathiasSub, "mathiasgsteenberg@gmail.com"));
+        // Sub alene er nok — også uden e-mail
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(MathiasSub, null));
+    }
+
+    [Fact]
+    public void DefaultMap_MathiasGmailMapsToMagsUpn()
+    {
+        var opts = new AzureGraphOptions();
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(null, "mathiasgsteenberg@gmail.com"));
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(null, "MAGS@mercantec.dk"));
+    }
+
     [Theory]
     [InlineData("kasc@mercantec.dk", "kasc@mercantec.dk")]
     [InlineData("KASC@mercantec.dk", "kasc@mercantec.dk")]
-    [InlineData("mags@mercantec.dk", "mags@mercantec.dk")]
-    [InlineData("MAGS@mercantec.dk", "mags@mercantec.dk")]
-    public void DefaultMap_ResolvesKasperAndMathias(string email, string expectedUpn)
+    public void DefaultMap_ResolvesKasperEmail(string email, string expectedUpn)
     {
         var opts = new AzureGraphOptions();
-        Assert.Equal(expectedUpn, opts.ResolveTeacherUpn(email));
+        Assert.Equal(expectedUpn, opts.ResolveTeacherUpn(null, email));
     }
 
     [Fact]
     public void ResolveTeacherUpn_FallsBackToEmail()
     {
         var opts = new AzureGraphOptions { TeacherUpnMap = "" };
-        Assert.Equal("chly@mercantec.dk", opts.ResolveTeacherUpn("chly@mercantec.dk"));
+        Assert.Equal("chly@mercantec.dk", opts.ResolveTeacherUpn(null, "chly@mercantec.dk"));
+    }
+
+    [Fact]
+    public void ResolveTeacherUpn_SubTakesPrecedenceOverEmail()
+    {
+        var opts = new AzureGraphOptions
+        {
+            TeacherUpnMap = $"{MathiasSub}=mags@mercantec.dk;other@example.com=kasc@mercantec.dk"
+        };
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(MathiasSub, "other@example.com"));
     }
 
     [Fact]
@@ -29,8 +56,8 @@ public sealed class AzureGraphOptionsTests
         {
             TeacherUpnMap = "kasper@mercantec.dk=kasc@mercantec.dk;mathias@example.com=mags@mercantec.dk"
         };
-        Assert.Equal("kasc@mercantec.dk", opts.ResolveTeacherUpn("kasper@mercantec.dk"));
-        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn("mathias@example.com"));
+        Assert.Equal("kasc@mercantec.dk", opts.ResolveTeacherUpn(null, "kasper@mercantec.dk"));
+        Assert.Equal("mags@mercantec.dk", opts.ResolveTeacherUpn(null, "mathias@example.com"));
     }
 
     [Fact]

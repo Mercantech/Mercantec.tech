@@ -116,7 +116,7 @@ services:
       Azure__TenantId: ${AZURE_TENANT_ID:-}
       Azure__ClientId: ${AZURE_CLIENT_ID:-}
       Azure__ClientSecret: ${AZURE_CLIENT_SECRET:-}
-      Azure__TeacherUpnMap: ${AZURE_TEACHER_UPN_MAP:-kasc@mercantec.dk=kasc@mercantec.dk;mags@mercantec.dk=mags@mercantec.dk}
+      Azure__TeacherUpnMap: ${AZURE_TEACHER_UPN_MAP:-d969fced-f7be-46d4-9bb9-5a2f03ca6974=mags@mercantec.dk;mathiasgsteenberg@gmail.com=mags@mercantec.dk;mags@mercantec.dk=mags@mercantec.dk;kasc@mercantec.dk=kasc@mercantec.dk}
     depends_on:
       notion-init:
         condition: service_healthy

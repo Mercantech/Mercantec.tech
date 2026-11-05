@@ -19,12 +19,24 @@ public sealed class CalendarControllerTests
     }
 
     [Fact]
-    public async Task TeacherWithoutEmailGetsBadRequest()
+    public async Task TeacherWithoutMailboxMappingGetsBadRequest()
     {
-        var controller = Controller(email: null, teacher: true);
+        var controller = Controller(email: null, teacher: true, sub: Guid.NewGuid());
         var result = Assert.IsType<BadRequestObjectResult>(await controller.Mine(null, null, default));
         var json = System.Text.Json.JsonSerializer.Serialize(result.Value);
-        Assert.Contains("missing_email", json, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("missing_mailbox_mapping", json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task MathiasSubMapsToMagsMailboxWhenUnconfigured()
+    {
+        var mathias = Guid.Parse("d969fced-f7be-46d4-9bb9-5a2f03ca6974");
+        var controller = Controller(email: "mathiasgsteenberg@gmail.com", teacher: true, configured: false, sub: mathias);
+        var ok = Assert.IsType<OkObjectResult>(await controller.Mine(null, null, default));
+        var view = Assert.IsType<TeacherCalendarView>(ok.Value);
+        Assert.False(view.Configured);
+        Assert.Equal("mags@mercantec.dk", view.AzureUpn);
+        Assert.Empty(view.Events);
     }
 
     [Fact]
@@ -38,7 +50,7 @@ public sealed class CalendarControllerTests
         Assert.Empty(view.Events);
     }
 
-    private static CalendarController Controller(string? email, bool teacher, bool configured = false)
+    private static CalendarController Controller(string? email, bool teacher, bool configured = false, Guid? sub = null)
     {
         var opts = Options.Create(new AzureGraphOptions
         {
@@ -54,8 +66,10 @@ public sealed class CalendarControllerTests
 
         var claims = new List<Claim>();
         if (teacher) claims.Add(new(ClaimTypes.Role, "Underviser"));
+        // Admin tæller også som underviser i UserClaims
+        if (teacher) claims.Add(new("role", "Admin"));
         if (email is not null) claims.Add(new("email", email));
-        claims.Add(new("sub", Guid.NewGuid().ToString()));
+        claims.Add(new("sub", (sub ?? Guid.NewGuid()).ToString()));
 
         return new CalendarController(graph)
         {
