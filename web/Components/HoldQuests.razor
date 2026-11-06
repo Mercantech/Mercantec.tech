@@ -1,9 +1,13 @@
 @using Mercantec.Tech.Web.Learning
+@using System.Globalization
 @inject LearningClient Client
+@inject GroupSetsClient Sets
 @inject AuthService Auth
 @inject ViewAsStudentContext ViewAs
+@inject IJSRuntime Js
 @implements IDisposable
 
+<NavigationLock ConfirmExternalNavigation="_dirty" OnBeforeInternalNavigation="BeforeNavigation" />
 <section class="hold-quests" aria-label="Holdets quests">
     <div class="hq-heading"><div><h2>Quests og afleveringer</h2><p>Planlæg hovedopgaver, daglige øvelser og ekstra udfordringer.</p></div>
         @if (_canManage) { <button type="button" class="action" @onclick="New" disabled="@_busy"><UiIcon Name="plus" /> Opret quest</button> }
@@ -15,14 +19,30 @@
     {
         @if (_editingOpen && _canManage)
         {
-            <form class="hq-editor" @onsubmit="Save" @onsubmit:preventDefault>
+            <form class="hq-editor" @onsubmit="Save" @onsubmit:preventDefault @oninput="MarkDirty">
                 <h3>@(_editing is null ? "Opret quest" : "Redigér quest")</h3>
                 <fieldset disabled="@_busy">
-                    <div class="hq-fields"><label class="field">Titel<input @bind="_title" maxlength="200" required placeholder="Hvad skal eleverne arbejde med?" /></label><label class="field">Questtype<select @bind="_kind"><option value="main">Main quest · hovedopgave</option><option value="daily">Daily quest · daglig øvelse</option><option value="side">Side quest · ekstra udfordring</option></select></label></div>
+                    <div class="hq-fields"><label class="field">Titel<input @bind="_title" maxlength="200" required placeholder="Hvad skal eleverne arbejde med?" /></label><label class="field">Questtype<select @bind="_kind" @bind:after="KindChanged"><option value="main">Main quest · hovedopgave</option><option value="daily">Daily quest · daglig øvelse</option><option value="side">Side quest · ekstra udfordring</option></select></label></div>
                     <label class="field">Opgave og afleveringskrav<textarea @bind="_description" maxlength="20000" rows="5" placeholder="Beskriv opgaven, og hvad eleverne skal aflevere."></textarea></label>
-                    <div class="hq-fields"><label class="field">Afleveringsform<select @bind="_mode"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label><label class="field">Afleveringsfrist (valgfri)<input type="datetime-local" value="@_deadline" @onchange="e => _deadline = e.Value?.ToString() ?? string.Empty" /><small>Dansk tid. Daily quests gentages ikke automatisk.</small></label></div>
-                    <label class="hq-check"><input type="checkbox" @bind="_published" /> Udgiv til holdets elever</label>
-                    <div class="actions"><button type="submit" class="action" disabled="@string.IsNullOrWhiteSpace(_title)">@(_busy ? "Gemmer…" : "Gem quest")</button><button type="button" class="secondary" @onclick="Cancel">Annullér</button></div>
+                    <div class="hq-fields"><label class="field">Afleveringsform<select @bind="_mode" @bind:after="ModeChanged"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label>@if (!_repeating) { <label class="field">Afleveringsfrist (valgfri)<input type="datetime-local" value="@_deadline" @onchange="e => { _deadline = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" /><small>Fristen angives i dansk tid.</small></label> }</div>
+                    @if (_mode != "individual") { <label class="field">Gruppesæt til afleveringen<select @bind="_groupSetValue" @bind:after="GroupSetChanged"><option value="">Alle aktive grupper (uden fast sæt)</option>@foreach (var set in _sets.Where(s => !s.Archived || s.Id.ToString() == _groupSetValue)) { <option value="@set.Id">@set.Name @(set.Archived ? "(arkiveret)" : "")</option> }</select><small>Et valgt gruppesæt bestemmer, hvilke grupper eleverne kan aflevere som. Opret sættet under Elever og grupper.</small></label> }
+                    <fieldset class="hq-audience"><legend>Hvem skal have questen?</legend><label class="field">Modtagere<select @bind="_audienceMode" @bind:after="MarkDirty"><option value="hold">Hele holdet</option><option value="students">Udvalgte elever</option><option value="groups">Udvalgte grupper</option></select></label>
+                        @if (_audienceMode == "students") { <p class="hq-help">@_audienceMembers.Count elever valgt</p><div class="hq-target-list">@foreach (var member in _members) { <label><input type="checkbox" checked="@_audienceMembers.Contains(member.Id)" @onchange="e => SelectAudienceMember(member.Id, e)" /> @member.DisplayName</label> }</div> }
+                        @if (_audienceMode == "groups") { <p class="hq-help">@_audienceGroups.Count grupper valgt</p><div class="hq-target-list">@foreach (var group in AudienceGroups) { <label><input type="checkbox" checked="@_audienceGroups.Contains(group.Id)" @onchange="e => SelectAudienceGroup(group.Id, e)" /><span>@group.Name <small>@SetName(group.GroupSetId)</small></span></label> }@if (!AudienceGroups.Any()) { <p>Opret aktive grupper i det valgte gruppesæt først.</p> }</div> }
+                        <p class="hq-help">Afleveringsform, gruppesæt og modtagere låses, når den første elev har oprettet en afleveringskladde. Brug en kopi til en ny målgruppe.</p>
+                    </fieldset>
+                    @if (_editing is null)
+                    {
+                        <label class="hq-check"><input type="checkbox" @bind="_repeating" @bind:after="MarkDirty" /> Gentag som separate quests</label>
+                        @if (_repeating)
+                        {
+                            <div class="hq-repeat"><div class="hq-fields"><label class="field">Gentagelse<select @bind="_frequency" @bind:after="MarkDirty"><option value="daily">Hver dag</option><option value="weekdays">Hver hverdag</option><option value="weekly">Hver uge på startdagens ugedag</option></select></label><label class="field">Afleveringstid (dansk tid)<input type="time" value="@_repeatTime" @onchange="e => { _repeatTime = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" required /></label></div><div class="hq-fields"><label class="field">Første dato<input type="date" value="@_repeatStart" @onchange="e => { _repeatStart = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" required /></label><label class="field">Sidste dato<input type="date" value="@_repeatEnd" @onchange="e => { _repeatEnd = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" required /></label></div><p class="hq-repeat-preview" role="status">@RepeatCount separate quests i perioden. Hver dato får sin egen aflevering og vurdering. Højst 90 dage.</p></div>
+                        }
+                    }
+                    else if (_editingOccurrence is DateOnly occurrence) { <p class="hq-help">Du redigerer kun forekomsten @occurrence.ToString("dd.MM.yyyy"). De andre datoer i serien bevares.</p> }
+                    <label class="hq-check"><input type="checkbox" @bind="_required" @bind:after="MarkDirty" /> Obligatorisk aflevering</label>
+                    <label class="hq-check"><input type="checkbox" @bind="_published" @bind:after="MarkDirty" /> Udgiv til modtagerne</label>
+                    <div class="actions"><button type="submit" class="action">@(_busy ? "Gemmer…" : _repeating ? $"Opret {RepeatCount} quests" : "Gem quest")</button><button type="button" class="secondary" @onclick="Cancel">Annullér</button></div>
                 </fieldset>
             </form>
         }
@@ -38,8 +58,8 @@
             {
                 <article class="hq-quest @quest.Kind">
                     <span class="hq-mark"><UiIcon Name="@(quest.Kind == "main" ? "target" : quest.Kind == "daily" ? "loop" : "star")" /></span>
-                    <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span>@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
-                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id">@(_canManage ? "Se afleveringer" : "Åbn quest")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button> }</div>
+                    <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Frivillig")</span>@if (quest.OccurrenceDate is DateOnly day) { <span>@day.ToString("dd.MM.yyyy")</span> }@if (quest.Audience?.Mode is "students" or "groups") { <span>Målrettet</span> }@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.GroupSetId is Guid setId) { <span>· @_sets.FirstOrDefault(s => s.Id == setId)?.Name</span> } @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow && quest.Required ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
+                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id">@(_canManage ? "Se afleveringer" : "Åbn quest")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => Copy(quest)" disabled="@_busy">Kopiér som ny</button> }</div>
                 </article>
             }
         </div>
@@ -52,31 +72,43 @@
     [Parameter] public EventCallback OnChanged { get; set; }
     private readonly CancellationTokenSource _life = new();
     private QuestView[] _quests = [];
+    private GroupSetView[] _sets = [];
+    private LearningMember[] _members = [];
+    private LearningGroupView[] _groups = [];
+    private readonly HashSet<Guid> _audienceMembers = [], _audienceGroups = [];
     private (Guid Hold, string? Account, bool Preview, bool Authenticated)? _context;
     private (Guid Hold, string? Account, bool Preview, bool Authenticated) CurrentContext => (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
     private string? _error, _notice;
-    private bool _loading, _busy, _canManage, _editingOpen, _disposed, _startHandled;
+    private bool _loading, _busy, _canManage, _editingOpen, _disposed, _startHandled, _dirty, _repeating;
     private int _loadVersion;
     private Guid? _editing;
+    private DateOnly? _editingOccurrence;
+    private Guid _seriesRequestId = Guid.NewGuid();
     private string _filter = "all", _title = "", _description = "", _kind = "main", _mode = "individual", _deadline = "";
-    private bool _published = true;
+    private bool _published = true, _required = true;
+    private string _groupSetValue = "";
+    private string _audienceMode = "hold", _frequency = "weekdays", _repeatStart = "", _repeatEnd = "", _repeatTime = "15:00";
+    private IEnumerable<LearningGroupView> AudienceGroups => _groups.Where(g =>
+        (_groupSetValue.Length == 0 || g.GroupSetId?.ToString() == _groupSetValue)
+        && (g.GroupSetId is null || _sets.Any(s => s.Id == g.GroupSetId && !s.Archived) || _editing is not null && _audienceGroups.Contains(g.Id)));
+    private int RepeatCount { get { try { return RepeatPlan() is QuestRepeatPlan plan ? QuestRecurrence.Dates(plan).Length : 0; } catch (ArgumentException) { return 0; } } }
     private IEnumerable<QuestView> Filtered => _quests.Where(q => _filter == "all" || q.Kind == _filter).OrderBy(q => q.DeadlineUtc ?? DateTimeOffset.MaxValue).ThenBy(q => q.Title);
     protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
     protected override async Task OnParametersSetAsync()
     {
         if (_context != CurrentContext)
         {
-            _quests = []; _canManage = false; Cancel();
+            _quests = []; _sets = []; _members = []; _groups = []; _canManage = false; Cancel();
             await Load();
         }
-        if (StartCreating && !_startHandled && _canManage) { New(); _startHandled = true; }
+        if (StartCreating && !_startHandled && _canManage) { await New(); _startHandled = true; }
         if (!StartCreating) _startHandled = false;
     }
     private void Changed() => _ = InvokeAsync(async () =>
     {
         // Token renewal notifies subscribers too; retain an open draft for the same account.
         if (_disposed || _context == CurrentContext) return;
-        _quests = []; _canManage = false; Cancel();
+        _quests = []; _sets = []; _members = []; _groups = []; _canManage = false; Cancel();
         await Load();
         if (!_disposed) StateHasChanged();
     });
@@ -89,27 +121,80 @@
         try
         {
             var holds = await Client.Holds(_life.Token); var quests = await Client.Quests(holdId, _life.Token);
+            var sets = await Sets.List(holdId, _life.Token, true);
+            var manage = !preview && holds.Any(h => h.Id == holdId && h.CanManage);
+            var members = manage ? await Client.Members(holdId, _life.Token) : [];
+            var groups = manage ? await Client.Groups(holdId, _life.Token) : [];
             if (holdId != HoldId || subject != Auth.Subject || preview != ViewAs.IsActive || version != _loadVersion || _disposed) return;
             _quests = preview ? quests.Where(q => q.Published).ToArray() : quests; _canManage = !preview && holds.Any(h => h.Id == holdId && h.CanManage);
+            _sets = sets; _members = members; _groups = groups;
         }
         catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject && preview == ViewAs.IsActive && version == _loadVersion) _error = ex is LearningException ? ex.Message : "Quests kunne ikke hentes. Prøv igen."; }
         finally { if (version == _loadVersion) _loading = false; }
     }
-    private void New() { _editing = null; _editingOpen = true; _title = _description = _deadline = ""; _kind = "main"; _mode = "individual"; _published = true; _notice = null; }
-    private void Cancel() { _editingOpen = false; _editing = null; }
-    private void Edit(QuestView quest) { _editing = quest.Id; _editingOpen = true; _title = quest.Title; _description = quest.Description; _kind = quest.Kind; _mode = quest.SubmissionMode; _published = quest.Published; _deadline = quest.DeadlineUtc is DateTimeOffset d ? HoldTime.Input(d) : ""; _notice = null; }
+    private void MarkDirty() { _dirty = true; _seriesRequestId = Guid.NewGuid(); }
+    private async Task<bool> Discard() => !_dirty || await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i questen. Kassér dem?");
+    private async Task New()
+    {
+        if (!await Discard()) return;
+        _editing = null; _editingOccurrence = null; _editingOpen = true; _title = _description = _deadline = _groupSetValue = "";
+        _kind = "main"; _mode = "individual"; _published = _required = true; _notice = null; _audienceMode = "hold";
+        _audienceMembers.Clear(); _audienceGroups.Clear(); _repeating = _dirty = false; _seriesRequestId = Guid.NewGuid();
+        var today = DateOnly.FromDateTime(HoldTime.Local(DateTimeOffset.UtcNow)); _repeatStart = today.ToString("yyyy-MM-dd"); _repeatEnd = today.AddDays(6).ToString("yyyy-MM-dd"); _repeatTime = "15:00";
+    }
+    private void KindChanged() { if (_editing is null) _required = _kind == "main"; MarkDirty(); }
+    private void ModeChanged() { if (_mode == "individual") _groupSetValue = ""; GroupSetChanged(); }
+    private void GroupSetChanged() { var permitted = AudienceGroups.Select(g => g.Id).ToHashSet(); _audienceGroups.RemoveWhere(id => !permitted.Contains(id)); MarkDirty(); }
+    private void Cancel() { _editingOpen = false; _editing = null; _editingOccurrence = null; _dirty = _repeating = false; }
+    private void Fill(QuestView quest)
+    {
+        _editingOpen = true; _title = quest.Title; _description = quest.Description; _kind = quest.Kind; _mode = quest.SubmissionMode;
+        _published = quest.Published; _required = quest.Required; _groupSetValue = quest.GroupSetId?.ToString() ?? "";
+        _deadline = quest.DeadlineUtc is DateTimeOffset d ? HoldTime.Input(d) : ""; _notice = null;
+        _audienceMode = quest.Audience?.Mode ?? "hold"; _audienceMembers.Clear(); _audienceGroups.Clear();
+        foreach (var id in quest.Audience?.MembershipIds ?? []) _audienceMembers.Add(id);
+        foreach (var id in quest.Audience?.GroupIds ?? []) _audienceGroups.Add(id);
+        _dirty = _repeating = false;
+    }
+    private async Task Edit(QuestView quest) { if (!await Discard()) return; _editing = quest.Id; _editingOccurrence = quest.OccurrenceDate; Fill(quest); }
+    private async Task Copy(QuestView quest)
+    {
+        if (!await Discard()) return; _editing = null; _editingOccurrence = null; Fill(quest);
+        _title = quest.Title.Length > 193 ? quest.Title[..193] + " (kopi)" : quest.Title + " (kopi)";
+        _published = false; _deadline = ""; _seriesRequestId = Guid.NewGuid();
+        var today = DateOnly.FromDateTime(HoldTime.Local(DateTimeOffset.UtcNow)); _repeatStart = today.ToString("yyyy-MM-dd"); _repeatEnd = today.AddDays(6).ToString("yyyy-MM-dd");
+        _notice = "Kopien er en ny kladde. Afleveringer og vurderinger kopieres ikke. Kontrollér modtagere og frist, før du gemmer.";
+        _dirty = true;
+    }
+    private void SelectAudienceMember(Guid id, ChangeEventArgs e) { if (e.Value is true) _audienceMembers.Add(id); else _audienceMembers.Remove(id); MarkDirty(); }
+    private void SelectAudienceGroup(Guid id, ChangeEventArgs e) { if (e.Value is true) _audienceGroups.Add(id); else _audienceGroups.Remove(id); MarkDirty(); }
+    private string SetName(Guid? id) => id is Guid setId ? _sets.FirstOrDefault(s => s.Id == setId)?.Name ?? "Gruppesæt" : "Uden gruppesæt";
+    private QuestRepeatPlan? RepeatPlan() => DateOnly.TryParseExact(_repeatStart, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start)
+        && DateOnly.TryParseExact(_repeatEnd, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var end)
+        && TimeOnly.TryParseExact(_repeatTime, ["HH:mm", "HH:mm:ss"], CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)
+            ? new(start, end, _frequency, time) : null;
+    private async Task BeforeNavigation(LocationChangingContext context) { if (_dirty && !await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i questen. Forlad siden og kassér dem?")) context.PreventNavigation(); }
     private async Task Save()
     {
         if (_busy || !_canManage || ViewAs.IsActive) return;
+        if (string.IsNullOrWhiteSpace(_title)) { _error = "Giv questen en titel."; return; }
+        if (_audienceMode == "students" && _audienceMembers.Count == 0 || _audienceMode == "groups" && _audienceGroups.Count == 0) { _error = "Vælg mindst én modtager."; return; }
         DateTimeOffset? deadline = null;
-        if (!string.IsNullOrWhiteSpace(_deadline)) { if (!HoldTime.TryUtc(_deadline, out var d)) { _error = "Vælg en gyldig frist i dansk tid. Undgå timen ved skift mellem sommer- og vintertid."; return; } deadline = d; }
+        if (!_repeating && !string.IsNullOrWhiteSpace(_deadline)) { if (!HoldTime.TryUtc(_deadline, out var d)) { _error = "Vælg en gyldig frist i dansk tid. Undgå timen ved skift mellem sommer- og vintertid."; return; } deadline = d; }
+        if (_repeating && RepeatCount == 0) { _error = "Vælg en gyldig gentagelse i en periode på højst 90 dage."; return; }
         var holdId = HoldId; var subject = Auth.Subject; _busy = true; _error = null;
         try
         {
-            var request = new SaveQuest(holdId, _title.Trim(), _description, _mode, _published, deadline, _kind);
-            var saved = _editing is Guid id ? await Client.UpdateQuest(id, request, _life.Token) : await Client.CreateQuest(request, _life.Token);
+            var groupSet = Guid.TryParse(_groupSetValue, out var setId) ? setId : (Guid?)null;
+            var audience = new QuestAudienceSettings(_audienceMode, _audienceMode == "students" ? _audienceMembers.ToArray() : [], _audienceMode == "groups" ? _audienceGroups.ToArray() : []);
+            var request = new SaveQuest(holdId, _title.Trim(), _description, _mode, _published, deadline, _kind, groupSet, _required, audience);
+            QuestView[] saved;
+            if (_repeating && RepeatPlan() is QuestRepeatPlan plan)
+                saved = (await Client.CreateQuestSeries(new(request, plan, _seriesRequestId), _life.Token)).Quests;
+            else saved = [_editing is Guid id ? await Client.UpdateQuest(id, request, _life.Token) : await Client.CreateQuest(request, _life.Token)];
             if (holdId != HoldId || subject != Auth.Subject || ViewAs.IsActive || _disposed) return;
-            _quests = [.. _quests.Where(q => q.Id != saved.Id), saved]; Cancel(); _notice = saved.Published ? "Questen er gemt og udgivet til holdet." : "Questen er gemt som kladde.";
+            var ids = saved.Select(q => q.Id).ToHashSet(); _quests = [.. _quests.Where(q => !ids.Contains(q.Id)), .. saved]; Cancel();
+            _notice = saved.Length > 1 ? $"{saved.Length} separate quests er oprettet. Hver dato har sin egen aflevering." : saved[0].Published ? "Questen er gemt og udgivet til modtagerne." : "Questen er gemt som kladde.";
             await OnChanged.InvokeAsync();
         }
         catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed) _error = ex is LearningException ? ex.Message : "Questen kunne ikke gemmes. Prøv igen."; }

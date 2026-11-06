@@ -1,5 +1,7 @@
 @using Mercantec.Tech.Web.Notion
+@using Mercantec.Tech.Web.Learning
 @inject NotionClient Client
+@inject GroupSetsClient Sets
 @inject AuthService Auth
 @inject ViewAsStudentContext ViewAs
 @implements IDisposable
@@ -7,14 +9,23 @@
 <section class="hold-groups" aria-label="Holdets elever og grupper">
     <div class="hold-groups-heading">
         <div><h2>Elever og grupper</h2><p>Projektgrupper, makkerpar og nye konstellationer. En elev kan være med i flere grupper.</p></div>
-        <button type="button" class="secondary" @onclick="Refresh" disabled="@(_busy || _loading)">Opdatér</button>
+        <div class="actions">@if (_canManage) { <a class="action" href="@RouletteHref"><UiIcon Name="shuffle" /> Spin med klassen</a> }<button type="button" class="secondary" @onclick="Refresh" disabled="@(_busy || _loading)">Opdatér</button></div>
     </div>
     @if (_error is not null) { <p class="hold-groups-error" role="alert">@_error</p> }
     @if (_notice is not null) { <p class="hold-groups-notice" role="status">@_notice</p> }
     @if (_loading) { <p role="status">Henter elever og grupper…</p> }
     else
     {
-        @if (_canManage)
+        <div class="hold-group-set-bar">
+            <label class="field">Gruppesæt<select value="@_setSelection" @onchange="ChangeSet" disabled="@_busy"><option value="legacy">Grupper uden sæt (@_groups.Count(g => g.GroupSetId is null))</option>@foreach (var set in VisibleSets) { <option value="@set.Id">@set.Name @(set.Archived ? "(arkiveret)" : "") · @set.GroupCount grupper</option> }</select></label>
+            <div class="actions">@if (_canManage) { <button type="button" class="secondary" disabled="@_busy" @onclick="BeginNewSet">Opret gruppesæt</button>@if (CurrentSet is not null) { <button type="button" class="secondary" disabled="@_busy" @onclick="BeginRenameSet">Redigér navn</button><button type="button" class="secondary" disabled="@_busy" @onclick="ToggleArchive">@(CurrentSet.Archived ? "Gendan gruppesæt" : "Arkivér gruppesæt")</button> } }<label class="hold-group-check"><input type="checkbox" @bind="_showArchived" @bind:after="ArchiveFilterChanged" disabled="@_busy" /> Vis arkiverede sæt</label></div>
+        </div>
+        @if (_setFormOpen && _canManage)
+        {
+            <form class="hold-group-set-form" @onsubmit="SaveSet" @onsubmit:preventDefault><h3>@(_renameSet is null ? "Opret gruppesæt" : "Redigér gruppesættets navn")</h3><label class="field">Navn på gruppesæt<input @bind="_setName" maxlength="120" required placeholder="Fx Projektgrupper eller Makkerpar uge 45" disabled="@_busy" /></label><div class="actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_setName))">Gem gruppesæt</button><button type="button" class="secondary" @onclick="() => _setFormOpen = false" disabled="@_busy">Annullér</button></div></form>
+        }
+        @if (CurrentSet?.Archived == true) { <p class="hold-group-help hold-group-archive-note">Dette gruppesæt er arkiveret. Grupper og afleveringshistorik er bevaret. Gendan sættet, hvis du vil ændre grupperne eller bruge det til nye quests.</p> }
+        @if (CanEditGroups)
         {
             <div class="hold-group-modes" aria-label="Vælg gruppemetode">
                 <button type="button" class="@(!_roulette ? "action" : "secondary")" aria-pressed="@(!_roulette)" disabled="@_busy" @onclick="() => SetMode(false)">Opret manuelt</button>
@@ -31,6 +42,7 @@
                         <label class="field">Navne starter med<input @bind="_prefix" @bind:after="ClearPreview" maxlength="110" placeholder="Projektgruppe" disabled="@_busy" /></label>
                     </div>
                     <label class="hold-group-check"><input type="checkbox" @bind="_avoidPairs" @bind:after="ClearPreview" disabled="@_busy" /><span>Undgå makkerpar fra gemte grupper</span></label>
+                    @if (_avoidPairs) { <label class="field">Brug makkerhistorik fra<select @bind="_historySelection" @bind:after="ClearPreview" disabled="@_busy"><option value="current">Det valgte gruppesæt</option><option value="all">Alle gemte grupper</option><option value="legacy">Grupper uden sæt</option>@foreach (var set in _sets) { <option value="@set.Id">@set.Name</option> }</select></label> }
                     <div class="actions"><button class="action" disabled="@(_busy || _members.Length == 0 || (_pool == "selected" && _selected.Count == 0))">@(_preview.Length > 0 ? "Bland igen" : "Fordel elever")</button><span class="hold-group-help">Gruppernes størrelse varierer højst med én elev.</span></div>
                 </form>
                 @if (_preview.Length > 0)
@@ -52,22 +64,23 @@
                 <form class="hold-group-form" @onsubmit="Save" @onsubmit:preventDefault>
                     <div><h3>@(_editing is null ? "Sammensæt en gruppe" : "Redigér gruppe")</h3><p>@_selected.Count elever valgt. Markér elever i listen herunder.</p></div>
                     <label class="field">Gruppenavn<input @bind="_name" maxlength="120" required placeholder="Fx Projektgruppe 1" disabled="@_busy" /></label>
+                    <label class="field">Gem i gruppesæt<select @bind="_targetSetValue" disabled="@_busy">@if (_editing is null || _groups.FirstOrDefault(g => g.Id == _editing)?.GroupSetId is null) { <option value="legacy">Grupper uden sæt</option> }@foreach (var set in _sets.Where(s => !s.Archived)) { <option value="@set.Id">@set.Name</option> }</select></label>
                     <div class="actions"><button class="action" disabled="@(_busy || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name))">@(_busy ? "Gemmer…" : _editing is null ? "Gem gruppe" : "Gem ændringer")</button>@if (_editing is not null || _selected.Count > 0) { <button type="button" class="secondary" @onclick="Reset" disabled="@_busy">Nulstil valg</button> }</div>
                 </form>
             }
             <div class="hold-group-roster-tools"><span>@_selected.Count af @_members.Length valgt</span><button type="button" class="secondary" @onclick="SelectAll" disabled="@(_busy || _members.Length == 0)">Vælg alle</button><button type="button" class="secondary" @onclick="ClearSelection" disabled="@(_busy || _selected.Count == 0)">Fravælg alle</button></div>
         }
-        <div class="hold-members-scroll"><table class="hold-members-table"><thead><tr>@if (_canManage) { <th scope="col">Vælg</th> }<th scope="col">Elev</th><th scope="col">Grupper</th>@if (_canManage) { <th scope="col"><span class="hold-visually-hidden">Opret gruppe</span></th> }</tr></thead><tbody>
+        <div class="hold-members-scroll"><table class="hold-members-table"><thead><tr>@if (CanEditGroups) { <th scope="col">Vælg</th> }<th scope="col">Elev</th><th scope="col">Grupper i dette sæt</th>@if (CanEditGroups) { <th scope="col"><span class="hold-visually-hidden">Opret gruppe</span></th> }</tr></thead><tbody>
             @foreach (var member in _members)
             {
-                <tr>@if (_canManage) { <td><input type="checkbox" aria-label="@($"Vælg {member.DisplayName}")" checked="@_selected.Contains(member.Id)" disabled="@_busy" @onchange="e => SelectMember(member.Id, e)" /></td> }<td><a href="/notion/holds/@HoldId/students/@member.Id">@member.DisplayName</a></td><td>@if (member.GroupIds.Length == 0) { <span class="muted">Ingen gruppe</span> } else { @foreach (var group in _groups.Where(g => member.GroupIds.Contains(g.Id))) { <span class="pill">@group.Name</span> } }</td>@if (_canManage) { <td><button type="button" class="secondary" disabled="@_busy" @onclick="() => StartWith(member.Id)" aria-label="@($"Opret gruppe med {member.DisplayName}")">Ny gruppe</button></td> }</tr>
+                <tr>@if (CanEditGroups) { <td><input type="checkbox" aria-label="@($"Vælg {member.DisplayName}")" checked="@_selected.Contains(member.Id)" disabled="@_busy" @onchange="e => SelectMember(member.Id, e)" /></td> }<td><a href="/notion/holds/@HoldId/students/@member.Id">@member.DisplayName</a></td><td>@if (!FilteredGroups.Any(g => member.GroupIds.Contains(g.Id))) { <span class="muted">Ingen gruppe i dette sæt</span> } else { @foreach (var group in FilteredGroups.Where(g => member.GroupIds.Contains(g.Id))) { <span class="pill">@group.Name</span> } }</td>@if (CanEditGroups) { <td><button type="button" class="secondary" disabled="@_busy" @onclick="() => StartWith(member.Id)" aria-label="@($"Opret gruppe med {member.DisplayName}")">Ny gruppe</button></td> }</tr>
             }
         </tbody></table></div>
         @if (_members.Length == 0) { <p>Holdet har endnu ingen elever. Tilføj elever på holdet for at oprette grupper.</p> }
         <div class="hold-saved-groups">
-            <h3>Gemte grupper <span class="hold-group-count">@_groups.Length</span></h3>
-            @if (_groups.Length == 0) { <p>Der er ingen gemte grupper endnu.</p> }
-            <div class="hold-group-grid">@foreach (var group in _groups) { <article class="hold-group-card"><div class="hold-groups-heading"><strong>@group.Name</strong>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(group)" disabled="@_busy">Redigér</button> }</div><ul>@foreach (var member in group.Members) { <li>@member.DisplayName</li> }</ul><span class="hold-group-help">@group.Members.Length elever</span></article> }</div>
+            <h3>@(CurrentSet?.Name ?? "Grupper uden sæt") <span class="hold-group-count">@FilteredGroups.Count()</span></h3>
+            @if (!FilteredGroups.Any()) { <p>Der er ingen gemte grupper i dette sæt endnu.</p> }
+            <div class="hold-group-grid">@foreach (var group in FilteredGroups) { <article class="hold-group-card"><div class="hold-groups-heading"><strong>@group.Name</strong>@if (CanEditGroups) { <button type="button" class="secondary" @onclick="() => Edit(group)" disabled="@_busy">Redigér</button> }</div><ul>@foreach (var member in group.Members) { <li>@member.DisplayName</li> }</ul><span class="hold-group-help">@group.Members.Length elever</span></article> }</div>
         </div>
     }
 </section>
@@ -79,6 +92,7 @@
     private readonly CancellationTokenSource _life = new();
     private NotionHoldMember[] _members = [];
     private NotionGroupView[] _groups = [];
+    private GroupSetView[] _sets = [];
     private GroupDraft[] _preview = [];
     private readonly HashSet<Guid> _selected = [];
     private Guid? _editing;
@@ -86,6 +100,15 @@
     private (Guid Hold, string? Account, bool Preview, bool Authenticated) CurrentContext => (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
     private string? _selectionKey, _error, _notice;
     private string _name = "", _prefix = "Projektgruppe", _pool = "all", _distribution = "size";
+    private string _setSelection = "legacy", _historySelection = "current", _setName = "", _targetSetValue = "legacy";
+    private Guid? _renameSet;
+    private bool _showArchived, _setFormOpen;
+    private Guid? SelectedSetId => Guid.TryParse(_setSelection, out var id) ? id : null;
+    private GroupSetView? CurrentSet => _sets.FirstOrDefault(s => s.Id == SelectedSetId);
+    private bool CanEditGroups => _canManage && !ViewAs.IsActive && CurrentSet?.Archived != true;
+    private IEnumerable<GroupSetView> VisibleSets => _sets.Where(s => _showArchived || !s.Archived);
+    private IEnumerable<NotionGroupView> FilteredGroups => _groups.Where(g => g.GroupSetId == SelectedSetId);
+    private string RouletteHref => $"/holds/{HoldId}/roulette" + (SelectedSetId is Guid id ? $"?set={id}" : "");
     private int _version, _amount = 3, _loadVersion;
     private bool _loading, _busy, _canManage, _disposed, _roulette, _avoidPairs;
 
@@ -93,7 +116,7 @@
     protected override async Task OnParametersSetAsync()
     {
         if (!Auth.IsInitialized || !Auth.IsAuthenticated) return;
-        if (_context != CurrentContext) { Reset(); _members = []; _groups = []; _canManage = false; await Load(); }
+        if (_context != CurrentContext) { Reset(); _members = []; _groups = []; _sets = []; _setSelection = "legacy"; _setFormOpen = false; _canManage = false; await Load(); }
         var key = string.Join(",", InitialSelection.Order());
         if (_selectionKey != key) { _selectionKey = key; Reset(); foreach (var id in InitialSelection.Where(id => _members.Any(m => m.Id == id))) _selected.Add(id); }
     }
@@ -101,7 +124,7 @@
     {
         // Preserve manual selections and roulette previews during routine token renewal.
         if (_disposed || _context == CurrentContext) return;
-        _members = []; _groups = []; _canManage = false; Reset();
+        _members = []; _groups = []; _sets = []; _setSelection = "legacy"; _setFormOpen = false; _canManage = false; Reset();
         await Load();
         if (!_disposed) StateHasChanged();
     });
@@ -118,46 +141,90 @@
             var holds = await Client.Holds(_life.Token);
             var members = await Client.Members(holdId, _life.Token);
             var groups = await Client.Groups(holdId, _life.Token);
+            var sets = await Sets.List(holdId, _life.Token, true);
             if (subject != Auth.Subject || holdId != HoldId || preview != ViewAs.IsActive || version != _loadVersion || _disposed) return;
             _canManage = !preview && holds.Any(h => h.Id == holdId && h.CanManage);
-            _members = members; _groups = groups; _selected.RemoveWhere(id => !members.Any(m => m.Id == id));
+            _members = members; _groups = groups; _sets = sets; _selected.RemoveWhere(id => !members.Any(m => m.Id == id));
+            if (SelectedSetId is Guid selected && !sets.Any(s => s.Id == selected)) _setSelection = "legacy";
         }
-        catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject && holdId == HoldId && preview == ViewAs.IsActive && version == _loadVersion) _error = ex is NotionException ? ex.Message : "Grupperne kunne ikke hentes. Prøv igen."; }
+        catch (Exception ex) when (ex is NotionException or LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && subject == Auth.Subject && holdId == HoldId && preview == ViewAs.IsActive && version == _loadVersion) _error = ex is NotionException or LearningException ? ex.Message : "Grupperne kunne ikke hentes. Prøv igen."; }
         finally { if (version == _loadVersion) _loading = false; }
     }
     private void ClearPreview() { _preview = []; _notice = null; }
+    private void ChangeSet(ChangeEventArgs e) { _setSelection = e.Value?.ToString() ?? "legacy"; Reset(); _setFormOpen = false; _error = null; }
+    private void ArchiveFilterChanged() { if (!_showArchived && CurrentSet?.Archived == true) { _setSelection = "legacy"; Reset(); } }
+    private void BeginNewSet() { _renameSet = null; _setName = ""; _setFormOpen = true; _error = null; }
+    private void BeginRenameSet() { if (CurrentSet is not GroupSetView set) return; _renameSet = set.Id; _setName = set.Name; _setFormOpen = true; _error = null; }
+    private async Task SaveSet()
+    {
+        if (_busy || !_canManage || ViewAs.IsActive || string.IsNullOrWhiteSpace(_setName)) return;
+        _busy = true; _error = null; var context = CurrentContext;
+        try
+        {
+            var old = _sets.FirstOrDefault(s => s.Id == _renameSet);
+            var saved = old is null ? await Sets.Create(HoldId, _setName.Trim(), _life.Token)
+                : await Sets.Update(HoldId, old.Id, _setName.Trim(), old.Archived, old.Version, _life.Token);
+            if (_disposed || context != CurrentContext) return;
+            _sets = [.. _sets.Where(s => s.Id != saved.Id), saved]; _setSelection = saved.Id.ToString();
+            _setFormOpen = false; Reset(); _notice = "Gruppesættet er gemt."; await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && context == CurrentContext) _error = ex is LearningException ? ex.Message : "Gruppesættet kunne ikke gemmes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+    private async Task ToggleArchive()
+    {
+        if (_busy || !_canManage || ViewAs.IsActive || CurrentSet is not GroupSetView set) return;
+        _busy = true; _error = null; var context = CurrentContext;
+        try
+        {
+            var saved = await Sets.Update(HoldId, set.Id, set.Name, !set.Archived, set.Version, _life.Token);
+            if (_disposed || context != CurrentContext) return;
+            _sets = _sets.Select(s => s.Id == saved.Id ? saved : s).ToArray(); _showArchived = true;
+            _setFormOpen = false; Reset(); _notice = saved.Archived ? "Gruppesættet er arkiveret. Historikken er bevaret." : "Gruppesættet er gendannet.";
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (!_disposed && context == CurrentContext) _error = ex is LearningException ? ex.Message : "Gruppesættet kunne ikke ændres. Prøv igen."; }
+        finally { _busy = false; }
+    }
     private void SetMode(bool roulette) { _roulette = roulette; _editing = null; _version = 0; ClearPreview(); }
     private void SelectMember(Guid id, ChangeEventArgs e) { if (e.Value is true) _selected.Add(id); else _selected.Remove(id); ClearPreview(); }
     private void SelectAll() { foreach (var member in _members) _selected.Add(member.Id); ClearPreview(); }
     private void ClearSelection() { _selected.Clear(); ClearPreview(); }
     private void StartWith(Guid id) { Reset(); _roulette = false; _selected.Add(id); }
-    private void Reset() { _editing = null; _version = 0; _name = ""; _selected.Clear(); ClearPreview(); }
-    private void Edit(NotionGroupView group) { _roulette = false; _editing = group.Id; _version = group.Version; _name = group.Name; _selected.Clear(); foreach (var m in group.Members) _selected.Add(m.Id); ClearPreview(); }
+    private void Reset() { _editing = null; _version = 0; _name = ""; _targetSetValue = _setSelection; _selected.Clear(); ClearPreview(); }
+    private void Edit(NotionGroupView group) { _roulette = false; _editing = group.Id; _version = group.Version; _name = group.Name; _targetSetValue = group.GroupSetId?.ToString() ?? "legacy"; _selected.Clear(); foreach (var m in group.Members) _selected.Add(m.Id); ClearPreview(); }
     private void Draw()
     {
-        if (_busy || !_canManage) return;
+        if (_busy || !CanEditGroups) return;
         _error = null; _notice = null;
         try
         {
             var participants = _members.Where(m => _pool == "all" || _selected.Contains(m.Id)).ToArray();
             var groups = GroupRoulette.Draw(participants.Select(m => m.Id).ToArray(), _amount, _distribution == "size",
-                _avoidPairs ? _groups.Select(g => g.Members.Select(m => m.Id).ToArray()).ToArray() : null);
+                _avoidPairs ? HistoryGroups().Select(g => g.Members.Select(m => m.Id).ToArray()).ToArray() : null);
             var prefix = string.IsNullOrWhiteSpace(_prefix) ? "Gruppe" : _prefix.Trim();
             _preview = groups.Select((ids, i) => new GroupDraft { Name = $"{prefix} {i + 1}", Members = ids.Select(id => participants.Single(m => m.Id == id)).ToArray() }).ToArray();
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { _preview = []; _error = ex.Message; }
     }
+    private IEnumerable<NotionGroupView> HistoryGroups() => _historySelection switch
+    {
+        "current" => FilteredGroups,
+        "all" => _groups,
+        "legacy" => _groups.Where(g => g.GroupSetId is null),
+        _ => Guid.TryParse(_historySelection, out var id) ? _groups.Where(g => g.GroupSetId == id) : []
+    };
     private async Task SaveBatch()
     {
-        if (_busy || !_canManage || _preview.Length == 0) return;
+        if (_busy || !CanEditGroups || _preview.Length == 0) return;
         if (_preview.Any(g => string.IsNullOrWhiteSpace(g.Name)) || _preview.Select(g => g.Name.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != _preview.Length)
         { _error = "Giv alle grupper et navn. Navnene i forslaget skal være forskellige."; return; }
         _busy = true; _error = null;
-        var account = Auth.Subject; var hold = HoldId; var count = _preview.Length;
+        var account = Auth.Subject; var hold = HoldId; var count = _preview.Length; var selection = _setSelection;
         try
         {
-            await Client.CreateGroupBatch(hold, _preview.Select(g => new SaveNotionGroup(g.Name.Trim(), g.Members.Select(m => m.Id).ToArray())).ToArray(), _life.Token);
-            if (account != Auth.Subject || hold != HoldId || _disposed) return;
+            await Client.CreateGroupBatch(hold, _preview.Select(g => new SaveNotionGroup(g.Name.Trim(), g.Members.Select(m => m.Id).ToArray())).ToArray(), _life.Token, SelectedSetId);
+            if (account != Auth.Subject || hold != HoldId || selection != _setSelection || _disposed) return;
             ClearPreview(); await Load(); _notice = $"{count} grupper er gemt på holdet.";
             await OnSaved.InvokeAsync();
         }
@@ -166,15 +233,17 @@
     }
     private async Task Save()
     {
-        if (_busy || !_canManage || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name)) return;
+        if (_busy || !CanEditGroups || _selected.Count == 0 || string.IsNullOrWhiteSpace(_name)) return;
         _busy = true; _error = null;
-        var account = Auth.Subject; var hold = HoldId;
+        var account = Auth.Subject; var hold = HoldId; var selection = _setSelection;
         try
         {
             var ids = _selected.Order().ToArray();
-            if (_editing is Guid id) await Client.UpdateGroup(hold, id, _name.Trim(), ids, _version, _life.Token);
-            else await Client.CreateGroup(hold, _name.Trim(), ids, _life.Token);
-            if (account != Auth.Subject || hold != HoldId || _disposed) return;
+            var targetSet = Guid.TryParse(_targetSetValue, out var targetId) ? targetId : (Guid?)null;
+            if (_editing is Guid id) await Client.UpdateGroup(hold, id, _name.Trim(), ids, _version, _life.Token, targetSet);
+            else await Client.CreateGroup(hold, _name.Trim(), ids, _life.Token, targetSet);
+            if (account != Auth.Subject || hold != HoldId || selection != _setSelection || _disposed) return;
+            _setSelection = targetSet?.ToString() ?? "legacy";
             Reset(); await Load(); _notice = "Gruppen er gemt på holdet.";
             await OnSaved.InvokeAsync();
         }

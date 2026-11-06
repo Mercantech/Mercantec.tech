@@ -27,9 +27,10 @@ public sealed class GroupsController(AppDbContext db, CourseAccess access) : Con
     public async Task<IActionResult> Create(SaveLearningGroup request, CancellationToken ct)
     {
         if (!await access.CanManageAsync(request.HoldId, User, ct)) return NotFound();
+        if (!await ValidSet(request.HoldId, request.GroupSetId, ct)) return BadRequest(new { error = "invalid_group_set" });
         var members = await ValidMembers(request, ct);
         if (members is null) return BadRequest(new { error = "invalid_group" });
-        var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = request.HoldId, Name = request.Name.Trim() };
+        var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = request.HoldId, Name = request.Name.Trim(), GroupSetId = request.GroupSetId };
         foreach (var member in members)
             group.Members.Add(new() { MembershipId = member.Id, Membership = member });
         db.LearningGroups.Add(group);
@@ -43,10 +44,15 @@ public sealed class GroupsController(AppDbContext db, CourseAccess access) : Con
         var group = await Query().FirstOrDefaultAsync(g => g.Id == id, ct);
         if (group is null || !await access.CanManageAsync(group.HoldId, User, ct)) return NotFound();
         if (request.HoldId != group.HoldId) return BadRequest(new { error = "invalid_group" });
+        var setId = request.GroupSetId ?? group.GroupSetId;
+        if (!await ValidSet(group.HoldId, setId, ct)) return BadRequest(new { error = "invalid_group_set" });
+        if (setId != group.GroupSetId && await db.QuestSubmissions.AnyAsync(s => s.GroupId == id, ct))
+            return Conflict(new { error = "group_set_in_use" });
         var members = await ValidMembers(request, ct);
         if (members is null) return BadRequest(new { error = "invalid_group" });
         if (group.Version != request.Version) return Conflict(new { error = "group_changed" });
         group.Name = request.Name.Trim();
+        group.GroupSetId = setId;
         group.Version++;
         var wanted = members.Select(m => m.Id).ToHashSet();
         foreach (var old in group.Members.Where(m => !wanted.Contains(m.MembershipId)).ToArray()) db.LearningGroupMembers.Remove(old);
@@ -66,7 +72,9 @@ public sealed class GroupsController(AppDbContext db, CourseAccess access) : Con
     }
 
     private IQueryable<LearningGroup> Query() => db.LearningGroups.Include(g => g.Members).ThenInclude(m => m.Membership);
+    private Task<bool> ValidSet(Guid holdId, Guid? id, CancellationToken ct) => id is null ? Task.FromResult(true)
+        : db.LearningGroupSets.AnyAsync(s => s.Id == id && s.HoldId == holdId && !s.Archived, ct);
     private static LearningGroupView View(LearningGroup g) => new(g.Id, g.HoldId, g.Name, g.Version,
         g.Members.Where(m => m.Membership is not null).Select(m => new LearningMember(m.MembershipId,
-            m.Membership.UserSub, m.Membership.DisplayName ?? "Elev")).ToArray());
+            m.Membership.UserSub, m.Membership.DisplayName ?? "Elev")).ToArray(), g.GroupSetId);
 }

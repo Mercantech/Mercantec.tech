@@ -14,6 +14,10 @@ else { <p role="status">Åbner holdet…</p> }
     [Parameter] public Guid HoldId { get; set; }
     [SupplyParameterFromQuery(Name = "view")] public string? View { get; set; }
     [SupplyParameterFromQuery(Name = "create")] public bool Create { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? CourseId { get; set; }
+    [SupplyParameterFromQuery(Name = "quest")] public Guid? QuestId { get; set; }
+    [SupplyParameterFromQuery(Name = "status")] public string? Status { get; set; }
+    [SupplyParameterFromQuery(Name = "event")] public Guid? EventId { get; set; }
     private readonly CancellationTokenSource _life = new();
     private string? _error;
     protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
@@ -29,7 +33,16 @@ else { <p role="status">Åbner holdet…</p> }
             if (!response.IsSuccessStatusCode) { _error = "Holdet findes ikke, eller din konto har ikke adgang til det."; return; }
             var workspace = await response.Content.ReadFromJsonAsync<HoldWorkspaceView>(_life.Token);
             if (workspace is not null && hold == HoldId && !_life.IsCancellationRequested)
-                Nav.NavigateTo($"/courses/{workspace.CourseId}" + (string.IsNullOrWhiteSpace(View) ? "" : $"?view={Uri.EscapeDataString(View)}&create={Create.ToString().ToLowerInvariant()}"), replace:true);
+            {
+                var query = new List<string>();
+                if (!string.IsNullOrWhiteSpace(View)) query.Add($"view={Uri.EscapeDataString(View)}");
+                if (Create) query.Add("create=true");
+                if (CourseId is Guid course) query.Add($"course={course}");
+                if (QuestId is Guid quest) query.Add($"quest={quest}");
+                if (EventId is Guid eventId) query.Add($"event={eventId}");
+                if (!string.IsNullOrWhiteSpace(Status)) query.Add($"status={Uri.EscapeDataString(Status)}");
+                Nav.NavigateTo($"/courses/{workspace.CourseId}" + (query.Count > 0 ? "?" + string.Join("&", query) : ""), replace:true);
+            }
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException) { _error = "Holdet kunne ikke åbnes. Prøv igen fra holdoversigten."; }

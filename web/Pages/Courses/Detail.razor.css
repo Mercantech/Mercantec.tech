@@ -1,4 +1,5 @@
 .hold-workspace { max-width:1440px; margin:0 auto; }
+.hold-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-bottom:9px;background:var(--paper)}.hold-progress>a{display:flex;flex-direction:column;gap:5px;padding:18px 20px;border-right:1px solid var(--rule);color:var(--ink);text-decoration:none}.hold-progress>a:last-child{border-right:0}.hold-progress strong{font:600 28px 'Space Grotesk',sans-serif}.hold-progress strong span{font-size:16px;color:var(--muted)}.hold-progress>a>span{font-size:11px;color:var(--muted)}.hold-progress a.needs-action{background:var(--peach);color:var(--orange)}.hold-progress-note{font-size:11px;color:var(--muted);margin-bottom:25px}.hold-editor-entry small{display:block;color:var(--muted);font-size:11px;margin-bottom:8px}@media(max-width:650px){.hold-progress{grid-template-columns:repeat(2,minmax(0,1fr))}.hold-progress>a{padding:15px}.hold-progress>a:nth-child(2){border-right:0}.hold-progress>a:nth-child(-n+2){border-bottom:1px solid var(--rule)}}
 .hold-header { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:4px 0 26px; }
 .hold-identity { display:flex; gap:16px; align-items:center; min-width:0; }
 .hold-emblem { display:grid; place-items:center; flex-shrink:0; width:62px; height:62px; border-radius:18px 18px 18px 5px; background:var(--blue); color:var(--on-blue); }
@@ -7,7 +8,7 @@
 .hold-header p { color:var(--muted); margin-top:7px; font-size:13px; }
 .hold-header-actions { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:18px; }
 .hold-member-count { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; white-space:nowrap; }
-.hold-nav { display:flex; align-items:stretch; gap:5px; border-bottom:1px solid var(--rule); margin-bottom:28px; overflow-x:auto; }
+.hold-nav { display:flex; flex-wrap:wrap; align-items:stretch; gap:5px; border-bottom:1px solid var(--rule); margin-bottom:28px; }
 .hold-nav a { display:flex; align-items:center; gap:8px; padding:13px 14px; border-bottom:3px solid transparent; color:var(--muted); white-space:nowrap; font-size:12px; font-weight:600; text-decoration:none; }
 .hold-nav a:hover { color:var(--blue); background:var(--tint); }
 .hold-nav a.is-current { color:var(--blue); border-color:var(--blue); }

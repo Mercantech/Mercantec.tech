@@ -17,12 +17,12 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionPageSummary> Create(Guid holdId, string title, Guid? parentPageId, CancellationToken ct) => Post<NotionPageSummary>("notion/pages", new { holdId, title, parentPageId }, ct);
     public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds }, ct);
     public Task<NotionPageSummary> Unpublish(Guid id, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/unpublish", new {}, ct);
-    public Task<NotionGroupView> CreateGroup(Guid holdId, string name, Guid[] membershipIds, CancellationToken ct) => Post<NotionGroupView>($"notion/holds/{holdId}/groups", new { name, membershipIds }, ct);
-    public Task<NotionGroupView[]> CreateGroupBatch(Guid holdId, SaveNotionGroup[] groups, CancellationToken ct) => Post<NotionGroupView[]>($"notion/holds/{holdId}/groups/batch", new SaveNotionGroupBatch(groups), ct);
+    public Task<NotionGroupView> CreateGroup(Guid holdId, string name, Guid[] membershipIds, CancellationToken ct, Guid? groupSetId = null) => Post<NotionGroupView>($"notion/holds/{holdId}/groups", new SaveNotionGroup(name, membershipIds, GroupSetId: groupSetId), ct);
+    public Task<NotionGroupView[]> CreateGroupBatch(Guid holdId, SaveNotionGroup[] groups, CancellationToken ct, Guid? groupSetId = null, Guid? requestId = null) => Post<NotionGroupView[]>($"notion/holds/{holdId}/groups/batch", new SaveNotionGroupBatch(groups, groupSetId, requestId), ct);
 
-    public async Task<NotionGroupView> UpdateGroup(Guid holdId, Guid id, string name, Guid[] membershipIds, int version, CancellationToken ct)
+    public async Task<NotionGroupView> UpdateGroup(Guid holdId, Guid id, string name, Guid[] membershipIds, int version, CancellationToken ct, Guid? groupSetId = null)
     {
-        using var response = await http.PutAsJsonAsync($"notion/holds/{holdId}/groups/{id}", new { name, membershipIds, version }, ct);
+        using var response = await http.PutAsJsonAsync($"notion/holds/{holdId}/groups/{id}", new SaveNotionGroup(name, membershipIds, version, groupSetId), ct);
         return await Read<NotionGroupView>(response, ct);
     }
     public async Task<NotionPageSummary> Rename(Guid id, string title, CancellationToken ct)
@@ -49,7 +49,10 @@ public sealed class NotionClient(HttpClient http)
             throw new NotionException(code switch
             {
                 "invalid_group" => "Giv gruppen et navn, og vælg elever fra dette hold.",
+                "invalid_group_set" => "Vælg et aktivt gruppesæt fra dette hold. Arkiverede sæt skal gendannes først.",
+                "group_set_in_use" => "Gruppen har afleveringer og kan ikke flyttes til et andet gruppesæt.",
                 "invalid_group_batch" => "Giv grupperne forskellige navne, og fordel hver elev én gang i denne runde (højst 250 elever og 100 grupper).",
+                "batch_request_changed" => "Denne runde er allerede gemt med et andet indhold. Start en ny runde for at gemme en ny fordeling.",
                 "group_changed" => "Gruppen er ændret af en anden. Opdatér listen, og prøv igen.",
                 "draft_changed" or "stale_draft" or "publication_conflict" => "Kladden er ændret. Vent på lagring, og prøv at udgive igen.",
                 "invalid_assets" => "En vedhæftning er ikke tilgængelig på denne side. Fjern den, eller upload den igen.",
@@ -63,7 +66,7 @@ public sealed class NotionClient(HttpClient http)
                     503 => "Dokumenttjenesten er ikke tilgængelig lige nu. Prøv igen om lidt.",
                     _ => "Indholdet kunne ikke hentes. Kontrollér forbindelsen, og prøv igen."
                 }
-            });
+            }, code);
         }
         var value = await response.Content.ReadFromJsonAsync<T>(ct) ?? throw new NotionException("Dokumenttjenesten gav et tomt svar.");
         ct.ThrowIfCancellationRequested();
@@ -71,4 +74,7 @@ public sealed class NotionClient(HttpClient http)
     }
     private sealed record ApiError(string? Error);
 }
-public sealed class NotionException(string message) : Exception(message);
+public sealed class NotionException(string message, string? errorCode = null) : Exception(message)
+{
+    public string? ErrorCode { get; } = errorCode;
+}

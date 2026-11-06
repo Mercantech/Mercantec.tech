@@ -1,0 +1,181 @@
+@using System.Globalization
+@using Mercantec.Tech.Web.Learning
+@using Mercantec.Tech.Web.Pages.Learning
+@inject TeachingCoursesClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+@implements IDisposable
+
+<NavigationLock ConfirmExternalNavigation="_dirty" OnBeforeInternalNavigation="BeforeNavigation" />
+<section class="hold-courses" aria-label="Holdets undervisningsforløb">
+    <div class="tc-heading"><div><h2>Undervisningsforløb</h2><p>Saml undervisningen i emner med egen periode, læringsmål og opgaver.</p></div><div class="tc-actions"><button type="button" class="secondary" disabled="@(_loading || _busy)" @onclick="Refresh">Opdatér</button>@if (CanManage) { <button type="button" class="action" disabled="@_busy" @onclick="New">Opret forløb</button> }</div></div>
+    @if (_error is not null) { <p class="tc-error" role="alert">@_error</p> }
+    @if (_notice is not null) { <p class="tc-notice" role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter holdets forløb…</p> }
+    else
+    {
+        @if (_editingOpen && CanManage)
+        {
+            <form class="tc-editor" @onsubmit="Save" @onsubmit:preventDefault @oninput="MarkDirty"><h3>@(_editing is null ? "Opret undervisningsforløb" : "Redigér forløb")</h3><fieldset disabled="@_busy">
+                <label class="field">Forløbets titel<input @bind="_title" maxlength="200" required placeholder="Fx Fra idé til færdigt spil" /></label>
+                <label class="field">Beskrivelse<textarea @bind="_description" maxlength="4000" rows="3"></textarea></label>
+                <label class="field">Læringsmål<textarea @bind="_objectives" maxlength="8000" rows="4" placeholder="Hvad skal eleverne kunne, når forløbet er slut?"></textarea></label>
+                <div class="tc-fields"><label class="field">Startdato<input type="date" value="@_start" @onchange="e => _start = e.Value?.ToString() ?? string.Empty" /></label><label class="field">Slutdato<input type="date" value="@_end" @onchange="e => _end = e.Value?.ToString() ?? string.Empty" /></label></div>
+                <label class="tc-check"><input type="checkbox" @bind="_published" @bind:after="MarkDirty" /> Vis forløbet til eleverne</label><p class="tc-help">Sider, quests og materialer beholder deres egen udgivelsesstatus. En kladde vises aldrig til eleverne.</p>
+                <div class="tc-actions"><button type="submit" class="action">@(_busy ? "Gemmer…" : "Gem forløb")</button><button type="button" class="secondary" @onclick="CancelEdit">Annullér</button></div>
+            </fieldset></form>
+        }
+        @if (_selected is TeachingCourseView selected)
+        {
+            <a class="tc-back" href="@CourseHref(null)">Alle holdets forløb</a>
+            <article class="tc-detail"><div class="tc-course-header"><div><div class="tc-meta"><span class="tc-state @(selected.Archived ? "archived" : selected.Published ? "published" : "draft")">@Status(selected)</span><span>@Period(selected)</span></div><h3>@selected.Title</h3><p>@selected.Description</p></div>@if (CanManage) { <div class="tc-actions"><button type="button" class="secondary" disabled="@_busy" @onclick="() => Edit(selected)">Redigér forløb</button><button type="button" class="secondary" disabled="@_busy" @onclick="() => AskArchive(selected)">@(selected.Archived ? "Gendan forløb" : "Arkivér")</button></div> }</div>
+                @if (!string.IsNullOrWhiteSpace(selected.LearningObjectives)) { <section class="tc-objectives"><h4>Det skal eleverne lære</h4><p>@selected.LearningObjectives</p></section> }
+                @if (CanManage && !selected.Archived) { <div class="tc-content-actions"><button type="button" class="action" disabled="@_busy" @onclick="BeginPage">Ny side i editoren</button><button type="button" class="secondary" disabled="@_busy" @onclick="() => BeginResources(selected)">Tilknyt eksisterende indhold</button></div> }
+                @if (_pageOpen && CanManage && !selected.Archived)
+                {
+                    <form class="tc-page-form" @onsubmit="CreatePage" @onsubmit:preventDefault @oninput="MarkDirty"><label class="field">Sidens titel<input @bind="_pageTitle" maxlength="200" required /></label><label class="field">Placering<select @bind="_pageParent" @bind:after="MarkDirty"><option value="">Øverst i forløbet</option>@foreach (var resource in OrderedPages(selected.Resources)) { <option value="@resource.Resource.ResourceId">@(new string('·', resource.Depth)) @resource.Resource.Title</option> }</select></label><div class="tc-actions"><button class="action" disabled="@_busy">Opret og åbn editor</button><button type="button" class="secondary" @onclick="() => { _pageOpen = false; _dirty = false; }">Annullér</button></div></form>
+                }
+                @if (_resourcesOpen && CanManage && !selected.Archived)
+                {
+                    <form class="tc-resource-editor" @onsubmit="SaveResources" @onsubmit:preventDefault><h4>Indhold til dette forløb</h4><p>Vælg sider, quests, materialer og begivenheder fra holdet. Indhold kan høre til ét forløb ad gangen.</p><fieldset disabled="@_busy">
+                    @foreach (var kind in Kinds)
+                    {
+                        <fieldset class="tc-resource-kind"><legend>@KindLabel(kind)</legend>@foreach (var resource in _catalog.Where(r => r.Kind == kind)) { var other = resource.LinkedCourseId is Guid owner && owner != selected.Id; <label class="tc-resource-choice"><input type="checkbox" checked="@_chosen.Contains(new(kind, resource.ResourceId))" disabled="@other" @onchange="e => Choose(resource, e)" /><span>@resource.Title @if (!resource.Published) { <small>Kladde</small> }@if (other) { <small>Tilknyttet et andet forløb</small> }</span></label> }@if (!_catalog.Any(r => r.Kind == kind)) { <p class="tc-help">Intet indhold af denne type på holdet endnu.</p> }</fieldset>
+                    }
+                    <div class="tc-actions"><button class="action">Gem tilknytning</button><button type="button" class="secondary" @onclick="CancelResources">Annullér</button></div></fieldset></form>
+                }
+                <div class="tc-resource-sections">
+                    <section><h4>Undervisningssider <span>@selected.Resources.Count(r => r.Kind == "page")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "page")) { <p class="tc-empty-copy">@(CanManage ? "Opret den første side, eller tilknyt eksisterende sider." : "Der er endnu ingen udgivne sider i forløbet.")</p> }@foreach (var item in OrderedPages(selected.Resources)) { <a class="tc-resource-row tc-page-row" style="--depth:@item.Depth" href="@PageHref(item.Resource.ResourceId)"><UiIcon Name="book" /><span>@item.Resource.Title</span>@if (CanManage && !item.Resource.Published) { <small>Kladde</small> }<UiIcon Name="arrow" /></a> }</section>
+                    <section><h4>Quests <span>@selected.Resources.Count(r => r.Kind == "quest")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "quest")) { <p class="tc-empty-copy">Ingen quests knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "quest")) { <a class="tc-resource-row" href="/quests/@resource.ResourceId"><UiIcon Name="target" /><span>@resource.Title</span>@if (CanManage && !resource.Published) { <small>Kladde</small> }<UiIcon Name="arrow" /></a> }</section>
+                    <section><h4>Materialer <span>@selected.Resources.Count(r => r.Kind == "material")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "material")) { <p class="tc-empty-copy">Ingen materialer knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "material")) { <button type="button" class="tc-resource-row" @onclick="() => _viewer = resource.FileAssetId"><UiIcon Name="folder" /><span>@resource.Title</span>@if (CanManage && !resource.Published) { <small>Kladde</small> }<span>Åbn fil</span></button> }</section>
+                    <section><h4>Kalender <span>@selected.Resources.Count(r => r.Kind == "event")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "event")) { <p class="tc-empty-copy">Ingen begivenheder knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "event").OrderBy(r => r.StartsAtUtc)) { <a class="tc-resource-row" href="/holds/@HoldId?view=calendar&event=@resource.ResourceId"><UiIcon Name="calendar" /><span>@resource.Title@if (resource.StartsAtUtc is DateTimeOffset date) { <small>@HoldTime.Display(date)</small> }</span><UiIcon Name="arrow" /></a> }</section>
+                </div>
+                @if (_viewer is Guid fileId) { <section class="tc-file-viewer"><div class="tc-heading"><h4>Filvisning</h4><button type="button" class="secondary" @onclick="() => _viewer = null">Luk filvisning</button></div><FileViewer FileId="fileId" @key="fileId" /></section> }
+            </article>
+        }
+        else
+        {
+            @if (CanManage) { <label class="tc-check"><input type="checkbox" @bind="_showArchived" /> Vis arkiverede forløb</label> }
+            @if (!VisibleCourses.Any()) { <div class="tc-empty"><UiIcon Name="book" /><h3>@(CanManage ? "Giv undervisningen en tydelig sammenhæng" : "Her samles holdets forløb")</h3><p>@(CanManage ? "Opret et forløb med periode og læringsmål. Tilknyt derefter sider, quests, materialer og begivenheder." : "Underviseren kan udgive forløb med undervisning og opgaver her.")</p></div> }
+            <div class="tc-course-list">@foreach (var course in VisibleCourses) { <article class="tc-course-card"><div class="tc-meta"><span class="tc-state @(course.Archived ? "archived" : course.Published ? "published" : "draft")">@Status(course)</span><span>@Period(course)</span></div><h3><a href="@CourseHref(course.Id)">@course.Title</a></h3><p>@course.Description</p><div class="tc-resource-counts"><span><UiIcon Name="book" /> @course.Resources.Count(r => r.Kind == "page") sider</span><span><UiIcon Name="target" /> @course.Resources.Count(r => r.Kind == "quest") quests</span><span><UiIcon Name="folder" /> @course.Resources.Count(r => r.Kind == "material") materialer</span></div><a class="secondary" href="@CourseHref(course.Id)">Åbn forløb</a></article> }</div>
+            <p class="tc-help">@if (CanManage && _catalog.Any(r => r.LinkedCourseId is null)) { <span>@_catalog.Count(r => r.LinkedCourseId is null) indholdselementer er endnu ikke knyttet til et forløb. </span> }<a href="@($"/notion?hold={HoldId}" + (CanManage ? "" : "&published=true"))">@(CanManage ? "Åbn alle holdets sider i editoren" : "Åbn holdets udgivne undervisningssider")</a></p>
+            @if (CourseId is not null && _selected is null) { <p class="tc-help">Det valgte forløb er ikke tilgængeligt. Vælg et forløb fra listen.</p> }
+        }
+        @if (_archiveConfirm is TeachingCourseView archiving && CanManage)
+        {
+            <div class="tc-archive-confirm" role="alert"><h3>@(archiving.Archived ? "Gendan forløbet?" : "Arkivér forløbet?")</h3><p>@archiving.Title. @(archiving.Archived ? "Forløbet bliver tilgængeligt igen med sin tidligere udgivelsesstatus." : "Indholdet og afleveringshistorikken bevares. Eleverne ser ikke det arkiverede forløb.")</p><div class="tc-actions"><button type="button" class="action" disabled="@_busy" @onclick="Archive">@(archiving.Archived ? "Gendan forløb" : "Arkivér forløb")</button><button type="button" class="secondary" @onclick="() => _archiveConfirm = null">Annullér</button></div></div>
+        }
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private static readonly string[] Kinds = ["page", "quest", "material", "event"];
+    private CancellationTokenSource _scope = new();
+    private (Guid Hold, string? Subject, bool Preview, bool Authenticated)? _context;
+    private (Guid Hold, string? Subject, bool Preview, bool Authenticated) Context => (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
+    private TeachingCourseView[] _courses = [];
+    private TeachingCourseResourceView[] _catalog = [];
+    private readonly HashSet<TeachingCourseResourceReference> _chosen = [];
+    private TeachingCourseView? _selected => _courses.FirstOrDefault(c => c.Id == CourseId && (CanManage || c.Published && !c.Archived));
+    private TeachingCourseView? _editing, _archiveConfirm;
+    private Guid? _viewer;
+    private Guid? _lastCourseId;
+    private bool _loading, _busy, _canManage, _disposed, _editingOpen, _resourcesOpen, _pageOpen, _published, _showArchived, _dirty, _routeInitialized;
+    private int _generation;
+    private string? _error, _notice;
+    private string _title = "", _description = "", _objectives = "", _start = "", _end = "", _pageTitle = "", _pageParent = "";
+    private bool CanManage => _canManage && !ViewAs.IsActive;
+    private IEnumerable<TeachingCourseView> VisibleCourses => _courses.Where(c => _showArchived || !c.Archived);
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync()
+    {
+        await Sync();
+        if (!_routeInitialized || _lastCourseId != CourseId)
+        { _routeInitialized = true; _lastCourseId = CourseId; _viewer = null; _editingOpen = _resourcesOpen = _pageOpen = _dirty = false; _archiveConfirm = null; }
+    }
+    private void Changed() => _ = InvokeAsync(async () => { await Sync(); if (!_disposed) StateHasChanged(); });
+    private async Task Sync()
+    {
+        if (_disposed || !Auth.IsInitialized || _context == Context) return;
+        _context = Context; _scope.Cancel(); _scope.Dispose(); _scope = new(); _generation++;
+        _courses = []; _catalog = []; _canManage = false; _busy = false; _error = _notice = null;
+        _editingOpen = _resourcesOpen = _pageOpen = _dirty = false; _viewer = null; _archiveConfirm = null; _routeInitialized = false;
+        if (Auth.IsAuthenticated && HoldId != Guid.Empty) await Load(_generation, _scope.Token);
+    }
+    private bool Current(int generation) => !_disposed && generation == _generation && _context == Context;
+    private async Task Refresh() { if (_busy) return; if (_dirty && !await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer. Opdatér og kassér dem?")) return; _dirty = _editingOpen = _resourcesOpen = _pageOpen = false; await Load(_generation, _scope.Token); }
+    private async Task Load(int generation, CancellationToken ct)
+    {
+        _loading = true; _error = null;
+        try { var result = await Client.List(HoldId, ViewAs.IsActive, ct); if (!Current(generation)) return; var catalog = result.CanManage && !ViewAs.IsActive ? await Client.Catalog(HoldId, ct) : []; if (!Current(generation)) return; _courses = result.Courses; _canManage = result.CanManage; _catalog = catalog; }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (Current(generation) && !ct.IsCancellationRequested) _error = ex is LearningException ? ex.Message : "Forløbene kunne ikke hentes. Prøv igen."; }
+        finally { if (Current(generation)) _loading = false; }
+    }
+    private void MarkDirty() => _dirty = true;
+    private async Task<bool> MaySwitchPanel() => !_dirty || await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i forløbet. Kassér dem, og fortsæt?");
+    private void ClosePanels() { _editingOpen = _resourcesOpen = _pageOpen = _dirty = false; _editing = null; _chosen.Clear(); _archiveConfirm = null; }
+    private async Task New() { if (!await MaySwitchPanel()) return; ClosePanels(); _editingOpen = true; _title = _description = _objectives = _start = _end = ""; _published = false; _notice = null; }
+    private async Task Edit(TeachingCourseView c) { if (!await MaySwitchPanel()) return; ClosePanels(); _editing = c; _editingOpen = true; _title = c.Title; _description = c.Description; _objectives = c.LearningObjectives; _start = c.StartsOn?.ToString("yyyy-MM-dd") ?? ""; _end = c.EndsOn?.ToString("yyyy-MM-dd") ?? ""; _published = c.Published; _notice = null; }
+    private void CancelEdit() { _editingOpen = false; _editing = null; _dirty = false; }
+    private static DateOnly? Date(string value) => DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null;
+    private async Task Save() => await Run(async (generation, ct) =>
+    {
+        if (string.IsNullOrWhiteSpace(_title)) { _error = "Giv forløbet en titel."; return; }
+        var start = Date(_start); var end = Date(_end);
+        if ((!string.IsNullOrWhiteSpace(_start) && start is null) || (!string.IsNullOrWhiteSpace(_end) && end is null) || start is not null && end < start) { _error = "Angiv en gyldig periode. Slutdato skal være på eller efter startdato."; return; }
+        var body = new SaveTeachingCourse(_title.Trim(), _description, _objectives, start, end, _published, _editing?.Archived ?? false, _editing?.Version ?? 0);
+        var saved = _editing is null ? await Client.Create(HoldId, body, ct) : await Client.Update(HoldId, _editing.Id, body, ct);
+        if (!Current(generation)) return; Replace(saved); CancelEdit(); _notice = "Forløbet er gemt."; await OnChanged.InvokeAsync(); Nav.NavigateTo(CourseHref(saved.Id));
+    });
+    private async Task BeginPage() { if (!await MaySwitchPanel()) return; ClosePanels(); _pageOpen = true; _pageTitle = _pageParent = ""; }
+    private async Task CreatePage() => await Run(async (generation, ct) =>
+    {
+        if (_selected is not TeachingCourseView selected || string.IsNullOrWhiteSpace(_pageTitle)) { _error = "Giv siden en titel."; return; }
+        var created = await Client.CreatePage(HoldId, selected.Id, new(_pageTitle, Guid.TryParse(_pageParent, out var parent) ? parent : null, selected.Version), ct);
+        if (!Current(generation)) return; Replace(created.Course); _dirty = false; _pageOpen = false; await OnChanged.InvokeAsync(); Nav.NavigateTo($"/notion/{created.PageId}");
+    });
+    private async Task BeginResources(TeachingCourseView course) { if (!await MaySwitchPanel()) return; ClosePanels(); _resourcesOpen = true; foreach (var resource in course.Resources) _chosen.Add(new(resource.Kind, resource.ResourceId)); }
+    private async Task AskArchive(TeachingCourseView course) { if (!await MaySwitchPanel()) return; ClosePanels(); _archiveConfirm = course; }
+    private void Choose(TeachingCourseResourceView resource, ChangeEventArgs e) { var key = new TeachingCourseResourceReference(resource.Kind, resource.ResourceId); if (e.Value is true) _chosen.Add(key); else _chosen.Remove(key); _dirty = true; }
+    private void CancelResources() { _resourcesOpen = false; _chosen.Clear(); _dirty = false; }
+    private async Task SaveResources() => await Run(async (generation, ct) =>
+    {
+        if (_selected is not TeachingCourseView selected) return;
+        var saved = await Client.SaveResources(HoldId, selected.Id, new(selected.Version, _chosen.ToArray()), ct);
+        if (!Current(generation)) return; Replace(saved); CancelResources(); var catalog = await Client.Catalog(HoldId, ct); if (!Current(generation)) return; _catalog = catalog; _notice = "Indholdet er knyttet til forløbet."; await OnChanged.InvokeAsync();
+    });
+    private async Task Archive() => await Run(async (generation, ct) =>
+    {
+        if (_archiveConfirm is not TeachingCourseView selected) return;
+        var saved = await Client.Update(HoldId, selected.Id, new(selected.Title, selected.Description, selected.LearningObjectives, selected.StartsOn, selected.EndsOn, selected.Published, !selected.Archived, selected.Version), ct);
+        if (!Current(generation)) return; Replace(saved); _archiveConfirm = null; _notice = saved.Archived ? "Forløbet er arkiveret. Indhold og afleveringer er bevaret." : "Forløbet er gendannet."; await OnChanged.InvokeAsync();
+    });
+    private async Task Run(Func<int, CancellationToken, Task> action)
+    {
+        if (_busy || !CanManage) return; var generation = _generation; var ct = _scope.Token; _busy = true; _error = _notice = null;
+        try { await action(generation, ct); }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException) { if (Current(generation) && !ct.IsCancellationRequested) _error = ex is LearningException ? ex.Message : "Handlingen kunne ikke gennemføres. Prøv igen."; }
+        finally { if (Current(generation)) _busy = false; }
+    }
+    private void Replace(TeachingCourseView saved) => _courses = [.. _courses.Where(c => c.Id != saved.Id), saved];
+    private async Task BeforeNavigation(LocationChangingContext context) { if (_dirty && !await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i forløbet. Forlad siden og kassér dem?")) context.PreventNavigation(); }
+    private string CourseHref(Guid? id) => Nav.GetUriWithQueryParameter("course", id);
+    private string PageHref(Guid id) => $"/notion/{id}" + (CanManage ? "" : "?published=true");
+    private static string Status(TeachingCourseView course) => course.Archived ? "Arkiveret" : course.Published ? "Udgivet" : "Kladde";
+    private static string Period(TeachingCourseView course) => course.StartsOn is DateOnly start ? start.ToString("dd.MM.yyyy") + (course.EndsOn is DateOnly end ? $" – {end:dd.MM.yyyy}" : " og frem") : course.EndsOn is DateOnly finish ? $"Til {finish:dd.MM.yyyy}" : "Periode ikke angivet";
+    private static string KindLabel(string kind) => kind switch { "page" => "Undervisningssider", "quest" => "Quests", "material" => "Materialer", _ => "Begivenheder" };
+    private static IEnumerable<(TeachingCourseResourceView Resource, int Depth)> OrderedPages(TeachingCourseResourceView[] resources)
+    {
+        var pages = resources.Where(r => r.Kind == "page").ToArray(); var visited = new HashSet<Guid>();
+        IEnumerable<(TeachingCourseResourceView, int)> Walk(TeachingCourseResourceView page, int depth)
+        { if (!visited.Add(page.ResourceId)) yield break; yield return (page, depth); foreach (var child in pages.Where(p => p.ParentPageId == page.ResourceId).OrderBy(p => p.Title)) foreach (var next in Walk(child, Math.Min(depth + 1, 12))) yield return next; }
+        foreach (var page in pages.Where(p => p.ParentPageId is null || !pages.Any(parent => parent.ResourceId == p.ParentPageId)).OrderBy(p => p.Title)) foreach (var next in Walk(page, 0)) yield return next;
+        foreach (var page in pages.Where(p => !visited.Contains(p.ResourceId)).OrderBy(p => p.Title)) foreach (var next in Walk(page, 0)) yield return next;
+    }
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _scope.Cancel(); _scope.Dispose(); }
+}

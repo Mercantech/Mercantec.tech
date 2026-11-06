@@ -12,7 +12,7 @@ tags:
 
 Main, Daily og Side oprettes på holdets kommandocentral med beskrivelse, individuel/gruppeaflevering, frist og kladde/udgivelse. `/quests/{questId}` åbner den rigtige quest og dens afleveringer; `/afleveringer?hold={holdId}` åbner holdets samlede materiale- og afleveringsside. Kalenderen viser questfrister sammen med holdets begivenheder. Se [[Hold-dashboard]].
 
-Daily er indtil videre en type, der oprettes manuelt. Automatisk gentagelse, forudsætninger og XP/guld ved godkendelse er fortsat planlagte funktioner.
+Quests kan målrettes hele holdet, bestemte elever eller bestemte grupper, og gruppeafleveringer kan afgrænses til et valgt gruppesæt. Kopiér quest opretter en frisk kladde uden afleveringshistorik. Daglige, ugentlige og hverdagsgentagelser opretter særskilte forekomster med egen frist og afleveringsstatus i en eksplicit periode på højst 90 dage. Alle tidspunkter indtastes i dansk tid og gemmes i UTC. Valgfrie quests udløser ikke manglende-afleveringsadvarsler på holdets forside. Forudsætninger og XP/guld ved godkendelse er fortsat planlagte funktioner.
 
 ## Problem
 

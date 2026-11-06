@@ -14,6 +14,10 @@ public partial class Detail
     [Parameter] public Guid Id { get; set; }
     [SupplyParameterFromQuery(Name = "view")] public string? View { get; set; }
     [SupplyParameterFromQuery(Name = "create")] public bool Create { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? TeachingCourseId { get; set; }
+    [SupplyParameterFromQuery(Name = "quest")] public Guid? RequestedQuestId { get; set; }
+    [SupplyParameterFromQuery(Name = "status")] public string? SubmissionFilter { get; set; }
+    [SupplyParameterFromQuery(Name = "event")] public Guid? RequestedEventId { get; set; }
     private HoldWorkspaceView? _workspace;
     private CancellationTokenSource _requests = new();
     private string? _identity, _error, _notice;
@@ -25,7 +29,10 @@ public partial class Detail
     private bool CanManage => _workspace?.CanManage == true && !ViewAs.IsActive;
     private string ActiveView => Tabs.Any(t => t.Key == View) ? View! : "overview";
     private string EditorHref => $"/notion?hold={_workspace!.HoldId}" + (CanManage ? "" : "&published=true");
-    private string AssignmentsHref => $"/afleveringer?hold={_workspace!.HoldId}";
+    private string AssignmentsHref => ViewHref("submissions");
+    private WorkspaceCourse? FeaturedCourse => (_workspace?.Courses ?? []).Where(c => c.EndsOn is null || c.EndsOn >= DateOnly.FromDateTime(LocalTime(DateTimeOffset.UtcNow).DateTime))
+        .OrderByDescending(c => c.Published).ThenBy(c => c.StartsOn > DateOnly.FromDateTime(LocalTime(DateTimeOffset.UtcNow).DateTime)).ThenBy(c => c.StartsOn).FirstOrDefault();
+    private string TeachingCourseHref(Guid id) => $"/courses/{Id}?view=content&course={id}";
     private static string QuestHref(Guid questId) => $"/quests/{questId}";
     private string PageHref(Guid pageId) => $"/notion/{pageId}" + (CanManage ? "" : "?published=true");
     private string ViewHref(string view, bool create = false) => $"/courses/{Id}?view={view}" + (create ? "&create=true" : "");
@@ -37,8 +44,9 @@ public partial class Detail
         get
         {
             yield return ("overview", "Overblik", "screen", null);
-            yield return ("content", "Forløb", "book", _workspace?.Pages.Length);
+            yield return ("content", "Forløb", "book", _workspace?.Courses?.Length ?? 0);
             yield return ("quests", "Quests", "target", _workspace?.QuestCount);
+            if (CanManage) yield return ("submissions", "Afleveringer", "check", _workspace?.Progress?.Missing);
             yield return ("calendar", "Kalender", "calendar", null);
             yield return ("groups", "Elever og grupper", "people", _workspace?.GroupCount);
             yield return ("materials", "Materialer", "folder", _workspace?.MaterialCount);

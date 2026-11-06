@@ -72,31 +72,7 @@ else
         @if (CanManage)
         {
             <section class="panel">
-                <details>
-                    <summary>Opret quest</summary>
-                    <fieldset disabled="@_busy">
-                        <label class="field">Titel<input @bind="_questTitle" maxlength="200" /></label>
-                        <label class="field">Questtype<select @bind="_questKind"><option value="main">Main quest</option><option value="daily">Daily quest</option><option value="side">Side quest</option></select></label>
-                        <label class="field">Opgave og afleveringskrav<textarea @bind="_questDescription" maxlength="10000"></textarea></label>
-                        <label class="field">Afleveringsform<select @bind="_questMode"><option value="individual">Individuel</option><option value="group">Gruppe</option><option value="either">Individuel eller gruppe</option></select></label>
-                        <label><input type="checkbox" @bind="_questPublished" /> Udgiv til eleverne</label>
-                        <button class="action" disabled="@string.IsNullOrWhiteSpace(_questTitle)" @onclick="CreateQuest">Opret quest</button>
-                    </fieldset>
-                </details>
-                <details>
-                    <summary>Administrér grupper</summary>
-                    <fieldset disabled="@_busy">
-                        <label class="field">Gruppe<select value="@_editGroupId" @onchange="EditGroup"><option value="">Ny gruppe</option>@foreach (var group in _groups) { <option value="@group.Id">@group.Name</option> }</select></label>
-                        <label class="field">Gruppenavn<input @bind="_groupName" maxlength="200" /></label>
-                        <fieldset><legend>Deltagere fra forløbet</legend>
-                            @foreach (var member in _members)
-                            {
-                                <label><input type="checkbox" checked="@_groupMembers.Contains(member.Id)" @onchange="e => ToggleMember(member.Id, e)" /> @member.DisplayName</label><br />
-                            }
-                        </fieldset>
-                        <button class="action" disabled="@(string.IsNullOrWhiteSpace(_groupName) || _groupMembers.Count == 0)" @onclick="SaveGroup">Gem gruppe</button>
-                    </fieldset>
-                </details>
+                <div class="actions"><a class="action" href="/holds/@_holdId?view=quests&create=true">Opret quest</a><a class="secondary" href="/holds/@_holdId?view=submissions">Åbn afleveringsoverblik</a><a class="secondary" href="/holds/@_holdId?view=groups">Administrér gruppesæt</a></div>
             </section>
         }
 
@@ -130,7 +106,7 @@ else
                             <label class="field">Aflevér som<select @bind="_submissionGroup">
                                 @if (_quest.SubmissionMode == "either") { <option value="">Mig selv</option> }
                                 else { <option value="">Vælg gruppe</option> }
-                                @foreach (var group in _groups) { <option value="@group.Id">@group.Name</option> }
+                                @foreach (var group in SubmissionGroups) { <option value="@group.Id">@group.Name</option> }
                             </select></label>
                         }
                         <button class="action" disabled="@(_quest.SubmissionMode == "group" && _submissionGroup.Length == 0)" @onclick="StartSubmission">Åbn kladde</button>

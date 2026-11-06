@@ -32,11 +32,23 @@ else
         </nav>
         @if (ActiveView == "overview")
         {
+            @if (CanManage && _workspace.Progress is SubmissionProgress progress)
+            {
+                <section class="hold-progress" aria-label="Obligatoriske elevafleveringer"><a href="@ViewHref("submissions")"><strong>@progress.Delivered<span> / @progress.Expected</span></strong><span>elevafleveringer modtaget</span></a><a href="@ViewHref("submissions")"><strong>@progress.Missing</strong><span>mangler aflevering</span></a><a class="@(progress.Overdue > 0 ? "needs-action" : null)" href="@($"{ViewHref("submissions")}&status=overdue")"><strong>@progress.Overdue</strong><span>mangler efter fristen</span></a><a href="@ViewHref("submissions")"><strong>@_workspace.PendingReviews</strong><span>afleveringer til vurdering</span></a></section>
+                <p class="hold-progress-note">Elevtallene dækker obligatoriske, udgivne quests. En gruppeaflevering dækker dens deltagere.</p>
+            }
             <div class="hold-overview">
                 <div class="hold-main">
                     <section class="hold-launchpad" aria-labelledby="hold-start-heading">
                         <div class="hold-section-heading"><div><h2 id="hold-start-heading">@(CanManage ? "Hvad skal holdet arbejde med?" : "Klar til næste skridt?")</h2><p>@(CanManage ? "Planlæg indholdet, sæt opgaver i gang, og saml eleverne." : "Find undervisningen, se dine opgaver, og mød din gruppe.")</p></div></div>
-                        <a class="hold-editor-entry" href="@EditorHref"><span class="hold-tool-icon"><UiIcon Name="book" /></span><div><h3>@(CanManage ? "Byg næste forløb" : "Fortsæt i undervisningen")</h3><p>@(CanManage ? "Skriv teori, saml materialer og udgiv sider til holdet i forløbseditoren." : "Åbn de sider og materialer, din underviser har udgivet.")</p><span class="hold-entry-link">@(CanManage ? "Gå til forløbseditoren" : "Åbn holdets indhold") <UiIcon Name="arrow" /></span></div></a>
+                        @if (FeaturedCourse is WorkspaceCourse activeCourse)
+                        {
+                            <a class="hold-editor-entry" href="@TeachingCourseHref(activeCourse.Id)"><span class="hold-tool-icon"><UiIcon Name="book" /></span><div><small>@(activeCourse.Published ? "Holdets forløb" : "Forløbskladde")</small><h3>@activeCourse.Title</h3><p>@activeCourse.Description</p><span class="hold-entry-link">Fortsæt i forløbet <UiIcon Name="arrow" /></span></div></a>
+                        }
+                        else
+                        {
+                            <a class="hold-editor-entry" href="@ViewHref("content")"><span class="hold-tool-icon"><UiIcon Name="book" /></span><div><h3>@(CanManage ? "Saml undervisningen i et forløb" : "Find dit næste forløb")</h3><p>@(CanManage ? "Giv forløbet en periode og læringsmål. Saml sider, quests og materialer ét sted." : "Åbn de forløb og materialer, din underviser har udgivet.")</p><span class="hold-entry-link">@(CanManage ? "Opret og organisér forløb" : "Åbn holdets forløb") <UiIcon Name="arrow" /></span></div></a>
+                        }
                         <div class="hold-tool-list">
                             <a href="@ViewHref("quests", CanManage)"><span class="hold-tool-icon quest"><UiIcon Name="target" /></span><div><h3>@(CanManage ? "Opret en quest" : "Find dine quests")</h3><p>Main, daily og side quests med afleveringer og feedback.</p></div><UiIcon Name="arrow" /></a>
                             <a href="@ViewHref("calendar", CanManage)"><span class="hold-tool-icon calendar"><UiIcon Name="calendar" /></span><div><h3>@(CanManage ? "Planlæg en begivenhed" : "Se holdets kalender")</h3><p>Undervisning, milepæle og afleveringsfrister samlet.</p></div><UiIcon Name="arrow" /></a>
@@ -56,7 +68,7 @@ else
                     @if (CanManage)
                     {
                         <section class="hold-followup"><div class="hold-section-heading"><h2>Til opfølgning</h2><UiIcon Name="check" /></div><a class="hold-review-count" href="@AssignmentsHref"><strong>@_workspace.PendingReviews</strong><span>afleveringer venter på feedback</span></a>
-                        @foreach (var review in _workspace.Reviews.Take(3)) { <a class="hold-review-row" href="@QuestHref(review.QuestId)"><span>@review.Title</span><b>@review.Count</b></a> }
+                        @foreach (var review in _workspace.Reviews.Take(3)) { <a class="hold-review-row" href="@($"{ViewHref("submissions")}&quest={review.QuestId}&status=submitted")"><span>@review.Title</span><b>@review.Count</b></a> }
                         @if (_workspace.DraftQuestCount > 0) { <a class="hold-draft-link" href="@ViewHref("quests")">@_workspace.DraftQuestCount questkladder er klar til næste skridt</a> }
                         </section>
                     }
@@ -65,7 +77,7 @@ else
                         @foreach (var item in _workspace.Agenda)
                         {
                             var date = LocalTime(item.StartUtc);
-                            <a class="hold-agenda-item" href="@(item.Kind == "deadline" ? QuestHref(item.Id) : ViewHref("calendar"))"><time datetime="@item.StartUtc.ToString("O")"><strong>@date.ToString("dd")</strong><span>@date.ToString("MMM", Danish)</span></time><div><small>@(item.Kind == "deadline" ? "Afleveringsfrist" : "Begivenhed") · @date.ToString("HH:mm")</small><h3>@item.Title</h3>@if (!string.IsNullOrWhiteSpace(item.Location)) { <p>@item.Location</p> }</div></a>
+                            <a class="hold-agenda-item" href="@(item.Kind == "deadline" ? QuestHref(item.Id) : $"{ViewHref("calendar")}&event={item.Id}")"><time datetime="@item.StartUtc.ToString("O")"><strong>@date.ToString("dd")</strong><span>@date.ToString("MMM", Danish)</span></time><div><small>@(item.Kind == "deadline" ? "Afleveringsfrist" : "Begivenhed") · @date.ToString("HH:mm")</small><h3>@item.Title</h3>@if (!string.IsNullOrWhiteSpace(item.Location)) { <p>@item.Location</p> }</div></a>
                         }
                     </section>
                     <a class="hold-resource-link" href="@ViewHref("materials")"><UiIcon Name="folder" /><div><strong>Holdets materialer</strong><span>@_workspace.MaterialCount filer til undervisningen</span></div><UiIcon Name="arrow" /></a>
@@ -75,10 +87,11 @@ else
         }
         else if (ActiveView == "content")
         {
-            <section class="hold-content-panel"><div class="hold-section-heading"><div><h2>Forløb og undervisningssider</h2><p>@(CanManage ? "Kladder bliver hos dig, indtil du udgiver dem til eleverne." : "Her er holdets udgivne undervisning.")</p></div><a class="action" href="@EditorHref">@(CanManage ? "Opret i forløbseditoren" : "Åbn undervisningen")</a></div>
-                @if (_workspace.Pages.Length == 0) { <div class="hold-empty"><p>@(CanManage ? "Åbn editoren for at skabe det første forløb til holdet." : "Her vises undervisningen, når din underviser udgiver den.")</p></div> }
-                @foreach (var page in _workspace.Pages) { <a class="hold-page-row" href="@PageHref(page.Id)"><UiIcon Name="book" /><div><strong>@(page.Title)</strong><small>Opdateret @LocalDate(page.UpdatedAtUtc)</small></div>@if (CanManage) { <span class="hold-state @(page.PublishedAtUtc is null || page.HasUnpublishedChanges ? "draft" : null)">@PageState(page)</span> }<UiIcon Name="arrow" /></a> }
-            </section>
+            <HoldCourses HoldId="_workspace.HoldId" CourseId="TeachingCourseId" OnChanged="RefreshSummary" />
+        }
+        else if (ActiveView == "submissions" && CanManage)
+        {
+            <HoldSubmissionOverview HoldId="_workspace.HoldId" CourseId="TeachingCourseId" QuestId="RequestedQuestId" Filter="SubmissionFilter" />
         }
         else if (ActiveView == "quests")
         {
@@ -86,7 +99,7 @@ else
         }
         else if (ActiveView == "calendar")
         {
-            <HoldCalendar @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" StartCreating="Create" OnChanged="RefreshSummary" />
+            <HoldCalendar @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" StartCreating="Create" EventId="RequestedEventId" OnChanged="RefreshSummary" />
         }
         else if (ActiveView == "groups")
         {

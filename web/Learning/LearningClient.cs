@@ -18,6 +18,7 @@ public sealed class LearningClient(HttpClient http)
     public Task<HoldCalendarEventView> UpdateEvent(Guid id, SaveHoldCalendarEvent body, CancellationToken ct) => Send<HoldCalendarEventView>(HttpMethod.Put, $"holds/{body.HoldId}/calendar/{id}", body, ct);
     public Task<System.Text.Json.JsonElement> DeleteEvent(Guid holdId, Guid id, int version, CancellationToken ct) => Send<System.Text.Json.JsonElement>(HttpMethod.Delete, $"holds/{holdId}/calendar/{id}?version={version}", new { }, ct);
     public Task<QuestView> CreateQuest(SaveQuest body, CancellationToken ct) => Send<QuestView>(HttpMethod.Post, "quests", body, ct);
+    public Task<QuestSeriesView> CreateQuestSeries(CreateQuestSeries body, CancellationToken ct) => Send<QuestSeriesView>(HttpMethod.Post, "quests/series", body, ct);
     public Task<QuestView> UpdateQuest(Guid id, SaveQuest body, CancellationToken ct) => Send<QuestView>(HttpMethod.Put, $"quests/{id}", body, ct);
     public Task<LearningGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<LearningGroupView[]>($"groups?holdId={holdId}", ct);
     public Task<LearningGroupView> SaveGroup(SaveLearningGroup body, CancellationToken ct) => Send<LearningGroupView>(HttpMethod.Post, "groups", body, ct);
@@ -85,6 +86,11 @@ public sealed class LearningClient(HttpClient http)
             };
             message = error?.Error switch
             {
+                "invalid_quest_audience" => "Vælg elever eller aktive grupper fra det samme hold. Kontrollér også gruppesættet.",
+                "invalid_quest_series" => "Vælg mindst én forekomst i en periode på højst 90 dage.",
+                "invalid_repeat_time" => "Tidspunktet rammer skift mellem sommer- og vintertid. Vælg et andet klokkeslæt.",
+                "quest_series_exists" => "Gentagelsen er allerede oprettet med andre oplysninger. Opdatér listen, før du opretter en ny serie.",
+                "submission_mode_in_use" => "Der findes allerede afleveringer. Afleveringsform, gruppesæt og modtagere kan derfor ikke ændres. Kopiér questen til en ny opgave i stedet.",
                 "no_web_entrypoint" => "Arkivet indeholder ingen understøttet startside. Upload et komplet web-build med index.html.",
                 "web_preview_disabled" or "web_preview_not_configured" => "Spilvisning kræver, at serverens særskilte spildomæne er konfigureret.",
                 _ => message

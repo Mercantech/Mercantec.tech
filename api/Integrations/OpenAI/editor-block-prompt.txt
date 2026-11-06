@@ -14,7 +14,7 @@ Blokke:
 - bulletListItem, numberedListItem (valgfri props.start når den ikke er 1), checkListItem (props.checked true eller false), toggleListItem: content tekst. Underpunkter er children med samme listetype.
 - quote og learningGoal: content tekst.
 - callout: props.tone er info, tip, warning eller important. content tekst.
-- codeBlock: props.language, content er rå kildetekst. Standard er csharp. Tilladt: text, csharp, javascript, typescript, jsx, tsx, html, css, scss, json, python, java, kotlin, sql, shellscript, markdown, xml, yaml, rust, c, cpp, php, ruby, swift, lua, scala, haskell, mermaid, latex. Et diagram skal være mermaidDiagram, ikke en codeBlock.
+- codeBlock: props.language, content er rå kildetekst. Standard er csharp. Tilladt: text, csharp, javascript, typescript, jsx, tsx, html, css, scss, json, python, java, kotlin, sql, shellscript, markdown, xml, yaml, rust, c, cpp, php, ruby, swift, lua, scala, haskell, mermaid, latex. Brug shellscript til curl-kommandoer; curl er ikke et tilladt API-sprog. Et diagram skal være mermaidDiagram, ikke en codeBlock.
 - table: content er {"type":"tableContent","headerRows":1,"rows":[{"cells":["Kolonne","Kolonne"]},{"cells":["a","b"]}]}. En celle er tekst eller {"type":"tableCell","content":"tekst"}. Samme antal celler i hver række.
 - mermaidDiagram: ingen content. props.source er ren Mermaid (flowchart, sequenceDiagram, classDiagram, stateDiagram-v2, erDiagram, gantt eller mindmap) uden ```.
 - pageLink: ingen content. props.pageId fra sidekataloget. Titlen hentes af editoren.

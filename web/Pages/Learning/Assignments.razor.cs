@@ -14,7 +14,8 @@ public partial class Assignments
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
     [Parameter] public Guid QuestId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? RequestedHoldId { get; set; }
-    private (Guid Quest, Guid? Hold) _loadedRoute;
+    [SupplyParameterFromQuery(Name = "submission")] public Guid? RequestedSubmissionId { get; set; }
+    private (Guid Quest, Guid? Hold, Guid? Submission) _loadedRoute;
 
     private LearningHold[] _holds = [];
     private CourseMaterialView[] _materials = [];
@@ -43,6 +44,8 @@ public partial class Assignments
     private readonly List<SubmissionFileView> _feedbackFiles = [];
 
     private bool CanManage => _holds.FirstOrDefault(h => h.Id == _holdId)?.CanManage == true;
+    private IEnumerable<LearningGroupView> SubmissionGroups => _groups.Where(g => (_quest?.GroupSetId is null || g.GroupSetId == _quest.GroupSetId)
+        && (CanManage || _quest?.AllowedGroupIds is not Guid[] allowed || allowed.Contains(g.Id)));
     private SubmissionFileView[] ReviewFiles => _submission?.Revisions
         .FirstOrDefault(r => r.Id.ToString() == _reviewRevision)?.Files ?? [];
     private bool ReviewIsLatest => _submission?.Revisions.OrderByDescending(r => r.Number)
@@ -54,6 +57,7 @@ public partial class Assignments
         // Missing parameters must not retain the previous route's quest or hold.
         QuestId = Guid.Empty;
         RequestedHoldId = null;
+        RequestedSubmissionId = null;
         return base.SetParametersAsync(parameters);
     }
 
@@ -70,7 +74,7 @@ public partial class Assignments
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_accountLoaded && Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId))
+        if (_accountLoaded && Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId))
             await Reload();
     }
 
@@ -99,7 +103,7 @@ public partial class Assignments
 
     private Task Reload() => Run(async ct =>
     {
-        var route = (Quest: QuestId, Hold: RequestedHoldId);
+        var route = (Quest: QuestId, Hold: RequestedHoldId, Submission: RequestedSubmissionId);
         _loadedRoute = route;
         _loading = true;
         try
@@ -109,7 +113,7 @@ public partial class Assignments
             _holds = holds;
             QuestView? routeQuest = null;
             if (route.Quest != Guid.Empty) routeQuest = await Client.Quest(route.Quest, ct);
-            if (route != (QuestId, RequestedHoldId)) return;
+            if (route != (QuestId, RequestedHoldId, RequestedSubmissionId)) return;
             var requested = routeQuest?.HoldId ?? route.Hold;
             if (requested is Guid requestedId && _holds.Any(h => h.Id == requestedId)) _holdId = requestedId;
             if (!_holds.Any(h => h.Id == _holdId)) _holdId = _holds.FirstOrDefault()?.Id ?? Guid.Empty;
@@ -119,6 +123,8 @@ public partial class Assignments
             {
                 _quest = _quests.FirstOrDefault(q => q.Id == routeQuest.Id);
                 if (_quest is not null) _submissions = await Client.Submissions(_quest.Id, ct);
+                if (route.Submission is Guid submissionId && _submissions.Any(s => s.Id == submissionId))
+                    SetSubmission(await Client.Submission(submissionId, ct));
             }
             ct.ThrowIfCancellationRequested();
         }
@@ -208,7 +214,7 @@ public partial class Assignments
     private Task ToggleQuest(QuestView quest) => Run(async ct =>
     {
         var updated = await Client.UpdateQuest(quest.Id, new(quest.HoldId, quest.Title,
-            quest.Description, quest.SubmissionMode, !quest.Published, quest.DeadlineUtc, quest.Kind), ct);
+            quest.Description, quest.SubmissionMode, !quest.Published, quest.DeadlineUtc, quest.Kind, quest.GroupSetId, quest.Required, quest.Audience), ct);
         ct.ThrowIfCancellationRequested();
         _quests = _quests.Select(q => q.Id == updated.Id ? updated : q).ToArray();
         if (_quest?.Id == updated.Id) _quest = updated;
@@ -232,7 +238,7 @@ public partial class Assignments
     private Task SaveGroup() => Run(async ct =>
     {
         var current = _groups.FirstOrDefault(g => g.Id.ToString() == _editGroupId);
-        var request = new SaveLearningGroup(_holdId, _groupName, _groupMembers.ToArray(), current?.Version ?? 0);
+        var request = new SaveLearningGroup(_holdId, _groupName, _groupMembers.ToArray(), current?.Version ?? 0, current?.GroupSetId);
         var group = current is null
             ? await Client.SaveGroup(request, ct)
             : await Client.UpdateGroup(current.Id, request, ct);
@@ -397,7 +403,7 @@ public partial class Assignments
             {
                 _busy = false;
                 StateHasChanged();
-                if (Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId)) await Reload();
+                if (Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId)) await Reload();
             }
         }
     }

@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
@@ -46,9 +48,10 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
     public async Task<IActionResult> Create(Guid holdId, SaveNotionGroup request, CancellationToken ct)
     {
         if (!await access.CanManageAsync(holdId, User, ct)) return NotFound();
+        if (!await ValidSet(holdId, request.GroupSetId, ct)) return BadRequest(new { error = "invalid_group_set" });
         var members = await ValidMembers(holdId, request, ct);
         if (members is null) return BadRequest(new { error = "invalid_group" });
-        var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = holdId, Name = request.Name.Trim() };
+        var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = holdId, Name = request.Name.Trim(), GroupSetId = request.GroupSetId };
         foreach (var member in members) group.Members.Add(new() { Membership = member, MembershipId = member.Id });
         db.LearningGroups.Add(group);
         await db.SaveChangesAsync(ct);
@@ -61,10 +64,14 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
         if (!await access.CanManageAsync(holdId, User, ct)) return NotFound();
         var group = await Query(holdId).SingleOrDefaultAsync(g => g.Id == groupId, ct);
         if (group is null) return NotFound();
+        var setId = request.GroupSetId ?? group.GroupSetId;
+        if (!await ValidSet(holdId, setId, ct)) return BadRequest(new { error = "invalid_group_set" });
+        if (setId != group.GroupSetId && await db.QuestSubmissions.AnyAsync(s => s.GroupId == groupId, ct))
+            return Conflict(new { error = "group_set_in_use" });
         var members = await ValidMembers(holdId, request, ct);
         if (members is null) return BadRequest(new { error = "invalid_group" });
         if (group.Version != request.Version) return Conflict(new { error = "group_changed" });
-        group.Name = request.Name.Trim(); group.Version++;
+        group.Name = request.Name.Trim(); group.GroupSetId = setId; group.Version++;
         var wanted = members.Select(m => m.Id).ToHashSet();
         foreach (var old in group.Members.Where(m => !wanted.Contains(m.MembershipId)).ToArray()) db.LearningGroupMembers.Remove(old);
         foreach (var member in members.Where(m => !group.Members.Any(x => x.MembershipId == m.Id)))
@@ -78,8 +85,9 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
     public async Task<IActionResult> CreateBatch(Guid holdId, SaveNotionGroupBatch request, CancellationToken ct)
     {
         if (!await access.CanManageAsync(holdId, User, ct)) return NotFound();
-        if (request.Groups is null || request.Groups.Length is < 1 or > 100
+        if (request.RequestId == Guid.Empty || request.Groups is null || request.Groups.Length is < 1 or > 100
             || request.Groups.Any(g => g is null || !ValidShape(g))
+            || request.Groups.Any(g => g.GroupSetId is not null && g.GroupSetId != request.GroupSetId)
             || request.Groups.Select(g => g.Name.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).Count() != request.Groups.Length)
             return BadRequest(new { error = "invalid_group_batch" });
 
@@ -87,19 +95,48 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
         // A roulette round assigns each pupil once; membership in older rounds is preserved.
         if (ids.Length > 250 || ids.Distinct().Count() != ids.Length)
             return BadRequest(new { error = "invalid_group_batch" });
+        var fingerprint = BatchFingerprint(holdId, request);
+        if (request.RequestId is Guid requestId)
+        {
+            var replay = await FindBatch(holdId, requestId, ct);
+            if (replay.Length > 0) return ReplayBatch(replay, fingerprint, request.Groups.Length);
+        }
+        if (!await ValidSet(holdId, request.GroupSetId, ct)) return BadRequest(new { error = "invalid_group_set" });
         var members = await db.Memberships.Where(m => m.HoldId == holdId && ids.Contains(m.Id)).ToDictionaryAsync(m => m.Id, ct);
         if (members.Count != ids.Length) return BadRequest(new { error = "invalid_group_batch" });
-        var groups = request.Groups.Select(draft =>
+        var groups = request.Groups.Select((draft, ordinal) =>
         {
-            var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = holdId, Name = draft.Name.Trim() };
+            var group = new LearningGroup { Id = Guid.NewGuid(), HoldId = holdId, Name = draft.Name.Trim(), GroupSetId = request.GroupSetId,
+                BatchRequestId = request.RequestId, BatchOrdinal = request.RequestId is null ? null : ordinal,
+                BatchFingerprint = request.RequestId is null ? null : fingerprint };
             foreach (var id in draft.MembershipIds) group.Members.Add(new() { MembershipId = id, Membership = members[id] });
             return group;
         }).ToArray();
         db.LearningGroups.AddRange(groups);
         // One SaveChanges transaction stores the complete preview or none of it.
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException) when (request.RequestId is not null)
+        {
+            // A competing request may have saved this round while our request was in flight.
+            db.ChangeTracker.Clear();
+            var replay = await FindBatch(holdId, request.RequestId.Value, ct);
+            if (replay.Length == 0) throw;
+            return ReplayBatch(replay, fingerprint, request.Groups.Length);
+        }
         return Ok(groups.Select(View).ToArray());
     }
+
+    private Task<LearningGroup[]> FindBatch(Guid holdId, Guid requestId, CancellationToken ct) =>
+        Query(holdId).AsNoTracking().Where(g => g.BatchRequestId == requestId).OrderBy(g => g.BatchOrdinal).ToArrayAsync(ct);
+    private IActionResult ReplayBatch(LearningGroup[] groups, string fingerprint, int count) =>
+        groups.Length == count && groups.All(g => g.BatchFingerprint == fingerprint)
+            ? Ok(groups.Select(View).ToArray()) : Conflict(new { error = "batch_request_changed" });
+    private static string BatchFingerprint(Guid holdId, SaveNotionGroupBatch request) =>
+        Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            HoldId = holdId, request.GroupSetId,
+            Groups = request.Groups.Select(g => new { Name = g.Name.Trim(), MembershipIds = g.MembershipIds.Order().ToArray() }).ToArray()
+        })));
 
     private async Task<NotionGroupView[]> AccessibleGroups(Guid holdId, CancellationToken ct)
     {
@@ -112,6 +149,8 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
 
     private IQueryable<LearningGroup> Query(Guid holdId) => db.LearningGroups.Where(g => g.HoldId == holdId)
         .Include(g => g.Members).ThenInclude(m => m.Membership);
+    private Task<bool> ValidSet(Guid holdId, Guid? id, CancellationToken ct) => id is null ? Task.FromResult(true)
+        : db.LearningGroupSets.AnyAsync(s => s.Id == id && s.HoldId == holdId && !s.Archived, ct);
     private async Task<List<Membership>?> ValidMembers(Guid holdId, SaveNotionGroup request, CancellationToken ct)
     {
         if (!ValidShape(request)) return null;
@@ -124,5 +163,5 @@ public sealed class NotionGroupsController(AppDbContext db, CourseAccess access)
         && request.MembershipIds.Distinct().Count() == request.MembershipIds.Length;
     private static NotionGroupView View(LearningGroup group) => new(group.Id, group.HoldId, group.Name, group.Version,
         group.Members.Where(m => m.Membership is not null).OrderBy(m => m.Membership.DisplayName)
-            .Select(m => new NotionMember(m.MembershipId, m.Membership.DisplayName ?? "Elev")).ToArray());
+            .Select(m => new NotionMember(m.MembershipId, m.Membership.DisplayName ?? "Elev")).ToArray(), group.GroupSetId);
 }

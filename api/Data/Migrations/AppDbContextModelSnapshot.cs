@@ -396,6 +396,19 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("BatchFingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int?>("BatchOrdinal")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("BatchRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GroupSetId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("HoldId")
                         .HasColumnType("uuid");
 
@@ -410,7 +423,10 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HoldId");
+                    b.HasIndex("GroupSetId");
+
+                    b.HasIndex("HoldId", "BatchRequestId", "BatchOrdinal")
+                        .IsUnique();
 
                     b.ToTable("learning_groups", (string)null);
                 });
@@ -430,11 +446,46 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("learning_group_members", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroupSet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Archived")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId", "Archived");
+
+                    b.ToTable("learning_group_sets", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningQuest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("AudienceMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasDefaultValue("hold");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -447,6 +498,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .HasMaxLength(20000)
                         .HasColumnType("character varying(20000)");
 
+                    b.Property<Guid?>("GroupSetId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("HoldId")
                         .HasColumnType("uuid");
 
@@ -457,8 +511,19 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .HasColumnType("character varying(12)")
                         .HasDefaultValue("main");
 
+                    b.Property<DateOnly?>("OccurrenceDate")
+                        .HasColumnType("date");
+
                     b.Property<bool>("Published")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("Required")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid?>("SeriesId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("SubmissionMode")
                         .IsRequired()
@@ -472,7 +537,12 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GroupSetId");
+
                     b.HasIndex("HoldId");
+
+                    b.HasIndex("SeriesId", "OccurrenceDate")
+                        .IsUnique();
 
                     b.ToTable("learning_quests", (string)null);
                 });
@@ -797,6 +867,36 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("poll_rounds", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestAudienceGroup", b =>
+                {
+                    b.Property<Guid>("QuestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("QuestId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("quest_audience_groups", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestAudienceMembership", b =>
+                {
+                    b.Property<Guid>("QuestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("QuestId", "MembershipId");
+
+                    b.HasIndex("MembershipId");
+
+                    b.ToTable("quest_audience_memberships", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestSubmission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -979,6 +1079,73 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("submission_revision_files", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.TeachingCourse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Archived")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateOnly?>("EndsOn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LearningObjectives")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<bool>("Published")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId", "Archived");
+
+                    b.ToTable("teaching_courses", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.TeachingCourseResource", b =>
+                {
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("CourseId", "Kind", "ResourceId");
+
+                    b.HasIndex("Kind", "ResourceId")
+                        .IsUnique();
+
+                    b.ToTable("teaching_course_resources", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.CourseMaterial", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.FileAsset", "FileAsset")
@@ -1048,6 +1215,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroup", b =>
                 {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningGroupSet", null)
+                        .WithMany()
+                        .HasForeignKey("GroupSetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
                         .WithMany()
                         .HasForeignKey("HoldId")
@@ -1074,8 +1246,22 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Membership");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningGroupSet", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.LearningQuest", b =>
                 {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningGroupSet", null)
+                        .WithMany()
+                        .HasForeignKey("GroupSetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
                         .WithMany()
                         .HasForeignKey("HoldId")
@@ -1150,6 +1336,44 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Hold");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestAudienceGroup", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningGroup", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningQuest", "Quest")
+                        .WithMany()
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("Quest");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestAudienceMembership", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Membership", "Membership")
+                        .WithMany()
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.LearningQuest", "Quest")
+                        .WithMany()
+                        .HasForeignKey("QuestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Membership");
+
+                    b.Navigation("Quest");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestSubmission", b =>
@@ -1263,6 +1487,26 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Revision");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.TeachingCourse", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.TeachingCourseResource", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.TeachingCourse", "Course")
+                        .WithMany("Resources")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>
                 {
                     b.Navigation("Hold");
@@ -1304,6 +1548,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Files");
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.TeachingCourse", b =>
+                {
+                    b.Navigation("Resources");
                 });
 #pragma warning restore 612, 618
         }

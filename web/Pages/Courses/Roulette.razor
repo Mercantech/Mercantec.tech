@@ -1,0 +1,136 @@
+@page "/holds/{HoldId:guid}/roulette"
+@layout RouletteLayout
+@using Mercantec.Tech.Web.Notion
+@using Mercantec.Tech.Web.Learning
+@implements IAsyncDisposable
+
+<PageTitle>Grupperoulette · @(_holdName.Length == 0 ? "LUP" : _holdName)</PageTitle>
+<NavigationLock ConfirmExternalNavigation="HasUnsavedRounds" OnBeforeInternalNavigation="BeforeNavigation" />
+
+<div class="roulette-app" @ref="_root">
+    <div class="roulette-ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="roulette-shell">
+        <header class="roulette-topbar">
+            <a class="roulette-back" href="@BackHref"><span aria-hidden="true">‹</span> Tilbage til holdet</a>
+            <span class="roulette-hold">@_holdName</span>
+            <div class="roulette-top-actions"><button type="button" class="roulette-quiet" @onclick="ToggleSound" aria-pressed="@_sound">@(_sound ? "♫ Lyd til" : "♪ Lyd fra")</button><button type="button" class="roulette-quiet" @onclick="Fullscreen">⛶ Fuld skærm</button><button type="button" class="roulette-quiet" @onclick="CloseWindow">Afslut tavlevisning</button></div>
+        </header>
+
+        @if (!Auth.IsInitialized || _loading)
+        {
+            <section class="roulette-gate"><span class="roulette-brand-small">LUP Grupperoulette</span><h1>Vi fylder maskinen…</h1><p role="status">Henter holdets elever og grupper.</p></section>
+        }
+        else if (!Auth.IsAuthenticated)
+        {
+            <section class="roulette-gate"><h1>Log ind for at spinde</h1><p>Grupperouletten bruger eleverne på dit hold.</p><a class="roulette-primary" href="/login">Log ind</a></section>
+        }
+        else if (!MayManage)
+        {
+            <section class="roulette-gate"><h1>Grupperouletten er til underviseren</h1><p>@(ViewAs.IsActive ? "Afslut elevvisningen for at danne grupper." : _error ?? "Din konto kan ikke administrere dette hold.")</p><a class="roulette-primary" href="@BackHref">Tilbage til holdet</a></section>
+        }
+        else
+        {
+            @if (_error is not null) { <div class="roulette-message error" role="alert">@_error</div> }
+            @if (_notice is not null) { <div class="roulette-message" role="status">@_notice</div> }
+            <main class="roulette-main">
+                <section class="roulette-machine-zone" aria-label="Grupperoulettens spillemaskine">
+                    <div class="roulette-round-label"><span class="roulette-live-dot" aria-hidden="true"></span> Runde @DisplayRound <span>@SelectedCount deltagere</span></div>
+                    <div class="roulette-machine @(_spinning ? "is-spinning" : "") @(_lastWinner is not null ? "has-winner" : "")">
+                        <div class="roulette-machine-brand"><span class="roulette-brand-stamp" aria-hidden="true">GR</span><h1><span>Gruppe</span><strong>Roulette</strong></h1><span class="roulette-machine-star" aria-hidden="true">✦</span></div>
+                        <div class="roulette-bulbs" aria-hidden="true">@for (var i = 0; i < 19; i++) { <i style="--bulb:@i"></i> }</div>
+                        <div class="roulette-reel-stage">
+                            <div class="roulette-reels @(SlotNames.Length > 3 ? "many" : null)" style="--reel-count:@SlotNames.Length" aria-hidden="true">
+                                @for (var slot = 0; slot < SlotNames.Length; slot++)
+                                {
+                                    var index = slot;
+                                    <div class="roulette-reel"><span class="roulette-reel-number">@(index + 1)</span><div class="roulette-reel-window"><strong class="roulette-reel-name">@SlotNames[index]</strong></div><span class="roulette-reel-diamond">◆</span></div>
+                                }
+                            </div>
+                            <div class="roulette-payline" aria-hidden="true"></div>
+                        </div>
+                        <div class="roulette-bulbs bottom" aria-hidden="true">@for (var i = 0; i < 19; i++) { <i style="--bulb:@i"></i> }</div>
+                        <div class="roulette-machine-controls">
+                            <div class="roulette-status-display"><span>Maskinen</span><strong>@MachineStatus</strong></div>
+                            <button type="button" class="roulette-spin" disabled="@(!CanSpin)" @onclick="Spin"><span class="roulette-spin-icon" aria-hidden="true">↻</span><span>@SpinLabel</span></button>
+                            <div class="roulette-counter"><span>Tilbage</span><strong>@RemainingCount <small>navne</small></strong></div>
+                        </div>
+                        <button type="button" class="roulette-lever" disabled="@(!CanSpin)" @onclick="Spin" aria-label="Træk håndtaget for at danne næste gruppe"><span class="roulette-lever-knob"></span><span class="roulette-lever-stick"></span><span class="roulette-lever-base"></span><span class="roulette-lever-caption">Træk!</span></button>
+                    </div>
+                    <p class="roulette-keyboard-hint">Tryk mellemrum, klik på knappen, eller træk i håndtaget.</p>
+                    <div class="roulette-winner @(_lastWinner is not null ? "is-visible" : "")" role="status" aria-live="polite">
+                        @if (_lastWinner is not null)
+                        {
+                            <span class="roulette-winner-symbol" aria-hidden="true">✦</span><div><small>@_celebration</small><h2>@_lastWinner.Name</h2><p>@string.Join(" · ", _lastWinner.MemberIds.Select(MemberName))</p></div>
+                        }
+                        else { <span class="roulette-winner-symbol" aria-hidden="true">★</span><div><h2>Hvem bliver dit næste dream team?</h2><p>Alle deltagere får en plads. Grupperne afsløres én ad gangen.</p></div> }
+                    </div>
+                </section>
+
+                <aside class="roulette-side" aria-label="Deltagere, indstillinger og grupper">
+                    <div class="roulette-panel-actions"><button type="button" class="roulette-secondary" disabled="@(_spinning || _saving)" @onclick="NewRound">↻ Ny runde</button><button type="button" class="roulette-secondary" disabled="@(_spinning || !_rounds.Any(r => r.Revealed > 0))" @onclick="OpenOverview">▦ Overblik</button></div>
+                    @if (_confirmNewRound)
+                    {
+                        <div class="roulette-confirm" role="alert"><strong>Runden er ikke færdig.</strong><p>De allerede afslørede grupper bevares i overblikket. Resten af fordelingen lægges væk.</p><div><button type="button" class="roulette-secondary" @onclick="ConfirmNewRound">Start ny runde</button><button type="button" class="roulette-quiet" @onclick="() => _confirmNewRound = false">Fortsæt runden</button></div></div>
+                    }
+                    <details class="roulette-settings" open="@(_current is null)">
+                        <summary>Indstillinger til næste runde <span aria-hidden="true">⌄</span></summary>
+                        <div class="roulette-settings-body">
+                            <fieldset disabled="@(_spinning || _saving || _current is not null)">
+                                <div class="roulette-settings-grid"><label>Fordel efter<select @bind="_distribution"><option value="size">Elever pr. gruppe</option><option value="count">Antal grupper</option></select></label><label>@(_distribution == "size" ? "Højst elever pr. gruppe" : "Antal grupper")<input type="number" min="1" max="@(_distribution == "size" ? 12 : 100)" @bind="_amount" /></label></div>
+                                <label>Gem den nye runde i<select @bind="_selectedSet"><option value="">Et nyt gruppesæt</option>@foreach (var set in _sets.Where(s => !s.Archived)) { <option value="@set.Id">@set.Name</option> }</select></label>
+                                @if (_selectedSet.Length == 0) { <label>Navn til det nye gruppesæt<input @bind="_newSetName" maxlength="120" placeholder="Fx Makkerpar uge 45" /></label> }
+                                <label class="roulette-check"><input type="checkbox" @bind="_avoidPairs" /> Undgå tidligere makkerpar</label>
+                                @if (_avoidPairs)
+                                {
+                                    <p class="roulette-help">Tidligere runder i denne visning tæller altid med. Vælg også gemte gruppesæt:</p><div class="roulette-history-sets">@foreach (var set in _sets) { <label class="roulette-check"><input type="checkbox" checked="@_historySets.Contains(set.Id)" @onchange="e => ToggleHistorySet(set.Id, e)" /> @set.Name @if (set.Archived) { <small>(arkiveret)</small> }</label> }<label class="roulette-check"><input type="checkbox" @bind="_includeLegacy" /> Grupper uden gruppesæt</label></div>
+                                }
+                            </fieldset>
+                            @if (_current is not null) { <p class="roulette-help">Start en ny runde for at ændre deltagere og indstillinger.</p> }
+                        </div>
+                    </details>
+                    <div class="roulette-panel-tabs" role="group" aria-label="Vis deltagere eller grupper"><button type="button" class="@(!_showGroups ? "is-active" : null)" aria-pressed="@(!_showGroups)" @onclick="() => _showGroups = false">Navne <span>@RemainingCount</span></button><button type="button" class="@(_showGroups ? "is-active" : null)" aria-pressed="@_showGroups" @onclick="() => _showGroups = true">Grupper <span>@(_current?.Revealed ?? 0)</span></button></div>
+                    @if (!_showGroups)
+                    {
+                        <div class="roulette-panel-heading"><h2>@(_current is null ? "Hvem er med?" : "Navne tilbage")</h2>@if (_current is null) { <button type="button" class="roulette-small" @onclick="SelectAll" disabled="@_spinning">Vælg alle</button> }</div>
+                        <div class="roulette-progress-meta"><span>@(_current is null ? $"{_selected.Count} af {_members.Length} valgt" : $"{CurrentAssignedCount} af {_current.ParticipantIds.Length} fordelt")</span><span>@ProgressPercent%</span></div><div class="roulette-progress"><span style="width:@(ProgressPercent)%"></span></div>
+                        @if (_members.Length == 0) { <p class="roulette-empty">Holdet har ingen elever endnu. Tilføj dem fra holdindstillingerne.</p> }
+                        <div class="roulette-name-list">
+                            @foreach (var member in RemainingMembers)
+                            {
+                                <label class="roulette-name"><span class="roulette-name-initial" aria-hidden="true">@Initial(member.DisplayName)</span><span>@member.DisplayName</span>@if (_current is null) { <input type="checkbox" aria-label="@($"Tag {member.DisplayName} med i runden")" checked="@_selected.Contains(member.Id)" @onchange="e => ToggleMember(member.Id, e)" disabled="@(_spinning || _saving)" /> } else { <span class="roulette-name-ticket" aria-hidden="true">◆</span> }</label>
+                            }
+                        </div>
+                        @if (_current?.Complete == true) { <div class="roulette-empty complete"><span aria-hidden="true">✦</span><strong>Alle er landet i en gruppe!</strong><p>Åbn overblikket, eller gem runden på holdet.</p></div> }
+                    }
+                    else
+                    {
+                        <div class="roulette-panel-heading"><h2>Dannede grupper</h2><button type="button" class="roulette-small" disabled="@(_current is null || _current.Revealed == 0)" @onclick="CopyCurrent">Kopiér</button></div>
+                        @if (_current is null || _current.Revealed == 0) { <p class="roulette-empty">Første spin starter historien. Grupperne lander her.</p> }
+                        else { @foreach (var group in _current.Groups.Take(_current.Revealed).Reverse()) { @GroupCard(_current, group, false) } }
+                    }
+                    @if (_current is not null && _current.Revealed > 0)
+                    {
+                        <div class="roulette-save-round"><span>@(_current.Saved ? $"Gemt i {_current.SetName}" : _current.Complete ? "Runden er klar til at blive gemt" : "Afslør resten af grupperne før du gemmer")</span>@if (!_current.Saved) { @RoundSaveSettings(_current) }<button type="button" class="roulette-primary" disabled="@(_saving || _spinning || !_current.Complete || _current.Saved)" @onclick="() => SaveRound(_current)">@(_saving ? "Gemmer…" : _current.Saved ? "✓ Runden er gemt" : "Gem runden på holdet")</button></div>
+                    }
+                </aside>
+            </main>
+            <footer class="roulette-footer"><span>LUP Grupperoulette</span><span>Inspireret af <a href="https://github.com/Mercantech/GruppeRoulette" target="_blank" rel="noopener">Mercantech/GruppeRoulette</a></span><span>Ingen elever bliver efterladt på perronen.</span></footer>
+        }
+    </div>
+    @if (_overview)
+    {
+        <section class="roulette-overview" role="dialog" aria-modal="true" aria-label="Komplet gruppeoverblik" tabindex="-1"><header><div><span class="roulette-brand-small">Grupperoulette</span><h2>Hele klassen. Alle holdene.</h2></div><div><button type="button" class="roulette-secondary" @onclick="CopyAll">Kopiér alle runder</button><button type="button" class="roulette-overview-close" @onclick="CloseOverview">Luk <span aria-hidden="true">×</span></button></div></header>
+            @foreach (var round in _rounds.Where(r => r.Revealed > 0).Reverse())
+            {
+                <section class="roulette-overview-round"><div class="roulette-overview-round-heading"><div><h3>Runde @round.Number</h3><p>@round.Revealed af @round.Groups.Length grupper afsløret @if (round.Saved) { <span> · Gemt i @round.SetName</span> }</p></div><div><button type="button" class="roulette-quiet" @onclick="() => CopyRound(round)">Kopiér runden</button>@if (!round.Saved && round.Complete) { <button type="button" class="roulette-secondary" disabled="@_saving" @onclick="() => SaveRound(round)">Gem runden på holdet</button> }</div></div>@if (!round.Saved) { @RoundSaveSettings(round) }<div class="roulette-overview-grid">@foreach (var group in round.Groups.Take(round.Revealed)) { @GroupCard(round, group, true) }</div></section>
+            }
+        </section>
+    }
+    <canvas class="roulette-confetti" aria-hidden="true"></canvas>
+    @if (_copyFallback is not null) { <div class="roulette-copy-fallback" role="status"><label>Kopiér gruppeteksten manuelt<textarea readonly rows="8">@_copyFallback</textarea></label><button type="button" class="roulette-secondary" @onclick="() => _copyFallback = null">Luk</button></div> }
+</div>
+
+@code {
+    private RenderFragment GroupCard(ShowRound round, ShowGroup group, bool large) => @<article class="roulette-group-card @(large ? "large" : null)" style="--group-color:@GroupColor(group.Number)"><div class="roulette-group-card-top"><span>Gruppe @group.Number</span><button type="button" class="roulette-reroll" disabled="@(round.Saved || round.SaveAttempted || _saving || _spinning)" aria-label="@($"Giv {group.Name} et nyt gruppenavn")" title="@(round.Saved ? "Navnet er gemt. Redigér det fra holdets grupper." : round.SaveAttempted ? "Gentag gemningen før du ændrer navnet." : "Nyt fjollet gruppenavn")" @onclick="() => Reroll(round, group)">↻ Nyt navn</button></div><h3>@group.Name</h3><ul>@foreach (var id in group.MemberIds) { <li><span aria-hidden="true">◆</span> @MemberName(id)</li> }</ul></article>;
+    private RenderFragment RoundSaveSettings(ShowRound round) => @<div class="roulette-destination">@if (round.SaveAttempted) { <p class="roulette-help">Gemningen er startet i <strong>@round.SetName</strong>. Prøv Gem igen for at kontrollere resultatet uden at oprette dubletter.</p> } else { <label>Gem runden i<select value="@(round.TargetSetId?.ToString() ?? "")" @onchange="e => ChangeDestination(round, e)" disabled="@_saving"><option value="">Et nyt gruppesæt</option>@foreach (var set in _sets.Where(s => !s.Archived)) { <option value="@set.Id">@set.Name</option> }</select></label>@if (round.TargetSetId is null) { <label>Navn til det nye gruppesæt<input @bind="round.SetName" maxlength="120" disabled="@_saving" /></label> } }</div>;
+}

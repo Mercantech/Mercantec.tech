@@ -3,7 +3,10 @@
 @inject LearningClient Client
 @inject AuthService Auth
 @inject ViewAsStudentContext ViewAs
+@inject IJSRuntime Js
 @implements IDisposable
+
+<NavigationLock ConfirmExternalNavigation="IsDirty" OnBeforeInternalNavigation="BeforeNavigate" />
 
 <section class="hold-calendar" aria-label="Holdets kalender">
     <div class="hc-heading"><div><h2>Holdets kalender</h2><p>Undervisning, begivenheder og questfrister samlet. Alle tider er dansk tid.</p></div>@if (_canManage) { <button type="button" class="action" @onclick="() => New(_anchor)" disabled="@_busy"><UiIcon Name="plus" /> Opret begivenhed</button> }</div>
@@ -17,10 +20,10 @@
             <form class="hc-editor" @onsubmit="Save" @onsubmit:preventDefault>
                 <h3>@(_editing is null ? "Opret begivenhed" : "Redigér begivenhed")</h3>
                 <fieldset disabled="@_busy">
-                    <div class="hc-fields"><label class="field">Titel<input @bind="_title" maxlength="200" required /></label><label class="field">Type<select @bind="_kind"><option value="teaching">Undervisning</option><option value="workshop">Workshop</option><option value="exam">Prøve / eksamen</option><option value="other">Andet</option></select></label></div>
+                    <div class="hc-fields"><label class="field">Titel<input @bind="_title" @bind:event="oninput" maxlength="200" required /></label><label class="field">Type<select @bind="_kind"><option value="teaching">Undervisning</option><option value="workshop">Workshop</option><option value="exam">Prøve / eksamen</option><option value="other">Andet</option></select></label></div>
                     <div class="hc-fields"><label class="field">Start (dansk tid)<input type="datetime-local" value="@_start" @onchange="e => _start = e.Value?.ToString() ?? string.Empty" required /></label><label class="field">Slut (dansk tid)<input type="datetime-local" value="@_end" @onchange="e => _end = e.Value?.ToString() ?? string.Empty" required /></label></div>
-                    <label class="field">Lokale / sted<input @bind="_location" maxlength="200" placeholder="Fx lokale 204 eller online" /></label>
-                    <label class="field">Beskrivelse<textarea @bind="_description" maxlength="4000" rows="3"></textarea></label>
+                    <label class="field">Lokale / sted<input @bind="_location" @bind:event="oninput" maxlength="200" placeholder="Fx lokale 204 eller online" /></label>
+                    <label class="field">Beskrivelse<textarea @bind="_description" @bind:event="oninput" maxlength="4000" rows="3"></textarea></label>
                     <div class="actions"><button type="submit" class="action" disabled="@string.IsNullOrWhiteSpace(_title)">@(_busy ? "Gemmer…" : "Gem begivenhed")</button><button type="button" class="secondary" @onclick="Cancel">Annullér</button></div>
                 </fieldset>
             </form>
@@ -68,6 +71,7 @@
 @code {
     [Parameter] public Guid HoldId { get; set; }
     [Parameter] public bool StartCreating { get; set; }
+    [Parameter] public Guid? EventId { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
     private static readonly CultureInfo Danish = CultureInfo.GetCultureInfo("da-DK");
     private readonly CancellationTokenSource _life = new();
@@ -81,6 +85,14 @@
     private HoldCalendarEventView? _editing, _selected, _deleting;
     private DateOnly _anchor = Day(DateTimeOffset.UtcNow);
     private string _view = "week", _title = "", _description = "", _kind = "teaching", _location = "", _start = "", _end = "";
+    private string _baseline = "";
+    private Guid? _openedEvent;
+    private string FormKey => string.Join('\u001f',_title,_description,_kind,_location,_start,_end);
+    private bool IsDirty => _editingOpen && _canManage && !ViewAs.IsActive && FormKey != _baseline;
+    private async Task BeforeNavigate(LocationChangingContext context)
+    {
+        if (IsDirty && !await Js.InvokeAsync<bool>("confirm","Du har ugemte ændringer i begivenheden. Forlad siden?")) context.PreventNavigation();
+    }
     private static DateOnly Day(DateTimeOffset value) => DateOnly.FromDateTime(HoldTime.Local(value));
     private IEnumerable<Entry> Entries => _events.Select(e => new Entry(e.Title, e.StartUtc, e.EndUtc.AddTicks(-1), e.Kind, e.Location, e.Description, e, null))
         .Concat(_quests.Where(q => q.DeadlineUtc is not null).Select(q => new Entry(q.Title + (q.Published ? "" : " (kladde)"), q.DeadlineUtc!.Value, q.DeadlineUtc.Value, q.Kind, "", q.Description, null, q.Id))).OrderBy(e => e.Start);
@@ -105,6 +117,8 @@
         }
         if (StartCreating && !_startHandled && _canManage) { New(_anchor); _startHandled = true; }
         if (!StartCreating) _startHandled = false;
+        if (EventId is Guid eventId && _openedEvent != eventId && _events.FirstOrDefault(e => e.Id == eventId) is HoldCalendarEventView item)
+        { _openedEvent = eventId; _selected = item; _anchor = Day(item.StartUtc); }
     }
     private void Changed() => _ = InvokeAsync(async () =>
     {
@@ -131,9 +145,9 @@
     }
     private void Move(int direction) { _anchor = _view == "month" ? _anchor.AddMonths(direction) : _anchor.AddDays(direction * (_view == "list" ? 31 : 7)); _selected = null; }
     private void Today() { _anchor = Day(DateTimeOffset.UtcNow); _selected = null; }
-    private void New(DateOnly day) { _editing = null; _editingOpen = true; _title = _description = _location = ""; _kind = "teaching"; _start = day.ToString("yyyy-MM-dd") + "T08:00"; _end = day.ToString("yyyy-MM-dd") + "T09:00"; _deleting = _selected = null; _notice = null; }
+    private void New(DateOnly day) { _editing = null; _editingOpen = true; _title = _description = _location = ""; _kind = "teaching"; _start = day.ToString("yyyy-MM-dd") + "T08:00"; _end = day.ToString("yyyy-MM-dd") + "T09:00"; _deleting = _selected = null; _notice = null; _baseline = FormKey; }
     private void Cancel() { _editingOpen = false; _editing = null; }
-    private void Edit(HoldCalendarEventView item) { _editing = item; _editingOpen = true; _title = item.Title; _description = item.Description; _kind = item.Kind; _location = item.Location; _start = HoldTime.Input(item.StartUtc); _end = HoldTime.Input(item.EndUtc); _deleting = _selected = null; _notice = null; }
+    private void Edit(HoldCalendarEventView item) { _editing = item; _editingOpen = true; _title = item.Title; _description = item.Description; _kind = item.Kind; _location = item.Location; _start = HoldTime.Input(item.StartUtc); _end = HoldTime.Input(item.EndUtc); _deleting = _selected = null; _notice = null; _baseline = FormKey; }
     private void AskDelete(HoldCalendarEventView item) { _deleting = item; _notice = null; }
     private async Task Save()
     {

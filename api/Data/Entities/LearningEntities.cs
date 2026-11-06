@@ -32,6 +32,11 @@ public sealed class LearningQuest
     public string Description { get; set; } = "";
     public string SubmissionMode { get; set; } = "individual";
     public string Kind { get; set; } = "main";
+    public string AudienceMode { get; set; } = "hold";
+    public Guid? SeriesId { get; set; }
+    public DateOnly? OccurrenceDate { get; set; }
+    public Guid? GroupSetId { get; set; }
+    public bool Required { get; set; } = true;
     public bool Published { get; set; }
     public DateTimeOffset? DeadlineUtc { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
@@ -41,6 +46,10 @@ public sealed class LearningGroup
 {
     public Guid Id { get; set; }
     public Guid HoldId { get; set; }
+    public Guid? GroupSetId { get; set; }
+    public Guid? BatchRequestId { get; set; }
+    public int? BatchOrdinal { get; set; }
+    public string? BatchFingerprint { get; set; }
     public string Name { get; set; } = "";
     public int Version { get; set; }
     public ICollection<LearningGroupMember> Members { get; set; } = new List<LearningGroupMember>();

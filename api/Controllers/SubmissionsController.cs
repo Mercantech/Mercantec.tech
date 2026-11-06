@@ -20,6 +20,7 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
         if (quest is null || !await access.CanAccessAsync(quest.HoldId, User, ct)) return NotFound();
         var manage = await access.CanManageAsync(quest.HoldId, User, ct);
         if (!manage && !quest.Published) return NotFound();
+        if (!manage && !await new QuestAudienceAccess(db).CanReadAsync(quest, sub, ct)) return NotFound();
         var submissions = await Query().Where(s => s.QuestId == questId).ToListAsync(ct);
         var memberIds = await db.Memberships.Where(m => m.UserSub == sub).Select(m => m.Id).ToListAsync(ct);
         var result = new List<SubmissionView>();
@@ -42,6 +43,7 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
         var edit = await CanEdit(submission, sub, ct);
         var memberIds = await db.Memberships.Where(m => m.UserSub == sub).Select(m => m.Id).ToListAsync(ct);
         if (!manage && !submission.Quest.Published) return NotFound();
+        if (!manage && !await new QuestAudienceAccess(db).CanReadAsync(submission.Quest, sub, ct)) return NotFound();
         if (!manage && !edit && !IsParticipant(submission, sub, memberIds)) return NotFound();
         return Ok(View(submission, sub, memberIds, edit, manage));
     }
@@ -51,7 +53,9 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
     {
         if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
         if (UserClaims.IsTeacher(User)) return Forbid();
-        var quest = await db.LearningQuests.SingleOrDefaultAsync(q => q.Id == request.QuestId && q.Published, ct);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        if (await QuestWriteLock.AcquireAsync(db, request.QuestId, ct) == 0) return NotFound();
+        var quest = await db.LearningQuests.AsNoTracking().SingleOrDefaultAsync(q => q.Id == request.QuestId && q.Published, ct);
         if (quest is null || !await IsMember(quest.HoldId, sub, ct)) return NotFound();
         if (request.GroupId.HasValue ? quest.SubmissionMode == "individual" : quest.SubmissionMode == "group")
             return BadRequest(new { error = "invalid_submission_mode" });
@@ -60,7 +64,20 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
             return NotFound();
         var owner = request.GroupId is Guid group ? $"g:{group:N}" : $"u:{sub:N}";
         var existing = await db.QuestSubmissions.FirstOrDefaultAsync(s => s.QuestId == quest.Id && s.OwnerKey == owner, ct);
-        if (existing is not null) return await Get(existing.Id, ct);
+        if (existing is not null) { await transaction.CommitAsync(ct); return await Get(existing.Id, ct); }
+        if (request.GroupId is Guid lockedGroup)
+            // Serialize the first draft with group edits before checking its current audience and set.
+            await db.LearningGroups.Where(g => g.Id == lockedGroup && g.HoldId == quest.HoldId)
+                .ExecuteUpdateAsync(s => s.SetProperty(g => g.Version, g => g.Version + 1), ct);
+        if (!await new QuestAudienceAccess(db).CanParticipateAsync(quest, sub, request.GroupId, ct)) return NotFound();
+        if (request.GroupId is Guid selectedGroup)
+        {
+            var groupSetId = await db.LearningGroups.Where(g => g.Id == selectedGroup)
+                .Select(g => g.GroupSetId).SingleAsync(ct);
+            if (quest.GroupSetId is Guid requiredSet && groupSetId != requiredSet
+                || groupSetId is Guid setId && await db.LearningGroupSets.AnyAsync(s => s.Id == setId && s.Archived, ct))
+                return BadRequest(new { error = "invalid_group_set" });
+        }
         var submission = new QuestSubmission
         {
             Id = Guid.NewGuid(), QuestId = quest.Id, CreatedBySub = sub, GroupId = request.GroupId,
@@ -71,11 +88,13 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
         catch (DbUpdateException)
         {
             // A concurrent click may have created the same unique quest/owner draft.
+            await transaction.RollbackAsync(ct);
             db.ChangeTracker.Clear();
             var winner = await db.QuestSubmissions.FirstOrDefaultAsync(s => s.QuestId == quest.Id && s.OwnerKey == owner, ct);
             if (winner is null) throw;
             return await Get(winner.Id, ct);
         }
+        await transaction.CommitAsync(ct);
         return await Get(submission.Id, ct);
     }
 
@@ -133,6 +152,9 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
             members = await db.LearningGroupMembers.AsNoTracking().Where(g => g.GroupId == groupId)
                 .Select(g => g.Membership).ToListAsync(ct);
             if (!members.Any(m => m.UserSub == sub)) return Conflict(new { error = "group_changed" });
+            // Membership may have changed since CanEdit. Recheck the current audience under the group row lock.
+            if (!await new QuestAudienceAccess(db).CanParticipateAsync(submission.Quest, sub, groupId, ct))
+                return Conflict(new { error = "group_changed" });
         }
         else members = await db.Memberships.AsNoTracking()
             .Where(m => m.HoldId == submission.Quest.HoldId && m.UserSub == sub).ToListAsync(ct);
@@ -213,6 +235,7 @@ public sealed class SubmissionsController(AppDbContext db, CourseAccess access) 
     {
         if (UserClaims.IsTeacher(User) || !s.Quest.Published || s.State is not ("draft" or "changes-requested")
             || !await IsMember(s.Quest.HoldId, sub, ct)) return false;
+        if (!await new QuestAudienceAccess(db).CanParticipateAsync(s.Quest, sub, s.GroupId, ct)) return false;
         if (s.GroupId is Guid groupId)
         {
             if (!await db.LearningGroupMembers.AnyAsync(m => m.GroupId == groupId && m.Membership.UserSub == sub, ct))

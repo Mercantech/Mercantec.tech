@@ -1,0 +1,108 @@
+@using Mercantec.Tech.Web.Learning
+@inject HttpClient Http
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+<section class="submission-overview" aria-label="Holdets afleveringsoverblik">
+    <header class="so-heading"><div><h2>Afleveringsoverblik</h2><p>Se hvem der har afleveret, og hvem du skal følge op med. Gruppeafleveringer tæller for hver registreret deltager.</p></div><button class="secondary" @onclick="Reload" disabled="@_loading">Opdatér</button></header>
+    @if (_error is not null) { <p class="so-error" role="alert">@_error</p> }
+    @if (_loading) { <p role="status">Henter elevernes afleveringsstatus…</p> }
+    else if (ViewAs.IsActive) { <p>Afslut elevvisningen for at åbne underviserens afleveringsoverblik.</p> }
+    else if (_data is not null)
+    {
+        var total = _data.RequiredProgress;
+        <div class="so-totals" aria-label="Status på obligatoriske quests">
+            <div><strong>@total.Delivered<span> / @total.Expected</span></strong><span>elevafleveringer modtaget</span></div>
+            <div class="@(total.Missing > 0 ? "attention" : null)"><strong>@total.Missing</strong><span>mangler aflevering</span><small>heraf @total.Drafts i kladde</small></div>
+            <div class="@(total.Overdue > 0 ? "overdue" : null)"><strong>@total.Overdue</strong><span>mangler efter fristen</span></div>
+            <div><strong>@_data.Quests.Sum(q => q.ReviewTasks)</strong><span>afleveringer til vurdering</span><small>En gruppeaflevering er én vurdering</small></div>
+        </div>
+        <p class="so-explanation">De første tre tal gælder aktive, obligatoriske, udgivne quests. En elev kan indgå én gang pr. quest. Valgfrie quests, kladder og kommende gentagelser giver ingen mangler her.</p>
+        @if (_data.Quests.Length == 0) { <div class="so-empty"><h3>Ingen quests at følge op på endnu</h3><p>Opret og udgiv en quest. Så vises holdets elever automatisk i overblikket.</p></div> }
+        else
+        {
+            <div class="so-quest-scroll"><table class="so-quests"><thead><tr><th scope="col">Quest</th><th scope="col">Afleveret</th><th scope="col">Mangler</th><th scope="col">Til vurdering</th><th scope="col">Godkendte elever</th><th scope="col">Frist</th></tr></thead><tbody>
+                @foreach (var quest in _data.Quests)
+                {
+                    <tr class="@(Selected?.QuestId == quest.QuestId ? "selected" : null)"><th scope="row"><a href="@QuestLink(quest.QuestId)">@quest.Title</a><small>@HoldTime.QuestKind(quest.Kind) · @(quest.Published ? quest.Required ? "Obligatorisk" : "Valgfri" : "Kladde") @if (quest.GroupSetName is not null) { <span>· @quest.GroupSetName</span> }</small></th><td>@if (quest.Published) { <strong>@quest.Progress.Delivered / @quest.Progress.Expected</strong><progress value="@quest.Progress.Delivered" max="@Math.Max(1,quest.Progress.Expected)" aria-label="@($"{quest.Progress.Delivered} af {quest.Progress.Expected} elever har afleveret")"></progress> } else { <span>Ikke udgivet</span> }</td><td><span class="@(quest.Required && quest.Progress.Missing > 0 ? "so-missing" : null)">@quest.Progress.Missing</span>@if (quest.Progress.Overdue > 0) { <small class="so-late">@quest.Progress.Overdue efter fristen</small> }</td><td>@quest.ReviewTasks</td><td>@quest.Progress.Approved</td><td>@(quest.DeadlineUtc is DateTimeOffset deadline ? HoldTime.Display(deadline) : "Ingen frist")</td></tr>
+                }
+            </tbody></table></div>
+            @if (Selected is QuestSubmissionOverview selected)
+            {
+                <section class="so-detail" aria-labelledby="so-selected-title"><div class="so-heading"><div><h3 id="so-selected-title">@selected.Title</h3><p>@selected.Progress.Delivered af @selected.Progress.Expected elever har afleveret. @selected.Progress.ChangesRequested kræver rettelser.</p></div><a class="secondary" href="/quests/@selected.QuestId">Åbn quest og feedback</a></div>
+                    @if (selected.Upcoming) { <p class="so-explanation">Denne forekomst gælder @selected.OccurrenceDate?.ToString("dd.MM.yyyy"). @(selected.Required ? "Den indgår først i holdets samlede mangler på den dato." : "Den er valgfri og indgår ikke i holdets samlede mangler.")</p> }
+                    @if (!selected.Published) { <p class="so-explanation">Questen er en kladde. Ingen elever forventes at aflevere, før du udgiver den.</p> }
+                    else
+                    {
+                        <div class="so-controls"><label class="field">Find elev<input type="search" @bind="_search" @bind:event="oninput" placeholder="Søg på navn" /></label><nav aria-label="Filtrér elevstatus">@foreach (var filter in Filters) { <a class="@(Status == filter.Key ? "active" : null)" href="@StatusLink(filter.Key)" aria-current="@(Status == filter.Key ? "true" : null)">@filter.Label</a> }</nav></div>
+                        @if (selected.Progress.Ungrouped > 0) { <p class="so-warning">@selected.Progress.Ungrouped elever mangler en gruppe til denne quest. Tilføj dem i det valgte gruppesæt.</p> }
+                        <div class="so-member-scroll"><table class="so-members"><thead><tr><th scope="col">Elev</th><th scope="col">Status</th><th scope="col">Aflevering</th><th scope="col">Indsendt</th><th scope="col"><span class="so-sr-only">Åbn aflevering</span></th></tr></thead><tbody>
+                            @foreach (var member in VisibleMembers(selected))
+                            {
+                                <tr><th scope="row">@member.DisplayName</th><td><span class="so-status @member.State @(member.Overdue ? "past-due" : null)">@StateLabel(member)</span>@if (member.Ungrouped) { <small>Mangler gruppe</small> }@if (member.SubmittedLate) { <small>Afleveret efter fristen</small> }</td><td>@(member.GroupName ?? (member.SubmissionId is not null ? "Individuel" : "—"))@if (!member.IsCurrentRevision && member.RevisionNumber is not null) { <small>Tidligere deltagersnapshot</small> }</td><td>@(member.SubmittedAtUtc is DateTimeOffset at ? HoldTime.Display(at) : "—")</td><td>@if (member.SubmissionId is Guid id) { <a class="secondary" href="/quests/@selected.QuestId?submission=@id">@(member.State == "submitted" ? "Giv feedback" : "Åbn")</a> }</td></tr>
+                            }
+                        </tbody></table></div>
+                        @if (!VisibleMembers(selected).Any()) { <p class="so-empty">Ingen elever matcher dette filter.</p> }
+                    }
+                </section>
+            }
+        }
+        <p class="so-updated">Opdateret @HoldTime.Display(_data.GeneratedAtUtc)</p>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
+    [Parameter] public Guid? QuestId { get; set; }
+    [Parameter] public string? Filter { get; set; }
+    private Mercantec.Tech.Contracts.HoldSubmissionOverview? _data;
+    private (Guid Hold, Guid? Course, string? Account, bool Preview)? _context;
+    private CancellationTokenSource _requests = new();
+    private string? _error;
+    private string _search = "";
+    private bool _loading, _disposed;
+    private int _generation;
+    private string Status => Filters.Any(f => f.Key == Filter) ? Filter! : "all";
+    private static readonly (string Key, string Label)[] Filters = [("all","Alle"),("missing","Mangler"),("overdue","Efter fristen"),("submitted","Til vurdering"),("approved","Godkendt"),("changes-requested","Kræver rettelser")];
+    private QuestSubmissionOverview? Selected => _data?.Quests.FirstOrDefault(q => q.QuestId == QuestId)
+        ?? _data?.Quests.OrderByDescending(q => q.Required && q.Progress.Overdue > 0).ThenByDescending(q => q.ReviewTasks).FirstOrDefault();
+    private string QuestLink(Guid quest) => Nav.GetUriWithQueryParameters(new Dictionary<string, object?> { ["view"]="submissions",["quest"]=quest,["status"]=null });
+    private string StatusLink(string status) => Nav.GetUriWithQueryParameter("status",status == "all" ? null : status);
+    private static string StateLabel(MemberSubmissionStatus row) => row.State switch
+    { "approved" => "Godkendt", "changes-requested" => "Kræver rettelser", "submitted" => row.IsCurrentRevision ? "Til vurdering" : "Afleveret", "draft" => row.Overdue ? "Kladde · efter fristen" : "Kladde", _ => row.Overdue ? "Mangler · efter fristen" : "Ikke afleveret" };
+    private IEnumerable<MemberSubmissionStatus> VisibleMembers(QuestSubmissionOverview quest) => quest.Members
+        .Where(m => string.IsNullOrWhiteSpace(_search) || m.DisplayName.Contains(_search,StringComparison.CurrentCultureIgnoreCase))
+        .Where(m => Status switch { "missing" => m.SubmittedAtUtc == null, "overdue" => m.Overdue,
+            "submitted" => m.State == "submitted" && m.IsCurrentRevision, "approved" => m.State == "approved",
+            "changes-requested" => m.State == "changes-requested", _ => true })
+        .OrderByDescending(m => m.Overdue).ThenBy(m => m.SubmittedAtUtc != null).ThenBy(m => m.DisplayName);
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Auth.IsInitialized && _context != (HoldId,CourseId,Auth.Subject,ViewAs.IsActive)) await Reload();
+    }
+    private void Changed() => _ = InvokeAsync(async () => { if (_context != (HoldId,CourseId,Auth.Subject,ViewAs.IsActive)) await Reload(); StateHasChanged(); });
+    private async Task Reload()
+    {
+        if (_disposed || !Auth.IsInitialized) return;
+        _context = (HoldId,CourseId,Auth.Subject,ViewAs.IsActive); _data = null; _error = null;
+        _requests.Cancel(); _requests.Dispose(); _requests = new(); var ct = _requests.Token; var generation = ++_generation;
+        _loading = false;
+        if (!Auth.IsAuthenticated || ViewAs.IsActive || HoldId == Guid.Empty) return;
+        _loading = true;
+        try
+        {
+            using var response = await Http.GetAsync($"holds/{HoldId}/submission-overview" + (CourseId is Guid course ? $"?courseId={course}" : ""),ct);
+            if (!response.IsSuccessStatusCode) { _error = "Afleveringsoverblikket kunne ikke åbnes. Kontrollér din adgang til holdet, og prøv igen."; return; }
+            var result = await response.Content.ReadFromJsonAsync<Mercantec.Tech.Contracts.HoldSubmissionOverview>(ct);
+            ct.ThrowIfCancellationRequested(); if (generation == _generation) _data = result;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException) { if (generation == _generation) _error = "Overblikket kunne ikke hentes. Prøv igen."; }
+        finally { if (generation == _generation) _loading = false; }
+    }
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _requests.Cancel(); _requests.Dispose(); }
+}

@@ -26,11 +26,13 @@ public sealed class HoldWorkspaceController(AppDbContext db, CourseAccess access
         var hold = await access.AccessibleHolds(User).AsNoTracking().Include(h => h.Forloeb)
             .Include(h => h.LectioSources).SingleOrDefaultAsync(h => h.ForloebId == courseId, ct);
         if (hold is null) return NotFound();
-        var manage = !publishedOnly && await access.CanManageAsync(hold.Id, User, ct);
+        var actualManage = await access.CanManageAsync(hold.Id, User, ct);
+        var manage = !publishedOnly && actualManage;
         var pages = await db.NotionPages.AsNoTracking()
             .Where(p => p.HoldId == hold.Id && (manage || p.PublishedAtUtc != null)).ToListAsync(ct);
-        var quests = await db.LearningQuests.AsNoTracking()
-            .Where(q => q.HoldId == hold.Id && (manage || q.Published)).ToListAsync(ct);
+        var questQuery = db.LearningQuests.AsNoTracking().Where(q => q.HoldId == hold.Id && (manage || q.Published));
+        if (!actualManage) questQuery = new QuestAudienceAccess(db).Readable(questQuery, sub);
+        var quests = await questQuery.ToListAsync(ct);
         var reviews = manage ? await db.QuestSubmissions.AsNoTracking()
             .Where(s => s.Quest.HoldId == hold.Id && s.State == "submitted")
             .Select(s => new { s.QuestId, s.Quest.Title }).ToListAsync(ct) : [];
@@ -43,7 +45,11 @@ public sealed class HoldWorkspaceController(AppDbContext db, CourseAccess access
                 .Select(q => new WorkspaceAgendaItem(q.Id, q.Title, q.DeadlineUtc!.Value, "deadline", null)))
             .OrderBy(e => e.StartUtc).Take(6).ToArray();
         var groups = db.LearningGroups.Where(g => g.HoldId == hold.Id
+            && (g.GroupSetId == null || !db.LearningGroupSets.Any(s => s.Id == g.GroupSetId && s.Archived))
             && (manage || g.Members.Any(m => m.Membership.UserSub == sub)));
+        var courses = await db.TeachingCourses.AsNoTracking().Where(c => c.HoldId == hold.Id
+            && !c.Archived && (manage || c.Published)).ToListAsync(ct);
+        var progress = manage ? (await new SubmissionOverviewBuilder(db).BuildAsync(hold.Id, null, ct)).RequiredProgress : null;
         return Ok(new HoldWorkspaceView(courseId, hold.Id, hold.Name, hold.Forloeb.Description, manage,
             await db.Memberships.CountAsync(m => m.HoldId == hold.Id, ct), await groups.CountAsync(ct),
             await db.CourseMaterials.CountAsync(m => m.HoldId == hold.Id && (manage || m.Published), ct),
@@ -55,6 +61,10 @@ public sealed class HoldWorkspaceController(AppDbContext db, CourseAccess access
                 .OrderByDescending(r => r.Count).ToArray(),
             hold.LectioSources.Select(s => s.LectioHoldKey)
                 .Concat(string.IsNullOrWhiteSpace(hold.LectioHoldKey) ? [] : new[] { hold.LectioHoldKey! })
-                .Distinct().ToArray()));
+                .Distinct().ToArray(), progress,
+            courses.OrderBy(c => c.StartsOn).Select(c => new WorkspaceCourse(c.Id, c.Title, c.Description,
+                c.StartsOn, c.EndsOn, c.Published)).ToArray(),
+            await db.LearningGroupSets.CountAsync(s => s.HoldId == hold.Id && !s.Archived
+                && (manage || db.LearningGroups.Any(g => g.GroupSetId == s.Id && g.Members.Any(m => m.Membership.UserSub == sub))), ct)));
     }
 }

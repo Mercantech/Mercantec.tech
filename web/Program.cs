@@ -36,6 +36,8 @@ builder.Services.AddScoped<Mercantec.Tech.Web.Courses.CourseTheoryDocumentLoader
 builder.Services.AddScoped<Mercantec.Tech.Web.Gifts.GiftMailboxClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Polls.PollClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Learning.LearningClient>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Learning.TeachingCoursesClient>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Learning.GroupSetsClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Notion.NotionClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Emojis.EmojiClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Calendar.TeacherCalendarClient>();
