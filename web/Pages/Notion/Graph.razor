@@ -1,139 +1,393 @@
 @page "/notion/graph"
 @page "/notion/graph/{CollectionId:guid}"
 @page "/notion/holds/{HoldId:guid}/graph"
+@using System.Globalization
 @implements IAsyncDisposable
 
 <PageTitle>@(_graph?.Title is { Length: > 0 } title ? $"{title} · Graf" : "Graf") · LUP</PageTitle>
-@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
 else if (!Auth.IsAuthenticated)
 {
-    <section class="notion-welcome panel"><h1>Graf</h1><p>Log ind for at se, hvordan holdets sider linker til hinanden.</p><a class="action" href="/login">Log ind</a></section>
+    <section class="notion-welcome panel">
+        <h1>Graf</h1>
+        <p>Log ind for at se, hvordan holdets sider linker til hinanden.</p>
+        <a class="action" href="/login">Log ind</a>
+    </section>
 }
 else
 {
-    <header class="page-title">
+    <header class="page-title notion-graph-header">
         <div>
-            <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span>›</span><a href="@PagesHref">Holdets indhold</a><span>›</span><span>@(ViewingHold ? "Graf for holdet" : "Graf")</span></nav>
-            <p class="notion-graph-kicker">@(ViewingHold ? "Graf for holdet" : "Graph view")</p>
-            <h1>@if (_graph?.Title is { Length: > 0 } graphTitle) { <EmojiText Text="@graphTitle" /> } else { @(ViewingHold ? "Graf for holdet" : "Graf") }</h1>
-            <p>@(ViewingHold ? "Alle rodsider på holdet, deres undersider og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil." : "Siderne i kollektionen og de interne links mellem dem. En større cirkel betyder, at flere sider linker dertil.")</p>
+            <nav class="breadcrumbs" aria-label="Brødkrummer">
+                <a href="/courses">Forløb og hold</a><span aria-hidden="true">›</span>
+                <a href="@PagesHref">Holdets indhold</a><span aria-hidden="true">›</span>
+                <span aria-current="page">Graf</span>
+            </nav>
+            <h1>
+                @if (_graph?.Title is { Length: > 0 } graphTitle)
+                {
+                    <EmojiText Text="@graphTitle" />
+                }
+                else
+                {
+                    @(ViewingHold ? "Graf for holdet" : "Graf")
+                }
+            </h1>
+            <p>@(ViewingHold ? "Links mellem sider på holdet" : "Links mellem sider i kollektionen")</p>
         </div>
-        <a class="secondary" href="@PagesHref">Tilbage til siderne</a>
+        <a class="secondary notion-graph-back" href="@PagesHref">
+            <span aria-hidden="true">←</span> Tilbage til siderne
+        </a>
     </header>
-    @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
-    @if (_loading) { <p role="status">Henter grafen…</p> }
+
+    @if (_error is not null)
+    {
+        <div class="notion-error" role="alert">
+            @_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button>
+        </div>
+    }
+    @if (_loading)
+    {
+        <p role="status">Henter grafen…</p>
+    }
     else if (_holds.Length == 0)
     {
-        <section class="panel notion-welcome"><h2>Du er ikke tilknyttet et hold endnu</h2><p>Når du bliver tilføjet til et hold, kan du åbne grafen fra holdets sider.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
+        <section class="panel notion-welcome">
+            <h2>Du er ikke tilknyttet et hold endnu</h2>
+            <p>Når du bliver tilføjet til et hold, kan du åbne grafen fra holdets sider.</p>
+            <a class="secondary" href="/courses">Forløb og hold</a>
+        </section>
     }
     else if (_graph is null)
     {
         <section class="panel notion-graph-picker-panel">
             @if (_holds.Length > 1)
             {
-                <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+                <label class="field">Hold
+                    <select value="@_holdId" @onchange="ChangeHold">
+                        @foreach (var hold in _holds)
+                        {
+                            <option value="@hold.Id">@hold.Name</option>
+                        }
+                    </select>
+                </label>
             }
             @if (Collections().Any())
             {
+                <h2>Vælg en kollektion</h2>
+                <p>En kollektion er én rodside og dens undersider. Grafen for holdet samler alle rodsider.</p>
                 @if (_holdId != Guid.Empty)
                 {
                     <a class="secondary" href="@HoldGraphPath(_holdId)">Graf for holdet</a>
                 }
-                <h2>Vælg en kollektion</h2>
-                <p>En kollektion er én rodside og dens undersider. Graf for holdet samler alle rodsider.</p>
                 <ul>
                     @foreach (var item in Collections())
                     {
-                        <li style="--page-depth:@item.Depth"><a href="@GraphPath(item.Page.Id)"><EmojiText Text="@item.Page.Title" /></a></li>
+                        <li style="--page-depth:@item.Depth">
+                            <a href="@GraphPath(item.Page.Id)"><EmojiText Text="@item.Page.Title" /></a>
+                        </li>
                     }
                 </ul>
             }
             else
             {
                 <h2>Der er endnu ingen sider på holdet</h2>
-                <p>Opret en side under holdets indhold. Grafen kan tegnes, når siderne linker til hinanden.</p>
+                <p>Opret en side under holdets indhold for at se den i grafen.</p>
                 <a class="secondary" href="@PagesHref">Holdets indhold</a>
             }
         </section>
     }
     else
     {
-        <div class="notion-graph-bar">
-            <label class="field">Visning
-                <select value="@ScopeValue" @onchange="ChangeScope">
-                    <option value="hold">Hele holdet</option>
-                    @foreach (var item in Collections()) { <option value="@item.Page.Id">@OptionLabel(item)</option> }
-                </select>
-            </label>
-            @if (_holds.Length > 1)
+        var canDraw = _graph.Nodes.Length > 0;
+        <section class="notion-graph-workspace" aria-label="Sidegraf">
+            <div class="notion-graph-toolbar">
+                @if (canDraw && !_scriptFailed)
+                {
+                    <div class="notion-graph-search">
+                        <div class="notion-graph-search-field">
+                            <UiIcon Name="search" />
+                            <input type="search" @ref="_searchInput" aria-label="Filtrér efter sidetitel" placeholder="Find en side…" value="@_search" @oninput="ChangeSearch" />
+                            @if (!string.IsNullOrWhiteSpace(_search))
+                            {
+                                <button class="notion-graph-clear" type="button" @onclick="ClearSearchAndFocus" aria-label="Ryd søgning">×</button>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(_search))
+                        {
+                            var matches = SearchResults.ToArray();
+                            <div class="notion-graph-results" aria-label="Søgeresultater">
+                                @if (matches.Length == 0)
+                                {
+                                    <p>Ingen sider matcher din søgning.</p>
+                                }
+                                else
+                                {
+                                    <ul>
+                                        @foreach (var node in matches)
+                                        {
+                                            <li @key="node.Id">
+                                                <button type="button" class="notion-graph-result-title" @onclick="() => FocusSearchResult(node.Id)" title="@node.Title">
+                                                    <EmojiText Text="@node.Title" />
+                                                </button>
+                                                <button type="button" class="notion-graph-result-local" @onclick="() => ShowLocalSearchResult(node.Id)"
+                                                        aria-label="@($"Vis lokal graf for {node.Title}")" title="Vis lokal graf">
+                                                    <UiIcon Name="target" />
+                                                </button>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                <label class="notion-graph-select">
+                    <span>Visning</span>
+                    <select value="@ScopeValue" @onchange="ChangeScope">
+                        <option value="hold">Hele holdet</option>
+                        @foreach (var item in Collections())
+                        {
+                            <option value="@item.Page.Id">@OptionLabel(item)</option>
+                        }
+                    </select>
+                </label>
+                @if (_holds.Length > 1)
+                {
+                    <label class="notion-graph-select">
+                        <span>Hold</span>
+                        <select value="@_holdId" @onchange="ChangeHold">
+                            @foreach (var hold in _holds)
+                            {
+                                <option value="@hold.Id">@hold.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                @if (canDraw && !_scriptFailed)
+                {
+                    <details class="notion-graph-settings">
+                        <summary title="Indstillinger"><UiIcon Name="sliders" /><span>Indstillinger</span></summary>
+                        <div class="notion-graph-settings-panel">
+                            <div class="notion-graph-settings-heading">
+                                <h2>Indstillinger</h2>
+                                <button type="button" class="notion-graph-text-button" @onclick="ResetGraphSettings">Nulstil</button>
+                            </div>
+                            <fieldset>
+                                <legend>Filtre</legend>
+                                <label class="notion-graph-toggle"><span>Sider uden links</span><input type="checkbox" checked="@_showOrphans" @onchange="ChangeOrphans" /></label>
+                            </fieldset>
+                            <fieldset>
+                                <legend>Udseende</legend>
+                                <label class="notion-graph-toggle"><span>Sidetitler</span><input type="checkbox" checked="@_showLabels" @onchange="ChangeLabels" /></label>
+                                <label class="notion-graph-toggle"><span>Pile på links</span><input type="checkbox" checked="@_showArrows" @onchange="ChangeArrows" /></label>
+                                <label class="notion-graph-range">
+                                    <span>Zoomniveau for titler</span>
+                                    <input type="range" min="0.2" max="2.5" step="0.1" value="@_labelThreshold.ToString(CultureInfo.InvariantCulture)"
+                                           disabled="@(!_showLabels)" @oninput="e => ChangeSetting(nameof(_labelThreshold), e)" />
+                                </label>
+                                <label class="notion-graph-range">
+                                    <span>Punktstørrelse</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_nodeSize.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_nodeSize), e)" />
+                                </label>
+                                <label class="notion-graph-range">
+                                    <span>Linjetykkelse</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_linkThickness.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_linkThickness), e)" />
+                                </label>
+                            </fieldset>
+                            <fieldset>
+                                <legend>Layout</legend>
+                                <label class="notion-graph-range">
+                                    <span>Træk mod midten</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_centerForce.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_centerForce), e)" />
+                                </label>
+                                <label class="notion-graph-range">
+                                    <span>Frastødning</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_repelForce.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_repelForce), e)" />
+                                </label>
+                                <label class="notion-graph-range">
+                                    <span>Træk mellem sider</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_linkForce.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_linkForce), e)" />
+                                </label>
+                                <label class="notion-graph-range">
+                                    <span>Linkafstand</span>
+                                    <input type="range" min="0.4" max="2.5" step="0.1" value="@_linkDistance.ToString(CultureInfo.InvariantCulture)"
+                                           @oninput="e => ChangeSetting(nameof(_linkDistance), e)" />
+                                </label>
+                            </fieldset>
+                        </div>
+                    </details>
+                }
+            </div>
+
+            @if (!canDraw)
             {
-                <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+                <div class="notion-graph-empty">
+                    <h2>Der er endnu ingen sider at vise</h2>
+                    <p>Når holdet får sider, vises de her sammen med deres links.</p>
+                    <a class="secondary" href="@PagesHref">Holdets indhold</a>
+                </div>
             }
-        </div>
-        @if (ViewingHold && _graph.Nodes.Length == 0)
+            else
+            {
+                @if (_localNode is Guid localId)
+                {
+                    <div class="notion-graph-local">
+                        <div class="notion-graph-local-title">
+                            <UiIcon Name="target" />
+                            <span>Lokal graf</span>
+                            <strong><EmojiText Text="@Title(localId)" /></strong>
+                        </div>
+                        <label class="notion-graph-select">
+                            <span>Dybde</span>
+                            <select value="@_depth" @onchange="ChangeDepth">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </label>
+                        <button type="button" class="notion-graph-text-button" @onclick="ClearLocal">Tilbage til alle sider</button>
+                    </div>
+                }
+                <div class="notion-graph-stage @(_scriptFailed ? "is-unavailable" : null)" @ref="_stage" tabindex="@(_scriptFailed ? -1 : 0)"
+                     role="region" aria-label="Graf over sidernes links" aria-describedby="notion-graph-help">
+                    <div class="notion-graph-host" @ref="_host" @key="GraphHostKey"></div>
+                    @if (_scriptFailed)
+                    {
+                        <div class="notion-graph-stage-message" role="status">
+                            <strong>Grafen kunne ikke tegnes.</strong>
+                            <p>Du kan læse sidernes links i listen under grafen.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (VisibleNodes == 0)
+                        {
+                            <div class="notion-graph-stage-message" role="status">
+                                <strong>Ingen sider matcher filtrene.</strong>
+                                @if (!string.IsNullOrWhiteSpace(_search))
+                                {
+                                    <button class="notion-graph-text-button" type="button" @onclick="ClearSearchAndFocus">Ryd søgning</button>
+                                }
+                                else
+                                {
+                                    <p>Vis sider uden links under Indstillinger.</p>
+                                }
+                            </div>
+                        }
+                        <div class="notion-graph-controls" role="group" aria-label="Zoom">
+                            <button type="button" @onclick="() => Zoom(-1)" aria-label="Zoom ud" title="Zoom ud">−</button>
+                            <button type="button" @onclick="() => Zoom(1)" aria-label="Zoom ind" title="Zoom ind">+</button>
+                            <button type="button" class="notion-graph-fit" @onclick="() => Zoom(0)" aria-label="Tilpas graf til vinduet" title="Tilpas graf til vinduet">
+                                <span aria-hidden="true">⛶</span> Tilpas
+                            </button>
+                        </div>
+                    }
+                </div>
+                <footer class="notion-graph-footer">
+                    <div class="notion-graph-counts" role="status">
+                        <span><i class="notion-graph-dot" aria-hidden="true"></i><b>@VisibleNodes</b> @(VisibleNodes == 1 ? "side" : "sider")</span>
+                        <span><i class="notion-graph-line" aria-hidden="true"></i><b>@VisibleEdges</b> @(VisibleEdges == 1 ? "link" : "links")</span>
+                    </div>
+                    @if (!_scriptFailed)
+                    {
+                        <p class="notion-graph-pointer-help">Træk for at flytte · Scroll for at zoome · Højreklik for menu</p>
+                        <p class="notion-graph-touch-help">Træk for at flytte · Knib for at zoome · Hold inde for menu</p>
+                    }
+                    <p class="notion-graph-sr-only" id="notion-graph-help">
+                        Flyt grafen med piletasterne, og zoom med plus og minus.
+                        N og P vælger næste eller forrige side. Enter åbner siden.
+                        Shift og F10 åbner sidens menu.
+                        Et større punkt betyder, at flere sider linker til siden.
+                    </p>
+                    <button type="button" class="notion-graph-text-button" @onclick="ToggleLinks"
+                            aria-expanded="@(_showLinks ? "true" : "false")" aria-controls="notion-graph-links">Links som tekst</button>
+                </footer>
+            }
+        </section>
+        @if (canDraw)
         {
-            <section class="notion-graph-empty panel">
-                <h2>Der er endnu ingen sider på holdet</h2>
-                <p>Opret en side under holdets indhold. Grafen kan tegnes, når siderne linker til hinanden.</p>
-                <a class="secondary" href="@PagesHref">Holdets indhold</a>
-            </section>
-        }
-        else if (_graph.Edges.Length == 0)
-        {
-            <section class="notion-graph-empty panel">
-                <h2>@(ViewingHold ? "Der er ingen interne links på holdet" : "Der er ingen interne links i denne kollektion")</h2>
-                <p>@(ViewingHold ? "Grafen tegnes, når en side linker til en anden side på holdet." : "Grafen tegnes, når en side linker til en anden side i samme kollektion.") Skriv <kbd>@@</kbd> og vælg en side, eller indsæt et link til en side.</p>
-                @if (_graph.Nodes.Length > 0)
+            @if (_graph.Edges.Length == 0)
+            {
+                <p class="notion-graph-hint">Der er endnu ingen interne links. Skriv <kbd>@@</kbd> i en side og vælg en anden side for at forbinde dem.</p>
+            }
+            <section class="notion-graph-links" id="notion-graph-links" aria-label="Sidernes links som tekst" hidden="@(!_showLinks)">
+                @if (_showLinks)
                 {
                     <ul>
-                        @foreach (var node in _graph.Nodes) { <li><a href="@PagePath(node.Id)"><EmojiText Text="@node.Title" /></a></li> }
+                        @foreach (var edge in _graph.Edges)
+                        {
+                            <li><a href="@PagePath(edge.FromId)"><EmojiText Text="@Title(edge.FromId)" /></a> linker til <a href="@PagePath(edge.ToId)"><EmojiText Text="@Title(edge.ToId)" /></a></li>
+                        }
+                        @foreach (var node in Isolated())
+                        {
+                            <li><a href="@PagePath(node.Id)"><EmojiText Text="@node.Title" /></a> @(ViewingHold ? "har ingen links på holdet" : "har ingen links i kollektionen")</li>
+                        }
                     </ul>
                 }
             </section>
         }
-        else
-        {
-            <div class="notion-graph-stage" @ref="_stage" tabindex="0" aria-label="Graf over sidernes links. Piletaster flytter grafen, plus og minus zoomer." @oncontextmenu:preventDefault>
-                <div class="notion-graph-host" @ref="_host" @key="GraphHostKey"></div>
-                <div class="notion-graph-controls">
-                    <button type="button" class="secondary" @onclick="() => Zoom(-1)" aria-label="Zoom ud">−</button>
-                    <button type="button" class="secondary" @onclick="() => Zoom(1)" aria-label="Zoom ind">+</button>
-                    <button type="button" class="secondary" @onclick="() => Zoom(0)">Tilpas</button>
-                </div>
-            </div>
-            <p class="notion-graph-hint">Scroll for at zoome. Træk for at flytte grafen. Piletaster flytter den, og Shift gør skridtet større. Højreklik på en cirkel for at åbne siden@(_graph.CanRename ? " eller omdøbe den" : "").</p>
-            <details class="notion-graph-links" open="@_scriptFailed">
-                <summary>Sidelinks som tekst</summary>
-                <ul>
-                    @foreach (var edge in _graph.Edges)
-                    {
-                        <li><a href="@PagePath(edge.FromId)"><EmojiText Text="@Title(edge.FromId)" /></a> linker til <a href="@PagePath(edge.ToId)"><EmojiText Text="@Title(edge.ToId)" /></a></li>
-                    }
-                    @foreach (var node in Isolated())
-                    {
-                        <li><a href="@PagePath(node.Id)"><EmojiText Text="@node.Title" /></a> @(ViewingHold ? "har ingen links på holdet" : "har ingen links i kollektionen")</li>
-                    }
-                </ul>
-            </details>
-        }
     }
 }
+
 @if (_menuPage is Guid menuId)
 {
-    <button type="button" class="notion-graph-backdrop" @onclick="CloseMenu" aria-label="Luk menu"></button>
-    <div class="notion-graph-menu" role="menu" style="left:@(_menuX.ToString(System.Globalization.CultureInfo.InvariantCulture))px;top:@(_menuY.ToString(System.Globalization.CultureInfo.InvariantCulture))px" @onkeydown="MenuKey">
-        <p><EmojiText Text="@Title(menuId)" /></p>
-        <a class="secondary" role="menuitem" href="@PagePath(menuId)" @ref="_menuFirst">Åbn</a>
+    <button type="button" class="notion-graph-backdrop" @onclick="CloseMenu" aria-label="Luk menu" tabindex="-1"></button>
+    <div class="notion-graph-menu @(_renaming ? "is-renaming" : null)" role="dialog" aria-label="Sidehandlinger"
+         aria-describedby="notion-graph-menu-title"
+         style="--menu-x:@(_menuX.ToString(CultureInfo.InvariantCulture))px;--menu-y:@(_menuY.ToString(CultureInfo.InvariantCulture))px" @onkeydown="MenuKey">
+        <p id="notion-graph-menu-title"><EmojiText Text="@Title(menuId)" /></p>
+        <a class="secondary" href="@PagePath(menuId)" @ref="_menuFirst">Åbn side</a>
+        <button type="button" class="secondary" @onclick="() => ShowLocal(menuId)">Vis lokal graf</button>
         @if (_graph?.CanRename == true)
         {
             @if (_renaming)
             {
                 <form @onsubmit="RenameMenuPage" @onsubmit:preventDefault>
                     <label>Ny titel<input @ref="_renameInput" @bind="_renameTitle" maxlength="200" required /></label>
-                    <div class="notion-graph-menu-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_renameTitle))">Gem</button><button type="button" class="secondary" @onclick="CloseMenu">Annuller</button></div>
+                    <div class="notion-graph-menu-actions">
+                        <button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_renameTitle))">Gem</button>
+                        <button type="button" class="secondary" @onclick="CloseMenu">Annuller</button>
+                    </div>
                 </form>
             }
-            else { <button type="button" class="secondary" role="menuitem" @onclick="BeginRename">Omdøb</button> }
+            else
+            {
+                <button type="button" class="secondary" @onclick="BeginRename">Omdøb</button>
+            }
         }
     </div>
+}
+
+@code {
+    private ElementReference _searchInput;
+
+    private async Task ClearSearchAndFocus()
+    {
+        await _searchInput.FocusAsync(preventScroll: true);
+        ClearSearch();
+    }
+
+    private async Task FocusSearchResult(Guid id)
+    {
+        await _stage.FocusAsync(preventScroll: true);
+        FocusNode(id);
+    }
+
+    private async Task ShowLocalSearchResult(Guid id)
+    {
+        await _stage.FocusAsync(preventScroll: true);
+        ShowLocal(id);
+    }
 }

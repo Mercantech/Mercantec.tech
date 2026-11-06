@@ -1,34 +1,745 @@
-.notion-graph-kicker{margin:0 0 4px;font-size:12px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--blue)}
-.notion-welcome{display:grid;justify-items:start;gap:16px}
-.notion-welcome p{max-width:55ch;color:var(--muted)}
-.notion-error{padding:13px 16px;border:1px solid var(--orange);background:var(--peach);color:var(--ink);border-radius:7px;margin:0 0 16px;font-size:13px}
-.notion-error button{margin-left:10px}
-.notion-graph-bar{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
-.notion-graph-bar .field{min-width:min(100%,280px);font-size:12px}
-.notion-graph-stage{position:relative;height:min(72vh,760px);min-height:460px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:hidden}
-.notion-graph-stage:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-.notion-graph-host{position:absolute;inset:0;min-width:100%;min-height:100%;color:var(--ink)}
-.notion-graph-host ::deep canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-.notion-graph-controls{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:2}
-.notion-graph-hint{margin:12px 2px 0;font-size:12px;color:var(--muted);max-width:78ch}
-.notion-graph-empty{display:grid;justify-items:center;text-align:center;gap:12px;padding:48px 24px}
-.notion-graph-empty p{max-width:58ch;color:var(--muted)}
-.notion-graph-empty ul,.notion-graph-picker-panel ul,.notion-graph-links ul{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:6px}
-.notion-graph-picker-panel{display:grid;justify-items:start;gap:10px}
-.notion-graph-picker-panel .field{min-width:min(100%,280px)}
-.notion-graph-picker-panel li{padding-left:calc(var(--page-depth,0)*16px)}
-.notion-graph-links{margin-top:16px;font-size:13px}
-.notion-graph-links summary{cursor:pointer;color:var(--muted)}
-.notion-graph-menu{position:fixed;z-index:50;min-width:210px;max-width:min(280px,calc(100vw - 24px));padding:10px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:10px;box-shadow:0 16px 40px color-mix(in srgb, var(--ink) 14%, transparent);display:grid;gap:8px}
-.notion-graph-menu p{margin:0;font-size:13px;font-weight:650}
-.notion-graph-menu form{display:grid;gap:8px}
-.notion-graph-menu label{font-size:12px;display:grid;gap:6px}
-.notion-graph-menu input{width:100%;min-height:36px;border:1px solid var(--rule);border-radius:7px;padding:8px;background:var(--bg);color:var(--ink)}
-.notion-graph-menu-actions{display:flex;gap:6px}
-.notion-graph-backdrop{position:fixed;inset:0;z-index:40;border:0;padding:0;background:transparent;cursor:default}
-kbd{font-size:11px;background:var(--tint);color:var(--blue);padding:2px 5px;border-radius:4px}
-@media(max-width:640px){
-    .notion-graph-stage{height:68vh;min-height:380px}
-    .notion-graph-controls{top:8px;right:8px}
-    .notion-graph-empty{padding:32px 16px}
+.notion-graph-header {
+    margin-bottom: 16px;
+    align-items: end;
+}
+
+.notion-graph-header .breadcrumbs {
+    margin-bottom: 9px;
+}
+
+.notion-graph-header h1 {
+    overflow-wrap: anywhere;
+}
+
+.notion-graph-header p {
+    margin-top: 5px;
+}
+
+.notion-graph-back {
+    flex-shrink: 0;
+}
+
+.notion-graph-workspace {
+    --graph-surface: color-mix(in srgb, var(--paper) 78%, var(--bg));
+    --graph-node: color-mix(in srgb, var(--muted) 65%, var(--blue));
+    --graph-edge: color-mix(in srgb, var(--muted) 62%, var(--rule));
+    --graph-active: var(--blue);
+    --graph-label: var(--ink);
+    --graph-shadow: 0 10px 28px color-mix(in srgb, var(--ink) 12%, transparent);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    background: var(--paper);
+    min-width: 0;
+}
+
+.notion-graph-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    position: relative;
+    z-index: 3;
+}
+
+.notion-graph-search {
+    position: relative;
+    flex: 1 1 190px;
+    min-width: 0;
+}
+
+.notion-graph-search-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding-inline: 10px 4px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--graph-surface);
+    color: var(--muted);
+}
+
+.notion-graph-search-field:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px var(--tint);
+}
+
+.notion-graph-search-field input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    padding: 8px 0;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    font-size: 14px;
+}
+
+.notion-graph-search-field input:focus-visible {
+    outline: none;
+}
+
+.notion-graph-search-field input::placeholder {
+    color: var(--muted);
+}
+
+.notion-graph-search-field input::-webkit-search-cancel-button {
+    appearance: none;
+}
+
+.notion-graph-clear,
+.notion-graph-result-local {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+}
+
+.notion-graph-clear {
+    width: 30px;
+    min-height: 30px;
+    flex: 0 0 auto;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.notion-graph-clear:hover,
+.notion-graph-result-local:hover,
+.notion-graph-result-title:hover {
+    background: var(--tint);
+    color: var(--blue);
+}
+
+.notion-graph-results {
+    display: none;
+    position: absolute;
+    z-index: 2;
+    inset: calc(100% + 6px) 0 auto;
+    max-width: 520px;
+    padding: 6px;
+    border: 1px solid var(--rule);
+    border-radius: 9px;
+    background: var(--paper);
+    box-shadow: var(--graph-shadow);
+    font-size: 13px;
+}
+
+.notion-graph-search:focus-within .notion-graph-results {
+    display: block;
+}
+
+.notion-graph-results p {
+    padding: 6px 8px;
+    color: var(--muted);
+}
+
+.notion-graph-results ul {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.notion-graph-results li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px;
+}
+
+.notion-graph-result-title {
+    display: block;
+    min-height: 36px;
+    padding: 6px 8px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notion-graph-result-local {
+    width: 36px;
+}
+
+.notion-graph-select {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: min(100%, 320px);
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.notion-graph-select select {
+    min-width: 0;
+    max-width: min(100%, 235px);
+    min-height: 40px;
+    padding: 4px 8px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+    text-overflow: ellipsis;
+}
+
+.notion-graph-settings {
+    margin-inline-start: auto;
+}
+
+.notion-graph-settings summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--paper);
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    list-style: none;
+}
+
+.notion-graph-settings summary::-webkit-details-marker {
+    display: none;
+}
+
+.notion-graph-settings summary:hover,
+.notion-graph-settings[open] summary {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.notion-graph-settings summary:focus-visible,
+.notion-graph-stage:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+}
+
+.notion-graph-settings-panel {
+    position: absolute;
+    z-index: 1;
+    top: calc(100% - 3px);
+    right: 12px;
+    width: min(300px, calc(100% - 24px));
+    max-height: min(66vh, 540px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 12px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: var(--graph-shadow);
+}
+
+.notion-graph-settings-heading,
+.notion-graph-toggle,
+.notion-graph-range {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.notion-graph-settings-heading h2 {
+    font-size: 16px;
+}
+
+.notion-graph-settings-panel fieldset {
+    min-width: 0;
+    margin: 8px 0 0;
+    padding: 4px 0 0;
+    border: 0;
+    border-top: 1px solid var(--rule);
+}
+
+.notion-graph-settings-panel legend {
+    padding-right: 7px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.notion-graph-toggle,
+.notion-graph-range {
+    min-height: 33px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.notion-graph-toggle input,
+.notion-graph-range input {
+    margin: 0;
+    accent-color: var(--blue);
+}
+
+.notion-graph-toggle input {
+    width: 16px;
+    height: 16px;
+}
+
+.notion-graph-range input {
+    flex: 0 0 38%;
+    width: 38%;
+    min-width: 0;
+}
+
+.notion-graph-local {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 12px;
+    padding: 4px 12px;
+    border-top: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--tint) 55%, var(--paper));
+}
+
+.notion-graph-local-title {
+    display: flex;
+    align-items: center;
+    flex: 1 1 150px;
+    gap: 7px;
+    min-width: 0;
+    color: var(--blue);
+    font-size: 12px;
+}
+
+.notion-graph-local-title > span {
+    flex-shrink: 0;
+}
+
+.notion-graph-local-title strong {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notion-graph-local .notion-graph-select select {
+    min-height: 32px;
+}
+
+.notion-graph-stage {
+    position: relative;
+    height: clamp(380px, calc(100svh - 300px), 820px);
+    border-block: 1px solid var(--rule);
+    background-color: var(--graph-surface);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--muted) 19%, transparent) 0.8px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: center;
+    overflow: hidden;
+}
+
+.notion-graph-stage.is-unavailable {
+    height: 180px;
+}
+
+.notion-graph-host {
+    position: absolute;
+    inset: 0;
+    color: var(--ink);
+}
+
+.notion-graph-host ::deep canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: grab;
+}
+
+.notion-graph-stage-message {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    transform: translate(-50%, -50%);
+    padding: 12px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 9px;
+    background: var(--paper);
+    text-align: center;
+    font-size: 13px;
+}
+
+.notion-graph-stage-message p {
+    color: var(--muted);
+}
+
+.notion-graph-controls {
+    position: absolute;
+    z-index: 1;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    align-items: stretch;
+    padding: 3px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.notion-graph-controls button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.notion-graph-controls .notion-graph-fit {
+    margin-inline-start: 2px;
+    padding-inline: 9px;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.notion-graph-controls button:hover,
+.notion-graph-text-button:hover {
+    background: var(--tint);
+    color: var(--blue);
+}
+
+.notion-graph-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px 14px;
+    padding: 3px 10px 3px 13px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.notion-graph-counts,
+.notion-graph-counts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notion-graph-counts {
+    gap: 13px;
+}
+
+.notion-graph-counts b {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.notion-graph-dot,
+.notion-graph-line {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--graph-node);
+}
+
+.notion-graph-line {
+    width: 11px;
+    height: 2px;
+    border-radius: 3px;
+    background: var(--graph-edge);
+    transform: rotate(-28deg);
+}
+
+.notion-graph-text-button {
+    min-height: 32px;
+    padding: 4px 7px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.notion-graph-touch-help {
+    display: none;
+}
+
+.notion-graph-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.notion-graph-hint {
+    margin: 10px 2px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.notion-graph-empty {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 42px 16px;
+    border-top: 1px solid var(--rule);
+    text-align: center;
+}
+
+.notion-graph-empty p,
+.notion-welcome p {
+    max-width: 58ch;
+    color: var(--muted);
+}
+
+.notion-welcome,
+.notion-graph-picker-panel {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+}
+
+.notion-graph-picker-panel .field {
+    min-width: min(100%, 280px);
+}
+
+.notion-graph-picker-panel ul,
+.notion-graph-links ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.notion-graph-picker-panel li {
+    padding-left: calc(var(--page-depth, 0) * 16px);
+}
+
+.notion-graph-links {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper);
+    font-size: 13px;
+}
+
+.notion-error {
+    margin-bottom: 16px;
+    padding: 13px 16px;
+    border: 1px solid var(--orange);
+    border-radius: 7px;
+    background: var(--peach);
+    color: var(--ink);
+    font-size: 13px;
+}
+
+.notion-error button {
+    margin-left: 10px;
+}
+
+.notion-graph-menu {
+    --menu-height: 210px;
+    position: fixed;
+    left: clamp(8px, var(--menu-x), calc(100vw - 232px));
+    top: clamp(8px, var(--menu-y), calc(100dvh - var(--menu-height) - 8px));
+    z-index: 50;
+    display: grid;
+    gap: 7px;
+    width: min(224px, calc(100vw - 16px));
+    max-height: min(var(--menu-height), calc(100dvh - 16px));
+    overflow: auto;
+    padding: 10px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.notion-graph-menu.is-renaming {
+    --menu-height: 270px;
+}
+
+.notion-graph-menu p {
+    overflow-wrap: anywhere;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.notion-graph-menu form,
+.notion-graph-menu label {
+    display: grid;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.notion-graph-menu input {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px;
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--ink);
+}
+
+.notion-graph-menu-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.notion-graph-backdrop {
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+}
+
+kbd {
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: var(--tint);
+    color: var(--blue);
+    font-size: 11px;
+}
+
+@media (max-width: 700px) {
+    .notion-graph-toolbar {
+        gap: 7px;
+        padding: 8px;
+    }
+
+    .notion-graph-search {
+        flex-basis: 100%;
+    }
+
+    .notion-graph-toolbar > .notion-graph-select {
+        flex: 1 1 110px;
+    }
+
+    .notion-graph-toolbar > .notion-graph-select select {
+        width: 100%;
+    }
+
+    .notion-graph-settings[open] {
+        flex: 1 0 100%;
+    }
+
+    .notion-graph-settings[open] summary {
+        width: max-content;
+        margin-inline-start: auto;
+    }
+
+    .notion-graph-settings-panel {
+        position: static;
+        width: 100%;
+        max-height: min(36svh, 310px);
+        margin-top: 6px;
+        box-shadow: none;
+    }
+
+    .notion-graph-stage {
+        height: clamp(360px, 62svh, 620px);
+    }
+
+    .notion-graph-controls {
+        right: 8px;
+        bottom: 8px;
+    }
+
+    .notion-graph-footer p:not(.notion-graph-sr-only) {
+        order: 1;
+        width: 100%;
+        padding-bottom: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notion-graph-header {
+        align-items: start;
+    }
+
+    .notion-graph-search-field input,
+    .notion-graph-select select {
+        font-size: 16px;
+    }
+
+    .notion-graph-search {
+        flex-basis: calc(100% - 51px);
+        margin-inline-end: 51px;
+    }
+
+    .notion-graph-search-field {
+        min-height: 44px;
+    }
+
+    .notion-graph-settings:not([open]),
+    .notion-graph-settings[open] summary {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+    }
+
+    .notion-graph-settings summary,
+    .notion-graph-settings[open] summary {
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+    }
+
+    .notion-graph-settings summary span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .notion-graph-settings-panel {
+        margin-top: 0;
+    }
+}
+
+@media (pointer: coarse) {
+    .notion-graph-touch-help {
+        display: block;
+    }
+
+    .notion-graph-pointer-help {
+        display: none;
+    }
+
+    .notion-graph-settings summary,
+    .notion-graph-select select,
+    .notion-graph-controls button,
+    .notion-graph-toggle,
+    .notion-graph-range {
+        min-height: 44px;
+    }
+
+    .notion-graph-clear,
+    .notion-graph-controls button,
+    .notion-graph-result-local {
+        min-width: 44px;
+    }
 }

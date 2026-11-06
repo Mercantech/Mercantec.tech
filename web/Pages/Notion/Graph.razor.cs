@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Notion;
@@ -26,13 +27,27 @@ public partial class Graph
     private ElementReference _stage, _host, _menuFirst, _renameInput;
     private NotionHold[] _holds = [];
     private NotionPageSummary[] _pages = [];
+    private (NotionPageSummary Page, int Depth)[]? _collections;
     private NotionGraph? _graph;
+    private readonly Dictionary<Guid, string> _titles = [];
+    private readonly Dictionary<Guid, List<Guid>> _neighbors = [];
+    private readonly Dictionary<Guid, int> _incoming = [];
+    private NotionGraphNode[] _visibleNodes = [];
+    private NotionGraphEdge[] _visibleEdges = [];
+    private Guid? _localNode, _focusNode;
+    private int _depth = 1;
+    private string _search = "";
+    private bool _showOrphans = true, _showLabels = true, _showArrows, _showLinks;
+    private double _nodeSize = 1, _linkThickness = 1, _labelThreshold = .8;
+    private double _centerForce = 1, _repelForce = 1, _linkForce = 1, _linkDistance = 1;
+    private bool _graphDirty, _optionsDirty, _fitGraph;
+    private int _canvasGeneration;
     private Guid _holdId;
     private Guid? _menuPage;
     private double _menuX, _menuY;
     private string? _account, _loadedRoute, _error;
     private string _renameTitle = "";
-    private bool _loading = true, _busy, _needsMount, _mounted, _disposed, _redirecting, _scriptFailed, _renaming, _focusMenu, _focusRename;
+    private bool _loading = true, _busy, _mounted, _disposed, _redirecting, _scriptFailed, _renaming, _focusMenu, _focusRename, _focusStage;
     private bool ForceReadOnly => PublishedPreview || ViewAs.IsActive;
     private bool RouteIsHoldGraph
     {
@@ -74,29 +89,194 @@ public partial class Graph
         if (firstRender) { await SyncAccount(); return; }
         if (_focusMenu) { _focusMenu = false; try { await _menuFirst.FocusAsync(); } catch (Exception) { } }
         if (_focusRename) { _focusRename = false; try { await _renameInput.FocusAsync(); } catch (Exception) { } }
-        if (!_needsMount || _graph is null || _graph.Edges.Length == 0 || _disposed) return;
-        _needsMount = false;
-        var mountKey = GraphHostKey;
+        if (_focusStage) { _focusStage = false; try { await _stage.FocusAsync(true); } catch (JSException) { } }
+        if (_loading || _graph is not { Nodes.Length: > 0 } || _scriptFailed || _disposed) return;
+        if (!_graphDirty && !_optionsDirty && !_fitGraph && _focusNode is null) return;
+        var generation = _canvasGeneration;
         try
         {
             _module ??= await Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-graph.js");
+            if (generation != _canvasGeneration || _disposed) return;
             _callbacks ??= DotNetObjectReference.Create(this);
-            if (mountKey != GraphHostKey || _disposed) return;
-            await _module.InvokeVoidAsync("mount", _host, _callbacks, GraphPayload());
-            _mounted = true;
+            if (_graphDirty)
+            {
+                _graphDirty = _optionsDirty = false;
+                var host = _host;
+                if (_mounted)
+                {
+                    await _module.InvokeVoidAsync("update", host, GraphPayload());
+                }
+                else
+                {
+                    await _module.InvokeVoidAsync("mount", host, _callbacks, GraphPayload());
+                    if (generation != _canvasGeneration || _disposed)
+                    {
+                        await _module.InvokeVoidAsync("destroy", host);
+                        return;
+                    }
+                    _mounted = true;
+                }
+            }
+            else if (_optionsDirty)
+            {
+                _optionsDirty = false;
+                await _module.InvokeVoidAsync("configure", _host, GraphOptions());
+            }
+            if (generation != _canvasGeneration || _disposed) return;
+            if (_fitGraph)
+            {
+                _fitGraph = false;
+                await Zoom(0);
+            }
+            if (_focusNode is Guid id)
+            {
+                _focusNode = null;
+                await _module.InvokeVoidAsync("focus", _host, id);
+            }
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
         {
+            if (generation != _canvasGeneration || _disposed) return;
             _scriptFailed = true;
-            if (!_disposed) StateHasChanged();
+            _showLinks = true;
+            StateHasChanged();
         }
     }
 
     private object GraphPayload() => new
     {
-        nodes = _graph!.Nodes.Select(n => new { id = n.Id, title = n.Title }).ToArray(),
-        edges = _graph.Edges.Select(e => new { fromId = e.FromId, toId = e.ToId }).ToArray()
+        nodes = _visibleNodes.Select(node => new { node.Id, node.Title, inbound = _incoming.GetValueOrDefault(node.Id) }).ToArray(),
+        edges = _visibleEdges,
+        options = GraphOptions()
     };
+
+    private object GraphOptions() => new
+    {
+        activeId = _localNode,
+        showLabels = _showLabels,
+        showArrows = _showArrows,
+        labelThreshold = _labelThreshold,
+        nodeSize = _nodeSize,
+        linkThickness = _linkThickness,
+        centerForce = _centerForce,
+        repelForce = _repelForce,
+        linkForce = _linkForce,
+        linkDistance = _linkDistance
+    };
+
+    private int VisibleNodes => _visibleNodes.Length;
+    private int VisibleEdges => _visibleEdges.Length;
+    private IEnumerable<NotionGraphNode> SearchResults => string.IsNullOrWhiteSpace(_search) ? [] : _visibleNodes.Take(6);
+
+    private void IndexGraph(NotionGraph graph)
+    {
+        _graph = graph;
+        _titles.Clear();
+        _neighbors.Clear();
+        _incoming.Clear();
+        foreach (var node in graph.Nodes) _titles.Add(node.Id, node.Title);
+        foreach (var edge in graph.Edges)
+        {
+            AddNeighbor(edge.FromId, edge.ToId);
+            AddNeighbor(edge.ToId, edge.FromId);
+            _incoming[edge.ToId] = _incoming.GetValueOrDefault(edge.ToId) + 1;
+        }
+        RefreshGraph();
+    }
+
+    private void AddNeighbor(Guid node, Guid neighbor)
+    {
+        if (!_neighbors.TryGetValue(node, out var list)) _neighbors[node] = list = [];
+        list.Add(neighbor);
+    }
+
+    private HashSet<Guid> Neighborhood(Guid root)
+    {
+        var nearby = new HashSet<Guid> { root };
+        var pending = new Queue<(Guid Id, int Level)>();
+        pending.Enqueue((root, 0));
+        while (pending.TryDequeue(out var item))
+        {
+            if (item.Level >= _depth || !_neighbors.TryGetValue(item.Id, out var neighbors)) continue;
+            foreach (var neighbor in neighbors)
+                if (nearby.Add(neighbor)) pending.Enqueue((neighbor, item.Level + 1));
+        }
+        return nearby;
+    }
+
+    private void RefreshGraph()
+    {
+        if (_graph is null) return;
+        var local = _localNode is Guid id ? Neighborhood(id) : null;
+        var query = _search.Trim();
+        _visibleNodes = _graph.Nodes.Where(node =>
+            (local is null || local.Contains(node.Id))
+            && (_showOrphans || _localNode == node.Id || _neighbors.ContainsKey(node.Id))
+            && (query.Length == 0 || CultureInfo.CurrentCulture.CompareInfo.IndexOf(node.Title, query, CompareOptions.IgnoreCase) >= 0))
+            .ToArray();
+        var ids = _visibleNodes.Select(node => node.Id).ToHashSet();
+        _visibleEdges = _graph.Edges.Where(edge => ids.Contains(edge.FromId) && ids.Contains(edge.ToId)).ToArray();
+        _graphDirty = true;
+    }
+
+    private void ChangeSearch(ChangeEventArgs args) { _search = args.Value?.ToString() ?? ""; RefreshGraph(); }
+    private void ClearSearch() { _search = ""; RefreshGraph(); }
+    private void FocusNode(Guid id) => _focusNode = id;
+    private void ChangeOrphans(ChangeEventArgs args) { _showOrphans = args.Value is true; RefreshGraph(); }
+    private void ChangeLabels(ChangeEventArgs args) { _showLabels = args.Value is true; _optionsDirty = true; }
+    private void ChangeArrows(ChangeEventArgs args) { _showArrows = args.Value is true; _optionsDirty = true; }
+    private void ToggleLinks() => _showLinks = !_showLinks;
+
+    private void ShowLocal(Guid id)
+    {
+        CloseMenu();
+        _localNode = id;
+        _search = "";
+        _fitGraph = true;
+        RefreshGraph();
+    }
+
+    private void ClearLocal()
+    {
+        _localNode = null;
+        _fitGraph = true;
+        RefreshGraph();
+    }
+
+    private void ChangeDepth(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var value) || value is < 1 or > 5) return;
+        _depth = value;
+        _fitGraph = true;
+        RefreshGraph();
+    }
+
+    private void ChangeSetting(string name, ChangeEventArgs args)
+    {
+        if (!double.TryParse(args.Value?.ToString(), CultureInfo.InvariantCulture, out var value) || !double.IsFinite(value)) return;
+        value = Math.Clamp(value, name == nameof(_labelThreshold) ? .2 : .4, 2.5);
+        switch (name)
+        {
+            case nameof(_nodeSize): _nodeSize = value; break;
+            case nameof(_linkThickness): _linkThickness = value; break;
+            case nameof(_labelThreshold): _labelThreshold = value; break;
+            case nameof(_centerForce): _centerForce = value; break;
+            case nameof(_repelForce): _repelForce = value; break;
+            case nameof(_linkForce): _linkForce = value; break;
+            case nameof(_linkDistance): _linkDistance = value; break;
+        }
+        _optionsDirty = true;
+    }
+
+    private void ResetGraphSettings()
+    {
+        _showOrphans = _showLabels = true;
+        _showArrows = false;
+        _nodeSize = _linkThickness = _centerForce = _repelForce = _linkForce = _linkDistance = 1;
+        _labelThreshold = .8;
+        _depth = 1;
+        RefreshGraph();
+    }
     private void AccountChanged() => _ = InvokeAsync(SyncAccount);
     private async Task SyncAccount()
     {
@@ -106,44 +286,52 @@ public partial class Graph
         _account = account;
         await Unmount();
         _graph = null; _holds = []; _pages = []; _menuPage = null;
+        _collections = null;
+        _titles.Clear(); _neighbors.Clear(); _incoming.Clear(); _visibleNodes = []; _visibleEdges = [];
         if (Auth.IsAuthenticated) await Load(); else { _requests?.Cancel(); _loading = false; }
         if (!_disposed) StateHasChanged();
     }
     private async Task Load()
     {
         var old = _requests;
-        _requests = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
-        if (old is not null) { await old.CancelAsync(); old.Dispose(); }
-        var ct = _requests.Token; var account = _account;
+        using var requests = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
+        _requests = requests;
+        var ct = requests.Token; var account = _account;
+        var published = ForceReadOnly;
         _loadedRoute = RouteKey; _loading = true; _error = null; _redirecting = false; _scriptFailed = false;
         _graph = null; _menuPage = null;
+        _pages = []; _collections = null;
+        _search = ""; _localNode = null; _showLinks = false;
         try
         {
+            if (old is not null) await old.CancelAsync();
+            ct.ThrowIfCancellationRequested();
             var holds = await Client.Holds(ct);
             if (account != _account || ct.IsCancellationRequested) return;
             _holds = holds;
+            NotionGraph? graph = null;
             if (RouteIsHoldGraph && HoldId is Guid hold)
-            {
-                _graph = await Client.HoldGraph(hold, ct, ForceReadOnly);
-                if (account != _account || ct.IsCancellationRequested) return;
-                _holdId = _graph.HoldId;
-                _pages = await Client.Pages(_holdId, ct, ForceReadOnly);
-                _needsMount = _graph.Edges.Length > 0;
-            }
+                graph = await Client.HoldGraph(hold, ct, published);
             else if (CollectionId is Guid collection)
+                graph = await Client.Graph(collection, ct, published);
+            if (account != _account || ct.IsCancellationRequested) return;
+
+            if (graph is not null)
             {
-                _graph = await Client.Graph(collection, ct, ForceReadOnly);
+                var pages = await Client.Pages(graph.HoldId, ct, published);
                 if (account != _account || ct.IsCancellationRequested) return;
-                _holdId = _graph.HoldId;
-                _pages = await Client.Pages(_holdId, ct, ForceReadOnly);
-                _needsMount = _graph.Edges.Length > 0;
+                _holdId = graph.HoldId;
+                _pages = pages;
+                IndexGraph(graph);
             }
             else if (holds.Length > 0)
             {
                 if (HoldQuery is Guid requested && holds.All(h => h.Id != requested))
                     throw new NotionException("Holdet er ikke tilgængeligt for din konto.");
                 _holdId = HoldQuery ?? holds[0].Id;
-                _pages = await Client.Pages(_holdId, ct, ForceReadOnly);
+                var pages = await Client.Pages(_holdId, ct, published);
+                if (account != _account || ct.IsCancellationRequested) return;
+                _pages = pages;
                 var roots = _pages.Where(p => p.ParentPageId is null || _pages.All(other => other.Id != p.ParentPageId)).ToArray();
                 if (roots.Length == 1)
                 {
@@ -157,35 +345,44 @@ public partial class Graph
             if (!ct.IsCancellationRequested && ex is not OperationCanceledException)
                 _error = ex is NotionException notion ? notion.Message : "Grafen kunne ikke hentes. Kontrollér forbindelsen, og prøv igen.";
         }
-        finally { if (!ct.IsCancellationRequested && !_redirecting) _loading = false; }
+        finally
+        {
+            if (ReferenceEquals(_requests, requests)) _requests = null;
+            if (!ct.IsCancellationRequested && !_redirecting) _loading = false;
+        }
     }
     private IEnumerable<(NotionPageSummary Page, int Depth)> OrderedPages()
     {
-        var pages = _pages; var visited = new HashSet<Guid>();
-        return Walk(null, 0).Concat(pages.Where(p => !visited.Contains(p.Id)).OrderBy(p => p.Title).Select(p => (p, 0)));
+        var pages = _pages.OrderBy(page => page.Title).ToArray();
+        var children = pages.ToLookup(page => page.ParentPageId);
+        var visited = new HashSet<Guid>();
+        return Walk(null, 0).Concat(pages.Where(p => !visited.Contains(p.Id)).Select(p => (p, 0)));
         IEnumerable<(NotionPageSummary, int)> Walk(Guid? parent, int depth)
         {
-            foreach (var page in pages.Where(p => p.ParentPageId == parent).OrderBy(p => p.Title))
+            foreach (var page in children[parent])
             { if (!visited.Add(page.Id)) continue; yield return (page, Math.Min(depth, 4)); foreach (var child in Walk(page.Id, depth + 1)) yield return child; }
         }
     }
-    private bool IsCollection(NotionPageSummary page) =>
-        page.ParentPageId is null || _pages.All(p => p.Id != page.ParentPageId) || _pages.Any(p => p.ParentPageId == page.Id);
-    private IEnumerable<(NotionPageSummary Page, int Depth)> Collections()
+    private (NotionPageSummary Page, int Depth)[] Collections() => _collections ??= BuildCollections();
+
+    private (NotionPageSummary Page, int Depth)[] BuildCollections()
     {
-        var items = OrderedPages().Where(item => IsCollection(item.Page)).ToList();
+        var ids = _pages.Select(page => page.Id).ToHashSet();
+        var parents = _pages.Select(page => page.ParentPageId).ToHashSet();
+        var items = OrderedPages().Where(item =>
+            item.Page.ParentPageId is not Guid parent || !ids.Contains(parent) || parents.Contains(item.Page.Id)).ToList();
         if (_graph is { WholeHold: false } && items.All(item => item.Page.Id != _graph.CollectionId))
         {
             var current = _pages.FirstOrDefault(p => p.Id == _graph.CollectionId);
             if (current is not null) items.Insert(0, (current, 0));
             else items.Insert(0, (new NotionPageSummary(_graph.CollectionId, _graph.HoldId, _graph.Title, null, DateTimeOffset.UtcNow), 0));
         }
-        return items;
+        return items.ToArray();
     }
     private static string OptionLabel((NotionPageSummary Page, int Depth) item) =>
         new string('–', item.Depth) + (item.Depth > 0 ? " " : "") + item.Page.Title;
-    private string Title(Guid id) => _graph?.Nodes.FirstOrDefault(n => n.Id == id)?.Title ?? "Side";
-    private IEnumerable<NotionGraphNode> Isolated() => _graph is null ? [] : _graph.Nodes.Where(n => _graph.Edges.All(e => e.FromId != n.Id && e.ToId != n.Id));
+    private string Title(Guid id) => _titles.GetValueOrDefault(id, "Side");
+    private IEnumerable<NotionGraphNode> Isolated() => _graph is null ? [] : _graph.Nodes.Where(node => !_neighbors.ContainsKey(node.Id));
     private string PagePath(Guid id) => WithPreview($"/notion/{id}");
     private string GraphPath(Guid id) => WithPreview($"/notion/graph/{id}");
     private string HoldGraphPath(Guid id) => WithPreview($"/notion/holds/{id}/graph");
@@ -214,48 +411,68 @@ public partial class Graph
         try { await _module.InvokeVoidAsync("zoom", _host, direction); } catch (JSException) { }
     }
     private async Task Retry() { await Unmount(); await Load(); }
-    [JSInvokable] public Task OnGraphOpen(string id) => InvokeAsync(() => { if (!_disposed && Guid.TryParse(id, out var page)) Nav.NavigateTo(PagePath(page)); });
+    [JSInvokable] public Task OnGraphOpen(string id) => InvokeAsync(() =>
+    {
+        if (!_disposed && _graph is not null && Guid.TryParse(id, out var page) && _titles.ContainsKey(page))
+            Nav.NavigateTo(PagePath(page));
+    });
     [JSInvokable] public Task OnGraphMenu(string id, double x, double y) => InvokeAsync(() =>
     {
         if (_disposed) return;
-        if (!Guid.TryParse(id, out var page) || _graph?.Nodes.All(n => n.Id != page) != false) { CloseMenu(); StateHasChanged(); return; }
+        if (_graph is null || !Guid.TryParse(id, out var page) || !_titles.ContainsKey(page)) { CloseMenu(); StateHasChanged(); return; }
         _menuPage = page; _menuX = x; _menuY = y; _renaming = false; _renameTitle = Title(page); _focusMenu = true;
         StateHasChanged();
     });
     private void BeginRename() { _renaming = true; _focusRename = true; }
-    private void CloseMenu() { _menuPage = null; _renaming = false; }
+    private void CloseMenu()
+    {
+        if (_menuPage.HasValue) _focusStage = true;
+        _menuPage = null;
+        _renaming = false;
+    }
     private void MenuKey(KeyboardEventArgs e) { if (e.Key == "Escape") CloseMenu(); }
     private async Task RenameMenuPage()
     {
-        if (_menuPage is not Guid id || _graph?.CanRename != true || _busy || string.IsNullOrWhiteSpace(_renameTitle)) return;
+        if (_menuPage is not Guid id || _graph is not { CanRename: true } graph || _busy || string.IsNullOrWhiteSpace(_renameTitle)) return;
         _busy = true; _error = null;
         try
         {
-            await Client.Rename(id, _renameTitle.Trim(), _requests?.Token ?? _life.Token);
+            var page = await Client.Rename(id, _renameTitle.Trim(), _life.Token);
+            if (_disposed || !ReferenceEquals(_graph, graph)) return;
             CloseMenu();
-            await Unmount();
-            await Load();
+            _pages = _pages.Select(existing => existing.Id == id ? page : existing).ToArray();
+            _collections = null;
+            _graph = graph with
+            {
+                Title = graph.CollectionId == id ? page.Title : graph.Title,
+                Nodes = graph.Nodes.Select(node => node.Id == id ? node with { Title = page.Title } : node).ToArray()
+            };
+            _titles[id] = page.Title;
+            RefreshGraph();
         }
         catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException)
         {
-            if (ex is not OperationCanceledException) _error = ex is NotionException notion ? notion.Message : "Titlen kunne ikke gemmes. Prøv igen.";
+            if (ex is not OperationCanceledException && !_disposed && ReferenceEquals(_graph, graph))
+                _error = ex is NotionException notion ? notion.Message : "Titlen kunne ikke gemmes. Prøv igen.";
         }
         finally { _busy = false; }
     }
     private async Task Unmount()
     {
-        _needsMount = false;
+        _canvasGeneration++;
+        _graphDirty = _optionsDirty = _fitGraph = false;
+        _focusNode = null;
         if (_mounted && _module is not null)
         {
+            _mounted = false;
             try { await _module.InvokeVoidAsync("destroy", _host); }
             catch (Exception ex) when (ex is JSException or JSDisconnectedException) { }
         }
-        _mounted = false;
     }
     public async ValueTask DisposeAsync()
     {
         _disposed = true; Auth.AuthStateChanged -= AccountChanged; ViewAs.Changed -= AccountChanged;
-        await _life.CancelAsync(); _requests?.Dispose();
+        await _life.CancelAsync();
         try { await Unmount(); if (_module is not null) await _module.DisposeAsync(); } catch (JSDisconnectedException) { }
         _callbacks?.Dispose(); _life.Dispose();
     }
