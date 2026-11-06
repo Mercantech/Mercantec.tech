@@ -13,7 +13,7 @@
         <header class="roulette-topbar">
             <a class="roulette-back" href="@BackHref"><span aria-hidden="true">‹</span> Tilbage til holdet</a>
             <span class="roulette-hold">@_holdName</span>
-            <div class="roulette-top-actions"><button type="button" class="roulette-quiet" @onclick="ToggleSound" aria-pressed="@_sound">@(_sound ? "♫ Lyd til" : "♪ Lyd fra")</button><button type="button" class="roulette-quiet" @onclick="Fullscreen">⛶ Fuld skærm</button><button type="button" class="roulette-quiet" @onclick="CloseWindow">Afslut tavlevisning</button></div>
+            <div class="roulette-top-actions"><button type="button" class="roulette-quiet" data-roulette-audio @onclick="ToggleSound" aria-pressed="@(_sound ? "true" : "false")">@(_sound ? "♫ Lyde til" : "♪ Lyde fra")</button><button type="button" class="roulette-quiet" data-roulette-voice @onclick="ToggleSpeech" aria-pressed="@(_speechEnabled ? "true" : "false")">@(_speechEnabled ? "Oplæsning til" : "Oplæsning fra")</button><button type="button" class="roulette-quiet" @onclick="Fullscreen">⛶ Fuld skærm</button><button type="button" class="roulette-quiet" @onclick="CloseWindow">Afslut tavlevisning</button></div>
         </header>
 
         @if (!Auth.IsInitialized || _loading)
@@ -43,7 +43,7 @@
                                 @for (var slot = 0; slot < SlotNames.Length; slot++)
                                 {
                                     var index = slot;
-                                    <div class="roulette-reel"><span class="roulette-reel-number">@(index + 1)</span><div class="roulette-reel-window"><strong class="roulette-reel-name">@SlotNames[index]</strong></div><span class="roulette-reel-diamond">◆</span></div>
+                                    <div class="roulette-reel" data-reel-index="@index"><span class="roulette-reel-number">@(index + 1)</span><div class="roulette-reel-window"><strong class="roulette-reel-name">@SlotNames[index]</strong></div><span class="roulette-reel-diamond">◆</span></div>
                                 }
                             </div>
                             <div class="roulette-payline" aria-hidden="true"></div>
@@ -57,6 +57,8 @@
                         <button type="button" class="roulette-lever" disabled="@(!CanSpin)" @onclick="Spin" aria-label="Træk håndtaget for at danne næste gruppe"><span class="roulette-lever-knob"></span><span class="roulette-lever-stick"></span><span class="roulette-lever-base"></span><span class="roulette-lever-caption">Træk!</span></button>
                     </div>
                     <p class="roulette-keyboard-hint">Tryk mellemrum, klik på knappen, eller træk i håndtaget.</p>
+                    <div class="roulette-show-controls"><button type="button" class="roulette-secondary" data-roulette-auto aria-pressed="@(_autoSpin ? "true" : "false")" disabled="@(!_autoSpin && !CanStartSpin)" @onclick="ToggleAutoSpin">@(_autoSpin ? "Stop auto-spin" : "Start auto-spin")</button><p class="roulette-help">@(_autoSpin ? "Maskinen fortsætter efter oplæsningen og pausen. Stop afslutter den aktuelle gruppe først." : "Auto-spin afslører alle grupper efter tur med oplæsning og en pause imellem.")</p></div>
+                    @if (_reducedMotion && !_animate) { <div class="roulette-show-controls" role="note"><p class="roulette-help">Din browser foretrækker reduceret bevægelse. Du kan vælge animationer til denne tavlevisning.</p><button type="button" class="roulette-secondary" disabled="@(_spinning || _autoSpin)" @onclick="EnableAnimations">Slå animationer til</button></div> }
                     <div class="roulette-winner @(_lastWinner is not null ? "is-visible" : "")" role="status" aria-live="polite">
                         @if (_lastWinner is not null)
                         {
@@ -67,7 +69,18 @@
                 </section>
 
                 <aside class="roulette-side" aria-label="Deltagere, indstillinger og grupper">
-                    <div class="roulette-panel-actions"><button type="button" class="roulette-secondary" disabled="@(_spinning || _saving)" @onclick="NewRound">↻ Ny runde</button><button type="button" class="roulette-secondary" disabled="@(_spinning || !_rounds.Any(r => r.Revealed > 0))" @onclick="OpenOverview">▦ Overblik</button></div>
+                    <div class="roulette-panel-actions"><button type="button" class="roulette-secondary" disabled="@(_spinning || _saving || _autoSpin || _testingVoice)" @onclick="NewRound">↻ Ny runde</button><button type="button" class="roulette-secondary" disabled="@(_spinning || _autoSpin || !_rounds.Any(r => r.Revealed > 0))" @onclick="OpenOverview">▦ Overblik</button></div>
+                    <details class="roulette-settings roulette-presentation-settings">
+                        <summary>Lyd, stemme og tempo <span aria-hidden="true">⌄</span></summary>
+                        <div class="roulette-settings-body">
+                            <label class="roulette-check"><input type="checkbox" @bind="_animate" disabled="@(_spinning || _autoSpin)" /> Animationer</label>
+                            <label>Lydstyrke<input type="range" min="0" max="100" step="5" @bind="_volume" @bind:event="oninput" @bind:after="VolumeChanged" /><span class="roulette-help">@_volume % · gælder lyde og oplæsning</span></label>
+                            <label>Stemme<select @bind="_voiceMode" @bind:after="VoiceModeChanged" disabled="@(_spinning || _testingVoice || _autoSpin)"><option value="browser">Browserens lokale stemme</option><option value="rost" disabled="@(!_speechStatus.Available)">Røst · dansk AI @(!_speechStatus.Available ? "(ikke klar)" : "")</option></select></label>
+                            <p class="roulette-help" role="status">@_voiceMessage</p>
+                            <div class="roulette-voice-actions"><button type="button" class="roulette-secondary" data-roulette-voice @onclick="TestVoice" disabled="@(_spinning || _saving || _testingVoice || _autoSpin)">@(_testingVoice ? "Prøver stemmen…" : "Prøv stemme")</button><button type="button" class="roulette-quiet" @onclick="CheckVoice" disabled="@_checkingVoice">@(_checkingVoice ? "Kontrollerer…" : "Kontrollér Røst")</button></div>
+                            <div class="roulette-settings-grid"><label>Spintid (sekunder)<input type="number" min="1.5" max="12" step="0.5" @bind="_spinSeconds" /></label><label>Pause mellem grupper (sekunder)<input type="number" min="0.5" max="15" step="0.5" @bind="_pauseSeconds" /></label></div>
+                        </div>
+                    </details>
                     @if (_confirmNewRound)
                     {
                         <div class="roulette-confirm" role="alert"><strong>Runden er ikke færdig.</strong><p>De allerede afslørede grupper bevares i overblikket. Resten af fordelingen lægges væk.</p><div><button type="button" class="roulette-secondary" @onclick="ConfirmNewRound">Start ny runde</button><button type="button" class="roulette-quiet" @onclick="() => _confirmNewRound = false">Fortsæt runden</button></div></div>
@@ -88,7 +101,7 @@
                             @if (_current is not null) { <p class="roulette-help">Start en ny runde for at ændre deltagere og indstillinger.</p> }
                         </div>
                     </details>
-                    <div class="roulette-panel-tabs" role="group" aria-label="Vis deltagere eller grupper"><button type="button" class="@(!_showGroups ? "is-active" : null)" aria-pressed="@(!_showGroups)" @onclick="() => _showGroups = false">Navne <span>@RemainingCount</span></button><button type="button" class="@(_showGroups ? "is-active" : null)" aria-pressed="@_showGroups" @onclick="() => _showGroups = true">Grupper <span>@(_current?.Revealed ?? 0)</span></button></div>
+                    <div class="roulette-panel-tabs" role="group" aria-label="Vis deltagere eller grupper"><button type="button" class="@(!_showGroups ? "is-active" : null)" aria-pressed="@(!_showGroups ? "true" : "false")" @onclick="() => _showGroups = false">Navne <span>@RemainingCount</span></button><button type="button" class="@(_showGroups ? "is-active" : null)" aria-pressed="@(_showGroups ? "true" : "false")" @onclick="() => _showGroups = true">Grupper <span>@(_current?.Revealed ?? 0)</span></button></div>
                     @if (!_showGroups)
                     {
                         <div class="roulette-panel-heading"><h2>@(_current is null ? "Hvem er med?" : "Navne tilbage")</h2>@if (_current is null) { <button type="button" class="roulette-small" @onclick="SelectAll" disabled="@_spinning">Vælg alle</button> }</div>

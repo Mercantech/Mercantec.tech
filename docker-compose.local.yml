@@ -9,6 +9,9 @@ services:
       - "3000:3000"
   api:
     environment:
+      Rost__Enabled: ${ROST_ENABLED:-true}
+      Rost__BaseUrl: ${ROST_BASE_URL:-http://host.docker.internal:8091}
+      Rost__TimeoutSeconds: 30
       Cors__SpaOrigins: http://localhost:3000;http://127.0.0.1:3000;http://localhost:5253;http://127.0.0.1:5253
       ObjectStorage__PublicBaseUrl: ${OBJECT_STORAGE_PUBLIC_BASE_URL:-http://127.0.0.1:9000}
     ports:

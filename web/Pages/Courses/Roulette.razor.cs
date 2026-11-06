@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Learning;
@@ -14,6 +15,7 @@ public partial class Roulette
 {
     [Inject] private NotionClient Notion { get; set; } = null!;
     [Inject] private GroupSetsClient Sets { get; set; } = null!;
+    [Inject] private RouletteSpeechClient Speech { get; set; } = null!;
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
@@ -24,6 +26,14 @@ public partial class Roulette
     private IJSObjectReference? _module;
     private DotNetObjectReference<Roulette>? _callbacks;
     private CancellationTokenSource _scope = new();
+    private CancellationTokenSource? _autoCancellation, _voiceCancellation;
+    private Task<RouletteSpeechAudio?>? _speechPreparation;
+    private string? _preparedGroupName;
+    private RouletteSpeechStatus _speechStatus = new(false, "Røst", "Kontrollerer den lokale stemme…");
+    private string _voiceMode = "browser", _voiceMessage = "Gruppens navn læses op efter hvert spin.";
+    private double _spinSeconds = 4, _pauseSeconds = 2;
+    private int _volume = 75;
+    private bool _speechEnabled = true, _animate = true, _speaking, _testingVoice, _checkingVoice, _voiceSelected, _autoSpin, _autoWaiting, _reducedMotion;
     private (Guid Hold, string? Subject, bool Preview, bool Authenticated)? _context;
     private NotionHoldMember[] _members = [];
     private NotionGroupView[] _groups = [];
@@ -36,15 +46,17 @@ public partial class Roulette
     private string _holdName = "", _distribution = "size", _selectedSet = "", _newSetName = "Makkerpar · Runde 1", _celebration = "", _storageKey = "";
     private string? _error, _notice, _copyFallback;
     private int _amount = 3, _generation;
-    private bool _loading = true, _canManage, _spinning, _saving, _sound, _showGroups, _overview, _confirmNewRound, _avoidPairs = true, _includeLegacy, _disposed, _restorePending, _leaving;
+    private bool _loading = true, _canManage, _spinning, _saving, _sound = true, _showGroups, _overview, _confirmNewRound, _avoidPairs = true, _includeLegacy, _disposed, _restorePending, _leaving;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private static readonly string[] NameStarts = ["Turbo", "Disco", "Laser", "Kakao", "Lyn", "Vaffel", "Komet", "Glitter", "Bølge", "Pixel", "Måne", "Rakette", "Samba", "Kanel", "Krystal", "Hokus", "Neon", "Banan", "Sokkede", "Mango", "Trylle", "Ninja", "Fløde", "Popcorn"];
     private static readonly string[] NameEnds = ["Pingvinerne", "Robotterne", "Muffinsene", "Alpakkaerne", "Opfinderne", "Kaptajnerne", "Bæverne", "Dragerne", "Flamingoerne", "Hajerne", "Kænguruerne", "Akrobaterne", "Stjerneskuddene", "Hurlumhejerne", "Hamsterne", "Rumrejerne", "Diskokuglerne", "Pindsvinene", "Troldmændene", "Kodeknækkerne", "Gummistøvlerne", "Vaskebjørnene", "Lynkartoflerne", "Enhjørningerne"];
-    private static readonly string[] Celebrations = ["Et dream team er landet!", "Gruppemagien har talt!", "Klar til nye eventyr!", "Sikke en stjernekombination!", "Jackpot til samarbejdet!", "Klassen har fået et nyt superhold!"];
+    private static readonly string[] Celebrations = ["Et dream team er landet!", "Gruppemagien har talt!", "Klar til nye eventyr!", "Sikke en stjernekombination!", "Jackpot til samarbejdet!", "Klassen har fået et nyt superhold!", "Samarbejdet får vinger!", "Et stjernehold er født!", "Der er magi i maskinen!", "Sæt kurs mod nye idéer!", "Koden til samarbejdet er knækket!", "Giv jeres nye hold en hånd!"];
     private static readonly string[] GroupColors = ["#ffd561", "#ff7bb7", "#89dccb", "#bba4ff", "#ffab78", "#9dcaff"];
     private bool MayManage => _canManage && Auth.IsAuthenticated && !ViewAs.IsActive;
     private bool HasUnsavedRounds => !_leaving && MayManage && _rounds.Any(r => r.Revealed > 0 && !r.Saved);
-    private bool CanSpin => MayManage && !_spinning && !_saving && _selected.Count > 0 && (_current is null || !_current.Complete);
+    private bool CanStartSpin => MayManage && !_spinning && !_saving && !_testingVoice && _selected.Count > 0 && (_current is null || !_current.Complete);
+    private bool CanSpin => CanStartSpin && !_autoSpin;
+    private double AudioVolume => Math.Clamp(_volume / 100d, 0, 1);
     private int DisplayRound => _current?.Number ?? (_rounds.LastOrDefault()?.Number ?? 0) + 1;
     private int SelectedCount => _current?.ParticipantIds.Length ?? _selected.Count;
     private int CurrentAssignedCount => _current?.Groups.Take(_current.Revealed).Sum(g => g.MemberIds.Length) ?? 0;
@@ -52,8 +64,8 @@ public partial class Roulette
     private int ProgressPercent => SelectedCount == 0 ? 0 : (int)Math.Round(CurrentAssignedCount * 100d / SelectedCount);
     private string[] SlotNames => _stageNames;
     private string BackHref => $"/holds/{HoldId}?view=groups";
-    private string MachineStatus => _spinning ? "Navnene ruller…" : _current?.Complete == true ? "Alle er fordelt!" : SelectedCount == 0 ? "Vælg deltagere" : _current is null ? "Klar til første spin" : $"Gruppe {_current.Revealed + 1} venter";
-    private string SpinLabel => _spinning ? "Spinder…" : _current?.Complete == true ? "Runden er færdig" : _current is null ? "Spin første gruppe" : "Spin næste gruppe";
+    private string MachineStatus => _speaking ? _speechPreparation is { IsCompleted: false } ? "Stemmen forberedes…" : "Læser gruppen op…" : _spinning ? "Navnene ruller…" : _autoWaiting ? "Pause før næste gruppe" : _current?.Complete == true ? "Alle er fordelt!" : SelectedCount == 0 ? "Vælg deltagere" : _current is null ? "Klar til første spin" : $"Gruppe {_current.Revealed + 1} venter";
+    private string SpinLabel => _speaking ? "Oplæser…" : _spinning ? "Spinder…" : _current?.Complete == true ? "Runden er færdig" : _current is null ? "Spin første gruppe" : "Spin næste gruppe";
     private IEnumerable<NotionHoldMember> RemainingMembers
     {
         get
@@ -78,7 +90,11 @@ public partial class Roulette
             {
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", "/js/group-roulette-show.js");
                 _callbacks = DotNetObjectReference.Create(this);
-                await _module.InvokeVoidAsync("initialize", _root, _callbacks);
+                await _module.InvokeVoidAsync("initialize", _root, _callbacks, new { sound = _sound, volume = AudioVolume });
+                var capabilities = await _module.InvokeAsync<EffectCapabilities?>("capabilities", _root);
+                _reducedMotion = capabilities?.ReducedMotion == true;
+                _animate = !_reducedMotion;
+                if (!_disposed) await InvokeAsync(StateHasChanged);
             }
             catch (JSException) { _error = "Effekterne kunne ikke indlæses. Grupperne kan stadig trækkes uden animation."; }
         }
@@ -101,7 +117,9 @@ public partial class Roulette
         if (_disposed || !Auth.IsInitialized) return;
         var next = (HoldId, Auth.Subject, ViewAs.IsActive, Auth.IsAuthenticated);
         if (_context == next) return;
+        StopAuto(); CancelVoicePreparation();
         _context = next; _scope.Cancel(); _scope.Dispose(); _scope = new(); var generation = ++_generation;
+        _speaking = _testingVoice = _checkingVoice = false;
         _loading = true; _canManage = _spinning = _saving = _overview = false; _members = []; _groups = []; _sets = [];
         _selected.Clear(); _historySets.Clear(); _rounds.Clear(); _current = null; _lastWinner = null; _stageNames = ["Klar?", "Klar?", "Klar?"]; _holdName = _storageKey = ""; _error = _notice = null;
         if (_module is not null) { try { await _module.InvokeVoidAsync("cancel", _root); } catch (JSException) { } }
@@ -119,6 +137,7 @@ public partial class Roulette
             if (!CurrentContext(generation)) return;
             _members = (await membersTask).OrderBy(m => m.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToArray();
             _groups = await groupsTask; _sets = await setsTask; _canManage = true;
+            await CheckVoice();
             foreach (var member in _members) _selected.Add(member.Id);
             _selectedSet = SetId is Guid selected && _sets.Any(s => s.Id == selected && !s.Archived) ? selected.ToString() : "";
             if (Guid.TryParse(_selectedSet, out var historySet)) _historySets.Add(historySet);
@@ -158,44 +177,104 @@ public partial class Roulette
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { _error = ex.Message; return false; }
     }
     [JSInvokable] public Task SpinFromLever() => InvokeAsync(Spin);
-    private async Task Spin()
+    private async Task Spin() { if (CanSpin) await SpinOne(); }
+    private async Task<bool> SpinOne()
     {
-        if (!CanSpin) return;
+        if (!CanStartSpin) return false;
         _error = _notice = null;
-        if (_current is null && !PrepareRound()) return;
+        if (_current is null && !PrepareRound()) return false;
         var round = _current!; var group = round.Groups[round.Revealed]; var generation = _generation;
+        var celebrationIndex = Random.Shared.Next(Celebrations.Length);
+        QueueSpeech(group, generation);
         var pool = RemainingMembers.Select(m => m.DisplayName).ToArray();
         var targets = group.MemberIds.Take(6).Select(MemberName).ToArray();
         _stageNames = Enumerable.Repeat("…", targets.Length).ToArray(); _spinning = true; _lastWinner = null;
         await InvokeAsync(StateHasChanged);
         try
         {
-            if (_module is not null && !await _module.InvokeAsync<bool>("spin", _root, pool, targets, _sound)) return;
-            if (!CurrentContext(generation) || !MayManage) return;
-            _stageNames = targets; round.Revealed++; _lastWinner = group; _celebration = Celebrations[Random.Shared.Next(Celebrations.Length)]; _showGroups = true;
+            if (_module is not null && !await _module.InvokeAsync<bool>("spin", _scope.Token, _root, pool, targets, _sound,
+                new { durationMs = (int)(Math.Clamp(_spinSeconds, 1.5, 12) * 1000), volume = AudioVolume, motion = _animate, celebrationIndex, groupName = group.Name, celebrationText = Celebrations[celebrationIndex] }))
+            {
+                if (CurrentContext(generation)) _error = "Spinnet blev afbrudt. Prøv igen; gruppen er endnu ikke afsløret.";
+                return false;
+            }
+            if (!CurrentContext(generation) || !MayManage) return false;
+            if (_module is not null && _sound)
+            {
+                var audioState = await _module.InvokeAsync<EffectCapabilities?>("capabilities", _root);
+                if (audioState?.AudioReady == false || audioState?.Sound == false)
+                {
+                    _sound = false;
+                    _notice = "Browseren kunne ikke aktivere lydene. Tryk Lyde til, og kontrollér browserens lydindstillinger.";
+                }
+            }
+            if (!CurrentContext(generation) || !MayManage) return false;
+            _stageNames = targets; round.Revealed++; _lastWinner = group; _celebration = Celebrations[celebrationIndex]; _showGroups = true;
             await Persist();
+            await SpeakWinner(group, generation);
+            return true;
         }
-        catch (JSException) { if (CurrentContext(generation)) { _stageNames = targets; round.Revealed++; _lastWinner = group; _celebration = "Et nyt hold er landet!"; _showGroups = true; await Persist(); } }
+        catch (OperationCanceledException) when (!CurrentContext(generation) || _scope.IsCancellationRequested) { return false; }
+        catch (JSException)
+        {
+            if (CurrentContext(generation) && _lastWinner != group)
+            {
+                _stageNames = targets; round.Revealed++; _lastWinner = group; _celebration = "Et nyt hold er landet!"; _showGroups = true;
+                _notice = "Gruppen er dannet, men browseren kunne ikke afspille effekterne. Opdatér siden, hvis det gentager sig.";
+                await Persist();
+            }
+            return CurrentContext(generation);
+        }
         finally
         {
             if (CurrentContext(generation))
             {
-                _spinning = false;
+                _spinning = _speaking = false;
                 // The draggable lever enters through JSInvokable, which does not
                 // get Blazor's automatic render after an EventCallback completes.
                 await InvokeAsync(StateHasChanged);
             }
         }
     }
+    private void StopAuto() { _autoSpin = _autoWaiting = false; _autoCancellation?.Cancel(); }
+    private void EnableAnimations() { if (MayManage && !_spinning && !_autoSpin) _animate = true; }
+    private async Task ToggleAutoSpin()
+    {
+        if (_autoSpin) { StopAuto(); return; }
+        if (!CanStartSpin) return;
+        var generation = _generation;
+        using var auto = CancellationTokenSource.CreateLinkedTokenSource(_scope.Token);
+        _autoCancellation = auto; _autoSpin = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            while (_autoSpin && CurrentContext(generation) && CanStartSpin && !auto.IsCancellationRequested)
+            {
+                if (!await SpinOne() || !CanStartSpin || !_autoSpin) break;
+                _autoWaiting = true;
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(TimeSpan.FromSeconds(Math.Clamp(_pauseSeconds, .5, 15)), auto.Token);
+                _autoWaiting = false;
+            }
+        }
+        catch (OperationCanceledException) when (auto.IsCancellationRequested) { }
+        finally
+        {
+            if (ReferenceEquals(_autoCancellation, auto)) { _autoCancellation = null; _autoSpin = _autoWaiting = false; }
+            if (CurrentContext(generation)) await InvokeAsync(StateHasChanged);
+        }
+    }
     private async Task NewRound()
     {
-        if (_spinning || _saving) return;
+        if (_spinning || _saving || _autoSpin || _testingVoice) return;
         if (_current is { Complete: false, Revealed: > 0 }) { _confirmNewRound = true; return; }
         await ConfirmNewRound();
     }
     private async Task ConfirmNewRound()
     {
         _confirmNewRound = false; _current = null; _lastWinner = null; _stageNames = ["Klar?", "Klar?", "Klar?"]; _selectedSet = ""; _newSetName = $"Makkerpar · Runde {DisplayRound}"; _showGroups = false; _notice = "En ny runde er klar. Dine tidligere grupper bliver i overblikket."; _error = null;
+        CancelVoicePreparation();
+        if (_module is not null) await _module.InvokeVoidAsync("cancelSpeech", _root);
         await Persist();
     }
     private async Task Reroll(ShowRound round, ShowGroup group) { if (round.Saved || round.SaveAttempted || _saving || _spinning) return; group.Name = NewName(); if (_lastWinner == group) _celebration = "Nyt navn. Samme stjernehold!"; await Persist(); }
@@ -241,7 +320,114 @@ public partial class Roulette
         }
         finally { if (CurrentContext(generation)) _saving = false; }
     }
-    private async Task ToggleSound() { if (_module is null) { _notice = "Lyd er ikke tilgængelig i denne browser."; return; } _sound = !_sound; try { await _module.InvokeVoidAsync("setSound", _root, _sound); } catch (JSException) { _sound = false; _notice = "Lyd er ikke tilgængelig i denne browser."; } }
+    private async Task CheckVoice()
+    {
+        if (!MayManage || _checkingVoice) return;
+        var generation = _generation; _checkingVoice = true;
+        try
+        {
+            var status = await Speech.Status(HoldId, _scope.Token);
+            if (!CurrentContext(generation)) return;
+            _speechStatus = status;
+            if (!_voiceSelected) _voiceMode = status.Available ? "rost" : "browser";
+            _voiceMessage = status.Available ? "Røst er klar. Gruppens navn læses op efter hvert spin." : status.Message ?? "Røst er ikke tilgængelig. Du kan bruge browserstemmen.";
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
+        {
+            if (CurrentContext(generation)) { _speechStatus = new(false, "Røst", "Røst kunne ikke kontaktes. Du kan bruge browserstemmen."); _voiceMessage = _speechStatus.Message!; }
+        }
+        finally { if (CurrentContext(generation)) _checkingVoice = false; }
+    }
+    private static string SpokenName(string name) => Regex.Replace(name, "(?<=[a-zæøå])(?=[A-ZÆØÅ])", " ");
+    private void CancelVoicePreparation()
+    {
+        _voiceCancellation?.Cancel(); _voiceCancellation?.Dispose(); _voiceCancellation = null;
+        _speechPreparation = null; _preparedGroupName = null;
+    }
+    private void QueueSpeech(ShowGroup group, int generation)
+    {
+        if (!_speechEnabled || _voiceMode != "rost" || !_speechStatus.Available || !CurrentContext(generation)) return;
+        if (_preparedGroupName == group.Name && _speechPreparation is not null) return;
+        CancelVoicePreparation();
+        _voiceCancellation = CancellationTokenSource.CreateLinkedTokenSource(_scope.Token);
+        _preparedGroupName = group.Name;
+        _speechPreparation = PrepareSpeechAudio(group.Name, generation, _voiceCancellation.Token);
+    }
+    private async Task<RouletteSpeechAudio?> PrepareSpeechAudio(string name, int generation, CancellationToken ct)
+    {
+        try
+        {
+            var audio = await Speech.Generate(HoldId, name, ct);
+            if (!CurrentContext(generation) || ct.IsCancellationRequested) return null;
+            if (_module is not null) await _module.InvokeAsync<bool>("prepareSpeech", ct, _root, audio.AudioBase64);
+            return audio;
+        }
+        catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException or JsonException or JSException)
+        {
+            if (CurrentContext(generation) && !ct.IsCancellationRequested)
+                _voiceMessage = "Røst kunne ikke lave denne oplæsning. Browserstemmen bliver brugt i stedet.";
+            return null;
+        }
+    }
+    private async Task SpeakWinner(ShowGroup group, int generation)
+    {
+        if (!_speechEnabled || _module is null || !CurrentContext(generation)) return;
+        _speaking = true;
+        await InvokeAsync(StateHasChanged);
+        var voiceMode = _voiceMode;
+        try
+        {
+            QueueSpeech(group, generation);
+            var audio = voiceMode == "rost" && _preparedGroupName == group.Name && _speechPreparation is not null
+                ? await _speechPreparation : null;
+            if (!CurrentContext(generation) || !_speechEnabled || voiceMode != _voiceMode) return;
+            var spoken = audio is not null
+                ? await _module.InvokeAsync<bool>("playSpeech", _scope.Token, _root, audio.AudioBase64, AudioVolume)
+                : await _module.InvokeAsync<bool>("playBrowserSpeech", _scope.Token, _root, SpokenName(group.Name), AudioVolume);
+            if (CurrentContext(generation) && _speechEnabled)
+                _voiceMessage = spoken ? audio is not null ? "Gruppens navn er læst op med Røst." : "Gruppens navn er læst op med browserstemmen."
+                    : "Browseren kunne ikke afspille oplæsningen. Tryk Prøv stemme, og kontrollér lyden.";
+        }
+        catch (Exception ex) when (ex is JSException or OperationCanceledException)
+        {
+            if (CurrentContext(generation) && _speechEnabled) _voiceMessage = "Oplæsningen blev afbrudt. Grupperne er stadig gemt i runden.";
+        }
+        finally { if (CurrentContext(generation)) { _speaking = false; await InvokeAsync(StateHasChanged); } }
+    }
+    private async Task ToggleSpeech()
+    {
+        _speechEnabled = !_speechEnabled;
+        if (!_speechEnabled)
+        {
+            CancelVoicePreparation();
+            if (_module is not null) await _module.InvokeVoidAsync("cancelSpeech", _root);
+            _voiceMessage = "Oplæsning er slået fra.";
+        }
+        else _voiceMessage = "Gruppens navn læses op efter næste spin.";
+    }
+    private async Task VoiceModeChanged()
+    {
+        _voiceSelected = true; CancelVoicePreparation();
+        if (_module is not null) await _module.InvokeVoidAsync("cancelSpeech", _root);
+        if (_voiceMode != "rost" || !_speechStatus.Available) _voiceMode = "browser";
+        _voiceMessage = _voiceMode == "rost" ? "Røst læser gruppens navn efter næste spin." : "Browserens lokale stemme læser gruppens navn efter næste spin.";
+    }
+    private async Task TestVoice()
+    {
+        if (!MayManage || _module is null || _spinning || _saving || _autoSpin || _testingVoice) return;
+        var generation = _generation;
+        _testingVoice = true; _speechEnabled = true;
+        try { await SpeakWinner(new ShowGroup { Name = "Klar til grupperoulette" }, generation); }
+        finally { if (CurrentContext(generation)) { _testingVoice = _speaking = false; await InvokeAsync(StateHasChanged); } }
+    }
+    private async Task VolumeChanged() { if (_module is not null) await _module.InvokeVoidAsync("setVolume", _root, AudioVolume); }
+    private async Task ToggleSound()
+    {
+        if (_module is null) { _notice = "Lyde er ikke tilgængelige i denne browser."; return; }
+        _sound = !_sound;
+        try { if (!await _module.InvokeAsync<bool>("setSound", _root, _sound)) { _sound = false; _notice = "Browseren kunne ikke aktivere lyden. Prøv lydknappen igen, og kontrollér browserens lydindstillinger."; } }
+        catch (JSException) { _sound = false; _notice = "Lyde er ikke tilgængelige i denne browser."; }
+    }
     private async Task Fullscreen() { if (_module is not null) { try { await _module.InvokeVoidAsync("toggleFullscreen", _root); return; } catch (JSException) { } } _notice = "Browseren kunne ikke åbne fuld skærm. Brug evt. browserens fuldskærmsknap."; }
     private async Task CloseWindow() { if (HasUnsavedRounds && !await Js.InvokeAsync<bool>("confirm", "Der er grupper, som endnu ikke er gemt på holdet. Luk alligevel?")) return; _leaving = true; await InvokeAsync(StateHasChanged); if (_module is not null) await _module.InvokeVoidAsync("closeOrReturn", BackHref); else Nav.NavigateTo(BackHref); }
     private async Task OpenOverview() { _overview = true; await InvokeAsync(StateHasChanged); if (_module is not null) await _module.InvokeVoidAsync("setOverview", _root, true); }
@@ -294,10 +480,11 @@ public partial class Roulette
     }
     public async ValueTask DisposeAsync()
     {
-        _disposed = true; Auth.AuthStateChanged -= ContextChanged; ViewAs.Changed -= ContextChanged; _scope.Cancel(); _scope.Dispose();
+        _disposed = true; StopAuto(); CancelVoicePreparation(); Auth.AuthStateChanged -= ContextChanged; ViewAs.Changed -= ContextChanged; _scope.Cancel(); _scope.Dispose();
         if (_module is not null) { try { await _module.InvokeVoidAsync("dispose", _root); await _module.DisposeAsync(); } catch (JSException) { } }
         _callbacks?.Dispose();
     }
+    public sealed record EffectCapabilities(bool ReducedMotion, bool SpeechAvailable, bool? AudioReady = null, bool? Sound = null);
     public sealed class ShowGroup { public int Number { get; set; } public string Name { get; set; } = ""; public Guid[] MemberIds { get; set; } = []; }
     public sealed class ShowRound
     {

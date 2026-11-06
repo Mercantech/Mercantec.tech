@@ -33,6 +33,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<Mercantec.Tech.Api.Learning.CourseAccess>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Learning.FileAuthorization>();
+builder.Services.Configure<Mercantec.Tech.Api.Speech.RouletteSpeechOptions>(
+    builder.Configuration.GetSection(Mercantec.Tech.Api.Speech.RouletteSpeechOptions.SectionName));
+builder.Services.AddHttpClient("rost", client => client.Timeout = Timeout.InfiniteTimeSpan)
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseProxy = false });
+builder.Services.AddSingleton<Mercantec.Tech.Api.Speech.IRouletteSpeechGenerator, Mercantec.Tech.Api.Speech.RostSpeechGenerator>();
+builder.Services.AddSingleton<Mercantec.Tech.Api.Speech.RouletteSpeechService>();
 builder.Services.AddHostedService<NotionUploadCleanup>();
 if (builder.Configuration.GetValue<bool>("PreviewWorker:Enabled"))
     builder.Services.AddHostedService<PreviewWorker>();

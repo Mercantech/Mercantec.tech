@@ -15,5 +15,6 @@ LUP-specific behavior:
 - Saved group-set history can be selected for avoiding previous partners. A bounded search reports inability to find a plan rather than claiming mathematical impossibility.
 - Generated rounds stay local until the teacher explicitly saves them in a named group set.
 - The latest local rounds are stored by account and hold using membership IDs. Names are resolved against the currently authorized roster on restoration.
-- Sounds use local Web Audio oscillators; pupil names are not sent to a speech service.
+- Effects use local Web Audio oscillators. Spoken group names use the configured local Røst/Chatterbox model, with the browser's device voice as fallback. The default announcements contain the group name only.
+- Name reels scroll vertically and stop one at a time. Twelve celebration variations follow the reveal; auto-spin waits for speech and the selected pause before starting the next group.
 - Reduced-motion preference disables cycling and confetti.
