@@ -1,5 +1,6 @@
 @page "/courses/template/{Slug}"
 @using Mercantec.Tech.Web.Courses
+@inject AuthService Auth
 
 @if (Course is null)
 {
@@ -16,7 +17,7 @@ else
     <span aria-current="page">@(Course?.Short ?? Slug)</span>
 </nav>
 
-<CourseTemplateView Course="Course" />
+<CourseTemplateView Course="Course" ShowLearningLink="@Auth.IsAuthenticated" />
 
 @code {
     [Parameter] public string Slug { get; set; } = "";

@@ -1,10 +1,10 @@
 @page "/search"
 @page "/explore/projects"
-@page "/explore/modules"
 @page "/badges"
 @page "/help"
 @page "/sources"
 @using Mercantec.Tech.Web.Demo
+@using Mercantec.Tech.Web.Public
 @inject NavigationManager Nav
 @inject AuthService Auth
 @implements IDisposable
@@ -15,20 +15,20 @@
 {
     <p>Indlæser…</p>
 }
-else if (!Auth.IsAuthenticated && PathKey is not ("help" or "sources"))
+else if (!Auth.IsAuthenticated && PathKey == "explore/modules")
 {
     <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
 }
 else if (PathKey == "search")
 {
-    <header class="page-title"><div><h1>Søg</h1><p>Find forløb, fag, emner, quests, badges og projekter.</p></div></header>
+    <header class="page-title"><div><h1>Søg</h1><p>Find forløb, fag, emner, projekter og badgekrav.</p></div></header>
     <label class="field">Søg<input @bind="_query" @bind:event="oninput" placeholder="H3, MQTT, Rune Run …" /></label>
     <div class="panel">
         @foreach (var hit in Hits)
         {
             <div class="row">
                 <span class="mark"><span class="mark-glyph">@hit.Kind[0]</span></span>
-                <div><h3><a href="@hit.Href">@hit.Title</a></h3><p>@hit.Kind · @hit.Text</p></div>
+                <div><h3><a href="@hit.Href">@hit.Title</a></h3><p>@hit.Kind · @hit.Description</p></div>
                 <a class="secondary" href="@hit.Href">Åbn</a>
             </div>
         }
@@ -40,7 +40,8 @@ else if (PathKey == "search")
 }
 else if (PathKey == "explore/projects")
 {
-    <header class="page-title"><div><h1>Bygget her. Delt med dig.</h1><p>Udforsk klassens projekter, og se idéerne blive til noget.</p></div><a class="secondary" href="/projects/mine">Mine projekter</a></header><ProjectGallery />
+    <header class="page-title"><div><h1>Offentlige projekter</h1><p>Projekteksemplerne er markeret DEMO.</p></div>@if (Auth.IsAuthenticated) { <a class="secondary" href="/projects/mine">Mine projekter</a> }</header><PublicProjectGallery />
+    @if (Auth.IsAuthenticated) { <div class="headrow"><h2>Delt i holdets galleri</h2></div><ProjectGallery /> }
 }
 else if (PathKey == "explore/modules")
 {
@@ -48,7 +49,7 @@ else if (PathKey == "explore/modules")
 }
 else if (PathKey == "badges")
 {
-    <header class="page-title"><div><h1>Badgekatalog</h1><p>Din viden fortjener at blive synlig.</p></div><a class="secondary" href="/progress/badges">Mine badges</a></header><BadgeGallery />
+    @if (Auth.IsAuthenticated) { <header class="page-title"><div><h1>Badgekatalog</h1></div><a class="secondary" href="/progress/badges">Mine badges</a></header><BadgeGallery /> } else { <PublicBadgeCatalog /> }
 }
 else if (PathKey == "help")
 {
@@ -98,33 +99,19 @@ else
         _ => "Om LUP"
     };
 
-    private IEnumerable<Hit> Hits
+    [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
+    protected override void OnParametersSet() => _query = Query ?? "";
+    private IEnumerable<PublicSearchHit> Hits
     {
         get
         {
-            var q = _query.Trim();
-            var all = new List<Hit>();
-            foreach (var course in DemoCatalog.Courses)
-                all.Add(new("Forløb", course.Name, course.Desc, $"/learning/{course.Id}"));
-            foreach (var course in DemoCatalog.Courses)
-                foreach (var subject in course.Subjects) {
-                    all.Add(new("Fag", subject.Name, subject.Desc, $"/learning/{course.Id}/subjects/{subject.Id}"));
-                    foreach (var lesson in LearningContent.Lessons.Where(l => l.Subject == subject.Id))
-                        all.Add(new("Emne", lesson.Name, lesson.Lead, $"/learning/{course.Id}/subjects/{subject.Id}/{lesson.Id}"));
-                }
-            foreach (var quest in DemoCatalog.Quests)
-                all.Add(new("Quest", quest.Name, quest.Desc, $"/quests/{quest.Id}"));
-            foreach (var badge in DemoCatalog.Badges)
-                all.Add(new("Badge", badge.Name, badge.Desc, $"/badges/{badge.Id}"));
-            foreach (var project in DemoCatalog.Projects.Where(p => p.Visibility == "Fælles"))
-                all.Add(new("Projekt", project.Name, project.Desc, "/explore/projects"));
-            return string.IsNullOrEmpty(q)
-                ? all.Take(8)
-                : all.Where(h => h.Title.Contains(q, StringComparison.OrdinalIgnoreCase) || h.Text.Contains(q, StringComparison.OrdinalIgnoreCase));
+            var hits = PublicCatalog.Search(_query);
+            if (!Auth.IsAuthenticated) return hits;
+            var quests = DemoCatalog.Quests.Where(q => string.IsNullOrWhiteSpace(_query) || (q.Name + " " + q.Desc).Contains(_query, StringComparison.OrdinalIgnoreCase))
+                .Select(q => new PublicSearchHit("Quest", q.Name, q.Desc, "/quests/" + q.Id));
+            return hits.Concat(quests);
         }
     }
-
-    private sealed record Hit(string Kind, string Title, string Text, string Href);
 
     protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; }
     private void OnAuth() => InvokeAsync(StateHasChanged);

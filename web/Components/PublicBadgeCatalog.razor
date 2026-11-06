@@ -1,0 +1,9 @@
+@using Mercantec.Tech.Web.Public
+<header class="page-title"><div><h1>Badges og krav</h1><p>Se niveauerne og kravene for hvert badge.</p></div></header>
+<div class="v3-rank-key">@foreach (var rank in DemoCatalog.RankNames) { <span>@rank</span> }</div>
+<div class="badge-grid">
+    @foreach (var badge in PublicCatalog.Badges)
+    {
+        <a class="badge-card" href="/badges/@badge.Id"><span class="v3-badge-type">@badge.Topic</span><BadgeMark Rank="1" Icon="@badge.Icon" /><h2>@badge.Name</h2><p>@badge.Description</p><span class="badge-stat">@(badge.Special ? "Se krav og oplåsning" : "Se krav for alle fem niveauer")</span></a>
+    }
+</div>

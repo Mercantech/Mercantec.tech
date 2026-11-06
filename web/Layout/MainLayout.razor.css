@@ -1,3 +1,17 @@
-main {
-    flex: 1;
+main { flex:1; }
+.lup-header.public-header { background:#172941; border-bottom:1px solid #30425c; padding-left:max(27px,calc((100% - 1320px) / 2)); padding-right:max(27px,calc((100% - 1320px) / 2)); }
+.lup-header.public-header .brand { color:#f2f6ff; font-size:29px; }
+.lup-header.public-header .mainnav { background:transparent; border:0; }
+.lup-header.public-header ::deep .public-nav a { color:#edf2ff; font-size:14px; padding:16px 0 14px; }
+.lup-header.public-header ::deep .public-nav a.active,.lup-header.public-header .public-nav a.is-current { color:#fff; border-bottom-color:#8eb4ff; }
+.lup-header.public-header .lup-tools { margin-left:auto; }
+.lup-header.public-header .lup-tools>.action { background:#9ab5ff; color:#14254c; }
+.lup-header.public-header .lup-account>summary,.lup-header.public-header .lup-mobile-nav>summary { color:#edf2ff; }
+.lup-header.public-header ::deep .lup-mobile-menu a { color:var(--ink); }
+.lup-header.public-header ::deep .v3-menu { color:var(--ink); }
+@media(max-width:620px) { .lup-header.public-header { padding-left:16px; padding-right:16px; } .lup-header.public-header .brand { font-size:25px; } }
+
+@media(max-width:900px) {
+    .lup-header.public-header .public-nav { display:none; }
+    .lup-header.public-header .lup-mobile-nav { display:block; }
 }

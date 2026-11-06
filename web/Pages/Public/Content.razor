@@ -1,0 +1,49 @@
+@page "/subjects"
+@page "/explore/modules"
+@page "/subjects/{SubjectId}"
+@page "/subjects/{SubjectId}/{LessonId}"
+@page "/explore/projects/{ProjectId}"
+@using Mercantec.Tech.Web.Public
+
+<PageTitle>@Title · LUP</PageTitle>
+@if (ProjectId is not null)
+{
+    @if (PublicCatalog.FindProject(ProjectId) is { } project)
+    {
+        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><a href="/explore/projects">Projekter</a><span>›</span><span aria-current="page">@project.Name</span></nav>
+        <header class="page-title"><div><span class="pill">DEMO</span><h1>@project.Name</h1><p>@project.Description</p></div></header>
+        <div class="public-content-columns"><article class="article"><img class="public-project-image" src="lup/assets/@project.Cover" alt="@project.Name" width="960" height="540" /><h2>Projektet</h2><ul class="goals">@foreach (var feature in project.Features) { <li>@feature</li> }</ul><p class="public-demo-note">Dette er et projekteksempel fra undervisningen.</p></article><aside class="panel"><h2>Teknologier og emner</h2><ul class="goals">@foreach (var technology in project.Technologies) { <li>@technology</li> }</ul><a href="@CourseTemplateCatalog.Find(project.CourseSlug)!.Path">Se forløbet</a></aside></div>
+    }
+    else { <section class="empty"><h1>Projektet findes ikke</h1><a href="/explore/projects">Alle offentlige projekter</a></section> }
+}
+else if (SubjectId is null)
+{
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><span aria-current="page">Fag og emner</span></nav>
+    <header class="page-title"><div><h1>Fag og emner</h1></div></header>
+    <div class="subject-grid">@foreach (var subject in PublicCatalog.Subjects) { <a class="subject-card" href="@subject.Path"><span class="subject-icon"><UiIcon Name="@subject.Icon" /></span><div><h2>@subject.Name</h2><p>@subject.Description</p></div></a> }</div>
+}
+else if (Subject is not null && (LessonId is null || Lesson is not null))
+{
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><a href="/subjects">Fag og emner</a><span>›</span>@if (Lesson is not null) { <a href="@Subject.Path">@Subject.Name</a><span>›</span> }<span aria-current="page">@(Lesson?.Name ?? Subject.Name)</span></nav>
+    <header class="page-title"><div><h1>@(Lesson?.Name ?? Subject.Name)</h1><p>@(Lesson?.Lead ?? Subject.Description)</p></div></header>
+    <div class="course-document"><aside class="course-toc"><h2>@Subject.Name</h2><a href="@Subject.Path">Om faget</a>@foreach (var lesson in PublicCatalog.Lessons(Subject)) { <a class="@(lesson.Id == LessonId ? "current" : null)" href="@(Subject.Path + "/" + lesson.Id)">@lesson.Name</a> }<a href="@Subject.Plan.Path">@Subject.Plan.Short · Undervisningsplan</a></aside><article class="article">
+        @if (Lesson is not null) { <h2>@Lesson.Name</h2><p>@Lesson.Body</p><h3>Mål</h3><p>@Lesson.Goal</p> }
+        else if (PublicCatalog.Lessons(Subject).Any()) { <h2>Emner</h2>@foreach (var lesson in PublicCatalog.Lessons(Subject)) { <a class="lesson-link" href="@(Subject.Path + "/" + lesson.Id)"><span><strong>@lesson.Name</strong><small>@lesson.Lead</small></span><UiIcon Name="arrow" /></a> } }
+        else { <h2>Indhold</h2>@foreach (var theme in Subject.Plan.Themes.Where(t => Subject.Id == "collaboration" ? t.Name == "Proces" : t.Name == "Programmering")) { <h3>@theme.Name</h3><p>@theme.Desc</p> }<h3>Mål</h3><ul class="goals">@foreach (var goal in Subject.Plan.Goals.Where(g => Subject.Id == "collaboration" ? g.Contains("SCRUM") || g.Contains("Git") || g.Contains("gruppe") : g.Contains("C#") || g.Contains("OOP"))) { <li>@goal</li> }</ul> }
+        <div class="actions"><a class="secondary" href="@(Subject.Plan.Path + (Subject.Plan.HasTheory ? "#theory" : "#content"))">Materialer i @Subject.Plan.Short</a></div>
+    </article></div>
+}
+else
+{
+    <section class="empty"><h1>Indholdet findes ikke</h1><a href="/subjects">Alle fag og emner</a></section>
+}
+
+@code {
+    [Parameter] public string? SubjectId { get; set; }
+    [Parameter] public string? LessonId { get; set; }
+    [Parameter] public string? ProjectId { get; set; }
+    private PublicSubject? Subject => PublicCatalog.FindSubject(SubjectId);
+    private LearningContent.Lesson? Lesson => Subject is null ? null : PublicCatalog.Lessons(Subject).FirstOrDefault(l => l.Id == LessonId);
+    private string Title => ProjectId is not null ? PublicCatalog.FindProject(ProjectId)?.Name ?? "Projektet findes ikke" : Lesson?.Name ?? Subject?.Name ?? "Fag og emner";
+    public override Task SetParametersAsync(ParameterView parameters) { SubjectId = null; LessonId = null; ProjectId = null; return base.SetParametersAsync(parameters); }
+}

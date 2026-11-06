@@ -1,23 +1,21 @@
 @page "/courses/template"
 @using Mercantec.Tech.Web.Courses
+@inject AuthService Auth
 
 <PageTitle>Undervisningsplaner · LUP</PageTitle>
 
 <header class="page-title">
     <div>
         <h1>Undervisningsplaner</h1>
-        <p>Samme skabelon til alle forløb — H1–H6 og valgfag. Åbn en plan, eller se den tomme skabelon.</p>
+        <p>Mål, indhold og materialer til hovedforløb og valgfag.</p>
     </div>
     <div class="actions">
-        <a class="action" href="/courses/template/template">Åbn skabelonen</a>
+        @if (Auth.IsAuthenticated) { <a class="secondary" href="/courses/template/template">Åbn skabelonen</a> }
         <a class="secondary" href="/lup">LUP-tidslinje</a>
     </div>
 </header>
 
-<section class="panel" style="margin-bottom:22px">
-    <h2>Skabelonens struktur</h2>
-    <p>Hver plan følger LUP-søjlerne: mål, indhold (med helhedsorientering og differentiering), ugeplan og evaluering. Nye kurser tilføjes som data — ikke som nye sidefiler.</p>
-</section>
+
 
 <div class="headrow"><h2>Hovedforløb</h2><span>H1–H6</span></div>
 <div class="tiles" style="margin-bottom:28px">

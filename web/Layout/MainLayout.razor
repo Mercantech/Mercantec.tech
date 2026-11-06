@@ -14,7 +14,7 @@
 <div class="lup">
     <div class="app">
         <ViewAsStudentBanner />
-        <header class="lup-header">
+        <header class="lup-header @(!Auth.IsAuthenticated ? "public-header" : null)">
             <a class="brand" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform">LUP</a>
             @if (Auth.IsAuthenticated)
             {
@@ -112,9 +112,12 @@
             }
             else
             {
-                <nav class="mainnav" aria-label="Hovednavigation">
-                    <NavLink href="/privacy" Match="NavLinkMatch.All">Privatliv</NavLink>
+                <nav class="mainnav public-nav" aria-label="Hovednavigation">
+                    <a class="@(PublicArea == "learning" ? "is-current" : null)" href="/" aria-current="@(PublicArea == "learning" ? "true" : null)">Undervisning</a>
+                    <NavLink href="/explore/projects">Projekter</NavLink>
+                    <NavLink href="/sources">Om LUP</NavLink>
                 </nav>
+                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/subjects">Fag og emner</a><a href="/explore/projects">Projekter</a><a href="/badges">Badges og krav</a><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
                     <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@ThemeCatalog.Find(_theme).Icon" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
@@ -126,7 +129,7 @@
         <footer class="footer">
             <span>LUP · Lokal UndervisningsPlatform</span>
             <div class="footer-links">
-                <a href="/lup/index.html" @onclick="OpenPlans" @onclick:preventDefault>Undervisningsplaner</a>
+                <a href="/courses/template">Undervisningsplaner</a>
                 <a href="/help">Hjælp</a>
                 <a href="/privacy">Privatliv</a>
                 <a href="/sources">Om LUP</a>
@@ -136,6 +139,7 @@
 </div>
 
 @code {
+    private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
     private string _theme = "light";
     private bool _loginBusy;
     private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
@@ -263,7 +267,7 @@
         try
         {
             _theme = await Js.InvokeAsync<string>("lupTheme.get");
-            await World.EnsureAsync();
+            if (Auth.IsAuthenticated) await World.EnsureAsync();
             var stored = await Js.InvokeAsync<string?>("lupCourse.get");
             if (stored is not null)
                 _demoCourse = stored;
@@ -369,8 +373,9 @@
         Nav.NavigateTo("/student");
     }
 
-    private void OnAuthChanged() => InvokeAsync(() =>
+    private void OnAuthChanged() => InvokeAsync(async () =>
     {
+        if (Auth.IsAuthenticated) await World.EnsureAsync();
         EnforceViewAsRoutes();
         StateHasChanged();
     });

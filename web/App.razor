@@ -1,9 +1,22 @@
 ﻿@inject AuthService Auth
+@inject NavigationManager Nav
+@implements IDisposable
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            @if (!Auth.IsInitialized)
+            {
+                <LayoutView Layout="@typeof(MainLayout)"><p role="status">Indlæser…</p></LayoutView>
+            }
+            else if (!Auth.IsAuthenticated && !PublicPageAccess.Allows(Nav.ToBaseRelativePath(Nav.Uri)))
+            {
+                <LayoutView Layout="@typeof(MainLayout)"><PageTitle>Log ind · LUP</PageTitle><header class="page-title"><div><h1>Log ind</h1><p>Denne side kræver login.</p></div></header><a class="action" href="/login">Log ind</a></LayoutView>
+            }
+            else
+            {
+                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+            }
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
     </Router>
@@ -11,6 +24,9 @@
 
 @code {
     private bool _initialized;
+    protected override void OnInitialized() => Auth.AuthStateChanged += OnAuth;
+    private void OnAuth() => InvokeAsync(StateHasChanged);
+    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

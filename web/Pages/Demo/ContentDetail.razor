@@ -7,6 +7,7 @@
 @implements IDisposable
 <PageTitle>@Title · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
+else if (!Auth.IsAuthenticated && BadgeId is not null) { <PublicBadgeRequirements BadgeId="@BadgeId" /> }
 else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
 else if (Quest is not null) {
     <CourseNavigation Course="Course!" Current="@Quest.Name" />
@@ -33,7 +34,7 @@ else { <div class="empty"><h1>Siden findes ikke</h1><a href="/learning">Tilbage 
     private DemoCatalog.Badge? Badge => DemoCatalog.Badges.FirstOrDefault(b => b.Id == BadgeId);
     private string Title => Quest?.Name ?? Badge?.Name ?? "Indhold";
     public override Task SetParametersAsync(ParameterView parameters) { QuestId = null; BadgeId = null; return base.SetParametersAsync(parameters); }
-    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; World.Changed += OnAuth; await World.EnsureAsync(); }
+    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; World.Changed += OnAuth; if (Auth.IsAuthenticated) await World.EnsureAsync(); }
     private void OnAuth() => InvokeAsync(StateHasChanged);
     public void Dispose() { Auth.AuthStateChanged -= OnAuth; World.Changed -= OnAuth; }
 }

@@ -1,87 +1,58 @@
-﻿@page "/"
+@page "/"
+@using Mercantec.Tech.Web.Public
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
 @implements IDisposable
 
-<PageTitle>Mercantec.tech</PageTitle>
-
-@if (!Auth.IsInitialized)
+<PageTitle>LUP · Lokal undervisningsplatform</PageTitle>
+@if (Auth.IsAuthenticated)
 {
-    <p>Indlæser…</p>
-}
-else if (Auth.IsAuthenticated)
-{
-    <p>Sender dig til dit dashboard…</p>
+    <p role="status">Åbner dit overblik…</p>
 }
 else
 {
-    <header class="page-title">
-        <div>
-            <h1>Et sted at lære, bygge og vise det frem.</h1>
-            <p>Mercantec.tech samler undervisning, projekter og faglig progression.</p>
-        </div>
-    </header>
-    <section class="hero">
-        <div>
-            <h2>Fra det første forsøg til noget, der virker.</h2>
-            <p>Find dine forløb og det næste skridt i dit arbejde.</p>
-            @if (_error is not null)
-            {
-                <p class="callout">@_error</p>
-            }
-            <button type="button" class="action" @onclick="StartLogin" disabled="@_busy">@(_busy ? "Sender…" : "Log ind")</button>
-        </div>
-        <div class="scene" role="img" aria-label="Illustration af en lille spilbane">
-            <div class="island">
-                <div class="ground-left"></div>
-                <div class="ground-right"></div>
-                <div class="ground"></div>
-                <div class="cube"><span></span></div>
-                <div class="cube b"><span></span></div>
-                <div class="cube c"><span></span></div>
-                <div class="cube player"><span></span></div>
+    <div class="public-home">
+        <header class="public-intro">
+            <div><h1>Lokal undervisningsplatform</h1><p>Datatekniker med speciale i programmering på Mercantec.</p></div>
+            <form class="public-search" action="/search" method="get" role="search" @onsubmit="Search" @onsubmit:preventDefault>
+                <label class="visually-hidden" for="home-search">Søg i materialer og projekter</label>
+                <input id="home-search" name="q" type="search" @bind="_query" @bind:event="oninput" placeholder="Søg i materialer og projekter" maxlength="200" />
+                <button type="submit" aria-label="Søg"><UiIcon Name="search" /></button>
+            </form>
+        </header>
+        <section aria-labelledby="public-courses-title">
+            <div class="public-section-title"><h2 id="public-courses-title">Forløb</h2><a href="/courses/template">Alle forløb</a></div>
+            <div class="public-course-browser">
+                <div class="public-course-list" aria-label="Vælg forløb">
+                    @foreach (var course in PublicCatalog.FeaturedCourses)
+                    {
+                        <button type="button" class="public-course-option" aria-pressed="@(course.Slug == _selectedSlug ? "true" : "false")" aria-controls="public-course-preview" @onclick="() => _selectedSlug = course.Slug">
+                            <span class="public-course-icon"><UiIcon Name="@course.Icon" /></span><span><strong>@course.Name</strong><small>@course.Subject</small></span><span class="public-chevron" aria-hidden="true">›</span>
+                        </button>
+                    }
+                </div>
+                <div class="public-course-preview" id="public-course-preview" aria-live="polite">
+                    <div class="public-preview-heading"><div><h3>@SelectedCourse.Name · @SelectedCourse.Subject</h3><p>@SelectedCourse.PreviewText</p></div><a class="action" href="@SelectedCourse.Plan.Path">Se forløb</a></div>
+                    <a class="public-course-cover" href="@SelectedCourse.Plan.Path" aria-label="@($"Åbn {SelectedCourse.Name}")"><img src="lup/assets/@SelectedCourse.Cover" alt="@SelectedCourse.Subject" width="960" height="380" fetchpriority="high" /></a>
+                    <nav class="public-preview-links" aria-label="Indhold i forløbet"><a href="@(SelectedCourse.Plan.Path + (SelectedCourse.Plan.HasTheory ? "#theory" : "#content"))">Materialer</a><a href="@SelectedCourse.SubjectPath">Fag og emner</a><a href="@SelectedCourse.Plan.Path">Undervisningsplan</a></nav>
+                </div>
             </div>
+        </section>
+        <div class="public-lower">
+            <section aria-labelledby="public-projects-title"><div class="public-section-title"><h2 id="public-projects-title">Projekter</h2><a href="/explore/projects">Se alle</a></div><PublicProjectGallery Compact="true" /></section>
+            <section aria-labelledby="public-subjects-title"><div class="public-section-title"><h2 id="public-subjects-title">Fag og emner</h2></div><nav class="public-subjects" aria-label="Fag og emner">@foreach (var subject in PublicCatalog.Subjects) { <a href="@subject.Path"><UiIcon Name="@subject.Icon" /><span>@subject.Name</span><span class="public-chevron" aria-hidden="true">›</span></a> }</nav></section>
         </div>
-    </section>
+        <nav class="public-resources" aria-label="Undervisningsplaner og badgekrav"><a href="/courses/template"><UiIcon Name="book" /><span><strong>Undervisningsplaner</strong><small>Hovedforløb og målpinde</small></span><span class="public-chevron" aria-hidden="true">›</span></a><a href="/badges"><UiIcon Name="star" /><strong>Badges og krav</strong><span class="public-chevron" aria-hidden="true">›</span></a></nav>
+    </div>
 }
-
 @code {
-    private bool _busy;
-    private string? _error;
-
-    protected override void OnInitialized()
-    {
-        Auth.AuthStateChanged += OnAuth;
-        RedirectIfAuthenticated();
-    }
-
-    private void RedirectIfAuthenticated()
-    {
-        if (Auth.IsInitialized && Auth.IsAuthenticated)
-            Nav.NavigateTo(Redirect.PostLoginPath());
-    }
-
-    private async Task StartLogin()
-    {
-        _busy = true;
-        _error = null;
-        try
-        {
-            await Auth.BeginLoginAsync();
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-            _busy = false;
-        }
-    }
-
-    private void OnAuth() => InvokeAsync(() =>
-    {
-        RedirectIfAuthenticated();
-        StateHasChanged();
-    });
-
+    private string _selectedSlug = "h3";
+    private string _query = "";
+    private void Search() => Nav.NavigateTo("/search?q=" + Uri.EscapeDataString(_query.Trim()));
+    private PublicCourse SelectedCourse => PublicCatalog.FeaturedCourses.First(c => c.Slug == _selectedSlug);
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; RedirectIfAuthenticated(); }
+    private void RedirectIfAuthenticated() { if (Auth.IsInitialized && Auth.IsAuthenticated) Nav.NavigateTo(Redirect.PostLoginPath()); }
+    private void OnAuth() => InvokeAsync(() => { RedirectIfAuthenticated(); StateHasChanged(); });
     public void Dispose() => Auth.AuthStateChanged -= OnAuth;
 }

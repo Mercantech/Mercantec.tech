@@ -1,0 +1,12 @@
+@using Mercantec.Tech.Web.Public
+<div class="public-project-gallery @(Compact ? "compact" : null)">
+    @foreach (var project in PublicCatalog.Projects)
+    {
+        <article class="public-project-card">
+            <a class="project-cover" href="@project.Path" aria-label="@($"Se {project.Name}")"><img src="lup/assets/@project.Cover" alt="@project.Name" width="640" height="360" loading="lazy" /><span class="demo-label">DEMO</span></a>
+            <h3><a href="@project.Path">@project.Name</a></h3><p class="project-category">@project.Category</p>
+            @if (!Compact) { <p class="project-description">@project.Description</p><a class="project-open" href="@project.Path">Se projekt</a> }
+        </article>
+    }
+</div>
+@code { [Parameter] public bool Compact { get; set; } }

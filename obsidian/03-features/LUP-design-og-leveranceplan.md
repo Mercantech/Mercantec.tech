@@ -95,3 +95,8 @@ Ingen prototype- eller demobannere i produktfladen. Dokumentationen skelner stad
 V1-issues #8, #11, #12 og NTH #24–#26 har fået referencer til de relevante opfølgninger; deres status og oprindelige acceptkriterier er bevaret.
 
 Project #9-tilknytning/status for de nye issues er ikke verificeret: det tilgængelige GitHub-login mangler Projects-scopes. Eksisterende boardstatus er ikke ændret af denne opdatering.
+
+
+## Offentlig forside · 6. november 2026
+
+Den nye Blazor-forside giver gæster adgang til undervisningsplaner, fag/emner, udvalgte DEMO-projektpræsentationer og badgekrav. Personlige sider og holdindhold kræver fortsat login. Offentlig søgning bruger et særskilt katalog uden elevdata. Publicering til et hold udvider ikke adgangen til internettet. Se [[Offentlig-forside]].
