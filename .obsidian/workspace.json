@@ -11,47 +11,13 @@
             "id": "9d227a11061cae49",
             "type": "leaf",
             "state": {
-              "type": "canvas",
-              "state": {
-                "file": "obsidian/06-badges/Unavngivet.canvas",
-                "viewState": {
-                  "x": 0,
-                  "y": 0,
-                  "zoom": 0
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "Unavngivet"
-            }
-          },
-          {
-            "id": "5f1058d4b86d8c71",
-            "type": "leaf",
-            "state": {
-              "type": "excalidraw",
-              "state": {
-                "file": "obsidian/06-badges/Drawing 2026-10-30 11.40.13.excalidraw.md"
-              },
-              "icon": "excalidraw-icon",
-              "title": "Drawing 2026-10-30 11.40.13.excalidraw"
-            }
-          },
-          {
-            "id": "1c97f97847d1a50c",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "obsidian/06-badges/Badge-oversigt.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Badge-oversigt"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Grafvisning"
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -219,47 +185,54 @@
       "obsidian-excalidraw-plugin:New drawing": false
     }
   },
-  "active": "1c97f97847d1a50c",
+  "active": "9d227a11061cae49",
   "lastOpenFiles": [
-    "web/bin/Debug/net10.0/Mercantec.Tech.Web.pdb",
-    "web/obj/Debug/net10.0/ref/Mercantec.Tech.Web.dll",
-    "web/bin/Debug/net10.0/Mercantec.Tech.Web.dll",
-    "web/bin/Debug/net10.0/Mercantec.Tech.Web.staticwebassets.endpoints.json",
-    "web/bin/Debug/net10.0/Mercantec.Tech.Web.staticwebassets.runtime.json",
-    "web/bin/Debug/net10.0/wwwroot/service-worker-assets.js.gz",
-    "web/bin/Debug/net10.0/wwwroot/_framework/Mercantec.Tech.Web.dqyt08fdyw.pdb.gz",
-    "web/bin/Debug/net10.0/wwwroot/_framework/dotnet.mo7ztafyp6.js.gz",
-    "web/bin/Debug/net10.0/wwwroot/service-worker.js.gz",
-    "web/bin/Debug/net10.0/wwwroot/_framework/Mercantec.Tech.Web.z5lojeq3xz.wasm.gz",
-    "web/bin/Debug/net10.0/wwwroot/service-worker-assets.js",
-    "obsidian/04-beslutninger/ADR-003-lectio-integration.md",
-    "obsidian/04-beslutninger/ADR-002-gdpr-principper.md",
-    "obsidian/03-features/GDPR-og-rettigheder.md",
-    "obsidian/07-skattekisten/Levels-unlocker-ting.md",
-    "obsidian/07-skattekisten/Lejlighed-hus-moebler.md",
-    "obsidian/07-skattekisten/The-Farmer-Was-Replaced.md",
-    "obsidian/07-skattekisten/Skattekisten.md",
-    "docs/skattekisten/levels-unlocker-ting.md",
-    "docs/skattekisten/lejlighed-hus-moebler.md",
-    "docs/skattekisten/the-farmer-was-replaced.md",
-    "docs/skattekisten/README.md",
-    "obsidian/04-beslutninger/ADR-001-apex-domæne.md",
-    "obsidian/02-ai-workflows/Dokploy-drift.md",
-    "obsidian/02-ai-workflows/Auth-Mercantec.md",
-    "obsidian/02-ai-workflows/Husregler-fra-Cursor.md",
+    "editor/node_modules/@tiptap/extension-code/src/index.ts",
+    "editor/node_modules/@tiptap/extension-code/src/code.ts",
+    "editor/node_modules/@tiptap/extension-code/src/code.test.ts",
+    "editor/node_modules/@tiptap/extension-code/src",
+    "editor/node_modules/@tiptap/extension-strike/src/strike.ts",
+    "editor/node_modules/@tiptap/extension-strike/src/index.ts",
+    "editor/node_modules/@tiptap/extension-strike/src",
+    "editor/editor/node_modules/use-sync-external-store/shim/with-selector.js",
+    "editor/editor/node_modules/use-sync-external-store/shim/index.native.js",
+    "editor/editor/node_modules/use-sync-external-store/shim/index.js",
+    "editor/editor/node_modules/use-sync-external-store/shim",
+    "editor/node_modules/is-alphabetical/readme.md",
+    "editor/node_modules/is-alphanumerical/readme.md",
+    "editor/node_modules/unist-util-visit-parents/readme.md",
+    "editor/node_modules/unist-util-visit/readme.md",
+    "editor/node_modules/regex-utilities/README.md",
+    "editor/node_modules/regex-recursion/README.md",
+    "editor/node_modules/marked/LICENSE.md",
+    "editor/node_modules/jsdom/lib/jsdom/living/css/README.md",
+    "editor/node_modules/jsdom/README.md",
+    "editor/node_modules/decimal.js/README.md",
+    "editor/node_modules/decimal.js/LICENCE.md",
+    "editor/node_modules/undici/lib/web/subresource-integrity/Readme.md",
+    "editor/node_modules/undici/docs/docs/best-practices/writing-tests.md",
+    "editor/node_modules/undici/docs/docs/best-practices/undici-vs-builtin-fetch.md",
+    "editor/node_modules/undici/docs/docs/best-practices/mocking-request.md",
+    "editor/node_modules/undici/docs/docs/best-practices/proxy.md",
+    "editor/node_modules/undici/docs/docs/best-practices/migrating-from-v7-to-v8.md",
+    "editor/node_modules/undici/docs/docs/best-practices/client-certificate.md",
+    "editor/node_modules/undici/docs/docs/best-practices/crawling.md",
+    "editor/node_modules/undici/docs/docs/api/WebSocket.md",
+    "editor/node_modules/undici/docs/docs/api/Util.md",
+    "editor/node_modules/undici/docs/docs/api/Socks5ProxyAgent.md",
+    "editor/node_modules/undici/docs/docs/api/SnapshotAgent.md",
+    "editor/node_modules/undici/docs/docs/api/RoundRobinPool.md",
+    "editor/node_modules/undici/docs/docs/api/RetryHandler.md",
+    "editor/node_modules/playwright-core/lib/server/chromium/appIcon.png",
+    "editor/node_modules/playwright-core/lib/tools/dashboard/appIcon.png",
+    "editor/node_modules/cytoscape-fcose/node_modules/layout-base/layout-schema.png",
+    "editor/node_modules/cytoscape-fcose/demo/incrementalConstraints.gif",
+    "editor/node_modules/cytoscape-fcose/demo/demo.gif",
+    "editor/node_modules/layout-base/layout-schema.png",
+    "web/wwwroot/images/newyear/lup-fireworks-player.png",
+    "obsidian/06-badges/Unavngivet.canvas",
     "web/wwwroot/icon-512.png",
     "web/wwwroot/icon-192.png",
-    "web/wwwroot/favicon.png",
-    "obsidian/06-badges/Badge-statistik.md",
-    "obsidian/06-badges/katalog/Fancy-Friday.md",
-    "obsidian/06-badges/katalog/Hawaii-skjorte.md",
-    "obsidian/06-badges/Drawing 2026-10-30 11.40.13.excalidraw.md",
-    "obsidian/06-badges/Unavngivet.canvas",
-    "obsidian/06-badges/Badge-oversigt.md",
-    "obsidian/03-features/Sprints.md",
-    "obsidian/06-badges/katalog/_emne-skabelon-rækker.md",
-    "obsidian/06-badges/Emne-badges.md",
-    "obsidian/06-badges/katalog/_index.md",
-    "obsidian/06-badges/design/README.md"
+    "web/wwwroot/favicon.png"
   ]
 }
