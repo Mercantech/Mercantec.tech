@@ -9,7 +9,7 @@
 
 <NavigationLock ConfirmExternalNavigation="_dirty" OnBeforeInternalNavigation="BeforeNavigation" />
 <section class="hold-quests" aria-label="Holdets quests">
-    <div class="hq-heading"><div><h2>Quests og afleveringer</h2><p>Planlæg hovedopgaver, daglige øvelser og ekstra udfordringer.</p></div>
+    <div class="hq-heading"><div><h2>Quests og afleveringer</h2><p>@(_canManage ? "Planlæg hovedopgaver, daglige øvelser og ekstra udfordringer." : ViewAs.IsActive ? "Forhåndsvisning af holdets udgivne quests. Åbn en quest for at se elevens opgavevisning; du kan ikke aflevere som eleven." : "Åbn en quest for at læse opgaven, aflevere dit arbejde og se feedback.")</p></div>
         @if (_canManage) { <button type="button" class="action" @onclick="New" disabled="@_busy"><UiIcon Name="plus" /> Opret quest</button> }
     </div>
     @if (_error is not null) { <p class="hq-error" role="alert">@_error</p> }
@@ -52,14 +52,14 @@
                 <button type="button" class="secondary @(_filter == filter ? "active" : "")" aria-pressed="@(_filter == filter)" @onclick="() => _filter = filter">@(filter == "all" ? "Alle quests" : HoldTime.QuestKind(filter)) <span>@_quests.Count(q => filter == "all" || q.Kind == filter)</span></button>
             }
         </div>
-        @if (!Filtered.Any()) { <div class="hq-empty"><UiIcon Name="target" /><h3>@(_quests.Length == 0 ? "Plads til holdets næste udfordring" : "Ingen quests af denne type")</h3><p>@(_canManage ? "Opret en quest, og vælg om eleverne skal aflevere alene eller i grupper." : "Din underviser har endnu ikke udgivet quests her.")</p></div> }
+        @if (_error is null && !Filtered.Any()) { <div class="hq-empty"><UiIcon Name="target" /><h3>@(_quests.Length == 0 ? _canManage ? "Plads til holdets næste udfordring" : "Ingen quests endnu" : "Ingen quests af denne type")</h3><p>@(_quests.Length > 0 ? "Vælg Alle quests for at se de øvrige opgaver." : _canManage ? "Opret en quest, og vælg om eleverne skal aflevere alene eller i grupper." : "Din underviser har endnu ikke udgivet quests til dig på holdet.")</p></div> }
         <div class="hq-list">
             @foreach (var quest in Filtered)
             {
                 <article class="hq-quest @quest.Kind">
                     <span class="hq-mark"><UiIcon Name="@(quest.Kind == "main" ? "target" : quest.Kind == "daily" ? "loop" : "star")" /></span>
                     <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Frivillig")</span>@if (quest.OccurrenceDate is DateOnly day) { <span>@day.ToString("dd.MM.yyyy")</span> }@if (quest.Audience?.Mode is "students" or "groups") { <span>Målrettet</span> }@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.GroupSetId is Guid setId) { <span>· @_sets.FirstOrDefault(s => s.Id == setId)?.Name</span> } @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow && quest.Required ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
-                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id">@(_canManage ? "Se afleveringer" : "Åbn quest")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => Copy(quest)" disabled="@_busy">Kopiér som ny</button> }</div>
+                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id" aria-label="@($"Åbn {quest.Title}")">@(_canManage ? "Se afleveringer" : ViewAs.IsActive ? "Åbn quest" : "Opgave og aflevering")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => Copy(quest)" disabled="@_busy">Kopiér som ny</button> }</div>
                 </article>
             }
         </div>

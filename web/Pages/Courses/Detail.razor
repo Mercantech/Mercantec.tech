@@ -17,10 +17,10 @@ else if (_workspace is null)
 else
 {
     <div class="hold-workspace">
-        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Forløb og hold</a><span aria-hidden="true">/</span><span>@_workspace.Name</span></nav>
+        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">@(CanManage ? "Forløb og hold" : "Mine hold")</a><span aria-hidden="true">/</span><span>@_workspace.Name</span></nav>
         <header class="hold-header">
             <div class="hold-identity"><span class="hold-emblem"><UiIcon Name="terminal" /></span><div><h1>@_workspace.Name</h1><p>@(CanManage ? "Din kommandocentral for undervisningen" : "Dit fælles sted for undervisningen")</p></div></div>
-            <div class="hold-header-actions"><span class="hold-member-count"><UiIcon Name="people" /> @_workspace.MemberCount elever</span><a class="@(CanManage ? "action" : "secondary")" href="@EditorHref"><UiIcon Name="book" />@(CanManage ? "Åbn forløbseditor" : "Åbn undervisningen")</a></div>
+            <div class="hold-header-actions"><span class="hold-member-count"><UiIcon Name="people" /> @_workspace.MemberCount elever</span><a class="action" href="@(CanManage ? EditorHref : ViewHref("content"))"><UiIcon Name="book" />@(CanManage ? "Åbn forløbseditor" : "Find mine forløb")</a></div>
         </header>
         @if (_error is not null) { <p class="hold-error" role="alert">@_error</p> }
         @if (_notice is not null) { <p class="hold-notice" role="status">@_notice</p> }
@@ -50,7 +50,7 @@ else
                             <a class="hold-editor-entry" href="@ViewHref("content")"><span class="hold-tool-icon"><UiIcon Name="book" /></span><div><h3>@(CanManage ? "Saml undervisningen i et forløb" : "Find dit næste forløb")</h3><p>@(CanManage ? "Giv forløbet en periode og læringsmål. Saml sider, quests og materialer ét sted." : "Åbn de forløb og materialer, din underviser har udgivet.")</p><span class="hold-entry-link">@(CanManage ? "Opret og organisér forløb" : "Åbn holdets forløb") <UiIcon Name="arrow" /></span></div></a>
                         }
                         <div class="hold-tool-list">
-                            <a href="@ViewHref("quests", CanManage)"><span class="hold-tool-icon quest"><UiIcon Name="target" /></span><div><h3>@(CanManage ? "Opret en quest" : "Find dine quests")</h3><p>Main, daily og side quests med afleveringer og feedback.</p></div><UiIcon Name="arrow" /></a>
+                            <a href="@ViewHref("quests", CanManage)"><span class="hold-tool-icon quest"><UiIcon Name="target" /></span><div><h3>@(CanManage ? "Opret en quest" : "Quests og afleveringer")</h3><p>@(CanManage ? "Main, daily og side quests med afleveringer og feedback." : "Læs opgaverne, aflever dit arbejde, og se din feedback.")</p></div><UiIcon Name="arrow" /></a>
                             <a href="@ViewHref("calendar", CanManage)"><span class="hold-tool-icon calendar"><UiIcon Name="calendar" /></span><div><h3>@(CanManage ? "Planlæg en begivenhed" : "Se holdets kalender")</h3><p>Undervisning, milepæle og afleveringsfrister samlet.</p></div><UiIcon Name="arrow" /></a>
                             <a href="@ViewHref("groups")"><span class="hold-tool-icon groups"><UiIcon Name="people" /></span><div><h3>@(CanManage ? "Saml eleverne i grupper" : "Mød dine grupper")</h3><p>@(CanManage ? "Vælg selv, eller lad grupperouletten fordele eleverne." : "Se, hvem du arbejder sammen med i dine grupper.")</p></div><UiIcon Name="arrow" /></a>
                         </div>

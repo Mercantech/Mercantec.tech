@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
-<PageTitle>Forløb</PageTitle>
+<PageTitle>@(Redirect.ShowsTeacherChrome ? "Forløb og hold" : "Mine hold") · LUP</PageTitle>
 
 @if (!Auth.IsInitialized)
 {
@@ -20,24 +20,28 @@ else if (!Auth.IsAuthenticated)
 }
 else if (!Redirect.ShowsTeacherChrome)
 {
-    <header class="page-title"><div><h1>Mine forløb</h1><p>Hold, du er medlem af. Administration ligger hos underviseren.</p></div><a class="secondary" href="/courses/template">Undervisningsplaner</a></header>
+    <header class="page-title"><div><h1>Mine hold</h1><p>Find dit holds forløb, quests, afleveringer og grupper.</p></div></header>
     @if (_loading)
     {
-        <p>Henter…</p>
+        <p role="status">Henter dine hold…</p>
+    }
+    else if (_error is not null)
+    {
+        <div class="empty"><h2>Dine hold kunne ikke hentes</h2><p role="alert">@_error</p><button type="button" class="secondary" @onclick="LoadAsync">Prøv igen</button></div>
     }
     else if (_memberships.Count == 0)
     {
-        <div class="empty"><h2>Ingen hold endnu</h2><p>Når du bliver tilføjet, vises forløbet her.</p></div>
+        <div class="empty"><h2>Ingen hold endnu</h2><p>@(ViewAs.IsActive && ViewAs.AuthSub is null ? "Denne elevprofil har endnu ingen tilknyttet LUP-konto. Åbn et hold med din underviseradgang for at se elevvisningen." : "Når en underviser tilføjer dig til et hold, finder du det her. Kontakt underviseren, hvis dit hold mangler.")</p></div>
     }
     else
     {
         <div class="panel">
             @foreach (var m in _memberships)
             {
-                <div class="row">
+                <div class="row student-course-row">
                     <span class="mark"><span class="mark-glyph">@(string.IsNullOrEmpty(m.ForloebName) ? "?" : m.ForloebName[..1])</span></span>
-                    <div><h3>@m.ForloebName</h3><p>@m.HoldName · @m.Source</p></div>
-                    <a class="secondary" href="@($"/courses/{m.ForloebId}")">Åbn</a>
+                    <div class="student-course-copy"><h2><a href="/courses/@m.ForloebId">@m.ForloebName</a></h2>@if (m.HoldName != m.ForloebName) { <p>@m.HoldName</p> }<nav class="student-course-links" aria-label="@($"Genveje til {m.ForloebName}")"><a href="/courses/@m.ForloebId?view=content">Forløb</a><a href="/courses/@m.ForloebId?view=quests">Quests og afleveringer</a><a href="/courses/@m.ForloebId?view=groups">Grupper</a></nav></div>
+                    <a class="secondary" href="@($"/courses/{m.ForloebId}")" aria-label="@($"Åbn holdet {m.ForloebName}")">Åbn hold</a>
                 </div>
             }
         </div>
@@ -122,6 +126,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuth;
+        ViewAs.Changed += OnAuth;
         await LoadAsync();
     }
 
@@ -206,9 +211,9 @@ else
             var rows = await Http.GetFromJsonAsync<List<MembershipCard>>(url) ?? [];
             _memberships.AddRange(rows);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
         {
-            _error = ex.Message;
+            _error = "Kontrollér forbindelsen, og prøv igen. Hvis holdet stadig mangler, kan din underviser kontrollere din tilknytning.";
         }
         finally
         {
@@ -254,7 +259,7 @@ else
         StateHasChanged();
     });
 
-    public void Dispose() => Auth.AuthStateChanged -= OnAuth;
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; ViewAs.Changed -= OnAuth; }
 
     private sealed record MembershipCard(Guid Id, Guid HoldId, string HoldName, Guid ForloebId, string ForloebName, string Source, DateTimeOffset CreatedAtUtc);
 

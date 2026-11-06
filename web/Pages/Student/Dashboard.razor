@@ -26,9 +26,16 @@ else
         <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(firstName) ? "" : $", {firstName}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div><a class="secondary student-activities-link" href="/activities"><UiIcon Name="chart" />Mine aktiviteter</a></header>
         <div class="cols student-dashboard">
             <div class="student-main">
+                <section class="panel student-holds" aria-labelledby="student-holds-title">
+                    <div class="student-panel-head"><div><h2 id="student-holds-title">Mine hold</h2><p>Din undervisning, dine quests og dine grupper samlet.</p></div><a class="student-panel-link" href="/courses">Se alle hold <UiIcon Name="arrow" /></a></div>
+                    @if (_membershipError is not null) { <p class="student-inline-note" role="alert">Dine hold kunne ikke hentes.</p><button type="button" class="student-retry" @onclick="LoadMembershipsAsync">Prøv igen</button> }
+                    else if (_memberships is null) { <p class="student-inline-note" role="status">Henter dine hold…</p> }
+                    else if (_memberships.Count == 0) { <p class="student-inline-note">@(ViewAs.IsActive && ViewAs.AuthSub is null ? "Denne elevprofil har endnu ingen tilknyttet LUP-konto. Åbn et hold med din underviseradgang for at se elevvisningen." : "Når en underviser tilføjer dig til et hold, finder du det her. Kontakt underviseren, hvis dit hold mangler.")</p> }
+                    else { @foreach (var m in _memberships) { <div class="row student-hold-row"><span class="mark"><UiIcon Name="book" /></span><div><h3><a href="/courses/@m.ForloebId">@m.ForloebName</a></h3>@if (m.HoldName != m.ForloebName) { <p>@m.HoldName</p> }<nav class="student-hold-links" aria-label="@($"Genveje til {m.ForloebName}")"><a href="/courses/@m.ForloebId?view=content">Forløb</a><a href="/courses/@m.ForloebId?view=quests">Quests og afleveringer</a><a href="/courses/@m.ForloebId?view=groups">Grupper</a></nav></div><a class="secondary" href="/courses/@m.ForloebId" aria-label="@($"Åbn holdet {m.ForloebName}")">Åbn hold</a></div> } }
+                </section>
                 @if (ActiveCourse is not null)
                 {
-                    <section class="v3-next" aria-labelledby="student-course-title"><div class="v3-next-copy"><span class="pill">@ActiveCourse.Name</span><h2 id="student-course-title">@(ActiveCourse.Id == "h3" ? "Fra sensor til noget, der virker." : "Byg et spil. Forstå valgene.")</h2><p>@ActiveCourse.Desc</p><div class="actions"><a class="action" href="/learning/@ActiveCourse.Id">Åbn mit forløb <UiIcon Name="arrow" /></a></div><div class="v3-quick-links"><a href="/calendar">Min uge</a><a href="/quests">Quests og afleveringer</a><a href="/journal">Min logbog</a></div></div><img src="lup/assets/@LearningContent.Cover(ActiveCourse.Id)" alt="@(ActiveCourse.Id == "h3" ? "Elektronik og enheder fra H3-forløbet" : "Spilverden fra Game Design-forløbet")" /></section>
+                    <section class="v3-next" aria-labelledby="student-course-title"><div class="v3-next-copy"><span class="pill">Eksempelforløb · @ActiveCourse.Name</span><h2 id="student-course-title">@(ActiveCourse.Id == "h3" ? "Fra sensor til noget, der virker." : "Byg et spil. Forstå valgene.")</h2><p>@ActiveCourse.Desc</p><div class="actions"><a class="action" href="/learning/@ActiveCourse.Id">Udforsk eksempelforløb <UiIcon Name="arrow" /></a></div><div class="v3-quick-links"><a href="/calendar">Eksempeluge</a><a href="/afleveringer">Quests og afleveringer</a><a href="/journal">Eksempellogbog</a></div></div><img src="lup/assets/@LearningContent.Cover(ActiveCourse.Id)" alt="@(ActiveCourse.Id == "h3" ? "Elektronik og enheder fra H3-forløbet" : "Spilverden fra Game Design-forløbet")" /></section>
                 }
                 else
                 {
@@ -61,14 +68,6 @@ else
                             </div>
                         </div>
                     }
-                </section>
-
-                <section class="panel student-holds" aria-labelledby="student-holds-title">
-                    <div class="student-panel-head"><div><h2 id="student-holds-title">Mine hold</h2><p>Forløb du er medlem af på LUP.</p></div></div>
-                    @if (_membershipError is not null) { <p class="student-inline-note" role="status">Dine hold kunne ikke hentes.</p><button type="button" class="student-retry" @onclick="LoadMembershipsAsync">Prøv igen</button> }
-                    else if (_memberships is null) { <p class="student-inline-note" role="status">Henter dine hold…</p> }
-                    else if (_memberships.Count == 0) { <p class="student-inline-note">Når en underviser tilføjer dig til et hold, finder du det her.</p> }
-                    else { @foreach (var m in _memberships) { <div class="row student-hold-row"><span class="mark"><UiIcon Name="book" /></span><div><h3><a href="/courses/@m.ForloebId">@m.ForloebName</a></h3><p>@m.HoldName</p></div><a class="secondary" href="/courses/@m.ForloebId">Åbn</a></div> } }
                 </section>
 
                 <details class="panel student-timeline-panel">

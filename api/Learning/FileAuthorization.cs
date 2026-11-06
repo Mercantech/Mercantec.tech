@@ -23,12 +23,17 @@ public sealed class FileAuthorization(AppDbContext db)
             && (managedHolds.Contains(m.HoldId) || m.Published
                 && db.Memberships.Any(x => x.HoldId == m.HoldId && x.UserSub == sub)), ct)) return true;
         // Current group members can share draft files, but historical files follow the submitted participants.
-        if (await db.QuestSubmissions.AnyAsync(s => (s.State == "draft" || s.State == "changes-requested") && s.DraftFiles.Any(f => f.FileAssetId == file.Id)
+        var sharedDrafts = await db.QuestSubmissions.AsNoTracking().Where(s => (s.State == "draft" || s.State == "changes-requested") && s.DraftFiles.Any(f => f.FileAssetId == file.Id)
             && (s.Revisions.Count == 0 || s.Revisions.OrderByDescending(r => r.Number).Take(1)
                 .Any(r => r.Participants.Any(p => p.UserSub == sub || p.UserSub == null
                     && db.Memberships.Any(m => m.Id == p.MembershipId && m.UserSub == sub))))
             && s.GroupId != null && db.LearningGroupMembers.Any(g => g.GroupId == s.GroupId
-                && g.Membership.UserSub == sub && g.Membership.HoldId == s.Quest.HoldId), ct)) return true;
+                && g.Membership.UserSub == sub && g.Membership.HoldId == s.Quest.HoldId))
+            .Select(s => new { s.Quest, s.GroupId }).ToArrayAsync(ct);
+        var audience = new QuestAudienceAccess(db);
+        foreach (var draft in sharedDrafts)
+            // Group membership must not bypass the audience check that protects the draft itself.
+            if (await audience.CanParticipateAsync(draft.Quest, sub, draft.GroupId, ct)) return true;
         return await db.SubmissionRevisions.AnyAsync(r =>
             (r.Files.Any(f => f.FileAssetId == file.Id)
              || r.Feedback.Any(f => f.Attachments.Any(a => a.FileAssetId == file.Id)))

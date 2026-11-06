@@ -13,6 +13,7 @@
 .student-panel-head p { color:var(--muted); font-size:12px; }
 .student-panel-link { display:inline-flex; align-items:center; gap:6px; font-size:11px; }
 .student-panel-link .ui-icon { width:15px; height:15px; }
+.student-holds{margin-bottom:24px}.student-hold-links{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;margin-top:6px}.student-hold-links a{padding:5px 0}.student-hold-row>div{min-width:0}.student-hold-row h3{overflow-wrap:anywhere}.student-hold-row a:focus-visible{outline:3px solid var(--blue);outline-offset:4px}@media(max-width:580px){.student-hold-row{flex-wrap:wrap;gap:12px}.student-hold-row>div{min-width:calc(100% - 70px)}.student-hold-row>.secondary{margin-left:58px}}
 .student-lectio-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:25px; }
 .student-lectio-profile { min-width:0; }
 .student-status-caption { display:block; font-size:11px; color:var(--muted); margin-bottom:8px; }

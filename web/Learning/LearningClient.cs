@@ -86,6 +86,11 @@ public sealed class LearningClient(HttpClient http)
             };
             message = error?.Error switch
             {
+                "empty_submission" => "Skriv en tekst, eller tilføj mindst én fil, før du afleverer.",
+                "invalid_submission_mode" => "Vælg den afleveringsform, som opgaven tillader.",
+                "invalid_group_set" => "Gruppen kan ikke bruges til denne opgave. Se dine grupper, eller bed underviseren om hjælp.",
+                "group_changed" => "Gruppens deltagere er ændret. Gem din tekst et sikkert sted, og opdatér opgaven, før du afleverer igen.",
+                "invalid_attachment" => "En fil kan ikke knyttes til afleveringen. Kontrollér, at den er uploadet til dette hold.",
                 "invalid_quest_audience" => "Vælg elever eller aktive grupper fra det samme hold. Kontrollér også gruppesættet.",
                 "invalid_quest_series" => "Vælg mindst én forekomst i en periode på højst 90 dage.",
                 "invalid_repeat_time" => "Tidspunktet rammer skift mellem sommer- og vintertid. Vælg et andet klokkeslæt.",

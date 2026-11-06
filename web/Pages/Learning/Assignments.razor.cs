@@ -4,6 +4,8 @@ using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Learning;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 
 namespace Mercantec.Tech.Web.Pages.Learning;
 
@@ -12,6 +14,8 @@ public partial class Assignments
     [Inject] private LearningClient Client { get; set; } = null!;
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
+    [Inject] private IJSRuntime Js { get; set; } = null!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
     [Parameter] public Guid QuestId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? RequestedHoldId { get; set; }
     [SupplyParameterFromQuery(Name = "submission")] public Guid? RequestedSubmissionId { get; set; }
@@ -21,7 +25,6 @@ public partial class Assignments
     private CourseMaterialView[] _materials = [];
     private QuestView[] _quests = [];
     private LearningGroupView[] _groups = [];
-    private LearningMember[] _members = [];
     private SubmissionView[] _submissions = [];
     private Guid _holdId;
     private QuestView? _quest;
@@ -34,16 +37,19 @@ public partial class Assignments
     private string _materialTitle = "", _materialDescription = "";
     private bool _materialPublished;
     private IReadOnlyList<IBrowserFile> _materialFiles = [];
-    private string _questTitle = "", _questDescription = "", _questMode = "individual", _questKind = "main";
-    private bool _questPublished = true;
-    private string _editGroupId = "", _groupName = "", _submissionGroup = "";
-    private readonly HashSet<Guid> _groupMembers = [];
+    private string _submissionGroup = "";
     private string _draftText = "";
     private List<SubmissionFileView> _draftFiles = [];
     private string _reviewRevision = "", _reviewFile = "", _reviewText = "", _reviewDecision = "";
     private readonly List<SubmissionFileView> _feedbackFiles = [];
 
-    private bool CanManage => _holds.FirstOrDefault(h => h.Id == _holdId)?.CanManage == true;
+    private bool CanManage => !ViewAs.IsActive && _holds.FirstOrDefault(h => h.Id == _holdId)?.CanManage == true;
+    private string HoldName => _holds.FirstOrDefault(h => h.Id == _holdId)?.Name ?? "Holdet";
+    private bool DraftDirty => !ViewAs.IsActive && _submission?.CanEdit == true
+        && (_draftText != _submission.DraftText || !_draftFiles.Select(f => f.Id).Order().SequenceEqual(_submission.DraftFiles.Select(f => f.Id).Order()));
+    private bool HasDraftContent => !string.IsNullOrWhiteSpace(_draftText) || _draftFiles.Count > 0;
+    private string CurrentGroupMembers => _groups.FirstOrDefault(g => g.Id.ToString() == _submissionGroup) is { } group
+        ? string.Join(", ", group.Members.Select(m => m.DisplayName)) : "";
     private IEnumerable<LearningGroupView> SubmissionGroups => _groups.Where(g => (_quest?.GroupSetId is null || g.GroupSetId == _quest.GroupSetId)
         && (CanManage || _quest?.AllowedGroupIds is not Guid[] allowed || allowed.Contains(g.Id)));
     private SubmissionFileView[] ReviewFiles => _submission?.Revisions
@@ -74,7 +80,7 @@ public partial class Assignments
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_accountLoaded && Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId))
+        if (_accountLoaded && Auth.IsAuthenticated && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId))
             await Reload();
     }
 
@@ -97,7 +103,7 @@ public partial class Assignments
         ClearHold();
         _error = null;
         _notice = null;
-        if (Auth.IsAuthenticated && !ViewAs.IsActive) await Reload();
+        if (Auth.IsAuthenticated) await Reload();
         if (!_disposed) StateHasChanged();
     }
 
@@ -108,48 +114,54 @@ public partial class Assignments
         _loading = true;
         try
         {
+            ClearHold();
             var holds = await Client.Holds(ct);
             ct.ThrowIfCancellationRequested();
             _holds = holds;
             QuestView? routeQuest = null;
-            if (route.Quest != Guid.Empty) routeQuest = await Client.Quest(route.Quest, ct);
+            if (route.Quest != Guid.Empty)
+            {
+                routeQuest = await Client.Quest(route.Quest, ct);
+                if (ViewAs.IsActive && !routeQuest.Published) throw new LearningException("Questen er endnu ikke udgivet til eleverne.");
+            }
             if (route != (QuestId, RequestedHoldId, RequestedSubmissionId)) return;
             var requested = routeQuest?.HoldId ?? route.Hold;
             if (requested is Guid requestedId && _holds.Any(h => h.Id == requestedId)) _holdId = requestedId;
             if (!_holds.Any(h => h.Id == _holdId)) _holdId = _holds.FirstOrDefault()?.Id ?? Guid.Empty;
-            ClearHold();
             if (_holdId != Guid.Empty) await LoadHold(ct);
             if (routeQuest is not null)
             {
                 _quest = _quests.FirstOrDefault(q => q.Id == routeQuest.Id);
-                if (_quest is not null) _submissions = await Client.Submissions(_quest.Id, ct);
-                if (route.Submission is Guid submissionId && _submissions.Any(s => s.Id == submissionId))
-                    SetSubmission(await Client.Submission(submissionId, ct));
+                if (_quest is not null && !ViewAs.IsActive)
+                {
+                    _submissions = await Client.Submissions(_quest.Id, ct);
+                    var selected = route.Submission is Guid submissionId ? _submissions.FirstOrDefault(s => s.Id == submissionId)
+                        : CanManage ? null : _submissions.OrderByDescending(s => s.CanEdit)
+                            .ThenByDescending(s => s.Revisions.Select(r => (DateTimeOffset?)r.SubmittedAtUtc).Max()).ThenBy(s => s.Id).FirstOrDefault();
+                    if (route.Submission.HasValue && selected is null) throw new LearningException("Afleveringen er ikke tilgængelig for din konto.");
+                    if (selected is not null) SetSubmission(await Client.Submission(selected.Id, ct));
+                }
             }
             ct.ThrowIfCancellationRequested();
         }
         finally { _loading = false; }
     });
 
-    private Task ChangeHold(ChangeEventArgs e) => Run(async ct =>
+    private async Task ChangeHold(ChangeEventArgs e)
     {
-        if (!Guid.TryParse(e.Value?.ToString(), out var id)) return;
-        _holdId = id;
-        ClearHold();
-        await LoadHold(ct);
-    });
+        if (!Guid.TryParse(e.Value?.ToString(), out var id) || id == _holdId || !await DiscardDraft()) return;
+        Nav.NavigateTo($"/afleveringer?hold={id}");
+    }
 
     private async Task LoadHold(CancellationToken ct)
     {
         var materials = await Client.Materials(_holdId, ct);
         var quests = await Client.Quests(_holdId, ct);
-        var groups = await Client.Groups(_holdId, ct);
-        var members = CanManage ? await Client.Members(_holdId, ct) : [];
+        var groups = ViewAs.IsActive ? [] : await Client.Groups(_holdId, ct);
         ct.ThrowIfCancellationRequested();
-        _materials = materials;
-        _quests = quests;
+        _materials = ViewAs.IsActive ? materials.Where(m => m.Published).ToArray() : materials;
+        _quests = ViewAs.IsActive ? quests.Where(q => q.Published).ToArray() : quests;
         _groups = groups;
-        _members = members;
     }
 
     private void ClearHold()
@@ -157,16 +169,12 @@ public partial class Assignments
         _materials = [];
         _quests = [];
         _groups = [];
-        _members = [];
         _submissions = [];
         _quest = null;
         _submission = null;
         _viewer = null;
         _materialFiles = [];
         _materialTitle = _materialDescription = "";
-        _questTitle = _questDescription = "";
-        _editGroupId = _groupName = _submissionGroup = "";
-        _groupMembers.Clear();
         SetSubmission(null);
     }
 
@@ -201,83 +209,29 @@ public partial class Assignments
         _materials = _materials.Select(m => m.Id == updated.Id ? updated : m).ToArray();
     });
 
-    private Task CreateQuest() => Run(async ct =>
+    private async Task StartSubmission()
     {
-        var quest = await Client.CreateQuest(new(_holdId, _questTitle, _questDescription,
-            _questMode, _questPublished, null, _questKind), ct);
-        ct.ThrowIfCancellationRequested();
-        _quests = [.. _quests, quest];
-        _questTitle = _questDescription = "";
-        _notice = "Questen er oprettet.";
-    });
-
-    private Task ToggleQuest(QuestView quest) => Run(async ct =>
-    {
-        var updated = await Client.UpdateQuest(quest.Id, new(quest.HoldId, quest.Title,
-            quest.Description, quest.SubmissionMode, !quest.Published, quest.DeadlineUtc, quest.Kind, quest.GroupSetId, quest.Required, quest.Audience), ct);
-        ct.ThrowIfCancellationRequested();
-        _quests = _quests.Select(q => q.Id == updated.Id ? updated : q).ToArray();
-        if (_quest?.Id == updated.Id) _quest = updated;
-    });
-
-    private void ToggleMember(Guid id, ChangeEventArgs e)
-    {
-        if (e.Value is true) _groupMembers.Add(id);
-        else _groupMembers.Remove(id);
+        if (ViewAs.IsActive || CanManage || _quest is null || !await DiscardDraft()) return;
+        await Run(async ct =>
+        {
+            Guid? group = Guid.TryParse(_submissionGroup, out var id) ? id : null;
+            if (_quest.SubmissionMode == "group" && group is null) return;
+            var submission = await Client.Start(new(_quest.Id, group), ct);
+            ct.ThrowIfCancellationRequested();
+            SetSubmission(submission);
+        });
     }
 
-    private void EditGroup(ChangeEventArgs e)
+    private async Task OpenSubmission(Guid id)
     {
-        _editGroupId = e.Value?.ToString() ?? "";
-        var group = _groups.FirstOrDefault(g => g.Id.ToString() == _editGroupId);
-        _groupName = group?.Name ?? "";
-        _groupMembers.Clear();
-        foreach (var member in group?.Members ?? []) _groupMembers.Add(member.Id);
+        if (ViewAs.IsActive || _submission?.Id == id || !await DiscardDraft()) return;
+        await Run(async ct => { var submission = await Client.Submission(id, ct); ct.ThrowIfCancellationRequested(); SetSubmission(submission); });
     }
-
-    private Task SaveGroup() => Run(async ct =>
-    {
-        var current = _groups.FirstOrDefault(g => g.Id.ToString() == _editGroupId);
-        var request = new SaveLearningGroup(_holdId, _groupName, _groupMembers.ToArray(), current?.Version ?? 0, current?.GroupSetId);
-        var group = current is null
-            ? await Client.SaveGroup(request, ct)
-            : await Client.UpdateGroup(current.Id, request, ct);
-        ct.ThrowIfCancellationRequested();
-        _groups = [.. _groups.Where(g => g.Id != group.Id), group];
-        _editGroupId = group.Id.ToString();
-        _notice = "Gruppen er gemt. Deltagere på tidligere indsendte versioner bevares.";
-    });
-
-    private Task SelectQuest(QuestView quest) => Run(async ct =>
-    {
-        var submissions = await Client.Submissions(quest.Id, ct);
-        ct.ThrowIfCancellationRequested();
-        _quest = quest;
-        _submissionGroup = "";
-        _submissions = submissions;
-        SetSubmission(null);
-        _viewer = null;
-    });
-
-    private Task StartSubmission() => Run(async ct =>
-    {
-        if (_quest is null) return;
-        Guid? group = Guid.TryParse(_submissionGroup, out var id) ? id : null;
-        var submission = await Client.Start(new(_quest.Id, group), ct);
-        ct.ThrowIfCancellationRequested();
-        SetSubmission(submission);
-    });
-
-    private Task OpenSubmission(Guid id) => Run(async ct =>
-    {
-        var submission = await Client.Submission(id, ct);
-        ct.ThrowIfCancellationRequested();
-        SetSubmission(submission);
-    });
 
     private void SetSubmission(SubmissionView? submission)
     {
         _submission = submission;
+        _submissionGroup = submission?.GroupId?.ToString() ?? "";
         _draftText = submission?.DraftText ?? "";
         _draftFiles = submission?.DraftFiles.ToList() ?? [];
         _reviewRevision = submission?.Revisions.OrderByDescending(r => r.Number).FirstOrDefault()?.Id.ToString() ?? "";
@@ -298,6 +252,7 @@ public partial class Assignments
 
     private Task UploadDraftFiles(InputFileChangeEventArgs e) => Run(async ct =>
     {
+        if (ViewAs.IsActive || _submission?.CanEdit != true) return;
         foreach (var file in SelectedFiles(e))
         {
             var uploaded = await Client.Upload(file, _holdId, ct);
@@ -309,13 +264,14 @@ public partial class Assignments
 
     private Task SaveDraft() => Run(async ct =>
     {
+        if (ViewAs.IsActive || _submission?.CanEdit != true) return;
         await PersistDraft(ct);
         _notice = "Kladden er gemt.";
     });
 
     private async Task PersistDraft(CancellationToken ct)
     {
-        if (_submission is null) return;
+        if (ViewAs.IsActive || _submission?.CanEdit != true) return;
         var updated = await Client.SaveDraft(_submission.Id,
             new(_submission.Version, _draftText, _draftFiles.Select(f => f.Id).ToArray()), ct);
         ct.ThrowIfCancellationRequested();
@@ -324,7 +280,7 @@ public partial class Assignments
 
     private Task Submit() => Run(async ct =>
     {
-        if (_submission is null) return;
+        if (ViewAs.IsActive || _submission?.CanEdit != true || !HasDraftContent) return;
         await PersistDraft(ct);
         var updated = await Client.Submit(_submission!.Id, new(_submission.Version), ct);
         ct.ThrowIfCancellationRequested();
@@ -362,6 +318,17 @@ public partial class Assignments
 
     private void OpenFile(Guid id) => _viewer = id;
     private void CloseFile() => _viewer = null;
+    private static string FileSize(long bytes) => bytes >= 1024 * 1024 ? $"{bytes / (1024d * 1024):0.#} MiB" : $"{Math.Max(1, bytes / 1024d):0.#} KiB";
+
+    private async Task<bool> DiscardDraft() => !DraftDirty || await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i afleveringen. Kassér dem, og fortsæt?");
+    private async Task Refresh()
+    {
+        if (await DiscardDraft()) await Reload();
+    }
+    private async Task BeforeNavigation(LocationChangingContext context)
+    {
+        if (!await DiscardDraft()) context.PreventNavigation();
+    }
 
     private string SubmissionLabel(SubmissionView submission)
     {
@@ -403,7 +370,7 @@ public partial class Assignments
             {
                 _busy = false;
                 StateHasChanged();
-                if (Auth.IsAuthenticated && !ViewAs.IsActive && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId)) await Reload();
+                if (Auth.IsAuthenticated && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId)) await Reload();
             }
         }
     }

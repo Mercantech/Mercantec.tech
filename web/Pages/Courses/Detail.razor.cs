@@ -45,10 +45,10 @@ public partial class Detail
         {
             yield return ("overview", "Overblik", "screen", null);
             yield return ("content", "Forløb", "book", _workspace?.Courses?.Length ?? 0);
-            yield return ("quests", "Quests", "target", _workspace?.QuestCount);
+            yield return ("quests", CanManage ? "Quests" : "Quests og afleveringer", "target", _workspace?.QuestCount);
             if (CanManage) yield return ("submissions", "Afleveringer", "check", _workspace?.Progress?.Missing);
             yield return ("calendar", "Kalender", "calendar", null);
-            yield return ("groups", "Elever og grupper", "people", _workspace?.GroupCount);
+            yield return ("groups", CanManage || ViewAs.IsActive ? "Elever og grupper" : "Mine grupper", "people", _workspace?.GroupCount);
             yield return ("materials", "Materialer", "folder", _workspace?.MaterialCount);
             if (CanManage) yield return ("settings", "Holdindstillinger", "sliders", null);
         }
