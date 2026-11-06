@@ -1,5 +1,6 @@
 import {
   createCodeBlockSpec,
+  wrapInBlockStructure,
   type CodeBlockOptions,
 } from '@blocknote/core';
 import { codeBlockOptions as bundledOptions, syntaxHighlighter } from '@blocknote/code-block';
@@ -67,9 +68,11 @@ function plainText(block: { content?: unknown }): string {
   return '';
 }
 
-type CodeRender = NonNullable<ReturnType<typeof createCodeBlockSpec>['implementation']['render']>;
+const baseSpec = createCodeBlockSpec(notionCodeBlockOptions);
+type CodeRender = NonNullable<typeof baseSpec.implementation.render>;
 
 function createCodeBlockWithCopy(
+  this: ThisParameterType<CodeRender>,
   block: Parameters<CodeRender>[0],
   editor: Parameters<CodeRender>[1],
 ) {
@@ -141,7 +144,7 @@ function createCodeBlockWithCopy(
   wrap.appendChild(toolbar);
   wrap.appendChild(pre);
 
-  return {
+  const view = {
     dom: wrap,
     contentDOM: code,
     destroy: () => {
@@ -151,9 +154,15 @@ function createCodeBlockWithCopy(
       if (resetTimer) clearTimeout(resetTimer);
     },
   };
+  return wrapInBlockStructure(
+    view,
+    block.type,
+    block.props,
+    this.propSchema ?? baseSpec.config.propSchema,
+    false,
+    this.blockContentDOMAttributes,
+  );
 }
-
-const baseSpec = createCodeBlockSpec(notionCodeBlockOptions);
 
 /** Code block with language picker (inkl. C#), Shiki highlight via extension, and Kopiér. */
 export function createNotionCodeBlock() {
