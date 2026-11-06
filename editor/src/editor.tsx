@@ -266,12 +266,31 @@ function notify(session: Session, status: Status, detail: string) {
 }
 function canEdit(session: Session) { return !session.readOnly && session.context.canEdit && session.connected && session.inSync && !session.presenting; }
 function readTheme(): 'light' | 'dark' {
-  const value = document.documentElement.dataset.theme || document.body.dataset.theme || '';
-  if(['dark','hacker'].includes(value.toLowerCase())) return 'dark';
-  if(['light','christmas','jul'].includes(value.toLowerCase())) return 'light';
-  const scheme=getComputedStyle(document.documentElement).colorScheme.trim().replace(/^only\s+/, '');
-  if(scheme==='light' || scheme==='dark')return scheme;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const root = document.documentElement;
+  const resolved = root.dataset.bsTheme;
+  if (resolved === 'light' || resolved === 'dark') return resolved;
+  const scheme = getComputedStyle(root).colorScheme.trim().replace(/^only\s+/, '');
+  if (scheme === 'light' || scheme === 'dark') return scheme;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function observeTheme(session: Session): () => void {
+  const sync = () => {
+    const theme = readTheme();
+    if (theme === session.theme) return;
+    session.theme = theme;
+    session.render();
+  };
+  const observer = new MutationObserver(sync);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-bs-theme', 'data-theme', 'style', 'class'],
+  });
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  media.addEventListener('change', sync);
+  return () => {
+    observer.disconnect();
+    media.removeEventListener('change', sync);
+  };
 }
 function openPresentation(session: Session) {
   if(!session.editor) return;
@@ -501,10 +520,8 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
   const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty){event.preventDefault();event.returnValue='';}};
   window.addEventListener('beforeunload',onBeforeUnload);
-  const onTheme=()=>{session.theme=readTheme();session.render();};
-  const observer=new MutationObserver(onTheme);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','style','class']});observer.observe(document.body,{attributes:true,attributeFilter:['data-theme','style','class']});
-  const media=window.matchMedia('(prefers-color-scheme: dark)');media.addEventListener('change',onTheme);
-  session.removeListeners=()=>{window.removeEventListener('beforeunload',onBeforeUnload);observer.disconnect();media.removeEventListener('change',onTheme);};
+  const removeThemeListener=observeTheme(session);
+  session.removeListeners=()=>{window.removeEventListener('beforeunload',onBeforeUnload);removeThemeListener();};
   session.doc.on('update',(_update:Uint8Array,origin:unknown)=>{
     if(origin!==session.provider && session.ready && !session.destroyed){session.dirty=true;session.generation++;notify(session,session.connected?'saving':'offline',session.connected?'Gemmer i skyen…':'Forbindelsen er afbrudt. Ændringer afventer lagring.');}
   });
@@ -539,10 +556,7 @@ export async function mountReadOnly(element:HTMLElement,context:EditorContext,ac
   const session:Session={root:createRoot(element),context:{...context,canEdit:false},callbacks:dotnetCallbacks,doc,ready:true,inSync:true,connected:false,dirty:false,generation:0,destroyed:false,readOnly:true,accessToken,pendingUploads:0,status:'synced',detail:'Udgivet undervisningsindhold',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
-  const onTheme=()=>{session.theme=readTheme();session.render();};
-  const observer=new MutationObserver(onTheme);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','style','class']});observer.observe(document.body,{attributes:true,attributeFilter:['data-theme','style','class']});
-  const media=window.matchMedia('(prefers-color-scheme: dark)');media.addEventListener('change',onTheme);
-  session.removeListeners=()=>{observer.disconnect();media.removeEventListener('change',onTheme);};
+  session.removeListeners=observeTheme(session);
   notify(session,'synced','Udgivet undervisningsindhold');
 }
 

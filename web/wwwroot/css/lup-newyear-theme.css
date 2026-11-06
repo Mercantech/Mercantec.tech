@@ -122,7 +122,7 @@ html[data-theme="newyear"] .lup .secondary {
 }
 html[data-theme="newyear"] .lup .secondary:hover { border-color:#f7d89a; color:#ffe3aa; }
 html[data-theme="newyear"] .lup .field :is(input,textarea,select),
-html[data-theme="newyear"] .lup :is(.v3-search input,.course-code-copy) {
+html[data-theme="newyear"] .lup .v3-search input {
     background-color:#111a32;
     color:#f5f2ff;
     border-color:#776282;
@@ -132,10 +132,7 @@ html[data-theme="newyear"] .lup :is(button,a,input,textarea,select,summary):focu
     outline-offset:3px;
 }
 html[data-theme="newyear"] .lup :is(.bar span,.v3-progress span) { background-color:#dab7f2; }
-html[data-theme="newyear"] .lup :is(.article pre,.course-code) { background-color:#11172d; border-color:#5f4c70; }
-html[data-theme="newyear"] .lup .course-code-body .keyword { color:#e7b7ff; }
-html[data-theme="newyear"] .lup .course-code-body .string { color:#a4e0c4; }
-html[data-theme="newyear"] .lup .course-code-body .comment { color:#adb2cb; }
+html[data-theme="newyear"] .lup .article pre:not(.course-code pre) { background-color:#11172d; border-color:#5f4c70; }
 
 /* Colour only: the footer keeps the platform's normal dimensions. */
 html[data-theme="newyear"] .lup .footer {

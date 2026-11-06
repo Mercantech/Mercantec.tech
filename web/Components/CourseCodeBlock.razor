@@ -7,11 +7,13 @@
         <button type="button"
                 class="course-code-copy@(_copied ? " is-copied" : "")"
                 @onclick="CopyAsync"
+                aria-label="Kopiér kode"
                 disabled="@_busy">
             @_buttonText
         </button>
+        <span class="visually-hidden" role="status">@_feedback</span>
     </div>
-    <div class="course-code-body">
+    <div class="course-code-body" tabindex="0" role="region" aria-label="@($"Kodeeksempel · {_label}")">
         @CourseMarkdown.HighlightCode(Code, Language)
     </div>
 </div>
@@ -24,6 +26,8 @@
     private string _langKey = "";
     private string _rootClass = "course-code";
     private string _buttonText = "Kopiér";
+    private string _feedback = "";
+    private int _copyVersion;
     private bool _copied;
     private bool _busy;
 
@@ -40,26 +44,30 @@
         if (_busy)
             return;
 
+        var version = ++_copyVersion;
         _busy = true;
         try
         {
-            var ok = await Js.InvokeAsync<bool>("courseCode.copy", Code ?? string.Empty);
-            _copied = ok;
-            _buttonText = ok ? "Kopieret" : "Fejl";
+            _copied = await Js.InvokeAsync<bool>("courseCode.copy", Code ?? string.Empty);
         }
         catch
         {
             _copied = false;
-            _buttonText = "Fejl";
         }
         finally
         {
             _busy = false;
+            _buttonText = _copied ? "Kopieret" : "Fejl";
+            _feedback = _copied ? "Koden er kopieret." : "Koden kunne ikke kopieres.";
             StateHasChanged();
         }
 
         await Task.Delay(1600);
+        if (version != _copyVersion)
+            return;
+
         _copied = false;
         _buttonText = "Kopiér";
+        _feedback = "";
     }
 }

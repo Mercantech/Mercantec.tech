@@ -115,14 +115,108 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-tip{background:#1a2f24;border-color:#2d4d3a}
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-warning{background:#322818;border-color:#5a4420}
 .notion-blocknote-host[data-notion-theme=dark] .notion-callout-important{background:#2a2340;border-color:#4a3d6a}
-.notion-code-block{display:flex;flex-direction:column;gap:0;width:100%;margin:6px 0;border:1px solid var(--notion-rule);border-radius:8px;background:color-mix(in srgb,var(--notion-ink) 3%,var(--notion-paper));overflow:hidden}
-.notion-code-toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--notion-rule);background:color-mix(in srgb,var(--notion-ink) 4%,var(--notion-paper))}
-.notion-code-toolbar select{appearance:auto;max-width:min(100%,220px);padding:4px 8px;border:1px solid var(--notion-rule);border-radius:5px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px}
-.notion-code-copy{margin-left:auto;border:1px solid var(--notion-rule);border-radius:5px;padding:4px 10px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px;cursor:pointer}
-.notion-code-copy:hover{border-color:var(--notion-blue);background:var(--notion-tint);color:var(--notion-blue)}
-.notion-code-copy:focus-visible{outline:2px solid var(--notion-blue);outline-offset:1px}
-.notion-code-copy.is-copied{border-color:var(--notion-blue);color:var(--notion-blue);font-weight:600}
-.notion-code-block pre{margin:0;padding:12px 14px;overflow-x:auto;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2;background:transparent}
-.notion-code-block code{font:inherit;background:transparent}
-.notion-blocknote-host[data-notion-theme=dark] .notion-code-block{background:color-mix(in srgb,#000 35%,var(--notion-paper))}
-.notion-blocknote-host[data-notion-theme=dark] .notion-code-toolbar{background:color-mix(in srgb,#000 25%,var(--notion-paper))}
+.bn-block-content[data-content-type="codeBlock"]:has(> .notion-code-block) {
+  background: transparent;
+  color: inherit;
+  min-width: 0;
+}
+.notion-code-block {
+  --code-surface: color-mix(in srgb, var(--notion-ink) 2%, var(--notion-paper));
+  --code-contrast-ink: #101826;
+  width: 100%;
+  min-width: 0;
+  margin: 6px 0;
+  overflow: hidden;
+  border: 1px solid var(--notion-rule);
+  border-radius: 9px;
+  background: var(--code-surface);
+  color: var(--notion-ink);
+}
+.notion-blocknote-host[data-notion-theme="dark"] .notion-code-block {
+  --code-surface: color-mix(in srgb, var(--notion-paper) 58%, #080d15);
+  --code-contrast-ink: #f2f6ff;
+}
+.notion-code-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--notion-rule);
+  background: var(--notion-paper);
+  font: 600 .8125rem/1.25 "DM Sans", system-ui, sans-serif;
+}
+.notion-code-language {
+  display: none;
+  min-width: 0;
+  padding-inline: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bn-editor[contenteditable="false"] .notion-code-language-select { display: none; }
+.bn-editor[contenteditable="false"] .notion-code-language { display: block; }
+.notion-code-language-select,
+.notion-code-copy {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--notion-rule);
+  border-radius: 6px;
+  background: var(--notion-paper);
+  color: var(--notion-ink);
+  font: inherit;
+}
+.notion-code-language-select {
+  appearance: auto;
+  min-width: 0;
+  max-width: min(60%, 13rem);
+  text-overflow: ellipsis;
+}
+.notion-code-copy {
+  flex: none;
+  min-width: 5.25rem;
+  margin-inline-start: auto;
+  cursor: pointer;
+}
+.notion-code-toolbar :is(select, button):hover,
+.notion-code-copy.is-copied {
+  border-color: var(--notion-blue);
+  background: var(--notion-tint);
+  color: var(--notion-blue);
+}
+.notion-code-toolbar :is(select, button):focus-visible {
+  outline: 2px solid var(--notion-blue);
+  outline-offset: 1px;
+}
+.notion-code-block pre {
+  max-width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  background: transparent;
+  color: inherit;
+  font: .84375rem/1.6 ui-monospace, "Cascadia Code", Consolas, monospace;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  tab-size: 2;
+}
+.notion-code-block code {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: inherit;
+}
+/* The default BlockNote rule assumes a dark background. The code surface follows LUP. */
+.notion-code-block .shiki {
+  --code-token: var(--shiki-light, var(--notion-ink));
+  color: var(--bn-suggestion-token-color, color-mix(in srgb, var(--code-token) 65%, var(--code-contrast-ink)));
+}
+.notion-blocknote-host[data-notion-theme="dark"] .notion-code-block .shiki {
+  --code-token: var(--shiki-dark, var(--notion-ink));
+}
+@media (pointer: coarse) {
+  .notion-code-language-select,
+  .notion-code-copy { min-height: 44px; }
+  .notion-code-language-select { font-size: 1rem; }
+}
