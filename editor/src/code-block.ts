@@ -1,17 +1,21 @@
 import {
+  applyDataAttributes,
   createCodeBlockSpec,
   wrapInBlockStructure,
+  type BlockImplementation,
   type CodeBlockOptions,
 } from '@blocknote/core';
 import { codeBlockOptions as bundledOptions, syntaxHighlighter } from '@blocknote/code-block';
+import { createCodeLanguagePicker } from './code-language-picker';
+import { curlLanguage, highlightCodeLanguage } from './code-syntax';
 
 export { syntaxHighlighter };
 
-const bundled = bundledOptions.supportedLanguages;
+const bundled = { ...bundledOptions.supportedLanguages, curl: curlLanguage };
 
 const preferredOrder = [
   'text', 'csharp', 'javascript', 'typescript', 'jsx', 'tsx', 'html', 'css', 'scss',
-  'json', 'python', 'java', 'kotlin', 'sql', 'shellscript', 'markdown', 'xml', 'yaml',
+  'json', 'python', 'java', 'kotlin', 'sql', 'shellscript', 'curl', 'markdown', 'xml', 'yaml',
   'rust', 'c', 'cpp', 'php', 'ruby', 'swift', 'lua', 'scala', 'haskell', 'mermaid', 'latex',
 ] as const;
 
@@ -69,7 +73,11 @@ function plainText(block: { content?: unknown }): string {
 }
 
 const baseSpec = createCodeBlockSpec(notionCodeBlockOptions);
-type CodeRender = NonNullable<typeof baseSpec.implementation.render>;
+const codeBlockProps = {
+  ...baseSpec.config.propSchema,
+  showLineNumbers: { default: false },
+};
+type CodeRender = NonNullable<BlockImplementation<'codeBlock', typeof codeBlockProps, 'plain'>['render']>;
 
 function createCodeBlockWithCopy(
   this: ThisParameterType<CodeRender>,
@@ -82,25 +90,30 @@ function createCodeBlockWithCopy(
   const toolbar = document.createElement('div');
   toolbar.className = 'notion-code-toolbar';
   toolbar.contentEditable = 'false';
-
-  const language = resolveLanguage(String(block.props.language || notionCodeBlockOptions.defaultLanguage));
-  const languages = notionCodeBlockOptions.supportedLanguages!;
-  const languageSelect = document.createElement('select');
-  languageSelect.className = 'notion-code-language-select';
-  languageSelect.setAttribute('aria-label', 'Kodesprog');
-  for (const [id, { name }] of Object.entries(languages)) {
-    languageSelect.add(new Option(name, id));
-  }
-  languageSelect.value = language;
-  const onLanguageChange = () => {
-    if (editor.isEditable) editor.updateBlock(block.id, { props: { language: languageSelect.value } });
+  const onToolbarKey = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
   };
-  languageSelect.addEventListener('change', onLanguageChange);
+  toolbar.addEventListener('keydown', onToolbarKey);
+
+  const languages = notionCodeBlockOptions.supportedLanguages!;
+  const languagePicker = createCodeLanguagePicker(languages, () => editor.isEditable, language => {
+    editor.updateBlock(block.id, { props: { language } });
+  });
 
   const languageLabel = document.createElement('span');
   languageLabel.className = 'notion-code-language';
-  languageLabel.textContent = languages[language].name;
-  toolbar.append(languageSelect, languageLabel);
+  const lineToggle = document.createElement('button');
+  lineToggle.type = 'button';
+  lineToggle.className = 'notion-code-line-toggle';
+  lineToggle.textContent = '#';
+  lineToggle.title = 'Linjetal';
+  lineToggle.setAttribute('aria-label', 'Linjetal');
+  const onLineToggle = () => {
+    if (!editor.isEditable) return;
+    editor.updateBlock(block.id, { props: { showLineNumbers: !showLineNumbers } });
+  };
+  lineToggle.addEventListener('click', onLineToggle);
+  toolbar.append(languagePicker.dom, languageLabel, lineToggle);
 
   const copy = document.createElement('button');
   copy.type = 'button';
@@ -137,39 +150,91 @@ function createCodeBlockWithCopy(
   copy.addEventListener('click', onCopy);
   toolbar.append(copy, status);
 
+  const scroll = document.createElement('div');
+  scroll.className = 'notion-code-scroll';
+  const lineNumbers = document.createElement('span');
+  lineNumbers.className = 'notion-code-line-numbers';
+  lineNumbers.contentEditable = 'false';
+  lineNumbers.setAttribute('aria-hidden', 'true');
   const pre = document.createElement('pre');
   const code = document.createElement('code');
   pre.appendChild(code);
+  scroll.append(lineNumbers, pre);
+  wrap.append(toolbar, scroll);
 
-  wrap.appendChild(toolbar);
-  wrap.appendChild(pre);
+  let language = String(block.props.language || notionCodeBlockOptions.defaultLanguage);
+  let showLineNumbers = block.props.showLineNumbers === true;
+  let renderedLineCount = 0;
+  function updateControls() {
+    const id = resolveLanguage(language);
+    languagePicker.setLanguage(id);
+    languageLabel.textContent = languages[id].name;
+    lineToggle.setAttribute('aria-pressed', String(showLineNumbers));
+    lineNumbers.hidden = !showLineNumbers;
+  }
+  function updateLineNumbers(text: string) {
+    if (!showLineNumbers) return;
+    const count = 1 + (text.match(/\r\n|[\r\n]/g)?.length ?? 0);
+    if (count === renderedLineCount) return;
+    renderedLineCount = count;
+    lineNumbers.textContent = Array.from({ length: count }, (_, index) => index + 1).join('\n');
+  }
+  updateControls();
+  updateLineNumbers(plainText(block));
 
   const view = {
     dom: wrap,
     contentDOM: code,
     destroy: () => {
       destroyed = true;
-      languageSelect.removeEventListener('change', onLanguageChange);
+      languagePicker.destroy();
+      toolbar.removeEventListener('keydown', onToolbarKey);
+      lineToggle.removeEventListener('click', onLineToggle);
       copy.removeEventListener('click', onCopy);
       if (resetTimer) clearTimeout(resetTimer);
     },
   };
-  return wrapInBlockStructure(
+  const wrapped = wrapInBlockStructure(
     view,
     block.type,
     block.props,
-    this.propSchema ?? baseSpec.config.propSchema,
+    codeBlockProps,
     false,
     this.blockContentDOMAttributes,
   );
+  return {
+    ...wrapped,
+    ignoreMutation(mutation) {
+      return mutation.type !== 'selection' && !code.contains(mutation.target);
+    },
+    update(node) {
+      if (node.type.name !== block.type) return false;
+      const nextLanguage = String(node.attrs.language || notionCodeBlockOptions.defaultLanguage);
+      const nextLineNumbers = node.attrs.showLineNumbers === true;
+      if (nextLanguage !== language || nextLineNumbers !== showLineNumbers) {
+        language = nextLanguage;
+        showLineNumbers = nextLineNumbers;
+        updateControls();
+        applyDataAttributes(wrapped.dom, { language, showLineNumbers }, codeBlockProps);
+      }
+      if (showLineNumbers) updateLineNumbers(node.textBetween(0, node.content.size, '\n', '\n'));
+      return true;
+    },
+  } satisfies ReturnType<CodeRender>;
 }
 
 /** Code block with language picker (inkl. C#), Shiki highlight via extension, and Kopiér. */
 export function createNotionCodeBlock() {
   return {
     ...baseSpec,
+    config: { ...baseSpec.config, propSchema: codeBlockProps },
     implementation: {
       ...baseSpec.implementation,
+      meta: {
+        ...baseSpec.implementation.meta,
+        highlight: (block: { props: Record<string, unknown> }) =>
+          highlightCodeLanguage(String(block.props.language ?? notionCodeBlockOptions.defaultLanguage)),
+      },
       render: createCodeBlockWithCopy,
     },
   };

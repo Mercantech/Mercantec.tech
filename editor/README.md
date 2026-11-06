@@ -31,7 +31,7 @@ DotNet object methods:
 - OnNotionStatus(status, detail): connecting, synced, saving, saved, offline or error. synced means connected; saved means a persisted snapshot matches the current Yjs state.
 - GetNotionToken(): returns a current access token for connections and private media access, including authenticated read-only students.
 
-WebSocket: same-origin /collaboration?schemaVersion=4, room notion:<pageId>. A missing or incompatible client version is rejected before document loading; the current editor asks the user to reload. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
+WebSocket: same-origin /collaboration?schemaVersion=5, room notion:<pageId>. A missing or incompatible client version is rejected before document loading; the current editor asks the user to reload. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
 
 ## Custom blocks
 
@@ -41,7 +41,7 @@ WebSocket: same-origin /collaboration?schemaVersion=4, room notion:<pageId>. A m
 - /læringsmål: formatted inline learning goal.
 - /diagram (aliases: mermaid, flowchart): Mermaid diagram rendered without chrome; double-click to edit source.
 - /callout: highlighted note (info / tip / warning / important).
-- /kodeblok (default BlockNote code block): language picker (C#, JS/TS, Python, …), Shiki syntax highlighting via `@blocknote/code-block`, and a **Kopiér** button. Default language is C#.
+- /kodeblok: The language button opens a searchable picker (C#, cURL, JS/TS, Python, …). The **#** button toggles line numbers per block. **Kopiér** copies the source text. Default language is C#.
 - /ai (toolbar **AI**): teacher-only OpenAI helper — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).
 - Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, diagram, callout, læringsmål), **AI** (samme hjælper på den blok, med blokkens tekst som udgangspunkt) or **Slet**. The selection toolbar uses the same conversion. The block's raw text or markdown is copied into the new format (code, callout, paragraph, Mermaid `source`, and the other text blocks).
 

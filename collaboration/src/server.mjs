@@ -67,9 +67,8 @@ export function createCollaborationServer({
     },
 
     async onAuthenticate({ documentName, token, requestParameters }) {
-      // Older editors do not know the publishing/media/reference node schema. Reject
-      // them before loading shared state so an old browser cannot discard new nodes.
-      if (requestParameters?.get('schemaVersion') !== '4') throw SCHEMA_MISMATCH;
+      // An older editor can discard block types or props it does not know.
+      if (requestParameters?.get('schemaVersion') !== '5') throw SCHEMA_MISMATCH;
       documentIdFromName(documentName);
       const permission = await api.authorize(documentName, token);
       return { token, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };

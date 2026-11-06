@@ -21,6 +21,6 @@ test('drag handle exposes Turn into and callout is a first-class block', () => {
   assert.match(callout, /type: 'callout'/);
   assert.match(callout, /tone/);
   assert.match(editor, /NotionDragHandleMenu/);
-  assert.match(editor, /schemaVersion=4/);
+  assert.match(editor, /schemaVersion=5/);
   assert.match(editor, /callout:createCallout/);
 });

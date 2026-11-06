@@ -79,7 +79,7 @@ Docker bygger editoren automatisk med lockfilen. Lokalt skal editorbundle genbyg
 
 Deploy repoets Compose-fil fra main som normalt. EF-migrationen køres ved API-start. Notion-init opretter automatisk en tilfældig servicehemmelighed i den vedvarende mercantec_notion_key-volumen. API og samarbejdsserver monterer den skrivebeskyttet. NOTION_SERVICE_SECRET kan bruges som eksplicit override, mindst 32 tilfældige tegn.
 
-Web-værten venter på en sund samarbejdsserver. Nye editorer bruger schemaVersion=4 i WebSocket-forbindelsen; ældre faner bliver bedt om at genindlæse, så de ikke redigerer ukendte bloktyper (fx Mermaid eller callout). Kør én samarbejdsinstans ad gangen. Flere samtidige instanser kræver fælles koordination af dokumenttilstanden.
+Web-værten venter på en sund samarbejdsserver. Editoren bruger schemaVersion=5 i WebSocket-forbindelsen. Ældre faner bliver bedt om at genindlæse, så de kan bevare alle bloktyper og blokindstillinger, herunder linjetal. Kør én samarbejdsinstans ad gangen. Flere samtidige instanser kræver fælles koordination af dokumenttilstanden.
 
 Sikkerhedskopiér Postgres og S3 sammen. Udgivne snapshots er en fast læseversion, ikke en komplet versionshistorik. Følg [Dokploy-drift](../02-ai-workflows/Dokploy-drift.md) for netværk, domæner og drift.
 
