@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, type BlockNoteEditor } from '@blocknote/core';
-import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions';
+import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, trackPosition, type BlockNoteEditor } from '@blocknote/core';
+import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu, SuggestionMenu } from '@blocknote/core/extensions';
+import { TextSelection } from 'prosemirror-state';
 import { withCollaboration } from '@blocknote/core/yjs';
 import { createReactBlockSpec, createReactInlineContentSpec, FormattingToolbar, FormattingToolbarController, getDefaultReactEmojiPickerItems, getDefaultReactSlashMenuItems, getFormattingToolbarItems, GridSuggestionMenuController, SideMenu, SideMenuController, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
@@ -22,6 +23,8 @@ import { formatUploadSize, uploadNotionAsset, uploadNotebookAsset } from './asse
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
 import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
+import { EmojiSuggestionMenu } from './emoji-suggestion-menu';
+import { captureEmojiQuery, resolveEmojiQuery } from './emoji-query-target.mjs';
 
 export interface EditorContext {
   domain?: 'notion' | 'notebook';
@@ -322,12 +325,50 @@ function ConnectedEditor({session}:{session:Session}) {
   const notebook=session.context.domain==='notebook';
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
+  const [emojiUploadFile,setEmojiUploadFile]=useState<File|null>(null);
+  const [emojiInsertError,setEmojiInsertError]=useState('');
+  const colonFileInput=useRef<HTMLInputElement>(null);
+  const queuedEmojiTarget=useRef<ReturnType<typeof captureEmojiQuery>|null>(null);
+  const activeEmojiTarget=useRef<ReturnType<typeof captureEmojiQuery>|null>(null);
   const createEmoji=useContext(EmojiCreate);
   const analyzeEmoji=useContext(EmojiAnalyze);
   const reloadEmojis=useContext(EmojiReload);
   const emojiTrigger=useRef<HTMLButtonElement>(null);
   const emojiPanelId=useId();
-  const closeEmoji=()=>{setEmojiOpen(false);emojiTrigger.current?.focus({preventScroll:true});};
+  const closeEmoji=()=>{
+    const target=activeEmojiTarget.current ?? queuedEmojiTarget.current;
+    setEmojiOpen(false);
+    setEmojiUploadFile(null);
+    queuedEmojiTarget.current=null;
+    activeEmojiTarget.current=null;
+    if(!target){emojiTrigger.current?.focus({preventScroll:true});return;}
+    editor.focus();
+    try {
+      const range=resolveEmojiQuery(editor,target);
+      editor.transact(tr=>{tr.setSelection(TextSelection.create(tr.doc,range.to));});
+    } catch { /* A changed target keeps the editor's current selection and text. */ }
+  };
+  const startColonUpload=()=>{
+    if(!canEdit(session)||!createEmoji)return;
+    const menu=editor.getExtension(SuggestionMenu);
+    const state=menu?.store.state;
+    if(!state?.show||state.triggerCharacter!==':')return;
+    try {
+      queuedEmojiTarget.current=captureEmojiQuery(editor,state.query,trackPosition);
+      setEmojiInsertError('');
+      menu!.closeMenu();
+      colonFileInput.current?.click();
+    } catch(error) { setEmojiInsertError(error instanceof Error?error.message:'Vælg indsættelsesstedet igen.'); }
+  };
+  const chooseColonFile=(event:React.ChangeEvent<HTMLInputElement>)=>{
+    const file=event.target.files?.[0];
+    event.target.value='';
+    if(!file||!canEdit(session)||!queuedEmojiTarget.current){queuedEmojiTarget.current=null;return;}
+    activeEmojiTarget.current=queuedEmojiTarget.current;
+    queuedEmojiTarget.current=null;
+    setEmojiUploadFile(file);
+    setEmojiOpen(true);
+  };
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<AiTarget|null>(null);
   const openAi=(blockId?:string)=>{
@@ -343,8 +384,28 @@ function ConnectedEditor({session}:{session:Session}) {
   };
   const placeEmoji=(item:CustomEmojiRecord)=>{
     if(!canEdit(session))return;
-    editor.focus();
     const node={type:'customEmoji' as const,props:{emojiId:item.id,name:item.name}};
+    if(activeEmojiTarget.current){
+      try {
+        const range=resolveEmojiQuery(editor,activeEmojiTarget.current);
+        editor.focus();
+        editor.transact(tr=>{
+          tr.delete(range.from,range.to);
+          tr.setSelection(TextSelection.create(tr.doc,range.from));
+          editor.insertInlineContent([node,' ']);
+        });
+        activeEmojiTarget.current=null;
+        setEmojiUploadFile(null);
+        setEmojiInsertError('');
+        setEmojiOpen(false);
+      } catch(error) {
+        setEmojiInsertError('Emojien er gemt i biblioteket, men teksten ved indsættelsesstedet er ændret. Vælg stedet igen.');
+        closeEmoji();
+      }
+      return;
+    }
+    editor.focus();
+    setEmojiInsertError('');
     try { editor.insertInlineContent([node,' ']); }
     catch {
       try {
@@ -430,11 +491,13 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
       {!notebook && <><button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
-      <button ref={emojiTrigger} type="button" onClick={()=>{if(!emojiOpen)reloadEmojis();setEmojiOpen(open=>!open);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button></>}
+      <button ref={emojiTrigger} type="button" onClick={()=>{if(emojiOpen){closeEmoji();return;}queuedEmojiTarget.current=null;activeEmojiTarget.current=null;setEmojiUploadFile(null);setEmojiInsertError('');reloadEmojis();setEmojiOpen(true);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button></>}
       </>}
       {!notebook && <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>}
     </div>
-    {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} />}
+    {!session.readOnly && !notebook && enabled && createEmoji && <input ref={colonFileInput} className="notion-emoji-file notion-emoji-colon-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede fra kolonmenu" onChange={chooseColonFile} tabIndex={-1} />}
+    {emojiInsertError && <p className="notion-editor-persistence-error" role="alert">{emojiInsertError}</p>}
+    {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} initialFile={emojiUploadFile} />}
     {!session.readOnly && !notebook && (
       <AiHelperPanel
         editor={editor}
@@ -459,9 +522,10 @@ function ConnectedEditor({session}:{session:Session}) {
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
         <SuggestionMenuController triggerCharacter="@" getItems={async query=>filterSuggestionItems(mentionItems,query)} />
-        {!notebook && <GridSuggestionMenuController triggerCharacter=":" columns={8} minQueryLength={2} getItems={async query=>{
+        {!notebook && <GridSuggestionMenuController triggerCharacter=":" columns={6} minQueryLength={2} floatingUIOptions={{elementProps:{style:{zIndex:100}}}} gridSuggestionMenuComponent={props=><EmojiSuggestionMenu {...props} onAdd={enabled && createEmoji ? startColonUpload : undefined} />} getItems={async query=>{
           const custom=filterCustomEmojis(emojis,query).map((item:CustomEmojiRecord)=>({
             id:`custom-${item.id}`,
+            label:`:${item.name}:`,description:item.altText,
             icon:<img className="notion-custom-emoji" src={item.contentUrl} alt="" />,
             onItemClick:()=>placeEmoji(item),
           }));

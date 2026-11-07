@@ -17,13 +17,14 @@ export type EmojiAnalysis = EmojiMetadata & { name: string };
 type EmojiDraft = { name: string; altText: string; category: string; keywordsText: string };
 const emptyDraft = (): EmojiDraft => ({ name: '', altText: '', category: 'custom', keywordsText: '' });
 
-export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }: {
+export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, initialFile }: {
   id: string;
   emojis: PlatformEmoji[];
   onPick: (emoji: PlatformEmoji) => void;
   onClose: () => void;
   onUpload?: (file: File, name: string, signal: AbortSignal, metadata: EmojiMetadata) => Promise<PlatformEmoji>;
   onAnalyze?: (file: File, signal: AbortSignal) => Promise<EmojiAnalysis>;
+  initialFile?: File | null;
 }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
@@ -35,6 +36,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
   const upload = useRef<AbortController | null>(null);
   const analysis = useRef<AbortController | null>(null);
   const analysisGeneration = useRef(0);
+  const initialFileHandled = useRef<File | null>(null);
   const editedFields = useRef(new Set<keyof EmojiDraft>());
   const mounted = useRef(true);
   const [file, setFile] = useState<File | null>(null);
@@ -73,10 +75,8 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
     setFile(null); setError('');
     search.current?.focus({ preventScroll: true });
   };
-  const chooseFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = event.target.files?.[0];
-    event.target.value = '';
-    if (!selected || upload.current) return;
+  const startFile = (selected: File) => {
+    if (upload.current) return;
     stopAnalysis('');
     editedFields.current.clear();
     setFile(selected);
@@ -103,6 +103,16 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
         if (mounted.current) setAnalyzing(false);
       }
     });
+  };
+  useEffect(() => {
+    if (!initialFile || initialFileHandled.current === initialFile) return;
+    initialFileHandled.current = initialFile;
+    startFile(initialFile);
+  }, [initialFile]);
+  const chooseFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.target.files?.[0];
+    event.target.value = '';
+    if (selected) startFile(selected);
   };
   const editDraft = (field: keyof EmojiDraft, value: string) => {
     editedFields.current.add(field);
