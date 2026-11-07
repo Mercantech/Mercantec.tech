@@ -30,6 +30,8 @@ internal sealed class LearningUiTestContext : BunitContext
         Services.AddSingleton<TokenStore>();
         Services.AddSingleton<AuthService>();
         Services.AddSingleton<ViewAsStudentContext>();
+        Services.AddSingleton<RoleResolver>();
+        Services.AddSingleton<AuthRedirect>();
         Services.AddSingleton(http);
         Services.AddSingleton(new LearningClient(http));
         Services.AddSingleton(new EmojiClient(http));

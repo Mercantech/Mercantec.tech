@@ -123,6 +123,7 @@ else
     private IReadOnlyList<CustomEmojiItem>? _items;
     private IBrowserFile? _file;
     private string _name = "";
+    private string? _suggestedName;
     private string _sample = "";
     private string _rename = "";
     private string? _error, _notice;
@@ -158,6 +159,9 @@ else
     private void ChooseFile(InputFileChangeEventArgs e)
     {
         _file = e.File;
+        var suggestion = EmojiUploadDraft.SuggestName(_file.Name, (_items ?? []).Select(item => item.Name));
+        if (string.IsNullOrWhiteSpace(_name) || _name == _suggestedName) _name = suggestion;
+        _suggestedName = suggestion;
         _error = null;
     }
 
@@ -172,6 +176,7 @@ else
             await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes);
             var created = await Emojis.Upload(_name, stream, _file.Name, _life.Token);
             _name = "";
+            _suggestedName = null;
             _file = null;
             _fileKey++;
             _notice = $":{created.Name}: er lagt i biblioteket.";
@@ -226,7 +231,15 @@ else
         finally { _busy = false; }
     }
 
-    private void InsertSample(CustomEmojiItem emoji) => _sample = EmojiInsert.Append(_sample, emoji.Name, 200);
+    private void InsertSample(CustomEmojiItem emoji)
+    {
+        _sample = EmojiInsert.Append(_sample, emoji.Name, 200);
+        if (_items?.Any(item => item.Id == emoji.Id) != true)
+        {
+            _items = (_items ?? []).Append(emoji).OrderBy(item => item.Name).ToList();
+            _catalogVersion++;
+        }
+    }
 
     public void Dispose()
     {

@@ -21,6 +21,7 @@ import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type PlatformEmoji } from './emoji-picker';
+import { uploadPlatformEmoji } from './emoji-upload.mjs';
 
 export interface EditorContext {
   pageId: string;
@@ -44,6 +45,7 @@ const Runtime = createContext<Session | null>(null);
 type CustomEmojiRecord = PlatformEmoji;
 const EmojiCatalog = createContext<CustomEmojiRecord[]>([]);
 const EmojiReload = createContext<() => void>(() => {});
+const EmojiCreate = createContext<((file:File,name:string,signal:AbortSignal)=>Promise<CustomEmojiRecord>) | undefined>(undefined);
 
 const createRoster = createReactBlockSpec({
   type: 'classRoster',
@@ -309,6 +311,8 @@ function ConnectedEditor({session}:{session:Session}) {
   const enabled=canEdit(session);
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
+  const createEmoji=useContext(EmojiCreate);
+  const reloadEmojis=useContext(EmojiReload);
   const emojiTrigger=useRef<HTMLButtonElement>(null);
   const emojiPanelId=useId();
   const closeEmoji=()=>{setEmojiOpen(false);emojiTrigger.current?.focus({preventScroll:true});};
@@ -416,11 +420,11 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
       <button type="button" onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
-      <button ref={emojiTrigger} type="button" onClick={()=>setEmojiOpen(open=>!open)} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button>
+      <button ref={emojiTrigger} type="button" onClick={()=>{if(!emojiOpen)reloadEmojis();setEmojiOpen(open=>!open);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
-    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} />}
+    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} />}
     {!session.readOnly && (
       <AiHelperPanel
         editor={editor}
@@ -489,14 +493,16 @@ class EditorBoundary extends React.Component<{session:Session;children:React.Rea
 }
 function App({session}:{session:Session}) {
   const [emojis,setEmojis]=useState<CustomEmojiRecord[]>([]);
+  const emojiRevision=useRef(0);
   const loadRef=useRef<() => Promise<void>>(async()=>{});
   loadRef.current=async()=>{
     try {
+      const revision=emojiRevision.current;
       const token=await validToken(session);
       const response=await fetch('/api/emojis',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
       if(!response.ok || session.destroyed)return;
       const data=await response.json();
-      if(!Array.isArray(data) || session.destroyed)return;
+      if(!Array.isArray(data) || session.destroyed || revision!==emojiRevision.current)return;
       const next:CustomEmojiRecord[]=[];
       for(const item of data){
         if(item && typeof item.id==='string' && typeof item.name==='string' && typeof item.contentUrl==='string')
@@ -505,11 +511,19 @@ function App({session}:{session:Session}) {
       setEmojis(next);
     } catch { /* Editoren virker også uden emoji-biblioteket. */ }
   };
+  const createEmoji=async(file:File,name:string,signal:AbortSignal):Promise<CustomEmojiRecord>=>{
+    if(!canEdit(session))throw new Error('Du har ikke adgang til at tilføje emojis her.');
+    const created=await uploadPlatformEmoji(file,name,{getToken:()=>validToken(session),signal});
+    if(session.destroyed || signal.aborted)throw new DOMException('Uploaden er afsluttet.', 'AbortError');
+    emojiRevision.current++;
+    setEmojis(current=>[...current.filter(item=>item.id!==created.id),created]);
+    return created;
+  };
   useEffect(()=>{void loadRef.current();},[session]);
-  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
+  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={createEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
     <EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary>
-  </div></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
+  </div></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
 }
 
 export async function mount(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {

@@ -1,5 +1,6 @@
 @using Mercantec.Tech.Web.Emojis
 @inject EmojiClient Emojis
+@inject AuthRedirect Redirect
 @inject IJSRuntime Js
 @implements IAsyncDisposable
 
@@ -9,11 +10,43 @@
     {
         var visible = EmojiPickerCatalog.Filter(_items ?? [], _query, _category);
         var preview = visible.FirstOrDefault(item => item.Id == _previewId) ?? visible.FirstOrDefault();
-        <div @ref="_panel" id="@_panelId" class="emoji-picker-panel" role="dialog" aria-label="Vælg emoji">
+        <div @ref="_panel" id="@_panelId" class="emoji-picker-panel" role="dialog" aria-label="Vælg emoji" data-upload-draft="@(_uploadFile is not null ? "true" : "false")" data-upload-busy="@(_uploadBusy ? "true" : "false")">
             <div class="emoji-picker-heading">
-                <strong>Vælg emoji</strong>
-                <button type="button" class="emoji-picker-close" aria-label="Luk emoji-vælger" title="Luk (Escape)" @onclick="() => Close(true)">×</button>
+                <strong>@(_uploadFile is null ? "Vælg emoji" : "Ny emoji")</strong>
+                <div class="emoji-picker-heading-actions">
+                    @if (Redirect.ShowsTeacherChrome)
+                    {
+                        <label class="emoji-picker-add" title="Tilføj emoji">
+                            <span aria-hidden="true">+</span>
+                            <InputFile @key="_fileVersion" class="emoji-picker-file" OnChange="SelectUpload" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Tilføj emoji" disabled="@_uploadBusy" />
+                        </label>
+                    }
+                    <button type="button" class="emoji-picker-close" aria-label="Luk emoji-vælger" title="Luk (Escape)" disabled="@_uploadBusy" @onclick="() => Dismiss(true)">×</button>
+                </div>
             </div>
+            @if (_uploadFile is not null)
+            {
+                <div class="emoji-picker-upload" aria-busy="@(_uploadBusy ? "true" : "false")">
+                    <div class="emoji-picker-upload-file">
+                        @if (_uploadPreview is not null) { <img src="@_uploadPreview" alt="Forhåndsvisning" /> }
+                        <span>@_uploadFile.Name</span>
+                    </div>
+                    <label class="emoji-picker-upload-label">
+                        <span>Emoji-navn</span>
+                        <input class="emoji-picker-upload-name" value="@_uploadName" @oninput="EditUploadName" aria-label="Emoji-navn" maxlength="32" autocomplete="off" spellcheck="false" disabled="@_uploadBusy" aria-describedby="@(_panelId + "-upload-hint")" />
+                    </label>
+                    <p class="emoji-picker-upload-hint" id="@(_panelId + "-upload-hint")">2–32 tegn: bogstaver, tal og _. Bliver til <strong>:@NormalizedUploadName:</strong></p>
+                    @if (_uploadError is not null) { <p class="emoji-picker-upload-error" role="alert">@_uploadError</p> }
+                    <div class="emoji-picker-upload-actions">
+                        <button type="button" class="emoji-picker-upload-save" disabled="@(_uploadBusy || !_uploadFileValid || !EmojiUploadDraft.IsValidName(NormalizedUploadName))" @onclick="SaveUpload">@(_uploadBusy ? "Gemmer…" : "Gem og brug")</button>
+                        <button type="button" disabled="@_uploadBusy" @onclick="CancelUploadDraft">Annuller</button>
+                    </div>
+                    @if (_uploadBusy) { <p class="emoji-picker-upload-hint" role="status">Gemmer emoji…</p> }
+                    else { <p class="emoji-picker-upload-hint">PNG, JPEG, GIF eller WebP · højst 256 KB.</p> }
+                </div>
+            }
+            else
+            {
             <label class="emoji-picker-search-label">
                 <span class="emoji-picker-sr-only">Søg efter emoji</span>
                 <input class="emoji-picker-search" type="search" value="@_query" @oninput="Search" placeholder="Søg navn eller fx glad, raket…" autocomplete="off" spellcheck="false" maxlength="100" disabled="@(_items is null)" />
@@ -67,6 +100,7 @@
                 }
                 <span class="emoji-picker-count" role="status" aria-live="polite" aria-atomic="true">@visible.Count @(visible.Count == 1 ? "emoji" : "emojis")</span>
             </div>
+            }
         </div>
     }
 </div>
@@ -76,6 +110,12 @@
     [Parameter] public EventCallback<CustomEmojiItem> OnPick { get; set; }
     private readonly string _panelId = "emoji-picker-" + Guid.NewGuid().ToString("N");
     private bool _open, _focusSearch, _disposed, _moduleDisposed;
+    private bool _uploadBusy, _uploadFileValid;
+    private IBrowserFile? _uploadFile;
+    private string _uploadName = "";
+    private string? _uploadError, _uploadPreview;
+    private int _fileVersion, _previewGeneration;
+    private string NormalizedUploadName => _uploadName.Trim().Trim(':').ToLowerInvariant();
     private string _query = "", _category = "all";
     private string? _error;
     private Guid? _previewId;
@@ -88,7 +128,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_disposed || !_open) return;
-        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js?v=2").AsTask());
+        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js?v=3").AsTask());
         if (_disposed)
         {
             await DisposeModule(positioner);
@@ -107,11 +147,12 @@
 
     private async Task Toggle()
     {
+        if (_uploadBusy) return;
         if (_open) { await Close(true); return; }
         if (_disposed || Disabled) return;
         _open = true;
         _focusSearch = true;
-        await Load();
+        await Load(true);
     }
 
     private async Task Load(bool refresh = false)
@@ -160,16 +201,101 @@
     [JSInvokable]
     public Task Dismiss(bool restoreFocus) => InvokeAsync(async () =>
     {
-        if (_disposed || !_open) return;
+        if (_disposed || !_open || _uploadBusy) return;
+        if (_uploadFile is not null && restoreFocus)
+        {
+            CancelUploadDraft();
+            StateHasChanged();
+            return;
+        }
         await Close(restoreFocus);
         StateHasChanged();
     });
 
     private async Task Close(bool restoreFocus)
     {
+        if (_uploadBusy) return;
         _open = false;
         _focusSearch = false;
+        ClearUploadDraft();
         await StopPositioning(restoreFocus);
+    }
+
+    private async Task SelectUpload(InputFileChangeEventArgs args)
+    {
+        if (_disposed || _uploadBusy || !Redirect.ShowsTeacherChrome) return;
+        var file = args.File;
+        var generation = ++_previewGeneration;
+        _uploadFile = file;
+        _uploadName = EmojiUploadDraft.SuggestName(file.Name, (_items ?? []).Select(item => item.Name));
+        _uploadPreview = _uploadError = null;
+        _uploadFileValid = false;
+        _focusSearch = true;
+        if (file.Size == 0) { _uploadError = "Vælg et billede med indhold."; return; }
+        if (file.Size > EmojiClient.MaxBytes) { _uploadError = "Billedet må højst være 256 KB."; return; }
+        var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+        var type = extension switch { ".png" => "image/png", ".jpg" or ".jpeg" => "image/jpeg", ".gif" => "image/gif", ".webp" => "image/webp", _ => null };
+        if (type is null) { _uploadError = "Brug et PNG-, JPEG-, GIF- eller WebP-billede."; return; }
+        try
+        {
+            await using var stream = file.OpenReadStream(EmojiClient.MaxBytes);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            if (_disposed || generation != _previewGeneration) return;
+            _uploadPreview = $"data:{type};base64,{Convert.ToBase64String(buffer.ToArray())}";
+            _uploadFileValid = true;
+        }
+        catch (Exception error) when (error is IOException or JSException or OperationCanceledException)
+        {
+            if (!_disposed && generation == _previewGeneration) _uploadError = "Billedet kunne ikke læses. Vælg filen igen.";
+        }
+    }
+
+    private void EditUploadName(ChangeEventArgs args)
+    {
+        _uploadName = args.Value?.ToString() ?? "";
+        _uploadError = null;
+    }
+
+    [JSInvokable]
+    public async Task SaveUpload()
+    {
+        if (_disposed || _uploadBusy || !Redirect.ShowsTeacherChrome || _uploadFile is null || !_uploadFileValid || !EmojiUploadDraft.IsValidName(NormalizedUploadName)) return;
+        _uploadBusy = true;
+        _uploadError = null;
+        StateHasChanged();
+        try
+        {
+            await using var stream = _uploadFile.OpenReadStream(EmojiClient.MaxBytes);
+            var created = await Emojis.Upload(NormalizedUploadName, stream, _uploadFile.Name, CancellationToken.None);
+            if (_disposed) return;
+            _items = (_items ?? []).Where(item => item.Id != created.Id).Append(created).OrderBy(item => item.Name).ToList();
+            _uploadBusy = false;
+            await Choose(created);
+        }
+        catch (EmojiException error) { if (!_disposed) _uploadError = error.Message; }
+        catch (Exception error) when (error is IOException or JSException or OperationCanceledException) { if (!_disposed) _uploadError = "Billedet kunne ikke læses. Vælg filen igen."; }
+        finally { _uploadBusy = false; }
+        if (!_disposed) StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void CancelUploadDraft()
+    {
+        if (_uploadBusy || _disposed) return;
+        ClearUploadDraft();
+        _focusSearch = true;
+        StateHasChanged();
+    }
+
+    private void ClearUploadDraft()
+    {
+        _previewGeneration++;
+        _uploadFile = null;
+        _uploadPreview = _uploadError = null;
+        _uploadName = "";
+        _uploadFileValid = false;
+        _fileVersion++;
     }
 
     private async Task StopPositioning(bool restoreFocus = false)

@@ -25,7 +25,7 @@ export function mount(anchor, panel, callback, focusSearch = false) {
     const active = buttons.includes(document.activeElement) ? document.activeElement : buttons[0];
     for (const button of buttons) button.tabIndex = button === active ? 0 : -1;
     if (focusSearch) {
-        const search = panel.querySelector('.emoji-picker-search:not(:disabled)');
+        const search = panel.querySelector('.emoji-picker-upload-name:not(:disabled), .emoji-picker-search:not(:disabled)');
         if (search) {
             search.focus({ preventScroll: true });
             return true;
@@ -39,9 +39,9 @@ function createSession(anchor, panel, callback) {
     const { signal } = controller;
     let closing = false;
     function close(restoreFocus) {
-        if (closing) return;
+        if (closing || panel.dataset.uploadBusy === 'true') return;
         closing = true;
-        callback.invokeMethodAsync('Dismiss', restoreFocus).catch(() => {});
+        callback.invokeMethodAsync('Dismiss', restoreFocus).catch(() => {}).finally(() => { closing = false; });
     }
     function fit() {
         if (!anchor.isConnected || !panel.isConnected) {
@@ -82,7 +82,15 @@ function createSession(anchor, panel, callback) {
         if (event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();
-            close(true);
+            if (panel.dataset.uploadBusy === 'true') return;
+            if (panel.dataset.uploadDraft === 'true') callback.invokeMethodAsync('CancelUploadDraft').catch(() => {});
+            else close(true);
+            return;
+        }
+        if (event.target.matches('.emoji-picker-upload-name') && event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            callback.invokeMethodAsync('SaveUpload').catch(() => {});
             return;
         }
         const options = [...panel.querySelectorAll('.emoji-picker-option')];
