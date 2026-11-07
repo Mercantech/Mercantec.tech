@@ -48,3 +48,14 @@ Præcise prompts, billedreferencer, mål og transparenskontrol:
 - [Griner, Aha! og Åh nej](reactions/prompts-a.md)
 - [Kaffepause, Tak! og Hov, hvad?](reactions/prompts-b.md)
 - [De fire miljøer](scenes/prompts-scenes.md)
+
+## Databaseanimationer
+
+`animations/` indeholder tre GIF-loops og deres PNG-stillbilleder:
+`join-tables`, `sort-rows` og `find-row`. Raymond forbinder tabeller, ordner
+rækkekort og undersøger en manglende række. De vises under profilen med
+Afspil/Stop og GIF-download og starter som stillbilleder.
+
+Originale animationsark, præcise ImageGen-prompts og instruktioner til
+FFmpeg-samlingen findes i
+[animationsdokumentationen](../../../../../assets/characters/raymond/animations/README.md).

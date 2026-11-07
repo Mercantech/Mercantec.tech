@@ -1,0 +1,54 @@
+@using Mercantec.Tech.Web.Characters
+
+@if (Items.Count > 0)
+{
+    <section class="character-animations" aria-labelledby="character-animations-title">
+        <header>
+            <h2 id="character-animations-title">@CharacterName arbejder med databaser</h2>
+            <p>Små animerede scener med professoren. Tryk på Afspil, eller hent en GIF til dine egne materialer.</p>
+        </header>
+        <div class="character-animation-grid">
+            @foreach (var item in Items)
+            {
+                var playing = _playing.Contains(item.Id);
+                <figure @key="item.Id" class="character-animation-card">
+                    <div class="character-animation-screen" id="@($"animation-{item.Id}")">
+                        <img src="@(playing ? item.Image : item.Poster)" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
+                        <span class="character-animation-format" aria-hidden="true">GIF</span>
+                    </div>
+                    <figcaption>
+                        <p class="character-animation-topic">@item.Topic</p>
+                        <h3>@item.Title</h3>
+                        <p class="character-animation-description">@item.Description</p>
+                        <div class="character-animation-actions">
+                            <button type="button" aria-pressed="@(playing ? "true" : "false")" aria-controls="@($"animation-{item.Id}")"
+                                    aria-label="@($"{(playing ? "Stop" : "Afspil")} {item.Title}")" @onclick="() => Toggle(item.Id)">
+                                <span aria-hidden="true">@(playing ? "■" : "▶")</span> @(playing ? "Stop" : "Afspil")
+                            </button>
+                            <a href="@item.Image" download="@($"{CharacterSlug}-{item.Id}.gif")" aria-label="@($"Hent {item.Title} som GIF")">Hent GIF <span aria-hidden="true">↓</span></a>
+                        </div>
+                    </figcaption>
+                </figure>
+            }
+        </div>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string CharacterSlug { get; set; } = "";
+    [Parameter, EditorRequired] public string CharacterName { get; set; } = "";
+    [Parameter] public IReadOnlyList<CharacterAnimation> Items { get; set; } = [];
+    private readonly HashSet<string> _playing = [];
+    private string? _previousSlug;
+
+    protected override void OnParametersSet()
+    {
+        if (_previousSlug != CharacterSlug) _playing.Clear();
+        _previousSlug = CharacterSlug;
+    }
+
+    private void Toggle(string id)
+    {
+        if (!_playing.Remove(id)) _playing.Add(id);
+    }
+}

@@ -55,6 +55,15 @@ public static class CharacterCatalog
              new("En professor med historie", "Hans fulde navn hylder databasepionererne Raymond Boyce, Michael Stonebraker og Edgar F. Codd. Du møder ham på SQL-H1, hvor SQL og PostgreSQL er i centrum.")],
             [new("Mød Raymond på SQL-H1", "https://sql.mercantec.tech", true, false), new("Udforsk databaser", "/subjects/database", false, false)])
         {
+            Animations =
+            [
+                new("join-tables", "Forbind tabeller", "JOIN · Relationer", "Raymond viser vejen mellem to tabeller. Med en fælles nøgle kan en JOIN samle data, der hører sammen.",
+                    "/images/characters/raymond/animations/join-tables.gif", "/images/characters/raymond/animations/join-tables.png", "Raymond forbinder to datatabeller med sin pegepind og følger de matchende nøgler.", 512, 512),
+                new("sort-rows", "Sæt rækkerne i orden", "ORDER BY · Sortering", "Raymond ordner rækkerne efter deres værdi. ORDER BY bestemmer rækkefølgen i resultatet; data i tabellen bliver ikke flyttet.",
+                    "/images/characters/raymond/animations/sort-rows.gif", "/images/characters/raymond/animations/sort-rows.png", "Raymond flytter nummererede rækkekort, så de ender i rækkefølgen et, to, tre.", 512, 512),
+                new("find-row", "Find den manglende række", "WHERE · Undersøg data", "Raymond tager luppen frem, når en række mangler. Tjek først dine filtre: Matcher værdien, og bliver rækken udeladt af din WHERE-betingelse?",
+                    "/images/characters/raymond/animations/find-row.gif", "/images/characters/raymond/animations/find-row.png", "Raymond holder en lup, undersøger en datatabel og peger på den tomme række.", 512, 512)
+            ],
             Reactions =
             [
                 new("Det virker", "/images/characters/raymond/reactions/success.png", "Raymond smiler tilfreds: forespørgslen virker.", 1254, 1254),
@@ -108,9 +117,11 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
     public IReadOnlyList<CharacterIllustration> Illustrations { get; init; } = [];
     public IReadOnlyList<CharacterIllustration> Reactions { get; init; } = [];
     public IReadOnlyList<CharacterIllustration> Scenes { get; init; } = [];
+    public IReadOnlyList<CharacterAnimation> Animations { get; init; } = [];
 }
 
 public sealed record CharacterAppearance(string Name, string Image, string Alt);
 public sealed record CharacterFeature(string Title, string Description);
 public sealed record CharacterLink(string Label, string Href, bool External, bool RequiresLogin);
 public sealed record CharacterIllustration(string Title, string Image, string Alt, int Width, int Height);
+public sealed record CharacterAnimation(string Id, string Title, string Topic, string Description, string Image, string Poster, string Alt, int Width, int Height);

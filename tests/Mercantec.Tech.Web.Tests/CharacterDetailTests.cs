@@ -75,6 +75,53 @@ public sealed class CharacterDetailTests
     }
 
     [Fact]
+    public async Task RaymondAnimationsStartOnlyOnRequestAndCanBeStoppedWithoutChangingThePortrait()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.FindAll(".character-appearance-picker button")[2].Click();
+
+        Assert.Equal(3, page.FindAll(".character-animation-card").Count);
+        Assert.All(page.FindAll(".character-animation-screen img"), image => Assert.EndsWith(".png", image.GetAttribute("src")));
+        Assert.All(page.FindAll(".character-animation-actions button"), button => Assert.Equal("false", button.GetAttribute("aria-pressed")));
+        Assert.All(page.FindAll(".character-animation-actions a"), link =>
+        {
+            Assert.StartsWith("/images/characters/raymond/animations/", link.GetAttribute("href"));
+            Assert.EndsWith(".gif", link.GetAttribute("href"));
+            Assert.EndsWith(".gif", link.GetAttribute("download"));
+        });
+
+        page.Find("button[aria-label='Afspil Forbind tabeller']").Click();
+        Assert.EndsWith("/join-tables.gif", page.Find("#animation-join-tables img").GetAttribute("src"));
+        Assert.EndsWith("/sort-rows.png", page.Find("#animation-sort-rows img").GetAttribute("src"));
+        Assert.Equal("true", page.Find("button[aria-label='Stop Forbind tabeller']").GetAttribute("aria-pressed"));
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+
+        page.Find("button[aria-label='Stop Forbind tabeller']").Click();
+        Assert.EndsWith("/join-tables.png", page.Find("#animation-join-tables img").GetAttribute("src"));
+        Assert.Equal("false", page.Find("button[aria-label='Afspil Forbind tabeller']").GetAttribute("aria-pressed"));
+    }
+
+    [Fact]
+    public async Task AnimationPlaybackIsResetWhenLeavingRaymondsProfile()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.Find("button[aria-label='Afspil Find den manglende række']").Click();
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
+        Assert.Empty(page.FindAll(".character-animations"));
+        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
+        Assert.Equal(3, page.FindAll(".character-animation-card").Count);
+        Assert.All(page.FindAll(".character-animation-screen img"), image => Assert.EndsWith(".png", image.GetAttribute("src")));
+        Assert.Empty(page.FindAll(".character-animation-actions button[aria-pressed='true']"));
+    }
+
+    [Fact]
     public async Task MovingBetweenProfilesResetsTheAppearanceWithoutShowingThePreviousPortrait()
     {
         using var api = new NoNetwork();
