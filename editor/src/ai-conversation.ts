@@ -78,6 +78,10 @@ function contentText(value: any, depth = 0): string {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(part => contentText(part, depth + 1)).join('');
   if (typeof value !== 'object') return '';
+  if (value.type === 'customEmoji') {
+    const name = typeof value.props?.name === 'string' ? value.props.name.trim().replace(/^:+|:+$/g, '') : '';
+    return name ? `:${name}:` : typeof value.props?.altText === 'string' ? value.props.altText : ':emoji:';
+  }
   if (Array.isArray(value.rows)) return value.rows.map((row: unknown) => contentText(row, depth + 1)).join('\n');
   if (Array.isArray(value.cells)) return value.cells.map((cell: unknown) => contentText(cell, depth + 1)).join(' | ');
   if (value.content != null) return contentText(value.content, depth + 1);

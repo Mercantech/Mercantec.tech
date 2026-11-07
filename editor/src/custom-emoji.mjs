@@ -21,9 +21,9 @@ export function filterCustomEmojis(emojis, query, category = 'all') {
   const list = Array.isArray(emojis) ? emojis : [];
   return list.filter((item) => {
     if (!item || typeof item.name !== 'string') return false;
-    if (category === 'custom' ? item.isStandard === true : category !== 'all' && !(item.isStandard === true && item.category === category)) return false;
+    if (category === 'custom' ? item.isStandard === true : category !== 'all' && item.category !== category) return false;
     const keywords = Array.isArray(item.keywords) ? item.keywords.filter(word => typeof word === 'string') : [];
-    const text = normalizeSearch([item.name, ...keywords].join(' '));
+    const text = normalizeSearch([item.name, item.altText, ...keywords].join(' '));
     return words.every(word => text.includes(word));
   });
 }

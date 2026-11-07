@@ -36,9 +36,20 @@
                         <input class="emoji-picker-upload-name" value="@_uploadName" @oninput="EditUploadName" aria-label="Emoji-navn" maxlength="32" autocomplete="off" spellcheck="false" disabled="@_uploadBusy" aria-describedby="@(_panelId + "-upload-hint")" />
                     </label>
                     <p class="emoji-picker-upload-hint" id="@(_panelId + "-upload-hint")">2–32 tegn: bogstaver, tal og _. Bliver til <strong>:@NormalizedUploadName:</strong></p>
+                    <label class="emoji-picker-upload-label"><span>ALT-tekst</span><input class="emoji-picker-upload-name" value="@_uploadAltText" @oninput="EditUploadAltText" aria-label="ALT-tekst" maxlength="240" disabled="@_uploadBusy" /></label>
+                    <label class="emoji-picker-upload-label"><span>Kategori</span><select class="emoji-picker-upload-name" value="@_uploadCategory" @onchange="EditUploadCategory" aria-label="Kategori" disabled="@_uploadBusy">
+                        @foreach (var category in EmojiPickerCatalog.Categories.Where(item => item.Id != "all"))
+                        { <option value="@category.Id">@(category.Id == "custom" ? "Andet" : category.Label)</option> }
+                    </select></label>
+                    <label class="emoji-picker-upload-label"><span>Søgeord</span><input class="emoji-picker-upload-name" value="@_uploadKeywords" @oninput="EditUploadKeywords" aria-label="Søgeord" maxlength="500" placeholder="Adskil med komma" disabled="@_uploadBusy" /></label>
+                    <p class="emoji-picker-upload-hint">Højst 12 søgeord på hver højst 32 tegn.</p>
+                    @if (_analysisBusy)
+                    { <p class="emoji-picker-upload-hint" role="status">Analyserer billedet og foreslår metadata…</p><button type="button" class="emoji-picker-analysis-stop" @onclick="StopAnalysis">Stop analyse</button> }
+                    else if (_analysisMessage is not null)
+                    { <p class="emoji-picker-upload-hint" role="status">@_analysisMessage</p> }
                     @if (_uploadError is not null) { <p class="emoji-picker-upload-error" role="alert">@_uploadError</p> }
                     <div class="emoji-picker-upload-actions">
-                        <button type="button" class="emoji-picker-upload-save" disabled="@(_uploadBusy || !_uploadFileValid || !EmojiUploadDraft.IsValidName(NormalizedUploadName))" @onclick="SaveUpload">@(_uploadBusy ? "Gemmer…" : "Gem og brug")</button>
+                        <button type="button" class="emoji-picker-upload-save" disabled="@(_uploadBusy || _analysisBusy || !_uploadFileValid || !ValidUploadMetadata)" @onclick="SaveUpload">@(_uploadBusy ? "Gemmer…" : "Gem og brug")</button>
                         <button type="button" disabled="@_uploadBusy" @onclick="CancelUploadDraft">Annuller</button>
                     </div>
                     @if (_uploadBusy) { <p class="emoji-picker-upload-hint" role="status">Gemmer emoji…</p> }
@@ -113,9 +124,17 @@
     private bool _uploadBusy, _uploadFileValid;
     private IBrowserFile? _uploadFile;
     private string _uploadName = "";
+    private string _uploadAltText = "", _uploadCategory = "custom", _uploadKeywords = "";
+    private bool _analysisBusy;
+    private string? _analysisMessage;
+    private CancellationTokenSource? _analysisRequest;
+    private readonly HashSet<string> _editedMetadata = [];
     private string? _uploadError, _uploadPreview;
     private int _fileVersion, _previewGeneration;
     private string NormalizedUploadName => _uploadName.Trim().Trim(':').ToLowerInvariant();
+    private bool ValidUploadMetadata => EmojiUploadDraft.IsValidName(NormalizedUploadName)
+        && !string.IsNullOrWhiteSpace(_uploadAltText) && _uploadAltText.Length <= 240
+        && EmojiUploadDraft.ParseKeywords(_uploadKeywords) is var words && words.Count <= 12 && words.All(word => word.Length <= 32);
     private string _query = "", _category = "all";
     private string? _error;
     private Guid? _previewId;
@@ -128,7 +147,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_disposed || !_open) return;
-        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js?v=3").AsTask());
+        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js?v=4").AsTask());
         if (_disposed)
         {
             await DisposeModule(positioner);
@@ -224,10 +243,16 @@
     private async Task SelectUpload(InputFileChangeEventArgs args)
     {
         if (_disposed || _uploadBusy || !Redirect.ShowsTeacherChrome) return;
+        CancelAnalysisRequest();
+        _editedMetadata.Clear();
         var file = args.File;
         var generation = ++_previewGeneration;
         _uploadFile = file;
         _uploadName = EmojiUploadDraft.SuggestName(file.Name, (_items ?? []).Select(item => item.Name));
+        _uploadAltText = _uploadName.Replace('_', ' ');
+        _uploadCategory = "custom";
+        _uploadKeywords = "";
+        _analysisMessage = null;
         _uploadPreview = _uploadError = null;
         _uploadFileValid = false;
         _focusSearch = true;
@@ -244,6 +269,7 @@
             if (_disposed || generation != _previewGeneration) return;
             _uploadPreview = $"data:{type};base64,{Convert.ToBase64String(buffer.ToArray())}";
             _uploadFileValid = true;
+            await AnalyzeUpload(file, generation);
         }
         catch (Exception error) when (error is IOException or JSException or OperationCanceledException)
         {
@@ -254,20 +280,79 @@
     private void EditUploadName(ChangeEventArgs args)
     {
         _uploadName = args.Value?.ToString() ?? "";
+        _editedMetadata.Add("name");
         _uploadError = null;
+    }
+
+    private void EditUploadAltText(ChangeEventArgs args) => EditMetadata("alt", args);
+    private void EditUploadCategory(ChangeEventArgs args) => EditMetadata("category", args);
+    private void EditUploadKeywords(ChangeEventArgs args) => EditMetadata("keywords", args);
+
+    private void EditMetadata(string field, ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString() ?? "";
+        if (field == "alt") _uploadAltText = value;
+        else if (field == "category") _uploadCategory = value;
+        else if (field == "keywords") _uploadKeywords = value;
+        _editedMetadata.Add(field);
+        _uploadError = null;
+    }
+
+    private async Task AnalyzeUpload(IBrowserFile file, int generation)
+    {
+        var request = new CancellationTokenSource();
+        _analysisRequest = request;
+        _analysisBusy = true;
+        StateHasChanged();
+        try
+        {
+            await using var stream = file.OpenReadStream(EmojiClient.MaxBytes, request.Token);
+            var analysis = await Emojis.Analyze(stream, file.Name, request.Token);
+            if (_disposed || request.IsCancellationRequested || generation != _previewGeneration) return;
+            if (!_editedMetadata.Contains("name")) _uploadName = EmojiUploadDraft.SuggestName(analysis.Name + ".png", (_items ?? []).Select(item => item.Name));
+            if (!_editedMetadata.Contains("alt")) _uploadAltText = analysis.AltText;
+            if (!_editedMetadata.Contains("category")) _uploadCategory = EmojiPickerCatalog.Categories.Any(item => item.Id == analysis.Category && item.Id != "all") ? analysis.Category : "custom";
+            if (!_editedMetadata.Contains("keywords")) _uploadKeywords = string.Join(", ", analysis.Keywords ?? []);
+            _analysisMessage = "AI har foreslået metadata. Du kan rette alle felterne før gemning.";
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception error) when (error is EmojiException or IOException or JSException)
+        {
+            if (!_disposed && generation == _previewGeneration && !request.IsCancellationRequested)
+                _analysisMessage = error is EmojiException ? error.Message : "Analysen kunne ikke gennemføres. Udfyld felterne manuelt.";
+        }
+        finally
+        {
+            if (ReferenceEquals(_analysisRequest, request)) { _analysisRequest = null; _analysisBusy = false; }
+            request.Dispose();
+        }
+    }
+
+    private void CancelAnalysisRequest()
+    {
+        _analysisRequest?.Cancel();
+        _analysisRequest = null;
+        _analysisBusy = false;
+    }
+
+    private void StopAnalysis()
+    {
+        CancelAnalysisRequest();
+        _analysisMessage = "Analysen er stoppet. Du kan udfylde felterne manuelt.";
     }
 
     [JSInvokable]
     public async Task SaveUpload()
     {
-        if (_disposed || _uploadBusy || !Redirect.ShowsTeacherChrome || _uploadFile is null || !_uploadFileValid || !EmojiUploadDraft.IsValidName(NormalizedUploadName)) return;
+        if (_disposed || _uploadBusy || _analysisBusy || !Redirect.ShowsTeacherChrome || _uploadFile is null || !_uploadFileValid || !ValidUploadMetadata) return;
         _uploadBusy = true;
         _uploadError = null;
         StateHasChanged();
         try
         {
             await using var stream = _uploadFile.OpenReadStream(EmojiClient.MaxBytes);
-            var created = await Emojis.Upload(NormalizedUploadName, stream, _uploadFile.Name, CancellationToken.None);
+            var metadata = new EmojiUploadMetadata(_uploadAltText.Trim(), _uploadCategory, EmojiUploadDraft.ParseKeywords(_uploadKeywords));
+            var created = await Emojis.Upload(NormalizedUploadName, stream, _uploadFile.Name, CancellationToken.None, metadata);
             if (_disposed) return;
             _items = (_items ?? []).Where(item => item.Id != created.Id).Append(created).OrderBy(item => item.Name).ToList();
             _uploadBusy = false;
@@ -290,6 +375,11 @@
 
     private void ClearUploadDraft()
     {
+        CancelAnalysisRequest();
+        _editedMetadata.Clear();
+        _analysisMessage = null;
+        _uploadAltText = _uploadKeywords = "";
+        _uploadCategory = "custom";
         _previewGeneration++;
         _uploadFile = null;
         _uploadPreview = _uploadError = null;
@@ -316,6 +406,7 @@
     public async ValueTask DisposeAsync()
     {
         _disposed = true;
+        CancelAnalysisRequest();
         _open = false;
         await StopPositioning();
         _reference?.Dispose();

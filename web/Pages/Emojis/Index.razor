@@ -38,14 +38,23 @@ else
         <form class="panel emoji-upload" @onsubmit="Upload" @onsubmit:preventDefault>
             <h2>Tilføj emoji</h2>
             <label class="field">Kort navn
-                <input @bind="_name" maxlength="32" required placeholder="lup" autocomplete="off" />
+                <input value="@_name" @oninput="EditName" maxlength="32" required placeholder="lup" autocomplete="off" />
             </label>
             <p class="emoji-hint">2–32 tegn: bogstaver, tal og _. I teksten bliver det <kbd>:navn:</kbd>.</p>
             <label class="field">Billede
                 <InputFile @key="_fileKey" OnChange="ChooseFile" accept="image/png,image/jpeg,image/gif,image/webp" />
             </label>
             <p class="emoji-hint">PNG, JPEG, GIF eller WebP. Højst 256 KB.@if (_file is not null) { <span> Valgt: @_file.Name</span> }</p>
-            <button class="action" disabled="@(_busy || _file is null || string.IsNullOrWhiteSpace(_name))">Upload</button>
+            @if (_file is not null)
+            {
+                <label class="field">ALT-tekst<input value="@_altText" @oninput="EditAlt" maxlength="240" /></label>
+                <label class="field">Kategori<select value="@_uploadCategory" @onchange="EditCategory">@foreach (var category in EmojiPickerCatalog.Categories.Where(item => item.Id != "all")) { <option value="@category.Id">@(category.Id == "custom" ? "Andet" : category.Label)</option> }</select></label>
+                <label class="field">Søgeord<input value="@_keywords" @oninput="EditKeywords" maxlength="500" placeholder="Adskil med komma" /></label>
+                <p class="emoji-hint">Højst 12 søgeord på hver højst 32 tegn.</p>
+                @if (_analyzing) { <p role="status" class="emoji-hint">Analyserer billedet og foreslår metadata…</p><button type="button" class="secondary" @onclick="StopAnalysis">Stop analyse</button> }
+                else if (_analysisMessage is not null) { <p role="status" class="emoji-hint">@_analysisMessage</p> }
+            }
+            <button class="action" disabled="@(_busy || _analyzing || _file is null || !ValidUpload)">Upload</button>
         </form>
     }
     else
@@ -70,7 +79,7 @@ else
                 @foreach (var item in _items)
                 {
                     <li>
-                        <img src="@item.ContentUrl" alt="@($":{item.Name}:")" />
+                        <img src="@item.ContentUrl" alt="@(string.IsNullOrWhiteSpace(item.AltText) ? $":{item.Name}:" : item.AltText)" title="@($":{item.Name}:")" />
                         <div>
                             <strong>:@item.Name:</strong>
                             @if (CanManage && _renaming == item.Id)
@@ -79,6 +88,9 @@ else
                                     <label class="field">Nyt navn
                                         <input @bind="_rename" maxlength="32" required />
                                     </label>
+                                    <label class="field">ALT-tekst<input @bind="_renameAlt" maxlength="240" /></label>
+                                    <label class="field">Kategori<select @bind="_renameCategory">@foreach (var category in EmojiPickerCatalog.Categories.Where(choice => choice.Id != "all")) { <option value="@category.Id">@(category.Id == "custom" ? "Andet" : category.Label)</option> }</select></label>
+                                    <label class="field">Søgeord<input @bind="_renameKeywords" maxlength="500" placeholder="Adskil med komma" /></label>
                                     <div class="actions">
                                         <button class="action" disabled="@_busy">Gem</button>
                                         <button type="button" class="secondary" @onclick="CancelRename">Annuller</button>
@@ -123,7 +135,15 @@ else
     private IReadOnlyList<CustomEmojiItem>? _items;
     private IBrowserFile? _file;
     private string _name = "";
-    private string? _suggestedName;
+    private string _altText = "", _uploadCategory = "custom", _keywords = "";
+    private string _renameAlt = "", _renameCategory = "custom", _renameKeywords = "";
+    private bool _analyzing;
+    private string? _analysisMessage;
+    private CancellationTokenSource? _analysisRequest;
+    private int _fileGeneration;
+    private readonly HashSet<string> _editedMetadata = [];
+    private bool ValidUpload => EmojiUploadDraft.IsValidName(_name) && !string.IsNullOrWhiteSpace(_altText)
+        && _altText.Length <= 240 && EmojiUploadDraft.ParseKeywords(_keywords) is var words && words.Count <= 12 && words.All(word => word.Length <= 32);
     private string _sample = "";
     private string _rename = "";
     private string? _error, _notice;
@@ -156,27 +176,68 @@ else
         catch (OperationCanceledException) { }
     }
 
-    private void ChooseFile(InputFileChangeEventArgs e)
+    private async Task ChooseFile(InputFileChangeEventArgs e)
     {
+        CancelAnalysis();
+        var generation = ++_fileGeneration;
         _file = e.File;
         var suggestion = EmojiUploadDraft.SuggestName(_file.Name, (_items ?? []).Select(item => item.Name));
-        if (string.IsNullOrWhiteSpace(_name) || _name == _suggestedName) _name = suggestion;
-        _suggestedName = suggestion;
+        if (!_editedMetadata.Contains("name")) _name = suggestion;
+        if (!_editedMetadata.Contains("alt")) _altText = suggestion.Replace('_', ' ');
+        if (!_editedMetadata.Contains("category")) _uploadCategory = "custom";
+        if (!_editedMetadata.Contains("keywords")) _keywords = "";
         _error = null;
+        _analysisMessage = null;
+        if (_file.Size == 0 || _file.Size > EmojiClient.MaxBytes) { _analysisMessage = "Vælg et billede med indhold på højst 256 KB."; return; }
+        var request = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
+        _analysisRequest = request;
+        _analyzing = true;
+        try
+        {
+            await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes, request.Token);
+            var result = await Emojis.Analyze(stream, _file.Name, request.Token);
+            if (request.IsCancellationRequested || generation != _fileGeneration) return;
+            if (!_editedMetadata.Contains("name")) _name = EmojiUploadDraft.SuggestName(result.Name + ".png", (_items ?? []).Select(item => item.Name));
+            if (!_editedMetadata.Contains("alt")) _altText = result.AltText;
+            if (!_editedMetadata.Contains("category")) _uploadCategory = result.Category;
+            if (!_editedMetadata.Contains("keywords")) _keywords = string.Join(", ", result.Keywords ?? []);
+            _analysisMessage = "AI har foreslået metadata. Du kan rette alle felterne før gemning.";
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception error) when (error is EmojiException or IOException)
+        {
+            if (!request.IsCancellationRequested && generation == _fileGeneration)
+                _analysisMessage = error is EmojiException ? error.Message : "Billedet kunne ikke analyseres. Udfyld felterne manuelt.";
+        }
+        finally
+        {
+            if (ReferenceEquals(_analysisRequest, request)) { _analysisRequest = null; _analyzing = false; }
+            request.Dispose();
+        }
     }
+
+    private void EditName(ChangeEventArgs args) { _name = args.Value?.ToString() ?? ""; _editedMetadata.Add("name"); }
+    private void EditAlt(ChangeEventArgs args) { _altText = args.Value?.ToString() ?? ""; _editedMetadata.Add("alt"); }
+    private void EditCategory(ChangeEventArgs args) { _uploadCategory = args.Value?.ToString() ?? "custom"; _editedMetadata.Add("category"); }
+    private void EditKeywords(ChangeEventArgs args) { _keywords = args.Value?.ToString() ?? ""; _editedMetadata.Add("keywords"); }
+    private void CancelAnalysis() { _analysisRequest?.Cancel(); _analysisRequest = null; _analyzing = false; }
+    private void StopAnalysis() { CancelAnalysis(); _analysisMessage = "Analysen er stoppet. Du kan udfylde felterne manuelt."; }
 
     private async Task Upload()
     {
-        if (!CanManage || _file is null || _busy) return;
+        if (!CanManage || _file is null || _busy || _analyzing || !ValidUpload) return;
         if (_file.Size > EmojiClient.MaxBytes) { _error = "Billedet må højst være 256 KB."; return; }
         _busy = true;
         _error = _notice = null;
         try
         {
             await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes);
-            var created = await Emojis.Upload(_name, stream, _file.Name, _life.Token);
+            var metadata = new EmojiUploadMetadata(_altText.Trim(), _uploadCategory, EmojiUploadDraft.ParseKeywords(_keywords));
+            var created = await Emojis.Upload(_name, stream, _file.Name, _life.Token, metadata);
             _name = "";
-            _suggestedName = null;
+            _altText = _keywords = "";
+            _uploadCategory = "custom";
+            _editedMetadata.Clear();
             _file = null;
             _fileKey++;
             _notice = $":{created.Name}: er lagt i biblioteket.";
@@ -192,6 +253,9 @@ else
     {
         _renaming = item.Id;
         _rename = item.Name;
+        _renameAlt = item.AltText;
+        _renameCategory = item.Category;
+        _renameKeywords = string.Join(", ", item.Keywords ?? []);
         _confirmDelete = null;
     }
 
@@ -204,7 +268,8 @@ else
         _error = _notice = null;
         try
         {
-            var updated = await Emojis.Rename(id, _rename, _life.Token);
+            var metadata = new EmojiUploadMetadata(_renameAlt, _renameCategory, EmojiUploadDraft.ParseKeywords(_renameKeywords));
+            var updated = await Emojis.Rename(id, _rename, _life.Token, metadata);
             _renaming = null;
             _notice = $"Navnet er nu :{updated.Name}:. Allerede indsatte emojis i editoren følger med.";
             await Load();
@@ -243,6 +308,7 @@ else
 
     public void Dispose()
     {
+        CancelAnalysis();
         Auth.AuthStateChanged -= OnAuth;
         _life.Cancel();
         _life.Dispose();

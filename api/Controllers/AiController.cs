@@ -1,12 +1,15 @@
 using Mercantec.Tech.Api.Auth;
+using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Integrations.OpenAI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mercantec.Tech.Api.Controllers;
 
 [ApiController, Authorize, Route("api/ai")]
-public sealed class AiController(OpenAiEditorClient openAi) : ControllerBase
+public sealed class AiController(OpenAiEditorClient openAi, AppDbContext db) : ControllerBase
 {
     /// <summary>Skriveassistent til forløbseditoren med afgrænset samtalekontekst: generér, omskriv eller Mermaid.</summary>
     [HttpPost("editor")]
@@ -26,7 +29,12 @@ public sealed class AiController(OpenAiEditorClient openAi) : ControllerBase
 
         try
         {
-            var result = await openAi.CompleteAsync(body, ct);
+            // The client cannot supply or extend this catalogue. It contains metadata, never private image tickets.
+            var request = body with { Emojis = await LoadEmojis(ct) };
+            var result = await openAi.CompleteAsync(request, ct);
+            // Names and availability may change while the model is answering.
+            var current = request with { Emojis = await LoadEmojis(ct) };
+            result = result with { Blocks = OpenAiEditorClient.SanitizeBlocks(result.Blocks, request.Action, EditorAiCatalog.From(current)) };
             return Ok(result);
         }
         catch (ArgumentException ex)
@@ -45,5 +53,15 @@ public sealed class AiController(OpenAiEditorClient openAi) : ControllerBase
         {
             return UnprocessableEntity(new { error = ex.Message, message = "AI-svaret kunne ikke omsættes til blokke." });
         }
+    }
+
+    private async Task<IReadOnlyList<EditorAiEmojiRef>> LoadEmojis(CancellationToken ct)
+    {
+        var rows = await db.CustomEmojis.AsNoTracking().OrderBy(emoji => emoji.Name).Take(EmojiName.MaxCount).ToListAsync(ct);
+        return rows.Select(emoji =>
+        {
+            var metadata = EmojiMetadataPolicy.Resolve(emoji);
+            return new EditorAiEmojiRef(emoji.Id.ToString(), emoji.Name, metadata.AltText, metadata.Category, metadata.Keywords);
+        }).ToList();
     }
 }

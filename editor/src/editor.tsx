@@ -20,8 +20,8 @@ import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { captureAiTarget, type AiTarget } from './ai-conversation';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
-import { EmojiPicker, type PlatformEmoji } from './emoji-picker';
-import { uploadPlatformEmoji } from './emoji-upload.mjs';
+import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
+import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
 
 export interface EditorContext {
   pageId: string;
@@ -47,7 +47,8 @@ const Runtime = createContext<Session | null>(null);
 type CustomEmojiRecord = PlatformEmoji;
 const EmojiCatalog = createContext<CustomEmojiRecord[]>([]);
 const EmojiReload = createContext<() => void>(() => {});
-const EmojiCreate = createContext<((file:File,name:string,signal:AbortSignal)=>Promise<CustomEmojiRecord>) | undefined>(undefined);
+const EmojiCreate = createContext<((file:File,name:string,signal:AbortSignal,metadata:EmojiMetadata)=>Promise<CustomEmojiRecord>) | undefined>(undefined);
+const EmojiAnalyze = createContext<((file:File,signal:AbortSignal)=>Promise<EmojiAnalysis>) | undefined>(undefined);
 
 const createRoster = createReactBlockSpec({
   type: 'classRoster',
@@ -120,7 +121,7 @@ function CustomEmojiImage({emoji,label}:{emoji:CustomEmojiRecord;label:string}) 
   const reload=useContext(EmojiReload);
   const tried=useRef(false);
   useEffect(()=>{tried.current=false;},[emoji.contentUrl]);
-  return <img className="notion-custom-emoji" src={emoji.contentUrl} alt={label} title={label} draggable={false} contentEditable={false} onError={()=>{if(tried.current)return;tried.current=true;reload();}} />;
+  return <img className="notion-custom-emoji" src={emoji.contentUrl} alt={emoji.altText?.trim() || label} title={label} draggable={false} contentEditable={false} onError={()=>{if(tried.current)return;tried.current=true;reload();}} />;
 }
 const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{emojiId:{default:''},name:{default:''}},content:'none'},{
   render:({inlineContent})=>{
@@ -314,6 +315,7 @@ function ConnectedEditor({session}:{session:Session}) {
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
   const createEmoji=useContext(EmojiCreate);
+  const analyzeEmoji=useContext(EmojiAnalyze);
   const reloadEmojis=useContext(EmojiReload);
   const emojiTrigger=useRef<HTMLButtonElement>(null);
   const emojiPanelId=useId();
@@ -424,7 +426,7 @@ function ConnectedEditor({session}:{session:Session}) {
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
-    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} />}
+    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} />}
     {!session.readOnly && (
       <AiHelperPanel
         editor={editor}
@@ -508,24 +510,30 @@ function App({session}:{session:Session}) {
       const next:CustomEmojiRecord[]=[];
       for(const item of data){
         if(item && typeof item.id==='string' && typeof item.name==='string' && typeof item.contentUrl==='string')
-          next.push({id:item.id,name:item.name,contentUrl:item.contentUrl,isStandard:item.isStandard===true,category:typeof item.category==='string' ? item.category : 'custom',keywords:Array.isArray(item.keywords) ? item.keywords.filter((word:unknown):word is string=>typeof word==='string') : []});
+          next.push({id:item.id,name:item.name,contentUrl:item.contentUrl,isStandard:item.isStandard===true,category:typeof item.category==='string' ? item.category : 'custom',keywords:Array.isArray(item.keywords) ? item.keywords.filter((word:unknown):word is string=>typeof word==='string') : [],altText:typeof item.altText==='string' ? item.altText : ''});
       }
       setEmojis(next);
     } catch { /* Editoren virker også uden emoji-biblioteket. */ }
   };
-  const createEmoji=async(file:File,name:string,signal:AbortSignal):Promise<CustomEmojiRecord>=>{
+  const createEmoji=async(file:File,name:string,signal:AbortSignal,metadata:EmojiMetadata):Promise<CustomEmojiRecord>=>{
     if(!canEdit(session))throw new Error('Du har ikke adgang til at tilføje emojis her.');
-    const created=await uploadPlatformEmoji(file,name,{getToken:()=>validToken(session),signal});
+    const created=await uploadPlatformEmoji(file,name,{getToken:()=>validToken(session),signal,metadata});
     if(session.destroyed || signal.aborted)throw new DOMException('Uploaden er afsluttet.', 'AbortError');
     emojiRevision.current++;
     setEmojis(current=>[...current.filter(item=>item.id!==created.id),created]);
     return created;
   };
+  const analyzeEmoji=async(file:File,signal:AbortSignal):Promise<EmojiAnalysis>=>{
+    if(!canEdit(session))throw new Error('Du har ikke adgang til at analysere emojis her.');
+    const result=await analyzePlatformEmoji(file,{getToken:()=>validToken(session),signal});
+    if(session.destroyed || signal.aborted)throw new DOMException('Analysen er afsluttet.', 'AbortError');
+    return result;
+  };
   useEffect(()=>{void loadRef.current();},[session]);
-  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={createEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
+  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={createEmoji}><EmojiAnalyze.Provider value={analyzeEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
     <EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary>
-  </div></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
+  </div></EmojiAnalyze.Provider></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
 }
 
 export async function mount(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {

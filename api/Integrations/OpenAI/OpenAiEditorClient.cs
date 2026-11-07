@@ -368,7 +368,7 @@ public sealed class OpenAiEditorClient(
                 }
 
                 JsonNode visible = item.TryGetProperty("content", out var linkContent)
-                    ? LinkContent(linkContent)
+                    ? LinkContent(linkContent, catalog)
                     : JsonValue.Create(safe)!;
                 if (visible is JsonValue value
                     && value.GetValueKind() == JsonValueKind.String
@@ -401,12 +401,21 @@ public sealed class OpenAiEditorClient(
                     }
                 };
             }
+            case "customEmoji":
+            {
+                if (!catalog.TryEmoji(ReadNestedProp(item, "emojiId"), out var emoji)) return null;
+                return new JsonObject
+                {
+                    ["type"] = "customEmoji",
+                    ["props"] = new JsonObject { ["emojiId"] = emoji.Id, ["name"] = emoji.Name }
+                };
+            }
             default:
                 return null;
         }
     }
 
-    private static JsonNode LinkContent(JsonElement content)
+    private static JsonNode LinkContent(JsonElement content, EditorAiCatalog catalog)
     {
         if (content.ValueKind == JsonValueKind.String)
             return JsonValue.Create(LimitText(content.GetString() ?? "", false))!;
@@ -427,12 +436,10 @@ public sealed class OpenAiEditorClient(
             }
             else if (part.ValueKind == JsonValueKind.Object)
             {
-                var kind = part.TryGetProperty("type", out var kindEl) ? kindEl.GetString() : "text";
-                if (kind is not ("text" or null))
-                    continue;
-                var text = ReadText(part);
-                if (text.Length > 0)
-                    nodes.Add(TextNode(text, StylesOf(part)));
+                var kind = part.TryGetProperty("type", out var kindEl) && kindEl.ValueKind == JsonValueKind.String ? kindEl.GetString() : "text";
+                // Links cannot nest other links, but may display a known emoji.
+                if ((kind is "text" or null or "customEmoji") && CleanInlineNode(part, catalog) is { } node)
+                    nodes.Add(node);
             }
         }
 
@@ -673,6 +680,22 @@ public sealed class OpenAiEditorClient(
             sb.Append("Elevkatalog (studentMention bruger holdId ").Append(request.HoldId!.Trim()).AppendLine(" og kun disse membershipId):");
             foreach (var member in members)
                 sb.Append("- ").Append(member.Id.Trim()).Append(" | ").AppendLine(OneLine(member.DisplayName, 80));
+        }
+
+        var emojis = EditorAiCatalog.From(request).Emojis.Values;
+        sb.AppendLine("Emoji-katalog (customEmoji må kun bruge disse gyldige emojiId'er og deres gemte navne):");
+        if (emojis.Count == 0) sb.AppendLine("Kataloget er tomt. Brug almindelig tekst eller Unicode-emojis i stedet.");
+        foreach (var emoji in emojis)
+        {
+            sb.AppendLine(JsonSerializer.Serialize(new
+            {
+                emojiId = emoji.Id,
+                name = emoji.Name,
+                altText = OneLine(emoji.AltText ?? "", 240),
+                category = OneLine(emoji.Category ?? "", 40),
+                keywords = (emoji.Keywords ?? []).Where(word => !string.IsNullOrWhiteSpace(word))
+                    .Take(12).Select(word => OneLine(word, 40)).ToArray()
+            }));
         }
     }
 

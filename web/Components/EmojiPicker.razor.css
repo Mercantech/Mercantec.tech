@@ -84,6 +84,7 @@
 .emoji-picker-upload-actions button { min-height: 40px; padding: 7px 11px; border: 1px solid var(--rule, #dfe7f2); border-radius: 7px; background: var(--paper, #fff); color: var(--ink, #17243b); }
 .emoji-picker-upload-actions .emoji-picker-upload-save { background: var(--blue, #2452e8); color: var(--on-blue, #fff); border-color: var(--blue, #2452e8); }
 .emoji-picker-upload-actions button:disabled { opacity: .5; cursor: default; }
+.emoji-picker-analysis-stop { align-self: flex-start; min-height: 40px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 7px; background: var(--paper); color: var(--ink); }
 @media (max-width: 359px) {
     .emoji-picker-grid { grid-template-columns: repeat(5, minmax(44px, 1fr)); }
 }

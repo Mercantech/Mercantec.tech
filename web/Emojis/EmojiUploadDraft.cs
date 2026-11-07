@@ -44,6 +44,10 @@ public static partial class EmojiUploadDraft
 
     public static bool IsValidName(string? name) => NormalizeName(name) is not null;
 
+    public static IReadOnlyList<string> ParseKeywords(string? value) => (value ?? "")
+        .Split([',', ';', '\n'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
     [GeneratedRegex("^[a-z0-9_]{2,32}$", RegexOptions.CultureInvariant)]
     private static partial Regex ValidName();
 }

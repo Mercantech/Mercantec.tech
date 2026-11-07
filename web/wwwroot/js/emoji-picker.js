@@ -87,7 +87,7 @@ function createSession(anchor, panel, callback) {
             else close(true);
             return;
         }
-        if (event.target.matches('.emoji-picker-upload-name') && event.key === 'Enter') {
+        if (event.target.matches('.emoji-picker-upload input') && event.key === 'Enter') {
             event.preventDefault();
             event.stopPropagation();
             callback.invokeMethodAsync('SaveUpload').catch(() => {});

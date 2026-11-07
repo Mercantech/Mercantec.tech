@@ -4,6 +4,15 @@ namespace Mercantec.Tech.Web.Tests;
 
 public sealed class EmojiPickerCatalogTests
 {
+    [Fact]
+    public void UploadedEmojiCanBeFoundBySemanticCategoryAndAltText()
+    {
+        var own = Item("vores_figur", false, "technology") with { AltText = "En lilla robot, der skriver kode" };
+        Assert.Equal(own, Assert.Single(EmojiPickerCatalog.Filter([own], "robot kode", "technology")));
+        Assert.Equal(own, Assert.Single(EmojiPickerCatalog.Filter([own], "robot", "custom")));
+        Assert.Empty(EmojiPickerCatalog.Filter([own], "", "gestures"));
+    }
+
     private static CustomEmojiItem Item(string name, bool standard = false, string category = "custom", params string[] keywords) =>
         new(Guid.NewGuid(), name, "image/png", 20, DateTimeOffset.UtcNow, "/image.png", standard, category, keywords);
 

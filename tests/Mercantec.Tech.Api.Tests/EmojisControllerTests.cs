@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Data.Migrations;
 using Mercantec.Tech.Api.Emojis;
+using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -198,13 +200,70 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         return _db.Database.ExecuteSqlRawAsync(operation.Sql);
     }
 
-    private EmojisController As(Guid? sub, bool teacher = false, bool admin = false, IObjectStorage? storage = null)
+    [Fact]
+    public async Task UploadMetadataSurvivesRenameAndCanBeEditedWithoutChangingTheImage()
+    {
+        var controller = As(_teacher, teacher: true);
+        var created = Read(await controller.Upload(Png("kat.png"), "kat", default,
+            altText: "Lilla kat med et stort smil", category: "smileys", keywords: "[\"kat\",\"glad\",\"cat\"]"));
+        Assert.False(created.IsStandard);
+        Assert.Equal("Lilla kat med et stort smil", created.AltText);
+        Assert.Equal("smileys", created.Category);
+        Assert.Equal(new[] { "kat", "glad", "cat" }, created.Keywords);
+        var renamed = Read(await controller.Rename(created.Id, new("vores_kat"), default));
+        Assert.Equal(created.AltText, renamed.AltText);
+        Assert.Equal(created.Keywords, renamed.Keywords);
+        var patchJson = JsonSerializer.Serialize(new
+        {
+            name = "vores_kat", altText = "Kat til teamets fejring", category = "symbols",
+            keywords = new[] { " Fejring ", "FEJRING", "  " }
+        });
+        var patch = JsonSerializer.Deserialize<EmojisController.RenameEmoji>(patchJson, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.Equal(new[] { " Fejring ", "FEJRING", "  " }, patch!.Keywords);
+        var edited = Read(await controller.Rename(created.Id, patch, default));
+        Assert.Equal("Kat til teamets fejring", edited.AltText);
+        Assert.Equal("symbols", edited.Category);
+        Assert.Equal(new[] { "fejring" }, edited.Keywords);
+        Assert.Single(_storage.Objects);
+        Assert.Equal("invalid_metadata", Error(await controller.Upload(Png("bad.png"), "bad_metadata", default, keywords: "ikke JSON")));
+    }
+
+    [Fact]
+    public async Task AnalysisIsTeacherOnlyReadOnlyAndDoesNotRequireObjectStorage()
+    {
+        Assert.IsType<UnauthorizedResult>(await As(null).Analyze(Png("kat.png"), default));
+        Assert.IsType<ForbidResult>(await As(_student).Analyze(Png("kat.png"), default));
+        await As(_teacher, teacher: true).Upload(Png("existing.png"), "glad_kat", default);
+        using var transport = new OpenAiEmojiAnalysisClientTests.AnalysisTransport();
+        using var http = new HttpClient(transport) { BaseAddress = new Uri("https://openai.test/v1/") };
+        var controller = As(_teacher, teacher: true, storage: new DisabledObjectStorage(), analysis: OpenAiEmojiAnalysisClientTests.Client(http));
+        var response = Assert.IsType<OkObjectResult>(await controller.Analyze(Png("kat.png"), default));
+        var result = Assert.IsType<EmojiAnalysisResult>(response.Value);
+        Assert.Equal("glad_kat_2", result.Name);
+        Assert.Equal("Smilende lilla kat", result.AltText);
+        Assert.Equal(1, transport.Requests);
+        Assert.Single(await _db.CustomEmojis.ToListAsync());
+        Assert.Single(_storage.Objects);
+        Assert.IsType<BadRequestObjectResult>(await controller.Analyze(Form("fake.png", "not image"u8.ToArray()), default));
+        Assert.Equal(1, transport.Requests);
+    }
+
+    [Fact]
+    public async Task AnalysisWithoutProviderReturnsManualFallbackWithoutSaving()
+    {
+        var unavailable = Assert.IsType<ObjectResult>(await As(_teacher, teacher: true).Analyze(Png("kat.png"), default));
+        Assert.Equal(503, unavailable.StatusCode);
+        Assert.Empty(await _db.CustomEmojis.ToListAsync());
+        Assert.Empty(_storage.Objects);
+    }
+
+    private EmojisController As(Guid? sub, bool teacher = false, bool admin = false, IObjectStorage? storage = null, OpenAiEmojiAnalysisClient? analysis = null)
     {
         var claims = new List<Claim>();
         if (sub is Guid id) claims.Add(new("sub", id.ToString()));
         if (teacher) claims.Add(new(ClaimTypes.Role, "Underviser"));
         if (admin) claims.Add(new(ClaimTypes.Role, "Admin"));
-        return new EmojisController(_db, storage ?? _storage, _protection)
+        return new EmojisController(_db, storage ?? _storage, _protection, analysis)
         {
             ControllerContext = new ControllerContext
             {

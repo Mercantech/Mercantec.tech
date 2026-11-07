@@ -73,12 +73,15 @@ test('assistant preview and follow-up context retain source, table cells and nes
     { type: 'mermaidDiagram', props: { source: 'flowchart TD\n A-->B' } },
     { type: 'table', content: { rows: [{ cells: ['Navn', 'Tal'] }, { cells: ['A', '1'] }] } },
     { type: 'paragraph', content: 'Forælder', children: [{ type: 'paragraph', content: 'Barn' }] },
+    { type: 'paragraph', content: [{ type: 'text', text: 'Se ' }, { type: 'customEmoji', props: { name: 'lilla_makker', emojiId: 'valid-id' } }, { type: 'text', text: ' her' }] },
   ];
   const text = aiBlocksPreview(blocks);
   assert.match(text, /flowchart TD\n A-->B/);
   assert.match(text, /Navn \| Tal\nA \| 1/);
   assert.match(text, /Forælder\nBarn/);
+  assert.match(text, /Se :lilla_makker: her/);
   assert.match(assistantHistoryText('Her er forslaget.', blocks), /Her er forslaget\.[\s\S]*flowchart/);
+  assert.match(assistantHistoryText(null, blocks), /:lilla_makker:/);
 });
 
 test('partial replacement accepts one inline formulation and preserves complex proposals for insertion', () => {

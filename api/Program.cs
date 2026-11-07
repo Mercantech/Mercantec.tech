@@ -76,6 +76,7 @@ builder.Services.AddHttpClient("openai", (sp, client) =>
     client.Timeout = TimeSpan.FromSeconds(90);
 });
 builder.Services.AddSingleton<OpenAiEditorClient>();
+builder.Services.AddSingleton<OpenAiEmojiAnalysisClient>();
 builder.Services.AddScoped<MembershipClaimService>();
 
 builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));

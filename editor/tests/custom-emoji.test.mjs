@@ -31,6 +31,13 @@ test('category and source follow metadata after rename and preserve uploaded nam
   assert.deepEqual(emojiCategories.map(item => item.id), ['all', 'custom', 'smileys', 'gestures', 'symbols', 'learning', 'technology', 'everyday']);
 });
 
+test('own emojis use their semantic category and ALT text in search while staying in Egne', () => {
+  const uploaded = { id: 'uploaded', name: 'lilla_makker', isStandard: false, category: 'learning', keywords: ['hjælp'], altText: 'Lilla maskot læser i en bog' };
+  assert.deepEqual(filterCustomEmojis([uploaded], 'maskot bog', 'learning'), [uploaded]);
+  assert.deepEqual(filterCustomEmojis([uploaded], 'hjaelp', 'custom'), [uploaded]);
+  assert.deepEqual(filterCustomEmojis([uploaded], '', 'technology'), []);
+});
+
 test('a finished :name: becomes an emoji node and keeps surrounding text', () => {
   const input = [{ type: 'text', text: 'Se :Lup: i dag', styles: { bold: true } }];
   const result = expandEmojiShortcodes(input, [lup, wolf]);

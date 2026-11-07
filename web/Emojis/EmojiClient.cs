@@ -1,10 +1,14 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Mercantec.Tech.Web.Emojis;
 
 public sealed record CustomEmojiItem(Guid Id, string Name, string ContentType, long SizeBytes, DateTimeOffset UpdatedAtUtc, string ContentUrl,
-    bool IsStandard = false, string Category = "custom", string[]? Keywords = null);
+    bool IsStandard = false, string Category = "custom", string[]? Keywords = null, string AltText = "");
+
+public sealed record EmojiUploadMetadata(string AltText, string Category, IReadOnlyList<string> Keywords);
+public sealed record EmojiAnalysis(string Name, string AltText, string Category, string[] Keywords);
 
 public sealed class EmojiClient(HttpClient http)
 {
@@ -22,10 +26,27 @@ public sealed class EmojiClient(HttpClient http)
         return items;
     }
 
-    public async Task<CustomEmojiItem> Upload(string name, Stream content, string fileName, CancellationToken ct = default)
+    public async Task<EmojiAnalysis> Analyze(Stream content, string fileName, CancellationToken ct = default)
+    {
+        using var form = new MultipartFormDataContent();
+        var file = new StreamContent(content);
+        file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        form.Add(file, "file", fileName);
+        using var response = await Send(() => http.PostAsync("emojis/analyze", form, ct), ct);
+        return await response.Content.ReadFromJsonAsync<EmojiAnalysis>(ct)
+            ?? throw new EmojiException("Billedanalysen gav ikke et brugbart svar. Udfyld felterne manuelt.");
+    }
+
+    public async Task<CustomEmojiItem> Upload(string name, Stream content, string fileName, CancellationToken ct = default, EmojiUploadMetadata? metadata = null)
     {
         using var form = new MultipartFormDataContent();
         form.Add(new StringContent(name), "name");
+        if (metadata is not null)
+        {
+            form.Add(new StringContent(metadata.AltText), "altText");
+            form.Add(new StringContent(metadata.Category), "category");
+            form.Add(new StringContent(JsonSerializer.Serialize(metadata.Keywords)), "keywords");
+        }
         var file = new StreamContent(content);
         file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         form.Add(file, "file", fileName);
@@ -35,9 +56,10 @@ public sealed class EmojiClient(HttpClient http)
             ?? throw new EmojiException("Emoji-svaret var tomt. Prøv igen.");
     }
 
-    public async Task<CustomEmojiItem> Rename(Guid id, string name, CancellationToken ct = default)
+    public async Task<CustomEmojiItem> Rename(Guid id, string name, CancellationToken ct = default, EmojiUploadMetadata? metadata = null)
     {
-        using var response = await Send(() => http.PatchAsJsonAsync($"emojis/{id}", new { name }, ct), ct);
+        using var response = await Send(() => http.PatchAsJsonAsync($"emojis/{id}", new { name,
+            altText = metadata?.AltText, category = metadata?.Category, keywords = metadata?.Keywords }, ct), ct);
         Invalidate();
         return await response.Content.ReadFromJsonAsync<CustomEmojiItem>(ct)
             ?? throw new EmojiException("Emoji-svaret var tomt. Prøv igen.");
@@ -64,6 +86,13 @@ public sealed class EmojiClient(HttpClient http)
         throw new EmojiException(code switch
         {
             "invalid_name" => "Navnet skal være 2–32 tegn: små bogstaver, tal og _.",
+            "invalid_alt_text" => "ALT-teksten må højst være 240 tegn.",
+            "invalid_category" => "Vælg en kategori fra listen.",
+            "invalid_keywords" => "Brug højst 12 søgeord på hver højst 32 tegn.",
+            "invalid_metadata" => "Kontrollér ALT-tekst, kategori og søgeord.",
+            "invalid_analysis" => "Analysen kunne ikke læses. Udfyld felterne manuelt.",
+            "openai_not_configured" or "analysis_unavailable" => "Billedanalysen er ikke tilgængelig. Udfyld felterne manuelt.",
+            "openai_upstream" or "analysis_failed" => "Billedet kunne ikke analyseres lige nu. Udfyld felterne manuelt, eller prøv igen.",
             "name_taken" => "Navnet er allerede brugt. Vælg et andet.",
             "unsupported_file_type" => "Brug et PNG-, JPEG-, GIF- eller WebP-billede.",
             "invalid_file_signature" => "Filen matcher ikke billedtypen.",

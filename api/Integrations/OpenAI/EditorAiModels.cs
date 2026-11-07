@@ -11,13 +11,21 @@ public sealed record EditorAiRequest(
     string? HoldId = null,
     IReadOnlyList<EditorAiPageRef>? Pages = null,
     IReadOnlyList<EditorAiMemberRef>? Members = null,
-    IReadOnlyList<EditorAiTurn>? History = null);
+    IReadOnlyList<EditorAiTurn>? History = null)
+{
+    // Only the authenticated server may populate the authoritative emoji catalogue.
+    [JsonIgnore]
+    public IReadOnlyList<EditorAiEmojiRef> Emojis { get; init; } = [];
+}
 
 public sealed record EditorAiTurn(string Role, string Text);
 
 public sealed record EditorAiPageRef(string Id, string Title);
 
 public sealed record EditorAiMemberRef(string Id, string DisplayName);
+
+public sealed record EditorAiEmojiRef(string Id, string Name, string? AltText = null,
+    string? Category = null, IReadOnlyList<string>? Keywords = null);
 
 public sealed record EditorAiResponse(
     IReadOnlyList<EditorAiBlock> Blocks,
@@ -39,7 +47,7 @@ public sealed class EditorAiBlock
     public List<EditorAiBlock>? Children { get; set; }
 }
 
-/// <summary>Ids the model may use for pageLink, pageMention and studentMention. Anything else is dropped.</summary>
+/// <summary>Ids the model may use for references and custom emojis. Anything else is dropped.</summary>
 public sealed class EditorAiCatalog
 {
     public static EditorAiCatalog Empty { get; } = new();
@@ -47,6 +55,7 @@ public sealed class EditorAiCatalog
     public string? HoldIdText { get; private set; }
     public Dictionary<Guid, string> Pages { get; } = new();
     public Dictionary<Guid, string> Members { get; } = new();
+    public Dictionary<Guid, EditorAiEmojiRef> Emojis { get; } = new();
 
     public static EditorAiCatalog From(EditorAiRequest request)
     {
@@ -72,10 +81,23 @@ public sealed class EditorAiCatalog
             }
         }
 
+        foreach (var emoji in (request.Emojis ?? []).Take(400))
+        {
+            if (emoji is null || !TryGuid(emoji.Id, out var id)
+                || Mercantec.Tech.Api.Emojis.EmojiName.Normalize(emoji.Name) is not { } name) continue;
+            catalog.Emojis.TryAdd(id, emoji with { Id = id.ToString(), Name = name });
+        }
+
         return catalog;
     }
 
     public bool TryPage(string? value, out string id) => TryMapped(Pages, value, out id);
+
+    public bool TryEmoji(string? value, out EditorAiEmojiRef emoji)
+    {
+        emoji = null!;
+        return TryGuid(value, out var id) && Emojis.TryGetValue(id, out emoji!);
+    }
 
     public bool TryMember(string? value, out string id)
     {

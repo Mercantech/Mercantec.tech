@@ -9,7 +9,7 @@
     }
     else
     {
-        <img class="custom-emoji" src="@part.Emoji.ContentUrl" alt="@($":{part.Emoji.Name}:")" title="@($":{part.Emoji.Name}:")" @onerror="Reload" />
+        <img class="custom-emoji" src="@part.Emoji.ContentUrl" alt="@(string.IsNullOrWhiteSpace(part.Emoji.AltText) ? $":{part.Emoji.Name}:" : part.Emoji.AltText)" title="@($":{part.Emoji.Name}:")" @onerror="Reload" />
     }
 }</span>
 

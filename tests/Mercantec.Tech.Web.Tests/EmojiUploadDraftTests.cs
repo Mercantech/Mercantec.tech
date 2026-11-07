@@ -4,6 +4,12 @@ namespace Mercantec.Tech.Web.Tests;
 
 public sealed class EmojiUploadDraftTests
 {
+    [Fact]
+    public void SearchTermsAreSplitAndDeduplicatedWithoutLosingDanish()
+    {
+        Assert.Equal(new[] { "glad", "lilla figur", "læring" }, EmojiUploadDraft.ParseKeywords(" glad, GLAD; lilla figur\nlæring "));
+    }
+
     [Theory]
     [InlineData("Min Glade Ælling.png", "min_glade_aelling")]
     [InlineData("Håndtryk & øvelse.JPEG", "handtryk_ovelse")]

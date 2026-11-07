@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { emojiCategories, filterCustomEmojis } from './custom-emoji.mjs';
-import { normalizeEmojiName, suggestEmojiName, validateEmojiFile } from './emoji-upload.mjs';
+import { mergeEmojiAnalysis, normalizeEmojiMetadata, normalizeEmojiName, suggestEmojiName, validateEmojiFile, validateEmojiMetadata } from './emoji-upload.mjs';
 
 export type PlatformEmoji = {
   id: string;
@@ -9,14 +9,21 @@ export type PlatformEmoji = {
   isStandard?: boolean;
   category?: string;
   keywords?: string[];
+  altText?: string;
 };
 
-export function EmojiPicker({ id, emojis, onPick, onClose, onUpload }: {
+export type EmojiMetadata = { altText: string; category: string; keywords: string[] };
+export type EmojiAnalysis = EmojiMetadata & { name: string };
+type EmojiDraft = { name: string; altText: string; category: string; keywordsText: string };
+const emptyDraft = (): EmojiDraft => ({ name: '', altText: '', category: 'custom', keywordsText: '' });
+
+export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }: {
   id: string;
   emojis: PlatformEmoji[];
   onPick: (emoji: PlatformEmoji) => void;
   onClose: () => void;
-  onUpload?: (file: File, name: string, signal: AbortSignal) => Promise<PlatformEmoji>;
+  onUpload?: (file: File, name: string, signal: AbortSignal, metadata: EmojiMetadata) => Promise<PlatformEmoji>;
+  onAnalyze?: (file: File, signal: AbortSignal) => Promise<EmojiAnalysis>;
 }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('all');
@@ -26,20 +33,26 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload }: {
   const fileInput = useRef<HTMLInputElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const upload = useRef<AbortController | null>(null);
+  const analysis = useRef<AbortController | null>(null);
+  const analysisGeneration = useRef(0);
+  const editedFields = useRef(new Set<keyof EmojiDraft>());
   const mounted = useRef(true);
   const [file, setFile] = useState<File | null>(null);
-  const [name, setName] = useState('');
+  const [draft, setDraft] = useState<EmojiDraft>(emptyDraft);
   const [filePreview, setFilePreview] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisNotice, setAnalysisNotice] = useState('');
   const results = useMemo(() => filterCustomEmojis(emojis, query, category) as PlatformEmoji[], [emojis, query, category]);
   const activePreview = preview && results.some(item => item.id === preview.id) ? preview : null;
 
   useEffect(() => { search.current?.focus({ preventScroll: true }); }, []);
   useEffect(() => { grid.current?.scrollTo({ top: 0 }); }, [query, category]);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; upload.current?.abort(); }; }, []);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; upload.current?.abort(); analysis.current?.abort(); }; }, []);
   useEffect(() => {
     if (!file) { setFilePreview(''); search.current?.focus({ preventScroll: true }); return; }
+    if (validateEmojiFile(file)) { setFilePreview(''); return; }
     const url = URL.createObjectURL(file);
     setFilePreview(url);
     nameInput.current?.focus({ preventScroll: true });
@@ -47,8 +60,16 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload }: {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  const stopAnalysis = (notice = 'Analysen er stoppet. Du kan udfylde felterne manuelt.') => {
+    analysisGeneration.current++;
+    analysis.current?.abort();
+    analysis.current = null;
+    setAnalyzing(false);
+    setAnalysisNotice(notice);
+  };
   const cancelUpload = () => {
     if (upload.current) return;
+    stopAnalysis('');
     setFile(null); setError('');
     search.current?.focus({ preventScroll: true });
   };
@@ -56,21 +77,50 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload }: {
     const selected = event.target.files?.[0];
     event.target.value = '';
     if (!selected || upload.current) return;
+    stopAnalysis('');
+    editedFields.current.clear();
+    setFile(selected);
+    setDraft({ ...emptyDraft(), name: suggestEmojiName(selected.name, emojis.map(item => item.name)) });
     const invalid = validateEmojiFile(selected);
     if (invalid) { setError(invalid); return; }
     setError('');
-    setName(suggestEmojiName(selected.name, emojis.map(item => item.name)));
-    setFile(selected);
+    if (!onAnalyze) return;
+    const controller = new AbortController();
+    const generation = analysisGeneration.current;
+    analysis.current = controller;
+    setAnalyzing(true);
+    void onAnalyze(selected, controller.signal).then(result => {
+      if (!mounted.current || controller.signal.aborted || generation !== analysisGeneration.current) return;
+      setDraft(current => generation === analysisGeneration.current && !controller.signal.aborted
+        ? mergeEmojiAnalysis(current, result, editedFields.current, emojis.map(item => item.name)) as EmojiDraft : current);
+      setAnalysisNotice('Billedanalysen er klar. Du kan rette alle felter, før du gemmer.');
+    }).catch(failure => {
+      if (mounted.current && !controller.signal.aborted && generation === analysisGeneration.current)
+        setAnalysisNotice((failure instanceof Error ? failure.message : 'Billedet kunne ikke analyseres.') + ' Udfyld felterne manuelt, og gem, når du er klar.');
+    }).finally(() => {
+      if (analysis.current === controller) {
+        analysis.current = null;
+        if (mounted.current) setAnalyzing(false);
+      }
+    });
   };
+  const editDraft = (field: keyof EmojiDraft, value: string) => {
+    editedFields.current.add(field);
+    setDraft(current => ({ ...current, [field]: value }));
+    setError('');
+  };
+  const metadata = normalizeEmojiMetadata({ altText: draft.altText, category: draft.category, keywords: draft.keywordsText });
+  const metadataError = validateEmojiMetadata(metadata);
   const saveUpload = async () => {
-    if (!file || !onUpload || upload.current) return;
-    const normalized = normalizeEmojiName(name);
+    if (!file || !onUpload || upload.current || analysis.current) return;
+    const normalized = normalizeEmojiName(draft.name);
     if (!normalized) { setError('Navnet skal være 2–32 tegn: små bogstaver, tal og _.'); nameInput.current?.focus(); return; }
+    if (metadataError) { setError(metadataError); return; }
     const controller = new AbortController();
     upload.current = controller;
     setBusy(true); setError('');
     try {
-      const created = await onUpload(file, normalized, controller.signal);
+      const created = await onUpload(file, normalized, controller.signal, metadata);
       if (!mounted.current || controller.signal.aborted) return;
       setFile(null); setQuery(created.name); setCategory('custom');
       onPick(created);
@@ -134,13 +184,20 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload }: {
       <button type="button" className="notion-emoji-close" disabled={busy} onClick={onClose} aria-label="Luk emoji-vælger" title="Luk (Esc)">×</button>
     </div>
     {onUpload && <input ref={fileInput} className="notion-emoji-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede" onChange={chooseFile} disabled={busy} tabIndex={-1} />}
-    {file ? <div className="notion-emoji-upload" aria-label="Tilføj emoji" aria-busy={busy}>
+    {file ? <div className="notion-emoji-upload" aria-label="Tilføj emoji" aria-busy={busy || analyzing}>
       <div className="notion-emoji-upload-file">{filePreview && <img src={filePreview} alt="Forhåndsvisning" />}<span>{file.name}</span></div>
-      <label className="notion-emoji-upload-name">Emoji-navn<input ref={nameInput} value={name} onChange={event => { setName(event.target.value); setError(''); }} maxLength={32} autoComplete="off" spellCheck={false} disabled={busy} aria-invalid={!normalizeEmojiName(name)} aria-describedby={`${id}-upload-hint`} /></label>
-      <p id={`${id}-upload-hint`}>Foreslået fra filnavnet. Du kan ændre navnet før du gemmer. Brug 2–32 tegn: a-z, 0-9 og _.</p>
-      <p className="notion-emoji-upload-shortcode">:{normalizeEmojiName(name) ?? name}:</p>
+      {analyzing && <div className="notion-emoji-analysis-status"><p role="status">AI analyserer billedet…</p><button type="button" onClick={() => stopAnalysis()}>Stop analyse</button></div>}
+      {analysisNotice && <p className="notion-emoji-analysis-notice" role="status">{analysisNotice}</p>}
+      <label className="notion-emoji-upload-name">Emoji-navn<input ref={nameInput} value={draft.name} onChange={event => editDraft('name', event.target.value)} maxLength={32} autoComplete="off" spellCheck={false} disabled={busy} aria-invalid={!normalizeEmojiName(draft.name)} aria-describedby={`${id}-upload-hint`} /></label>
+      <p id={`${id}-upload-hint`}>Brug 2–32 tegn: a-z, 0-9 og _. AI-forslag kan rettes inden gemning.</p>
+      <p className="notion-emoji-upload-shortcode">:{normalizeEmojiName(draft.name) ?? draft.name}:</p>
+      <label className="notion-emoji-upload-name">ALT-tekst<textarea rows={2} value={draft.altText} onChange={event => editDraft('altText', event.target.value)} maxLength={240} disabled={busy} placeholder="Beskriv kort, hvad emojien viser" /></label>
+      <label className="notion-emoji-upload-name">Kategori<select value={draft.category} onChange={event => editDraft('category', event.target.value)} disabled={busy}>{emojiCategories.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{item.id === 'custom' ? 'Uden kategori' : item.label}</option>)}</select></label>
+      <label className="notion-emoji-upload-name">Søgeord<input value={draft.keywordsText} onChange={event => editDraft('keywordsText', event.target.value)} maxLength={420} disabled={busy} placeholder="Fx glad, smil, fest" aria-describedby={`${id}-keywords-hint`} /></label>
+      <p id={`${id}-keywords-hint`}>Adskil med komma. Højst 12 søgeord á 32 tegn.</p>
       {error && <p className="notion-emoji-upload-error" role="alert">{error}</p>}
-      <div className="notion-emoji-upload-actions"><button type="button" className="notion-emoji-upload-save" disabled={busy || !onUpload || !normalizeEmojiName(name)} onClick={() => void saveUpload()}>{busy ? 'Gemmer…' : 'Gem og brug'}</button><button type="button" disabled={busy} onClick={cancelUpload}>Annuller</button></div>
+      {metadataError && !error && <p className="notion-emoji-upload-error" role="alert">{metadataError}</p>}
+      <div className="notion-emoji-upload-actions"><button type="button" className="notion-emoji-upload-save" disabled={busy || analyzing || !onUpload || !normalizeEmojiName(draft.name) || !!metadataError || !!validateEmojiFile(file)} onClick={() => void saveUpload()}>{busy ? 'Gemmer…' : 'Gem og brug'}</button><button type="button" disabled={busy} onClick={cancelUpload}>Annuller</button></div>
       {busy && <p role="status">Gemmer emoji…</p>}
     </div> : <>
     {error && <p className="notion-emoji-upload-error" role="alert">{error}</p>}

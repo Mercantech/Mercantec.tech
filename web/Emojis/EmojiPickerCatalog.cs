@@ -23,13 +23,13 @@ public static class EmojiPickerCatalog
     {
         "all" => true,
         "custom" => !item.IsStandard,
-        _ => item.IsStandard && item.Category == category
+        _ => item.Category == category
     };
 
     private static bool Matches(CustomEmojiItem item, string[] terms)
     {
         if (terms.Length == 0) return true;
-        var text = Normalize(item.Name + " " + string.Join(' ', item.Keywords ?? []));
+        var text = Normalize(item.Name + " " + item.AltText + " " + string.Join(' ', item.Keywords ?? []));
         return terms.All(term => text.Contains(term, StringComparison.Ordinal));
     }
 
