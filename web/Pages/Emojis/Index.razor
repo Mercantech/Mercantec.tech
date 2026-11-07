@@ -3,7 +3,8 @@
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject EmojiClient Emojis
-@implements IDisposable
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>Emojis</PageTitle>
 
@@ -13,7 +14,16 @@
 }
 else if (!Auth.IsAuthenticated)
 {
-    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+    @if (HasExtensionImport)
+    {
+        <section class="panel emoji-upload">
+            <h1>Tilføj billedet som emoji</h1>
+            <p>Log ind med din underviserkonto for at hente billedet fra LUP-udvidelsen. Kladden gemmes i udvidelsen i op til 30 minutter.</p>
+            <button class="action" @onclick="StartExtensionLogin" disabled="@_importLoginBusy">Log ind og fortsæt</button>
+            @if (_importStatus is not null) { <p role="alert">@_importStatus</p> }
+        </section>
+    }
+    else { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
 }
 else
 {
@@ -34,13 +44,21 @@ else
 
     @if (CanManage)
     {
+        @if (HasExtensionImport && !_extensionImportComplete)
+        {
+            <section class="panel emoji-import" aria-label="Billede fra LUP-udvidelsen">
+                @if (_importPreview is not null) { <img src="@_importPreview" alt="Forhåndsvisning af det valgte billede" /> }
+                <p role="status">@(_importStatus ?? "Henter billedet fra LUP-udvidelsen…")</p>
+                <p class="emoji-hint">Gennemgå navn og beskrivelse, og tryk Upload for at tilføje emojien til biblioteket.</p>
+            </section>
+        }
         <form class="panel emoji-upload" @onsubmit="Upload" @onsubmit:preventDefault>
             <h2>Tilføj emoji</h2>
             <label class="field">Kort navn
                 <input value="@_name" @oninput="EditName" maxlength="32" required placeholder="lup" autocomplete="off" />
             </label>
             <p class="emoji-hint">2–32 tegn: bogstaver, tal, _ og -. I teksten bliver det <kbd>:navn:</kbd>.</p>
-            <label class="field">Billede
+            <label class="field">@(_importPreview is null ? "Billede" : "Vælg et andet billede")
                 <InputFile @key="_fileKey" OnChange="ChooseFile" accept="image/png,image/jpeg,image/gif,image/webp" />
             </label>
             <p class="emoji-hint">PNG, JPEG, GIF eller WebP. Højst 256 KB.@if (_file is not null) { <span> Valgt: @_file.Name</span> }</p>
@@ -130,6 +148,13 @@ else
 }
 
 @code {
+    [SupplyParameterFromQuery(Name = "lupImport")] public string? ExtensionImportId { get; set; }
+    private bool HasExtensionImport => Guid.TryParseExact(ExtensionImportId, "D", out _);
+    private IJSObjectReference? _importModule;
+    private DotNetObjectReference<Index>? _importSelf;
+    private string? _startedImportId, _importStatus, _importPreview;
+    private int _importHandle;
+    private bool _importLoginBusy, _extensionImportHandled, _extensionImportComplete;
     private readonly CancellationTokenSource _life = new();
     private IReadOnlyList<CustomEmojiItem>? _items;
     private IBrowserFile? _file;
@@ -177,9 +202,17 @@ else
 
     private async Task ChooseFile(InputFileChangeEventArgs e)
     {
+        _extensionImportHandled = true;
+        _importPreview = null;
+        if (HasExtensionImport) _importStatus = "Du har valgt et billede manuelt.";
+        await ChooseImage(e.File);
+    }
+
+    private async Task ChooseImage(IBrowserFile file)
+    {
         CancelAnalysis();
         var generation = ++_fileGeneration;
-        _file = e.File;
+        _file = file;
         var suggestion = EmojiUploadDraft.SuggestName(_file.Name, (_items ?? []).Select(item => item.Name));
         if (!_editedMetadata.Contains("name")) _name = suggestion;
         if (!_editedMetadata.Contains("alt")) _altText = suggestion.Replace('_', ' ');
@@ -191,6 +224,7 @@ else
         var request = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
         _analysisRequest = request;
         _analyzing = true;
+        await InvokeAsync(StateHasChanged);
         try
         {
             await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes, request.Token);
@@ -232,6 +266,14 @@ else
             await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes);
             var metadata = new EmojiUploadMetadata(_altText.Trim(), _uploadCategory, EmojiUploadDraft.ParseKeywords(_keywords));
             var created = await Emojis.Upload(_name, stream, _file.Name, _life.Token, metadata);
+            _extensionImportComplete = true;
+            _importPreview = null;
+            if (HasExtensionImport && _importModule is not null)
+            {
+                // Upload succeeded even if the extension was disabled while the form was open.
+                try { await _importModule.InvokeVoidAsync("complete", ExtensionImportId); }
+                catch (JSException) { }
+            }
             _name = "";
             _altText = _keywords = "";
             _uploadCategory = "custom";
@@ -304,11 +346,67 @@ else
         }
     }
 
-    public void Dispose()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!HasExtensionImport || !CanManage || _items is null || _startedImportId == ExtensionImportId || _life.IsCancellationRequested) return;
+        _startedImportId = ExtensionImportId;
+        try
+        {
+            _importModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/lup-emoji-import.js");
+            if (_importHandle != 0) await _importModule.InvokeVoidAsync("stop", _importHandle);
+            _importSelf ??= DotNetObjectReference.Create(this);
+            _importHandle = await _importModule.InvokeAsync<int>("start", _importSelf, ExtensionImportId);
+        }
+        catch (JSException) { _importStatus = "Kunne ikke kontakte LUP-udvidelsen. Genindlæs siden, eller vælg billedet manuelt."; await InvokeAsync(StateHasChanged); }
+    }
+
+    private async Task StartExtensionLogin()
+    {
+        if (_importLoginBusy || !HasExtensionImport) return;
+        _importLoginBusy = true;
+        try
+        {
+            _importModule ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/lup-emoji-import.js");
+            await _importModule.InvokeVoidAsync("prepareLogin", ExtensionImportId);
+            await Auth.BeginLoginAsync();
+        }
+        catch (Exception error) when (error is JSException or HttpRequestException or InvalidOperationException)
+        { _importLoginBusy = false; _importStatus = "Login kunne ikke startes. Prøv igen."; }
+    }
+
+    [JSInvokable]
+    public async Task<bool> ReceiveExtensionDraft(ExtensionEmojiDraft? draft)
+    {
+        if (_life.IsCancellationRequested || !CanManage || !HasExtensionImport || _extensionImportHandled || _file is not null || draft is null) return false;
+        var file = draft.ToBrowserFile();
+        if (file is null) { await ExtensionImportError("Udvidelsen sendte ikke et gyldigt billede på højst 256 KB."); return false; }
+        _extensionImportHandled = true;
+        _importPreview = $"data:{file.ContentType};base64,{draft.Base64}";
+        _importStatus = "Billedet er klar. Du kan rette felterne nedenfor før upload.";
+        await ChooseImage(file);
+        if (!_life.IsCancellationRequested) await InvokeAsync(StateHasChanged);
+        return true;
+    }
+
+    [JSInvokable]
+    public Task ExtensionImportError(string message)
+    {
+        if (_life.IsCancellationRequested || _extensionImportHandled) return Task.CompletedTask;
+        _importStatus = string.IsNullOrWhiteSpace(message) ? "Kunne ikke hente billedet fra udvidelsen." : message[..Math.Min(message.Length, 300)];
+        return InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
     {
         CancelAnalysis();
         Auth.AuthStateChanged -= OnAuth;
         _life.Cancel();
+        if (_importModule is not null)
+        {
+            try { await _importModule.InvokeVoidAsync("stop", _importHandle); await _importModule.DisposeAsync(); }
+            catch (JSException) { }
+        }
+        _importSelf?.Dispose();
         _life.Dispose();
     }
 }

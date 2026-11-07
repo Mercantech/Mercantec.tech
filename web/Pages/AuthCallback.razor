@@ -2,6 +2,7 @@
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Logger ind…</PageTitle>
 
@@ -29,7 +30,16 @@
 
         var ok = await Auth.CompleteLoginAsync(code, state, error);
         if (ok)
-            Nav.NavigateTo(Redirect.PostLoginPath());
+        {
+            string? importReturn = null;
+            try
+            {
+                await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/lup-emoji-import.js");
+                importReturn = await module.InvokeAsync<string?>("consumeLoginReturnPath");
+            }
+            catch (JSException) { }
+            Nav.NavigateTo(importReturn ?? Redirect.PostLoginPath());
+        }
         else
             _error = error ?? "Kunne ikke fuldføre login (state/code).";
     }
