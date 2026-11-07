@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LUP",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minimum_chrome_version": "116",
   "description": "Tilføj billeder fra nettet som emojis på LUP.dk.",
   "permissions": ["contextMenus", "storage", "activeTab"],

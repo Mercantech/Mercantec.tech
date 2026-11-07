@@ -1,27 +1,50 @@
 <!doctype html>
-<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tilføj emoji · LUP</title><link rel="stylesheet" href="style.css"></head>
-<body><main>
-  <header><div><p class="eyebrow">LUP</p><h1>Tilføj som emoji</h1></div></header>
-  <p>Beskær og zoom billedet, og gem det direkte som emoji. Du bliver på denne side.</p>
-  <p id="connection" role="status">Kontrollerer forbindelsen til LUP…</p>
-  <a href="popup.html" target="_blank" rel="noopener">Forbindelse og indstillinger</a>
-  <p id="status" role="status" aria-live="polite">Henter billedkladden…</p>
-  <div id="preview-wrap" hidden><section id="crop-editor" aria-label="Beskær og zoom billedet"></section></div>
-  <p id="details" class="muted"></p>
-  <div class="image-actions">
-    <button id="remove-background" type="button" class="secondary" disabled>Fjern baggrund</button>
-    <button id="stop-background" type="button" class="secondary" hidden>Stop baggrundsfjernelse</button>
-    <button id="restore-original" type="button" class="secondary" hidden>Brug original</button>
+<html lang="da">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ny emoji · LUP</title><link rel="stylesheet" href="style.css">
+</head>
+<body class="editor-page" data-busy="true">
+<main class="editor-shell">
+  <header class="app-header">
+    <div class="brand-lockup"><span class="brand">LUP</span><span class="brand-caption">Dit emojiværksted</span></div>
+    <div class="header-actions">
+      <span class="connection-pill" id="connection-wrap" data-state="loading"><span class="status-orb" aria-hidden="true"></span><span id="connection" role="status">Forbinder…</span></span>
+      <a class="icon-button" href="popup.html" target="_blank" rel="noopener" aria-label="Forbindelse og indstillinger" title="Forbindelse og indstillinger"><img src="assets/icons/sliders-horizontal.svg" alt=""></a>
+    </div>
+  </header>
+  <div class="editor-heading"><div><p class="section-kicker">NY EMOJI</p><h1>Fra billede til emoji<span class="heading-dot">.</span></h1><p class="subtitle">Find dit udsnit. Giv det et navn. Gør det til en del af LUP.</p></div><span class="local-badge"><img src="assets/icons/shield-check.svg" alt="">Redigeres kun på din computer</span></div>
+  <div class="connection-prompt" id="connect-prompt" hidden><div><strong>Forbind LUP for at gemme</strong><p>Du kan redigere billedet imens. Forbind din personlige nøgle i indstillingerne.</p></div><a href="popup.html" target="_blank" rel="noopener">Åbn indstillinger<img src="assets/icons/arrow-up-right.svg" alt=""></a></div>
+  <div class="editor-workspace">
+    <section class="image-card" aria-labelledby="image-heading">
+      <div class="card-heading"><div class="card-title"><span class="step-index">01</span><h2 id="image-heading">Gør billedet klar</h2></div><label class="file-button" title="Vælg et billede fra computeren"><img src="assets/icons/image-plus.svg" alt="">Skift billede<input class="visually-hidden" id="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" aria-label="Vælg et billede fra computeren"></label></div>
+      <div class="editor-stage" id="editor-stage">
+        <div class="empty-preview" id="empty-preview"><img src="assets/icons/image.svg" alt=""><strong id="empty-heading">Dit billede er på vej</strong><p id="empty-description">Vi gør det klar til dit næste gode udsnit.</p></div>
+        <div id="preview-wrap" hidden><section id="crop-editor" aria-label="Beskær og zoom billedet"></section></div>
+        <div class="drop-overlay" aria-hidden="true"><img src="assets/icons/upload.svg" alt=""><strong>Slip dit billede her</strong></div>
+      </div>
+      <div class="image-toolbar"><div class="image-actions"><button id="remove-background" type="button" class="tool-button" disabled><img src="assets/icons/wand-sparkles.svg" alt="">Fjern baggrund</button><button id="stop-background" type="button" class="tool-button" hidden>Stop baggrundsfjernelse</button><button id="restore-original" type="button" class="text-button" hidden>Brug original</button></div><span class="image-format">PNG · JPEG · GIF · WebP · AVIF</span></div>
+      <p id="details" class="image-details"></p>
+      <button id="permission" class="permission-button" hidden>Giv adgang til billedets hjemmeside</button>
+      <details class="image-help"><summary>Om format og baggrund</summary><p>Baggrundsfjernelse foregår lokalt. Beskæring og baggrundsfjernelse giver et PNG-stillbillede. Vælg Brug original for at vende tilbage, også til en eventuel animation. Du kan også trække en billedfil ind i feltet ovenfor.</p></details>
+    </section>
+    <aside class="save-column">
+      <section class="save-card" aria-labelledby="save-heading">
+        <div class="card-heading"><div class="card-title"><span class="step-index">02</span><h2 id="save-heading">Giv den personlighed</h2></div></div>
+        <form id="form">
+          <div class="emoji-sample" aria-label="Forhåndsvisning i emojistørrelse"><span class="sample-label">ET LILLE SMUGKIG</span><div class="sample-bubble"><span>Godt gået!</span><span class="sample-image"><img id="emoji-preview" alt="Din emoji i lille format" hidden><img id="emoji-placeholder" src="assets/icons/image.svg" alt=""></span></div><code id="emoji-token">:din_emoji:</code></div>
+          <label class="field-label" for="name">Kort navn</label><div class="name-input"><span aria-hidden="true">:</span><input id="name" maxlength="32" pattern="[a-z0-9_\-]{2,32}" autocomplete="off" required placeholder="glad_kat" aria-describedby="name-hint"><span aria-hidden="true">:</span></div><p class="field-hint" id="name-hint">2–32 små bogstaver, tal, _ eller -.</p>
+          <div class="field-label-row"><label class="field-label" for="alt-text">Beskrivelse</label><span id="description-count" class="field-counter" aria-hidden="true">0/240</span></div><textarea id="alt-text" rows="2" maxlength="240" required placeholder="Hvad viser din emoji?" aria-describedby="description-hint"></textarea><p class="field-hint" id="description-hint">Beskriv motivet, så alle kan være med.</p>
+          <button id="continue" class="primary-button save-button" type="submit" disabled><span id="save-label">Gem emoji på LUP</span><img src="assets/icons/arrow-right.svg" alt=""></button>
+          <p class="save-caption">Direkte til dit emojibibliotek. Du bliver her.</p>
+        </form>
+        <div id="status" class="feedback" role="status" aria-live="polite" data-kind="progress">Henter billedkladden…</div>
+      </section>
+      <div class="privacy-note"><img src="assets/icons/shield-check.svg" alt=""><p>Dit billede bliver hos dig, indtil du gemmer.<span id="upload-account">Forbind LUP én gang med din personlige nøgle.</span></p></div>
+    </aside>
   </div>
-  <p class="muted">Baggrundsfjernelse foregår lokalt i udvidelsen. Resultatet er et PNG-stillbillede; originalens animation kan gendannes med Brug original.</p>
-  <button id="permission" class="secondary" hidden>Giv adgang til billedets hjemmeside</button>
-  <label class="file-label">Vælg et billede fra computeren<input id="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif"></label>
-  <form id="form">
-    <label>Kort navn<input id="name" maxlength="32" pattern="[a-z0-9_\-]{2,32}" autocomplete="off" required placeholder="fx glad_kat"></label>
-    <p class="muted">2–32 små bogstaver, tal, _ eller -.</p>
-    <label>Beskrivelse<input id="alt-text" maxlength="240" required placeholder="Hvad viser emojien?"></label>
-    <button id="continue" type="submit" disabled>Gem emoji på LUP</button>
-  </form>
-  <p class="muted">Forbind udvidelsen én gang med din personlige uploadnøgle. Kladden udløber efter 30 minutter.</p>
-</main><script type="module" src="prepare.mjs"></script></body></html>
+  <footer class="editor-footer"><span>Små billeder. Mere personlighed.</span><a href="https://lup.dk/emojis" target="_blank" rel="noopener noreferrer">Åbn emojibiblioteket<img src="assets/icons/arrow-up-right.svg" alt=""></a></footer>
+</main>
+<script type="module" src="prepare.mjs"></script>
+</body>
+</html>

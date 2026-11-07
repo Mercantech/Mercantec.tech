@@ -15,11 +15,66 @@ const id = new URL(location.href).searchParams.get('job');
 let source = null, prepared = null, cropEditor = null, busy = false, editedName = false, generation = 0, connected = false, saved = false, editedAlt = false;
 let originalSource = null, originalPrepared = null, originalFileName = '', originalNote = '';
 let backgroundEdited = false, cropActive = false, backgroundJob = null, backgroundSerial = 0, backgroundModule = null;
+let uploading = false, previewRevision = 0, previewTimer = null, previewUrl = null;
 name.addEventListener('input', () => { editedName = true; });
-name.addEventListener('input', () => { if (!editedAlt) altText.value = name.value.replaceAll('_', ' '); });
-altText.addEventListener('input', () => { editedAlt = true; });
+name.addEventListener('input', () => { if (!editedAlt) altText.value = name.value.replaceAll('_', ' '); updateMetadataPreview(); });
+altText.addEventListener('input', () => { editedAlt = true; updateMetadataPreview(); });
 
-function message(text, error = false) { status.textContent = text; status.classList.toggle('error', error); }
+function message(text, error = false, kind = 'info') {
+  status.textContent = text; status.classList.toggle('error', error);
+  status.dataset.kind = error ? 'error' : kind;
+  status.setAttribute('role', error ? 'alert' : 'status');
+  status.setAttribute('aria-live', error ? 'assertive' : 'polite');
+  if (error && !prepared) {
+    document.querySelector('#empty-heading').textContent = 'Vælg dit billede';
+    document.querySelector('#empty-description').textContent = 'Brug Skift billede, eller træk en billedfil ind her.';
+  }
+}
+function updateMetadataPreview() {
+  document.querySelector('#emoji-token').textContent = `:${name.value.trim() || 'din_emoji'}:`;
+  document.querySelector('#description-count').textContent = `${altText.value.length}/240`;
+}
+function clearPreview() {
+  previewRevision++; clearTimeout(previewTimer);
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = null;
+  const image = document.querySelector('#emoji-preview');
+  image.hidden = true; image.removeAttribute('src');
+  document.querySelector('#emoji-placeholder').hidden = false;
+}
+function requestPreview() {
+  const revision = ++previewRevision; clearTimeout(previewTimer);
+  previewTimer = setTimeout(async () => {
+    const editor = cropEditor;
+    if (!editor) return;
+    try {
+      const blob = await editor.getBlob();
+      if (revision !== previewRevision || editor !== cropEditor) return;
+      const url = URL.createObjectURL(blob), previous = previewUrl;
+      previewUrl = url;
+      const image = document.querySelector('#emoji-preview');
+      image.src = url; image.hidden = false;
+      document.querySelector('#emoji-placeholder').hidden = true;
+      if (previous) URL.revokeObjectURL(previous);
+    } catch { /* A preview never changes the file, metadata, or upload state. */ }
+  }, 140);
+}
+function compactCropControls() {
+  const host = document.querySelector('#crop-editor'), controls = host.querySelector('[data-controls]');
+  const zoom = host.querySelector('[data-zoom]').closest('label');
+  const reset = host.querySelector('[data-reset]');
+  const row = document.createElement('div'); row.className = 'lup-crop-zoom-row';
+  row.append(zoom, reset);
+  const precision = document.createElement('details'); precision.className = 'lup-crop-precision';
+  const summary = document.createElement('summary'); summary.textContent = 'Finjustér placering';
+  precision.append(summary, host.querySelector('[data-x]').closest('label'), host.querySelector('[data-y]').closest('label'));
+  // Reparent the existing controls so their pointer, keyboard and input listeners survive.
+  const hints = [...controls.querySelectorAll('.lup-crop-hint')];
+  hints.forEach(hint => hint.remove());
+  const hint = document.createElement('p'); hint.className = 'muted lup-crop-hint';
+  hint.textContent = 'Træk i billedet for at finde det helt rigtige udsnit.';
+  controls.append(hint, row, precision);
+}
 function refreshImageActions() {
   backgroundButton.disabled = busy || saved || !prepared || backgroundEdited;
   stopBackgroundButton.hidden = backgroundJob === null;
@@ -27,15 +82,32 @@ function refreshImageActions() {
   originalButton.hidden = !originalSource || !(backgroundEdited || cropActive);
   originalButton.disabled = busy || saved;
 }
-function setBusy(value) { busy = value; continueButton.disabled = value || !prepared || !connected || saved; fileInput.disabled = value || saved; permissionButton.disabled = value || saved; cropEditor?.setDisabled(value || saved); refreshImageActions(); }
+function setBusy(value) {
+  busy = value; document.body.dataset.busy = String(value); document.body.dataset.saved = String(saved);
+  continueButton.disabled = value || !prepared || !connected || saved;
+  continueButton.setAttribute('aria-busy', String(uploading));
+  document.querySelector('#save-label').textContent = saved ? 'Emojien er gemt' : uploading ? 'Gemmer emoji…' : 'Gem emoji på LUP';
+  name.disabled = altText.disabled = uploading || saved;
+  fileInput.disabled = value || saved; permissionButton.disabled = value || saved;
+  cropEditor?.setDisabled(value || saved); refreshImageActions();
+}
 async function updateConnection() {
   if (!validId(id) || saved) return;
   try {
     const state = await chrome.runtime.sendMessage({ type: 'prepare:status', id });
     connected = state?.connected === true;
-    connection.textContent = connected ? `Forbundet${state.email ? ' som ' + state.email : ''}.`
+    connection.textContent = connected ? 'Forbundet til LUP'
       : state?.message || 'Ikke forbundet. Åbn indstillingerne og tilføj din uploadnøgle.';
+    connection.title = connected ? state.email || 'Forbundet' : connection.textContent;
+    document.querySelector('#upload-account').textContent = connected && state.email ? `Gemmes som ${state.email}` : 'Forbind LUP én gang med din personlige nøgle.';
   } catch { connected = false; connection.textContent = 'Forbindelsen kunne ikke kontrolleres. Prøv igen senere.'; }
+  document.querySelector('#connection-wrap').dataset.state = connected ? 'connected' : 'disconnected';
+  if (!connected) {
+    connection.title = connection.textContent;
+    document.querySelector('#upload-account').textContent = 'Forbind LUP én gang med din personlige nøgle.';
+    connection.textContent = 'Ikke forbundet';
+  }
+  document.querySelector('#connect-prompt').hidden = connected;
   setBusy(busy);
 }
 window.addEventListener('focus', () => { if (!busy) void updateConnection(); });
@@ -97,21 +169,27 @@ async function adaptImage(blob) {
 }
 
 async function prepare(blob, fileName) {
+  const previousGeneration = generation, previousEditor = cropEditor;
   const current = ++generation;
-  prepared = null;
-  cropEditor?.destroy(); cropEditor = null;
-  document.querySelector('#preview-wrap').hidden = true;
-  document.querySelector('#details').textContent = '';
-  setBusy(true); message('Klargør billedet…');
+  if (!prepared) {
+    document.querySelector('#empty-preview').hidden = false;
+    document.querySelector('#empty-heading').textContent = 'Dit billede er på vej';
+    document.querySelector('#empty-description').textContent = 'Vi gør det klar til dit næste gode udsnit.';
+  }
+  setBusy(true); message('Klargør billedet…', false, 'progress');
   try {
     const result = await adaptImage(blob);
     if (current !== generation) return;
+    if (!await installImage(blob, result, fileName, current)) return;
     originalSource = blob; originalPrepared = result.blob; originalFileName = fileName; originalNote = result.note;
     backgroundEdited = false;
-    await installImage(blob, result, fileName, current);
     message('Billedet er klar. Vælg udsnit og zoom, og gem emojien herfra.');
-  } catch (error) { message(error.message || 'Billedet kunne ikke læses.', true); }
-  finally { if (current === generation) setBusy(false); }
+  } catch (error) {
+    if (current !== generation) return;
+    if (previousEditor === cropEditor) generation = previousGeneration;
+    message(`${error.message || 'Billedet kunne ikke læses.'}${prepared ? ' Dit tidligere billede er bevaret.' : ''}`, true);
+  }
+  finally { if (current === generation || previousGeneration === generation) setBusy(false); }
 }
 
 async function installImage(blob, result, fileName, current) {
@@ -122,16 +200,24 @@ async function installImage(blob, result, fileName, current) {
     document.querySelector('#details').textContent = state.enabled
       ? `Kvadratisk udsnit · ${Math.round(state.zoom * 100)} % zoom · gemmes som PNG-stillbillede.`
       : `${Math.ceil(result.blob.size / 1024)} KB · ${result.note}`;
+    for (const slider of document.querySelectorAll('#crop-editor input[type="range"]')) {
+      const progress = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
+      slider.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, progress * 100))}%`);
+    }
     refreshImageActions();
+    requestPreview();
   }, { wholeBlob: result.blob, previewId: 'preview' });
   if (current !== generation) { editor.destroy(); return false; }
   previous?.destroy();
   cropEditor = editor;
+  compactCropControls();
   prepared = result.blob;
   cropActive = false;
   document.querySelector('#preview-wrap').hidden = false;
+  document.querySelector('#empty-preview').hidden = true;
   if (!editedName) name.value = sanitizeName(fileName);
   if (!editedAlt) altText.value = name.value.replaceAll('_', ' ');
+  updateMetadataPreview(); requestPreview();
   permissionButton.hidden = true;
   refreshImageActions();
   return true;
@@ -158,7 +244,7 @@ backgroundButton.addEventListener('click', async () => {
   if (busy || saved || !prepared || !cropEditor || backgroundEdited) return;
   const serial = ++backgroundSerial, current = generation;
   const job = crypto.randomUUID(); backgroundJob = job;
-  setBusy(true); message('Fjerner baggrunden lokalt… Første gang kan tage lidt længere tid.');
+  setBusy(true); message('Fjerner baggrunden lokalt… Første gang kan tage lidt længere tid.', false, 'progress');
   try {
     const image = await cropEditor.getBlob();
     const data = await imageDataUrl(image);
@@ -171,7 +257,7 @@ backgroundButton.addEventListener('click', async () => {
     await installImage(blob, { blob, note: 'Baggrunden er fjernet. PNG-stillbilledet kan stadig beskæres.' }, originalFileName, current);
     if (serial !== backgroundSerial || current !== generation) return;
     backgroundEdited = true;
-    message('Baggrunden er fjernet. Gennemgå resultatet, eller vælg Brug original.');
+    message('Baggrunden er fjernet. Gennemgå resultatet, eller vælg Brug original.', false, 'success');
   } catch (error) {
     if (serial === backgroundSerial && current === generation) {
       if (error instanceof TypeError) backgroundModule = null;
@@ -204,7 +290,7 @@ originalButton.addEventListener('click', async () => {
 });
 
 async function fetchSource() {
-  setBusy(true); message('Henter billedet…');
+  setBusy(true); message('Henter billedet…', false, 'progress');
   try {
     const pattern = originPattern(source.href);
     // activeTab can grant temporary access after the user's context-menu click.
@@ -236,7 +322,23 @@ permissionButton.addEventListener('click', () => {
   }).catch(() => message('Adgang kunne ikke gives. Vælg billedet som lokal fil.', true));
 });
 
-fileInput.addEventListener('change', () => { const file = fileInput.files?.[0]; if (file && !busy) void prepare(file, file.name); });
+fileInput.addEventListener('change', () => { const file = fileInput.files?.[0]; if (file && !busy && !saved) { void prepare(file, file.name); fileInput.value = ''; } });
+const stage = document.querySelector('#editor-stage');
+let dragDepth = 0;
+stage.addEventListener('dragenter', event => {
+  if (busy || saved || fileInput.disabled || !event.dataTransfer?.types.includes('Files')) return;
+  event.preventDefault(); dragDepth++; stage.classList.add('drag-over');
+});
+stage.addEventListener('dragover', event => {
+  if (event.dataTransfer?.types.includes('Files')) { event.preventDefault(); event.dataTransfer.dropEffect = busy || saved || fileInput.disabled ? 'none' : 'copy'; }
+});
+stage.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; stage.classList.remove('drag-over'); } });
+stage.addEventListener('drop', event => {
+  if (!event.dataTransfer?.types.includes('Files')) return;
+  event.preventDefault(); dragDepth = 0; stage.classList.remove('drag-over');
+  if (busy || saved || fileInput.disabled) return;
+  const file = event.dataTransfer.files[0]; if (file) void prepare(file, file.name);
+});
 
 document.querySelector('#form').addEventListener('submit', async event => {
   event.preventDefault();
@@ -245,7 +347,7 @@ document.querySelector('#form').addEventListener('submit', async event => {
   const shortName = name.value.trim();
   if (!/^[a-z0-9_-]{2,32}$/.test(shortName)) { message('Brug 2–32 små bogstaver, tal, _ eller - i navnet.', true); name.focus(); return; }
   if (!altText.value.trim() || altText.value.length > 240) { message('Skriv en kort beskrivelse af billedet.', true); altText.focus(); return; }
-  setBusy(true);
+  uploading = true; setBusy(true); message('Gemmer din emoji på LUP…', false, 'progress');
   try {
     const image = cropEditor ? await cropEditor.getBlob() : prepared;
     const bytes = new Uint8Array(await image.arrayBuffer());
@@ -253,11 +355,11 @@ document.querySelector('#form').addEventListener('submit', async event => {
     const response = await chrome.runtime.sendMessage({ type: 'prepare:upload', id, name: shortName, altText: altText.value.trim(), contentType: image.type, base64: btoa(binary) });
     if (!response?.ok) throw new Error(response?.message || 'Emojien kunne ikke gemmes.');
     saved = true;
-    message(`:${response.name}: er gemt i LUPs emojibibliotek. Du kan lukke denne fane.`);
-    continueButton.textContent = 'Emojien er gemt';
+    uploading = false;
+    message(`:${response.name}: er gemt i LUPs emojibibliotek. Du kan lukke denne fane.`, false, 'success');
     name.disabled = altText.disabled = true;
     setBusy(false);
-  } catch (error) { message(error.message, true); setBusy(false); }
+  } catch (error) { uploading = false; message(error.message, true); setBusy(false); }
 });
 
 window.addEventListener('unload', () => {
@@ -265,6 +367,7 @@ window.addEventListener('unload', () => {
   const job = backgroundJob; backgroundJob = null;
   if (job) void backgroundModule?.then(module => module.cancel(job)).catch(() => {});
   cropEditor?.destroy();
+  clearPreview();
 });
 
 async function start() {

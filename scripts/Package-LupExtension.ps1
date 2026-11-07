@@ -27,6 +27,7 @@ $lupPackagePaths = foreach ($lupPackageFile in $lupPackageFiles) {
     $lupPackagePath
 }
 $lupPackagePaths += $lupImageTarget
+$lupPackagePaths += Join-Path $lupExtension 'assets'
 $null = New-Item -ItemType Directory -Force -Path $OutputDirectory
 $lupArchive = Join-Path $OutputDirectory "LUP-$($lupManifest.version).zip"
 Compress-Archive -LiteralPath $lupPackagePaths -DestinationPath $lupArchive -Force

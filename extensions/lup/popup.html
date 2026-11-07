@@ -1,14 +1,61 @@
 <!doctype html>
-<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LUP</title><link rel="stylesheet" href="style.css"></head>
-<body class="popup"><main><header><h1>LUP</h1></header>
-<p>Højreklik på et billede → <strong>Tilføj som emoji på LUP.dk</strong>. Beskær, zoom og gem direkte herfra.</p>
-<p id="connection" role="status">Kontrollerer forbindelsen…</p>
-<form id="access-form">
-<label>Personlig uploadnøgle<input id="access-key" type="password" autocomplete="off" spellcheck="false" placeholder="lup_…" maxlength="60" required></label>
-<button type="submit" id="connect">Forbind LUP</button>
-</form>
-<p class="muted">Hent din nøgle én gang på <a href="https://lup.dk/extension" target="_blank" rel="noopener noreferrer">Forbind LUP-udvidelsen</a>. Adgangen er begrænset til Mathias og Kasper.</p>
-<p class="muted">Nøglen gemmes kun i denne Chrome-profil. Den indgår ikke i koden eller Git.</p>
-<button type="button" id="disconnect" class="secondary" hidden>Glem forbindelse på denne computer</button>
-<p id="access-error" class="error" role="alert" hidden></p>
-</main><script type="module" src="popup.mjs"></script></body></html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LUP til Chrome</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="popup" data-state="loading" aria-busy="true">
+<main class="popup-shell">
+  <header class="app-header">
+    <div class="brand-lockup"><span class="brand">LUP</span><span class="brand-caption">Emojiværksted</span></div>
+    <span class="extension-tag">Til Chrome</span>
+  </header>
+
+  <section class="popup-intro" aria-labelledby="popup-title">
+    <h1 id="popup-title">Fra billede til emoji.</h1>
+    <p class="subtitle">Beskær, fjern baggrunden og gem direkte i LUP.</p>
+  </section>
+
+  <section class="connection-card" data-state="loading" aria-labelledby="connection-heading">
+    <span class="status-orb" aria-hidden="true"></span>
+    <div class="connection-copy">
+      <h2 id="connection-heading" tabindex="-1">Tjekker forbindelsen</h2>
+      <p id="connection" role="status" aria-live="polite">Et øjeblik…</p>
+      <span id="connection-account" class="connection-scope" hidden>Kun adgang til emoji-upload</span>
+    </div>
+  </section>
+
+  <section id="ready-guide" class="popup-ready" aria-labelledby="ready-heading" hidden>
+    <h2 id="ready-heading" class="section-kicker">Sådan gør du</h2>
+    <ol class="quick-steps">
+      <li><span class="step-number" aria-hidden="true">1</span><div><strong>Find et billede, du kan lide</strong><p>Højreklik, og vælg <b>Tilføj som emoji på LUP.dk</b>.</p></div></li>
+      <li><span class="step-number" aria-hidden="true">2</span><div><strong>Gør det til dit eget</strong><p>Vælg udsnit, tilpas baggrunden og gem. Du bliver i billedvinduet.</p></div></li>
+    </ol>
+  </section>
+
+  <details id="connection-settings" class="connection-settings" open>
+    <summary>Forbind din udvidelse</summary>
+    <div class="settings-body">
+      <div class="setup-step">
+        <span class="step-number" aria-hidden="true">1</span>
+        <div><strong>Hent din personlige nøgle</strong><p>Opret den én gang med din LUP-konto.</p><a class="setup-link" href="https://lup.dk/extension" target="_blank" rel="noopener noreferrer">Åbn forbindelsessiden</a></div>
+      </div>
+      <form id="access-form">
+        <div class="setup-step">
+          <span class="step-number" aria-hidden="true">2</span>
+          <div class="key-entry"><label class="field-label" for="access-key">Personlig uploadnøgle</label><div class="input-wrap"><input id="access-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Indsæt din nøgle her" maxlength="60" required aria-describedby="key-note"></div><p id="key-note" class="field-hint">Nøglen gemmes kun i denne Chrome-profil.</p></div>
+        </div>
+        <button type="submit" id="connect" class="primary-button">Forbind LUP</button>
+      </form>
+      <p id="access-error" class="feedback error" role="alert" hidden></p>
+      <button type="button" id="disconnect" class="text-button danger" hidden>Glem forbindelse på denne computer</button>
+    </div>
+  </details>
+
+  <footer class="popup-footer"><span>Personlig adgang til Mathias og Kasper</span><a href="https://lup.dk/emojis" target="_blank" rel="noopener noreferrer">Dit emojibibliotek</a></footer>
+</main>
+<script type="module" src="popup.mjs"></script>
+</body>
+</html>

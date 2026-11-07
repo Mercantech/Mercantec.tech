@@ -1,4 +1,4 @@
-# LUP til Chrome – version 0.2
+# LUP til Chrome – version 0.3
 
 Højreklik på et billede → **Tilføj som emoji på LUP.dk**. Udvidelsen
 åbner sit eget billedvindue. Vælg hele billedet eller et kvadratisk udsnit,
@@ -11,7 +11,7 @@ ved upload.
 1. Byg pakken med `scripts/Package-LupExtension.ps1` fra repository-roden.
    Scriptet installerer om nødvendigt de låste billedværktøjsafhængigheder
    og pakker runtime, model, licenser og udvidelse i
-   `.tools/lup-extension/LUP-0.2.0.zip`.
+   `.tools/lup-extension/LUP-0.3.0.zip`.
 2. Pak ZIP-filen ud. Åbn `chrome://extensions`, slå **Udviklertilstand** til,
    og vælg den udpakkede mappe med **Indlæs upakket**. Alternativt kan den
    byggede `extensions/lup`-mappe bruges direkte. Den skal blive liggende.

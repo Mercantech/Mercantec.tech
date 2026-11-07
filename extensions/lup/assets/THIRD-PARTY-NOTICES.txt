@@ -1,0 +1,14 @@
+LUP extension visual assets
+
+DM Sans and Space Grotesk are distributed under the SIL Open Font License 1.1.
+Official upstream: https://github.com/google/fonts/tree/main/ofl/dmsans
+Official upstream: https://github.com/google/fonts/tree/main/ofl/spacegrotesk
+Original font files are included unchanged. License texts: licenses/DM-SANS-OFL.txt
+and licenses/SPACE-GROTESK-OFL.txt.
+
+Lucide icons are distributed under the ISC license.
+Official upstream: https://github.com/lucide-icons/lucide/tree/main/icons
+Original SVG files are included unchanged. License: licenses/LUCIDE-LICENSE.txt.
+
+All visual assets are packaged locally. The extension does not fetch fonts,
+stylesheets, icons, scripts, or models from external CDNs at runtime.
