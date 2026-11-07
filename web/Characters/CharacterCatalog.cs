@@ -63,7 +63,7 @@ public static class CharacterCatalog
                 new("Tænkepause", "/images/characters/raymond/reactions/thinking.png", "Raymond kigger eftertænksomt opad, mens han overvejer løsningen.", 1254, 1254),
                 new("Pas på", "/images/characters/raymond/reactions/warning.png", "Raymond hæver brynene i mild overraskelse og beder dig kontrollere en ekstra gang.", 1254, 1254),
                 new("Flot klaret", "/images/characters/raymond/reactions/celebration.png", "Raymond stråler af begejstring over en opgave, der er løst.", 1254, 1254),
-                new("Griner", "/images/characters/raymond/reactions/laughing.png", "Raymond bryder ud i varm latter med glade øjne og en legende snabel.", 1262, 1246),
+                new("Griner", "/images/characters/raymond/reactions/laughing.png?v=097b5eeb", "Raymond griner varmt med et naturligt smil, bløde øjne og en afslappet snabel.", 1254, 1254),
                 new("Aha!", "/images/characters/raymond/reactions/eureka.png", "Raymond får en idé med løftet finger og en lille gylden pære.", 1254, 1254),
                 new("Åh nej", "/images/characters/raymond/reactions/facepalm.png", "Raymond lægger en hånd ved panden i en tålmodig og humoristisk facepalm.", 1254, 1254),
                 new("Kaffepause", "/images/characters/raymond/reactions/coffee.png", "Raymond holder en dampende mørkeblå kaffekop med et afslappet smil.", 1254, 1254),

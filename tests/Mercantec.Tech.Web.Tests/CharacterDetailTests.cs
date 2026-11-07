@@ -38,14 +38,15 @@ public sealed class CharacterDetailTests
             var preview = figure.QuerySelector(".character-artwork-preview")!;
             var download = figure.QuerySelector(".character-artwork-download")!;
             var source = image.GetAttribute("src")!;
+            var filePath = source.Split('?')[0];
             Assert.StartsWith("/images/characters/raymond/", source);
-            Assert.EndsWith(".png", source);
+            Assert.EndsWith(".png", filePath);
             Assert.False(string.IsNullOrWhiteSpace(image.GetAttribute("alt")));
             Assert.Equal(source, preview.GetAttribute("href"));
             Assert.Equal("_blank", preview.GetAttribute("target"));
             Assert.Contains("noopener", preview.GetAttribute("rel"));
             Assert.Equal(source, download.GetAttribute("href"));
-            Assert.Equal($"raymond-{Path.GetFileName(source)}", download.GetAttribute("download"));
+            Assert.Equal($"raymond-{Path.GetFileName(filePath)}", download.GetAttribute("download"));
         });
         Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);

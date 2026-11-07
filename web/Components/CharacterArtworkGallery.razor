@@ -16,7 +16,7 @@
                     </a>
                     <figcaption>
                         <span>@item.Title</span>
-                        <a class="character-artwork-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image)}")" aria-label="@($"Hent {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
+                        <a class="character-artwork-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image.Split('?')[0])}")" aria-label="@($"Hent {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
                     </figcaption>
                 </figure>
             }
