@@ -1,0 +1,16 @@
+# Standalone benchmark: does not start, change, or depend on the production stack.
+services:
+  chatterbox-trial:
+    build:
+      context: .
+      dockerfile: tools/chatterbox-trial/Dockerfile
+    volumes:
+      - chatterbox_trial_cache:/cache
+      - ./.tools/chatterbox-trial/results:/results
+    cpus: 4.0
+    mem_limit: 8g
+    labels:
+      - traefik.enable=false
+    restart: "no"
+volumes:
+  chatterbox_trial_cache:

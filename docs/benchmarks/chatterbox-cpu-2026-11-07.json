@@ -1,0 +1,69 @@
+{
+  "model": "ResembleAI/chatterbox",
+  "variant": "multilingual-v2",
+  "revision": "5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18",
+  "device": "cpu",
+  "threads": 4,
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 186 Stepping 3, GenuineIntel",
+  "logical_cpus": 12,
+  "ram_bytes": 16837152768,
+  "packages": {
+    "chatterbox-tts": "0.1.7",
+    "torch": "2.6.0+cpu",
+    "transformers": "5.2.0"
+  },
+  "seed": 42,
+  "clips": [
+    {
+      "file": "01-velkomst.wav",
+      "text": "Velkommen til Mercantec. I dag skal vi arbejde med programmering.",
+      "generation_seconds": 101.65058300000965,
+      "audio_seconds": 4.56,
+      "real_time_factor": 22.291794517545977,
+      "sample_rate": 24000,
+      "clipped_sample_fraction": 0.0
+    },
+    {
+      "file": "02-danske-lyde.wav",
+      "text": "Rødgrød med fløde. Søren og Åse mødes på banegården i Køge.",
+      "generation_seconds": 77.2257275999873,
+      "audio_seconds": 3.8,
+      "real_time_factor": 20.322559894733498,
+      "sample_rate": 24000,
+      "clipped_sample_fraction": 0.0
+    },
+    {
+      "file": "03-tal.wav",
+      "text": "Undervisningen starter klokken 8.15 i lokale 203. Opgaven skal afleveres den 12. november.",
+      "generation_seconds": 67.94196220001322,
+      "audio_seconds": 6.08,
+      "real_time_factor": 11.17466483552849,
+      "sample_rate": 24000,
+      "clipped_sample_fraction": 0.0
+    },
+    {
+      "file": "04-fagtekst.wav",
+      "text": "En database gemmer oplysninger i tabeller. En primærnøgle identificerer hver række, og en fremmednøgle forbinder tabellerne.",
+      "generation_seconds": 77.01847189999535,
+      "audio_seconds": 6.72,
+      "real_time_factor": 11.461082127975498,
+      "sample_rate": 24000,
+      "clipped_sample_fraction": 6.200396825396825e-06
+    },
+    {
+      "file": "05-tekniske-ord.wav",
+      "text": "Vi bruger C#, .NET, SQL og Docker Compose. API'et modtager en forespørgsel og sender et svar tilbage.",
+      "generation_seconds": 64.6922104999976,
+      "audio_seconds": 5.92,
+      "real_time_factor": 10.92773826013473,
+      "sample_rate": 24000,
+      "clipped_sample_fraction": 0.0
+    }
+  ],
+  "listening_review": "pending",
+  "load_seconds": 57.26970629999414,
+  "warmup_seconds": 77.02122490000329,
+  "peak_process_rss_bytes": 5788479488,
+  "completed": true
+}
