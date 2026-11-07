@@ -69,6 +69,7 @@
 @media print{.notion-ai-assistant{display:none!important}}
 @keyframes notion-ai-breathe{50%{opacity:.35}}
 .notion-custom-emoji{width:1.15em;height:1.15em;object-fit:contain;vertical-align:-0.2em;display:inline-block}
+.notion-drawing-portals{display:contents}
 .notion-drawing-block{width:100%;min-width:0;margin:8px 0;color:var(--notion-ink)}
 .notion-drawing-preview{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:64px;margin:0;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--notion-muted);font:inherit;cursor:pointer}
 .notion-drawing-preview img{display:block;width:auto;max-width:100%;height:auto;margin:auto}

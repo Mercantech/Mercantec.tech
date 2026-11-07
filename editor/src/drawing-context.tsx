@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { DrawingController } from './drawing-runtime';
 import type { DrawingEnvironment, DrawingPublicationRequest } from './drawing-api';
 export { requestCreateDrawing } from './drawing-api';
@@ -46,13 +46,16 @@ class DrawingScope {
     this.owned.clear(); if (this.lastDirty) this.env.onDirty?.(false);
   }
 }
-const DrawingContext = createContext<{ env: DrawingEnvironment; scope: DrawingScope } | null>(null);
+const DrawingContext = createContext<{ env: DrawingEnvironment; scope: DrawingScope; portalHost: HTMLElement | null } | null>(null);
 export function DrawingEnvironmentProvider({ value, children }: { value: DrawingEnvironment; children: React.ReactNode }) {
   const identity = key(value);
   const scope = useMemo(() => new DrawingScope(value), [identity]);
+  const [portalHost, setPortalHost] = useState<HTMLDivElement | null>(null);
   scope.env = value;
   useEffect(() => { scopes.add(scope); return () => scope.destroy(); }, [scope]);
-  return <DrawingContext.Provider value={{ env: value, scope }}>{children}</DrawingContext.Provider>;
+  // A sibling of the parent editor keeps native clipboard events out of
+  // ProseMirror while retaining the platform's inherited theme variables.
+  return <DrawingContext.Provider value={{ env: value, scope, portalHost }}>{children}<div className="notion-drawing-portals" ref={setPortalHost} /></DrawingContext.Provider>;
 }
 export function useDrawingEnvironment() { return useContext(DrawingContext); }
 export function requestOpenDrawing(blockId: string) {

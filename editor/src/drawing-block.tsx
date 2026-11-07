@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { trackPosition } from '@blocknote/core';
 import { TextSelection } from 'prosemirror-state';
 import { createReactBlockSpec } from '@blocknote/react';
@@ -60,7 +61,7 @@ class DrawingCanvasBoundary extends React.Component<{ children: React.ReactNode 
   static getDerivedStateFromError() { return { failed: true }; }
   render() { return this.state.failed ? <p className="notion-drawing-error" role="alert">Tegneværktøjet kunne ikke åbnes. Luk tegningen, og genindlæs siden.</p> : this.props.children; }
 }
-function DrawingDialog({ controller, close, discard }: { controller: DrawingController; close: () => void; discard: () => void }) {
+function DrawingDialog({ controller, close, discard, portalHost }: { controller: DrawingController; close: () => void; discard: () => void; portalHost: HTMLElement }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const api = useRef<ExcalidrawImperativeAPI | null>(null);
   const lastPointer = useRef(0);
@@ -105,7 +106,9 @@ function DrawingDialog({ controller, close, discard }: { controller: DrawingCont
       setEmojisOpen(false);
     } catch (value) { setError(value instanceof Error ? value.message : 'Emojien kunne ikke indsættes.'); }
   };
-  return <dialog ref={dialog} className="notion-drawing-dialog" aria-label="Tegning" onKeyDown={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); const state = api.current?.getAppState(); if (!state?.openDialog && !state?.openMenu) close(); }}>
+  // Keep clipboard events outside ProseMirror's native DOM handlers while letting
+  // Excalidraw's document listeners receive them. React context stays intact.
+  return createPortal(<dialog ref={dialog} className="notion-drawing-dialog" data-notion-theme={controller.env.theme} aria-label="Tegning" onKeyDown={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); const state = api.current?.getAppState(); if (!state?.openDialog && !state?.openMenu) close(); }}>
     <header className="notion-drawing-dialog-head"><strong>Tegning</strong><span className="notion-drawing-status" role="status">{controller.status}</span><div className="notion-drawing-actions">
       {controller.canEdit && <button type="button" onClick={() => { setSettings(false); setEmojisOpen(value => !value); }} aria-expanded={emojisOpen}>Emojis</button>}
       {controller.context?.canManageDrawing && !controller.env.presentation && <button type="button" onClick={() => { setEmojisOpen(false); setSettings(value => !value); }} aria-expanded={settings}>Adgang</button>}
@@ -120,7 +123,7 @@ function DrawingDialog({ controller, close, discard }: { controller: DrawingCont
         {menu}
       </Canvas>
     </Suspense></DrawingCanvasBoundary></div>
-  </dialog>;
+  </dialog>, portalHost);
 }
 
 export const createDrawing = createReactBlockSpec({
@@ -219,7 +222,7 @@ export const createDrawing = createReactBlockSpec({
         {preview ? <img src={preview} alt="Tegning" draggable={false} /> : <span>{creating ? 'Opretter…' : controller ? 'Åbn tegning' : 'Opret tegning'}</span>}
       </button>
       {error && <p className="notion-drawing-error" role="alert">{error} <button type="button" onClick={() => setRefreshAttempt(value => value + 1)}>Prøv igen</button></p>}
-      {opened && controller && <DrawingDialog controller={controller} close={close} discard={() => { close(); runtime?.scope.discard(controller); }} />}
+      {opened && controller && runtime?.portalHost && <DrawingDialog controller={controller} portalHost={runtime.portalHost} close={close} discard={() => { close(); runtime.scope.discard(controller); }} />}
     </section>;
   },
   toExternalHTML: () => <figure><figcaption>Tegning fra LUP</figcaption></figure>,

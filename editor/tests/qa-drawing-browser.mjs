@@ -162,6 +162,7 @@ try {
       const picker = dialog(teacher).locator('.notion-drawing-emoji-picker');
       await picker.getByRole('searchbox', { name: 'Søg efter emoji' }).fill(name);
       await picker.getByRole('button', { name: ':' + name + ':', exact: true }).click();
+      await picker.waitFor({ state: 'hidden' });
     }
     const saved = await stored('teacher', canvas.id, before + 2);
     assert.equal(liveElements(saved).filter(item => item.type === 'image').length, 2);
@@ -203,6 +204,7 @@ try {
   await step('Drawing-only pupil grant leaves the parent document read-only; live peers converge', async () => {
     await dialog(teacher).getByRole('button', { name: 'Adgang', exact: true }).click();
     await dialog(teacher).locator('.notion-drawing-settings select').selectOption('live');
+    await until(async () => (await drawing('teacher', canvas.id)).mode === 'live' && await dialog(teacher).locator('.notion-drawing-settings select').isEnabled(), 'live mode settings saved and refreshed');
     await close(teacher); await publish(teacher);
     await teacher.getByRole('button', { name: 'Åbn tegning', exact: true }).click(); await ready(teacher, true);
     await dialog(teacher).getByRole('button', { name: 'Adgang', exact: true }).click();

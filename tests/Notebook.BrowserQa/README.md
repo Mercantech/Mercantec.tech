@@ -56,6 +56,15 @@ Rapport, screenshots og de tre faktiske eksporter gemmes i `.tools/drawing-brows
 `DRAWING_QA_OUTPUT` kan vælge en anden lokal rapportmappe. Scriptet bygger eller starter
 ingen host og stopper kun sin egen Chromium-instans; launcheren ejer fixture-processerne.
 
+`node editor/tests/qa-drawing-clipboard.mjs` tester rigtige Ctrl+C/X/V-hændelser og Chromiums
+native Clipboard API: figurer, tekstfelter og emoji-billeder må indsættes i tegningen,
+mens en markeret baggrundsnote forbliver uændret. Scriptet bruger ingen SDK-clipboardstub.
+En Windows STA-proces bevarer de oprindelige OS-clipboardformater kun i RAM. Den gendanner
+kun, hvis clipboard stadig indeholder denne kørsels unikke QA-markør eller SDK-element-ID;
+uændret clipboard og brugerens eventuelle nye kopiering lades urørt. Ukendte formater
+afbryder testen før clipboardskrivninger. Rapporten indeholder kun fiktiv notedata,
+scene-ID'er og MIME-metadata, aldrig brugerens oprindelige clipboardindhold.
+
 `node editor/tests/qa-drawing-concurrency.mjs` bruger samme fixture og egne nye
 testnoter til to rigtige SDK-klienter. Testen sammenligner native sceneindhold med
 den gemte scene efter samtidige ændringer, lagrækkefølge, lokal fortrydelse,
