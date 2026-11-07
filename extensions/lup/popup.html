@@ -20,7 +20,8 @@
 
   <form class="popup-image-search" action="search.html" method="get" target="_blank">
     <label class="visually-hidden" for="image-query">Søg efter billeder</label>
-    <input id="image-query" name="q" type="search" minlength="2" maxlength="100" placeholder="Søg efter billeder…" required autocomplete="off">
+    <input id="image-query" name="q" type="search" minlength="2" maxlength="100" placeholder="Find billeder eller GIF’er…" required autocomplete="off">
+    <button class="gif-shortcut" type="submit" name="mode" value="gifs" formnovalidate aria-label="Søg efter GIF’er">GIF</button>
     <button type="submit" aria-label="Søg efter billeder"><img src="assets/icons/search.svg" alt=""></button>
   </form>
 

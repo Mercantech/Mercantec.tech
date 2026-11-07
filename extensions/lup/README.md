@@ -1,4 +1,4 @@
-# LUP til Chrome – version 0.4
+# LUP til Chrome – version 0.5
 
 Højreklik på et billede → **Tilføj som emoji på LUP.dk**. Udvidelsen
 åbner sit eget billedvindue. Vælg hele billedet eller et kvadratisk udsnit,
@@ -11,7 +11,7 @@ ved upload.
 1. Byg pakken med `scripts/Package-LupExtension.ps1` fra repository-roden.
    Scriptet installerer om nødvendigt de låste billedværktøjsafhængigheder
    og pakker runtime, model, licenser og udvidelse i
-   `.tools/lup-extension/LUP-0.4.0.zip`.
+   `.tools/lup-extension/LUP-0.5.0.zip`.
 2. Pak ZIP-filen ud. Åbn `chrome://extensions`, slå **Udviklertilstand** til,
    og vælg den udpakkede mappe med **Indlæs upakket**. Alternativt kan den
    byggede `extensions/lup`-mappe bruges direkte. Den skal blive liggende.
@@ -31,7 +31,7 @@ Udvidelsen er endnu ikke udgivet i Chrome Web Store.
 
 Ved opdatering pakkes filerne ud oven i den eksisterende udvidelsesmappe.
 Genindlæs derefter i `chrome://extensions`, så den samme Chrome-profil
-beholder sin personlige nøgle. Version 0.4 tilføjer adgang til Openverse.
+beholder sin personlige nøgle. Version 0.5 bruger også Wikimedia til GIF-filer.
 
 ## Find nye billeder
 
@@ -70,11 +70,38 @@ LUP er ikke godkendt eller certificeret af Openverse. Se
 
 ## Beskæring og baggrund
 
+## GIF’er og animerede emojis
+
+Åbn **GIF** fra popupen eller vælg fanen **GIF’er** på søgesiden. Billeder
+og GIF’er har hver sin søgning, kladde, resultater og scrollposition.
+GIF-fanen søger via Openverse efter Wikimedia-GIF’er markeret CC0/Public
+domain. Uden søgeord starter den med en søgning efter animerede ikoner.
+Den er ikke en kopi af Discords eller Twitchs samlede GIF-katalog.
+
+GIF-originalen hentes direkte fra en valideret Wikimedia-adresse, fordi
+Openverses miniaturetjeneste kan ændre formatet eller mangle GIF-filen.
+Kilde og licens vises ved resultatet og i billedværkstedet. Nøglen sendes
+aldrig til søgetjenesten eller Wikimedia.
+
+**Vælg GIF** åbner billedværkstedet. Hele billedet og beskårne udsnit gemmes
+som animeret GIF med bevaret timing, loop og transparens. Beskæringsfeltet
+viser ét billede fra animationen; den lille forhåndsvisning af hele GIF’en
+og det gemte resultat kan afspille animationen. **Fjern baggrund · stillbillede**
+vælger eksplicit PNG; **Brug original** gendanner GIF’en.
+
+GIF’er behandles lokalt med Chromes ImageDecoder og den medfølgende gifenc.
+Størrelsen tilpasses til højst 256 KB uden at fjerne frames eller ændre
+animationens varighed. Der er grænser på 300 frames, 30 sekunders animation
+og 30 millioner dekodede framepixels. Kan filen ikke passe, vises en fejl
+med originalen bevaret; den konverteres aldrig automatisk til et stillbillede.
+
+## Beskæring af billeder
+
 - **Beskær til kvadrat** giver et kvadratisk udsnit. Brug zoomskyderen,
   træk/touch eller x/y-skyderne. Piletaster flytter motivet, +/− zoomer,
   og Home nulstiller. Den fulde kildeopløsning bruges til beskæringen.
-- **Brug hele billedet** bevarer billedets format. Små GIF-filer kan dermed
-  beholde animationen. Beskæring og baggrundsfjernelse giver et PNG-stillbillede.
+- **Brug hele billedet** bevarer billedets format. GIF’er bevarer animationen
+  ved tilpasning og beskæring; andre beskårne billeder bliver PNG-stillbilleder.
 - **Fjern baggrund** kører lokalt med den medfølgende model. **Stop** afbryder
   beregningen, og **Brug original** vælger det oprindelige billede igen.
 - Output er højst 256 KB og tilpasses emojiformatet. Beskårne billeder er

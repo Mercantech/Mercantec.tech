@@ -1,6 +1,7 @@
 import { MAX_BYTES, MAX_DOWNLOAD_BYTES, MAX_PIXELS, MIME_TYPES, sourceUrl, originPattern, sanitizeName, validId } from './core.mjs';
 import { createCropEditor } from './crop.mjs';
 import { normalizeSearchImage } from './image-search.mjs';
+import { normalizeGifSearchResult } from './gif-search.mjs';
 
 const status = document.querySelector('#status');
 const name = document.querySelector('#name');
@@ -18,6 +19,9 @@ let originalSource = null, originalPrepared = null, originalFileName = '', origi
 let backgroundEdited = false, cropActive = false, backgroundJob = null, backgroundSerial = 0, backgroundModule = null;
 let uploading = false, previewRevision = 0, previewTimer = null, previewUrl = null;
 let searchSource = null, sourceMetadata = null, searchTabId = null;
+let gifModule;
+const getGifModule = () => gifModule ??= import('./gif-tools.mjs');
+async function encodeGif(blob, crop = null) { return (await getGifModule()).processGif(blob, { crop }); }
 name.addEventListener('input', () => { editedName = true; });
 name.addEventListener('input', () => { if (!editedAlt) altText.value = name.value.replaceAll('_', ' '); updateMetadataPreview(); });
 altText.addEventListener('input', () => { editedAlt = true; updateMetadataPreview(); });
@@ -50,16 +54,19 @@ function requestPreview() {
     const editor = cropEditor;
     if (!editor) return;
     try {
-      const blob = await editor.getBlob();
+      const blob = await editor.getPreviewBlob();
       if (revision !== previewRevision || editor !== cropEditor) return;
-      const url = URL.createObjectURL(blob), previous = previewUrl;
-      previewUrl = url;
-      const image = document.querySelector('#emoji-preview');
-      image.src = url; image.hidden = false;
-      document.querySelector('#emoji-placeholder').hidden = true;
-      if (previous) URL.revokeObjectURL(previous);
+      showPreviewBlob(blob);
     } catch { /* A preview never changes the file, metadata, or upload state. */ }
   }, 140);
+}
+function showPreviewBlob(blob) {
+  const url = URL.createObjectURL(blob), previous = previewUrl;
+  previewUrl = url;
+  const image = document.querySelector('#emoji-preview');
+  image.src = url; image.hidden = false;
+  document.querySelector('#emoji-placeholder').hidden = true;
+  if (previous) URL.revokeObjectURL(previous);
 }
 function compactCropControls() {
   const host = document.querySelector('#crop-editor'), controls = host.querySelector('[data-controls]');
@@ -74,7 +81,7 @@ function compactCropControls() {
   const hints = [...controls.querySelectorAll('.lup-crop-hint')];
   hints.forEach(hint => hint.remove());
   const hint = document.createElement('p'); hint.className = 'muted lup-crop-hint';
-  hint.textContent = 'Træk i billedet for at finde det helt rigtige udsnit.';
+  hint.textContent = prepared?.type === 'image/gif' ? 'Træk for at beskære. Feltet viser ét billede fra animationen; GIF’en gemmes med bevægelse.' : 'Træk i billedet for at finde det helt rigtige udsnit.';
   controls.append(hint, row, precision);
 }
 function refreshImageActions() {
@@ -83,6 +90,7 @@ function refreshImageActions() {
   stopBackgroundButton.disabled = saved;
   originalButton.hidden = !originalSource || !(backgroundEdited || cropActive);
   originalButton.disabled = busy || saved;
+  document.querySelector('#background-label').textContent = prepared?.type === 'image/gif' ? 'Fjern baggrund · stillbillede' : 'Fjern baggrund';
 }
 function setBusy(value) {
   busy = value; document.body.dataset.busy = String(value); document.body.dataset.saved = String(saved);
@@ -145,6 +153,13 @@ function png(canvas) { return new Promise((resolve, reject) => canvas.toBlob(blo
 async function adaptImage(blob) {
   if (!blob.size || blob.size > MAX_DOWNLOAD_BYTES) throw new Error('Vælg et billede med indhold på højst 8 MB.');
   if (blob.type === 'image/svg+xml') throw new Error('SVG understøttes ikke her. Gem billedet som PNG og vælg filen.');
+  const header = String.fromCharCode(...new Uint8Array(await blob.slice(0, 6).arrayBuffer()));
+  if (['GIF87a', 'GIF89a'].includes(header)) {
+    message('Tilpasser GIF’en og bevarer animationen…', false, 'progress');
+    const result = await encodeGif(blob);
+    return { blob: result, note: `GIF-animationen bevares · ${Math.ceil(result.size / 1024)} KB.` };
+  }
+  if (blob.type === 'image/gif') throw new Error('GIF-filen kunne ikke læses. Originalen er bevaret.');
   let bitmap;
   try { bitmap = await createImageBitmap(blob); } catch { throw new Error('Billedet kunne ikke læses. Vælg PNG, JPEG, GIF, WebP eller AVIF.'); }
   try {
@@ -204,7 +219,7 @@ async function installImage(blob, result, fileName, current, metadata = searchSo
     if (current !== generation) return;
     cropActive = state.enabled;
     document.querySelector('#details').textContent = state.enabled
-      ? `Kvadratisk udsnit · ${Math.round(state.zoom * 100)} % zoom · gemmes som PNG-stillbillede.`
+      ? `Kvadratisk udsnit · ${Math.round(state.zoom * 100)} % zoom · ${result.blob.type === 'image/gif' ? 'GIF-animationen bevares.' : 'gemmes som PNG-stillbillede.'}`
       : `${Math.ceil(result.blob.size / 1024)} KB · ${result.note}`;
     for (const slider of document.querySelectorAll('#crop-editor input[type="range"]')) {
       const progress = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
@@ -212,12 +227,12 @@ async function installImage(blob, result, fileName, current, metadata = searchSo
     }
     refreshImageActions();
     requestPreview();
-  }, { wholeBlob: result.blob, previewId: 'preview' });
+  }, { wholeBlob: result.blob, previewId: 'preview', encodeGif });
   if (current !== generation) { editor.destroy(); return false; }
   previous?.destroy();
   cropEditor = editor;
-  compactCropControls();
   prepared = result.blob;
+  compactCropControls();
   cropActive = false;
   document.querySelector('#preview-wrap').hidden = false;
   document.querySelector('#empty-preview').hidden = true;
@@ -269,7 +284,7 @@ backgroundButton.addEventListener('click', async () => {
   const job = crypto.randomUUID(); backgroundJob = job;
   setBusy(true); message('Fjerner baggrunden lokalt… Første gang kan tage lidt længere tid.', false, 'progress');
   try {
-    const image = await cropEditor.getBlob();
+    const image = await cropEditor.getPreviewBlob();
     const data = await imageDataUrl(image);
     if (serial !== backgroundSerial || current !== generation) return;
     const module = await (backgroundModule ??= import('./emoji-background.js'));
@@ -321,7 +336,7 @@ async function fetchSource(metadata = sourceMetadata) {
     let blob, fallback = false;
     try { blob = await boundedImageFetch(source.href); }
     catch (error) {
-      if (metadata) {
+      if (metadata && metadata.thumbnailUrl !== source.href) {
         fallback = true;
         blob = await boundedImageFetch(metadata.thumbnailUrl);
       } else {
@@ -336,7 +351,7 @@ async function fetchSource(metadata = sourceMetadata) {
     let filename = metadata?.title || source.pathname.split('/').at(-1) || 'emoji';
     try { filename = decodeURIComponent(filename); } catch { /* A malformed URL filename does not invalidate decoded image pixels. */ }
     const ready = await prepare(blob, filename, metadata);
-    if (!ready && metadata && !fallback) {
+    if (!ready && metadata && metadata.provider !== 'openverse-gif' && !fallback) {
       setBusy(true);
       message('Klargør en mindre udgave af billedet…', false, 'progress');
       await prepare(await boundedImageFetch(metadata.thumbnailUrl), filename, metadata);
@@ -392,6 +407,7 @@ document.querySelector('#form').addEventListener('submit', async event => {
     message(`:${response.name}: er gemt i LUPs emojibibliotek. Du kan lukke denne fane.`, false, 'success');
     name.disabled = altText.disabled = true;
     setBusy(false);
+    if (image.type === 'image/gif') { clearTimeout(previewTimer); previewRevision++; showPreviewBlob(image); }
   } catch (error) { uploading = false; message(error.message, true); setBusy(false); }
 });
 
@@ -401,6 +417,7 @@ window.addEventListener('unload', () => {
   if (job) void backgroundModule?.then(module => module.cancel(job)).catch(() => {});
   cropEditor?.destroy();
   clearPreview();
+  void gifModule?.then(module => module.cancelAllGifs()).catch(() => {});
 });
 
 async function start() {
@@ -414,7 +431,7 @@ async function start() {
     }
     if (!response?.ok) throw new Error(response?.message || 'Billedkladden kunne ikke læses.');
     await updateConnection();
-    sourceMetadata = normalizeSearchImage(response.searchSource);
+    sourceMetadata = normalizeGifSearchResult(response.searchSource) || normalizeSearchImage(response.searchSource);
     if (Number.isInteger(response.searchTabId) && response.searchTabId > 0) {
       searchTabId = response.searchTabId;
       document.querySelector('#back-to-search').hidden = false;

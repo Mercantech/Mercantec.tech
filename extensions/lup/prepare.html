@@ -24,10 +24,10 @@
         <div id="preview-wrap" hidden><section id="crop-editor" aria-label="Beskær og zoom billedet"></section></div>
         <div class="drop-overlay" aria-hidden="true"><img src="assets/icons/upload.svg" alt=""><strong>Slip dit billede her</strong></div>
       </div>
-      <div class="image-toolbar"><div class="image-actions"><button id="remove-background" type="button" class="tool-button" disabled><img src="assets/icons/wand-sparkles.svg" alt="">Fjern baggrund</button><button id="stop-background" type="button" class="tool-button" hidden>Stop baggrundsfjernelse</button><button id="restore-original" type="button" class="text-button" hidden>Brug original</button></div><span class="image-format">PNG · JPEG · GIF · WebP · AVIF</span></div>
+      <div class="image-toolbar"><div class="image-actions"><button id="remove-background" type="button" class="tool-button" disabled><img src="assets/icons/wand-sparkles.svg" alt=""><span id="background-label">Fjern baggrund</span></button><button id="stop-background" type="button" class="tool-button" hidden>Stop baggrundsfjernelse</button><button id="restore-original" type="button" class="text-button" hidden>Brug original</button></div><span class="image-format">PNG · JPEG · GIF · WebP · AVIF</span></div>
       <p id="details" class="image-details"></p>
       <button id="permission" class="permission-button" hidden>Giv adgang til billedets hjemmeside</button>
-      <details class="image-help"><summary>Om format og baggrund</summary><p>Baggrundsfjernelse foregår lokalt. Beskæring og baggrundsfjernelse giver et PNG-stillbillede. Vælg Brug original for at vende tilbage, også til en eventuel animation. Du kan også trække en billedfil ind i feltet ovenfor.</p></details>
+      <details class="image-help"><summary>Om format og baggrund</summary><p>GIF-animationer bevares, også ved beskæring. Beskæringsfeltet viser ét billede fra animationen. Fjern baggrund giver et PNG-stillbillede; Brug original gendanner GIF’en. Andre billedformater beskæres til PNG. Du kan også trække en billedfil ind i feltet ovenfor.</p></details>
       <div class="source-credit" id="source-credit" hidden><div><span class="section-kicker">FUNDET VIA OPENVERSE</span><a id="source-title" target="_blank" rel="noopener noreferrer"></a><p id="source-creator"></p></div><a id="source-license" class="license-badge" target="_blank" rel="noopener noreferrer"></a></div>
     </section>
     <aside class="save-column">

@@ -97,6 +97,13 @@ const rawSearchItem = changes => ({ id: searchId, title: 'En glad kat', creator:
   license_url: 'https://creativecommons.org/publicdomain/zero/1.0/', foreign_landing_url: 'https://commons.wikimedia.org/wiki/File:Cat.jpg',
   url: 'https://images.example.test/cat.jpg', thumbnail: 'https://images.example.test/cat-thumb.jpg',
   width: 640, height: 480, ...changes });
+const gifId = `gif:${searchId}`;
+const gifUrl = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Smiling_laughing_yes_Animated_icon.gif';
+const gifItem = changes => ({ ...searchItem(), id: gifId, provider: 'openverse-gif', title: 'En animeret reaktion',
+  thumbnailUrl: gifUrl, imageUrl: gifUrl, ...changes });
+const cachedGif = changes => ({ ...gifItem(), expiresAt: Date.now() + JOB_TTL_MS - 1000, ...changes });
+const rawGif = changes => ({ ...rawSearchItem(), title: 'En animeret reaktion', filetype: 'gif', url: gifUrl,
+  width: 20, height: 20, filesize: 647, ...changes });
 
 test('worker installs its entry-point listeners synchronously', () => {
   for (const name of ['installed', 'startup', 'message', 'clicked']) assert.equal(typeof listeners[name], 'function');
@@ -550,4 +557,96 @@ test('concurrent search selections cannot race past the eight editable image job
   const results = await Promise.all(Array.from({ length: 12 }, () => handleMessage({ type: 'search:select', resultId: searchId }, searchSender())));
   assert(results.every(result => result.ok)); assert.equal(createdTabs.length, 12);
   assert.equal([...records.keys()].filter(key => key.startsWith('job:')).length, 8);
+});
+
+test('search modes default to images and reject unknown modes before network or credential reads', async () => {
+  const get = chrome.storage.local.get;
+  chrome.storage.local.get = async () => { throw new Error('Public search must not read credentials.'); };
+  try {
+    for (const mode of ['video', 'GIFS', '', null, false, {}]) {
+      assert.equal((await handleMessage({ type: 'search:query', query: 'dance', page: 1, mode }, searchSender())).ok, false);
+    }
+    for (const message of [{ query: '', mode: 'images' }, { query: 'x', mode: 'gifs' }, { query: '\n', mode: 'gifs' },
+      { query: null, mode: 'gifs' }, { query: 'a'.repeat(101), mode: 'gifs' }]) {
+      assert.equal((await handleMessage({ type: 'search:query', page: 1, ...message }, searchSender())).ok, false);
+    }
+    globalThis.fetch = async () => jsonResponse({ results: [rawSearchItem()], page_count: 1 });
+    const response = await handleMessage({ type: 'search:query', query: 'cat', page: 1 }, searchSender());
+    assert.equal(response.ok, true); assert.equal(response.mode, 'images');
+    assert.equal(response.items[0].id, searchId);
+  } finally { chrome.storage.local.get = get; }
+});
+
+test('GIF search uses the public GIF filter without sharing the upload credential', async () => {
+  localRecords.set(accessSlot, accessKey); let requests = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    requests++; const actual = new URL(url);
+    assert.equal(actual.origin, 'https://api.openverse.org');
+    assert.equal(actual.searchParams.get('extension'), 'gif');
+    assert.equal(actual.searchParams.get('license'), 'cc0,pdm');
+    assert.equal(actual.searchParams.get('mature'), 'false');
+    assert.equal(new Headers(options.headers).has('authorization'), false);
+    assert.equal(options.credentials, 'omit'); assert.equal(options.referrerPolicy, 'no-referrer');
+    return jsonResponse({ results: [rawGif(), rawGif({ license: 'by-sa' }), rawGif({ url: 'https://attacker.test/image.gif' })], page_count: 1 });
+  };
+  const response = await handleMessage({ type: 'search:query', query: 'dance', page: 1, mode: 'gifs' }, searchSender());
+  assert.equal(response.ok, true); assert.equal(response.mode, 'gifs'); assert.equal(response.items.length, 1);
+  assert.equal(response.items[0].id, gifId); assert.equal(response.items[0].provider, 'openverse-gif');
+  assert.equal(response.items[0].imageUrl, gifUrl); assert.equal(response.items[0].thumbnailUrl, gifUrl);
+  assert.equal(requests, 1); assert.equal(records.has(`search:${gifId}`), true);
+  assert.equal(JSON.stringify(response).includes(accessKey), false);
+});
+
+test('GIF mode permits a blank discovery query while preserving strict page and sender checks', async () => {
+  let requests = 0;
+  globalThis.fetch = async () => { requests++; return jsonResponse({ results: [rawGif()], page_count: 1 }); };
+  for (const value of ['', '  ']) {
+    const response = await handleMessage({ type: 'search:query', query: value, page: 1, mode: 'gifs' }, searchSender());
+    assert.equal(response.ok, true); assert.equal(response.query, ''); assert.equal(response.mode, 'gifs');
+  }
+  assert.equal(requests, 2);
+  for (const sender of [lupSender(), popupSender(), prepareSender(), searchSender(0), searchSender(81, 'https://lup.dk/search.html')]) {
+    assert.equal((await handleMessage({ type: 'search:query', query: '', page: 1, mode: 'gifs' }, sender)).ok, false);
+    assert.equal((await handleMessage({ type: 'search:select', resultId: gifId }, sender)).ok, false);
+  }
+  for (const page of [0, 11, '1', 1.5]) assert.equal((await handleMessage({ type: 'search:query', query: '', page, mode: 'gifs' }, searchSender())).ok, false);
+  assert.equal(requests, 2);
+});
+
+test('GIF selection is bound to its own cache namespace and returns source metadata only to its editor', async () => {
+  records.set(`search:${searchId}`, cachedSearch()); records.set(`search:${gifId}`, cachedGif());
+  localRecords.set(accessSlot, accessKey);
+  const get = chrome.storage.local.get;
+  chrome.storage.local.get = async () => { throw new Error('Selection must not read credentials.'); };
+  let result;
+  try { result = await handleMessage({ type: 'search:select', resultId: gifId, imageUrl: 'https://attacker.test/x.gif' }, searchSender()); }
+  finally { chrome.storage.local.get = get; }
+  assert.equal(result.ok, true); assert.equal(createdTabs.length, 1);
+  const stored = records.get(`job:${result.id}`);
+  assert.equal(stored.srcUrl, gifUrl); assert.equal(stored.searchSource.provider, 'openverse-gif');
+  assert.equal(stored.searchSource.thumbnailUrl, gifUrl); assert.equal(stored.searchTabId, 81);
+  const editor = { url: createdTabs[0].url, tab: { id: createdTabs[0].id } };
+  const response = await handleMessage({ type: 'prepare:get', id: result.id }, editor);
+  assert.equal(response.ok, true); assert.equal(response.searchSource.id, gifId);
+  assert.equal(response.searchSource.provider, 'openverse-gif'); assert.equal(response.srcUrl, gifUrl);
+  assert.equal((await handleMessage({ type: 'prepare:get', id: result.id }, searchSender())).searchSource, undefined);
+  assert.equal(JSON.stringify(response).includes(accessKey), false);
+  assert.equal(records.has(`search:${searchId}`), true); assert.equal(records.has(`search:${gifId}`), true);
+  records.delete(`search:${gifId}`);
+  assert.equal((await handleMessage({ type: 'search:select', resultId: gifId }, searchSender())).ok, false);
+});
+
+test('expired GIF entries and unsafe download hosts or licenses cannot create image jobs', async () => {
+  for (const changes of [{ expiresAt: Date.now() - 1 }, { expiresAt: Date.now() + JOB_TTL_MS + 10000 },
+    { license: 'by-sa' }, { imageUrl: 'https://attacker.test/a.gif', thumbnailUrl: 'https://attacker.test/a.gif' },
+    { imageUrl: 'https://upload.wikimedia.org.evil.test/wikipedia/commons/5/5f/a.gif' },
+    { imageUrl: 'http://upload.wikimedia.org/wikipedia/commons/5/5f/a.gif' },
+    { imageUrl: 'https://upload.wikimedia.org/wikipedia/en/5/5f/a.gif' },
+    { sourceUrl: 'javascript:alert(1)' }, { sourceUrl: 'https://user:secret@example.test/' }]) {
+    records.set(`search:${gifId}`, cachedGif(changes));
+    assert.equal((await handleMessage({ type: 'search:select', resultId: gifId }, searchSender())).ok, false);
+  }
+  for (const resultId of ['gif:not-a-uuid', `video:${searchId}`, `gif:${searchId}/extra`])
+    assert.equal((await handleMessage({ type: 'search:select', resultId }, searchSender())).ok, false);
+  assert.equal(createdTabs.length, 0);
 });

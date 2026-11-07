@@ -1,5 +1,6 @@
 import { JOB_TTL_MS, TTL_MS, validId, sourceUrl, validDraft, validateDraftAccess, validateDraftCompletion } from './core.mjs';
 import { searchImages, normalizeSearchQuery, MAX_SEARCH_PAGE } from './image-search.mjs';
+import { searchGifs, normalizeGifSearchResult } from './gif-search.mjs';
 
 const MENU_ID = 'lup-add-emoji';
 const MAX_PENDING = 8;
@@ -28,6 +29,7 @@ function ownSearch(sender) {
 }
 
 function cachedSearchItem(value) {
+  if (typeof value?.id === 'string' && value.id.startsWith('gif:')) return normalizeGifSearchResult(value);
   if (!value || !validId(value.id) || !['cc0', 'pdm'].includes(value.license)
     || typeof value.title !== 'string' || !value.title.trim() || value.title.length > 240
     || typeof value.creator !== 'string' || value.creator.length > 240
@@ -55,21 +57,28 @@ async function cacheSearchItems(items) {
 async function searchMessage(message, sender) {
   if (!ownSearch(sender)) return fail('Billedsøgning kan kun bruges fra LUP-udvidelsens søgeside.');
   if (message.type === 'search:query') {
-    const query = normalizeSearchQuery(message.query);
-    if (!query || !Number.isInteger(message.page) || message.page < 1 || message.page > MAX_SEARCH_PAGE)
+    const mode = message.mode === undefined ? 'images' : message.mode;
+    if (!['images', 'gifs'].includes(mode)) return fail('Vælg billeder eller GIF’er.');
+    const blankGifQuery = mode === 'gifs' && typeof message.query === 'string'
+      && !/[\u0000-\u001f\u007f]/u.test(message.query) && !message.query.trim();
+    const query = blankGifQuery ? '' : normalizeSearchQuery(message.query);
+    if (query === null || !Number.isInteger(message.page) || message.page < 1 || message.page > MAX_SEARCH_PAGE)
       return fail('Skriv et søgeord, og vælg en gyldig resultatside.');
     try {
-      const response = await searchImages(query, message.page);
-      const items = (Array.isArray(response.items) ? response.items : []).map(cachedSearchItem).filter(Boolean).slice(0, MAX_SEARCH_RESULTS);
+      const response = await (mode === 'gifs' ? searchGifs(query, message.page) : searchImages(query, message.page));
+      const items = (Array.isArray(response.items) ? response.items : []).map(cachedSearchItem)
+        .filter(item => item && (item.id.startsWith('gif:') ? mode === 'gifs' : mode === 'images')).slice(0, MAX_SEARCH_RESULTS);
       await cacheSearchItems(items);
-      return { ok: true, query, page: message.page, items, nextPage: response.nextPage };
+      return { ok: true, query, page: message.page, mode, items, nextPage: response.nextPage };
     } catch (error) {
       return fail(error instanceof TypeError ? 'Billedsøgningen kunne ikke kontaktes. Prøv igen senere.'
         : error?.name === 'TimeoutError' ? 'Billedsøgningen svarede ikke i tide. Prøv igen.'
           : error?.message || 'Billederne kunne ikke hentes. Prøv igen.');
     }
   }
-  if (message.type !== 'search:select' || !validId(message.resultId)) return fail('Vælg et billede fra søgeresultaterne.');
+  const validResultId = validId(message.resultId) || (typeof message.resultId === 'string'
+    && message.resultId.startsWith('gif:') && validId(message.resultId.slice(4)));
+  if (message.type !== 'search:select' || !validResultId) return fail('Vælg et billede fra søgeresultaterne.');
   const stored = (await chrome.storage.session.get(`search:${message.resultId}`))[`search:${message.resultId}`];
   const item = cachedSearchItem(stored);
   if (!item || !Number.isFinite(stored.expiresAt) || stored.expiresAt <= Date.now()

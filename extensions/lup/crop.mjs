@@ -41,7 +41,7 @@ export function dragCrop(width, height, state, dx, dy, displaySize) {
 const png = canvas => new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Billedet kunne ikke beskæres. Prøv igen.')), 'image/png'));
 
 /** Reusable editor; the full source is retained until dispose, while wholeBlob may be a smaller GIF/PNG. */
-export async function createCropEditor(container, sourceBlob, onChange = () => {}, { wholeBlob = sourceBlob, previewId } = {}) {
+export async function createCropEditor(container, sourceBlob, onChange = () => {}, { wholeBlob = sourceBlob, previewId, encodeGif } = {}) {
   if (!(sourceBlob instanceof Blob) || !sourceBlob.size || sourceBlob.size > 8 * 1024 * 1024)
     throw new Error('Vælg et billede med indhold på højst 8 MB.');
   const owner = {};
@@ -51,6 +51,7 @@ export async function createCropEditor(container, sourceBlob, onChange = () => {
   try { dimensions(bitmap.width, bitmap.height); } catch (error) { bitmap.close(); throw error; }
   let state = { zoom: 1, x: 0, y: 0 }, enabled = false, disabled = false, disposed = false, pointer = null;
   const wholeUrl = URL.createObjectURL(wholeBlob);
+  const animatedGif = wholeBlob.type === 'image/gif' && typeof encodeGif === 'function';
   const styleUrl = new URL('./crop.css', import.meta.url).href;
   if (![...document.querySelectorAll('link[data-lup-crop-style]')].some(link => link.href === styleUrl)) {
     const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = styleUrl; link.dataset.lupCropStyle = '';
@@ -71,7 +72,7 @@ export async function createCropEditor(container, sourceBlob, onChange = () => {
     <label class="lup-crop-control">Vandret udsnit<input data-x type="range" min="-100" max="100" step="1" value="0" /></label>
     <label class="lup-crop-control">Lodret udsnit<input data-y type="range" min="-100" max="100" step="1" value="0" /></label>
     <button type="button" data-reset class="secondary">Nulstil udsnit</button>
-    <p class="muted lup-crop-hint">Udsnittet gemmes som et PNG-stillbillede med højst 256 × 256 pixels. GIF- og WebP-animation bevares ikke ved beskæring.</p>
+    <p class="muted lup-crop-hint">${animatedGif ? 'GIF-animationen bevares ved gem. Beskæringen viser ét billede fra animationen.' : 'Udsnittet gemmes som et PNG-stillbillede med højst 256 × 256 pixels. GIF- og WebP-animation bevares ikke ved beskæring.'}</p>
   </div>`;
   const select = selector => container.querySelector(selector);
   const image = select('[data-whole-image]'), canvas = select('[data-canvas]'), controls = select('[data-controls]');
@@ -136,6 +137,25 @@ export async function createCropEditor(container, sourceBlob, onChange = () => {
     bitmap.close(); URL.revokeObjectURL(wholeUrl);
     if (owners.get(container) === owner) { owners.delete(container); container.replaceChildren(); }
   };
+  async function exportBlob(preview = false) {
+    if (disposed) throw new Error('Billedkladden er lukket. Vælg billedet igen.');
+    if (!enabled) return wholeBlob;
+    const rectangle = cropRectangle(bitmap.width, bitmap.height, state);
+    if (animatedGif && !preview) {
+      const result = await encodeGif(sourceBlob, rectangle);
+      if (disposed) throw new Error('Billedkladden er lukket. Vælg billedet igen.');
+      return result;
+    }
+    for (const edge of [256, 192, 128]) {
+      const output = document.createElement('canvas'); output.width = edge; output.height = edge;
+      const context = output.getContext('2d'); context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
+      context.drawImage(bitmap, rectangle.x, rectangle.y, rectangle.size, rectangle.size, 0, 0, edge, edge);
+      const blob = await png(output);
+      if (disposed) throw new Error('Billedkladden er lukket. Vælg billedet igen.');
+      if (blob.size <= MAX_BYTES) return blob;
+    }
+    throw new Error('Udsnittet kunne ikke gøres mindre end 256 KB. Vælg et andet billede.');
+  }
   return {
     getState: () => ({ enabled, ...state }),
     setMode(value) { if (!['whole', 'square'].includes(value)) throw new Error('Ukendt billedformat.'); mode(value === 'square'); },
@@ -144,20 +164,8 @@ export async function createCropEditor(container, sourceBlob, onChange = () => {
       for (const control of container.querySelectorAll('button,input')) control.disabled = disabled;
       canvas.tabIndex = disabled ? -1 : 0; draw();
     },
-    async getBlob() {
-      if (disposed) throw new Error('Billedkladden er lukket. Vælg billedet igen.');
-      if (!enabled) return wholeBlob;
-      const rectangle = cropRectangle(bitmap.width, bitmap.height, state);
-      for (const edge of [256, 192, 128]) {
-        const output = document.createElement('canvas'); output.width = edge; output.height = edge;
-        const context = output.getContext('2d'); context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
-        context.drawImage(bitmap, rectangle.x, rectangle.y, rectangle.size, rectangle.size, 0, 0, edge, edge);
-        const blob = await png(output);
-        if (disposed) throw new Error('Billedkladden er lukket. Vælg billedet igen.');
-        if (blob.size <= MAX_BYTES) return blob;
-      }
-      throw new Error('Udsnittet kunne ikke gøres mindre end 256 KB. Vælg et andet billede.');
-    },
+    getBlob: () => exportBlob(false),
+    getPreviewBlob: () => exportBlob(true),
     dispose: destroy,
     destroy
   };

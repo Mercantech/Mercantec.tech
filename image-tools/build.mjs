@@ -32,6 +32,10 @@ for (const filename of ['ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'ort-w
 await copyFile(resolve(directory, 'background-core.mjs'), resolve(output, 'background-core.mjs'));
 await copyFile(resolve(directory, '../extensions/lup/crop.mjs'), resolve(output, 'emoji-crop.mjs'));
 await copyFile(resolve(directory, '../extensions/lup/crop.css'), resolve(output, 'crop.css'));
+const gifPackage = JSON.parse(await readFile(resolve(directory, 'node_modules/gifenc/package.json'), 'utf8'));
+if (gifPackage.version !== '1.0.3') throw new Error('Unexpected GIF encoder version; run npm ci.');
+await copyFile(resolve(directory, 'node_modules/gifenc/dist/gifenc.esm.js'), resolve(output, 'gifenc.mjs'));
+await copyFile(resolve(directory, 'node_modules/gifenc/LICENSE.md'), resolve(output, 'GIFENC-LICENSE.txt'));
 
 // Keep redistribution notices beside the generated binaries and model.
 for (const filename of ['U2NET-LICENSE.txt', 'REMBG-LICENSE.txt', 'ONNXRUNTIME-LICENSE.txt', 'ONNXRUNTIME-THIRD-PARTY-NOTICES.txt'])
@@ -39,6 +43,7 @@ for (const filename of ['U2NET-LICENSE.txt', 'REMBG-LICENSE.txt', 'ONNXRUNTIME-L
 await copyFile(resolve(directory, 'THIRD-PARTY-NOTICES.txt'), resolve(output, 'THIRD-PARTY-NOTICES.txt'));
 await writeFile(resolve(output, 'assets.json'), JSON.stringify({
     onnxruntimeWeb: packageInfo.version,
+    gifenc: gifPackage.version,
     model: { name: 'u2netp', source: modelUrl, bytes: model.length, md5: modelMd5, sha256: modelSha256 }
 }, null, 2) + '\n');
 console.log(`Image tools ready: ONNX Runtime ${packageInfo.version}, U2netp ${model.length} bytes.`);

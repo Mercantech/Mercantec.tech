@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Find billeder · LUP</title>
+  <title>Find billeder og GIF’er · LUP</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="search.css">
 </head>
-<body class="search-page">
+<body class="search-page" data-search-mode="images">
 <main class="search-shell">
   <header class="app-header">
-    <div class="brand-lockup"><span class="brand">LUP</span><span class="brand-caption">Billedsøgning</span></div>
+    <div class="brand-lockup"><span class="brand">LUP</span><span class="brand-caption">Billeder &amp; GIF’er</span></div>
     <nav class="search-header-links" aria-label="LUP-genveje">
       <a class="library-link" href="https://lup.dk/emojis" target="_blank" rel="noopener noreferrer">Dit emojibibliotek<img src="assets/icons/arrow-up-right.svg" alt=""></a>
       <a class="icon-button" href="popup.html" target="_blank" rel="noopener" aria-label="Forbindelse og indstillinger" title="Forbindelse og indstillinger"><img src="assets/icons/sliders-horizontal.svg" alt=""></a>
@@ -20,23 +20,27 @@
   <section class="search-intro" aria-labelledby="search-title">
     <p class="section-kicker">PLADS TIL FLERE PERSONLIGHEDER</p>
     <h1 id="search-title">Find dit næste emoji-billede<span class="heading-dot">.</span></h1>
-    <p class="subtitle">Find et motiv, du kan lide. Vælg det, og gør det til dit eget i billedværkstedet.</p>
+    <p id="search-subtitle" class="subtitle">Find et motiv, du kan lide. Vælg det, og gør det til dit eget i billedværkstedet.</p>
+    <div class="search-mode-switch" role="group" aria-label="Vælg søgetype">
+      <button id="search-mode-images" type="button" data-search-mode="images" aria-pressed="true">Billeder</button>
+      <button id="search-mode-gifs" type="button" data-search-mode="gifs" aria-pressed="false"><span class="gif-tab-mark" aria-hidden="true">GIF</span>GIF’er</button>
+    </div>
     <form id="search-form" class="search-form" role="search" aria-label="Billedsøgning">
-      <label class="visually-hidden" for="search-query">Søg efter billeder</label>
+      <label id="search-query-label" class="visually-hidden" for="search-query">Søg efter billeder</label>
       <div class="search-input-wrap"><img src="assets/icons/search.svg" alt=""><input id="search-query" type="search" name="q" placeholder="Hvad skal din næste emoji forestille?" maxlength="100" minlength="2" autocomplete="off" required aria-describedby="search-hint"><button id="search-submit" class="primary-button" type="submit"><span>Søg</span><img src="assets/icons/arrow-right.svg" alt=""></button></div>
     </form>
-    <div class="search-suggestions" aria-label="Forslag til søgninger"><span>Prøv fx</span><button type="button" data-query="cat">Katte</button><button type="button" data-query="dog">Hunde</button><button type="button" data-query="robot">Robotter</button><button type="button" data-query="space">Rummet</button><button type="button" data-query="flowers">Blomster</button></div>
+    <div id="search-suggestions" class="search-suggestions" aria-label="Forslag til søgninger"><span>Prøv fx</span><button type="button" data-query="cat">Katte</button><button type="button" data-query="dog">Hunde</button><button type="button" data-query="robot">Robotter</button><button type="button" data-query="space">Rummet</button><button type="button" data-query="flowers">Blomster</button></div>
     <p id="search-hint" class="search-hint">Tip: Engelske søgeord giver ofte flere billeder.</p>
   </section>
 
-  <div class="search-source-note"><div class="source-badge"><img src="assets/icons/shield-check.svg" alt=""><span>Markeret CC0 / Public domain</span></div><p>Søger via <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a>. Se kildesiden for oplysninger om det enkelte billede.</p></div>
+  <div class="search-source-note"><div class="source-badge"><img src="assets/icons/shield-check.svg" alt=""><span id="search-source-badge">Markeret CC0 / Public domain</span></div><p id="search-source-description">Søger via <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a>. Se kildesiden for oplysninger om det enkelte billede.</p></div>
   <p id="search-status" class="feedback" role="status" aria-live="polite" hidden></p>
   <span id="search-announcement" class="visually-hidden" role="status" aria-live="polite"></span>
 
   <section id="results-section" class="search-results" aria-labelledby="results-heading" hidden>
     <div class="results-heading-row"><h2 id="results-heading">Dine søgeresultater</h2><span id="results-count"></span></div>
     <div id="search-gallery" class="search-gallery" aria-busy="false"></div>
-    <div id="more-wrap" class="more-wrap" hidden><button id="load-more" class="more-button" type="button">Vis flere billeder<img src="assets/icons/plus.svg" alt=""></button><p>Tag dig tid til at finde det helt rigtige motiv.</p></div>
+    <div id="more-wrap" class="more-wrap" hidden><button id="load-more" class="more-button" type="button"><span>Vis flere billeder</span><img src="assets/icons/plus.svg" alt=""></button><p>Tag dig tid til at finde det helt rigtige motiv.</p></div>
   </section>
 
   <section id="search-empty" class="search-empty" aria-labelledby="empty-heading">
@@ -46,7 +50,7 @@
     <span class="empty-caption">Din søgning bliver her, mens du arbejder videre.</span>
   </section>
 
-  <footer class="search-footer"><p>Billedsøgning via <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a>. LUP er ikke godkendt eller certificeret af Openverse.</p><span>Vælg et billede. Lav det til dit eget.</span></footer>
+  <footer class="search-footer"><p id="search-provider-credit">Billedsøgning via <a href="https://openverse.org" target="_blank" rel="noopener noreferrer">Openverse</a>. LUP er ikke godkendt eller certificeret af Openverse.</p><span id="search-footer-caption">Vælg et billede. Lav det til dit eget.</span></footer>
 </main>
 <script type="module" src="search.mjs"></script>
 </body>

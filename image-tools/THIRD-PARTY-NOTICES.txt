@@ -23,3 +23,11 @@ SHA256: 309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8
 
 The browser adapter is application code. Rembg Python code and its dependencies
 are not included in the application; only its distributed ONNX model is used.
+
+gifenc 1.0.3
+Copyright (c) 2017 Matt DesLauriers
+MIT License: GIFENC-LICENSE.txt
+Source: https://github.com/mattdesl/gifenc
+Distribution: https://www.npmjs.com/package/gifenc/v/1.0.3
+The published self-contained ES module is packaged locally for GIF encoding.
+GIF decoding uses Chrome's built-in WebCodecs ImageDecoder; no remote codec is loaded.
