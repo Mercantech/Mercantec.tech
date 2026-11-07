@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @using Mercantec.Tech.Web.Theming
+@using Mercantec.Tech.Web.Navigation
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject ViewAsStudentContext ViewAs
@@ -7,6 +8,7 @@
 @inject IJSRuntime Js
 @inject LearningContext CourseContext
 @inject DemoWorld World
+@inject Mercantec.Tech.Web.Notebooks.NotebookClient Notebooks
 @implements IDisposable
 
 <ThemeDecorations />
@@ -21,6 +23,7 @@
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
                     <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                     <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Bibliotek</a>
+                    <a href="@NotebookLinks[0].Href" class="@(NotebookIsCurrent ? "active" : null)" aria-current="@(NotebookIsCurrent ? "true" : null)">@NotebookLinks[0].Label</a>
                     @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                 </nav>
                 <details class="lup-mobile-nav">
@@ -28,6 +31,7 @@
                     <nav class="lup-mobile-menu" aria-label="Hovednavigation">
                         <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                         <a href="/library">Bibliotek</a>
+                        @foreach (var link in NotebookLinks) { <NavLink href="@link.Href">@link.Label</NavLink> }
                         @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                     </nav>
                 </details>
@@ -41,6 +45,7 @@
                             <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elevvisning" : "Elev") · LUP</p>
                             @if (ViewAs.IsActive) { <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button> }
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
+                            @foreach (var link in NotebookLinks.Skip(1)) { <NavLink href="@link.Href">@link.Label</NavLink> }
                             <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
                             <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
                             @if (IsTeacher) { <NavLink href="/teacher/tools">Underviserværktøjer</NavLink> }
@@ -71,12 +76,15 @@
 @code {
     private string _theme = "light";
     private bool _loginBusy;
+    private string? _notebookProfileAccount;
+    private IReadOnlyList<NotebookNavigationLink> NotebookLinks => WorkspaceNavigation.NotebookLinks(IsTeacher);
+    private bool NotebookIsCurrent => CurrentPath == "/journal" || CurrentPath.StartsWith("/notebook", StringComparison.Ordinal) || CurrentPath.StartsWith("/teacher/notebook", StringComparison.Ordinal);
     private bool IsTeacher => Redirect.ShowsTeacherChrome;
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
     private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
     private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
     private bool HoldsIsCurrent => CurrentPath is "/courses" or "/notion" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/notion/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
-    private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests" or "/journal";
+    private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
     private string SkipToContentHref
     {
         get
@@ -120,7 +128,7 @@
         try
         {
             _theme = await Js.InvokeAsync<string>("lupTheme.get");
-            if (Auth.IsAuthenticated) await World.EnsureAsync();
+            if (Auth.IsAuthenticated) { await World.EnsureAsync(); await RegisterNotebookProfile(); }
             var storedCourse = await Js.InvokeAsync<string?>("lupCourse.get");
             if (storedCourse is not null) CourseContext.Select(storedCourse);
             await Js.InvokeVoidAsync("lupIcons");
@@ -139,7 +147,16 @@
     private async Task Logout() { ViewAs.Exit(); await Auth.LogoutLocalAsync(); Nav.NavigateTo("/"); }
     private void ExitViewAs() { var returnUrl = ViewAs.ReturnUrl ?? "/lectio"; ViewAs.Exit(); Nav.NavigateTo(returnUrl); }
     private void EnforceViewAsRoutes() { if (ViewAs.IsActive && ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath)) Nav.NavigateTo("/student"); }
-    private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) await World.EnsureAsync(); EnforceViewAsRoutes(); StateHasChanged(); });
+    private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) { await World.EnsureAsync(); await RegisterNotebookProfile(); } else _notebookProfileAccount = null; EnforceViewAsRoutes(); StateHasChanged(); });
+    private async Task RegisterNotebookProfile()
+    {
+        var subject = Auth.Subject;
+        if (string.IsNullOrEmpty(subject) || subject == _notebookProfileAccount) return;
+        _notebookProfileAccount = subject;
+        try { await Notebooks.Register(); }
+        catch (Exception ex) when (ex is Mercantec.Tech.Web.Notebooks.NotebookException or HttpRequestException)
+        { if (_notebookProfileAccount == subject) _notebookProfileAccount = null; }
+    }
     private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(async () =>
     {
         await Js.InvokeVoidAsync("lupNewYear.stop");

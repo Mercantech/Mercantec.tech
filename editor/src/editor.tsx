@@ -10,7 +10,7 @@ import * as Y from 'yjs';
 import '@blocknote/mantine/style.css';
 import './editor.css';
 import { danish } from './locale';
-import { canonicalFingerprint, publishedDocumentFromBase64 } from './persistence.mjs';
+import { canonicalFingerprint, publishedDocumentFromBase64, applyReadOnlySnapshot } from './persistence.mjs';
 import { pollUrl, pollCreateUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPublicationAssetIds } from './document-utils.mjs';
 import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
@@ -18,12 +18,19 @@ import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionBlockTypeSelect, NotionDragHandleMenu } from './turn-into';
 import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { captureAiTarget, type AiTarget } from './ai-conversation';
-import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
+import { formatUploadSize, uploadNotionAsset, uploadNotebookAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
 import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
 
 export interface EditorContext {
+  domain?: 'notion' | 'notebook';
+  documentName?: string;
+  apiBase?: string;
+  revision?: number;
+  stateBase64?: string | null;
+  canComment?: boolean;
+  canShare?: boolean;
   pageId: string;
   holdId: string;
   workspaceId?: string | null;
@@ -196,7 +203,7 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     const load=async()=>{
       try {
         const token=await validToken(session);
-        const response=await fetch('/api/notion/assets/'+encodeURIComponent(assetId)+'/access',{headers:{Authorization:'Bearer '+token},signal:controller.signal,cache:'no-store'});
+        const response=await fetch((session.context.domain==='notebook'?'/api/notebooks':'/api/notion')+'/assets/'+encodeURIComponent(assetId)+'/access',{headers:{Authorization:'Bearer '+token},signal:controller.signal,cache:'no-store'});
         if(!response.ok)throw new Error(response.status===404?'Filen er ikke tilgængelig i denne udgave.':'Filen kunne ikke åbnes. Prøv igen.');
         const result=await response.json() as AssetAccess;
         if(controller.signal.aborted)return;
@@ -214,7 +221,7 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     const controller=new AbortController();uploadController.current=controller;
     setUploading(true);setError('');setUploadName(file.name);setUploadProgress({sent:0,total:file.size});session.pendingUploads++;
     try {
-      const result=await uploadNotionAsset(file,{
+      const result=await (session.context.domain==='notebook'?uploadNotebookAsset:uploadNotionAsset)(file,{
         pageId:session.context.pageId,getToken:()=>validToken(session),signal:controller.signal,
         confirmLargeUpload:(selected:File)=>new Promise<boolean>(resolve=>{confirmationResolve.current=resolve;setConfirmationFile(selected);}),
         onProgress:(sent:number,total:number)=>{
@@ -231,7 +238,7 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
   const accept=kind==='video'?'video/mp4,video/webm':kind==='image'?'image/png,image/jpeg,image/gif,image/webp':kind==='audio'?'audio/mpeg,audio/wav,audio/ogg':'.mp4,.webm,.mp3,.wav,.ogg,.jpg,.jpeg,.png,.gif,.webp,.pdf,.zip,.docx,.xlsx,.pptx,.txt';
   return <section className="notion-media-block" contentEditable={false} aria-label="Uploadet medie">
     {confirmationFile && <UploadConfirmation file={confirmationFile} onConfirm={confirmed=>{setConfirmationFile(null);confirmationResolve.current?.(confirmed);confirmationResolve.current=null;requestAnimationFrame(()=>{if(confirmed)cancelUploadButton.current?.focus();else uploadInput.current?.focus();});}}/>}
-    {!assetId && editable && <label className="notion-upload-label">{kind==='video'?'Upload video':kind==='image'?'Upload billede':kind==='audio'?'Upload lyd':'Upload fil'}<input ref={uploadInput} type="file" accept={accept} disabled={uploading} onChange={event=>{const file=event.target.files?.[0];if(file)void upload(file);event.target.value='';}}/><span>Filer over 100 MiB kræver din bekræftelse. Filen deles med holdet, når siden udgives.</span></label>}
+    {!assetId && editable && <label className="notion-upload-label">{kind==='video'?'Upload video':kind==='image'?'Upload billede':kind==='audio'?'Upload lyd':'Upload fil'}<input ref={uploadInput} type="file" accept={accept} disabled={uploading} onChange={event=>{const file=event.target.files?.[0];if(file)void upload(file);event.target.value='';}}/><span>{session?.context.domain==='notebook'?'Højst 100 MiB. Filen følger sidens læseadgang.':'Filer over 100 MiB kræver din bekræftelse. Filen deles med holdet, når siden udgives.'}</span></label>}
     {uploading && <div className="notion-upload-progress"><p role="status">{uploadProgress.sent===uploadProgress.total?'Færdiggør upload…':'Uploader '+uploadName+' — '+(uploadProgress.total?Math.floor(uploadProgress.sent/uploadProgress.total*100):0)+' %'} <span>{formatUploadSize(uploadProgress.sent)} af {formatUploadSize(uploadProgress.total)}. Hold siden åben.</span></p><progress max={uploadProgress.total || 1} value={uploadProgress.sent} aria-label="Uploadstatus"/><button ref={cancelUploadButton} type="button" onClick={()=>uploadController.current?.abort()}>Annuller upload</button></div>}
     {error && <div className="notion-media-error" role="alert">{error}{assetId && <button type="button" onClick={()=>setRetry(value=>value+1)}>Prøv igen</button>}</div>}
     {access && <>
@@ -312,6 +319,7 @@ function ConnectedEditor({session}:{session:Session}) {
   session.editor=editor;
   useEffect(() => () => { session.editor=undefined; },[session]);
   const enabled=canEdit(session);
+  const notebook=session.context.domain==='notebook';
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
   const createEmoji=useContext(EmojiCreate);
@@ -323,7 +331,7 @@ function ConnectedEditor({session}:{session:Session}) {
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<AiTarget|null>(null);
   const openAi=(blockId?:string)=>{
-    if(!canEdit(session))return;
+    if(!canEdit(session) || notebook)return;
     const snapshot=captureAiTarget(editor,blockId);
     if(blockId && !snapshot)return;
     setAiAnchor(snapshot);
@@ -348,7 +356,7 @@ function ConnectedEditor({session}:{session:Session}) {
     setEmojiOpen(false);
   };
   useEffect(()=>{
-    if(session.readOnly)return;
+    if(session.readOnly || notebook)return;
     let expanding=false;
     return editor.onChange((_,ctx)=>{
       if(expanding || !canEdit(session) || emojis.length===0)return;
@@ -391,12 +399,12 @@ function ConnectedEditor({session}:{session:Session}) {
   };
   const mentionItems=[
     ...(session.context.pages || []).map(page=>({title:page.title,aliases:['side','underside'],group:'Sider',onItemClick:()=>editor.insertInlineContent([{type:'pageMention',props:{pageId:page.id}},' '])})),
-    ...session.context.members.map(member=>({title:member.displayName,aliases:['elev'],group:'Elever',onItemClick:()=>editor.insertInlineContent([{type:'studentMention',props:{holdId:session.context.holdId,membershipId:member.id}},' '])})),
+    ...(notebook?[]:session.context.members).map(member=>({title:member.displayName,aliases:['elev'],group:'Elever',onItemClick:()=>editor.insertInlineContent([{type:'studentMention',props:{holdId:session.context.holdId,membershipId:member.id}},' '])})),
   ];
   const customItems=[
-    {title:'Link til side',subtext:'Vælg en side eller underside fra holdet',aliases:['side','underside','link'],group:'Undervisning',onItemClick:()=>insert('pageLink')},
+    {title:'Link til side',subtext:notebook?'Vælg en side fra notesbogen':'Vælg en side eller underside fra holdet',aliases:['side','underside','link'],group:'Undervisning',onItemClick:()=>insert('pageLink')},
     {title:'Gemt gruppe',subtext:'Indsæt en gemt gruppe fra holdet',aliases:['gruppe','grupper'],group:'Undervisning',onItemClick:()=>insert('holdGroup')},
-    {title:'Upload video',subtext:'Del MP4 eller WebM med holdet ved udgivelse',aliases:['video','upload'],group:'Medier',onItemClick:()=>insert('pageMedia','video')},
+    {title:'Upload video',subtext:notebook?'Tilføj MP4 eller WebM til siden':'Del MP4 eller WebM med holdet ved udgivelse',aliases:['video','upload'],group:'Medier',onItemClick:()=>insert('pageMedia','video')},
     {title:'Upload billede',subtext:'Tilføj et billede fra din computer',aliases:['billede','foto','image'],group:'Medier',onItemClick:()=>insert('pageMedia','image')},
     {title:'Upload lyd',subtext:'Tilføj MP3, WAV eller OGG',aliases:['lyd','audio'],group:'Medier',onItemClick:()=>insert('pageMedia','audio')},
     {title:'Upload fil',subtext:'PDF, dokument, ZIP eller mediefil',aliases:['fil','vedhæftning','upload'],group:'Medier',onItemClick:()=>insert('pageMedia')},
@@ -407,27 +415,27 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Diagram',subtext:'Mermaid flowchart, sequence m.m.',aliases:['diagram','mermaid','flowchart','graf'],group:'Undervisning',icon:<span aria-hidden="true">◈</span>,onItemClick:()=>insert('mermaidDiagram')},
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
     {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
-  ];
-  return <OpenAiOnBlockProvider openOnBlock={openAi}>
+  ].filter(item=>!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','AI'].includes(item.title));
+  return <OpenAiOnBlockProvider openOnBlock={notebook?null:openAi}>
     <div className="notion-editor-tools" role="toolbar" aria-label="Dokumentværktøjer">
       {!session.readOnly && <>
       <button type="button" onClick={()=>editor.undo()} disabled={!enabled} title="Fortryd (Ctrl+Z)">↶ <span>Fortryd</span></button>
       <button type="button" onClick={()=>editor.redo()} disabled={!enabled} title="Gendan (Ctrl+Shift+Z)">↷ <span>Gendan</span></button>
       <span className="notion-tool-divider" />
-      <button type="button" onClick={()=>insert('classRoster')} disabled={!enabled}>Elever</button>
+      {!notebook && <><button type="button" onClick={()=>insert('classRoster')} disabled={!enabled}>Elever</button>
       <button type="button" onClick={()=>insert('holdPoll')} disabled={!enabled}>Afstemning</button>
-      <button type="button" onClick={()=>insert('slideBreak')} disabled={!enabled}>Slidegrænse</button>
+      <button type="button" onClick={()=>insert('slideBreak')} disabled={!enabled}>Slidegrænse</button></>}
       <button type="button" onClick={()=>insert('pageLink')} disabled={!enabled}>Link til side</button>
       <button type="button" onClick={()=>insert('mermaidDiagram')} disabled={!enabled}>Diagram</button>
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
-      <button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
-      <button ref={emojiTrigger} type="button" onClick={()=>{if(!emojiOpen)reloadEmojis();setEmojiOpen(open=>!open);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button>
+      {!notebook && <><button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
+      <button ref={emojiTrigger} type="button" onClick={()=>{if(!emojiOpen)reloadEmojis();setEmojiOpen(open=>!open);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button></>}
       </>}
-      <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
+      {!notebook && <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>}
     </div>
-    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} />}
-    {!session.readOnly && (
+    {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} />}
+    {!session.readOnly && !notebook && (
       <AiHelperPanel
         editor={editor}
         enabled={enabled}
@@ -451,7 +459,7 @@ function ConnectedEditor({session}:{session:Session}) {
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
         <SuggestionMenuController triggerCharacter="@" getItems={async query=>filterSuggestionItems(mentionItems,query)} />
-        <GridSuggestionMenuController triggerCharacter=":" columns={8} minQueryLength={2} getItems={async query=>{
+        {!notebook && <GridSuggestionMenuController triggerCharacter=":" columns={8} minQueryLength={2} getItems={async query=>{
           const custom=filterCustomEmojis(emojis,query).map((item:CustomEmojiRecord)=>({
             id:`custom-${item.id}`,
             icon:<img className="notion-custom-emoji" src={item.contentUrl} alt="" />,
@@ -459,10 +467,10 @@ function ConnectedEditor({session}:{session:Session}) {
           }));
           try { return [...custom, ...await getDefaultReactEmojiPickerItems(editor,query)]; }
           catch { return custom; }
-        }} />
+        }} />}
       </>}
     </BlockNoteView>
-    <footer className="notion-editor-footnote"><span>{session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold, <kbd>@</kbd> for sider og <kbd>:</kbd> for emoji.</>}</span><a href="/emojis">Emojis</a><a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
+    <footer className="notion-editor-footnote"><span>{notebook ? (session.readOnly?'Senest gemte indhold':<>Skriv <kbd>/</kbd> for indhold og <kbd>@</kbd> for sider.</>) : session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold, <kbd>@</kbd> for sider og <kbd>:</kbd> for emoji.</>}</span>{!notebook && <a href="/emojis">Emojis</a>}<a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
   </OpenAiOnBlockProvider>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {
@@ -500,6 +508,7 @@ function App({session}:{session:Session}) {
   const emojiRevision=useRef(0);
   const loadRef=useRef<() => Promise<void>>(async()=>{});
   loadRef.current=async()=>{
+    if(session.context.domain==='notebook')return;
     try {
       const revision=emojiRevision.current;
       const token=await validToken(session);
@@ -539,11 +548,11 @@ function App({session}:{session:Session}) {
 export async function mount(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {
   destroy(element);
   if(!context.canEdit)return mountReadOnly(element,context,accessToken,dotnetCallbacks);
-  if(!context.pageId || !context.holdId || !accessToken) throw new Error('Dokument, hold og login er påkrævet.');
+  if(!context.pageId || (context.domain!=='notebook' && !context.holdId) || !accessToken) throw new Error('Dokument, hold og login er påkrævet.');
   const session:Session={root:createRoot(element),context,callbacks:dotnetCallbacks,doc:new Y.Doc(),ready:false,inSync:false,connected:false,dirty:false,generation:0,destroyed:false,readOnly:false,accessToken,pendingUploads:0,status:'connecting',detail:'Forbinder til dokumentet…',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
-  const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty){event.preventDefault();event.returnValue='';}};
+  const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty || session.pendingUploads>0){event.preventDefault();event.returnValue='';}};
   window.addEventListener('beforeunload',onBeforeUnload);
   const removeThemeListener=observeTheme(session);
   session.removeListeners=()=>{window.removeEventListener('beforeunload',onBeforeUnload);removeThemeListener();};
@@ -551,7 +560,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
     if(origin!==session.provider && session.ready && !session.destroyed){session.dirty=true;session.generation++;notify(session,session.connected?'saving':'offline',session.connected?'Gemmer i skyen…':'Forbindelsen er afbrudt. Ændringer afventer lagring.');}
   });
   session.provider=new HocuspocusProvider({
-    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=5',name:'notion:'+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
+    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=5',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
     onStatus:({status})=>{session.connected=status==='connected';if(!session.connected){session.inSync=false;notify(session,status==='connecting'?'connecting':'offline',status==='connecting'?'Forbinder til dokumentet…':'Forbindelsen er afbrudt. Redigering er sat på pause.');}},
     onSynced:({state})=>{if(!state)return;session.ready=true;session.inSync=true;session.connected=true;notify(session,session.dirty?'saving':'synced',session.dirty?'Gemmer afventende ændringer…':'Forbundet til dokumentet');},
     onAuthenticationFailed:({reason})=>{session.connected=false;session.inSync=false;notify(session,'error',reason.includes('editor_version_mismatch')?'Editoren er opdateret. Genindlæs siden for at åbne dokumentet med den nye version.':'Du har ikke længere adgang, eller dit login er udløbet. Log ind igen.');},
@@ -573,16 +582,17 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
 /** A published snapshot has no network provider and cannot receive draft updates. */
 export async function mountReadOnly(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {
   destroy(element);
-  if(!context.pageId || !context.holdId || !context.publishedStateBase64)throw new Error('Der er endnu ingen udgivet udgave af siden.');
-  if(context.publishedStateBase64.length>24*1024*1024)throw new Error('Den udgivne side er for stor.');
+  const snapshot=context.domain==='notebook'?(context.stateBase64 ?? context.publishedStateBase64):context.publishedStateBase64;
+  if(!context.pageId || (context.domain!=='notebook' && !context.holdId) || !snapshot)throw new Error('Der er endnu ingen udgivet udgave af siden.');
+  if(snapshot.length>24*1024*1024)throw new Error('Den udgivne side er for stor.');
   const doc=new Y.Doc();
-  try {Y.applyUpdate(doc,Uint8Array.from(atob(context.publishedStateBase64),value=>value.charCodeAt(0)));}
+  try {Y.applyUpdate(doc,Uint8Array.from(atob(snapshot),value=>value.charCodeAt(0)));}
   catch {doc.destroy();throw new Error('Den udgivne side kunne ikke åbnes.');}
   const session:Session={root:createRoot(element),context:{...context,canEdit:false},callbacks:dotnetCallbacks,doc,ready:true,inSync:true,connected:false,dirty:false,generation:0,destroyed:false,readOnly:true,accessToken,pendingUploads:0,status:'synced',detail:'Udgivet undervisningsindhold',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
   session.removeListeners=observeTheme(session);
-  notify(session,'synced','Udgivet undervisningsindhold');
+  notify(session,'synced',context.domain==='notebook'?'Senest gemte indhold':'Udgivet undervisningsindhold');
 }
 
 export async function getPublicationData(element:HTMLElement):Promise<{expectedFingerprint:string;assetIds:string[]}> {
@@ -603,8 +613,22 @@ export function destroy(element:HTMLElement):void {
 }
 export function setContext(element:HTMLElement,context:EditorContext):void {
   const session=sessions.get(element);if(!session)return;
-  if(context.pageId!==session.context.pageId || context.holdId!==session.context.holdId)throw new Error('Dokumentskift kræver en ny editor.');
+  if(context.pageId!==session.context.pageId || context.domain!==session.context.domain || (context.domain!=='notebook' && context.holdId!==session.context.holdId))throw new Error('Dokumentskift kræver en ny editor.');
   session.context=context;session.render();
+}
+/** Notebook readers refresh saved state without remounting the React/BlockNote editor. */
+export function applyReadOnlyState(element:HTMLElement,context:EditorContext):void {
+  const session=sessions.get(element);
+  if(!session || !session.readOnly || session.context.domain!=='notebook' || context.domain!=='notebook')
+    throw new Error('Kun notesbogens læsevisning kan opdateres.');
+  if(context.pageId!==session.context.pageId)throw new Error('Dokumentskift kræver en ny editor.');
+  if(context.revision!==undefined && session.context.revision!==undefined && context.revision<session.context.revision)return;
+  const snapshot=context.stateBase64 ?? context.publishedStateBase64;
+  const scrollX=window.scrollX,scrollY=window.scrollY;
+  if(snapshot)applyReadOnlySnapshot(session.doc,snapshot);
+  setContext(element,{...context,canEdit:false});
+  // Remote Yjs updates preserve relative selections; retain the reader's viewport too.
+  window.scrollTo(scrollX,scrollY);
 }
 export function setPresentation(element:HTMLElement,presenting:boolean):void {
   const session=sessions.get(element);if(!session)return;

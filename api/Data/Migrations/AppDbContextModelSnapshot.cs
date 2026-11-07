@@ -613,6 +613,328 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("memberships", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Notebook", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OwnerSub")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerSub")
+                        .IsUnique();
+
+                    b.ToTable("notebooks", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("UploadedBySub")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId");
+
+                    b.HasIndex("Key");
+
+                    b.ToTable("notebook_assets", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.ToTable("notebook_comments", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssetIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Fingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid?>("NotebookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentPageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PeriodKey")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateOnly?>("PeriodStart")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SearchText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TagsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TemplateVersionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("YjsState")
+                        .HasColumnType("bytea");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId");
+
+                    b.HasIndex("ParentPageId");
+
+                    b.HasIndex("NotebookId", "ParentPageId");
+
+                    b.HasIndex("NotebookId", "RequestId")
+                        .IsUnique()
+                        .HasFilter("\"RequestId\" IS NOT NULL");
+
+                    b.HasIndex("NotebookId", "TemplateId", "PeriodKey")
+                        .IsUnique()
+                        .HasFilter("\"PeriodKey\" IS NOT NULL");
+
+                    b.ToTable("notebook_documents", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookLink", b =>
+                {
+                    b.Property<Guid>("FromId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ToId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("FromId", "ToId");
+
+                    b.HasIndex("ToId");
+
+                    b.ToTable("notebook_links", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookProfile", b =>
+                {
+                    b.Property<Guid>("Sub")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("IsTeacher")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Sub");
+
+                    b.ToTable("notebook_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NotebookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecipientSub")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PageId");
+
+                    b.HasIndex("RecipientSub");
+
+                    b.HasIndex("NotebookId", "RecipientSub")
+                        .IsUnique()
+                        .HasFilter("\"PageId\" IS NULL");
+
+                    b.HasIndex("NotebookId", "RecipientSub", "PageId")
+                        .IsUnique()
+                        .HasFilter("\"PageId\" IS NOT NULL");
+
+                    b.ToTable("notebook_shares", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActiveVersionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Cadence")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveVersionId");
+
+                    b.ToTable("notebook_templates", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookTemplateVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssetIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Cadence")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("State")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("notebook_template_versions", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionAsset", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1299,6 +1621,96 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Hold");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookAsset", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookComment", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookDocument", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Notebook", "Notebook")
+                        .WithMany()
+                        .HasForeignKey("NotebookId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("ParentPageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Notebook");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookLink", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("FromId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("ToId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookShare", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Notebook", null)
+                        .WithMany()
+                        .HasForeignKey("NotebookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookTemplate", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookTemplateVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ActiveVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null)
+                        .WithOne()
+                        .HasForeignKey("Mercantec.Tech.Api.Data.Entities.NotebookTemplate", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookTemplateVersion", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionAsset", b =>

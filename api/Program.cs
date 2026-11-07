@@ -21,6 +21,9 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 }
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<Mercantec.Tech.Api.Notebooks.NotebookAccess>();
+builder.Services.AddSingleton<Mercantec.Tech.Api.Notebooks.NotebookServiceKey>();
+builder.Services.AddHttpClient<Mercantec.Tech.Api.Notebooks.NotebookEngineClient>(client => client.Timeout = TimeSpan.FromSeconds(30));
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -201,6 +204,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    await Mercantec.Tech.Api.Notebooks.NotebookDefaults.EnsureAsync(db);
 }
 
 app.UseForwardedHeaders();

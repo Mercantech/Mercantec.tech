@@ -31,3 +31,10 @@ export function publishedDocumentFromBase64(encoded) {
   try{Y.applyUpdate(doc,Uint8Array.from(atob(encoded),value=>value.charCodeAt(0)));return doc;}
   catch{doc.destroy();throw new Error('Den udgivne side kunne ikke åbnes.');}
 }
+
+/** Refresh a live reader without replacing its Y.Doc, editor, selection or undo state. */
+export function applyReadOnlySnapshot(doc, encoded) {
+  const snapshot = publishedDocumentFromBase64(encoded);
+  try { Y.applyUpdate(doc, Y.encodeStateAsUpdate(snapshot), 'notebook-read-refresh'); }
+  finally { snapshot.destroy(); }
+}

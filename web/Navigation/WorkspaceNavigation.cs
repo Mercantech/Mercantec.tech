@@ -6,6 +6,11 @@ namespace Mercantec.Tech.Web.Navigation;
 /// <summary>Only fixed local routes and typed IDs; query context never grants access.</summary>
 public static class WorkspaceNavigation
 {
+    /// <summary>Personal notebooks remain available independently of hold or course selection.</summary>
+    public static IReadOnlyList<NotebookNavigationLink> NotebookLinks(bool teacher) => teacher
+        ? [new("Elevnotesbøger", "/teacher/notebooks"), new("Logbogsskabeloner", "/teacher/notebook-templates")]
+        : [new("Min notesbog", "/notebook"), new("Min logbog", "/journal")];
+
     private static readonly HashSet<string> Views = ["overview", "content", "quests", "submissions", "calendar", "groups", "materials", "settings", "polls"];
     private static readonly HashSet<string> Statuses = ["missing", "overdue", "submitted", "approved", "changes-requested"];
     public static Guid? NonEmpty(Guid? id) => id is Guid value && value != Guid.Empty ? value : null;
@@ -109,6 +114,8 @@ public static class WorkspaceNavigation
         catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException) { return null; }
     }
 }
+
+public sealed record NotebookNavigationLink(string Label, string Href);
 
 public sealed record WorkspaceRouteContext(Guid WorkspaceId, Guid HoldId, Guid? CourseId)
 {

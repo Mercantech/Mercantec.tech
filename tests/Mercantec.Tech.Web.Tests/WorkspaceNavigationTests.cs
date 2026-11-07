@@ -12,6 +12,19 @@ public sealed class WorkspaceNavigationTests
     private static readonly Guid CourseId = Guid.Parse("33333333-3333-4333-8333-333333333333");
     private static readonly Guid ResourceId = Guid.Parse("44444444-4444-4444-8444-444444444444");
 
+    [Fact]
+    public void Student_notebook_entries_are_permanent_and_do_not_require_workspace_context()
+    {
+        Assert.Equal(new[] { new NotebookNavigationLink("Min notesbog", "/notebook"), new NotebookNavigationLink("Min logbog", "/journal") }, WorkspaceNavigation.NotebookLinks(false));
+        Assert.All(WorkspaceNavigation.NotebookLinks(false), link => Assert.DoesNotContain('?', link.Href));
+    }
+
+    [Fact]
+    public void Teacher_notebook_entries_open_the_real_overview_and_template_library()
+    {
+        Assert.Equal(new[] { new NotebookNavigationLink("Elevnotesbøger", "/teacher/notebooks"), new NotebookNavigationLink("Logbogsskabeloner", "/teacher/notebook-templates") }, WorkspaceNavigation.NotebookLinks(true));
+    }
+
     [Theory]
     [InlineData("overview", "overview")]
     [InlineData("content", "content")]

@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
+import { notebookStateProjection } from './notebook-documents.mjs';
 
 export const MAX_DOCUMENT_BYTES = 16 * 1024 * 1024;
 // Match ASP.NET's default JWT clock skew so collaboration does not reject tokens
 // the API would still accept after a short client/server time drift.
 export const TOKEN_CLOCK_SKEW_MS = 5 * 60 * 1000;
-const DOCUMENT_NAME = /^notion:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const DOCUMENT_NAME = /^(notion|notebook):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
 
 export function resolveServiceSecret(serviceSecret, serviceSecretFile) {
   if (typeof serviceSecret === 'string' && serviceSecret.trim()) return serviceSecret.trim();
@@ -21,7 +22,12 @@ export function resolveServiceSecret(serviceSecret, serviceSecretFile) {
 export function documentIdFromName(name) {
   const match = typeof name === 'string' && DOCUMENT_NAME.exec(name);
   if (!match) throw new Error('Invalid document name');
-  return match[1].toLowerCase();
+  return match[2].toLowerCase();
+}
+
+export function documentDomainFromName(name) {
+  documentIdFromName(name);
+  return name.slice(0, name.indexOf(':')).toLowerCase();
 }
 
 function decodeJwtPayload(part) {
@@ -73,10 +79,11 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
   return {
     async authorize(documentName, token) {
       const documentId = documentIdFromName(documentName);
+      const domain = documentDomainFromName(documentName);
       const accessToken = typeof token === 'string' && token.startsWith('Bearer ') ? token.slice(7) : token;
       const expiresAt = tokenExpiresAt(accessToken);
-      const canonicalName = `notion:${documentId}`;
-      const response = await request('/api/notion/collaboration/authorize', {
+      const canonicalName = `${domain}:${documentId}`;
+      const response = await request(`/api/${domain === 'notebook' ? 'notebooks' : 'notion'}/collaboration/authorize`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentName: canonicalName }),
@@ -91,7 +98,8 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
 
     async load(documentName) {
       const id = documentIdFromName(documentName);
-      const response = await request(`/api/internal/notion/documents/${id}/state`, {
+      const domain = documentDomainFromName(documentName);
+      const response = await request(`/api/internal/${domain === 'notebook' ? 'notebooks' : 'notion'}/documents/${id}/state`, {
         headers: storageHeaders,
       });
       // Only an explicit empty-success response creates a blank Y.Doc. A missing
@@ -109,16 +117,19 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
 
     async store(documentName, state, fingerprint) {
       const id = documentIdFromName(documentName);
+      const notebook = documentDomainFromName(documentName) === 'notebook';
       if (!(state instanceof Uint8Array) || state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
         throw new Error('Document exceeds the storage limit');
       }
       if (typeof fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(fingerprint)) {
         throw new Error('A canonical document fingerprint is required');
       }
-      const response = await request(`/api/internal/notion/documents/${id}/state`, {
+      const projection = notebook ? notebookStateProjection(state) : null;
+      if (projection && projection.fingerprint !== fingerprint) throw new Error('Notebook fingerprint mismatch');
+      const response = await request(`/api/internal/${notebook ? 'notebooks' : 'notion'}/documents/${id}/state`, {
         method: 'PUT',
-        headers: { ...storageHeaders, 'Content-Type': 'application/octet-stream', 'X-Notion-State-Fingerprint': fingerprint },
-        body: state,
+        headers: { ...storageHeaders, 'Content-Type': notebook ? 'application/json' : 'application/octet-stream', 'X-Notion-State-Fingerprint': fingerprint },
+        body: notebook ? JSON.stringify(projection) : state,
       });
       if (!response.ok) throw new Error('Document state could not be saved');
       const result = await response.json().catch(() => null);

@@ -1,0 +1,31 @@
+@using System.Globalization
+<div class="nb-inline-graph">
+    @if (Graph.Nodes.Length == 0) { <p>Der er endnu ingen sider at forbinde.</p> }
+    else
+    {
+        <svg viewBox="0 0 640 400" role="img" aria-label="Graf over links mellem notesbogens sider">
+            @foreach (var edge in Graph.Edges)
+            {
+                var from = Position(edge.FromId); var to = Position(edge.ToId);
+                <line x1="@F(from.X)" y1="@F(from.Y)" x2="@F(to.X)" y2="@F(to.Y)" stroke="currentColor" opacity=".25" />
+            }
+            @foreach (var node in Graph.Nodes)
+            {
+                var point = Position(node.Id);
+                <a href="/notebook/@node.Id" aria-label="@node.Title"><circle cx="@F(point.X)" cy="@F(point.Y)" r="9" fill="currentColor"><title>@node.Title</title></circle></a>
+            }
+        </svg>
+        <nav aria-label="Sider i grafen">@foreach (var node in Graph.Nodes) { <a href="/notebook/@node.Id">@node.Title</a> }</nav>
+    }
+</div>
+@code {
+    [Parameter, EditorRequired] public NotebookGraph Graph { get; set; } = default!;
+    private (double X, double Y) Position(Guid id)
+    {
+        var index = Array.FindIndex(Graph.Nodes, n => n.Id == id);
+        var angle = 2 * Math.PI * Math.Max(index, 0) / Math.Max(Graph.Nodes.Length, 1) - Math.PI / 2;
+        var radius = Graph.Nodes.Length == 1 ? 0 : 155;
+        return (320 + Math.Cos(angle) * radius * 1.65, 200 + Math.Sin(angle) * radius);
+    }
+    private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+}

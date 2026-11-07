@@ -33,7 +33,7 @@ Afklaret feature-katalog for Mercantec.tech. Ordlisten står i [[Domæne-model]]
 | [[Projekter-Steam-galleri]] | plan | Solo/gruppe; åbent galleri + filter |
 | [[Social-portfolio]] | plan | Kommentar/reaktion på projekter |
 | [[Notifikationer]] | plan | In-app v1; mail senere |
-| [[Logbog]] | plan | Refleksion; synlig for underviser |
+| [[Logbog]] | implemented | Personlig notesbog, skabelonbaseret logbog, lærerfeedback og læsedeling |
 | [[Game-side]] | idé | Nice-to-have; egne spil + highscores |
 | [[Aktivitet-og-elevprofil]] | plan | Egen + underviser; ikke peer |
 | [[Hold-dashboard]] | plan | Manglende vurdering; kompetence NTH |

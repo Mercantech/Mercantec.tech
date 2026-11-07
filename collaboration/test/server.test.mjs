@@ -31,17 +31,18 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
     const body = Buffer.concat(chunks);
-    if (request.url === '/api/notion/collaboration/authorize') {
+    if (request.url === '/api/notion/collaboration/authorize' || request.url === '/api/notebooks/collaboration/authorize') {
       state.authorizations++;
       const accessToken = request.headers.authorization?.replace(/^Bearer /, '');
       const requested = JSON.parse(body.toString()).documentName;
       if (!grants.get(accessToken)?.has(requested)) { response.writeHead(403).end(); return; }
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ documentId: requested.slice(7), canEdit: true }));
+      response.end(JSON.stringify({ documentId: requested.slice(requested.indexOf(':') + 1), canEdit: true }));
       return;
     }
     if (request.headers['x-notion-service-key'] !== secret) { response.writeHead(401).end(); return; }
-    if (request.url !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
+    const notebook = request.url === `/api/internal/notebooks/documents/${id}/state`;
+    if (!notebook && request.url !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
     if (request.method === 'GET') {
       state.loads++;
       if (state.failLoad) { response.writeHead(503).end(); return; }
@@ -49,13 +50,16 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
       response.end(state.binary);
     } else if (request.method === 'PUT') {
       state.storeAttempts++;
-      const fingerprint = request.headers['x-notion-state-fingerprint'];
-      if (fingerprint !== fingerprintHash(body, Y.encodeStateVectorFromUpdate(body))) {
+      const projection = notebook ? JSON.parse(body.toString()) : null;
+      const binary = notebook ? Buffer.from(projection.stateBase64, 'base64') : body;
+      const fingerprint = notebook ? projection.fingerprint : request.headers['x-notion-state-fingerprint'];
+      if (fingerprint !== fingerprintHash(binary, Y.encodeStateVectorFromUpdate(binary))) {
         response.writeHead(400).end(); return;
       }
       if (state.saveGate) await state.saveGate;
       if (state.failStore) { response.writeHead(503).end(); return; }
-      state.binary = body;
+      state.binary = binary;
+      if (notebook) state.projection = projection;
       state.fingerprint = fingerprint;
       state.saves++;
       response.setHeader('Content-Type', 'application/json');
@@ -135,6 +139,67 @@ test('two real providers merge concurrent edits, acknowledge durable storage and
   const reopened = f.connect(aToken);
   await waitFor(() => reopened.provider.isSynced && reopened.doc.getText('test').toString() === expected, 'reload after process restart');
   assert.ok(f.state.loads >= 2);
+});
+
+test('notebook clone HTTP endpoint requires the internal key and rejects browser origins', async t => {
+  const f = await fixture(t);
+  const url = `http://127.0.0.1:${f.server.address.port}/internal/notebook/clone`;
+  const body = JSON.stringify({ pageId: id, defaultTemplate: true, assetMap: {} });
+  assert.equal((await fetch(url, { method: 'POST', body })).status, 401);
+  assert.equal((await fetch(url, { method: 'POST', body, headers: { 'X-Notion-Service-Key': secret, Origin: 'https://mercantec.tech' } })).status, 401);
+  const response = await fetch(url, { method: 'POST', body, headers: { 'X-Notion-Service-Key': secret, 'Content-Type': 'application/json' } });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.match(result.plainText, /Hvad lærte jeg\?/);
+  assert.equal(result.fingerprint, fingerprintHash(Buffer.from(result.stateBase64, 'base64'), Y.encodeStateVectorFromUpdate(Buffer.from(result.stateBase64, 'base64'))));
+  assert.equal((await fetch(url, { method: 'POST', body: '{}', headers: { 'X-Notion-Service-Key': secret } })).status, 400);
+  assert.equal(f.state.loads, 0);
+  assert.equal(f.state.saves, 0);
+});
+
+test('a real notebook provider persists live search/link projections and denies ungranted readers', async t => {
+  const f = await fixture(t);
+  const ownerToken = token('notebook-owner');
+  const notebookName = `notebook:${id}`;
+  f.grants.set(ownerToken, new Set([notebookName]));
+  const owner = f.connect(ownerToken, notebookName);
+  await waitFor(() => owner.provider.isSynced, 'owner notebook synchronized');
+  const paragraph = new Y.XmlElement('paragraph');
+  paragraph.insert(0, [new Y.XmlText('Et rigtigt logbogsindlæg')]);
+  const link = new Y.XmlElement('pageLink');
+  link.setAttribute('pageId', 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee');
+  owner.doc.getXmlFragment('document-store').insert(0, [paragraph, link]);
+  await waitFor(() => f.state.projection?.plainText.includes('Et rigtigt logbogsindlæg'), 'notebook search projection durably saved');
+  assert.deepEqual(f.state.projection.linkIds, ['aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee']);
+  // The stub's write completes before Hocuspocus broadcasts and the provider processes
+  // its acknowledgement. Wait for that exact durable state, not just the HTTP write.
+  await waitFor(() => owner.messages.some(message => message.type === 'persisted'
+    && message.fingerprintHash === f.state.fingerprint), 'matching notebook durable acknowledgement');
+  const saves = f.state.saves;
+  const reader = f.connect(token('read-only-classmate'), notebookName);
+  reader.doc.getText('injected').insert(0, 'Do not store');
+  await waitFor(() => reader.denied, 'ungranted notebook reader denied before load');
+  assert.equal(f.state.saves, saves);
+  assert.equal(owner.doc.getText('injected').toString(), '');
+});
+
+test('notebook rooms require canonical lowercase namespace and UUID before authorization or load', async t => {
+  const f = await fixture(t);
+  const ownerToken = token('canonical-notebook-owner');
+  const canonical = `notebook:${id}`;
+  const aliases = [`NOTEBOOK:${id}`, 'notebook:AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE'];
+  f.grants.set(ownerToken, new Set([canonical, ...aliases]));
+  for (const alias of aliases) {
+    const client = f.connect(ownerToken, alias);
+    await waitFor(() => client.denied, 'noncanonical notebook room rejected');
+  }
+  assert.equal(f.state.authorizations, 0);
+  assert.equal(f.state.loads, 0);
+  assert.equal(f.state.saves, 0);
+  const owner = f.connect(ownerToken, canonical);
+  await waitFor(() => owner.provider.isSynced, 'canonical lowercase notebook accepted');
+  assert.equal(f.state.authorizations, 1);
+  assert.equal(f.state.loads, 1);
 });
 
 test('missing or incompatible editor schemas are rejected before authorization and document loading', async t => {

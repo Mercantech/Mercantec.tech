@@ -182,7 +182,7 @@ export function OpenAiOnBlockProvider({
   openOnBlock,
   children,
 }: {
-  openOnBlock: (blockId: string) => void;
+  openOnBlock: ((blockId: string) => void) | null;
   children: React.ReactNode;
 }) {
   return <OpenAiOnBlockContext.Provider value={openOnBlock}>{children}</OpenAiOnBlockContext.Provider>;

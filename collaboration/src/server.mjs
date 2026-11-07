@@ -1,9 +1,10 @@
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { Server, IncomingMessage, MessageType } from '@hocuspocus/server';
 import * as Y from 'yjs';
-import { createApiClient, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
+import { createApiClient, documentDomainFromName, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
 import { fingerprintHash } from './fingerprint.mjs';
+import { cloneNotebookDocument } from './notebook-documents.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
 const SCHEMA_MISMATCH = { code: 4409, reason: 'editor_version_mismatch' };
@@ -22,6 +23,7 @@ export function createCollaborationServer({
 } = {}) {
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('PORT must be a valid TCP port');
   const sessions = new Set();
+  const cloneSecret = resolveServiceSecret(serviceSecret, serviceSecretFile);
 
   async function checkAccess(context, documentName, force = false) {
     if (!context?.token || Date.now() >= context.expiresAt + TOKEN_CLOCK_SKEW_MS) throw DENIED;
@@ -60,6 +62,31 @@ export function createCollaborationServer({
     },
 
     async onRequest({ request, response }) {
+      if (request.method === 'POST' && request.url === '/internal/notebook/clone') {
+        const supplied = request.headers['x-notion-service-key'];
+        const authorized = typeof supplied === 'string' && supplied.length <= 1024 && cloneSecret.length >= 32
+          && timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(cloneSecret).digest());
+        if (!authorized || request.headers.origin) {
+          response.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          response.end(JSON.stringify({ error: 'unauthorized' }));
+          throw null;
+        }
+        try {
+          const chunks = []; let size = 0;
+          for await (const chunk of request) {
+            size += chunk.length;
+            if (size > 24 * 1024 * 1024) throw new Error('Clone request too large');
+            chunks.push(chunk);
+          }
+          const result = cloneNotebookDocument(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+          response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          response.end(JSON.stringify(result));
+        } catch {
+          response.writeHead(400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          response.end(JSON.stringify({ error: 'invalid_clone_request' }));
+        }
+        throw null;
+      }
       const healthy = request.method === 'GET' && ['/health', '/collaboration/health'].includes((request.url ?? '').split('?')[0]);
       response.writeHead(healthy ? 200 : 404, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       response.end(JSON.stringify(healthy ? { status: 'ok', service: 'notion-collaboration' } : { error: 'not_found' }));
@@ -69,7 +96,10 @@ export function createCollaborationServer({
     async onAuthenticate({ documentName, token, requestParameters }) {
       // An older editor can discard block types or props it does not know.
       if (requestParameters?.get('schemaVersion') !== '5') throw SCHEMA_MISMATCH;
-      documentIdFromName(documentName);
+      const documentId = documentIdFromName(documentName);
+      // Hocuspocus keys live rooms by the raw name, while storage uses the UUID.
+      // Do not allow two differently-cased notebook rooms to overwrite one document.
+      if (documentDomainFromName(documentName) === 'notebook' && documentName !== `notebook:${documentId}`) throw DENIED;
       const permission = await api.authorize(documentName, token);
       return { token, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };
     },

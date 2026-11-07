@@ -1,0 +1,46 @@
+@page "/teacher/notebooks"
+@using Mercantec.Tech.Web.Notebooks
+@inject NotebookClient Client
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+
+<PageTitle>Elevnotesbøger · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne elevnotesbøger.</p> }
+else if (Redirect.CurrentAppRole() != AppRole.Underviser || ViewAs.IsActive) { <p>Siden åbnes med din egen underviseradgang. <a href="/student">Til elevvisningen</a></p> }
+else
+{
+    <header class="page-title"><div><h1>Elevnotesbøger</h1><p>Følg elevernes noter og logbog. Du kan læse og kommentere; eleven skriver selv teksten.</p></div><a class="secondary" href="/teacher/notebook-templates">Logbogsskabeloner</a></header>
+    <form class="nb-teacher-filters" @onsubmit="Load" @onsubmit:preventDefault><label>Find elev<input type="search" @bind="_search" placeholder="Elevens navn" /></label><label>Hold<select @bind="_hold"><option value="">Alle hold</option>@foreach (var hold in _items.SelectMany(n => n.Holds).Distinct().Order()) { <option value="@hold">@hold</option> }</select></label><button class="secondary" disabled="@_loading">Søg og opdatér</button></form>
+    @if (_error is not null) { <p class="callout" role="alert">@_error</p> }
+    @if (_loading) { <p role="status">Henter elevernes notesbøger…</p> }
+    else if (!Visible.Any()) { <section class="panel"><h2>Ingen notesbøger matcher</h2><p>Elevernes notesbøger vises, når de har åbnet notesbogen i LUP. Prøv også et andet navn eller hold.</p></section> }
+    else
+    {
+        <div class="panel nb-teacher-list" role="list">@foreach (var notebook in Visible) { <article class="nb-teacher-row" role="listitem"><div><h2><a href="/notebook?owner=@notebook.Id">@notebook.OwnerName</a></h2><p>@(notebook.Holds.Length == 0 ? "Intet tilknyttet hold" : string.Join(" · ", notebook.Holds))</p></div><dl><div><dt>Seneste logbog</dt><dd>@(notebook.LatestJournalDate?.ToString("d. MMM yyyy") ?? "Ingen indlæg endnu")</dd></div><div><dt>Seneste ændring</dt><dd>@notebook.UpdatedAtUtc.ToLocalTime().ToString("d. MMM HH:mm")</dd></div></dl><a class="secondary" href="/notebook?owner=@notebook.Id">Åbn notesbog</a></article> }</div>
+    }
+}
+
+@code {
+    private readonly CancellationTokenSource _life = new();
+    private TeacherNotebookView[] _items = [];
+    private string _search = "", _hold = "";
+    private string? _error;
+    private bool _loading = true, _disposed;
+    private int _generation;
+    private IEnumerable<TeacherNotebookView> Visible => _items.Where(n => _hold.Length == 0 || n.Holds.Contains(_hold));
+    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; await Load(); }
+    private void Changed() => _ = InvokeAsync(Load);
+    private async Task Load()
+    {
+        var generation = ++_generation;
+        if (!Auth.IsInitialized || !Auth.IsAuthenticated || ViewAs.IsActive || Redirect.CurrentAppRole() != AppRole.Underviser) { _items = []; _loading = false; return; }
+        _loading = true; _error = null;
+        try { var result = await Client.Teacher(_search.Trim(), null, _life.Token); if (generation == _generation && !_disposed) _items = result; }
+        catch (Exception ex) when (ex is NotebookException or HttpRequestException or OperationCanceledException) { if (generation == _generation && !_disposed && ex is not OperationCanceledException) _error = ex.Message; }
+        finally { if (generation == _generation && !_disposed) { _loading = false; StateHasChanged(); } }
+    }
+    public void Dispose() { _disposed = true; _generation++; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _life.Cancel(); _life.Dispose(); }
+}

@@ -1,5 +1,23 @@
 # LUP document collaboration
 
+## Personlige notesbøger og skabeloner
+
+`notebook:<document-guid>` bruger samme proces og gemmekvitteringer som forløbseditoren,
+men autoriseres gennem `/api/notebooks/collaboration/authorize`. Serveren bestemmer,
+om dokumentet er elevens egen note eller en lærerstyret skabelonkladde. Læsere forbinder
+ikke til skrivekanalen. Eksisterende `notion:`-rum og deres binære lagringsprotokol er uændrede.
+
+Notesbogens interne lagring ligger under `/api/internal/notebooks/documents/{id}/state`.
+GET returnerer Yjs-bytes; PUT gemmer JSON med `stateBase64`, `fingerprint`, `plainText`,
+`linkIds` og `assetIds`. Projektionen afledes fra den levende XML-struktur, så slettet
+CRDT-historik ikke bliver søgbar eller skaber backlinks.
+
+API'et kan kalde `POST /internal/notebook/clone` med den eksisterende interne servicenøgle
+og `{stateBase64, pageId, assetMap, defaultTemplate}`. Kaldet accepterer aldrig en browser-
+Origin. Svaret har samme format som lagringsprojektionen. Kopier får friske CRDT- og blok-ID'er;
+medier ombindes til de nye side-/asset-ID'er, og tidligere slettet indhold kopieres ikke.
+`defaultTemplate: true` opretter de tre refleksionsspørgsmål; manglende state opretter et tomt dokument.
+
 Self-hosted Hocuspocus 4 + Yjs 13 service for `/notion`. This service has no paid
 cloud dependency. The app's ASP.NET API is the authority for JWT verification,
 hold permissions and durable Postgres storage.

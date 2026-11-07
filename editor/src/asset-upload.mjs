@@ -6,6 +6,28 @@ export function formatUploadSize(bytes) {
   return new Intl.NumberFormat('da-DK', { maximumFractionDigits: 1 }).format(bytes / divisor) + ' ' + unit;
 }
 
+/** Notebook files use the private page-authorized single-request API. */
+export async function uploadNotebookAsset(file, {
+  pageId, getToken, signal, onProgress = (_sent, _total) => {}, fetchImpl = globalThis.fetch,
+}) {
+  if (!Number.isSafeInteger(file.size) || file.size <= 0) throw new Error('Vælg en fil med indhold.');
+  if (file.size > LARGE_UPLOAD_CONFIRM_BYTES) throw new Error('Filer i notesbogen må højst være 100 MiB.');
+  signal?.throwIfAborted();
+  const body = new FormData();
+  body.append('file', file, file.name);
+  const token = await getToken();
+  signal?.throwIfAborted();
+  onProgress(0, file.size);
+  const response = await fetchImpl('/api/notebooks/pages/' + encodeURIComponent(pageId) + '/assets', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + token }, body, signal,
+  });
+  if (!response.ok) throw uploadError(response.status);
+  const asset = await response.json();
+  if (typeof asset.id !== 'string' || !asset.id || typeof asset.kind !== 'string') throw new Error('Filen blev ikke korrekt registreret. Prøv igen.');
+  onProgress(file.size, file.size);
+  return asset;
+}
+
 function uploadError(status) {
   return new Error(status === 400 ? 'Filtypen understøttes ikke, eller filen er ugyldig.'
     : status === 401 ? 'Log ind igen for at uploade filen.'

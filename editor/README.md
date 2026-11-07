@@ -1,5 +1,19 @@
 # LUP block editor
 
+## Personlig notesbog
+
+Den samme adapter understøtter notesider og logbogsskabeloner med `domain: "notebook"`.
+Brug `pageId` som dokument-ID, `holdId: ""`, `members: []` og `polls: []`; `pages`
+indeholder kun aktuelt autoriserede linkmål. Rummet vælges som `notebook:<pageId>`.
+Holdværktøjer, præsentation, AI og emojiadministration vises kun i forløbseditoren.
+Noter beholder kodeblokke, Mermaid, callouts og private filuploads på højst 100 MiB.
+
+Læsere får `stateBase64` fra notesbogens autoriserede kontekst uden WebSocket.
+`applyReadOnlyState(element, context)` anvender et nyt gemt snapshot i den eksisterende
+Y.Doc og bevarer editoren og viewporten. Medsend `revision`, så et forsinket svar ikke
+kan overskrive en nyere kontekst. Værten kontrollerer adgang og revision hvert 15. sekund
+og ved genaktivering af fanen; en tilbagekaldt adgang skal afmontere læsevisningen.
+
 Self-hosted React editor island for the existing Blazor app. Uses BlockNote (MPL-2.0), Yjs13 and Hocuspocus4 (MIT). No XL packages, external collaboration service, browser document database or editor subscription.
 
 Use the [component standard and template](COMPONENT_TEMPLATE.md) when creating or changing editor blocks. It covers the platform UI, all themes, source preservation and the expected behavior in drafts, published pages, presentations and exports.

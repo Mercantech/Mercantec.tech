@@ -112,6 +112,7 @@ services:
       ReverseProxy__KnownProxies: ${REVERSE_PROXY_KNOWN_PROXIES:-}
       Notion__ServiceSecret: ${NOTION_SERVICE_SECRET:-}
       Notion__ServiceSecretFile: /run/notion/service-key
+      Notebook__CollaborationBaseUrl: http://mercantec-tech-collaboration:1234
       # Microsoft Graph (samme app-registration som Plan) — secrets kun via env
       Azure__TenantId: ${AZURE_TENANT_ID:-}
       Azure__ClientId: ${AZURE_CLIENT_ID:-}

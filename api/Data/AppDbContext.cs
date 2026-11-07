@@ -23,6 +23,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
         ConfigureTeachingCourses(modelBuilder);
         ConfigureQuestAudience(modelBuilder);
         ConfigureNotion(modelBuilder);
+        ConfigureNotebooks(modelBuilder);
         ConfigureNotionGroupsMedia(modelBuilder);
         ConfigurePreviews(modelBuilder);
         ConfigureEmojis(modelBuilder);

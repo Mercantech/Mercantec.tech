@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApiClient, documentIdFromName, tokenExpiresAt, MAX_DOCUMENT_BYTES, TOKEN_CLOCK_SKEW_MS } from '../src/api-client.mjs';
+import { cloneNotebookDocument } from '../src/notebook-documents.mjs';
 
 const id = '11111111-2222-4333-8444-555555555555';
 const name = `notion:${id}`;
@@ -81,4 +82,29 @@ test('binary persistence uses the service key, preserves bytes and waits for suc
   await assert.rejects(api.store(name, new Uint8Array(MAX_DOCUMENT_BYTES + 1), fingerprint), /storage limit/);
   await assert.rejects(api.store(name, bytes), /fingerprint/);
   await assert.rejects(api.store(name, bytes, 'invalid'), /fingerprint/);
+});
+
+test('notebook rooms route to isolated authorization and atomically projected persistence', async () => {
+  const notebookName = `notebook:${id}`;
+  const projection = cloneNotebookDocument({ pageId: id, defaultTemplate: true });
+  const bytes = new Uint8Array(Buffer.from(projection.stateBase64, 'base64'));
+  const api = client(async (url, request) => {
+    if (url.pathname.endsWith('/authorize')) {
+      assert.equal(url.pathname, '/api/notebooks/collaboration/authorize');
+      assert.deepEqual(JSON.parse(request.body), { documentName: notebookName });
+      return Response.json({ documentId: id, canEdit: true });
+    }
+    assert.equal(url.pathname, `/api/internal/notebooks/documents/${id}/state`);
+    if (request.method === 'PUT') {
+      assert.equal(request.headers['Content-Type'], 'application/json');
+      assert.deepEqual(JSON.parse(request.body), projection);
+      return Response.json({ savedAtUtc: '2026-11-07T12:00:00Z' });
+    }
+    return new Response(bytes);
+  });
+  assert.equal(documentIdFromName(notebookName.toUpperCase()), id);
+  assert.equal((await api.authorize(notebookName, validToken())).documentId, id);
+  assert.deepEqual(await api.load(notebookName), bytes);
+  assert.equal(await api.store(notebookName, bytes, projection.fingerprint), '2026-11-07T12:00:00Z');
+  await assert.rejects(api.store(notebookName, bytes, fingerprint), /fingerprint mismatch/);
 });

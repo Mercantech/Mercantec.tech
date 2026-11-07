@@ -1,0 +1,91 @@
+@page "/notebook"
+@page "/notebook/{PageId:guid}"
+@page "/journal"
+@page "/teacher/notebook-templates"
+@page "/teacher/notebook-templates/{TemplateId:guid}"
+@implements IAsyncDisposable
+
+<PageTitle>@Heading · LUP</PageTitle>
+<NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
+<link rel="stylesheet" href="/notion-editor/editor.css" />
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <section class="panel"><h1>Din notesbog</h1><p>Log ind for at skrive noter og logbog.</p><a class="action" href="/login">Log ind</a></section> }
+else if (ViewAs.IsActive) { <section class="panel"><h1>Notesbøger</h1><p>Afslut elevvisningen for at åbne elevens notesbog med din egen underviseradgang.</p><a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a></section> }
+else
+{
+    <header class="page-title nb-heading"><div><h1>@Heading</h1><p>@(TemplateMode ? "Byg fælles skabeloner. Aktivering bruges til nye indlæg; eksisterende noter bevares." : "Noter, faglige forbindelser og logbog gennem din uddannelse.")</p></div><div class="nb-actions">@if (IsTeacher) { <a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a><a class="secondary" href="/teacher/notebook-templates">Skabeloner</a> }@if (!TemplateMode && !Own) { <a class="secondary" href="/notebook">Min notesbog</a> }<button class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button></div></header>
+    @if (_error is not null) { <div class="nb-message nb-error" role="alert">@_error @if (_comment.Length > 0 || _commentDrafts.Count > 0) { <button type="button" class="secondary" @onclick="DiscardCommentDrafts">Kassér kommentarudkast</button> }</div> }
+    @if (_notice is not null) { <p class="nb-message" role="status">@_notice</p> }
+    @if (_loading) { <p role="status">Henter notesbogen…</p> }
+    else if (!TemplateMode || IsTeacher)
+    {
+        <button class="secondary nb-sidebar-toggle" aria-controls="nb-sidebar" aria-expanded="@_sidebarOpen" @onclick="() => _sidebarOpen = !_sidebarOpen">Sider og værktøjer</button>
+        <div class="nb-workspace">
+            <aside id="nb-sidebar" class="nb-sidebar @(_sidebarOpen ? "is-open" : "")" aria-label="Notesbogens sider">
+                @if (TemplateMode)
+                {
+                    <div class="nb-sidebar-title"><h2>Skabeloner</h2><button class="secondary" @onclick="() => BeginCreate(false)" disabled="@_busy">Ny</button></div>
+                    <nav class="nb-page-list" aria-label="Logbogsskabeloner">@foreach (var template in _templates) { <a class="nb-page @(TemplateId == template.Id ? "is-current" : "")" href="/teacher/notebook-templates/@template.Id"><span>@template.Title<small>@CadenceLabel(template.Cadence) · @(template.IsActive ? $"Aktiv v{template.Version}" : "Kladde / arkiveret")</small></span></a> }</nav>
+                }
+                else
+                {
+                    @if (Own) { <div class="nb-actions nb-create-actions"><button class="action" @onclick="() => BeginCreate(false)" disabled="@_busy">Ny note</button><button class="secondary" @onclick="() => _showJournal = !_showJournal" disabled="@_busy">Ny logbog</button></div> }
+                    <form class="nb-filters" @onsubmit="() => Filter()" @onsubmit:preventDefault><label>Find i notesbogen<input type="search" @bind="_search" placeholder="Titel eller indhold" /></label><div class="nb-filter-row"><label>Type<select @bind="_kind"><option value="">Alle sider</option><option value="note">Noter</option><option value="journal">Logbog</option></select></label><label>Tag<input @bind="_tag" placeholder="Alle tags" /></label></div><button class="secondary" disabled="@_busy">Søg</button></form>
+                    <div class="nb-sidebar-title"><h2>Sider</h2><span>@_total</span></div>
+                    <nav class="nb-page-list" aria-label="Sider i notesbogen">@foreach (var item in OrderedPages()) { <button class="nb-page @(item.Page.Id == _current?.DocumentId ? "is-current" : "")" style="--nb-depth:@item.Depth" aria-current="@(item.Page.Id == _current?.DocumentId ? "page" : null)" @onclick="() => OpenPage(item.Page.Id)"><span>@item.Page.Title<small>@(item.Page.Kind == "journal" ? item.Page.PeriodStart?.ToString("d. MMM yyyy") ?? "Logbog" : "Note")</small>@if (!string.IsNullOrWhiteSpace(item.Page.Snippet) && _search.Length > 0) { <small class="nb-snippet">@item.Page.Snippet</small> }</span></button> }</nav>
+                    @if (_pages.Length == 0) { <p class="nb-muted">@(_search.Length > 0 || _tag.Length > 0 || _kind.Length > 0 ? "Ingen sider matcher dine filtre." : "Din første side starter her.")</p> }
+                    @if (_pages.Length < _total) { <button class="secondary" disabled="@_busy" @onclick="() => Filter(true)">Vis flere sider</button> }
+                    @if (_notebookId is not null) { <button class="secondary nb-graph-button" disabled="@_busy" @onclick="ShowGraph">Åbn forbindelser og graf</button> }
+                    @if (_shared.Length > 0) { <details class="nb-shared"><summary>Delt med mig <span>@_shared.Length</span></summary><nav aria-label="Delt med mig">@foreach (var shared in _shared) { <a class="nb-page" href="/notebook/@shared.Id"><span>@shared.Title<small>Læseadgang</small></span></a> }</nav></details> }
+                }
+                @if (_creating)
+                {
+                    <form class="nb-create-form" @onsubmit="Create" @onsubmit:preventDefault><h3>@(TemplateMode ? "Ny skabelon" : _newParent is null ? "Ny note" : "Ny underside")</h3><label>Titel<input @bind="_newTitle" @bind:event="oninput" maxlength="200" required autofocus /></label>@if (TemplateMode) { <label>Rytme<select @bind="_newCadence"><option value="daily">Daglig</option><option value="weekly">Ugentlig</option><option value="free">Fri</option></select></label> }<div class="nb-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newTitle))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annullér</button></div></form>
+                }
+            </aside>
+            <section class="nb-document" aria-label="Dokumentside">
+                @if (_showJournal && Own)
+                {
+                    <section class="nb-journal-library" aria-labelledby="nb-journal-title"><div class="nb-sidebar-title"><h2 id="nb-journal-title">Skriv logbog</h2><button class="secondary" @onclick="() => _showJournal = false">Luk</button></div><p>Vælg en skabelon. Et dagligt eller ugentligt indlæg åbnes igen, hvis du allerede har skrevet i perioden.</p><div class="nb-meta-grid"><label>Dato<input type="date" @bind="_period" /></label><label>Hold (valgfrit)<select @bind="_entryHold"><option value="">Uden hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label></div><div class="nb-template-cards">@foreach (var template in _templates.Where(t => t.IsActive)) { <button class="nb-template-card" disabled="@_busy" @onclick="() => Entry(template.Id)"><strong>@template.Title</strong><span>@CadenceLabel(template.Cadence)</span></button> }</div>@if (!_templates.Any(t => t.IsActive)) { <p class="nb-muted">Der er endnu ingen aktive skabeloner. Din underviser kan oprette dem.</p> }</section>
+                }
+                @if (_showGraph && _graph is not null)
+                {
+                    <section class="nb-graph-panel"><div class="nb-sidebar-title"><h2>Forbindelser mellem sider</h2><button class="secondary" @onclick="() => _showGraph = false">Luk grafen</button></div><NotebookGraphView Graph="_graph" />@if (_graph.Total > _graph.Nodes.Length) { <p class="nb-muted">Viser @_graph.Nodes.Length af @_graph.Total sider.</p> }</section>
+                }
+                @if (_current is null)
+                {
+                    <div class="nb-empty"><UiIcon Name="book" /><h2>@(TemplateMode ? "Fælles afsæt for elevernes logbog" : "Et sted til dine egne forbindelser")</h2><p>@(TemplateMode ? "Opret eller vælg en skabelon og skriv spørgsmålene i editoren." : "Opret en note eller vælg en logbogsskabelon. Link dine sider med @ og brug tags til at samle emner.")</p>@if (Own) { <button class="action" @onclick="() => BeginCreate(false)">Opret første note</button> }</div>
+                }
+                else
+                {
+                    <div class="nb-document-bar"><span class="nb-save @_status" role="status">@(Editing ? StatusLabel : "Læsevisning · opdateres automatisk")</span><div class="nb-actions">@if (Editing && !TemplateMode) { <button class="secondary" @onclick="() => BeginCreate(true)" disabled="@_busy">Ny underside</button> }@if (_current.CanComment) { <button class="secondary" @onclick="ToggleComments" disabled="@_busy" aria-expanded="@_showComments">Kommentarer</button> }@if (Own) { <button class="secondary" @onclick="ToggleShares" disabled="@_busy" aria-expanded="@_showShares">Del</button> }</div></div>
+                    <p class="nb-visibility">@(TemplateMode ? "Undervisere kan skrive i skabelonen. Elever får en kopi ved oprettelse af logbog." : "Alle undervisere kan læse og kommentere. Deling giver andre læseadgang.")</p>
+                    @if (_status is "offline" or "error" && _statusDetail.Length > 0) { <p class="nb-message nb-error" role="alert">@_statusDetail</p> }
+                    @if (Editing)
+                    {
+                        <form class="nb-metadata" @onsubmit="SaveMetadata" @onsubmit:preventDefault><label class="nb-title-label">Titel<input class="nb-title-input" @bind="_title" @bind:event="oninput" maxlength="200" required /></label><details><summary>Sidens oplysninger</summary><div class="nb-meta-grid">@if (TemplateMode) { <label>Rytme<select @bind="_cadence"><option value="daily">Daglig</option><option value="weekly">Ugentlig</option><option value="free">Fri</option></select></label> } else { <label>Overordnet side<select @bind="_parentValue"><option value="">Ingen · rodside</option>@foreach (var page in _current.Pages.Where(p => p.Id != _current.DocumentId)) { <option value="@(page.Id)">@(page.Title)</option> }</select></label><label>Tags · adskil med komma<input @bind="_tags" @bind:event="oninput" placeholder="csharp, database" /></label><label>Hold (valgfrit)<select @bind="_hold"><option value="">Uden hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label> }</div></details>@if (MetadataDirty) { <div class="nb-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Gem oplysninger</button><button type="button" class="secondary" @onclick="ResetMetadata">Annullér ændringer</button></div> }</form>
+                    }
+                    else { <header class="nb-reader-title"><h2>@_current.Title</h2>@if (_current.PeriodStart is { } period) { <p>@period.ToString("d. MMMM yyyy")</p> }@if (_current.Tags.Length > 0) { <div class="nb-tags">@foreach (var tag in _current.Tags) { <span>#@tag</span> }</div> }</header> }
+                    @if (TemplateMode && CurrentTemplate is { } currentTemplate)
+                    {
+                        <div class="nb-template-status"><div><strong>@(currentTemplate.IsActive ? $"Aktiv · version {currentTemplate.Version}" : "Kladde / arkiveret")</strong><p>Gem oplysninger og indhold før aktivering. Ændringer bruges først i nye indlæg, når du aktiverer igen.</p></div><div class="nb-actions"><button class="action" disabled="@(_busy || !_mounted || MetadataDirty || _status is "connecting" or "saving" or "offline" or "error")" @onclick="Activate">@(currentTemplate.IsActive ? "Aktivér ny version" : "Aktivér skabelon")</button>@if (currentTemplate.IsActive) { <button class="secondary" disabled="@_busy" @onclick="Archive">Arkivér</button> }</div></div>
+                    }
+                    <div class="nb-editor-root" @ref="_editorElement"></div>
+                    @if (!Editing && !_mounted) { <p class="nb-muted nb-waiting" role="status">Venter på sidens gemte indhold…</p> }
+                    @if (!TemplateMode)
+                    {
+                        <section class="nb-backlinks"><h3>Sider, der linker hertil</h3>@if (_backlinks.Length == 0) { <p class="nb-muted">Ingen tilgængelige sider linker hertil endnu.</p> } else { <nav aria-label="Tilbagelinks">@foreach (var page in _backlinks) { <a href="@PageHref(page.Id)">@(page.Title)</a> }</nav> }</section>
+                    }
+                    @if (_showComments && _current.CanComment)
+                    {
+                        <section class="nb-comments"><div class="nb-sidebar-title"><h2>Kommentarer</h2><button class="secondary" @onclick="() => _showComments = false">Luk</button></div><p class="nb-muted">Kommentarer deles mellem eleven og underviserne.</p>@foreach (var comment in _comments.OrderBy(c => c.CreatedAtUtc)) { <article class="nb-comment"><header><strong>@comment.AuthorName</strong><time datetime="@comment.CreatedAtUtc.ToString("O")">@comment.CreatedAtUtc.ToLocalTime().ToString("d. MMM HH:mm")</time></header><p>@comment.Text</p></article> }@if (_comments.Length == 0) { <p class="nb-muted">Der er ingen kommentarer endnu.</p> }<form @onsubmit="AddComment" @onsubmit:preventDefault><label>Skriv en kommentar<textarea @bind="_comment" @bind:event="oninput" maxlength="4000" rows="3"></textarea></label><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_comment))">Tilføj kommentar</button></form></section>
+                    }
+                    @if (_showShares && Own)
+                    {
+                        <section class="nb-sharing"><div class="nb-sidebar-title"><h2>Del med en LUP-bruger</h2><button class="secondary" @onclick="() => _showShares = false">Luk</button></div><p>Undervisere har altid læse- og kommentaradgang. Andre får kun læseadgang til det, du vælger.</p><label>Hvad vil du dele?<select @bind="_shareScope"><option value="page">Denne side · uden undersider</option><option value="notebook">Hele notesbogen · også fremtidige sider</option></select></label><form class="nb-search-user" @onsubmit="SearchUsers" @onsubmit:preventDefault><label>Find person<input type="search" @bind="_userSearch" @bind:event="oninput" placeholder="Navn i LUP" /></label><button class="secondary" disabled="@(_busy || _userSearch.Trim().Length < 2)">Find</button></form><div class="nb-user-results">@foreach (var user in _users.Where(u => u.Sub.ToString() != Auth.Subject)) { <div class="nb-share-row"><span><strong>@user.DisplayName</strong><small>@(user.IsTeacher ? "Underviser" : "LUP-bruger")</small></span><button class="secondary" disabled="@_busy" @onclick="() => Share(user.Sub)">Giv læseadgang</button></div> }</div>@if (_usersSearched && !_users.Any(u => u.Sub.ToString() != Auth.Subject)) { <p class="nb-muted">Ingen LUP-brugere matcher navnet. Prøv et andet navn.</p> }<h3>Aktuelle delinger</h3>@if (_shares.Length == 0) { <p class="nb-muted">Ingen ekstra delinger.</p> }@foreach (var share in _shares) { <div class="nb-share-row"><span><strong>@share.RecipientName</strong><small>@(share.PageId is null ? "Hele notesbogen" : _current.Pages.FirstOrDefault(p => p.Id == share.PageId)?.Title ?? "En side")</small></span><button class="secondary" disabled="@_busy" @onclick="() => Revoke(share.Id)">Fjern adgang</button></div> }</section>
+                    }
+                }
+            </section>
+        </div>
+    }
+}

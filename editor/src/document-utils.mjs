@@ -1,4 +1,4 @@
-/** @typedef {{ workspaceId?: string|null, courseId?: string|null, holdId?: string|null }} NavigationContext */
+/** @typedef {{ workspaceId?: string|null, courseId?: string|null, holdId?: string|null, domain?: 'notion'|'notebook' }} NavigationContext */
 
 /** Split the editorial snapshot into slides and omit class rosters at every depth. */
 export function splitSlides(blocks) {
@@ -39,9 +39,12 @@ export function pollUrl(id, present = false, context = null) {
 export function pollCreateUrl(context = null) {
   return navigationUrl('/teacher/polls/new', context);
 }
-/** @param {NavigationContext|null} [context] */
+/** @param {NavigationContext|'notion'|'notebook'|null} [context] */
 export function pageUrl(id, published = false, context = null) {
-  return validId(id) ? navigationUrl('/notion/' + id, context, published) : null;
+  if (!validId(id)) return null;
+  const domain = typeof context === 'string' ? context : context?.domain;
+  if (domain === 'notebook') return '/notebook/' + id;
+  return navigationUrl('/notion/' + id, typeof context === 'string' ? null : context, published);
 }
 /** @param {NavigationContext|null} [context] */
 export function studentUrl(holdId, membershipId, context = null) {

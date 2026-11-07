@@ -8,7 +8,6 @@
 @page "/learning/{CourseId}/calendar"
 @page "/calendar"
 @page "/quests"
-@page "/journal"
 @page "/activities"
 @page "/education"
 @inject NavigationManager Nav
@@ -34,10 +33,6 @@ else if (PathKey == "quests") {
     <header class="page-title"><div><h1>Quests og afleveringer</h1><p>Questen er opgaven. Afleveringen er dit svar på den.</p></div></header>
     <div class="filters">@foreach (var f in new[] { "Alle", "Main", "Side", "Daily" }) { <button class="filter" aria-pressed="@(_filter == f)" @onclick="() => _filter = f">@f</button> }</div>
     <QuestList Filter="@_filter" CourseId="@(CourseFilter ?? CourseContext.CourseId)" />
-}
-else if (PathKey == "journal") {
-    <header class="page-title"><div><h1>Min logbog</h1><p>Små refleksioner gør din udvikling synlig.</p></div><a class="secondary" href="/calendar">Til min uge</a></header>
-    <div class="cols"><section class="panel"><h2>Dine seneste noter</h2>@foreach (var note in DemoCatalog.Journal) { <div class="row"><span class="mark"><UiIcon Name="book" /></span><div><h3>Fra sensor til dashboard</h3><p>@note</p></div></div> }</section><aside class="panel"><h2>Tre gode spørgsmål</h2><ol class="goals"><li>Hvad arbejdede jeg med?</li><li>Hvad lærte jeg?</li><li>Hvad er mit næste skridt?</li></ol><a href="/quests/h3-journal">Åbn din daily quest</a></aside></div>
 }
 else if (PathKey == "education") {
     <header class="page-title"><div><h1>Din vej gennem uddannelsen</h1><p>Fra fundament til svendeprøve. Se, hvad du bygger videre på.</p></div></header>
