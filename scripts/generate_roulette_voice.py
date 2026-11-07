@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_RATE = 24000
 MAX_BYTES = 1024 * 1024
 MAX_SECONDS = 10
+MAX_CUE_SECONDS = 15
 # Must change if the bridge's generation settings change; arena DSP has its own
 # processed-bank fingerprint and deliberately does not affect this raw cache.
 INFERENCE_PROFILE = "rost-da-temp06-cfg05-exag05-reppen20-topp095-v1"
@@ -40,14 +41,33 @@ def words(path):
     return clips
 
 
-def decode_wav(data):
+def announcements(path):
+    catalog = json.loads(path.read_text(encoding="utf-8-sig"))
+    expected = {"round-start", "intro-group", "round-complete", "round-saved", "drumroll"}
+    expected.update(f"celebration-{index:02d}" for index in range(6))
+    values = catalog.get("cues", [])
+    if not isinstance(values, list) or len(values) != len(expected):
+        raise ValueError("The announcement catalog must contain the 11 approved cues")
+    clips = []
+    for cue in values:
+        clip_id, text = cue.get("id"), cue.get("text")
+        if (clip_id not in expected or not isinstance(text, str) or not text.strip()
+                or len(text) > 140 or any(ord(char) < 32 for char in text)):
+            raise ValueError("Invalid announcement in roulette catalog")
+        clips.append({"id": clip_id, "text": text, "file": f"{clip_id}.wav"})
+    if {clip["id"] for clip in clips} != expected:
+        raise ValueError("The announcement catalog has missing or duplicate cue IDs")
+    return clips
+
+
+def decode_wav(data, max_seconds=MAX_SECONDS):
     if not 44 < len(data) <= MAX_BYTES:
         raise ValueError("Empty or oversized word recording")
     with wave.open(io.BytesIO(data), "rb") as source:
         if (source.getnchannels(), source.getsampwidth(), source.getframerate(), source.getcomptype()) != (1, 2, SAMPLE_RATE, "NONE"):
             raise ValueError("Word recordings must be mono PCM16 WAV at 24 kHz")
         count = source.getnframes()
-        if not SAMPLE_RATE // 10 <= count <= SAMPLE_RATE * MAX_SECONDS:
+        if not SAMPLE_RATE // 10 <= count <= SAMPLE_RATE * max_seconds:
             raise ValueError("Unexpected duration for a single word")
         frames = source.readframes(count)
         if len(frames) != count * 2:
@@ -72,9 +92,9 @@ def encode_wav(samples):
     return output.getvalue()
 
 
-def prepare_word(data):
+def prepare_word(data, max_seconds=MAX_SECONDS):
     """Trim silence and add a restrained arena PA effect without claiming new prosody."""
-    samples = decode_wav(data)
+    samples = decode_wav(data, max_seconds)
     peak = max(abs(sample) for sample in samples)
     if peak < 64:
         raise ValueError("Word recording is silent")
@@ -156,27 +176,30 @@ def fingerprint(clips, health):
     return hashlib.sha256(json.dumps(source, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
-def raw_word(base, word, health, raw_cache=None, force=False):
+def raw_word(base, word, health, raw_cache=None, force=False, *, phrase=False):
+    text = word if phrase else word + "!"
+    max_seconds = MAX_CUE_SECONDS if phrase else MAX_SECONDS
     source = {"model": health.get("model"), "voiceId": health.get("voiceId"),
-              "text": word + "!", "style": "arena", "inference": INFERENCE_PROFILE}
+              "text": text, "style": "arena", "inference": INFERENCE_PROFILE}
     key = hashlib.sha256(json.dumps(source, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     target = raw_cache / (key + ".wav") if raw_cache is not None else None
     if target is not None and not force and target.exists() and target.stat().st_size <= MAX_BYTES:
         try:
             cached = target.read_bytes()
-            if max(abs(value) for value in decode_wav(cached)) >= 64:
+            if max(abs(value) for value in decode_wav(cached, max_seconds)) >= 64:
                 return cached
         except (ValueError, wave.Error, EOFError):
             pass
-    raw = request_json(base, "/speech", {"text": word + "!", "style": "arena"})
-    if max(abs(value) for value in decode_wav(raw)) < 64:
+    raw = request_json(base, "/speech", {"text": text, "style": "arena"})
+    if max(abs(value) for value in decode_wav(raw, max_seconds)) < 64:
         raise ValueError("Raw word recording is silent")
     if target is not None:
         atomic_write(target, raw)
     return raw
 
 
-def build_bank(base, output, clips, health, force=False, raw_cache=None):
+def build_bank(base, output, clips, health, force=False, raw_cache=None, *, cue_bank=False):
+    max_seconds = MAX_CUE_SECONDS if cue_bank else MAX_SECONDS
     stamp = fingerprint(clips, health)
     manifest_path = output / "manifest.json"
     previous = {}
@@ -195,19 +218,19 @@ def build_bank(base, output, clips, health, force=False, raw_cache=None):
         audio = target.read_bytes() if old and not force and target.exists() and target.stat().st_size <= MAX_BYTES else None
         if audio is not None:
             try:
-                decode_wav(audio)
+                decode_wav(audio, max_seconds)
                 if hashlib.sha256(audio).hexdigest() != old.get("sha256"):
                     audio = None
             except (ValueError, wave.Error, EOFError):
                 audio = None
         if audio is None:
-            audio = prepare_word(raw_word(base, clip["text"], health, raw_cache, force))
+            audio = prepare_word(raw_word(base, clip["text"], health, raw_cache, force, phrase=cue_bank), max_seconds)
             atomic_write(target, audio)
         manifest["clips"].append({**clip, "sha256": hashlib.sha256(audio).hexdigest(),
-                                  "durationMs": round(len(decode_wav(audio)) / SAMPLE_RATE * 1000)})
+                                  "durationMs": round(len(decode_wav(audio, max_seconds)) / SAMPLE_RATE * 1000)})
         atomic_write(manifest_path, json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
         print(f"{index + 1:02d}/{len(clips)} {clip['text']}", flush=True)
-    manifest["complete"] = len(manifest["clips"]) == 48
+    manifest["complete"] = len(manifest["clips"]) == (len(clips) if cue_bank else 48)
     atomic_write(manifest_path, json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
     return manifest
 
@@ -216,14 +239,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--endpoint", default="http://127.0.0.1:8091")
     parser.add_argument("--words", type=Path, default=ROOT / "shared" / "roulette-voice-words.json")
-    parser.add_argument("--output", type=Path, default=ROOT / "web" / "wwwroot" / "audio" / "roulette" / "announcer-v1")
+    parser.add_argument("--announcements", type=Path, default=ROOT / "shared" / "roulette-announcements.json")
+    parser.add_argument("--output", type=Path, help="Defaults to the word bank or cue bank for the selected mode")
     parser.add_argument("--force", action="store_true", help="Regenerate even unchanged validated words")
     parser.add_argument("--raw-cache", type=Path, default=ROOT / ".tools" / "rost-speech" / "raw",
                         help="Private reusable model output; arena effect changes do not need new inference")
-    parser.add_argument("--preview", type=Path, help="Generate only Neon + Opfinderne into this WAV, no public bank")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--preview", type=Path, help="Generate only Neon + Opfinderne into this WAV, no public bank")
+    mode.add_argument("--cues", action="store_true", help="Build generic round/group/celebration announcements, without touching the word bank")
     args = parser.parse_args()
     base = validate_endpoint(args.endpoint)
-    clips = words(args.words)
+    clips = announcements(args.announcements) if args.cues else words(args.words)
+    output = args.output or ROOT / "web" / "wwwroot" / "audio" / "roulette" / ("cues-v1" if args.cues else "announcer-v1")
     health = json.loads(request_json(base, "/health"))
     if not health.get("ready"):
         raise ValueError("Røst is not ready. Wait for /health to return ready=true")
@@ -236,8 +263,8 @@ def main():
         atomic_write(args.preview, encode_wav(combined))
         print(f"Preview saved: {args.preview}", flush=True)
     else:
-        result = build_bank(base, args.output, clips, health, args.force, args.raw_cache)
-        print(f"Ready: {len(result['clips'])} reusable words, 576 group names. No model needed during roulette.", flush=True)
+        result = build_bank(base, output, clips, health, args.force, args.raw_cache, cue_bank=args.cues)
+        print(f"Ready: {len(result['clips'])} reusable {'announcements' if args.cues else 'words, 576 group names'}. No model needed during roulette.", flush=True)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ const { resolve } = require('node:path');
 // Run the production browser module against a small DOM/audio adapter and a
 // virtual frame clock. Assertions observe movement, events and playback rather
 // than searching implementation strings or waiting several seconds per spin.
-async function environment(t, { reduced = false, audio = false, audioBlocked = false, speech = false, speechHangs = false, settings = {} } = {}) {
+async function environment(t, { reduced = false, audio = false, audioBlocked = false, speech = false, speechHangs = false, settings = {}, themeColors = null, resizeObserver = false } = {}) {
   const originals = new Map();
   const install = (name, value) => {
     originals.set(name, Object.getOwnPropertyDescriptor(globalThis, name));
@@ -65,7 +65,8 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
     querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
     focus() { document.activeElement = this; }
     click() { this.clicks = (this.clicks || 0) + 1; }
-    setPointerCapture() {}
+    setPointerCapture(id) { this.capturedPointer = id; }
+    releasePointerCapture(id) { this.releasedPointer = id; this.capturedPointer = null; }
   }
   class Document extends EventTarget {
     constructor() { super(); this.body = new Element('body'); this.body.style.overflow = ''; this.activeElement = null; }
@@ -73,6 +74,13 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
     closest() { return null; }
   }
   const document = new Document();
+  const windowEvents = new EventTarget(), resizeObservers = [];
+  class ResizeObserver {
+    constructor(callback) { this.callback = callback; this.observed = new Set(); this.disconnected = false; resizeObservers.push(this); }
+    observe(node) { this.observed.add(node); }
+    unobserve(node) { this.observed.delete(node); }
+    disconnect() { this.disconnected = true; this.observed.clear(); }
+  }
   const audioContexts = [];
   class AudioContext {
     constructor() { this.state = 'suspended'; this.destination = {}; this.oscillators = []; this.sources = []; this.gains = []; audioContexts.push(this); }
@@ -120,6 +128,12 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
   const clipResponse = (bytes = wavBytes(), headers = {}) => ({ ok: true, headers: { get: name => headers[name] ?? null }, arrayBuffer: async () => bytes });
   install('document', document);
   install('window', { innerWidth: 1200, innerHeight: 800, matchMedia: () => ({ matches: reduced }), ...(audio ? { AudioContext } : {}),
+    addEventListener: windowEvents.addEventListener.bind(windowEvents), dispatchEvent: windowEvents.dispatchEvent.bind(windowEvents),
+    ...(resizeObserver ? { ResizeObserver } : {}),
+    ...(themeColors ? { getComputedStyle: node => ({
+      getPropertyValue: token => ({ '--roulette-accent': 'theme-accent', '--roulette-accent-alt': 'theme-alt', '--roulette-success': 'theme-success' })[token] ?? '',
+      color: ({ 'theme-accent': themeColors[0], 'theme-alt': themeColors[1], 'theme-success': themeColors[2] })[node.style.color] ?? ''
+    }) } : {}),
     ...(speech ? { speechSynthesis: speechEngine, SpeechSynthesisUtterance: Utterance } : {}) });
   install('navigator', { clipboard }); install('localStorage', localStorage); install('performance', { now: () => now });
   install('fetch', async (url, options) => {
@@ -132,13 +146,14 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
   const source = await readFile(resolve(__dirname, '../web/wwwroot/js/group-roulette-show.js'), 'utf8');
   const module = await import(`data:text/javascript;base64,${Buffer.from(source + `\n// test instance ${Math.random()}`).toString('base64')}`);
   let canvasCalls = 0;
+  const canvasPaints = [];
   const root = new Element('div', 'roulette-app');
   root.shell = root.appendChild(new Element('div', 'roulette-shell')); root.shell.inert = false;
   root.button = root.shell.appendChild(new Element('button', 'roulette-spin'));
   root.lever = root.shell.appendChild(new Element('button', 'roulette-lever'));
   const stage = root.shell.appendChild(new Element('div', 'roulette-reels'));
   const canvas = root.appendChild(new Element('canvas', 'roulette-confetti'));
-  canvas.getContext = () => { canvasCalls++; return { setTransform() {}, clearRect() {}, save() {}, translate() {}, rotate() {}, fillRect() {}, restore() {} }; };
+  canvas.getContext = () => { canvasCalls++; return { setTransform() {}, clearRect() {}, save() {}, translate() {}, rotate() {}, fillRect() { canvasPaints.push(this.fillStyle); }, restore() {} }; };
   root.setReels = count => {
     stage.children = []; root.reels = Array.from({ length: count }, () => {
       const reel = stage.appendChild(new Element('div', 'roulette-reel'));
@@ -163,7 +178,7 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
     }
   });
   return { module, root, document, clock, fire, callbacks, visibleNames, audioContexts, speechEngine, localStorage, clipboard,
-    clipRequests, clipResponses, clipResponse, wavBytes, canvasCalls: () => canvasCalls };
+    clipRequests, clipResponses, clipResponse, wavBytes, canvasPaints, resizeObservers, canvasCalls: () => canvasCalls };
 }
 
 test('names visibly travel through independent vertical strips while Blazor fallback text remains untouched', async t => {
@@ -208,6 +223,64 @@ test('reel names fit one centered fixed-height line and retain complete long nam
   assert.ok(fonts[0] > fonts[1], 'longer names receive a smaller font');
   assert.ok(fonts[1] >= fonts[2]);
   assert.ok(fonts[2] >= 13, 'extreme names keep a legible minimum size and use visual ellipsis');
+});
+
+test('completed desktop reel names refit to mobile widths and back without changing the revealed group', async t => {
+  const { module, root, clock, visibleNames } = await environment(t);
+  const names = ['QA-elev 4', 'Alexandrine Frederiksen', 'QA-elev 2'];
+  assert.equal(await clock.finish(module.spin(root, names, names, false, { durationMs: 800 })), true);
+  root.reels.forEach((reel, index) => { reel.fallback.textContent = names[index]; });
+  const rows = root.reels.map(reel => reel.querySelector('.roulette-reel-strip').children[2]);
+  const desktopSizes = rows.map(row => parseFloat(row.style.getPropertyValue('--fit-font')));
+  window.innerWidth = 390;
+  root.reels.forEach(reel => { reel.viewport.clientWidth = 100; reel.viewport.clientHeight = 85; });
+  window.dispatchEvent(new Event('resize'));
+  await clock.advance(20);
+  rows.forEach((row, index) => {
+    const font = parseFloat(row.style.getPropertyValue('--fit-font'));
+    assert.ok(font <= desktopSizes[index]);
+    if (index !== 1) assert.ok(font < desktopSizes[index], 'a short name must shrink from its desktop fit size');
+    assert.ok(font >= 13 && font < 20);
+    assert.equal(root.reels[index].fallback.style.getPropertyValue('--fit-font'), row.style.getPropertyValue('--fit-font'));
+    assert.equal(row.style.height, `${85 * .73}px`);
+    assert.equal(row.style.height, row.style.lineHeight);
+  });
+  assert.deepEqual(visibleNames(), names);
+  const mobileOffset = parseFloat(root.reels[0].querySelector('.roulette-reel-strip').style.getPropertyValue('--roll-y'));
+  assert.ok(Math.abs(mobileOffset - (85 / 2 - (85 * .73) * 2.5)) < .001, 'the locked name must stay on the resized payline');
+  window.innerWidth = 1280;
+  root.reels.forEach(reel => { reel.viewport.clientWidth = 190; reel.viewport.clientHeight = 110; });
+  window.dispatchEvent(new Event('resize'));
+  await clock.advance(20);
+  assert.deepEqual(rows.map(row => parseFloat(row.style.getPropertyValue('--fit-font'))), desktopSizes);
+  assert.deepEqual(visibleNames(), names);
+  window.dispatchEvent(new Event('resize'));
+  await module.dispose(root);
+  await clock.advance(40);
+  assert.equal(clock.count(), 0, 'disposal removes the resize listener and any queued refit frame');
+});
+
+test('viewport observation refits during a spin and disconnects cleanly after the final reveal', async t => {
+  const { module, root, clock, visibleNames, resizeObservers } = await environment(t, { resizeObserver: true });
+  const observer = resizeObservers[0];
+  assert.ok(observer.observed.has(root));
+  const names = ['QA-elev 4', 'QA-elev 2', 'Alexandrine Frederiksen'];
+  const spinning = module.spin(root, names, names, false, { durationMs: 1800 });
+  await clock.advance(250);
+  assert.ok(root.reels.every(reel => observer.observed.has(reel.viewport)));
+  window.innerWidth = 390;
+  root.reels.forEach(reel => { reel.viewport.clientWidth = 100; reel.viewport.clientHeight = 85; });
+  observer.callback([]); observer.callback([]);
+  await clock.advance(20);
+  assert.ok(root.reels.every(reel => reel.classList.contains('is-rolling')));
+  assert.equal(await clock.finish(spinning), true);
+  assert.deepEqual(visibleNames(), names);
+  assert.ok(root.reels.every(reel => parseFloat(reel.querySelector('.roulette-reel-strip').children[2].style.getPropertyValue('--fit-font')) < 20));
+  await module.dispose(root);
+  assert.equal(observer.disconnected, true);
+  observer.callback([]);
+  await clock.advance(40);
+  assert.equal(clock.count(), 0, 'late observation cannot revive a disposed presentation');
 });
 
 test('reduced motion reveals chosen names without cycling or confetti', async t => {
@@ -302,6 +375,77 @@ test('lever drag invokes one draw and suppresses its following click, while Spac
   fire(document.body, 'keydown', { code: 'Space' }, document); assert.equal(root.button.clicks, 1);
 });
 
+test('lever pull visibly follows the pointer and cancelled or shallow drags never spin', async t => {
+  const { module, root, fire, callbacks } = await environment(t);
+  fire(root.lever, 'pointerdown', { pointerId: 7, clientY: 100, button: 0 });
+  fire(root.lever, 'pointermove', { pointerId: 7, clientY: 132.5 });
+  assert.equal(root.lever.style.getPropertyValue('--lever-pull'), '0.5');
+  assert.ok(root.lever.classList.contains('is-pulled'));
+  fire(root.lever, 'pointercancel', { pointerId: 7 });
+  assert.equal(root.lever.style.getPropertyValue('--lever-pull'), '0');
+  assert.equal(root.lever.classList.contains('is-pulled'), false);
+  assert.equal(root.lever.releasedPointer, 7);
+  assert.deepEqual(callbacks, []);
+  assert.ok(fire(root.lever, 'click', { detail: 1 }).defaultPrevented);
+  assert.equal(fire(root.lever, 'click', { detail: 0 }).defaultPrevented, false, 'keyboard activation remains available');
+  fire(root.lever, 'pointerdown', { pointerId: 8, clientY: 100 });
+  fire(root.lever, 'pointermove', { pointerId: 8, clientY: 115 });
+  fire(root.lever, 'pointerup', { pointerId: 8 });
+  assert.deepEqual(callbacks, []);
+  assert.ok(fire(root.lever, 'click', { detail: 1 }).defaultPrevented, 'a partial pull must not become a native click');
+  fire(root.lever, 'pointerdown', { pointerId: 9, clientY: 100 });
+  fire(root.lever, 'pointermove', { pointerId: 9, clientY: 150 });
+  module.cancel(root);
+  fire(root.lever, 'pointerup', { pointerId: 9 });
+  assert.deepEqual(callbacks, []);
+  assert.equal(root.lever.style.getPropertyValue('--lever-pull'), '0');
+});
+
+test('lever gestures ignore other pointers and cannot trigger after the button becomes disabled', async t => {
+  const { root, fire, callbacks } = await environment(t);
+  fire(root.lever, 'pointerdown', { pointerId: 2, clientY: 0, button: 2 });
+  fire(root.lever, 'pointermove', { pointerId: 2, clientY: 60 });
+  fire(root.lever, 'pointerup', { pointerId: 2 });
+  assert.deepEqual(callbacks, []);
+  fire(root.lever, 'pointerdown', { pointerId: 3, clientY: 0 });
+  fire(root.lever, 'pointermove', { pointerId: 4, clientY: 60 });
+  fire(root.lever, 'pointerup', { pointerId: 4 });
+  assert.deepEqual(callbacks, []);
+  fire(root.lever, 'pointermove', { pointerId: 3, clientY: 60 });
+  root.lever.disabled = true;
+  fire(root.lever, 'pointerup', { pointerId: 3 });
+  assert.deepEqual(callbacks, []);
+  assert.equal(root.lever.style.getPropertyValue('--lever-pull'), '0');
+});
+
+test('theme colors drive the celebration and confetti without leaving probe elements in the rendered page', async t => {
+  const colors = ['rgb(10, 180, 70)', 'rgb(230, 170, 30)', 'rgb(30, 160, 130)'];
+  const { module, root, clock, canvasPaints } = await environment(t, { themeColors: colors });
+  const spinning = module.spin(root, ['A', 'B', 'C'], ['A', 'B', 'C'], false,
+    { durationMs: 800, groupName: 'TemaHoldet', celebrationIndex: 0 });
+  assert.equal(await clock.finish(spinning), true);
+  assert.equal(root.querySelector('.roulette-celebration').style.getPropertyValue('--celebration-color'), colors[0]);
+  await clock.advance(40);
+  assert.ok(canvasPaints.length > 0);
+  assert.ok(canvasPaints.every(color => colors.includes(color)));
+  assert.equal(root.children.filter(node => node.tagName === 'span').length, 0);
+});
+
+test('classroom applause is an explicit themed effect and respects mute and reduced motion', async t => {
+  const { module, root, clock, fire, audioContexts, canvasCalls, callbacks } = await environment(t, { audio: true, reduced: true });
+  root.button.setAttribute('data-roulette-cheer', ''); fire(root.button, 'pointerdown');
+  assert.equal(await clock.finish(module.cheer(root, false, .5)), true);
+  assert.equal(audioContexts[0].oscillators.length, 0);
+  assert.equal(root.querySelector('.roulette-celebration'), null);
+  assert.equal(canvasCalls(), 0);
+  assert.equal(await clock.finish(module.cheer(root, true, .5, { motion: true })), true);
+  assert.ok(root.querySelector('.roulette-celebration').textContent.includes('Giv klassen en hånd!'));
+  assert.ok(audioContexts[0].oscillators.some(node => node.frequency.value === 1046.5));
+  assert.deepEqual(callbacks, [], 'cheering must not draw or save any group');
+  await clock.advance(3500);
+  assert.equal(root.querySelector('.roulette-celebration'), null);
+});
+
 test('trusted pointer activation unlocks audio before interop; opt-in spin emits lever ticks locks and win notes', async t => {
   const { module, root, fire, clock, audioContexts } = await environment(t, { audio: true });
   fire(root.button, 'pointerdown');
@@ -376,6 +520,104 @@ const wordClips = (prefix = '00', suffix = '04') => [
   `/audio/roulette/announcer-v1/prefix-${prefix}.wav`,
   `/audio/roulette/announcer-v1/suffix-${suffix}.wav`
 ];
+const cueClip = id => `/audio/roulette/cues-v1/${id}.wav`;
+
+test('a full group announcement joins introduction, name and celebration and waits for all four clips', async t => {
+  const { module, root, clock, fire, audioContexts, clipRequests } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  const sequence = [cueClip('intro-group'), ...wordClips(), cueClip('celebration-05')];
+  assert.equal(await module.prepareAnnouncement(root, sequence), true);
+  let finished = false;
+  const playing = module.playAnnouncement(root, sequence, .65).then(result => { finished = true; return result; });
+  await clock.advance(20); await clock.advance(20);
+  const sources = audioContexts[0].sources;
+  assert.equal(sources.length, 4);
+  sources.forEach((source, index) => {
+    if (index) assert.ok(Math.abs(source.startedAt - sources[index - 1].startedAt - .645) < .00001);
+  });
+  await clock.advance(1400);
+  assert.equal(finished, false, 'the name ending must not release auto-spin before the celebration finishes');
+  assert.equal(await clock.finish(playing), true);
+  const another = [cueClip('intro-group'), ...wordClips('00', '05'), cueClip('celebration-05')];
+  assert.equal(await clock.finish(module.playAnnouncement(root, another)), true);
+  assert.deepEqual(clipRequests.map(request => request.url), [...sequence, wordClips('00', '05')[1]]);
+  assert.equal(audioContexts[0].decodeCount, 5);
+  assert.ok(clipRequests.every(request => request.options.method === undefined && !request.url.includes('/api/')));
+});
+
+test('all 48 reusable name words and eleven cues remain usable within one classroom session', async t => {
+  const { module, root, clipRequests } = await environment(t, { audio: true });
+  const ids = ['round-start', 'intro-group', 'round-complete', 'round-saved', 'drumroll',
+    ...Array.from({ length: 6 }, (_, index) => `celebration-0${index}`)];
+  for (const id of ids) assert.equal(await module.prepareAnnouncement(root, [cueClip(id)]), true);
+  for (let index = 0; index < 24; index++) {
+    const number = String(index).padStart(2, '0');
+    assert.equal(await module.prepareSpeechSegments(root, wordClips(number, number)), true);
+  }
+  assert.equal(clipRequests.length, 59);
+  assert.equal(await module.prepareAnnouncement(root, [cueClip('round-complete')]), true);
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  assert.equal(clipRequests.length, 59, 'long sessions must keep reusing every decoded recording');
+});
+
+test('only the fixed public cue names and at most four recordings can enter an announcement', async t => {
+  const { module, root, clipRequests } = await environment(t, { audio: true });
+  for (const urls of [[], Array(5).fill(cueClip('round-start')), [cueClip('unknown')],
+    [cueClip('celebration-06')], [cueClip('../round-start')], [cueClip('round-start') + '?text=private'],
+    ['https://example.test/audio/roulette/cues-v1/round-start.wav'], [null]]) {
+    assert.equal(await module.prepareAnnouncement(root, urls), false);
+    assert.equal(await module.playAnnouncement(root, urls), false);
+  }
+  assert.equal(clipRequests.length, 0);
+});
+
+test('missing cue recordings are retryable and cancelling a full announcement stops every scheduled source', async t => {
+  const { module, root, clock, fire, audioContexts, clipResponses } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  const intro = cueClip('intro-group'), sequence = [intro, ...wordClips(), cueClip('celebration-00')];
+  clipResponses.set(intro, { ok: false });
+  assert.equal(await module.prepareAnnouncement(root, sequence), false);
+  clipResponses.delete(intro);
+  assert.equal(await module.prepareAnnouncement(root, sequence), true);
+  const speaking = module.playAnnouncement(root, sequence);
+  await clock.advance(30); await clock.advance(30);
+  assert.equal(audioContexts[0].sources.length, 4);
+  module.cancelSpeech(root);
+  assert.equal(await speaking, false);
+  assert.equal(clock.count(), 0);
+  assert.equal(await clock.finish(module.playAnnouncement(root, [cueClip('round-saved')])), true);
+});
+
+test('cue audio has bounded size, duration and total sequence length before playback', async t => {
+  const { module, root, fire, audioContexts, clipResponses, clipResponse } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  const cue = cueClip('round-start');
+  clipResponses.set(cue, clipResponse(undefined, { 'content-length': String(2 * 1024 * 1024 + 1) }));
+  assert.equal(await module.prepareAnnouncement(root, [cue]), false);
+  clipResponses.delete(cue);
+  audioContexts[0].decodeAudioData = async () => ({ duration: 15.01 });
+  assert.equal(await module.prepareAnnouncement(root, [cue]), false);
+  audioContexts[0].decodeAudioData = async () => ({ duration: 10.5 });
+  assert.equal(await module.playAnnouncement(root, [cue, cueClip('round-complete'), cueClip('round-saved')]), false);
+  assert.equal(audioContexts[0].sources.length, 0);
+  assert.equal(await module.prepareAnnouncement(root, [cue]), true);
+});
+
+test('a round-start announcement survives only an explicitly accompanying visual spin', async t => {
+  const { module, root, clock, fire } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  assert.equal(await module.prepareAnnouncement(root, [cueClip('round-start')]), true);
+  const welcome = module.playAnnouncement(root, [cueClip('round-start')]);
+  await clock.advance(30); await clock.advance(30);
+  const spinning = module.spin(root, ['A', 'B', 'C'], ['A', 'B', 'C'], false, { durationMs: 800, preserveAnnouncement: true });
+  assert.equal(await clock.finish(welcome), true);
+  assert.equal(await clock.finish(spinning), true);
+  const ordinary = module.playAnnouncement(root, [cueClip('round-start')]);
+  await clock.advance(30); await clock.advance(30);
+  const nextSpin = module.spin(root, ['A', 'B', 'C'], ['A', 'B', 'C'], false, { durationMs: 800 });
+  assert.equal(await ordinary, false, 'ordinary spins still cancel an obsolete announcement');
+  assert.equal(await clock.finish(nextSpin), true);
+});
 
 test('recorded words are fetched once and reused across different team names without speech generation', async t => {
   const { module, root, clock, fire, audioContexts, clipRequests } = await environment(t, { audio: true });

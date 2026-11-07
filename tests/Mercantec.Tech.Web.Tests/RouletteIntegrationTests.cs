@@ -30,7 +30,25 @@ public sealed class RouletteIntegrationTests
             Assert.False(page.Find("option[value='rost']").HasAttribute("disabled"));
         });
 
-        Assert.Equal("/js/group-roulette-show.js?v=announcer-v1-2", Assert.Single(module.ImportedScripts));
+        Assert.Equal("/js/group-roulette-show.js?v=announcer-v2-1", Assert.Single(module.ImportedScripts));
+    }
+
+    [Fact]
+    public async Task The_table_view_reads_and_updates_the_same_theme_preference_as_the_platform()
+    {
+        using var api = new RouletteApi();
+        var module = new ControlledModule { Theme = "hacker" };
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.Equal("hacker", page.Find("select[aria-label='Tema i platformen']").GetAttribute("value")));
+
+        await page.Find("select[aria-label='Tema i platformen']").ChangeAsync(new() { Value = "light" });
+
+        Assert.Equal("light", module.Theme);
+        Assert.Equal("light", page.Find("select[aria-label='Tema i platformen']").GetAttribute("value"));
+        Assert.Equal("light", Assert.Single(module.BrowserCalls, call => call.Identifier == "lupTheme.set").Arguments[0]);
+        Assert.Equal(0, module.SpinCount);
+        Assert.DoesNotContain(api.Requests, request => request.Method != HttpMethod.Get);
     }
 
     [Fact]
@@ -261,6 +279,212 @@ public sealed class RouletteIntegrationTests
         Assert.Single(page.FindAll(".roulette-group-card"));
     }
 
+    [Fact]
+    public async Task The_round_intro_runs_with_the_reels_and_finishes_before_the_group_presentation_starts()
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true, MemberCount = 6 };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
+
+        var click = page.Find(".roulette-spin").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpin();
+        await module.WaitForSpeech();
+        Assert.Equal(new[] { CueUrl("round-start") }, AnnouncementClips(module, 0));
+        var options = JsonSerializer.SerializeToElement(Assert.Single(module.Calls, call => call.Identifier == "spin").Arguments[4]);
+        Assert.True(options.GetProperty("preserveAnnouncement").GetBoolean());
+        Assert.False(click.IsCompleted);
+
+        module.CompleteSpin();
+        // The visual spin has ended, but the independently gated intro still owns the microphone.
+        await Task.Delay(75);
+        Assert.Empty(page.FindAll(".roulette-group-card"));
+        Assert.Single(module.Announcements);
+        Assert.False(click.IsCompleted);
+        module.CompleteSpeech();
+        await module.WaitForSpeech();
+
+        var groupName = Assert.Single(page.FindAll(".roulette-group-card h3")).TextContent;
+        var nameClips = Assert.IsType<string[]>(RouletteNameCatalog.GetClipUrls(groupName));
+        var presentation = AnnouncementClips(module, 1);
+        Assert.Equal(4, presentation.Length);
+        Assert.Equal(CueUrl("intro-group"), presentation[0]);
+        Assert.Equal(nameClips, presentation[1..3]);
+        Assert.Contains(RouletteAnnouncementCatalog.All.Where(cue => cue.Id.StartsWith("celebration-", StringComparison.Ordinal)),
+            cue => CueUrl(cue.Id) == presentation[3]);
+        Assert.True(page.Find(".roulette-spin").HasAttribute("disabled"));
+        module.CompleteSpeech();
+        await click.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(2, module.Announcements.Length);
+        Assert.DoesNotContain(api.Requests, request => request.Method != HttpMethod.Get);
+    }
+
+    [Fact]
+    public async Task Auto_spin_waits_for_each_full_presentation_and_the_final_round_announcement()
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true, MemberCount = 6 };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
+        PauseInput(page).Change("0.5");
+
+        var auto = Button(page, "Start auto-spin").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpin();
+        await module.WaitForSpeech();
+        module.CompleteSpeech();
+        module.CompleteSpin();
+        await module.WaitForSpeech();
+        Assert.Equal(4, AnnouncementClips(module, 1).Length);
+        await Task.Delay(750);
+        Assert.Equal(1, module.SpinCount);
+
+        module.CompleteSpeech();
+        await module.WaitForSpin();
+        Assert.Equal(2, module.SpinCount);
+        module.CompleteSpin();
+        await module.WaitForSpeech();
+        Assert.Equal(4, AnnouncementClips(module, 2).Length);
+        module.CompleteSpeech();
+        await module.WaitForSpeech();
+        Assert.Equal(new[] { CueUrl("round-complete") }, AnnouncementClips(module, 3));
+        Assert.False(auto.IsCompleted);
+        Assert.True(Button(page, "Ny runde").HasAttribute("disabled"));
+        Assert.Equal(2, page.FindAll(".roulette-group-card").Count);
+
+        module.CompleteSpeech();
+        await auto.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.False(Button(page, "Ny runde").HasAttribute("disabled"));
+        Assert.Equal(0, module.LocalSpeechCount);
+        Assert.Equal(0, module.BrowserSpeechCount);
+        Assert.DoesNotContain(api.Requests, request => request.Method != HttpMethod.Get);
+    }
+
+    [Fact]
+    public async Task Names_only_mode_uses_the_two_word_clips_without_round_or_celebration_announcements()
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true, MemberCount = 3 };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
+        await page.Find("option[value='names']").ParentElement!.ChangeAsync(new() { Value = "names" });
+
+        var click = page.Find(".roulette-spin").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpin();
+        Assert.Empty(module.Announcements);
+        module.CompleteSpin();
+        await module.WaitForSpeech();
+        Assert.Equal(1, module.LocalSpeechCount);
+        var words = Assert.IsType<string[]>(Assert.Single(module.Calls, call => call.Identifier == "playSpeechSegments").Arguments[1]);
+        Assert.Equal(2, words.Length);
+        module.CompleteSpeech();
+        await click.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Empty(module.Announcements);
+        Assert.Contains("Runden er færdig", page.Find(".roulette-spin").TextContent);
+    }
+
+    [Theory]
+    [InlineData("mute")]
+    [InlineData("preview")]
+    public async Task Muting_or_changing_account_context_cancels_an_intro_without_starting_late_announcements(string action)
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true, MemberCount = 3 };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
+
+        var click = page.Find(".roulette-spin").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpin();
+        await module.WaitForSpeech();
+        if (action == "mute")
+        {
+            await page.Find(".roulette-top-actions button[data-roulette-voice]").ClickAsync(new MouseEventArgs());
+            module.CompleteSpin();
+        }
+        else
+        {
+            context.ViewAs.Enter("preview-student", "Prøveelev", "H2", Guid.NewGuid());
+            page.WaitForAssertion(() => Assert.Contains("Grupperouletten er til underviseren", page.Find("h1").TextContent));
+        }
+        await click.WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Single(module.Announcements);
+        Assert.Equal(0, module.LocalSpeechCount);
+        Assert.Equal(0, module.BrowserSpeechCount);
+        Assert.Contains(module.Calls, call => call.Identifier == (action == "mute" ? "cancelSpeech" : "cancel"));
+        Assert.DoesNotContain(api.Requests, request => request.Method != HttpMethod.Get);
+        if (action == "mute") Assert.Single(page.FindAll(".roulette-group-card"));
+        else Assert.Empty(page.FindAll(".roulette-group-card"));
+    }
+
+    [Theory]
+    [InlineData("Giv en hånd", "celebration-05", true)]
+    [InlineData("Skab spænding", "drumroll", false)]
+    public async Task Classroom_fun_buttons_only_present_their_cue_and_never_draw_or_save_groups(string button, string cue, bool celebration)
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(Button(page, button).HasAttribute("disabled")));
+
+        var click = Button(page, button).ClickAsync(new MouseEventArgs());
+        await module.WaitForSpeech();
+        Assert.Equal(new[] { CueUrl(cue) }, AnnouncementClips(module, 0));
+        Assert.Equal(celebration, module.Calls.Any(call => call.Identifier == "cheer"));
+        Assert.True(page.Find(".roulette-spin").HasAttribute("disabled"));
+        Assert.Equal(0, module.SpinCount);
+        Assert.Empty(page.FindAll(".roulette-group-card"));
+        Assert.DoesNotContain(api.Requests, request => request.Method != HttpMethod.Get);
+        module.CompleteSpeech();
+        await click.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.False(page.Find(".roulette-spin").HasAttribute("disabled"));
+        Assert.DoesNotContain(module.Calls, call => call.Identifier == "saveSession");
+    }
+
+    [Fact]
+    public async Task The_saved_announcement_runs_once_after_a_successful_save_and_never_for_a_failed_attempt()
+    {
+        using var api = new RouletteApi { SpeechAvailable = true, CueBankAvailable = true, MemberCount = 3 };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+        page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
+        var spin = page.Find(".roulette-spin").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpin();
+        await module.WaitForSpeech();
+        module.CompleteSpeech();
+        module.CompleteSpin();
+        await module.WaitForSpeech();
+        module.CompleteSpeech();
+        await module.WaitForSpeech();
+        module.CompleteSpeech();
+        await spin.WaitAsync(TimeSpan.FromSeconds(5));
+
+        api.FailGroupBatch = true;
+        await Button(page, "Gem runden på holdet").ClickAsync(new MouseEventArgs());
+        Assert.Single(api.GroupBatches);
+        Assert.DoesNotContain(module.Announcements, call => AnnouncementClips(call).Contains(CueUrl("round-saved")));
+        api.FailGroupBatch = false;
+        var save = Button(page, "Gem runden på holdet").ClickAsync(new MouseEventArgs());
+        await module.WaitForSpeech();
+        Assert.Equal(2, api.GroupBatches.Count);
+        Assert.Equal(new[] { CueUrl("round-saved") }, AnnouncementClips(module, 3));
+        Assert.Contains("Gemt i", page.Find(".roulette-save-round").TextContent);
+        module.CompleteSpeech();
+        await save.WaitAsync(TimeSpan.FromSeconds(5));
+        await Button(page, "Runden er gemt").ClickAsync(new MouseEventArgs());
+        Assert.Equal(2, api.GroupBatches.Count);
+        Assert.Single(module.Announcements, call => AnnouncementClips(call).Contains(CueUrl("round-saved")));
+    }
+
+    private static string[] AnnouncementClips(ControlledModule module, int index) => AnnouncementClips(module.Announcements[index]);
+    private static string[] AnnouncementClips(JsCall call) => Assert.IsType<string[]>(call.Arguments[1]);
+    private static string CueUrl(string id) => Assert.IsType<string>(RouletteAnnouncementCatalog.GetClipUrl(id));
+
     private static Task<LearningUiTestContext> CreateContext(RouletteApi api, ControlledModule module,
         bool teacher = true, bool preview = false)
     {
@@ -293,10 +517,13 @@ public sealed class RouletteIntegrationTests
         private readonly ConcurrentQueue<TaskCompletionSource<bool>> _speech = new();
         private readonly SemaphoreSlim _spinStarted = new(0), _speechStarted = new(0);
         public ConcurrentQueue<JsCall> Calls { get; } = new();
+        public ConcurrentQueue<JsCall> BrowserCalls { get; } = new();
         public ConcurrentQueue<string> ImportedScripts { get; } = new();
+        public string Theme { get; set; } = "system";
         public int SpinCount => Calls.Count(c => c.Identifier == "spin");
         public int BrowserSpeechCount => Calls.Count(c => c.Identifier == "playBrowserSpeech");
         public int LocalSpeechCount => Calls.Count(c => c.Identifier == "playSpeechSegments");
+        public JsCall[] Announcements => Calls.Where(call => call.Identifier == "playAnnouncement").ToArray();
         public bool SoundAvailable { get; set; } = true;
         public bool ClipsAvailable { get; set; } = true;
         public bool? AudioReady { get; set; }
@@ -315,14 +542,25 @@ public sealed class RouletteIntegrationTests
                     var spin = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _spins.Enqueue(spin);
                     _spinStarted.Release();
-                    result = await spin.Task;
+                    result = await spin.Task.WaitAsync(cancellationToken);
                     break;
                 case "playBrowserSpeech":
                 case "playSpeechSegments":
+                case "playAnnouncement":
                     var speech = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _speech.Enqueue(speech);
                     _speechStarted.Release();
-                    result = await speech.Task;
+                    result = await speech.Task.WaitAsync(cancellationToken);
+                    break;
+                case "cancelSpeech":
+                    while (_speech.TryDequeue(out var pendingSpeech)) pendingSpeech.TrySetResult(false);
+                    break;
+                case "cancel":
+                    while (_spins.TryDequeue(out var pendingSpin)) pendingSpin.TrySetResult(false);
+                    while (_speech.TryDequeue(out var interruptedSpeech)) interruptedSpeech.TrySetResult(false);
+                    break;
+                case "cheer":
+                    result = true;
                     break;
                 case "setSound":
                     result = SoundAvailable;
@@ -373,6 +611,12 @@ public sealed class RouletteIntegrationTests
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
+            if (identifier == "lupTheme.get") return ValueTask.FromResult((TValue)(object)module.Theme);
+            if (identifier == "lupTheme.set")
+            {
+                module.BrowserCalls.Enqueue(new(identifier, args?.ToArray() ?? []));
+                module.Theme = Assert.IsType<string>(args![0]);
+            }
             if (identifier != "import") return browser.InvokeAsync<TValue>(identifier, cancellationToken, args);
             module.ImportedScripts.Enqueue(Assert.IsType<string>(args![0]));
             return ValueTask.FromResult((TValue)(object)module);
@@ -385,6 +629,8 @@ public sealed class RouletteIntegrationTests
         public Guid OtherHoldId { get; } = Guid.NewGuid();
         public bool CanManage { get; set; } = true;
         public bool SpeechAvailable { get; set; }
+        public bool CueBankAvailable { get; set; }
+        public bool FailGroupBatch { get; set; }
         public int MemberCount { get; set; } = 9;
         public Guid CreatedSetId { get; } = Guid.NewGuid();
         public ConcurrentQueue<(HttpMethod Method, string Path)> Requests { get; } = new();
@@ -404,6 +650,8 @@ public sealed class RouletteIntegrationTests
             {
                 if (path == RouletteNameCatalog.ManifestPath)
                     return SpeechAvailable ? Response(VoiceManifest()) : new(HttpStatusCode.NotFound);
+                if (path == RouletteAnnouncementCatalog.ManifestPath)
+                    return CueBankAvailable ? Response(AnnouncementManifest()) : new(HttpStatusCode.NotFound);
                 if (path == "notion/holds") return Response(new[] {
                     new NotionHold(HoldId, "Testholdet", CanManage), new NotionHold(OtherHoldId, "Det nye hold", CanManage) });
                 if (path == $"notion/holds/{HoldId}/members") return Response(_members.Take(MemberCount).ToArray());
@@ -423,6 +671,7 @@ public sealed class RouletteIntegrationTests
             {
                 var body = (await request.Content!.ReadFromJsonAsync<SaveNotionGroupBatch>(cancellationToken))!;
                 GroupBatches.Enqueue(body);
+                if (FailGroupBatch) return new(HttpStatusCode.ServiceUnavailable) { Content = JsonContent.Create(new { error = "try_again" }) };
                 return Response(body.Groups.Select(group => new NotionGroupView(Guid.NewGuid(), HoldId, group.Name, 0,
                     group.MembershipIds.Select(id => new NotionMember(id, _members.Single(member => member.Id == id).DisplayName)).ToArray(),
                     body.GroupSetId)).ToArray());
@@ -437,6 +686,12 @@ public sealed class RouletteIntegrationTests
             version = 1, complete = true, provider = "Røst", style = "Arenaspeaker", sampleRate = 24000,
             clips = RouletteNameCatalog.Starts.Select((text, index) => new { id = $"prefix-{index:00}", text, file = $"prefix-{index:00}.wav" })
                 .Concat(RouletteNameCatalog.Ends.Select((text, index) => new { id = $"suffix-{index:00}", text, file = $"suffix-{index:00}.wav" })).ToArray()
+        };
+
+        private static object AnnouncementManifest() => new
+        {
+            version = 1, complete = true, provider = "Røst", style = "Arenaspeaker", sampleRate = 24000,
+            clips = RouletteAnnouncementCatalog.All.Select(cue => new { id = cue.Id, text = cue.Text, file = cue.File }).ToArray()
         };
     }
 }

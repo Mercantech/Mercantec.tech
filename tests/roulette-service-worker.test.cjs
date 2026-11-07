@@ -22,6 +22,7 @@ async function worker() {
     }
   };
   const assets = ['js/group-roulette-show.js', 'audio/roulette/announcer-v1/manifest.json',
+    'audio/roulette/cues-v1/manifest.json',
     '_framework/app.abcd.wasm', 'js/unrelated.js', 'css/app.css'];
   const sandbox = {
     URL, Request, Response, console: { info() {}, warn() {} },
@@ -48,7 +49,7 @@ async function worker() {
   };
 }
 
-for (const path of ['/js/group-roulette-show.js', '/audio/roulette/announcer-v1/manifest.json']) {
+for (const path of ['/js/group-roulette-show.js', '/audio/roulette/announcer-v1/manifest.json', '/audio/roulette/cues-v1/manifest.json']) {
   test(`${path} uses the deployed network response even with an older cached copy`, async () => {
     const app = await worker();
     app.seed(path, 'old deployment');

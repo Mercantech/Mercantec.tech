@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="roulette-voice-words.json" LogicalName="Mercantec.Tech.Contracts.RouletteWords" />
+    <EmbeddedResource Include="roulette-announcements.json" LogicalName="Mercantec.Tech.Contracts.RouletteAnnouncements" />
   </ItemGroup>
 </Project>

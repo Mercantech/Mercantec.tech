@@ -3,18 +3,51 @@
 const sessions = new WeakMap();
 const palette = ["#ffd561", "#ff7bb7", "#89dccb", "#bba4ff", "#ffab78", "#9dcaff"];
 
+function themePalette(root) {
+  const computed = window.getComputedStyle?.bind(window);
+  if (!computed) return palette;
+  let probe;
+  try {
+    const styles = computed(root);
+    const values = ["--roulette-accent", "--roulette-accent-alt", "--roulette-success"]
+      .map(token => styles.getPropertyValue(token).trim()).filter(Boolean);
+    if (!values.length) return palette;
+    // Resolve platform light-dark()/var() tokens in the current color scheme,
+    // rather than handing an unresolved custom-property expression to canvas.
+    probe = document.createElement("span"); probe.setAttribute("aria-hidden", "true");
+    probe.style.position = "absolute"; probe.style.visibility = "hidden";
+    root.appendChild(probe);
+    const colors = values.map(value => { probe.style.color = value; return computed(probe).color; }).filter(Boolean);
+    return colors.length ? [...new Set(colors)] : palette;
+  } catch { return palette; }
+  finally { probe?.remove(); }
+}
+
 export function initialize(root, callback, settings = {}) {
   if (sessions.has(root)) return;
   const state = { callback, controller: new AbortController(), spinning: false, timers: new Set(), cancelSpin: null,
     audio: null, resuming: null, sound: settings?.sound === true, volume: volume(settings?.volume, .75), effects: new Set(),
     speech: null, browserSpeech: null, speechVersion: 0, preparedSpeech: null, speechSegments: new Map(), strips: new Set(), spinFrame: 0, frame: 0,
-    celebration: null, celebrationTimer: 0, overviewFocus: null, oldOverflow: "", suppressClick: 0 };
+    celebration: null, celebrationTimer: 0, overviewFocus: null, oldOverflow: "", suppressClick: 0, resetLever: null,
+    resizeFrame: 0, resizeObserver: null };
   sessions.set(root, state);
   const options = { signal: state.controller.signal };
+  const queueRefit = () => {
+    if (state.resizeFrame || !root.isConnected || sessions.get(root) !== state) return;
+    state.resizeFrame = requestAnimationFrame(() => {
+      state.resizeFrame = 0;
+      if (root.isConnected && sessions.get(root) === state) refitReels(root, state);
+    });
+  };
+  window.addEventListener?.("resize", queueRefit, options);
+  if (window.ResizeObserver) {
+    state.resizeObserver = new window.ResizeObserver(queueRefit);
+    state.resizeObserver.observe(root);
+  }
   // Unlock the audio context while the browser still has the actual user gesture.
   // Waiting for a Blazor event and then JS interop loses that activation in some browsers.
   const unlockFromGesture = event => {
-    const control = event.target.closest?.(".roulette-spin,.roulette-lever,[data-roulette-audio],[data-roulette-voice],[data-roulette-auto]");
+    const control = event.target.closest?.(".roulette-spin,.roulette-lever,[data-roulette-audio],[data-roulette-voice],[data-roulette-auto],[data-roulette-cheer]");
     if (control && !control.disabled) { unlockAudio(state); try { window.speechSynthesis?.resume(); } catch { } }
   };
   root.addEventListener("pointerdown", unlockFromGesture, { ...options, capture: true });
@@ -22,9 +55,22 @@ export function initialize(root, callback, settings = {}) {
   // The page may still be waiting for authentication. Bind the eventual lever
   // by delegating on the persistent root rather than a transient button.
   let gesture = null;
+  const resetLever = () => {
+    if (!gesture) return;
+    const target = gesture.target, pointerId = gesture.pointerId; gesture = null;
+    target.style.setProperty("--pull", "0px");
+    target.style.setProperty("--lever-pull", "0");
+    target.style.setProperty("--lever-angle", "-11deg");
+    target.classList.remove("is-pulled");
+    try { target.releasePointerCapture?.(pointerId); } catch { }
+  };
+  state.resetLever = () => {
+    if (gesture) state.suppressClick = performance.now() + 600;
+    resetLever();
+  };
   root.addEventListener("pointerdown", event => {
     const target = event.target.closest(".roulette-lever");
-    if (!target || target.disabled || state.spinning) return;
+    if (!target || target.disabled || state.spinning || gesture || event.isPrimary === false || event.button > 0) return;
     gesture = { target, pointerId: event.pointerId, y: event.clientY, pull: 0 };
     try { target.setPointerCapture(event.pointerId); } catch { }
   }, options);
@@ -32,23 +78,28 @@ export function initialize(root, callback, settings = {}) {
     if (!gesture || gesture.pointerId !== event.pointerId) return;
     gesture.pull = Math.max(0, Math.min(65, event.clientY - gesture.y));
     gesture.target.style.setProperty("--pull", `${gesture.pull}px`);
+    gesture.target.style.setProperty("--lever-pull", String(gesture.pull / 65));
     gesture.target.style.setProperty("--lever-angle", `${-11 + gesture.pull * .35}deg`);
+    if (gesture.pull > 3) gesture.target.classList.add("is-pulled");
     if (gesture.pull > 6) event.preventDefault();
   }, options);
   const release = (event, cancelled = false) => {
     if (!gesture || gesture.pointerId !== event.pointerId) return;
-    const released = gesture; gesture = null;
-    released.target.style.setProperty("--pull", "0px");
-    released.target.style.setProperty("--lever-angle", "-11deg");
-    if (!cancelled && released.pull > 23) {
+    const released = gesture;
+    resetLever();
+    // A drag that did not reach the detent is a cancelled pull, not a click.
+    // Keyboard-generated clicks (detail=0) remain available immediately.
+    if (cancelled || released.pull > 6) state.suppressClick = performance.now() + 600;
+    if (!cancelled && released.pull > 23 && !released.target.disabled && !state.spinning && root.isConnected) {
       state.suppressClick = performance.now() + 600;
       state.callback.invokeMethodAsync("SpinFromLever").catch(() => {});
     }
   };
   root.addEventListener("pointerup", event => release(event), options);
   root.addEventListener("pointercancel", event => release(event, true), options);
+  root.addEventListener("lostpointercapture", event => release(event, true), options);
   root.addEventListener("click", event => {
-    if (event.target.closest(".roulette-lever") && performance.now() < state.suppressClick) {
+    if (event.detail !== 0 && event.target.closest(".roulette-lever") && performance.now() < state.suppressClick) {
       event.preventDefault(); event.stopImmediatePropagation();
     }
   }, { ...options, capture: true });
@@ -76,8 +127,28 @@ function fitName(node, viewport) {
   node.style.setProperty("--fit-font", `${Math.max(13, Math.min(max, width / (length * .62)))}px`);
 }
 
+function refitReels(root, state) {
+  // Inline fit sizes belong to the old reel width after a breakpoint/fullscreen
+  // change. Refit both Blazor's restored text and the live JS-owned strips.
+  for (const reel of root.querySelectorAll(".roulette-reel")) {
+    const viewport = reel.querySelector(".roulette-reel-window"), fallback = reel.querySelector(".roulette-reel-name");
+    if (viewport && fallback) fitName(fallback, viewport);
+  }
+  for (const entry of state.strips) {
+    if (!entry.viewport.isConnected) continue;
+    entry.height = Math.max(38, (entry.viewport.clientHeight || 110) * .73);
+    for (const row of entry.rows) {
+      row.style.height = row.style.lineHeight = `${entry.height}px`;
+      fitName(row, entry.viewport);
+    }
+    // Preserve phase and the chosen name during a running or completed spin.
+    positionReel(entry);
+  }
+}
+
 function removeStrips(state) {
   for (const entry of state.strips) {
+    state.resizeObserver?.unobserve(entry.viewport);
     entry.strip.remove();
     entry.reel.classList.remove("has-live-reel", "is-rolling", "is-locked");
   }
@@ -109,6 +180,7 @@ function createReel(state, reel, pool, target, index, duration) {
   reel.classList.remove("is-locked");
   reel.classList.add("has-live-reel", "is-rolling");
   state.strips.add(entry);
+  state.resizeObserver?.observe(viewport);
   positionReel(entry);
   return entry;
 }
@@ -136,7 +208,8 @@ export async function spin(root, names, finalNames, sound, options = {}) {
   const state = sessions.get(root);
   if (!state || state.spinning || !root.isConnected) return false;
   state.spinning = true; state.sound = sound; state.volume = volume(options?.volume, state.volume);
-  cancelSpeech(root, false); removeStrips(state); clearCelebration(state);
+  if (options?.preserveAnnouncement !== true) cancelSpeech(root, false);
+  removeStrips(state); clearCelebration(state);
   const pool = Array.isArray(names) ? names.filter(name => typeof name === "string" && name.length) : [];
   const targets = Array.isArray(finalNames) ? finalNames.filter(name => typeof name === "string") : [];
   if (!targets.length) { state.spinning = false; return false; }
@@ -154,8 +227,9 @@ export async function spin(root, names, finalNames, sound, options = {}) {
       state.timers.clear();
       if (!completed) removeStrips(state);
       if (completed && root.isConnected) {
-        if (motion) celebrate(root, state, motion);
-        showCelebration(root, state, options, motion);
+        const colors = themePalette(root);
+        if (motion) celebrate(root, state, motion, colors);
+        showCelebration(root, state, options, motion, colors);
         [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => tone(state, frequency, .48, "triangle", .065, index * .11));
       }
       resolve(completed);
@@ -308,18 +382,29 @@ export async function playSpeech(root, base64Wav, voiceVolume = .85) {
 
 const segmentPath = /^\/audio\/roulette\/announcer-v1\/(prefix|suffix)-(0[0-9]|1[0-9]|2[0-3])\.wav$/;
 const maxSegmentBytes = 1024 * 1024;
+const cueIds = new Set(["round-start", "intro-group", "round-complete", "round-saved", "drumroll",
+  "celebration-00", "celebration-01", "celebration-02", "celebration-03", "celebration-04", "celebration-05"]);
+function segmentLimits(url) {
+  if (typeof url !== "string") return null;
+  if (segmentPath.test(url)) return { bytes: maxSegmentBytes, seconds: 20 };
+  const cue = /^\/audio\/roulette\/cues-v1\/([a-z0-9-]+)\.wav$/.exec(url);
+  return cue && cueIds.has(cue[1]) ? { bytes: 2 * maxSegmentBytes, seconds: 15 } : null;
+}
 function validSpeechSegments(urls) {
   return Array.isArray(urls) && urls.length === 2 && urls.every(url => typeof url === "string" && segmentPath.test(url))
     && urls[0].includes("/prefix-") && urls[1].includes("/suffix-");
 }
+function validAnnouncement(urls) {
+  return Array.isArray(urls) && urls.length >= 1 && urls.length <= 4 && urls.every(url => segmentLimits(url));
+}
 
-async function segmentBytes(response) {
+async function segmentBytes(response, maxBytes) {
   const length = response.headers.get("content-length");
-  if (length && (!/^\d+$/.test(length) || Number(length) > maxSegmentBytes)) throw new Error("Voice clip is too large");
+  if (length && (!/^\d+$/.test(length) || Number(length) > maxBytes)) throw new Error("Voice clip is too large");
   const reader = response.body?.getReader();
   if (!reader) {
     const bytes = await response.arrayBuffer();
-    if (bytes.byteLength > maxSegmentBytes) throw new Error("Voice clip is too large");
+    if (bytes.byteLength > maxBytes) throw new Error("Voice clip is too large");
     return bytes;
   }
   const chunks = []; let size = 0;
@@ -328,7 +413,7 @@ async function segmentBytes(response) {
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > maxSegmentBytes) throw new Error("Voice clip is too large");
+      if (size > maxBytes) throw new Error("Voice clip is too large");
       chunks.push(value);
     }
   } catch (error) {
@@ -341,9 +426,11 @@ async function segmentBytes(response) {
 }
 
 async function speechSegment(root, state, url) {
+  const limits = segmentLimits(url);
+  if (!limits) return null;
   const cached = state.speechSegments.get(url);
   if (cached) return cached.buffer || await cached.pending;
-  if (!unlockAudio(state) || state.speechSegments.size >= 48) return null;
+  if (!unlockAudio(state) || state.speechSegments.size >= 48 + cueIds.size) return null;
   const entry = { buffer: null, pending: null, controller: new AbortController() };
   state.speechSegments.set(url, entry);
   entry.pending = (async () => {
@@ -353,16 +440,16 @@ async function speechSegment(root, state, url) {
       timeout = setTimeout(() => entry.controller.abort(), 8000);
     });
     const load = async () => { try {
-      // These are public, bundled word recordings. No group name or pupil data
-      // is sent to a speech service, and each word is decoded once per page.
+      // Public, bundled recordings only. No group name or pupil data is sent
+      // to a speech service; each word or announcement is decoded once per page.
       const response = await fetch(url, { signal: entry.controller.signal, mode: "same-origin", credentials: "omit", redirect: "error", cache: "force-cache" });
       if (!response.ok) return null;
-      const bytes = await segmentBytes(response);
+      const bytes = await segmentBytes(response, limits.bytes);
       const header = new Uint8Array(bytes);
       if (header.length < 44 || String.fromCharCode(...header.subarray(0, 4)) !== "RIFF"
           || String.fromCharCode(...header.subarray(8, 12)) !== "WAVE") return null;
       const buffer = await state.audio.decodeAudioData(bytes);
-      if (!buffer || !Number.isFinite(buffer.duration) || buffer.duration <= 0 || buffer.duration > 20
+      if (!buffer || !Number.isFinite(buffer.duration) || buffer.duration <= 0 || buffer.duration > limits.seconds
           || entry.controller.signal.aborted || !root.isConnected || sessions.get(root) !== state
           || state.speechSegments.get(url) !== entry) return null;
       entry.buffer = buffer; return buffer;
@@ -378,18 +465,27 @@ async function speechSegment(root, state, url) {
 }
 
 export async function prepareSpeechSegments(root, urls) {
+  return validSpeechSegments(urls) && await prepareAnnouncement(root, urls);
+}
+
+export async function prepareAnnouncement(root, urls) {
   const state = sessions.get(root);
-  if (!state || !root.isConnected || !validSpeechSegments(urls)) return false;
+  if (!state || !root.isConnected || !validAnnouncement(urls)) return false;
   const buffers = await Promise.all(urls.map(url => speechSegment(root, state, url)));
-  return buffers.every(Boolean) && root.isConnected && sessions.get(root) === state;
+  return buffers.every(Boolean) && buffers.reduce((seconds, buffer) => seconds + buffer.duration, (buffers.length - 1) * .045) <= 30
+    && root.isConnected && sessions.get(root) === state;
 }
 
 export async function playSpeechSegments(root, urls, voiceVolume = .85) {
+  return validSpeechSegments(urls) && await playAnnouncement(root, urls, voiceVolume);
+}
+
+export async function playAnnouncement(root, urls, voiceVolume = .85) {
   const state = sessions.get(root);
-  if (!state || !root.isConnected || !validSpeechSegments(urls)) return false;
+  if (!state || !root.isConnected || !validAnnouncement(urls)) return false;
   cancelSpeech(root, false);
   const version = state.speechVersion;
-  if (!await prepareSpeechSegments(root, urls) || !await ensureAudio(state)
+  if (!await prepareAnnouncement(root, urls) || !await ensureAudio(state)
       || version !== state.speechVersion || sessions.get(root) !== state || !root.isConnected) return false;
   const buffers = urls.map(url => state.speechSegments.get(url)?.buffer);
   if (buffers.some(buffer => !buffer)) return false;
@@ -497,12 +593,13 @@ function clearCelebration(state) {
   clearTimeout(state.celebrationTimer); state.celebrationTimer = 0;
   state.celebration?.remove(); state.celebration = null;
 }
-function showCelebration(root, state, options, motion) {
+function showCelebration(root, state, options, motion, colors = palette) {
   if (!options?.groupName || !motion) return;
   clearCelebration(state);
   const suppliedIndex = Number(options.celebrationIndex);
   const index = Number.isFinite(suppliedIndex) ? Math.abs(Math.trunc(suppliedIndex)) % celebrations.length : 0;
-  const [effect, symbol, color] = celebrations[index];
+  const [effect, symbol] = celebrations[index];
+  const color = colors[index % colors.length];
   const overlay = document.createElement("div"); overlay.className = `roulette-celebration roulette-celebration-${effect}`;
   overlay.setAttribute("aria-hidden", "true"); overlay.style.setProperty("--celebration-color", color);
   const title = document.createElement("strong"); title.className = "roulette-celebration-title"; title.textContent = options.groupName;
@@ -521,7 +618,7 @@ function showCelebration(root, state, options, motion) {
   state.celebrationTimer = setTimeout(() => clearCelebration(state), 3200);
 }
 
-function celebrate(root, state, motion) {
+function celebrate(root, state, motion, colors = palette) {
   if (!motion) return;
   const canvas = root.querySelector(".roulette-confetti"); if (!canvas) return;
   const context = canvas.getContext("2d"); if (!context) return;
@@ -533,7 +630,7 @@ function celebrate(root, state, motion) {
   const particles = Array.from({ length: 125 }, () => ({
     x: width * .44, y: height * .45, vx: (Math.random() - .5) * 16, vy: -5 - Math.random() * 12,
     rotation: Math.random() * Math.PI, spin: (Math.random() - .5) * .3, size: 4 + Math.random() * 7,
-    color: palette[Math.floor(Math.random() * palette.length)]
+    color: colors[Math.floor(Math.random() * colors.length)]
   }));
   const start = performance.now(); let last = start;
   const draw = now => {
@@ -549,6 +646,23 @@ function celebrate(root, state, motion) {
     else context.clearRect(0, 0, width, height);
   };
   state.frame = requestAnimationFrame(draw);
+}
+
+export async function cheer(root, sound = true, voiceVolume = .75, options = {}) {
+  const state = sessions.get(root);
+  if (!state || !root.isConnected || state.spinning) return false;
+  state.sound = sound; state.volume = volume(voiceVolume, state.volume);
+  const motion = typeof options?.motion === "boolean" ? options.motion : !reducedMotion();
+  const colors = themePalette(root);
+  clearCelebration(state);
+  if (motion) {
+    celebrate(root, state, motion, colors);
+    showCelebration(root, state, { groupName: "Giv klassen en hånd!", celebrationText: "Godt samarbejde fortjener bifald", celebrationIndex: 4 }, motion, colors);
+  }
+  if (await ensureAudio(state)) {
+    [392, 523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => tone(state, frequency, .36, "triangle", .055, index * .085));
+  }
+  return root.isConnected && sessions.get(root) === state;
 }
 
 export async function setOverview(root, open) {
@@ -585,7 +699,7 @@ export function closeOrReturn(url) {
 }
 export function cancel(root) {
   const state = sessions.get(root); if (!state) return;
-  cancelSpeech(root); stopEffects(state); clearCelebration(state);
+  cancelSpeech(root); stopEffects(state); clearCelebration(state); state.resetLever?.();
   state.cancelSpin?.();
   for (const timer of state.timers) clearTimeout(timer); state.timers.clear();
   cancelAnimationFrame(state.spinFrame); state.spinFrame = 0; removeStrips(state);
@@ -598,6 +712,8 @@ export function cancel(root) {
 export async function dispose(root) {
   const state = sessions.get(root); if (!state) return;
   cancel(root); state.controller.abort();
+  state.resizeObserver?.disconnect();
+  cancelAnimationFrame(state.resizeFrame); state.resizeFrame = 0;
   state.speechSegments.clear();
   try { await state.audio?.close(); } catch { }
   sessions.delete(root);

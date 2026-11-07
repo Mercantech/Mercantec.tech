@@ -55,11 +55,12 @@ public partial class Roulette
     private int _amount = 3, _generation;
     private bool _loading = true, _canManage, _spinning, _saving, _sound = true, _showGroups, _overview, _confirmNewRound, _avoidPairs = true, _includeLegacy, _disposed, _restorePending, _leaving;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
-    private static readonly string[] Celebrations = ["Et dream team er landet!", "Gruppemagien har talt!", "Klar til nye eventyr!", "Sikke en stjernekombination!", "Jackpot til samarbejdet!", "Klassen har fået et nyt superhold!", "Samarbejdet får vinger!", "Et stjernehold er født!", "Der er magi i maskinen!", "Sæt kurs mod nye idéer!", "Koden til samarbejdet er knækket!", "Giv jeres nye hold en hånd!"];
+    private static readonly RouletteAnnouncementCue[] CelebrationCues = RouletteAnnouncementCatalog.All.Where(cue => cue.Id.StartsWith("celebration-", StringComparison.Ordinal)).ToArray();
+    private static readonly string[] Celebrations = CelebrationCues.Select(cue => cue.Text).ToArray();
     private static readonly string[] GroupColors = ["#ffd561", "#ff7bb7", "#89dccb", "#bba4ff", "#ffab78", "#9dcaff"];
     private bool MayManage => _canManage && Auth.IsAuthenticated && !ViewAs.IsActive;
     private bool HasUnsavedRounds => !_leaving && MayManage && _rounds.Any(r => r.Revealed > 0 && !r.Saved);
-    private bool CanStartSpin => MayManage && !_spinning && !_saving && !_testingVoice && _selected.Count > 0 && (_current is null || !_current.Complete);
+    private bool CanStartSpin => MayManage && !_spinning && !_speaking && !_cheering && !_saving && !_testingVoice && _selected.Count > 0 && (_current is null || !_current.Complete);
     private bool CanSpin => CanStartSpin && !_autoSpin;
     private double AudioVolume => Math.Clamp(_volume / 100d, 0, 1);
     private int DisplayRound => _current?.Number ?? (_rounds.LastOrDefault()?.Number ?? 0) + 1;
@@ -69,8 +70,8 @@ public partial class Roulette
     private int ProgressPercent => SelectedCount == 0 ? 0 : (int)Math.Round(CurrentAssignedCount * 100d / SelectedCount);
     private string[] SlotNames => _stageNames;
     private string BackHref => _returnContext?.View("groups") ?? WorkspaceNavigation.Hold(HoldId, "groups");
-    private string MachineStatus => _speaking ? _speechPreparation is { IsCompleted: false } ? "Henter navneklip…" : "Læser gruppen op…" : _spinning ? "Navnene ruller…" : _autoWaiting ? "Pause før næste gruppe" : _current?.Complete == true ? "Alle er fordelt!" : SelectedCount == 0 ? "Vælg deltagere" : _current is null ? "Klar til første spin" : $"Gruppe {_current.Revealed + 1} venter";
-    private string SpinLabel => _speaking ? "Oplæser…" : _spinning ? "Spinder…" : _current?.Complete == true ? "Runden er færdig" : _current is null ? "Spin første gruppe" : "Spin næste gruppe";
+    private string MachineStatus => _reelsRolling ? "Navnene ruller…" : _speaking ? "Arenaspeakeren er på…" : _spinning ? "Gruppen lander…" : _autoWaiting ? "Pause før næste gruppe" : _current?.Complete == true ? "Alle er fordelt!" : SelectedCount == 0 ? "Vælg deltagere" : _current is null ? "Klar til første spin" : $"Gruppe {_current.Revealed + 1} venter";
+    private string SpinLabel => _reelsRolling ? "Spinder…" : _speaking ? "Oplæser…" : _spinning ? "Et øjeblik…" : _current?.Complete == true ? "Runden er færdig" : _current is null ? "Spin første gruppe" : "Spin næste gruppe";
     private IEnumerable<NotionHoldMember> RemainingMembers
     {
         get
@@ -102,6 +103,7 @@ public partial class Roulette
                 _module = await Js.InvokeAsync<IJSObjectReference>("import", RouletteNameCatalog.ScriptPath);
                 _callbacks = DotNetObjectReference.Create(this);
                 await _module.InvokeVoidAsync("initialize", _root, _callbacks, new { sound = _sound, volume = AudioVolume });
+                await InitializeAppearance();
                 var capabilities = await _module.InvokeAsync<EffectCapabilities?>("capabilities", _root);
                 _reducedMotion = capabilities?.ReducedMotion == true;
                 _animate = !_reducedMotion;
@@ -143,7 +145,7 @@ public partial class Roulette
         if (_context == next) return;
         StopAuto(); CancelVoicePreparation();
         _context = next; _scope.Cancel(); _scope.Dispose(); _scope = new(); var generation = ++_generation;
-        _speaking = _testingVoice = _checkingVoice = false;
+        _speaking = _testingVoice = _checkingVoice = _reelsRolling = _cheering = _announcementsAvailable = false;
         _loading = true; _canManage = _spinning = _saving = _overview = false; _members = []; _groups = []; _sets = [];
         _selected.Clear(); _historySets.Clear(); _rounds.Clear(); _current = null; _lastWinner = null; _stageNames = ["Klar?", "Klar?", "Klar?"]; _holdName = _storageKey = ""; _error = _notice = null;
         if (_module is not null) { try { await _module.InvokeVoidAsync("cancel", _root); } catch (JSException) { } }
@@ -209,19 +211,26 @@ public partial class Roulette
         if (_current is null && !PrepareRound()) return false;
         var round = _current!; var group = round.Groups[round.Revealed]; var generation = _generation;
         var celebrationIndex = Random.Shared.Next(Celebrations.Length);
+        var visualCelebration = Random.Shared.Next(12);
         QueueSpeech(group, generation);
         var pool = RemainingMembers.Select(m => m.DisplayName).ToArray();
         var targets = group.MemberIds.Take(6).Select(MemberName).ToArray();
-        _stageNames = Enumerable.Repeat("…", targets.Length).ToArray(); _spinning = true; _lastWinner = null;
+        _stageNames = Enumerable.Repeat("…", targets.Length).ToArray(); _spinning = _reelsRolling = true; _lastWinner = null;
         await InvokeAsync(StateHasChanged);
+        var roundIntro = round.Revealed == 0 && FullAnnouncements ? PlayCue("round-start", generation) : Task.FromResult(false);
         try
         {
-            if (_module is not null && !await _module.InvokeAsync<bool>("spin", _scope.Token, _root, pool, targets, _sound,
-                new { durationMs = (int)(Math.Clamp(_spinSeconds, 1.5, 12) * 1000), volume = AudioVolume, motion = _animate, celebrationIndex, groupName = group.Name, celebrationText = Celebrations[celebrationIndex] }))
+            var animated = _module is null || await _module.InvokeAsync<bool>("spin", _scope.Token, _root, pool, targets, _sound,
+                new { durationMs = (int)(Math.Clamp(_spinSeconds, 1.5, 12) * 1000), volume = AudioVolume, motion = _animate, celebrationIndex = visualCelebration, groupName = group.Name, celebrationText = Celebrations[celebrationIndex], preserveAnnouncement = round.Revealed == 0 && FullAnnouncements });
+            _reelsRolling = false;
+            if (!animated)
             {
+                if (_module is not null) await _module.InvokeVoidAsync("cancelSpeech", _root);
+                await roundIntro;
                 if (CurrentContext(generation)) _error = "Spinnet blev afbrudt. Prøv igen; gruppen er endnu ikke afsløret.";
                 return false;
             }
+            await roundIntro;
             if (!CurrentContext(generation) || !MayManage) return false;
             if (_module is not null && _sound)
             {
@@ -235,7 +244,8 @@ public partial class Roulette
             if (!CurrentContext(generation) || !MayManage) return false;
             _stageNames = targets; round.Revealed++; _lastWinner = group; _celebration = Celebrations[celebrationIndex]; _showGroups = true;
             await Persist();
-            await SpeakWinner(group, generation);
+            await SpeakWinner(group, generation, CelebrationCues[celebrationIndex].Id);
+            if (round.Complete && CurrentContext(generation)) await PlayCue("round-complete", generation);
             return true;
         }
         catch (OperationCanceledException) when (!CurrentContext(generation) || _scope.IsCancellationRequested) { return false; }
@@ -251,9 +261,15 @@ public partial class Roulette
         }
         finally
         {
+            if (CurrentContext(generation) && !roundIntro.IsCompleted && _module is not null)
+            {
+                try { await _module.InvokeVoidAsync("cancelSpeech", _root); }
+                catch (JSException) { }
+            }
+            await roundIntro;
             if (CurrentContext(generation))
             {
-                _spinning = _speaking = false;
+                _spinning = _speaking = _reelsRolling = false;
                 // The draggable lever enters through JSInvokable, which does not
                 // get Blazor's automatic render after an EventCallback completes.
                 await InvokeAsync(StateHasChanged);
@@ -290,7 +306,7 @@ public partial class Roulette
     }
     private async Task NewRound()
     {
-        if (_spinning || _saving || _autoSpin || _testingVoice) return;
+        if (_spinning || _speaking || _cheering || _saving || _autoSpin || _testingVoice) return;
         if (_current is { Complete: false, Revealed: > 0 }) { _confirmNewRound = true; return; }
         await ConfirmNewRound();
     }
@@ -311,7 +327,7 @@ public partial class Roulette
     }
     private async Task SaveRound(ShowRound? round)
     {
-        if (round is null || !MayManage || _saving || _spinning || !round.Complete || round.Saved) return;
+        if (round is null || !MayManage || _saving || _spinning || _speaking || _cheering || !round.Complete || round.Saved) return;
         if (string.IsNullOrWhiteSpace(round.SetName) || round.SetName.Length > 120) { _error = "Giv gruppesættet et navn på højst 120 tegn."; return; }
         var generation = _generation; var ct = _scope.Token; _saving = true; _error = null;
         try
@@ -328,6 +344,7 @@ public partial class Roulette
             if (!CurrentContext(generation)) return;
             round.Saved = true; round.SavedGroupIds = saved.Select(g => g.Id).ToArray(); _groups = [.. _groups, .. saved];
             _notice = $"Runde {round.Number} er gemt som {round.Groups.Length} grupper i {round.SetName}."; await Persist();
+            await PlayCue("round-saved", generation);
         }
         catch (Exception ex) when (ex is NotionException or LearningException or HttpRequestException or OperationCanceledException)
         {
@@ -353,8 +370,10 @@ public partial class Roulette
             var status = await Speech.Status(_scope.Token);
             if (!CurrentContext(generation)) return;
             _speechStatus = status;
+            _announcementsAvailable = status.Available && await Speech.AnnouncementsAvailable(_scope.Token);
+            if (!CurrentContext(generation)) return;
             if (!_voiceSelected) _voiceMode = status.Available ? "rost" : "browser";
-            _voiceMessage = status.Available ? "Arenaspeakeren er klar. Navneleddene er indtalt på forhånd og sættes sammen efter hvert spin." : status.Message ?? "De forudindtalte navneled er ikke klar. Du kan bruge browserstemmen.";
+            _voiceMessage = status.Available ? _announcementsAvailable ? "Arenaspeakeren er klar til hele showet." : "Gruppenavnene er klar. De ekstra opråb er ikke klar endnu." : status.Message ?? "De forudindtalte navneled er ikke klar. Du kan bruge browserstemmen.";
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
         {
@@ -393,7 +412,7 @@ public partial class Roulette
             return null;
         }
     }
-    private async Task SpeakWinner(ShowGroup group, int generation)
+    private async Task SpeakWinner(ShowGroup group, int generation, string? celebrationCue = null)
     {
         if (!_speechEnabled || _module is null || !CurrentContext(generation)) return;
         _speaking = true;
@@ -401,6 +420,7 @@ public partial class Roulette
         var voiceMode = _voiceMode;
         try
         {
+            if (await TryPresentWinner(group.Name, celebrationCue ?? "celebration-00", generation)) return;
             QueueSpeech(group, generation);
             var audio = voiceMode == "rost" && _preparedGroupName == group.Name && _speechPreparation is not null
                 ? await _speechPreparation : null;
@@ -438,7 +458,7 @@ public partial class Roulette
     }
     private async Task TestVoice()
     {
-        if (!MayManage || _module is null || _spinning || _saving || _autoSpin || _testingVoice) return;
+        if (!MayManage || _module is null || _spinning || _speaking || _cheering || _saving || _autoSpin || _testingVoice) return;
         var generation = _generation;
         _testingVoice = true; _speechEnabled = true;
         try { await SpeakWinner(new ShowGroup { Name = "NeonOpfinderne" }, generation); }

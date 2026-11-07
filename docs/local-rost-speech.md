@@ -80,6 +80,27 @@ udgivne filer skal blive cachebare.
 Når lydbanken er bygget og inkluderet i webudgaven, behøver hverken underviserens
 computer eller webserveren at køre Røst under undervisningen.
 
+## Opråb under showet
+
+Rundestart, gruppeintro, afslutning, gemning, spænding og seks korte fejringer har
+deres egen bank med 11 forudindtalte klip. De faste tekster og ID'er ligger i
+`shared/roulette-announcements.json` og deles med appen gennem
+`RouletteAnnouncementCatalog`. De indeholder kun generiske fraser.
+
+```powershell
+& 'D:\Spilstudiet\Chatterbox\.venv\Scripts\python.exe' .\scripts\generate_roulette_voice.py --cues
+```
+
+Denne tilstand skriver kun til `web/wwwroot/audio/roulette/cues-v1/`; den eksisterende
+bank med gruppenavnenes 48 ord bliver ikke ændret. Klippene er begrænset til 15
+sekunder, mono PCM16 ved 24 kHz og 1 MiB pr. fil. Manifestet markeres først klar,
+når alle 11 validerede klip er færdige. En afbrudt kørsel genoptager de manglende
+fraser og genbruger den lokale råcache ligesom ordbanken.
+
+Appens almindelige showopråb bruger disse filer. Kun navne kan vælges for kortere
+oplæsning. Hverken opråbene eller gruppenavnene genereres under et spin, og
+elevnavne sendes aldrig til generatoren gennem dette flow.
+
 ## Speakerstil og en mere begejstret indtaling
 
 Standardstemmen får arenaeffekter i den færdige bank. Det er lydbehandling, ikke

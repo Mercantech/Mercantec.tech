@@ -25,7 +25,7 @@ public sealed class RouletteSpeechClientTests
 
         var request = Assert.Single(handler.Requests);
         Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.Equal("https://platform.test" + RouletteNameCatalog.ManifestPath + "?v=announcer-v1-2", request.Uri.ToString());
+        Assert.Equal("https://platform.test" + RouletteNameCatalog.ManifestPath + "?v=announcer-v2-1", request.Uri.ToString());
     }
 
     [Fact]
@@ -101,6 +101,63 @@ public sealed class RouletteSpeechClientTests
         Assert.Contains("browserstemmen", result.Message);
     }
 
+    [Fact]
+    public async Task The_complete_announcement_bank_is_fetched_from_the_frontend_with_the_runtime_version()
+    {
+        using var handler = new BankHandler(Manifest(), announcements: AnnouncementManifest());
+        using var http = new HttpClient(handler) { BaseAddress = new("https://different-api.test/api/") };
+
+        Assert.True(await new RouletteSpeechClient(http, new PlatformNavigation()).AnnouncementsAvailable(CancellationToken.None));
+
+        var request = Assert.Single(handler.Requests);
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal("https://platform.test/audio/roulette/cues-v1/manifest.json?v=announcer-v2-1", request.Uri.ToString());
+    }
+
+    [Theory]
+    [InlineData("incomplete")]
+    [InlineData("missing")]
+    [InlineData("duplicate")]
+    [InlineData("external_url")]
+    [InlineData("wrong_word")]
+    public async Task Invalid_announcement_entries_disable_extra_cues_while_the_word_bank_remains_usable(string defect)
+    {
+        var announcements = AnnouncementManifest();
+        var clips = announcements["clips"]!.AsArray();
+        switch (defect)
+        {
+            case "incomplete": announcements["complete"] = false; break;
+            case "missing": clips.RemoveAt(0); break;
+            case "duplicate": clips[1] = clips[0]!.DeepClone(); break;
+            case "external_url": clips[0]!["file"] = "https://external.test/cue.wav"; break;
+            case "wrong_word": clips[0]!["text"] = "Forkert opråb"; break;
+        }
+        using var handler = new BankHandler(Manifest(), announcements: announcements);
+        using var http = new HttpClient(handler) { BaseAddress = new("https://platform.test/api/") };
+        var speech = new RouletteSpeechClient(http, new PlatformNavigation());
+
+        Assert.True((await speech.Status(CancellationToken.None)).Available);
+        Assert.False(await speech.AnnouncementsAvailable(CancellationToken.None));
+        Assert.NotNull(speech.Prepare("NeonOpfinderne"));
+        Assert.Equal(2, handler.Requests.Count);
+        Assert.All(handler.Requests, request => Assert.Equal(HttpMethod.Get, request.Method));
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task An_unavailable_extra_bank_does_not_disable_the_recorded_group_names(HttpStatusCode cueStatus)
+    {
+        using var handler = new BankHandler(Manifest(), announcementStatus: cueStatus);
+        using var http = new HttpClient(handler) { BaseAddress = new("https://platform.test/api/") };
+        var speech = new RouletteSpeechClient(http, new PlatformNavigation());
+
+        Assert.True((await speech.Status(CancellationToken.None)).Available);
+        Assert.False(await speech.AnnouncementsAvailable(CancellationToken.None));
+        Assert.NotNull(speech.Prepare("NeonOpfinderne"));
+        Assert.Equal(2, handler.Requests.Count);
+    }
+
     private static JsonObject Manifest() => JsonSerializer.SerializeToNode(new
     {
         version = 1, complete = true, provider = "Røst", style = "Arenaspeaker", sampleRate = 24000,
@@ -108,13 +165,24 @@ public sealed class RouletteSpeechClientTests
             .Concat(RouletteNameCatalog.Ends.Select((text, index) => new { id = $"suffix-{index:00}", text, file = $"suffix-{index:00}.wav" })).ToArray()
     })!.AsObject();
 
-    private sealed class BankHandler(JsonObject? manifest, string? rawBody = null) : HttpMessageHandler
+    private static JsonObject AnnouncementManifest() => JsonSerializer.SerializeToNode(new
+    {
+        version = 1, complete = true, provider = "Røst", style = "Arenaspeaker", sampleRate = 24000,
+        clips = RouletteAnnouncementCatalog.All.Select(cue => new { id = cue.Id, text = cue.Text, file = cue.File }).ToArray()
+    })!.AsObject();
+
+    private sealed class BankHandler(JsonObject? manifest, string? rawBody = null, JsonObject? announcements = null,
+        HttpStatusCode? announcementStatus = null) : HttpMessageHandler
     {
         public List<(HttpMethod Method, Uri Uri)> Requests { get; } = [];
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Requests.Add((request.Method, request.RequestUri!));
+            if (request.RequestUri!.AbsolutePath == RouletteAnnouncementCatalog.ManifestPath)
+                return Task.FromResult(announcementStatus is { } status ? new HttpResponseMessage(status)
+                    : announcements is null ? new HttpResponseMessage(HttpStatusCode.NotFound)
+                    : new(HttpStatusCode.OK) { Content = JsonContent.Create(announcements) });
             if (rawBody is not null)
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(rawBody) });
             return Task.FromResult(manifest is null ? new HttpResponseMessage(HttpStatusCode.NotFound)

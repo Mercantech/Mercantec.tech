@@ -7,13 +7,13 @@
 <PageTitle>Grupperoulette · @(_holdName.Length == 0 ? "LUP" : _holdName)</PageTitle>
 <NavigationLock ConfirmExternalNavigation="HasUnsavedRounds" OnBeforeInternalNavigation="BeforeNavigation" />
 
-<div class="roulette-app" @ref="_root">
+<div class="lup roulette-app" @ref="_root">
     <div class="roulette-ambient" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="roulette-shell">
         <header class="roulette-topbar">
             <a class="roulette-back" href="@BackHref"><span aria-hidden="true">‹</span> Tilbage til holdet</a>
             <span class="roulette-hold">@_holdName</span>
-            <div class="roulette-top-actions"><button type="button" class="roulette-quiet" data-roulette-audio @onclick="ToggleSound" aria-pressed="@(_sound ? "true" : "false")">@(_sound ? "♫ Lyde til" : "♪ Lyde fra")</button><button type="button" class="roulette-quiet" data-roulette-voice @onclick="ToggleSpeech" aria-pressed="@(_speechEnabled ? "true" : "false")">@(_speechEnabled ? "Oplæsning til" : "Oplæsning fra")</button><button type="button" class="roulette-quiet" @onclick="Fullscreen">⛶ Fuld skærm</button><button type="button" class="roulette-quiet" @onclick="CloseWindow">Afslut tavlevisning</button></div>
+            <div class="roulette-top-actions"><label class="roulette-theme-switch"><span>Tema</span><select value="@_appearanceTheme" @onchange="AppearanceThemeChanged" aria-label="Tema i platformen">@foreach (var theme in Mercantec.Tech.Web.Theming.ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label><button type="button" class="roulette-quiet" data-roulette-audio @onclick="ToggleSound" aria-pressed="@(_sound ? "true" : "false")">@(_sound ? "♫ Lyde til" : "♪ Lyde fra")</button><button type="button" class="roulette-quiet" data-roulette-voice @onclick="ToggleSpeech" aria-pressed="@(_speechEnabled ? "true" : "false")">@(_speechEnabled ? "Oplæsning til" : "Oplæsning fra")</button><button type="button" class="roulette-quiet" @onclick="Fullscreen">⛶ Fuld skærm</button><button type="button" class="roulette-quiet" @onclick="CloseWindow">Afslut tavlevisning</button></div>
         </header>
 
         @if (!Auth.IsInitialized || _loading)
@@ -54,10 +54,32 @@
                             <button type="button" class="roulette-spin" disabled="@(!CanSpin)" @onclick="Spin"><span class="roulette-spin-icon" aria-hidden="true">↻</span><span>@SpinLabel</span></button>
                             <div class="roulette-counter"><span>Tilbage</span><strong>@RemainingCount <small>navne</small></strong></div>
                         </div>
-                        <button type="button" class="roulette-lever" disabled="@(!CanSpin)" @onclick="Spin" aria-label="Træk håndtaget for at danne næste gruppe"><span class="roulette-lever-knob"></span><span class="roulette-lever-stick"></span><span class="roulette-lever-base"></span><span class="roulette-lever-caption">Træk!</span></button>
+                        <button type="button" class="roulette-lever" disabled="@(!CanSpin)" @onclick="Spin" aria-label="Træk håndtaget for at danne næste gruppe">
+                            <svg class="roulette-lever-art" viewBox="0 0 156 240" aria-hidden="true" focusable="false">
+                                <defs>
+                                    <linearGradient id="roulette-lever-metal" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#566377" /><stop offset=".28" stop-color="#e9f0f4" /><stop offset=".48" stop-color="#fff" /><stop offset=".7" stop-color="#a5b5c5" /><stop offset="1" stop-color="#4c5a6d" /></linearGradient>
+                                    <linearGradient id="roulette-lever-mount" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c2cdd8" /><stop offset=".47" stop-color="#718195" /><stop offset="1" stop-color="#354255" /></linearGradient>
+                                    <radialGradient id="roulette-lever-ball" cx=".3" cy=".23" r=".8"><stop offset="0" class="roulette-lever-highlight" /><stop offset=".38" class="roulette-lever-color" /><stop offset="1" class="roulette-lever-shade" /></radialGradient>
+                                </defs>
+                                <rect class="roulette-lever-mount-shadow" x="4" y="137" width="61" height="81" rx="15" />
+                                <rect class="roulette-lever-mount" x="2" y="131" width="61" height="81" rx="15" fill="url(#roulette-lever-mount)" />
+                                <path class="roulette-lever-mount-inset" d="M13 141h39v59H13z" />
+                                <circle class="roulette-lever-screw" cx="13" cy="142" r="3" /><circle class="roulette-lever-screw" cx="52" cy="201" r="3" />
+                                <g class="roulette-lever-arm">
+                                    <path class="roulette-lever-stick-shadow" d="M34 173L58 43" />
+                                    <path class="roulette-lever-stick" d="M34 173L58 43" stroke="url(#roulette-lever-metal)" />
+                                    <circle class="roulette-lever-knob-shadow" cx="59" cy="40" r="27" />
+                                    <circle class="roulette-lever-knob" cx="58" cy="34" r="27" fill="url(#roulette-lever-ball)" />
+                                    <path class="roulette-lever-glint" d="M43 24c3-5 8-8 14-8" />
+                                </g>
+                                <circle class="roulette-lever-pivot-rim" cx="34" cy="173" r="20" fill="url(#roulette-lever-metal)" />
+                                <circle class="roulette-lever-pivot" cx="34" cy="173" r="12" /><path class="roulette-lever-pivot-slot" d="M29 168l10 10" />
+                            </svg>
+                            <span class="roulette-lever-caption">Træk!</span>
+                        </button>
                     </div>
                     <p class="roulette-keyboard-hint">Tryk mellemrum, klik på knappen, eller træk i håndtaget.</p>
-                    <div class="roulette-show-controls"><button type="button" class="roulette-secondary" data-roulette-auto aria-pressed="@(_autoSpin ? "true" : "false")" disabled="@(!_autoSpin && !CanStartSpin)" @onclick="ToggleAutoSpin">@(_autoSpin ? "Stop auto-spin" : "Start auto-spin")</button><p class="roulette-help">@(_autoSpin ? "Maskinen fortsætter efter oplæsningen og pausen. Stop afslutter den aktuelle gruppe først." : "Auto-spin afslører alle grupper efter tur med oplæsning og en pause imellem.")</p></div>
+                    <div class="roulette-show-controls"><button type="button" class="roulette-secondary" data-roulette-auto aria-pressed="@(_autoSpin ? "true" : "false")" disabled="@(!_autoSpin && !CanStartSpin)" @onclick="ToggleAutoSpin">@(_autoSpin ? "Stop auto-spin" : "Start auto-spin")</button><button type="button" class="roulette-quiet" data-roulette-voice disabled="@(!CanCheer)" @onclick="Drumroll">Skab spænding</button><button type="button" class="roulette-secondary roulette-cheer" data-roulette-voice disabled="@(!CanCheer)" @onclick="Cheer"><span aria-hidden="true">✦</span> Giv en hånd</button><p class="roulette-help">@(_autoSpin ? "Maskinen fortsætter efter oplæsningen og pausen. Stop afslutter den aktuelle gruppe først." : "Auto-spin afslører alle grupper efter tur med oplæsning og en pause imellem.")</p></div>
                     @if (_reducedMotion && !_animate) { <div class="roulette-show-controls" role="note"><p class="roulette-help">Din browser foretrækker reduceret bevægelse. Du kan vælge animationer til denne tavlevisning.</p><button type="button" class="roulette-secondary" disabled="@(_spinning || _autoSpin)" @onclick="EnableAnimations">Slå animationer til</button></div> }
                     <div class="roulette-winner @(_lastWinner is not null ? "is-visible" : "")" role="status" aria-live="polite">
                         @if (_lastWinner is not null)
@@ -69,15 +91,16 @@
                 </section>
 
                 <aside class="roulette-side" aria-label="Deltagere, indstillinger og grupper">
-                    <div class="roulette-panel-actions"><button type="button" class="roulette-secondary" disabled="@(_spinning || _saving || _autoSpin || _testingVoice)" @onclick="NewRound">↻ Ny runde</button><button type="button" class="roulette-secondary" disabled="@(_spinning || _autoSpin || !_rounds.Any(r => r.Revealed > 0))" @onclick="OpenOverview">▦ Overblik</button></div>
+                    <div class="roulette-panel-actions"><button type="button" class="roulette-secondary" disabled="@(_spinning || _speaking || _cheering || _saving || _autoSpin || _testingVoice)" @onclick="NewRound">↻ Ny runde</button><button type="button" class="roulette-secondary" disabled="@(_spinning || _speaking || _cheering || _autoSpin || !_rounds.Any(r => r.Revealed > 0))" @onclick="OpenOverview">▦ Overblik</button></div>
                     <details class="roulette-settings roulette-presentation-settings">
                         <summary>Lyd, stemme og tempo <span aria-hidden="true">⌄</span></summary>
                         <div class="roulette-settings-body">
                             <label class="roulette-check"><input type="checkbox" @bind="_animate" disabled="@(_spinning || _autoSpin)" /> Animationer</label>
                             <label>Lydstyrke<input type="range" min="0" max="100" step="5" @bind="_volume" @bind:event="oninput" @bind:after="VolumeChanged" /><span class="roulette-help">@_volume % · gælder lyde og oplæsning</span></label>
-                            <label>Stemme<select @bind="_voiceMode" @bind:after="VoiceModeChanged" disabled="@(_spinning || _testingVoice || _autoSpin)"><option value="browser">Browserens lokale stemme</option><option value="rost" disabled="@(!_speechStatus.Available)">Røst · arenaspeaker @(!_speechStatus.Available ? "(ikke klar)" : "")</option></select></label>
+                            <label>Stemme<select @bind="_voiceMode" @bind:after="VoiceModeChanged" disabled="@(_spinning || _speaking || _cheering || _testingVoice || _autoSpin)"><option value="browser">Browserens lokale stemme</option><option value="rost" disabled="@(!_speechStatus.Available)">Røst · arenaspeaker @(!_speechStatus.Available ? "(ikke klar)" : "")</option></select></label>
+                            <label>Opråb<select @bind="_announcementMode" @bind:after="AnnouncementModeChanged" disabled="@(_spinning || _speaking || _cheering || _testingVoice || _autoSpin)"><option value="full">Hele showet</option><option value="names">Kun gruppenavne</option></select></label>
                             <p class="roulette-help" role="status">@_voiceMessage</p>
-                            <div class="roulette-voice-actions"><button type="button" class="roulette-secondary" data-roulette-voice @onclick="TestVoice" disabled="@(_spinning || _saving || _testingVoice || _autoSpin)">@(_testingVoice ? "Prøver stemmen…" : "Prøv stemme")</button><button type="button" class="roulette-quiet" @onclick="CheckVoice" disabled="@_checkingVoice">@(_checkingVoice ? "Kontrollerer…" : "Kontrollér lydklip")</button></div>
+                            <div class="roulette-voice-actions"><button type="button" class="roulette-secondary" data-roulette-voice @onclick="TestVoice" disabled="@(_spinning || _speaking || _cheering || _saving || _testingVoice || _autoSpin)">@(_testingVoice ? "Prøver stemmen…" : "Prøv stemme")</button><button type="button" class="roulette-quiet" @onclick="CheckVoice" disabled="@_checkingVoice">@(_checkingVoice ? "Kontrollerer…" : "Kontrollér lydklip")</button></div>
                             <div class="roulette-settings-grid"><label>Spintid (sekunder)<input type="number" min="1.5" max="12" step="0.5" @bind="_spinSeconds" /></label><label>Pause mellem grupper (sekunder)<input type="number" min="0.5" max="15" step="0.5" @bind="_pauseSeconds" /></label></div>
                         </div>
                     </details>
@@ -123,7 +146,7 @@
                     }
                     @if (_current is not null && _current.Revealed > 0)
                     {
-                        <div class="roulette-save-round"><span>@(_current.Saved ? $"Gemt i {_current.SetName}" : _current.Complete ? "Runden er klar til at blive gemt" : "Afslør resten af grupperne før du gemmer")</span>@if (!_current.Saved) { @RoundSaveSettings(_current) }<button type="button" class="roulette-primary" disabled="@(_saving || _spinning || !_current.Complete || _current.Saved)" @onclick="() => SaveRound(_current)">@(_saving ? "Gemmer…" : _current.Saved ? "✓ Runden er gemt" : "Gem runden på holdet")</button></div>
+                        <div class="roulette-save-round"><span>@(_current.Saved ? $"Gemt i {_current.SetName}" : _current.Complete ? "Runden er klar til at blive gemt" : "Afslør resten af grupperne før du gemmer")</span>@if (!_current.Saved) { @RoundSaveSettings(_current) }<button type="button" class="roulette-primary" disabled="@(_saving || _spinning || _speaking || _cheering || !_current.Complete || _current.Saved)" @onclick="() => SaveRound(_current)">@(_saving ? "Gemmer…" : _current.Saved ? "✓ Runden er gemt" : "Gem runden på holdet")</button></div>
                     }
                 </aside>
             </main>
@@ -144,6 +167,6 @@
 </div>
 
 @code {
-    private RenderFragment GroupCard(ShowRound round, ShowGroup group, bool large) => @<article class="roulette-group-card @(large ? "large" : null)" style="--group-color:@GroupColor(group.Number)"><div class="roulette-group-card-top"><span>Gruppe @group.Number</span><button type="button" class="roulette-reroll" disabled="@(round.Saved || round.SaveAttempted || _saving || _spinning)" aria-label="@($"Giv {group.Name} et nyt gruppenavn")" title="@(round.Saved ? "Navnet er gemt. Redigér det fra holdets grupper." : round.SaveAttempted ? "Gentag gemningen før du ændrer navnet." : "Nyt fjollet gruppenavn")" @onclick="() => Reroll(round, group)">↻ Nyt navn</button></div><h3>@group.Name</h3><ul>@foreach (var id in group.MemberIds) { <li><span aria-hidden="true">◆</span> @MemberName(id)</li> }</ul></article>;
+    private RenderFragment GroupCard(ShowRound round, ShowGroup group, bool large) => @<article class="roulette-group-card @(large ? "large" : null)" style="--group-color:@GroupColor(group.Number)"><div class="roulette-group-card-top"><span>Gruppe @group.Number</span><button type="button" class="roulette-reroll" disabled="@(round.Saved || round.SaveAttempted || _saving || _spinning || _speaking || _cheering)" aria-label="@($"Giv {group.Name} et nyt gruppenavn")" title="@(round.Saved ? "Navnet er gemt. Redigér det fra holdets grupper." : round.SaveAttempted ? "Gentag gemningen før du ændrer navnet." : "Nyt fjollet gruppenavn")" @onclick="() => Reroll(round, group)">↻ Nyt navn</button></div><h3>@group.Name</h3><ul>@foreach (var id in group.MemberIds) { <li><span aria-hidden="true">◆</span> @MemberName(id)</li> }</ul></article>;
     private RenderFragment RoundSaveSettings(ShowRound round) => @<div class="roulette-destination">@if (round.SaveAttempted) { <p class="roulette-help">Gemningen er startet i <strong>@round.SetName</strong>. Prøv Gem igen for at kontrollere resultatet uden at oprette dubletter.</p> } else { <label>Gem runden i<select value="@(round.TargetSetId?.ToString() ?? "")" @onchange="e => ChangeDestination(round, e)" disabled="@_saving"><option value="">Et nyt gruppesæt</option>@foreach (var set in _sets.Where(s => !s.Archived)) { <option value="@set.Id">@set.Name</option> }</select></label>@if (round.TargetSetId is null) { <label>Navn til det nye gruppesæt<input @bind="round.SetName" maxlength="120" disabled="@_saving" /></label> } }</div>;
 }

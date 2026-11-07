@@ -1,9 +1,12 @@
 """Offline pipeline checks with synthetic waveforms, never published voice assets."""
 from array import array
+import contextlib
+import io
 import json
 import math
 from pathlib import Path
 import tempfile
+import sys
 import unittest
 from unittest.mock import patch
 import urllib.error
@@ -114,6 +117,68 @@ class WordBankTests(unittest.TestCase):
                 bank.validate_endpoint(value)
         with self.assertRaises(ValueError):
             bank.NoRedirect().redirect_request(None, None, 302, "", {}, "http://example.com")
+
+    def test_announcement_catalog_has_fixed_generic_ids_and_rejects_missing_or_duplicate_cues(self):
+        path = bank.ROOT / "shared" / "roulette-announcements.json"
+        cues = bank.announcements(path)
+        self.assertEqual(11, len(cues))
+        self.assertEqual({"id": "intro-group", "text": "Giv en kæmpe hånd til!", "file": "intro-group.wav"}, cues[1])
+        invalid = self.output / "invalid-cues.json"
+        source = json.loads(path.read_text(encoding="utf-8"))
+        source["cues"][-1] = source["cues"][0]
+        invalid.write_text(json.dumps(source), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            bank.announcements(invalid)
+        source["cues"] = source["cues"][:-1]
+        invalid.write_text(json.dumps(source), encoding="utf-8")
+        with self.assertRaises(ValueError):
+            bank.announcements(invalid)
+
+    def test_announcement_mode_publishes_only_the_new_cue_bank_and_reuses_complete_clips(self):
+        catalog = (bank.ROOT / "shared" / "roulette-announcements.json").read_text(encoding="utf-8")
+        (self.output / "shared").mkdir()
+        (self.output / "shared" / "roulette-announcements.json").write_text(catalog, encoding="utf-8")
+        existing = self.output / "web" / "wwwroot" / "audio" / "roulette" / "announcer-v1" / "manifest.json"
+        existing.parent.mkdir(parents=True)
+        existing.write_bytes(b"existing word bank must not change")
+
+        def response(base, route, payload=None):
+            return json.dumps(self.health).encode() if route == "/health" else synthetic_word()
+
+        with patch.object(bank, "ROOT", self.output), patch.object(sys, "argv", ["generate_roulette_voice.py", "--cues"]), \
+                patch.object(bank, "request_json", side_effect=response) as request, contextlib.redirect_stdout(io.StringIO()):
+            bank.main()
+            self.assertEqual(12, request.call_count)  # health plus exactly eleven generic announcements
+            self.assertEqual("Giv en kæmpe hånd til!", request.call_args_list[2].args[2]["text"])
+            request.reset_mock()
+            bank.main()
+            self.assertEqual(1, request.call_count)  # only readiness; no repeated generation
+        manifest_path = existing.parent.parent / "cues-v1" / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertTrue(manifest["complete"])
+        self.assertEqual(11, len(manifest["clips"]))
+        self.assertEqual(b"existing word bank must not change", existing.read_bytes())
+
+    def test_interrupted_cue_bank_is_not_ready_and_resumes_only_missing_announcements(self):
+        cues = bank.announcements(bank.ROOT / "shared" / "roulette-announcements.json")
+        with patch.object(bank, "request_json", side_effect=[synthetic_word(), urllib.error.URLError("offline")]), \
+                contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(urllib.error.URLError):
+                bank.build_bank("http://127.0.0.1:8091", self.output, cues, self.health, cue_bank=True)
+        manifest = json.loads((self.output / "manifest.json").read_text(encoding="utf-8"))
+        self.assertFalse(manifest["complete"])
+        self.assertEqual(1, len(manifest["clips"]))
+        with patch.object(bank, "request_json", return_value=synthetic_word()) as request, contextlib.redirect_stdout(io.StringIO()):
+            manifest = bank.build_bank("http://127.0.0.1:8091", self.output, cues, self.health, cue_bank=True)
+            self.assertEqual(10, request.call_count)
+        self.assertTrue(manifest["complete"])
+
+    def test_longer_announcement_is_bounded_without_relaxing_single_word_limit(self):
+        audio = bank.encode_wav(array("h", [7000, -7000] * (bank.SAMPLE_RATE * 11 // 2)))
+        with self.assertRaises(ValueError):
+            bank.decode_wav(audio)
+        self.assertEqual(bank.SAMPLE_RATE * 11, len(bank.decode_wav(audio, bank.MAX_CUE_SECONDS)))
+        self.assertLess(len(bank.decode_wav(bank.prepare_word(audio, bank.MAX_CUE_SECONDS), bank.MAX_CUE_SECONDS)), bank.SAMPLE_RATE * 15)
 
 
 if __name__ == "__main__":

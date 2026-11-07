@@ -20,6 +20,7 @@ function isRouletteRuntimeAsset(url) {
     return url.origin === baseUrl.origin && (
         url.pathname === '/js/group-roulette-show.js'
         || url.pathname === '/audio/roulette/announcer-v1/manifest.json'
+        || url.pathname === '/audio/roulette/cues-v1/manifest.json'
     );
 }
 

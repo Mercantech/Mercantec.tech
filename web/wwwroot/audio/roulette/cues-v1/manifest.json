@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "complete": true,
+  "provider": "Røst",
+  "style": "Arenaspeaker",
+  "sampleRate": 24000,
+  "model": "CoRal-project/roest-v3-chatterbox-500m",
+  "referenceVoice": false,
+  "generation": "1fcb0dbd18fe6ec20d9a4b107763bf69050a5ae0d0576b0c6631279da245d2ac",
+  "clips": [
+    {
+      "id": "round-start",
+      "text": "Så er det nu. Hvem bliver klassens næste dream team?",
+      "file": "round-start.wav",
+      "sha256": "3a6ccaa9c67c69ac27af023e2ef7aaffd8f733ae23d332e73f2b6e4386317af6",
+      "durationMs": 2875
+    },
+    {
+      "id": "intro-group",
+      "text": "Giv en kæmpe hånd til!",
+      "file": "intro-group.wav",
+      "sha256": "9e952af9e5b8dfdbc6939de11b2cb91699d4c2bb59bc21aa30df2ad43f0fed5d",
+      "durationMs": 2205
+    },
+    {
+      "id": "round-complete",
+      "text": "Alle er landet i en gruppe. Giv hinanden en highfive!",
+      "file": "round-complete.wav",
+      "sha256": "4abc434d9f01f718fe15ecb996f87404e967a92e59b23c33526f0a87b0f571a6",
+      "durationMs": 2785
+    },
+    {
+      "id": "round-saved",
+      "text": "Holdene er gemt. Nu kan eventyret begynde!",
+      "file": "round-saved.wav",
+      "sha256": "eff29258ac0a88a9b90545632ca9186cf628e2d5112b39a93e1604444f181e83",
+      "durationMs": 2125
+    },
+    {
+      "id": "drumroll",
+      "text": "Kan I mærke spændingen?",
+      "file": "drumroll.wav",
+      "sha256": "8cdf3ec002f7e758fa8f06a7f5bb82979da23bebf4b39354f329baac8154fbf8",
+      "durationMs": 2105
+    },
+    {
+      "id": "celebration-00",
+      "text": "Et dream team er landet!",
+      "file": "celebration-00.wav",
+      "sha256": "932204947b70bb4a2aac448a0bb7a3f278904334daa6bfd03ddd0f64b48dadfd",
+      "durationMs": 2025
+    },
+    {
+      "id": "celebration-01",
+      "text": "Gruppemagien har talt!",
+      "file": "celebration-01.wav",
+      "sha256": "7add816e6116dfc0c5754158f4f6429cf5a7a05f955a534323a7ea1caefbfc0d",
+      "durationMs": 1425
+    },
+    {
+      "id": "celebration-02",
+      "text": "Klar til nye eventyr!",
+      "file": "celebration-02.wav",
+      "sha256": "66b8a47d0c220d195ac8f516b70aa35c5e08f6651dbd2442c8f252f9aaebf4c8",
+      "durationMs": 1565
+    },
+    {
+      "id": "celebration-03",
+      "text": "Jackpot til samarbejdet!",
+      "file": "celebration-03.wav",
+      "sha256": "e64141d9acb7dc9ed8cc9e4eb18d74dff8da451342bdebb83147ce85dec3230c",
+      "durationMs": 1565
+    },
+    {
+      "id": "celebration-04",
+      "text": "Et stjernehold er født!",
+      "file": "celebration-04.wav",
+      "sha256": "ba9e78b280f409d4ca25d9d685bd640165389564015a4a9ef5eca457bf4259af",
+      "durationMs": 1405
+    },
+    {
+      "id": "celebration-05",
+      "text": "Giv jeres nye hold en hånd!",
+      "file": "celebration-05.wav",
+      "sha256": "244b23876503a4491e23a8321e06816636dbe44031e313c13e34f614591e138c",
+      "durationMs": 1375
+    }
+  ]
+}

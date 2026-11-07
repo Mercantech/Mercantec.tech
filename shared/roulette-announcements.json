@@ -1,0 +1,15 @@
+{
+  "cues": [
+    { "id": "round-start", "text": "Så er det nu. Hvem bliver klassens næste dream team?" },
+    { "id": "intro-group", "text": "Giv en kæmpe hånd til!" },
+    { "id": "round-complete", "text": "Alle er landet i en gruppe. Giv hinanden en highfive!" },
+    { "id": "round-saved", "text": "Holdene er gemt. Nu kan eventyret begynde!" },
+    { "id": "drumroll", "text": "Kan I mærke spændingen?" },
+    { "id": "celebration-00", "text": "Et dream team er landet!" },
+    { "id": "celebration-01", "text": "Gruppemagien har talt!" },
+    { "id": "celebration-02", "text": "Klar til nye eventyr!" },
+    { "id": "celebration-03", "text": "Jackpot til samarbejdet!" },
+    { "id": "celebration-04", "text": "Et stjernehold er født!" },
+    { "id": "celebration-05", "text": "Giv jeres nye hold en hånd!" }
+  ]
+}
