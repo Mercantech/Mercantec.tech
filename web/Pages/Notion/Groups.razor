@@ -7,7 +7,7 @@
 
 <PageTitle>Holdets grupper · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne holdets grupper.</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="@Auth.LoginPath()">Log ind</a> for at åbne holdets grupper.</p> }
 else
 {
     <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Mine hold</a><span>›</span><a href="@WorkspaceHref("groups")">Klassen</a><span>›</span><span>Elever og grupper</span></nav><h1>Holdets grupper</h1></div><a class="secondary" href="@WorkspaceHref()">Holdets indhold</a></header>

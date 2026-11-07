@@ -8,7 +8,7 @@
 
 <PageTitle>Åbner hold · LUP</PageTitle>
 @if (_error is not null) { <p role="alert">@_error <a href="/courses">Alle hold</a></p> }
-else if (Auth.IsInitialized && !Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne holdet.</p> }
+else if (Auth.IsInitialized && !Auth.IsAuthenticated) { <p><a href="@Auth.LoginPath()">Log ind</a> for at åbne holdet.</p> }
 else { <p role="status">Åbner holdet…</p> }
 
 @code {

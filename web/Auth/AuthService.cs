@@ -44,7 +44,8 @@ public sealed class AuthService(
                 var ok = await RefreshAsync(refresh);
                 if (!ok)
                 {
-                    await LogoutLocalAsync();
+                    await tokens.ClearTokensAsync();
+                    ClearLocalState();
                     IsInitialized = true;
                     Notify();
                     return;
@@ -52,7 +53,8 @@ public sealed class AuthService(
             }
             else
             {
-                await LogoutLocalAsync();
+                await tokens.ClearTokensAsync();
+                ClearLocalState();
                 IsInitialized = true;
                 Notify();
                 return;
@@ -67,8 +69,27 @@ public sealed class AuthService(
         Notify();
     }
 
-    public async Task BeginLoginAsync()
+    public string LoginPath() => AuthReturnPath.LoginUrl(CurrentReturnPath());
+
+    private string? CurrentReturnPath()
     {
+        var path = "/" + navigation.ToBaseRelativePath(navigation.Uri);
+        if (AuthReturnPath.Normalize(path) is { } current) return current;
+        var uri = navigation.ToAbsoluteUri(navigation.Uri);
+        if (!uri.AbsolutePath.TrimEnd('/').Equals("/login", StringComparison.OrdinalIgnoreCase)) return null;
+        return AuthReturnPath.Normalize(System.Web.HttpUtility.ParseQueryString(uri.Query)["returnUrl"]);
+    }
+
+    public async Task<string?> ConsumeLoginReturnPathAsync(string? explicitPath = null)
+    {
+        var stored = await tokens.ConsumeLoginReturnPathAsync();
+        return AuthReturnPath.Normalize(explicitPath) ?? AuthReturnPath.Normalize(stored);
+    }
+
+    public async Task BeginLoginAsync(string? returnPath = null)
+    {
+        var target = AuthReturnPath.Normalize(returnPath) ?? CurrentReturnPath();
+        if (target is not null) await tokens.SetLoginReturnPathAsync(target);
         var verifier = Pkce.CreateVerifier();
         var challenge = Pkce.CreateChallenge(verifier);
         var state = Pkce.CreateState();
@@ -149,6 +170,7 @@ public sealed class AuthService(
         // ellers logger SSO brugeren stille ind igen.
         await tokens.ClearTokensAsync();
         await tokens.ClearPkceAsync();
+        await tokens.ClearLoginReturnPathAsync();
         ClearLocalState();
         IsInitialized = true;
         Notify();

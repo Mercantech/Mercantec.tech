@@ -18,7 +18,7 @@
     }
     else if (Auth.IsAuthenticated)
     {
-        <header class="page-title"><div><h1>Log ind</h1><p>Sender dig til dit dashboard…</p></div></header>
+        <header class="page-title"><div><h1>Log ind</h1><p>Sender dig videre…</p></div></header>
     }
     else
     {
@@ -28,25 +28,31 @@
 </section>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")] public string? ReturnUrl { get; set; }
     private bool _busy;
+    private bool _redirecting;
     private string? _error;
 
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuth;
-        RedirectIfAuthenticated();
     }
 
-    private void OnAuth() => InvokeAsync(() =>
+    protected override Task OnParametersSetAsync() => RedirectIfAuthenticated();
+
+    private void OnAuth() => InvokeAsync(async () =>
     {
-        RedirectIfAuthenticated();
+        await RedirectIfAuthenticated();
         StateHasChanged();
     });
 
-    private void RedirectIfAuthenticated()
+    private async Task RedirectIfAuthenticated()
     {
-        if (Auth.IsInitialized && Auth.IsAuthenticated)
-            Nav.NavigateTo(Redirect.PostLoginPath());
+        if (Auth.IsInitialized && Auth.IsAuthenticated && !_redirecting)
+        {
+            _redirecting = true;
+            Nav.NavigateTo(await Auth.ConsumeLoginReturnPathAsync(ReturnUrl) ?? Redirect.PostLoginPath(), replace: true);
+        }
     }
 
     private async Task StartLogin()
@@ -58,7 +64,7 @@
         _error = null;
         try
         {
-            await Auth.BeginLoginAsync();
+            await Auth.BeginLoginAsync(ReturnUrl);
         }
         catch (Exception ex)
         {

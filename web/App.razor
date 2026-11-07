@@ -12,7 +12,7 @@
             else if (!Auth.IsAuthenticated && !PublicPageAccess.Allows(Nav.ToBaseRelativePath(Nav.Uri))
                 && !ExtensionEmojiDraft.IsImportPath(Nav.ToBaseRelativePath(Nav.Uri)))
             {
-                <LayoutView Layout="@typeof(MainLayout)"><PageTitle>Log ind · LUP</PageTitle><header class="page-title"><div><h1>Log ind</h1><p>Denne side kræver login.</p></div></header><a class="action" href="/login">Log ind</a></LayoutView>
+                <LayoutView Layout="@typeof(MainLayout)"><PageTitle>Log ind · LUP</PageTitle><header class="page-title"><div><h1>Log ind</h1><p>Denne side kræver login.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a></LayoutView>
             }
             else
             {

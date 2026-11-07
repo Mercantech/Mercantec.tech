@@ -12,7 +12,7 @@
 }
 else if (!Auth.IsAuthenticated)
 {
-    <p>Du skal være logget ind. <a href="/login">Log ind</a></p>
+    <p>Du skal være logget ind. <a href="@Auth.LoginPath()">Log ind</a></p>
 }
 else if (Item is null)
 {

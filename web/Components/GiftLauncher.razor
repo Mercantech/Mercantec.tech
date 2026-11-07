@@ -10,7 +10,7 @@
     {
         @if (!Auth.IsAuthenticated)
         {
-            @if (_selected is null) { <div class="gift-welcome"><span class="gift-welcome-art"><UiIcon Name="gift" /></span><h3>Gør en andens dag lidt varmere</h3><p>Log ind for at vælge en modtager og sende en julehilsen i en pakke.</p><a href="/login" class="gift-primary" @onclick="Close">Log ind</a><button class="gift-secondary" @onclick="Preview">Se gaveoplevelsen</button></div> }
+            @if (_selected is null) { <div class="gift-welcome"><span class="gift-welcome-art"><UiIcon Name="gift" /></span><h3>Gør en andens dag lidt varmere</h3><p>Log ind for at vælge en modtager og sende en julehilsen i en pakke.</p><a href="@Auth.LoginPath()" class="gift-primary" @onclick="Close">Log ind</a><button class="gift-secondary" @onclick="Preview">Se gaveoplevelsen</button></div> }
         }
         else
         {

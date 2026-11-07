@@ -10,7 +10,7 @@
 @implements IAsyncDisposable
 <PageTitle>Afstemninger · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at se afstemninger.</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="@Auth.LoginPath()">Log ind</a> for at se afstemninger.</p> }
 else if (!Redirect.ShowsTeacherChrome) { <div class="poll-empty"><UiIcon Name="shield" /><h1>Afstemninger for undervisere</h1><p>Du kan finde holdets afstemninger under Undervisning på holdets side.</p><a class="action" href="/courses">Mine hold</a></div> }
 else
 {

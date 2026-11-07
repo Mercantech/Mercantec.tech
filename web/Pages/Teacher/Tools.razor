@@ -4,7 +4,7 @@
 
 <PageTitle>Underviserværktøjer · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Log ind for at fortsætte.</p></div></header><a class="action" href="/login">Log ind</a> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Log ind for at fortsætte.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
 else if (!Redirect.ShowsTeacherChrome) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Denne side er for undervisere.</p></div></header><a class="secondary" href="@Redirect.PostLoginPath()">Til dit overblik</a> }
 else
 {

@@ -9,7 +9,7 @@
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
 else if (!Auth.IsAuthenticated)
 {
-    <section class="notion-welcome panel"><h1>Holdets indhold</h1><p>Log ind for at åbne undervisningssider fra dine hold.</p><a class="action" href="/login">Log ind</a></section>
+    <section class="notion-welcome panel"><h1>Holdets indhold</h1><p>Log ind for at åbne undervisningssider fra dine hold.</p><a class="action" href="@Auth.LoginPath()">Log ind</a></section>
 }
 else
 {

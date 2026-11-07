@@ -15,7 +15,7 @@
 <PageTitle>Dit overblik · LUP</PageTitle>
 
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
+else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="@Auth.LoginPath()">Log ind</a></p> }
 else if (!CanUseStudentUi) { <p><a href="@Redirect.PostLoginPath()">Gå til dit overblik</a></p> }
 else
 {
@@ -140,7 +140,7 @@ else
 
         if (!Auth.IsAuthenticated)
         {
-            Nav.NavigateTo("/login");
+            Nav.NavigateTo(Auth.LoginPath());
             return;
         }
 

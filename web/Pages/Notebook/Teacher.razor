@@ -8,7 +8,7 @@
 
 <PageTitle>Elevnotesbøger · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne elevnotesbøger.</p> }
+else if (!Auth.IsAuthenticated) { <p><a href="@Auth.LoginPath()">Log ind</a> for at åbne elevnotesbøger.</p> }
 else if (Redirect.CurrentAppRole() != AppRole.Underviser || ViewAs.IsActive) { <p>Siden åbnes med din egen underviseradgang. <a href="/student">Til elevvisningen</a></p> }
 else
 {

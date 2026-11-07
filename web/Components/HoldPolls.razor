@@ -8,7 +8,7 @@
     <div class="hold-polls-heading"><div><h2>Holdets afstemninger</h2>@if (_hold is not null) { <p>@_hold.Name</p> }</div>@if (MayManage && !_creating) { <button type="button" class="action" @onclick="BeginCreate">Ny afstemning</button> }</div>
     @if (_error is not null) { <div class="poll-error" role="alert">@_error <button type="button" class="secondary" @onclick="Load">Prøv igen</button></div> }
     @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-    else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at se holdets afstemninger.</p> }
+    else if (!Auth.IsAuthenticated) { <p><a href="@Auth.LoginPath()">Log ind</a> for at se holdets afstemninger.</p> }
     else if (_polls is null && _error is null) { <p role="status">Henter holdets afstemninger…</p> }
     else if (_creating && MayManage && _hold is not null)
     {

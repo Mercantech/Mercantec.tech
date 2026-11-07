@@ -8,7 +8,7 @@
 <PageTitle>@Title · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
 else if (BadgeId is not null) { <PublicBadgeRequirements BadgeId="@BadgeId" /> }
-else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
+else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="@Auth.LoginPath()">Log ind</a></p> }
 else if (Quest is not null) {
     <CourseNavigation Course="Course!" Current="@Quest.Name" />
     <header class="page-title"><div><span class="pill">@Quest.Type quest</span><h1>@Quest.Name</h1><p>@Course!.Name</p></div></header>

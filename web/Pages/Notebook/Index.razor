@@ -9,7 +9,7 @@
 <NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
 <link rel="stylesheet" href="/notion-editor/editor.css" />
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <section class="panel"><h1>Din notesbog</h1><p>Log ind for at skrive noter og logbog.</p><a class="action" href="/login">Log ind</a></section> }
+else if (!Auth.IsAuthenticated) { <section class="panel"><h1>Din notesbog</h1><p>Log ind for at skrive noter og logbog.</p><a class="action" href="@Auth.LoginPath()">Log ind</a></section> }
 else if (ViewAs.IsActive) { <section class="panel"><h1>Notesbøger</h1><p>Afslut elevvisningen for at åbne elevens notesbog med din egen underviseradgang.</p><a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a></section> }
 else
 {

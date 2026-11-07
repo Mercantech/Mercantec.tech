@@ -13,7 +13,7 @@
 }
 else if (!Auth.IsAuthenticated)
 {
-    <h1>Quests og afleveringer</h1><p><a href="/login">Log ind</a> for at åbne dine opgaver og afleveringer.</p>
+    <h1>Quests og afleveringer</h1><p><a href="@Auth.LoginPath()">Log ind</a> for at åbne dine opgaver og afleveringer.</p>
 }
 else
 {

@@ -40,7 +40,7 @@ else
 
         if (!Auth.IsAuthenticated)
         {
-            Nav.NavigateTo("/login");
+            Nav.NavigateTo(Auth.LoginPath());
             return;
         }
 

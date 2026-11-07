@@ -22,7 +22,7 @@
         }
         else if (!Auth.IsAuthenticated)
         {
-            <section class="roulette-gate"><h1>Log ind for at spinde</h1><p>Grupperouletten bruger eleverne på dit hold.</p><a class="roulette-primary" href="/login">Log ind</a></section>
+            <section class="roulette-gate"><h1>Log ind for at spinde</h1><p>Grupperouletten bruger eleverne på dit hold.</p><a class="roulette-primary" href="@Auth.LoginPath()">Log ind</a></section>
         }
         else if (!MayManage)
         {

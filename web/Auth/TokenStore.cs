@@ -29,6 +29,15 @@ public sealed class TokenStore(IJSRuntime js)
     public async Task ClearPkceAsync() =>
         await js.InvokeVoidAsync("mercantecAuth.clearPkce");
 
+    public async Task SetLoginReturnPathAsync(string path) =>
+        await js.InvokeVoidAsync("mercantecAuth.setLoginReturnPath", path);
+
+    public async Task<string?> ConsumeLoginReturnPathAsync() =>
+        await js.InvokeAsync<string?>("mercantecAuth.consumeLoginReturnPath");
+
+    public async Task ClearLoginReturnPathAsync() =>
+        await js.InvokeVoidAsync("mercantecAuth.clearLoginReturnPath");
+
     private sealed class TokenBag
     {
         [JsonPropertyName("access")]

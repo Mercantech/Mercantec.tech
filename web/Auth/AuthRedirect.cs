@@ -5,7 +5,7 @@ public sealed class AuthRedirect(AuthService auth, RoleResolver roles, ViewAsStu
     public string PostLoginPath()
     {
         if (!auth.IsAuthenticated)
-            return "/login";
+            return auth.LoginPath();
 
         if (viewAs.IsActive)
             return "/student";

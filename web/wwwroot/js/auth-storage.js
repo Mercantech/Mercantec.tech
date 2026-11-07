@@ -29,6 +29,22 @@ window.mercantecAuth = {
   clearPkce() {
     sessionStorage.removeItem('mt_pkce_verifier');
     sessionStorage.removeItem('mt_oauth_state');
+  },
+  setLoginReturnPath(path) {
+    sessionStorage.setItem('mt_login_return', JSON.stringify({ path, expiresAt: Date.now() + 30 * 60 * 1000 }));
+  },
+  consumeLoginReturnPath() {
+    const raw = sessionStorage.getItem('mt_login_return');
+    sessionStorage.removeItem('mt_login_return');
+    try {
+      const value = JSON.parse(raw);
+      const now = Date.now();
+      return typeof value?.path === 'string' && Number.isFinite(value.expiresAt)
+        && value.expiresAt > now && value.expiresAt <= now + 30 * 60 * 1000 ? value.path : null;
+    } catch { return null; }
+  },
+  clearLoginReturnPath() {
+    sessionStorage.removeItem('mt_login_return');
   }
 };
 

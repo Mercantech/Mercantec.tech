@@ -8,7 +8,7 @@
 }
 else if (!Auth.IsAuthenticated)
 {
-    <section class="panel"><h1>Dit hold samles her</h1><p>Log ind for at åbne forløb, quests og grupper.</p><a class="action" href="/login">Log ind</a></section>
+    <section class="panel"><h1>Dit hold samles her</h1><p>Log ind for at åbne forløb, quests og grupper.</p><a class="action" href="@Auth.LoginPath()">Log ind</a></section>
 }
 else if (_workspace is null)
 {

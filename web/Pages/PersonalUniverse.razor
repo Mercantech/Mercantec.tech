@@ -3,7 +3,7 @@
 
 <PageTitle>Mit univers · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Mit univers</h1><p>Log ind for at se dit univers.</p></div></header><a class="action" href="/login">Log ind</a> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Mit univers</h1><p>Log ind for at se dit univers.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
 else
 {
     <header class="page-title"><div><h1>Mit univers</h1></div></header>

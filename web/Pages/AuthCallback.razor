@@ -10,7 +10,7 @@
     @if (!string.IsNullOrEmpty(_error))
     {
         <header class="page-title"><div><h1>Login fejlede</h1><p>@_error</p></div></header>
-        <a class="action" href="/login">Prøv igen</a>
+        <a class="action" href="@Auth.LoginPath()">Prøv igen</a>
     }
     else
     {
@@ -31,6 +31,7 @@
         var ok = await Auth.CompleteLoginAsync(code, state, error);
         if (ok)
         {
+            var returnPath = await Auth.ConsumeLoginReturnPathAsync();
             string? importReturn = null;
             try
             {
@@ -45,7 +46,7 @@
                 importReturn ??= emojiReturn;
             }
             catch (JSException) { }
-            Nav.NavigateTo(importReturn ?? Redirect.PostLoginPath());
+            Nav.NavigateTo(returnPath ?? importReturn ?? Redirect.PostLoginPath(), replace: true);
         }
         else
             _error = error ?? "Kunne ikke fuldføre login (state/code).";

@@ -144,7 +144,7 @@
     {
         if (!Auth.IsInitialized || Auth.IsAuthenticated || _loginBusy) return;
         _loginBusy = true;
-        try { await Auth.BeginLoginAsync(); } catch { _loginBusy = false; Nav.NavigateTo("/login"); }
+        try { await Auth.BeginLoginAsync(); } catch { _loginBusy = false; Nav.NavigateTo(Auth.LoginPath()); }
     }
     private async Task Logout() { ViewAs.Exit(); await Auth.LogoutLocalAsync(); Nav.NavigateTo("/"); }
     private void ExitViewAs() { var returnUrl = ViewAs.ReturnUrl ?? "/lectio"; ViewAs.Exit(); Nav.NavigateTo(returnUrl); }

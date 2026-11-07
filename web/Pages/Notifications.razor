@@ -3,7 +3,7 @@
 
 <PageTitle>Notifikationer · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikationer</h1><p>Log ind for at se dine handlinger.</p></div></header><a class="action" href="/login">Log ind</a> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikationer</h1><p>Log ind for at se dine handlinger.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
 else
 {
     <div class="action-center">
