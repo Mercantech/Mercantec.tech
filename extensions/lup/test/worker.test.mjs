@@ -56,7 +56,7 @@ globalThis.chrome = {
 };
 const unexpectedFetch = () => { throw new Error('This worker scenario must not make a network request.'); };
 globalThis.fetch = unexpectedFetch;
-const { handleMessage } = await import('../worker.mjs');
+const { handleMessage, openContextImageJob, validateCapturedImage } = await import('../worker.mjs');
 
 beforeEach(() => {
   records.clear();
@@ -68,10 +68,29 @@ beforeEach(() => {
   removedMenus = 0;
   createHook = null;
   nextTabId = 100;
+  delete chrome.scripting;
 });
 after(() => {
   globalThis.chrome = originalChrome;
   globalThis.fetch = originalFetch;
+});
+
+test('capture recovery preserves catalogued canvas and interrupted codes across the worker boundary', async () => {
+  for (const code of ['LUP-IMP-119', 'LUP-IMP-116', 'LUP-IMP-008']) {
+    records.set('job:' + id, job({ sourceTabId: 32, sourceFrameId: 0, contextSrcUrl: 'https://source.example.test/image.png' }));
+    chrome.scripting = { executeScript: async () => [{ frameId: 0, result: { ok: false, issue: { code } } }] };
+    const result = await handleMessage({ type: 'prepare:capture', id, capturePixels: true }, prepareSender());
+    assert.equal(result.code, code); assert.equal(result.base64, undefined);
+  }
+});
+
+test('full-size captured base64 does not overflow the regular-expression stack', async () => {
+  const bytes = new Uint8Array(8 * 1024 * 1024);
+  bytes.set([137, 80, 78, 71, 13, 10, 26, 10]);
+  const encoded = Buffer.from(bytes).toString('base64');
+  const result = validateCapturedImage({ ok: true, method: 'embedded', base64: encoded });
+  assert.equal(result.blob.size, bytes.length); assert.equal(result.blob.type, 'image/png');
+  assert.equal(validateCapturedImage({ ok: true, method: 'embedded', base64: encoded.slice(0, -1) + '!' }), null);
 });
 
 function job(changes = {}) {
@@ -116,6 +135,83 @@ test('installation creates exactly the Danish image-only context menu', async ()
   assert.deepEqual(accessLevels, [{ accessLevel: 'TRUSTED_CONTEXTS' }]);
 });
 
+const capturePng = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jZcsAAAAASUVORK5CYII=';
+
+test('captured raster bytes are strictly checked and canvas imports are explicitly marked as still images', () => {
+  const captured = validateCapturedImage({ ok: true, base64: capturePng, contentType: 'text/html', method: 'page-fetch' });
+  assert.equal(captured.blob.type, 'image/png'); assert.equal(captured.animationLost, false);
+  assert.equal(validateCapturedImage({ ok: true, base64: capturePng, method: 'canvas' }).animationLost, true);
+  for (const invalid of [{ base64: 'PHN2Zz48L3N2Zz4=' }, { base64: 'PGh0bWw+eDwvaHRtbD4=' }, { base64: capturePng + '!' }, { method: 'screenshot' }, { ok: false }])
+    assert.equal(validateCapturedImage({ ok: true, base64: capturePng, method: 'embedded', ...invalid }), null);
+});
+
+test('context imports capture the selected source in its exact original frame before opening the editor', async () => {
+  const order = [];
+  chrome.scripting = { executeScript: async options => {
+    order.push('capture'); assert.deepEqual(options.target, { tabId: 32, frameIds: [5] });
+    assert.equal(options.args[0].srcUrl, 'blob:https://frame.example.test/image-token');
+    assert.equal(options.args[0].capturePixels, false); assert.equal(typeof options.func, 'function');
+    return [{ frameId: 5, result: { ok: false, canvasAvailable: true, altText: 'Et godt motiv', candidates: [
+      'https://cdn.example.test/actual.webp', 'https://cdn.example.test/actual.webp', 'javascript:alert(1)', 'https://user:secret@example.test/private' ],
+      issue: { code: 'LUP-IMP-104', httpStatus: 403, secretUrl: 'https://private.test/?token=never-return' } } }];
+  } };
+  createHook = async () => { order.push('editor'); };
+  const opened = await openContextImageJob({ srcUrl: 'blob:https://frame.example.test/image-token', frameId: 5,
+    frameUrl: 'https://frame.example.test/page?secret=never-return' }, { id: 32, url: 'https://outer.example.test/' });
+  const stored = records.get('job:' + opened.id), sender = { url: createdTabs[0].url, tab: { id: createdTabs[0].id } };
+  assert.deepEqual(order, ['capture', 'editor']); assert.equal(stored.sourceTabId, 32); assert.equal(stored.sourceFrameId, 5);
+  assert.deepEqual(stored.candidates, ['https://cdn.example.test/actual.webp']);
+  assert.equal(stored.sourceFrameOrigin, 'https://frame.example.test');
+  const result = await handleMessage({ type: 'prepare:get', id: opened.id }, sender);
+  assert.equal(result.sourceFrameOrigin, 'https://frame.example.test'); assert.equal(result.canvasAvailable, true);
+  assert.equal(result.sourceAltText, 'Et godt motiv'); assert.equal(result.base64, undefined); assert.equal(result.contextSrcUrl, undefined);
+  assert.deepEqual(result.captureIssue, { code: 'LUP-IMP-104', context: { httpStatus: 403 } });
+  assert(!JSON.stringify(result).includes('never-return'));
+});
+
+test('storage failure keeps URL fallback and never places large data URLs or captured bytes in session records', async () => {
+  const embedded = 'data:image/png;base64,' + capturePng;
+  chrome.scripting = { executeScript: async options => {
+    assert.equal(options.args[0].srcUrl, embedded);
+    return [{ frameId: 0, result: { ok: true, method: 'embedded', base64: capturePng, contentType: 'image/png', candidates: [] } }];
+  } };
+  const result = await openContextImageJob({ srcUrl: embedded }, { id: 31, url: 'https://page.example.test/' });
+  const stored = records.get('job:' + result.id);
+  assert.equal(stored.srcUrl, null); assert.equal(stored.contextSrcUrl, null);
+  assert.deepEqual(stored.captureIssue, { code: 'LUP-IMP-004' });
+  assert.equal(stored.base64, undefined); assert.equal(stored.capture, undefined);
+  assert(!JSON.stringify(stored).includes(capturePng));
+});
+
+test('closed source tabs and restricted pages return stable capture codes without exposing Chrome errors', async () => {
+  for (const [message, code] of [['No tab with id: 32 (https://secret.test/?token=secret)', 'LUP-IMP-006'],
+    ['Cannot access contents of url https://secret.test/?token=secret', 'LUP-IMP-002']]) {
+    chrome.scripting = { executeScript: async () => { throw new Error(message); } };
+    const result = await openContextImageJob({ srcUrl: 'https://source.example.test/img.png' }, { id: 32, url: 'https://source.example.test/' });
+    assert.deepEqual(records.get('job:' + result.id).captureIssue, { code });
+    assert(!JSON.stringify(records.get('job:' + result.id)).includes('secret'));
+  }
+});
+
+test('captured bytes and explicit visible-pixel capture remain bound to the correct editor job', async () => {
+  records.set('job:' + id, job({ sourceTabId: 32, sourceFrameId: 4, contextSrcUrl: 'https://source.example.test/img.png' }));
+  let calls = 0;
+  chrome.scripting = { executeScript: async options => {
+    calls++; assert.equal(options.args[0].capturePixels, true);
+    return [{ frameId: 4, result: { ok: false, canvasAvailable: true, issue: { code: 'LUP-IMP-108' } } }];
+  } };
+  for (const type of ['prepare:source', 'prepare:capture']) {
+    for (const sender of [lupSender(), prepareSender(8), prepareSender(7, extensionUrl('popup.html'))]) {
+      const denied = await handleMessage({ type, id, capturePixels: true }, sender);
+      assert.equal(denied.code, 'LUP-IMP-001'); assert.equal(denied.base64, undefined);
+    }
+  }
+  assert.equal(calls, 0);
+  assert.equal((await handleMessage({ type: 'prepare:source', id }, prepareSender())).code, 'LUP-IMP-003');
+  const captured = await handleMessage({ type: 'prepare:capture', id, capturePixels: true }, prepareSender());
+  assert.equal(captured.code, 'LUP-IMP-108'); assert.equal(calls, 1);
+});
+
 const nextTurn = () => new Promise(resolve => setImmediate(resolve));
 async function eventually(predicate) {
   for (let attempt = 0; attempt < 25; attempt++) {
@@ -148,7 +244,9 @@ test('the actual context-menu event stores a bounded source job and binds its pr
   assert.ok(selected.expiresAt <= Date.now() + JOB_TTL_MS);
   assert.equal(selected.base64, undefined);
   const response = await handleMessage({ type: 'prepare:get', id: selected.id }, { url: createdTabs[0].url, tab: { id: createdTabs[0].id } });
-  assert.deepEqual(response, { ok: true, srcUrl: selected.srcUrl });
+  assert.equal(response.ok, true); assert.equal(response.srcUrl, selected.srcUrl);
+  assert.equal(response.hasCapture, false); assert.equal(response.captureIssue.code, 'LUP-IMP-002');
+  assert.equal(response.base64, undefined);
 });
 
 test('a context-menu image with an unsupported source still opens manual file fallback without fetching it', async () => {

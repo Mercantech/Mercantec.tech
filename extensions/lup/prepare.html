@@ -19,6 +19,13 @@
   <div class="editor-workspace">
     <section class="image-card" aria-labelledby="image-heading">
       <div class="card-heading"><div class="card-title"><span class="step-index">01</span><h2 id="image-heading">Gør billedet klar</h2></div><label class="file-button" title="Vælg et billede fra computeren"><img src="assets/icons/image-plus.svg" alt="">Skift billede<input class="visually-hidden" id="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" aria-label="Vælg et billede fra computeren"></label></div>
+      <section id="import-problem" class="import-problem" aria-labelledby="import-error-title" hidden>
+        <div class="import-error-heading"><h3 id="import-error-title"></h3><code id="import-error-code"></code></div>
+        <p id="import-error-message"></p><p id="import-error-hint" class="import-error-hint"></p>
+        <div class="import-recovery-actions"><button id="retry-import" type="button" class="tool-button">Prøv igen</button><button id="capture-visible" type="button" class="tool-button" hidden>Brug det viste billede</button><button id="permission" type="button" class="tool-button" hidden>Giv adgang til billedets hjemmeside</button><button id="select-import-file" type="button" class="tool-button">Vælg en fil</button></div>
+        <p id="capture-visible-hint" class="import-error-hint" hidden>En kopi af det viste billede kan blive et PNG-stillbillede. Animationen bevares, hvis originalfilen kan hentes.</p>
+        <button id="copy-import-error" type="button" class="text-button">Kopiér fejlinfo</button><span id="diagnostic-feedback" role="status"></span>
+      </section>
       <div class="editor-stage" id="editor-stage">
         <div class="empty-preview" id="empty-preview"><img src="assets/icons/image.svg" alt=""><strong id="empty-heading">Dit billede er på vej</strong><p id="empty-description">Vi gør det klar til dit næste gode udsnit.</p></div>
         <div id="preview-wrap" hidden><section id="crop-editor" aria-label="Beskær og zoom billedet"></section></div>
@@ -26,7 +33,7 @@
       </div>
       <div class="image-toolbar"><div class="image-actions"><button id="remove-background" type="button" class="tool-button" disabled><img src="assets/icons/wand-sparkles.svg" alt=""><span id="background-label">Fjern baggrund</span></button><button id="stop-background" type="button" class="tool-button" hidden>Stop baggrundsfjernelse</button><button id="restore-original" type="button" class="text-button" hidden>Brug original</button></div><span class="image-format">PNG · JPEG · GIF · WebP · AVIF</span></div>
       <p id="details" class="image-details"></p>
-      <button id="permission" class="permission-button" hidden>Giv adgang til billedets hjemmeside</button>
+      <p id="import-method-note" class="import-method-note" role="status" hidden></p>
       <details class="image-help"><summary>Om format og baggrund</summary><p>GIF-animationer bevares, også ved beskæring. Beskæringsfeltet viser ét billede fra animationen. Fjern baggrund giver et PNG-stillbillede; Brug original gendanner GIF’en. Andre billedformater beskæres til PNG. Du kan også trække en billedfil ind i feltet ovenfor.</p></details>
       <div class="source-credit" id="source-credit" hidden><div><span class="section-kicker">FUNDET VIA OPENVERSE</span><a id="source-title" target="_blank" rel="noopener noreferrer"></a><p id="source-creator"></p></div><a id="source-license" class="license-badge" target="_blank" rel="noopener noreferrer"></a></div>
     </section>

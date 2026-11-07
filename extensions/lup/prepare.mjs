@@ -2,6 +2,8 @@ import { MAX_BYTES, MAX_DOWNLOAD_BYTES, MAX_PIXELS, MIME_TYPES, sourceUrl, origi
 import { createCropEditor } from './crop.mjs';
 import { normalizeSearchImage } from './image-search.mjs';
 import { normalizeGifSearchResult } from './gif-search.mjs';
+import { ImportFailure, importIssue, importDiagnostic } from './import-errors.mjs';
+import { fetchImportImage } from './image-import.mjs';
 
 const status = document.querySelector('#status');
 const name = document.querySelector('#name');
@@ -20,6 +22,7 @@ let backgroundEdited = false, cropActive = false, backgroundJob = null, backgrou
 let uploading = false, previewRevision = 0, previewTimer = null, previewUrl = null;
 let searchSource = null, sourceMetadata = null, searchTabId = null;
 let gifModule;
+let sourceInfo = {}, lastImportFailure = null, permissionUrl = null, importRunning = false, importExpired = false;
 const getGifModule = () => gifModule ??= import('./gif-tools.mjs');
 async function encodeGif(blob, crop = null) { return (await getGifModule()).processGif(blob, { crop }); }
 name.addEventListener('input', () => { editedName = true; });
@@ -36,6 +39,39 @@ function message(text, error = false, kind = 'info') {
     document.querySelector('#empty-description').textContent = 'Brug Skift billede, eller træk en billedfil ind her.';
   }
 }
+function clearImportFailure() {
+  lastImportFailure = null; permissionUrl = null;
+  document.querySelector('#import-problem').hidden = true;
+  document.querySelector('#diagnostic-feedback').textContent = '';
+}
+function refreshRecoveryActions() {
+  const canCapture = Number.isInteger(sourceInfo.sourceTabId) && sourceInfo.sourceTabId > 0;
+  document.querySelector('#capture-visible').hidden = !canCapture || importExpired;
+  document.querySelector('#capture-visible-hint').hidden = !canCapture || importExpired;
+  permissionButton.hidden = !permissionUrl;
+  document.querySelector('#retry-import').hidden = lastImportFailure?.code === 'LUP-IMP-001';
+  for (const id of ['retry-import', 'capture-visible', 'select-import-file']) document.querySelector('#' + id).disabled = busy || saved || importExpired;
+}
+function showImportFailure(error, fallback = 'LUP-IMP-112') {
+  lastImportFailure = error instanceof ImportFailure ? error : new ImportFailure(error?.code || fallback, error?.context);
+  const issue = importIssue(lastImportFailure);
+  if (issue.code === 'LUP-IMP-001') { importExpired = true; fileInput.disabled = true; continueButton.disabled = true; }
+  document.querySelector('#import-error-title').textContent = issue.title;
+  document.querySelector('#import-error-code').textContent = issue.code;
+  document.querySelector('#import-error-message').textContent = issue.message;
+  document.querySelector('#import-error-hint').textContent = issue.hint;
+  document.querySelector('#import-problem').hidden = false;
+  document.querySelector('#diagnostic-feedback').textContent = '';
+  message(`${issue.title} · ${issue.code}`, true);
+  refreshRecoveryActions();
+}
+document.querySelector('#copy-import-error').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(importDiagnostic(lastImportFailure, chrome.runtime.getManifest().version));
+    document.querySelector('#diagnostic-feedback').textContent = 'Fejlinfo er kopieret uden billedadresse eller nøgler.';
+  } catch { document.querySelector('#diagnostic-feedback').textContent = 'Kunne ikke kopiere. Oplys fejlkoden ovenfor.'; }
+});
+document.querySelector('#select-import-file').addEventListener('click', () => { if (!busy && !saved) fileInput.click(); });
 function updateMetadataPreview() {
   document.querySelector('#emoji-token').textContent = `:${name.value.trim() || 'din_emoji'}:`;
   document.querySelector('#description-count').textContent = `${altText.value.length}/240`;
@@ -94,12 +130,13 @@ function refreshImageActions() {
 }
 function setBusy(value) {
   busy = value; document.body.dataset.busy = String(value); document.body.dataset.saved = String(saved);
-  continueButton.disabled = value || !prepared || !connected || saved;
+  continueButton.disabled = value || !prepared || !connected || saved || importExpired;
   continueButton.setAttribute('aria-busy', String(uploading));
   document.querySelector('#save-label').textContent = saved ? 'Emojien er gemt' : uploading ? 'Gemmer emoji…' : 'Gem emoji på LUP';
   name.disabled = altText.disabled = uploading || saved;
-  fileInput.disabled = value || saved; permissionButton.disabled = value || saved;
+  fileInput.disabled = value || saved || importExpired; permissionButton.disabled = value || saved || importExpired;
   cropEditor?.setDisabled(value || saved); refreshImageActions();
+  refreshRecoveryActions();
 }
 async function updateConnection() {
   if (!validId(id) || saved) return;
@@ -123,47 +160,26 @@ async function updateConnection() {
 window.addEventListener('focus', () => { if (!busy) void updateConnection(); });
 chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && !saved) void updateConnection(); });
 
-async function boundedImageFetch(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
-  try {
-    const response = await fetch(url, { credentials: 'omit', referrerPolicy: 'no-referrer', signal: controller.signal });
-    if (!response.ok) throw new Error(`Billedserveren svarede med ${response.status}. Gem billedet og vælg filen nedenfor.`);
-    const declared = Number(response.headers.get('content-length'));
-    if (declared > MAX_DOWNLOAD_BYTES) throw new Error('Billedet er større end 8 MB. Vælg et mindre billede.');
-    const type = (response.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
-    if (type && !type.startsWith('image/') && type !== 'application/octet-stream') throw new Error('Adressen gav ikke et billede. Gem billedet og vælg filen nedenfor.');
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('Billedet kunne ikke hentes. Vælg filen nedenfor.');
-    let size = 0;
-    const chunks = [];
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > MAX_DOWNLOAD_BYTES) { await reader.cancel(); throw new Error('Billedet er større end 8 MB. Vælg et mindre billede.'); }
-      chunks.push(value);
-    }
-    return new Blob(chunks, { type });
-  } finally { clearTimeout(timer); }
-}
+const boundedImageFetch = (url, options) => fetchImportImage(url, options);
 
 function png(canvas) { return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Billedet kunne ikke konverteres.')), 'image/png')); }
 
 async function adaptImage(blob) {
-  if (!blob.size || blob.size > MAX_DOWNLOAD_BYTES) throw new Error('Vælg et billede med indhold på højst 8 MB.');
-  if (blob.type === 'image/svg+xml') throw new Error('SVG understøttes ikke her. Gem billedet som PNG og vælg filen.');
+  if (!blob.size) throw new ImportFailure('LUP-IMP-112');
+  if (blob.size > MAX_DOWNLOAD_BYTES) throw new ImportFailure('LUP-IMP-110', { bytes: blob.size });
+  if (blob.type === 'image/svg+xml') throw new ImportFailure('LUP-IMP-113');
   const header = String.fromCharCode(...new Uint8Array(await blob.slice(0, 6).arrayBuffer()));
   if (['GIF87a', 'GIF89a'].includes(header)) {
     message('Tilpasser GIF’en og bevarer animationen…', false, 'progress');
-    const result = await encodeGif(blob);
+    let result;
+    try { result = await encodeGif(blob); } catch { throw new ImportFailure('LUP-IMP-117'); }
     return { blob: result, note: `GIF-animationen bevares · ${Math.ceil(result.size / 1024)} KB.` };
   }
-  if (blob.type === 'image/gif') throw new Error('GIF-filen kunne ikke læses. Originalen er bevaret.');
+  if (blob.type === 'image/gif') throw new ImportFailure('LUP-IMP-112');
   let bitmap;
-  try { bitmap = await createImageBitmap(blob); } catch { throw new Error('Billedet kunne ikke læses. Vælg PNG, JPEG, GIF, WebP eller AVIF.'); }
+  try { bitmap = await createImageBitmap(blob); } catch { throw new ImportFailure('LUP-IMP-112'); }
   try {
-    if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > MAX_PIXELS) throw new Error('Billedet må højst være 16 megapixel. Vælg et mindre billede.');
+    if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > MAX_PIXELS) throw new ImportFailure('LUP-IMP-114');
     const signature = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
     const text = String.fromCharCode(...signature);
     const matchesType = blob.type === 'image/png' ? signature[0] === 137 && text.slice(1, 4) === 'PNG'
@@ -185,7 +201,7 @@ async function adaptImage(blob) {
   } finally { bitmap.close(); }
 }
 
-async function prepare(blob, fileName, metadata = null) {
+async function prepare(blob, fileName, metadata = null, method = 'local-file') {
   const previousGeneration = generation, previousEditor = cropEditor;
   const current = ++generation;
   if (!prepared) {
@@ -202,12 +218,16 @@ async function prepare(blob, fileName, metadata = null) {
     updateSourceCredit();
     originalSource = blob; originalPrepared = result.blob; originalFileName = fileName; originalNote = result.note;
     backgroundEdited = false;
+    clearImportFailure();
+    const note = document.querySelector('#import-method-note');
+    note.hidden = !['canvas', 'page-fetch', 'embedded', 'blob', 'capture-cache'].includes(method);
+    note.textContent = method === 'canvas' ? 'Det viste billede er hentet som et PNG-stillbillede.' : 'Billedet er hentet fra originalsiden.';
     message('Billedet er klar. Vælg udsnit og zoom, og gem emojien herfra.');
     return true;
   } catch (error) {
     if (current !== generation) return;
     if (previousEditor === cropEditor) generation = previousGeneration;
-    message(`${error.message || 'Billedet kunne ikke læses.'}${prepared ? ' Dit tidligere billede er bevaret.' : ''}`, true);
+    showImportFailure(error);
     return false;
   }
   finally { if (current === generation || previousGeneration === generation) setBusy(false); }
@@ -327,47 +347,104 @@ originalButton.addEventListener('click', async () => {
   finally { if (current === generation) setBusy(false); }
 });
 
-async function fetchSource(metadata = sourceMetadata) {
-  setBusy(true); message('Henter billedet…', false, 'progress');
+function sourceFilename() {
+  let filename = sourceMetadata?.title || sourceInfo.sourceAltText || source?.pathname.split('/').at(-1) || 'emoji';
+  try { filename = decodeURIComponent(filename); } catch { }
+  return filename;
+}
+function captureBlob(response) {
+  if (!response?.ok) throw new ImportFailure(response?.code || 'LUP-IMP-003', response?.context);
+  if (typeof response.base64 !== 'string' || !response.base64.length || response.base64.length > Math.ceil(MAX_DOWNLOAD_BYTES / 3) * 4
+      || !['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif'].includes(response.contentType)) throw new ImportFailure('LUP-IMP-005');
   try {
-    const pattern = originPattern(source.href);
-    // activeTab can grant temporary access after the user's context-menu click.
-    const granted = await chrome.permissions.contains({ origins: [pattern] });
-    let blob, fallback = false;
-    try { blob = await boundedImageFetch(source.href); }
-    catch (error) {
-      if (metadata && metadata.thumbnailUrl !== source.href) {
-        fallback = true;
-        blob = await boundedImageFetch(metadata.thumbnailUrl);
-      } else {
-      if (!granted && error instanceof TypeError) {
-        permissionButton.hidden = false;
-        permissionButton.textContent = `Giv adgang til ${source.host}`;
-        throw new Error('Chrome har brug for adgang til billedets hjemmeside. Giv adgang nedenfor, eller vælg en lokal fil.');
-      }
-      throw error;
-      }
-    }
-    let filename = metadata?.title || source.pathname.split('/').at(-1) || 'emoji';
-    try { filename = decodeURIComponent(filename); } catch { /* A malformed URL filename does not invalidate decoded image pixels. */ }
-    const ready = await prepare(blob, filename, metadata);
-    if (!ready && metadata && metadata.provider !== 'openverse-gif' && !fallback) {
+    const raw = atob(response.base64);
+    if (!raw.length || raw.length > MAX_DOWNLOAD_BYTES) throw new Error();
+    return new Blob([Uint8Array.from(raw, char => char.charCodeAt(0))], { type: response.contentType });
+  } catch { throw new ImportFailure('LUP-IMP-005'); }
+}
+async function loadCapturedSource(refresh = false, pixels = false) {
+  const response = await chrome.runtime.sendMessage({ type: refresh ? 'prepare:capture' : 'prepare:source', id, capturePixels: pixels });
+  const blob = captureBlob(response);
+  const method = response.method || 'capture-cache';
+  const ready = await prepare(blob, sourceFilename(), sourceMetadata, method);
+  if (ready && !editedAlt && sourceInfo.sourceAltText && !sourceMetadata) {
+    altText.value = sourceInfo.sourceAltText.slice(0, 240); updateMetadataPreview();
+  }
+  return ready;
+}
+async function framePermissionCandidate() {
+  const origin = sourceUrl(sourceInfo.sourceFrameOrigin);
+  if (origin && !await chrome.permissions.contains({ origins: [originPattern(origin.href)] })) return origin.href;
+  return null;
+}
+async function fetchSource(recapture = false) {
+  if (importRunning || saved) return;
+  importRunning = true; permissionUrl = null;
+  setBusy(true); message('Henter billedet…', false, 'progress');
+  let failure = null, permissionCandidate = null;
+  try {
+    if (recapture && Number.isInteger(sourceInfo.sourceTabId) && sourceInfo.sourceTabId > 0) {
+      message('Prøver billedet fra originalsiden igen…', false, 'progress');
+      try { if (await loadCapturedSource(true, false)) return; failure = lastImportFailure; }
+      catch (error) { failure = error; }
       setBusy(true);
-      message('Klargør en mindre udgave af billedet…', false, 'progress');
-      await prepare(await boundedImageFetch(metadata.thumbnailUrl), filename, metadata);
     }
-  } catch (error) { message(error.name === 'AbortError' ? 'Billedserveren svarede ikke i tide. Vælg en lokal fil.'
-    : error instanceof TypeError ? 'Billedet kunne ikke hentes. Gem billedet og vælg filen nedenfor.' : error.message, true); }
-  finally { setBusy(false); }
+    if (sourceInfo.hasCapture) {
+      try { if (await loadCapturedSource()) return; failure = lastImportFailure; }
+      catch (error) { failure = error; }
+      setBusy(true);
+    }
+    const urls = [...new Set([source?.href, ...(sourceInfo.candidates || []), sourceMetadata?.thumbnailUrl]
+      .map(value => sourceUrl(value)?.href).filter(Boolean))].slice(0, 4);
+    const deadline = Date.now() + 25_000;
+    for (let index = 0; index < urls.length; index++) {
+      const url = urls[index];
+      if (Date.now() >= deadline) break;
+      setBusy(true); message(index ? 'Prøver en anden billedkilde…' : 'Henter billedet…', false, 'progress');
+      try {
+        const blob = await boundedImageFetch(url, { timeoutMs: Math.min(12_000, deadline - Date.now()) });
+        if (await prepare(blob, sourceFilename(), sourceMetadata, index ? 'alternate-source' : 'direct')) return;
+        failure = lastImportFailure;
+      } catch (error) {
+        if (error?.code === 'LUP-IMP-108' && !await chrome.permissions.contains({ origins: [originPattern(url)] })) {
+          permissionCandidate ||= url;
+          error = new ImportFailure('LUP-IMP-101', { host: new URL(url).hostname });
+        }
+        if (!failure || ['LUP-IMP-002', 'LUP-IMP-003', 'LUP-IMP-108', 'LUP-IMP-101'].includes(failure.code)) failure = error;
+      }
+    }
+    if (!urls.length) {
+      failure ||= new ImportFailure(sourceInfo.captureIssue?.code || 'LUP-IMP-003', sourceInfo.captureIssue?.context);
+      permissionCandidate ||= await framePermissionCandidate();
+    }
+    permissionUrl = permissionCandidate;
+    if (permissionUrl) permissionButton.textContent = `Giv adgang til ${new URL(permissionUrl).hostname}`;
+    showImportFailure(failure || new ImportFailure('LUP-IMP-108'));
+  } catch (error) { showImportFailure(error, 'LUP-IMP-108'); }
+  finally { importRunning = false; setBusy(false); }
 }
 
+document.querySelector('#retry-import').addEventListener('click', () => { if (!busy) void fetchSource(true); });
+document.querySelector('#capture-visible').addEventListener('click', async () => {
+  if (busy || saved) return;
+  setBusy(true); message('Henter det valgte billede fra originalsiden…', false, 'progress');
+  try { await loadCapturedSource(true, true); }
+  catch (error) { showImportFailure(error, 'LUP-IMP-002'); }
+  finally { setBusy(false); }
+});
 permissionButton.addEventListener('click', () => {
-  if (!source || busy) return;
-  // Request directly in the click gesture; only this origin is requested.
-  void chrome.permissions.request({ origins: [originPattern(source.href)] }).then(granted => {
-    if (granted) return fetchSource();
-    message('Adgang blev ikke givet. Du kan gemme billedet og vælge filen nedenfor.', true);
-  }).catch(() => message('Adgang kunne ikke gives. Vælg billedet som lokal fil.', true));
+  if (!permissionUrl || busy || saved) return;
+  // Must run directly in the click gesture, for one exact origin only.
+  const target = permissionUrl;
+  void chrome.permissions.request({ origins: [originPattern(target)] }).then(async granted => {
+    if (!granted) { showImportFailure(new ImportFailure('LUP-IMP-102', { host: new URL(target).hostname })); return; }
+    if (!source && sourceInfo.sourceTabId) {
+      setBusy(true);
+      try { await loadCapturedSource(true, false); }
+      catch (error) { showImportFailure(error, 'LUP-IMP-002'); }
+      finally { setBusy(false); }
+    } else await fetchSource();
+  }).catch(() => showImportFailure(new ImportFailure('LUP-IMP-115')));
 });
 
 fileInput.addEventListener('change', () => { const file = fileInput.files?.[0]; if (file && !busy && !saved) { void prepare(file, file.name); fileInput.value = ''; } });
@@ -401,14 +478,17 @@ document.querySelector('#form').addEventListener('submit', async event => {
     const bytes = new Uint8Array(await image.arrayBuffer());
     let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
     const response = await chrome.runtime.sendMessage({ type: 'prepare:upload', id, name: shortName, altText: altText.value.trim(), contentType: image.type, base64: btoa(binary) });
-    if (!response?.ok) throw new Error(response?.message || 'Emojien kunne ikke gemmes.');
+    if (!response?.ok) {
+      if (typeof response?.code === 'string' && response.code.startsWith('LUP-IMP-')) throw new ImportFailure(response.code);
+      throw new Error(response?.message || 'Emojien kunne ikke gemmes.');
+    }
     saved = true;
     uploading = false;
     message(`:${response.name}: er gemt i LUPs emojibibliotek. Du kan lukke denne fane.`, false, 'success');
     name.disabled = altText.disabled = true;
     setBusy(false);
     if (image.type === 'image/gif') { clearTimeout(previewTimer); previewRevision++; showPreviewBlob(image); }
-  } catch (error) { uploading = false; message(error.message, true); setBusy(false); }
+  } catch (error) { uploading = false; error instanceof ImportFailure ? showImportFailure(error) : message(error.message, true); setBusy(false); }
 });
 
 window.addEventListener('unload', () => {
@@ -421,7 +501,7 @@ window.addEventListener('unload', () => {
 });
 
 async function start() {
-  if (!validId(id)) { message('Billedkladden mangler. Højreklik på et billede for at begynde.', true); fileInput.disabled = true; return; }
+  if (!validId(id)) { showImportFailure(new ImportFailure('LUP-IMP-001')); fileInput.disabled = true; return; }
   try {
     let response;
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -429,7 +509,8 @@ async function start() {
       if (!response?.retry) break;
       await new Promise(resolve => setTimeout(resolve, 250));
     }
-    if (!response?.ok) throw new Error(response?.message || 'Billedkladden kunne ikke læses.');
+    if (!response?.ok) throw new ImportFailure(response?.code || 'LUP-IMP-001');
+    sourceInfo = response;
     await updateConnection();
     sourceMetadata = normalizeGifSearchResult(response.searchSource) || normalizeSearchImage(response.searchSource);
     if (Number.isInteger(response.searchTabId) && response.searchTabId > 0) {
@@ -437,8 +518,7 @@ async function start() {
       document.querySelector('#back-to-search').hidden = false;
     }
     source = sourceUrl(response.srcUrl);
-    if (!source) { message('Dette billede kan ikke hentes direkte. Gem billedet på computeren, og vælg filen nedenfor.', true); return; }
     await fetchSource();
-  } catch (error) { message(error.message || 'Billedet kunne ikke hentes. Vælg filen nedenfor.', true); }
+  } catch (error) { showImportFailure(error); }
 }
 void start();

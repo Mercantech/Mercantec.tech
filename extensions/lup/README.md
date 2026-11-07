@@ -1,4 +1,4 @@
-# LUP til Chrome – version 0.5
+# LUP til Chrome – version 0.6
 
 Højreklik på et billede → **Tilføj som emoji på LUP.dk**. Udvidelsen
 åbner sit eget billedvindue. Vælg hele billedet eller et kvadratisk udsnit,
@@ -11,7 +11,7 @@ ved upload.
 1. Byg pakken med `scripts/Package-LupExtension.ps1` fra repository-roden.
    Scriptet installerer om nødvendigt de låste billedværktøjsafhængigheder
    og pakker runtime, model, licenser og udvidelse i
-   `.tools/lup-extension/LUP-0.5.0.zip`.
+   `.tools/lup-extension/LUP-0.6.0.zip`.
 2. Pak ZIP-filen ud. Åbn `chrome://extensions`, slå **Udviklertilstand** til,
    og vælg den udpakkede mappe med **Indlæs upakket**. Alternativt kan den
    byggede `extensions/lup`-mappe bruges direkte. Den skal blive liggende.
@@ -32,6 +32,54 @@ Udvidelsen er endnu ikke udgivet i Chrome Web Store.
 Ved opdatering pakkes filerne ud oven i den eksisterende udvidelsesmappe.
 Genindlæs derefter i `chrome://extensions`, så den samme Chrome-profil
 beholder sin personlige nøgle. Version 0.5 bruger også Wikimedia til GIF-filer.
+
+## Stabil billedimport og fejlinfo
+
+Ved højreklik forsøger udvidelsen først at hente netop det valgte billede i
+den oprindelige fane og frame. Det bevarer adgang til billedets lokale
+`data:`-/`blob:`-indhold og kan bruge sidens normale login og referrer.
+Sidens egen referrerpolitik respekteres; cookies sendes kun ved same-origin
+page-fetch. Ingen LUP-nøgle er tilgængelig for capture-funktionen.
+
+For responsive billeder bruges også det valgte elements `currentSrc`,
+`src`, `srcset` og relevante `<picture>`-kilder. Udvidelsen scanner ikke andre
+billeder for at vælge et alternativ. Hvis kopien fra originalsiden ikke
+kan bruges, forsøges billedadressen og de fundne alternativer direkte,
+med begrænset hentetid og højst 8 MB, også ved streaming og forkerte headere.
+Billedtypen genkendes på filens bytes, så en forkert MIME-header ikke alene
+ødelægger importen.
+
+Fejl viser en fast `LUP-IMP-...`-kode, en forklaring og relevante handlinger:
+**Prøv igen**, domænespecifik adgang, **Brug det viste billede** eller
+**Vælg en fil**. Prøv igen forsøger også originalsiden igen uden at ændre
+navn, beskrivelse eller eksisterende udsnit. Kopiering af viste pixels
+kræver et eksplicit klik og markeres som et PNG-stillbillede; Chrome får
+fortsat lov til at blokere beskyttede/tainted billeder.
+
+**Kopiér fejlinfo** medtager kun version, kode, billeddomæne, metode og
+eventuel HTTP-status/størrelse. Billedadresser, query-parametre, sidetekst,
+cookies, uploadnøgler, serverfejl og stack traces kommer ikke med.
+
+Eksempler på fejlkoder:
+
+| Kode | Betydning |
+| --- | --- |
+| `LUP-IMP-001` | Billedkladden er ugyldig eller udløbet |
+| `LUP-IMP-002` / `006` | Originalside/frame er blokeret, lukket eller ændret |
+| `LUP-IMP-101` / `102` | Manglende eller afvist domænetilladelse |
+| `LUP-IMP-103` / `104` | Billedserveren kræver login eller afviser hentning |
+| `LUP-IMP-105` / `106` | Billedet mangler, eller serveren begrænser hentninger |
+| `LUP-IMP-109` / `116` | Timeout eller afbrudt overførsel |
+| `LUP-IMP-110` / `114` | Filen eller pixelantallet er for stort |
+| `LUP-IMP-111` / `112` | Svaret er ikke et billede, eller filen er beskadiget |
+| `LUP-IMP-113` / `119` | SVG kræver PNG, eller viste pixels er beskyttede |
+
+Capture bruger `scripting` sammen med `activeTab` efter brugerens højreklik,
+kun i den relevante frame. Store billedkopier ligger som lokale Blobs i
+udvidelsens IndexedDB, adskilt fra Chromes sessionkvote. Grænserne er otte
+kopier, 8 MB pr. kopi og 32 MB samlet. De slettes ved vellykket gemning,
+job-eviction eller oprydning af udløbne/inaktive job. Oprydning kører ved
+næste brug/opstart; der oprettes ingen baggrundstimer til at holde Chrome i live.
 
 ## Find nye billeder
 
@@ -109,8 +157,9 @@ med originalen bevaret; den konverteres aldrig automatisk til et stillbillede.
   SVG understøttes ikke. Billedet gemmes først ved tryk på gemmeknappen.
 
 Hvis billedserveren kræver tilladelse, vises en knap til netop det domæne.
-Blob-/dataadresser, private billeder og servere, som blokerer download, kan
-kræve, at billedet gemmes og vælges som lokal fil.
+Data/blob-billeder forsøges hentet på originalsiden. En lokal fil kan stadig
+være nødvendig, hvis originalsiden er lukket, eller browseren/serveren
+blokerer både originalfilen og den viste billedkopi.
 
 ## Nøgler, data og rettigheder
 
