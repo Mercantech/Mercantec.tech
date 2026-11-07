@@ -85,7 +85,7 @@ public partial class Index
         var generation = _generation;
         try
         {
-            _editor ??= await Js.InvokeAsync<IJSObjectReference>("import", "/notion-editor/editor.js");
+            _editor ??= await Js.InvokeAsync<IJSObjectReference>("import", EditorAssets.Script);
             _callbacks ??= DotNetObjectReference.Create(this);
             var token = await Auth.GetValidAccessTokenAsync();
             if (generation != _generation || id != _current?.DocumentId || !CanUse || _disposed) return;

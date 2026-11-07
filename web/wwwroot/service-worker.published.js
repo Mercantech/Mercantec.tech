@@ -28,6 +28,13 @@ function isAuthRuntimeAsset(url) {
     return url.origin === baseUrl.origin && url.pathname === '/js/auth-storage.js';
 }
 
+function isEditorRuntimeAsset(url) {
+    return url.origin === baseUrl.origin && (
+        url.pathname === '/notion-editor/editor.js'
+        || url.pathname === '/notion-editor/editor.css'
+    );
+}
+
 async function onInstall(event) {
     console.info('Service worker: Install', cacheName);
     // Activate updated SW immediately so routes like /lectio appear without hard-reset.
@@ -41,6 +48,9 @@ async function onInstall(event) {
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
         // Image editing is optional. Never download its model/WASM on every visit.
         .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/image-tools/'))
+        // The editor is loaded on demand. Do not delay worker activation by
+        // downloading its diagrams, drawing fonts and lazy chunks at every release.
+        .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/notion-editor/'))
         // Runtime modules must follow the deployed app rather than race a
         // previous worker's unversioned startup cache.
         .filter(asset => {
@@ -72,7 +82,7 @@ async function onActivate(event) {
 async function onFetch(event) {
     const url = new URL(event.request.url);
 
-    if (event.request.method === 'GET' && (isRouletteRuntimeAsset(url) || isAuthRuntimeAsset(url))) {
+    if (event.request.method === 'GET' && (isRouletteRuntimeAsset(url) || isAuthRuntimeAsset(url) || isEditorRuntimeAsset(url))) {
         let cache;
         try { cache = await caches.open(cacheName); } catch { }
         try {
@@ -127,7 +137,17 @@ async function onFetch(event) {
     }
 
     try {
-        return await fetch(event.request);
+        const response = await fetch(event.request);
+        if (event.request.method === 'GET' && response.ok && url.origin === baseUrl.origin
+            && url.pathname.startsWith('/notion-editor/')) {
+            // Keep only editor chunks/fonts actually used, so an already opened
+            // drawing can still load them offline without a full release precache.
+            try {
+                const cache = await caches.open(cacheName);
+                await cache.put(event.request, response.clone());
+            } catch { }
+        }
+        return response;
     } catch {
         return new Response('', { status: 504, statusText: 'offline' });
     }

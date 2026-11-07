@@ -86,7 +86,7 @@ public partial class Index
         var account = _account; var page = _current.PageId;
         try
         {
-            _module ??= await Js.InvokeAsync<IJSObjectReference>("import", "/notion-editor/editor.js");
+            _module ??= await Js.InvokeAsync<IJSObjectReference>("import", EditorAssets.Script);
             _callbacks ??= DotNetObjectReference.Create(this);
             var token = await Auth.GetValidAccessTokenAsync();
             if (account != _account || page != _current?.PageId || !CanUse || _disposed) return;

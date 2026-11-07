@@ -5,7 +5,7 @@
 
 <PageTitle>@(_current?.Title ?? "Holdets indhold") · LUP</PageTitle>
 <NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
-<link rel="stylesheet" href="/notion-editor/editor.css" />
+<link rel="stylesheet" href="@EditorAssets.Style" />
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
 else if (!Auth.IsAuthenticated)
 {

@@ -22,6 +22,19 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <Target Name="VersionNotionEditorAssets" BeforeTargets="GetAssemblyAttributes"
+          Condition="Exists('wwwroot/notion-editor/editor.js') and Exists('wwwroot/notion-editor/editor.css')">
+    <GetFileHash Files="wwwroot/notion-editor/editor.js;wwwroot/notion-editor/editor.css" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_NotionEditorAssetHashes" />
+    </GetFileHash>
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>NotionEditorAssets</_Parameter1>
+        <_Parameter2>@(_NotionEditorAssetHashes->'%(FileHash)', '-')</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
   <!-- Undgå at Development-API-URL (localhost:8080) ender i Docker/prod-image -->
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <Content Remove="wwwroot\appsettings.Development.json" />
