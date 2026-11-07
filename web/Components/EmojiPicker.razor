@@ -88,7 +88,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_disposed || !_open) return;
-        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js").AsTask());
+        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js?v=2").AsTask());
         if (_disposed)
         {
             await DisposeModule(positioner);
