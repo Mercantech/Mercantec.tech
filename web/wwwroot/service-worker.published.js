@@ -35,6 +35,8 @@ async function onInstall(event) {
     const assets = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
+        // Image editing is optional. Never download its model/WASM on every visit.
+        .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/image-tools/'))
         // The roulette module and voice manifest must follow the deployed app,
         // rather than race a previous worker's unversioned startup cache.
         .filter(asset => !isRouletteRuntimeAsset(new URL(asset.url, baseUrl)));

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { emojiCategories, filterCustomEmojis } from './custom-emoji.mjs';
 import { mergeEmojiAnalysis, normalizeEmojiMetadata, normalizeEmojiName, suggestEmojiName, validateEmojiFile, validateEmojiMetadata } from './emoji-upload.mjs';
+import { backgroundPngBytes, backgroundPngName, emojiFileDataUrl } from './emoji-background.mjs';
 
 export type PlatformEmoji = {
   id: string;
@@ -16,6 +17,10 @@ export type EmojiMetadata = { altText: string; category: string; keywords: strin
 export type EmojiAnalysis = EmojiMetadata & { name: string };
 type EmojiDraft = { name: string; altText: string; category: string; keywordsText: string };
 const emptyDraft = (): EmojiDraft => ({ name: '', altText: '', category: 'custom', keywordsText: '' });
+type BackgroundModule = {
+  removeBackground: (dataUrl: string, jobId: string) => Promise<{ base64: string; contentType: string }>;
+  cancel: (jobId: string) => void | Promise<void>;
+};
 
 export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, initialFile }: {
   id: string;
@@ -39,7 +44,15 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
   const initialFileHandled = useRef<File | null>(null);
   const editedFields = useRef(new Set<keyof EmojiDraft>());
   const mounted = useRef(true);
+  const focusNewFile = useRef(false);
+  const backgroundModule = useRef<Promise<BackgroundModule> | null>(null);
+  const backgroundGeneration = useRef(0);
+  const backgroundJob = useRef<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [backgroundRemoved, setBackgroundRemoved] = useState(false);
+  const [removingBackground, setRemovingBackground] = useState(false);
+  const [backgroundNotice, setBackgroundNotice] = useState('');
   const [draft, setDraft] = useState<EmojiDraft>(emptyDraft);
   const [filePreview, setFilePreview] = useState('');
   const [error, setError] = useState('');
@@ -51,14 +64,25 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
 
   useEffect(() => { search.current?.focus({ preventScroll: true }); }, []);
   useEffect(() => { grid.current?.scrollTo({ top: 0 }); }, [query, category]);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; upload.current?.abort(); analysis.current?.abort(); }; }, []);
+  useEffect(() => { mounted.current = true; return () => {
+    mounted.current = false; upload.current?.abort(); analysis.current?.abort();
+    backgroundGeneration.current++;
+    const job = backgroundJob.current;
+    backgroundJob.current = null;
+    if (job) void backgroundModule.current?.then(module => module.cancel(job)).catch(() => {});
+  }; }, []);
   useEffect(() => {
     if (!file) { setFilePreview(''); search.current?.focus({ preventScroll: true }); return; }
     if (validateEmojiFile(file)) { setFilePreview(''); return; }
     const url = URL.createObjectURL(file);
     setFilePreview(url);
-    nameInput.current?.focus({ preventScroll: true });
-    nameInput.current?.select();
+    // Editing the image must not steal focus/selection from metadata entered
+    // while the local worker was busy. Only an explicit new file gets focus.
+    if (focusNewFile.current) {
+      focusNewFile.current = false;
+      nameInput.current?.focus({ preventScroll: true });
+      nameInput.current?.select();
+    }
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
@@ -69,17 +93,66 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
     setAnalyzing(false);
     setAnalysisNotice(notice);
   };
+  const stopBackground = (notice = 'Baggrundsfjernelsen er stoppet. Originalbilledet er bevaret.') => {
+    backgroundGeneration.current++;
+    const job = backgroundJob.current;
+    backgroundJob.current = null;
+    if (job) void backgroundModule.current?.then(module => module.cancel(job)).catch(() => {});
+    if (mounted.current) { setRemovingBackground(false); setBackgroundNotice(notice); }
+  };
+  const removeBackground = async () => {
+    if (!file || !originalFile || upload.current || backgroundJob.current || backgroundRemoved || validateEmojiFile(file)) return;
+    stopAnalysis('');
+    const generation = ++backgroundGeneration.current;
+    const job = crypto.randomUUID();
+    backgroundJob.current = job;
+    setRemovingBackground(true); setBackgroundNotice('Fjerner baggrunden lokalt i browseren. Første gang hentes billedmodellen…');
+    try {
+      // The runtime is self-hosted and shared with LUP's other emoji forms.
+      const runtimePath = '/js/emoji-background.js';
+      const runtime = await (backgroundModule.current ??= import(/* @vite-ignore */ runtimePath) as Promise<BackgroundModule>);
+      if (!mounted.current || generation !== backgroundGeneration.current) return;
+      const source = await emojiFileDataUrl(file);
+      if (!mounted.current || generation !== backgroundGeneration.current) return;
+      const result = await runtime.removeBackground(source, job);
+      if (!mounted.current || generation !== backgroundGeneration.current) return;
+      const bytes = backgroundPngBytes(result);
+      const processed = new File([new Uint8Array(bytes).buffer], backgroundPngName(originalFile.name), { type: 'image/png' });
+      setFile(processed); setBackgroundRemoved(true);
+      setBackgroundNotice('Baggrunden er fjernet. Gennemgå resultatet, eller vælg originalbilledet igen.');
+      setError('');
+    } catch (failure) {
+      if (mounted.current && generation === backgroundGeneration.current)
+        setBackgroundNotice(failure instanceof TypeError
+          ? 'Billedværktøjet kunne ikke indlæses. Prøv igen, eller brug originalbilledet.'
+          : failure instanceof Error ? failure.message : 'Baggrunden kunne ikke fjernes. Originalbilledet er bevaret.');
+    } finally {
+      if (generation === backgroundGeneration.current) {
+        backgroundJob.current = null;
+        if (mounted.current) setRemovingBackground(false);
+      }
+    }
+  };
+  const restoreOriginal = () => {
+    if (!originalFile || upload.current) return;
+    stopBackground('Originalbilledet er valgt igen.');
+    stopAnalysis('');
+    setFile(originalFile); setBackgroundRemoved(false); setError('');
+  };
   const cancelUpload = () => {
     if (upload.current) return;
+    stopBackground('');
     stopAnalysis('');
-    setFile(null); setError('');
+    setFile(null); setOriginalFile(null); setBackgroundRemoved(false); setError('');
     search.current?.focus({ preventScroll: true });
   };
   const startFile = (selected: File) => {
     if (upload.current) return;
+    stopBackground('');
     stopAnalysis('');
     editedFields.current.clear();
     setFile(selected);
+    setOriginalFile(selected); setBackgroundRemoved(false); focusNewFile.current = true;
     setDraft({ ...emptyDraft(), name: suggestEmojiName(selected.name, emojis.map(item => item.name)) });
     const invalid = validateEmojiFile(selected);
     if (invalid) { setError(invalid); return; }
@@ -122,7 +195,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
   const metadata = normalizeEmojiMetadata({ altText: draft.altText, category: draft.category, keywords: draft.keywordsText });
   const metadataError = validateEmojiMetadata(metadata);
   const saveUpload = async () => {
-    if (!file || !onUpload || upload.current || analysis.current) return;
+    if (!file || !onUpload || upload.current || analysis.current || backgroundJob.current) return;
     const normalized = normalizeEmojiName(draft.name);
     if (!normalized) { setError('Navnet skal være 2–32 tegn: små bogstaver, tal, _ og -.'); nameInput.current?.focus(); return; }
     if (metadataError) { setError(metadataError); return; }
@@ -191,11 +264,20 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
         }} />
       </label>
       {onUpload && <button type="button" className="notion-emoji-add" disabled={busy} onClick={() => fileInput.current?.click()} aria-label="Tilføj emoji" title="Tilføj emoji">+</button>}
-      <button type="button" className="notion-emoji-close" disabled={busy} onClick={onClose} aria-label="Luk emoji-vælger" title="Luk (Esc)">×</button>
+      <button type="button" className="notion-emoji-close" disabled={busy} onClick={() => { stopBackground(''); onClose(); }} aria-label="Luk emoji-vælger" title="Luk (Esc)">×</button>
     </div>
     {onUpload && <input ref={fileInput} className="notion-emoji-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede" onChange={chooseFile} disabled={busy} tabIndex={-1} />}
-    {file ? <div className="notion-emoji-upload" aria-label="Tilføj emoji" aria-busy={busy || analyzing}>
+    {file ? <div className="notion-emoji-upload" aria-label="Tilføj emoji" aria-busy={busy || analyzing || removingBackground}>
       <div className="notion-emoji-upload-file">{filePreview && <img src={filePreview} alt="Forhåndsvisning" />}<span>{file.name}</span></div>
+      <div className="notion-emoji-background-actions">
+        <button type="button" disabled={busy || removingBackground || backgroundRemoved || !!validateEmojiFile(file)} onClick={() => void removeBackground()}>Fjern baggrund</button>
+        {removingBackground && <button type="button" onClick={() => stopBackground()}>Stop</button>}
+        {backgroundRemoved && <button type="button" disabled={busy} onClick={restoreOriginal}>Brug original</button>}
+      </div>
+      {backgroundNotice && <p className="notion-emoji-background-notice" role="status">{backgroundNotice}</p>}
+      {originalFile?.type === 'image/gif' || /\.gif$/i.test(originalFile?.name ?? '')
+        ? <p>Baggrunden fjernes på et stillbillede. GIF-animationen bevares kun i originalen.</p>
+        : <p>Baggrunden fjernes lokalt. Du kan altid vælge originalbilledet igen før gemning.</p>}
       {analyzing && <div className="notion-emoji-analysis-status"><p role="status">AI analyserer billedet…</p><button type="button" onClick={() => stopAnalysis()}>Stop analyse</button></div>}
       {analysisNotice && <p className="notion-emoji-analysis-notice" role="status">{analysisNotice}</p>}
       <label className="notion-emoji-upload-name">Emoji-navn<input ref={nameInput} value={draft.name} onChange={event => editDraft('name', event.target.value)} maxLength={32} autoComplete="off" spellCheck={false} disabled={busy} aria-invalid={!normalizeEmojiName(draft.name)} aria-describedby={`${id}-upload-hint`} /></label>
@@ -207,7 +289,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
       <p id={`${id}-keywords-hint`}>Adskil med komma. Højst 12 søgeord á 32 tegn.</p>
       {error && <p className="notion-emoji-upload-error" role="alert">{error}</p>}
       {metadataError && !error && <p className="notion-emoji-upload-error" role="alert">{metadataError}</p>}
-      <div className="notion-emoji-upload-actions"><button type="button" className="notion-emoji-upload-save" disabled={busy || analyzing || !onUpload || !normalizeEmojiName(draft.name) || !!metadataError || !!validateEmojiFile(file)} onClick={() => void saveUpload()}>{busy ? 'Gemmer…' : 'Gem og brug'}</button><button type="button" disabled={busy} onClick={cancelUpload}>Annuller</button></div>
+      <div className="notion-emoji-upload-actions"><button type="button" className="notion-emoji-upload-save" disabled={busy || analyzing || removingBackground || !onUpload || !normalizeEmojiName(draft.name) || !!metadataError || !!validateEmojiFile(file)} onClick={() => void saveUpload()}>{busy ? 'Gemmer…' : 'Gem og brug'}</button><button type="button" disabled={busy} onClick={cancelUpload}>Annuller</button></div>
       {busy && <p role="status">Gemmer emoji…</p>}
     </div> : <>
     {error && <p className="notion-emoji-upload-error" role="alert">{error}</p>}

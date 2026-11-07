@@ -1,0 +1,10 @@
+.emoji-background-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; padding: 10px; border: 1px solid var(--rule, #dfe7f2); border-radius: 8px; }
+.emoji-background-preview { width: 80px; height: 80px; flex: 0 0 auto; overflow: hidden; border: 1px solid var(--rule, #dfe7f2); border-radius: 6px; background-color: #fff; background-image: linear-gradient(45deg, #e5e9ef 25%, transparent 25%), linear-gradient(-45deg, #e5e9ef 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e9ef 75%), linear-gradient(-45deg, transparent 75%, #e5e9ef 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0; }
+.emoji-background-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.emoji-background-controls { flex: 1 1 130px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.emoji-background-controls button { min-height: 36px; padding: 6px 10px; border: 1px solid var(--rule, #dfe7f2); border-radius: 7px; background: var(--paper, #fff); color: var(--ink, #17243b); font: inherit; cursor: pointer; }
+.emoji-background-controls button:disabled { opacity: .5; cursor: default; }
+.emoji-background-controls button:focus-visible { outline: 2px solid var(--blue, #2452e8); outline-offset: 2px; }
+.emoji-background-hint, .emoji-background-message { margin: 0; color: var(--muted, #63728b); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.emoji-background-message { flex-basis: 100%; color: var(--ink, #17243b); }
+@media (pointer: coarse) { .emoji-background-controls button { min-height: 44px; } }

@@ -33,3 +33,5 @@ publish/
 editor/node_modules/
 collaboration/node_modules/
 web/wwwroot/notion-editor/
+image-tools/node_modules/
+web/wwwroot/image-tools/

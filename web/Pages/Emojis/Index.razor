@@ -47,7 +47,6 @@ else
         @if (HasExtensionImport && !_extensionImportComplete)
         {
             <section class="panel emoji-import" aria-label="Billede fra LUP-udvidelsen">
-                @if (_importPreview is not null) { <img src="@_importPreview" alt="Forhåndsvisning af det valgte billede" /> }
                 <p role="status">@(_importStatus ?? "Henter billedet fra LUP-udvidelsen…")</p>
                 <p class="emoji-hint">Gennemgå navn og beskrivelse, og tryk Upload for at tilføje emojien til biblioteket.</p>
             </section>
@@ -64,6 +63,7 @@ else
             <p class="emoji-hint">PNG, JPEG, GIF eller WebP. Højst 256 KB.@if (_file is not null) { <span> Valgt: @_file.Name</span> }</p>
             @if (_file is not null)
             {
+                <EmojiBackgroundEditor File="_file" FileChanged="ApplyEditedImage" BusyChanged="BackgroundBusyChanged" Disabled="_busy" />
                 <label class="field">ALT-tekst<input value="@_altText" @oninput="EditAlt" maxlength="240" /></label>
                 <label class="field">Kategori<select value="@_uploadCategory" @onchange="EditCategory">@foreach (var category in EmojiPickerCatalog.Categories.Where(item => item.Id != "all")) { <option value="@category.Id">@(category.Id == "custom" ? "Andet" : category.Label)</option> }</select></label>
                 <label class="field">Søgeord<input value="@_keywords" @oninput="EditKeywords" maxlength="500" placeholder="Adskil med komma" /></label>
@@ -71,7 +71,7 @@ else
                 @if (_analyzing) { <p role="status" class="emoji-hint">Analyserer billedet og foreslår metadata…</p><button type="button" class="secondary" @onclick="StopAnalysis">Stop analyse</button> }
                 else if (_analysisMessage is not null) { <p role="status" class="emoji-hint">@_analysisMessage</p> }
             }
-            <button class="action" disabled="@(_busy || _analyzing || _file is null || !ValidUpload)">Upload</button>
+            <button class="action" disabled="@(_busy || _analyzing || _backgroundBusy || _file is null || !ValidUpload)">Upload</button>
         </form>
     }
     else
@@ -173,7 +173,7 @@ else
     private string? _error, _notice;
     private Guid? _renaming, _confirmDelete;
     private int _fileKey, _catalogVersion;
-    private bool _busy;
+    private bool _busy, _backgroundBusy;
     private bool CanManage => Redirect.ShowsTeacherChrome;
 
     protected override async Task OnInitializedAsync()
@@ -210,6 +210,7 @@ else
 
     private async Task ChooseImage(IBrowserFile file)
     {
+        _backgroundBusy = false;
         CancelAnalysis();
         var generation = ++_fileGeneration;
         _file = file;
@@ -255,9 +256,27 @@ else
     private void CancelAnalysis() { _analysisRequest?.Cancel(); _analysisRequest = null; _analyzing = false; }
     private void StopAnalysis() { CancelAnalysis(); _analysisMessage = "Analysen er stoppet. Du kan udfylde felterne manuelt."; }
 
+    private Task BackgroundBusyChanged(bool busy)
+    {
+        _backgroundBusy = busy;
+        if (busy) { CancelAnalysis(); ++_fileGeneration; }
+        return Task.CompletedTask;
+    }
+
+    private Task ApplyEditedImage(IBrowserFile file)
+    {
+        if (_life.IsCancellationRequested || _busy) return Task.CompletedTask;
+        CancelAnalysis();
+        ++_fileGeneration;
+        _file = file;
+        _error = null;
+        _analysisMessage = "Billedet er ændret. Navn og beskrivelse er bevaret.";
+        return Task.CompletedTask;
+    }
+
     private async Task Upload()
     {
-        if (!CanManage || _file is null || _busy || _analyzing || !ValidUpload) return;
+        if (!CanManage || _file is null || _busy || _analyzing || _backgroundBusy || !ValidUpload) return;
         if (_file.Size > EmojiClient.MaxBytes) { _error = "Billedet må højst være 256 KB."; return; }
         _busy = true;
         _error = _notice = null;

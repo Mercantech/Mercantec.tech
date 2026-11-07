@@ -1,0 +1,25 @@
+LUP emoji background removal
+
+ONNX Runtime Web 1.31.1
+Copyright (c) Microsoft Corporation
+MIT License: ONNXRUNTIME-LICENSE.txt
+Source: https://github.com/microsoft/onnxruntime
+Distribution: https://www.npmjs.com/package/onnxruntime-web/v/1.31.1
+
+U-2-Net / U2netp model
+Apache License 2.0: U2NET-LICENSE.txt
+Authors: Xuebin Qin, Zichen Zhang, Chenyang Huang, Masood Dehghan,
+Osmar R. Zaiane and Martin Jagersand.
+Source: https://github.com/xuebinqin/U-2-Net
+Model architecture and original pretrained U2netp weights are provided by that project.
+
+Rembg ONNX conversion and preprocessing reference
+Copyright (c) 2020 Daniel Gatis
+MIT License: REMBG-LICENSE.txt
+Source: https://github.com/danielgatis/rembg
+ONNX model: https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx
+MD5: 8e83ca70e441ab06c318d82300c84806
+SHA256: 309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8
+
+The browser adapter is application code. Rembg Python code and its dependencies
+are not included in the application; only its distributed ONNX model is used.

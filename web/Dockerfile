@@ -5,6 +5,13 @@ RUN npm ci
 COPY editor/ ./
 RUN npm run build
 
+FROM node:22-alpine AS image-tools-build
+WORKDIR /src/image-tools
+COPY image-tools/package.json image-tools/package-lock.json ./
+RUN npm ci
+COPY image-tools/ ./
+RUN npm run build
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY shared/Mercantec.Tech.Contracts.csproj shared/
@@ -13,6 +20,7 @@ RUN dotnet restore web/Mercantec.Tech.Web.csproj
 COPY shared/ shared/
 COPY web/ web/
 COPY --from=editor-build /src/web/wwwroot/notion-editor/ web/wwwroot/notion-editor/
+COPY --from=image-tools-build /src/web/wwwroot/image-tools/ web/wwwroot/image-tools/
 WORKDIR /src/web
 RUN dotnet publish -c Release -o /app/publish
 

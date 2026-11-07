@@ -1,0 +1,230 @@
+@using Mercantec.Tech.Web.Emojis
+@inject IJSRuntime Js
+@implements IAsyncDisposable
+
+@if (File is not null)
+{
+    <div class="emoji-background-editor" role="group" aria-label="Billedredigering" aria-busy="@(_busy ? "true" : "false")">
+        @if (_preview is not null)
+        {
+            <div class="emoji-background-preview"><img src="@_preview" alt="Forhåndsvisning af emoji på ternet baggrund" /></div>
+        }
+        <div class="emoji-background-controls">
+            @if (_busy)
+            {
+                <p class="emoji-background-hint" role="status">Fjerner baggrund… Første gang kan tage lidt længere tid.</p>
+                <button type="button" disabled="@Disabled" @onclick="StopProcessing">Stop</button>
+            }
+            else if (_processed is not null)
+            {
+                <button type="button" disabled="@Disabled" @onclick="RestoreOriginal">Brug original</button>
+            }
+            else
+            {
+                <button type="button" disabled="@(Disabled || _originalData is null)" @onclick="RemoveBackground">Fjern baggrund</button>
+            }
+            <p class="emoji-background-hint">Behandles lokalt i browseren. Resultatet er et PNG-stillbillede med gennemsigtighed.</p>
+        </div>
+        @if (_message is not null)
+        {
+            <p class="emoji-background-message" role="@(_failed ? "alert" : "status")">@_message</p>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IBrowserFile? File { get; set; }
+    [Parameter] public EventCallback<IBrowserFile> FileChanged { get; set; }
+    [Parameter] public EventCallback<bool> BusyChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private IBrowserFile? _observed, _original, _processed;
+    private string? _originalData, _processedData, _preview, _message, _jobId;
+    private IJSObjectReference? _module;
+    private Task<IJSObjectReference>? _moduleLoad;
+    private int _generation;
+    private bool _busy, _failed, _disposed;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_disposed || ReferenceEquals(File, _observed)) return;
+        _observed = File;
+        if (ReferenceEquals(File, _processed) && _processed is not null)
+        {
+            _preview = _processedData;
+            return;
+        }
+        if (ReferenceEquals(File, _original) && _original is not null)
+        {
+            _preview = _originalData;
+            return;
+        }
+
+        var generation = ++_generation;
+        await CancelCurrent();
+        if (_disposed || generation != _generation) return;
+        _original = File;
+        _processed = null;
+        _originalData = _processedData = _preview = _message = null;
+        _failed = false;
+        if (File is null) return;
+        var file = File;
+        if (file.Size is <= 0 or > EmojiClient.MaxBytes)
+        {
+            _failed = true;
+            _message = "Vælg et billede med indhold på højst 256 KB for at fjerne baggrunden.";
+            return;
+        }
+        var type = MediaType(file);
+        if (type is null)
+        {
+            _failed = true;
+            _message = "Baggrunden kan fjernes fra PNG, JPEG, GIF eller WebP.";
+            return;
+        }
+        try
+        {
+            await using var stream = file.OpenReadStream(EmojiClient.MaxBytes);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            if (_disposed || generation != _generation) return;
+            _originalData = $"data:{type};base64,{Convert.ToBase64String(buffer.ToArray())}";
+            _preview = _originalData;
+        }
+        catch (Exception error) when (error is IOException or OperationCanceledException)
+        {
+            if (!_disposed && generation == _generation)
+            {
+                _failed = true;
+                _message = "Billedet kunne ikke læses. Vælg det igen.";
+            }
+        }
+    }
+
+    private static string? MediaType(IBrowserFile file) => file.ContentType switch
+    {
+        "image/png" or "image/jpeg" or "image/gif" or "image/webp" => file.ContentType,
+        _ => Path.GetExtension(file.Name).ToLowerInvariant() switch
+        {
+            ".png" => "image/png", ".jpg" or ".jpeg" => "image/jpeg", ".gif" => "image/gif", ".webp" => "image/webp", _ => null
+        }
+    };
+
+    private async Task<IJSObjectReference> GetModule()
+    {
+        var load = _moduleLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-background.js").AsTask();
+        try
+        {
+            var module = await load;
+            if (_disposed) throw new OperationCanceledException();
+            return _module = module;
+        }
+        catch
+        {
+            if (ReferenceEquals(_moduleLoad, load)) _moduleLoad = null;
+            throw;
+        }
+    }
+
+    private async Task RemoveBackground()
+    {
+        if (_disposed || Disabled || _busy || _originalData is null || _original is null || _processed is not null) return;
+        var generation = ++_generation;
+        var original = _original;
+        var data = _originalData;
+        var job = Guid.NewGuid().ToString("N");
+        _jobId = job;
+        _message = null;
+        _failed = false;
+        _busy = true;
+        await BusyChanged.InvokeAsync(true);
+        try
+        {
+            var module = await GetModule();
+            if (_disposed || generation != _generation) return;
+            var result = await module.InvokeAsync<BackgroundResult>("removeBackground", data, job);
+            if (_disposed || generation != _generation) return;
+            var file = result?.ContentType == "image/png"
+                ? new ExtensionEmojiDraft(Path.GetFileNameWithoutExtension(original.Name), result.ContentType, result.Base64).ToBrowserFile()
+                : null;
+            if (file is null) throw new InvalidDataException("Invalid processed image.");
+            _processed = file;
+            _processedData = $"data:image/png;base64,{result!.Base64}";
+            _preview = _processedData;
+            _observed = file;
+            _message = "Baggrunden er fjernet. Gennemgå resultatet, før du gemmer.";
+            await FileChanged.InvokeAsync(file);
+        }
+        catch (Exception error) when (error is JSException or IOException or InvalidDataException or OperationCanceledException)
+        {
+            if (!_disposed && generation == _generation)
+            {
+                _failed = true;
+                _message = "Baggrunden kunne ikke fjernes. Originalbilledet er bevaret. Du kan prøve igen eller gemme originalen.";
+            }
+        }
+        finally
+        {
+            if (!_disposed && generation == _generation)
+            {
+                _jobId = null;
+                _busy = false;
+                await BusyChanged.InvokeAsync(false);
+            }
+        }
+    }
+
+    private async Task CancelCurrent()
+    {
+        var job = _jobId;
+        _jobId = null;
+        if (job is not null && _module is not null)
+        {
+            try { await _module.InvokeVoidAsync("cancel", job); }
+            catch (Exception error) when (error is JSException or OperationCanceledException) { }
+        }
+        if (_busy)
+        {
+            _busy = false;
+            if (!_disposed) await BusyChanged.InvokeAsync(false);
+        }
+    }
+
+    private async Task StopProcessing()
+    {
+        if (_disposed || Disabled || !_busy) return;
+        ++_generation;
+        await CancelCurrent();
+        _failed = false;
+        _message = "Behandlingen er stoppet. Originalbilledet er bevaret.";
+    }
+
+    private async Task RestoreOriginal()
+    {
+        if (_disposed || Disabled || _original is null) return;
+        ++_generation;
+        await CancelCurrent();
+        _processed = null;
+        _processedData = null;
+        _preview = _originalData;
+        _observed = _original;
+        _failed = false;
+        _message = "Originalbilledet er valgt igen.";
+        await FileChanged.InvokeAsync(_original);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        ++_generation;
+        await CancelCurrent();
+        if (_moduleLoad is not null)
+        {
+            try { await (await _moduleLoad).DisposeAsync(); }
+            catch (Exception error) when (error is JSException or OperationCanceledException) { }
+        }
+    }
+
+    private sealed record BackgroundResult(string? Base64, string? ContentType);
+}

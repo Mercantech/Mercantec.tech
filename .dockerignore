@@ -9,6 +9,7 @@
 **/.idea
 
 .tools
+web/wwwroot/image-tools
 .env
 .env.*
 !.env.example
