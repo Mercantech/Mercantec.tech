@@ -53,7 +53,31 @@ public static class CharacterCatalog
              new("Sommerferie", "/images/characters/raymond/summer-holiday.webp", "Raymond i sommertøj, klar til ferie")],
             [new("Forstå din SQL", "Raymond forklarer forespørgsler, relationer og fejl med små, konkrete eksempler. Han giver gradvise hints, så du selv kan finde frem til løsningen."),
              new("En professor med historie", "Hans fulde navn hylder databasepionererne Raymond Boyce, Michael Stonebraker og Edgar F. Codd. Du møder ham på SQL-H1, hvor SQL og PostgreSQL er i centrum.")],
-            [new("Mød Raymond på SQL-H1", "https://sql.mercantec.tech", true, false), new("Udforsk databaser", "/subjects/database", false, false)]),
+            [new("Mød Raymond på SQL-H1", "https://sql.mercantec.tech", true, false), new("Udforsk databaser", "/subjects/database", false, false)])
+        {
+            Reactions =
+            [
+                new("Det virker", "/images/characters/raymond/reactions/success.png", "Raymond smiler tilfreds: forespørgslen virker.", 1254, 1254),
+                new("Koden driller", "/images/characters/raymond/reactions/error.png", "Raymond ser tålmodigt bekymret ud og er klar til at hjælpe med fejlen.", 1254, 1254),
+                new("Et lille hint", "/images/characters/raymond/reactions/help.png", "Raymond løfter et øjenbryn og smiler opmuntrende.", 1254, 1254),
+                new("Tænkepause", "/images/characters/raymond/reactions/thinking.png", "Raymond kigger eftertænksomt opad, mens han overvejer løsningen.", 1254, 1254),
+                new("Pas på", "/images/characters/raymond/reactions/warning.png", "Raymond hæver brynene i mild overraskelse og beder dig kontrollere en ekstra gang.", 1254, 1254),
+                new("Flot klaret", "/images/characters/raymond/reactions/celebration.png", "Raymond stråler af begejstring over en opgave, der er løst.", 1254, 1254),
+                new("Griner", "/images/characters/raymond/reactions/laughing.png", "Raymond bryder ud i varm latter med glade øjne og en legende snabel.", 1262, 1246),
+                new("Aha!", "/images/characters/raymond/reactions/eureka.png", "Raymond får en idé med løftet finger og en lille gylden pære.", 1254, 1254),
+                new("Åh nej", "/images/characters/raymond/reactions/facepalm.png", "Raymond lægger en hånd ved panden i en tålmodig og humoristisk facepalm.", 1254, 1254),
+                new("Kaffepause", "/images/characters/raymond/reactions/coffee.png", "Raymond holder en dampende mørkeblå kaffekop med et afslappet smil.", 1254, 1254),
+                new("Tak!", "/images/characters/raymond/reactions/grateful.png", "Raymond smiler taknemmeligt med en åben hånd og små gyldne hjerter.", 1254, 1254),
+                new("Hov, hvad?", "/images/characters/raymond/reactions/confused.png", "Raymond lægger hovedet på skrå med et hævet øjenbryn og et lille spørgsmålstegn.", 1254, 1254)
+            ],
+            Scenes =
+            [
+                new("Biblioteket", "/images/characters/raymond/scenes/library.png", "Raymond læser i et hyggeligt træbibliotek med bøger og varmt lampelys.", 1536, 1024),
+                new("Kodecaféen", "/images/characters/raymond/scenes/cafe.png", "Raymond arbejder med sin laptop og kaffe ved et cafévindue på en regnfuld aften.", 1536, 1024),
+                new("Databaseobservatoriet", "/images/characters/raymond/scenes/observatory.png", "Raymond undersøger stjernehimlen fra et fantasifuldt rumobservatorium med teleskop og datakonstellationer.", 1536, 1024),
+                new("Mysteriet om den tabte række", "/images/characters/raymond/scenes/detective-study.png", "Raymond undersøger et ufarligt SQL-mysterium med lup, sagsmappe og et opslag med spor.", 1536, 1024)
+            ]
+        },
         new("beaver", "Bæver", "Underviser i Sikkerhed og test · Blå team", "Sikkerhed og test", false,
             "Den rolige systembygger på blåt team: sikker kode, adgangskontrol, logs og tests, der holder løsningen robust.",
             "Bæver underviser i Sikkerhed og test fra det blå teams perspektiv. Med tablet og logbog undersøger Bæver, hvordan vi beskytter systemet, opdager fejl og gør rettelser holdbare. Arbejdet er roligt, grundigt og praktisk: forstå problemet, styrk løsningen, og skriv en test, der passer på den fremover.",
@@ -82,6 +106,8 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
 {
     public string Path => "/characters/" + Slug;
     public IReadOnlyList<CharacterIllustration> Illustrations { get; init; } = [];
+    public IReadOnlyList<CharacterIllustration> Reactions { get; init; } = [];
+    public IReadOnlyList<CharacterIllustration> Scenes { get; init; } = [];
 }
 
 public sealed record CharacterAppearance(string Name, string Image, string Alt);

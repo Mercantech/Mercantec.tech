@@ -23,6 +23,57 @@ public sealed class CharacterDetailTests
     }
 
     [Fact]
+    public async Task RaymondArtworkCanBeOpenedAndDownloadedWithoutReplacingTheSelectedPortrait()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.FindAll(".character-appearance-picker button")[2].Click();
+
+        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.All(page.FindAll(".character-artwork-gallery figure"), figure =>
+        {
+            var image = figure.QuerySelector("img")!;
+            var preview = figure.QuerySelector(".character-artwork-preview")!;
+            var download = figure.QuerySelector(".character-artwork-download")!;
+            var source = image.GetAttribute("src")!;
+            Assert.StartsWith("/images/characters/raymond/", source);
+            Assert.EndsWith(".png", source);
+            Assert.False(string.IsNullOrWhiteSpace(image.GetAttribute("alt")));
+            Assert.Equal(source, preview.GetAttribute("href"));
+            Assert.Equal("_blank", preview.GetAttribute("target"));
+            Assert.Contains("noopener", preview.GetAttribute("rel"));
+            Assert.Equal(source, download.GetAttribute("href"));
+            Assert.Equal($"raymond-{Path.GetFileName(source)}", download.GetAttribute("download"));
+        });
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);
+        Assert.Equal(16, page.FindAll(".character-artwork-preview").Select(link => link.GetAttribute("href")).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task RaymondArtworkDoesNotFollowTheUserToOtherProfiles()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        Assert.Equal(2, page.FindAll(".character-artwork-gallery").Count);
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
+        Assert.Empty(page.FindAll(".character-artwork-gallery"));
+        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
+        Assert.Empty(page.FindAll(".character-artwork-gallery, .character-gallery"));
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
+        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
+    }
+
+    [Fact]
     public async Task MovingBetweenProfilesResetsTheAppearanceWithoutShowingThePreviousPortrait()
     {
         using var api = new NoNetwork();

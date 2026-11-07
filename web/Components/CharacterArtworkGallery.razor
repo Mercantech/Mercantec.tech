@@ -1,0 +1,34 @@
+@using Mercantec.Tech.Web.Characters
+
+@if (Items.Count > 0)
+{
+    <section class="character-artwork-gallery @(Compact ? "character-reactions" : "character-scenes")" aria-labelledby="@HeadingId">
+        <header>
+            <h2 id="@HeadingId">@Title</h2>
+            <p>@Description</p>
+        </header>
+        <div class="character-artwork-grid">
+            @foreach (var item in Items)
+            {
+                <figure>
+                    <a class="character-artwork-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
+                        <img src="@item.Image" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
+                    </a>
+                    <figcaption>
+                        <span>@item.Title</span>
+                        <a class="character-artwork-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image)}")" aria-label="@($"Hent {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
+                    </figcaption>
+                </figure>
+            }
+        </div>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string CharacterSlug { get; set; } = "";
+    [Parameter, EditorRequired] public string HeadingId { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public bool Compact { get; set; }
+    [Parameter] public IReadOnlyList<CharacterIllustration> Items { get; set; } = [];
+}

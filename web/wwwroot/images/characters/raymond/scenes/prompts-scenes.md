@@ -1,0 +1,47 @@
+# Raymonds miljøillustrationer
+
+Genereret 7. november 2026 med den indbyggede `image_gen.imagegen` i standard tool mode. Fire separate billedkald, ingen CLI/API-fallback, ingen efterfølgende billedredigering. Originale PNG-filer kopieret uændret ind i projektet.
+
+## Referencebilleder og parametre
+
+Begge kilder blev visuelt inspiceret med `view_image` før generering. Første reference angiver kanonisk krop, tøj og stil; anden reference angiver det præcise ansigt.
+
+- `C:\Users\Private\Documents\GitHub\SQL-H1\assets\mascot\candidates\01-sql-underviseren.png`
+- `C:\Users\Private\Documents\GitHub\SQL-H1\assets\mascot\professor-pack\head-neutral.png`
+
+Alle kald bruger `referenced_image_paths` med begge stier ovenfor samt `transparent_background: false`. Miljøerne er tilsigtede fulde, uigennemsigtige scener. Opløsning: 1536 × 1024 px (3:2), RGB PNG uden alfakanal.
+
+## Visuel kvalitetssikring
+
+Alle fire resultater er inspiceret ved originalgenereringen. Raymond har blå hud, store brune øjne, runde bronzebriller, blå hårtot og krøllet snabel i den kanoniske varme, malede stil. Ansigtet er tydeligt og genkendeligt. Miljøer fylder hele billedfladen; ingen kollage, paneler, ekstra figurer, logoer eller læsbar tekst. Hænder og tilbehør er sammenhængende. Bog- og skærmstreger er dekorative abstraktioner, ikke undervisningsdiagrammer. Ingen omgenerering var nødvendig.
+
+- **Biblioteket:** synlig fuld figur i velkendt cardigan, åben bog, varme træreoler og lampe. Rolig nysgerrighed.
+- **Kodecaféen:** tydeligt ansigt og hænder ved laptop, kaffe, regn på vinduer, varm/kølig lyskontrast. Skærmens farvede streger og forbindelser er dekorative.
+- **Databaseobservatoriet:** fuld figur, teleskop, stjernehimmel, planeter og abstrakte forbindelser som datatabeller.
+- **Mysteriet om den tabte række:** tweedfrakke, lup og sagsmappe med abstrakte tabeller; venligt SQL-mysterium uden personer eller vold.
+
+## Præcise prompts
+
+### Biblioteket · `library.png`
+
+```text
+Create one finished warm hand-painted editorial cartoon illustration, landscape 3:2 composition, for the character gallery of an educational website. Scene title for our records only: Biblioteket. Reference image 1 is the canonical full-body Raymond professor design; reference image 2 is his exact neutral face and identity reference. Preserve Raymond's original recognizable proportions and precise face: friendly blue elephant professor, very large warm brown eyes with ivory whites, round bronze wire glasses, small swept blue hair tuft, broad soft ears, smiling mouth, curled upward trunk, blue collared shirt, cream textured cable-knit cardigan, brown trousers. Retain the original painterly blue fur/skin, fine fabric texture, dark-blue drawn contours and gentle shading. Do not redesign him as realistic, 3D, plastic, anime or a different elephant. One large Raymond stands in a cozy wooden library in three-quarter view, calmly and curiously reading an open navy book held naturally in his hands. His eyes and face remain clearly visible above the book. Detailed floor-to-ceiling wooden shelves with books whose spines contain only abstract colored shapes and NO readable text, warm brass reading lamp, inviting wood grain, soft amber pools of light, peaceful scholarly mood, layered depth. Raymond occupies roughly half of the scene height with his whole body and feet visible and comfortably framed; enough environment to feel like a complete library scene. Full opaque painted scene all the way to the edges, not a transparent cutout. Single coherent image. No other characters, no readable words, letters or numerals anywhere, no logos, watermarks, collage, panels, speech bubbles or border.
+```
+
+### Kodecaféen · `cafe.png`
+
+```text
+Create one finished warm hand-painted editorial cartoon illustration, landscape 3:2 composition, for the character gallery of an educational website. Scene title for our records only: Kodecaféen. Reference image 1 is the canonical full-body Raymond professor design; reference image 2 is his exact neutral face and identity reference. Preserve Raymond's original recognizable proportions and precise face: friendly blue elephant professor, very large warm brown eyes with ivory whites, round bronze wire glasses, small swept blue hair tuft, broad soft ears, smiling mouth, curled upward trunk, blue collared shirt and cream textured cable-knit cardigan. Retain original painterly blue skin, fine fabric texture, dark-blue drawn contours and gentle shading. Do not redesign him as realistic, 3D, plastic, anime or a different elephant. A single large recognizable Raymond sits naturally in a cozy café at a wooden table beside a large rain-streaked window on an evening, absorbed and happily curious while coding on a plain unbranded laptop. His face, glasses and curled trunk remain clearly visible in three-quarter view; the laptop is low enough to show his hands and upper body. A cup of coffee beside the laptop, a few cozy warm pendant lamps and empty seating; through the window cool deep-blue rainy city lights rendered as soft shapes. On the laptop screen only tiny abstract colored line segments, rectangles and a simple connected relational diagram, absolutely NO readable text, letters or numbers. Rich warm amber café interior against cool rainy blue exterior, painterly raindrops/reflections, intimate scholarly atmosphere, detailed coherent environment to all edges. Single full opaque scene, not a transparent cutout. No other people or characters, no readable words/letters/numerals anywhere, no logos, watermarks, collage, panels, speech bubbles or border.
+```
+
+### Databaseobservatoriet · `observatory.png`
+
+```text
+Create one finished warm hand-painted editorial cartoon illustration, landscape 3:2 composition, for the character gallery of an educational website. Scene title for our records only: Databaseobservatoriet. Reference image 1 is the canonical full-body Raymond professor design; reference image 2 is his exact neutral face and identity reference. Preserve Raymond's original recognizable proportions and precise face: friendly blue elephant professor, very large warm brown eyes with ivory whites, round bronze wire glasses, small swept blue hair tuft, broad soft ears, smiling mouth, curled upward trunk, blue collared shirt, cream textured cable-knit cardigan, brown trousers. Retain the original painterly blue skin, fine fabric texture, dark-blue drawn contours and gentle shading. Do not redesign him as realistic, 3D, plastic, anime or a different elephant. One large Raymond stands inside a whimsical but cozy professor's observatory beside a beautiful brass telescope on a wooden stand. His face remains fully visible in three-quarter view as he looks delighted and curious toward the telescope and the huge curved window. One hand gently rests on the telescope; no impossible trunk or hand overlaps. Through the vast observatory window is an enchanting indigo starfield with a few softly glowing distant planets. Subtle abstract constellations of small light rectangles joined by delicate lines evoke connected database tables, without readable labels. Warm little desk lamp, wood flooring, celestial instruments, comfortable scholarly atmosphere, carefully painted brass, deep-blue space and amber interior light. His whole body and feet visible, large enough for clear recognition; rich layered environment fills all edges. Single full opaque scene, not a transparent cutout. No other figures, no readable text/letters/numerals, no logos, no watermarks, no collage, panels, speech bubbles or border.
+```
+
+### Mysteriet om den tabte række · `detective-study.png`
+
+```text
+Create one finished warm hand-painted editorial cartoon illustration, landscape 3:2 composition, for the character gallery of an educational website. Scene title for our records only: Mysteriet om den tabte række. Reference image 1 is the canonical full-body Raymond professor design; reference image 2 is his exact neutral face and identity reference. Preserve Raymond's original recognizable proportions and precise face: friendly blue elephant professor, very large warm brown eyes with ivory whites, round bronze wire glasses, small swept blue hair tuft, broad soft ears, smiling mouth and upward-curled trunk. Retain original painterly blue skin, fine fabric texture, dark-blue drawn contours and gentle shading. Do not redesign him as realistic, 3D, plastic, anime or a different elephant. One large clearly recognizable Raymond is a kindly whimsical database detective in a warmly lit study, wearing a brown tweed detective coat over his blue shirt and cream cardigan, no hat so his hair tuft and ears remain clear. He holds a magnifying glass comfortably in one hand below and to the side of his face, examining abstract table-shaped clue cards on an open case folder on an old wooden desk. His face stays fully visible with an intrigued gentle smile. Behind him a cork noticeboard with abstract rectangles, tiny colored geometric marks and connecting strings represents a harmless fictional missing database row puzzle; no photographs, no humans, no victims or accusations, no crime violence. Warm brass desk lamp, shelves with unlabelled books, wood grain, soft evening light, quirky scholarly curiosity. Detailed coherent office environment fills all edges, one subject only, no extra characters. Single full opaque painted scene, not a transparent cutout. No readable words, letters or numerals, no logos, watermarks, collage, panels, speech bubbles or border.
+```

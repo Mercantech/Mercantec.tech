@@ -24,4 +24,27 @@ Kildedokumentation: `SQL-H1/assets/mascot/README.md`,
 `SQL-H1/assets/mascot/professor-pack/README.md` og
 `SQL-H1/assets/mascot/professor-pack/manifest.json`.
 Originalreferencen er `SQL-H1/assets/mascot/candidates/01-sql-underviseren.png`.
-Ingen illustrationer er redigeret eller genereret på ny ved denne kopiering.
+De fire WebP-filer er ikke redigeret eller genereret på ny ved denne kopiering.
+
+## Emojis, reaktioner og miljøer
+
+Raymonds profil har desuden et bibliotek med 12 detaljerede reaktioner og fire
+miljøillustrationer. De ligger under karakteren og kan åbnes i original størrelse
+eller hentes som PNG. Portrætvalget ovenfor er uafhængigt af gallerierne.
+
+- `reactions/`: seks oprindelige reaktionshoveder kopieret uændret fra
+  `SQL-H1/assets/mascot/professor-pack/feedback/` og seks nye transparente
+  illustrationer: grin, aha, facepalm, kaffe, tak og forvirring.
+- `scenes/`: fire nye, fuldt illustrerede miljøer: biblioteket, kodecaféen,
+  databaseobservatoriet og *Mysteriet om den tabte række*.
+
+De ti nye billeder er lavet enkeltvis med den indbyggede **image_gen**-generator
+som referencebaserede variationer af den kanoniske Raymond. Originale PNG'er er
+gemt uden efterfølgende billedredigering. Reaktioner har transparent baggrund;
+miljøerne har udfyldt baggrund.
+
+Præcise prompts, billedreferencer, mål og transparenskontrol:
+
+- [Griner, Aha! og Åh nej](reactions/prompts-a.md)
+- [Kaffepause, Tak! og Hov, hvad?](reactions/prompts-b.md)
+- [De fire miljøer](scenes/prompts-scenes.md)

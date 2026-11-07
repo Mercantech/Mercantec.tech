@@ -73,6 +73,16 @@ else
             }
         </div>
 
+        <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-reactions-title"
+                                 Title="@($"{character.Name}s emojis og reaktioner")"
+                                 Description="Små udtryk til både de gode idéer og den kode, der driller. Alle reaktioner har transparent baggrund. Åbn dem i fuld størrelse, eller hent en PNG."
+                                 Items="@character.Reactions" Compact="true" />
+
+        <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-scenes-title"
+                                 Title="@($"{character.Name} i nye miljøer")"
+                                 Description="Fra en stille læsestund til et mysterium om en tabt række. Små fortællinger med professoren, som du kan åbne eller hente."
+                                 Items="@character.Scenes" />
+
         @if (character.Illustrations.Count > 0)
         {
             <section class="character-gallery" aria-labelledby="character-gallery-title">
