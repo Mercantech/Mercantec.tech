@@ -2,6 +2,8 @@
 
 Central læringsplatform for undervisning (Kasper & Mathias).
 
+På `/characters` kan alle møde LUPP, Vatson fra det kommende VATEK-projekt og Raymond fra SQL-H1. Hver karakter har sin egen underside; Raymonds oprindelige illustrationer er genbrugt fra SQL-H1. Se [karaktersiderne](obsidian/03-features/Karaktersider.md).
+
 Repository og domæne hedder fortsat `Mercantec.tech` / `mercantec.tech`.
 
 ## Start Blazor-appen

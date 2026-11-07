@@ -15,6 +15,10 @@ public sealed class PublicContentTests
     [InlineData("/explore/modules")]
     [InlineData("/explore/projects/sensorstation")]
     [InlineData("/badges/hawaii")]
+    [InlineData("/characters")]
+    [InlineData("/characters/lupp")]
+    [InlineData("/characters/vatson?from=library")]
+    [InlineData("/characters/raymond#appearances")]
     public void PublicReadingRoutesDoNotRequireLogin(string path) => Assert.True(PublicPageAccess.Allows(path));
 
     [Theory]
@@ -38,6 +42,7 @@ public sealed class PublicContentTests
     [InlineData("/notifications")]
     [InlineData("/polls/30000000-0000-0000-0000-000000000001")]
     [InlineData("/courses/template-private/123")]
+    [InlineData("/characters/lupp/private")]
     public void PrivateRoutesRemainProtectedEvenWithPublicLookingQueries(string path) => Assert.False(PublicPageAccess.Allows(path));
 
     [Fact]
@@ -49,6 +54,18 @@ public sealed class PublicContentTests
         Assert.DoesNotContain(results, h => h.Kind == "Quest");
         Assert.Empty(PublicCatalog.Search("Alex Jensen"));
         Assert.Empty(PublicCatalog.Search("Maja Holm"));
+    }
+
+    [Theory]
+    [InlineData("LUPP", "/characters/lupp")]
+    [InlineData("Vatson", "/characters/vatson")]
+    [InlineData("VATEK", "/characters/vatson")]
+    [InlineData("Raymond", "/characters/raymond")]
+    public void CharacterSearchFindsThePublicProfile(string query, string path)
+    {
+        var hit = Assert.Single(PublicCatalog.Search(query), hit => hit.Href == path);
+        Assert.Equal("Karakter", hit.Kind);
+        Assert.True(PublicPageAccess.Allows(hit.Href));
     }
 
     [Fact]

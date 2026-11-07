@@ -7,7 +7,7 @@ public static class PublicPageAccess
     {
         var path = relativePath.Split('?', '#')[0].Trim('/');
         if (path is "" or "login" or "auth/callback" or "privacy" or "help" or "sources"
-            or "library" or "search" or "explore/modules" or "subjects" or "badges" or "explore/projects" or "courses/template" or "lup")
+            or "library" or "search" or "explore/modules" or "subjects" or "badges" or "explore/projects" or "courses/template" or "lup" or "characters")
             return true;
 
         var parts = path.Split('/');
@@ -17,6 +17,7 @@ public static class PublicPageAccess
             ["subjects", _] or ["subjects", _, _] => true,
             ["badges", _] => true,
             ["explore", "projects", _] => true,
+            ["characters", _] => true,
             _ => false
         };
     }

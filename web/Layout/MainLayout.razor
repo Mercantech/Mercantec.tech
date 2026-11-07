@@ -47,6 +47,7 @@
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
                             @foreach (var link in NotebookLinks.Skip(1)) { <NavLink href="@link.Href">@link.Label</NavLink> }
                             <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
+                            <NavLink href="/characters">Karakterer</NavLink>
                             <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
                             @if (IsTeacher) { <NavLink href="/teacher/tools">Underviserværktøjer</NavLink> }
                             <button type="button" class="secondary" @onclick="Logout">Log ud</button>
@@ -60,16 +61,17 @@
                     <a class="@(PublicArea == "learning" ? "is-current" : null)" href="/" aria-current="@(PublicArea == "learning" ? "true" : null)">Undervisning</a>
                     <NavLink href="/library">Bibliotek</NavLink>
                     <NavLink href="/explore/projects">Projekter</NavLink>
+                    <NavLink href="/characters">Karakterer</NavLink>
                     <NavLink href="/sources">Om LUP</NavLink>
                 </nav>
-                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/library">Bibliotek</a><a href="/explore/projects">Projekter</a><a href="/sources">Om LUP</a></nav></details>
+                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/library">Bibliotek</a><a href="/explore/projects">Projekter</a><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
                     <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@ThemeCatalog.Find(_theme).Icon" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
             }
         </header>
         <main class="body" id="main-content">@Body</main>
-        <footer class="footer"><span>LUP · Lokal UndervisningsPlatform</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
+        <footer class="footer"><span>LUP · Lokal UndervisningsPlatform</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/characters">Karakterer</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
     </div>
 </div>
 

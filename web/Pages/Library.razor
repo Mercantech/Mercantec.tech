@@ -1,5 +1,6 @@
 @page "/library"
 @using Mercantec.Tech.Web.Public
+@using Mercantec.Tech.Web.Characters
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject LearningContext CourseContext
@@ -9,7 +10,7 @@
 <PageTitle>Bibliotek · LUP</PageTitle>
 <div class="library">
     <header class="library-intro">
-        <div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter og badgekrav.</p></div>
+        <div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter, badgekrav og karakterer.</p></div>
         <form class="library-search" role="search" @onsubmit="Search" @onsubmit:preventDefault>
             <label class="visually-hidden" for="library-search">Søg i biblioteket</label>
             <UiIcon Name="search" />
@@ -94,6 +95,16 @@
                 }
             </div>
         }
+        else if (_category == "characters")
+        {
+            <div class="library-section-heading"><div><h2>Mød karaktererne</h2><p>LUPP, Vatson og Raymond har hver deres rolle og historie.</p></div><a href="/characters">Alle karakterer</a></div>
+            <div class="library-subject-grid">
+                @foreach (var character in CharacterCatalog.All)
+                {
+                    <article class="library-subject"><header><span class="library-subject-icon"><UiIcon Name="people" /></span><div><h3><a href="@character.Path">@character.Name</a></h3><p>@character.Role</p></div></header><p>@character.Summary</p><a class="library-subject-open" href="@character.Path">Mød @character.Name</a></article>
+                }
+            </div>
+        }
         else if (_category == "badges")
         {
             <div class="library-section-heading"><div><h2>Badges og krav</h2><p>Faglige badges har fem niveauer. Særlige badges har egne kriterier.</p></div><a href="/badges">Hele badgekataloget</a></div>
@@ -125,7 +136,7 @@
         var plan = CourseTemplateCatalog.Find(Plan)?.Slug ?? "h3";
         if (_appliedPlan != plan) { _appliedPlan = plan; _selectedCourse = plan; }
     }
-    private static readonly (string Id, string Name, string Icon)[] Categories = [("courses", "Forløb", "book"), ("subjects", "Fag og emner", "code"), ("projects", "Projekter", "folder"), ("badges", "Badgekrav", "star")];
+    private static readonly (string Id, string Name, string Icon)[] Categories = [("courses", "Forløb", "book"), ("subjects", "Fag og emner", "code"), ("projects", "Projekter", "folder"), ("badges", "Badgekrav", "star"), ("characters", "Karakterer", "people")];
     private string _category = "courses", _selectedCourse = "h3", _query = "", _searchCategory = "all";
     private bool IsSearching => !string.IsNullOrWhiteSpace(_query);
     private CourseTemplate SelectedCourse => CourseTemplateCatalog.Find(_selectedCourse)!;
@@ -134,8 +145,8 @@
     private IEnumerable<PublicSearchHit> VisibleHits => SearchHits.Where(hit => _searchCategory == "all" || CategoryFor(hit) == _searchCategory);
     private string? SearchCategoryName => Categories.FirstOrDefault(category => category.Id == _searchCategory).Name;
     private bool IsCurrent(string category) => (IsSearching ? _searchCategory : _category) == category;
-    private int CategoryCount(string category) => IsSearching ? SearchHits.Count(hit => CategoryFor(hit) == category) : category switch { "courses" => CourseTemplateCatalog.All.Length, "subjects" => PublicCatalog.Subjects.Count, "projects" => PublicCatalog.Projects.Count, _ => PublicCatalog.Badges.Count };
-    private static string CategoryFor(PublicSearchHit hit) => hit.Kind switch { "Forløb" => "courses", "Fag" or "Emne" => "subjects", "Badgekrav" => "badges", _ => "projects" };
+    private int CategoryCount(string category) => IsSearching ? SearchHits.Count(hit => CategoryFor(hit) == category) : category switch { "courses" => CourseTemplateCatalog.All.Length, "subjects" => PublicCatalog.Subjects.Count, "projects" => PublicCatalog.Projects.Count, "characters" => CharacterCatalog.All.Count, _ => PublicCatalog.Badges.Count };
+    private static string CategoryFor(PublicSearchHit hit) => hit.Kind switch { "Forløb" => "courses", "Fag" or "Emne" => "subjects", "Badgekrav" => "badges", "Karakter" => "characters", _ => "projects" };
     private static string CourseSummary(CourseTemplate course) => PublicCatalog.FeaturedCourses.FirstOrDefault(feature => feature.Slug == course.Slug)?.Subject ?? (course.Slug switch { "h4" => "Mobiludvikling", "h5" => "Linux, Docker og drift", "h6" => "Svendeprøve", "deploy-or-die" => "Containere og deployment", _ => "Data og modeller" });
     private void SelectCategory(string category) { if (IsSearching) _searchCategory = category; else NavigateLibrary(category, _selectedCourse); }
     private void UpdateSearch(ChangeEventArgs e) { _query = e.Value?.ToString() ?? ""; _searchCategory = "all"; }

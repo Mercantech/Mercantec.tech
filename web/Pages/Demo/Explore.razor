@@ -21,7 +21,7 @@ else if (!Auth.IsAuthenticated && PathKey == "explore/modules")
 }
 else if (PathKey == "search")
 {
-    <header class="page-title"><div><h1>Søg</h1><p>Find forløb, fag, emner, projekter og badgekrav.</p></div></header>
+    <header class="page-title"><div><h1>Søg</h1><p>Find forløb, fag, emner, projekter, badgekrav og karakterer.</p></div></header>
     <label class="field">Søg<input @bind="_query" @bind:event="oninput" placeholder="H3, MQTT, Rune Run …" /></label>
     <div class="panel">
         @foreach (var hit in Hits)
@@ -70,6 +70,9 @@ else
     <article class="article">
         <h2>Et fælles sted at lære og bygge</h2>
         <p>LUP samler forløb, faglige materialer, quests og din personlige udvikling. Kasper og Mathias underviser på forløbene.</p>
+        <h2>Karaktererne</h2>
+        <p>Mød LUPP, AI-hjælperen og figuren fra nytårstemaet, Vatson fra det kommende VATEK-projekt og SQL-underviseren Raymond.</p>
+        <p><a href="/characters">Mød karaktererne</a></p>
         <p><a href="https://github.com/Mercantech/Mercantec.tech" target="_blank" rel="noopener">Projektets repository</a></p>
     </article>
 }

@@ -1,0 +1,35 @@
+@page "/characters"
+@using Mercantec.Tech.Web.Characters
+
+<PageTitle>Karakterer · LUP</PageTitle>
+<div class="characters">
+    <header class="characters-intro">
+        <p class="characters-eyebrow">LUPs univers</p>
+        <h1>Mød karaktererne</h1>
+        <p>Du har måske allerede mødt dem i editoren, til nytår eller midt i en SQL-opgave. Her kan du lære LUPP, Vatson og Raymond at kende.</p>
+    </header>
+
+    <div class="character-grid">
+        @foreach (var character in CharacterCatalog.All)
+        {
+            <a class="character-card character-@character.Slug" href="@character.Path">
+                <div class="character-art">
+                    @if (character.Appearances.FirstOrDefault() is { } portrait)
+                    {
+                        <img src="@portrait.Image" alt="@portrait.Alt" width="320" height="320" />
+                    }
+                    @if (character.ComingSoon) { <span class="character-status">På vej</span> }
+                </div>
+                <div class="character-card-copy">
+                    <p class="character-home">@character.Home</p>
+                    <h2>@character.Name</h2>
+                    <p class="character-role">@character.Role</p>
+                    <p class="character-summary">@character.Summary</p>
+                    <span class="character-read-more">Mød @character.Name <span aria-hidden="true">↗</span></span>
+                </div>
+            </a>
+        }
+    </div>
+
+    <p class="characters-footnote">Tre karakterer med hver deres plads i undervisningen. Vælg en karakter for at se mere.</p>
+</div>

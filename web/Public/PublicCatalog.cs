@@ -1,5 +1,6 @@
 using Mercantec.Tech.Web.Courses;
 using Mercantec.Tech.Web.Demo;
+using Mercantec.Tech.Web.Characters;
 
 namespace Mercantec.Tech.Web.Public;
 
@@ -58,7 +59,8 @@ public static class PublicCatalog
             .Concat(Subjects.Select(s => new PublicSearchHit("Fag", s.Name, s.Description, s.Path)))
             .Concat(Subjects.SelectMany(s => Lessons(s).Select(l => new PublicSearchHit("Emne", l.Name, l.Lead, s.Path + "/" + l.Id))))
             .Concat(Projects.Select(p => new PublicSearchHit("Projekt · DEMO", p.Name, p.Description, p.Path)))
-            .Concat(Badges.Select(b => new PublicSearchHit("Badgekrav", b.Name, b.Description, "/badges/" + b.Id)));
+            .Concat(Badges.Select(b => new PublicSearchHit("Badgekrav", b.Name, b.Description, "/badges/" + b.Id)))
+            .Concat(CharacterCatalog.All.Select(c => new PublicSearchHit("Karakter", c.Name, c.Role + " · " + c.Summary, c.Path)));
         var words = (query ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return words.Length == 0 ? hits.Take(12) : hits.Where(h => words.All(w =>
             (h.Title + " " + h.Description + " " + h.Kind).Contains(w, StringComparison.OrdinalIgnoreCase)));
