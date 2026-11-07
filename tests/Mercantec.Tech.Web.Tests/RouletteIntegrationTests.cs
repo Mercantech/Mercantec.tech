@@ -128,21 +128,21 @@ public sealed class RouletteIntegrationTests
         page.WaitForAssertion(() => Assert.Contains(mode == "signedout" ? "Log ind for at spinde" : "Grupperouletten er til underviseren",
             page.Find("h1").TextContent));
         Assert.Empty(page.FindAll(".roulette-spin"));
+        Assert.DoesNotContain(api.Requests, r => r.Path == RouletteNameCatalog.ManifestPath);
         Assert.DoesNotContain(api.Requests, r => r.Path.EndsWith("/roulette/speech", StringComparison.Ordinal));
-        Assert.Empty(api.SpeechRequests);
         Assert.Equal(0, module.SpinCount);
     }
 
     [Theory]
     [InlineData(false, false)]
     [InlineData(true, true)]
-    public async Task Missing_or_failing_Roest_keeps_the_browser_announcement_and_manual_round_usable(bool available, bool fails)
+    public async Task Missing_or_failing_pre_recorded_clips_keep_the_browser_announcement_and_manual_round_usable(bool available, bool fails)
     {
-        using var api = new RouletteApi { SpeechAvailable = available, FailSpeech = fails };
-        var module = new ControlledModule();
+        using var api = new RouletteApi { SpeechAvailable = available };
+        var module = new ControlledModule { ClipsAvailable = !fails };
         using var context = await CreateContext(api, module);
         var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
-        page.WaitForAssertion(() => Assert.Contains(api.Requests, r => r.Path.EndsWith("/roulette/speech", StringComparison.Ordinal)));
+        page.WaitForAssertion(() => Assert.Contains(api.Requests, r => r.Path == RouletteNameCatalog.ManifestPath));
 
         var click = page.Find(".roulette-spin").ClickAsync(new MouseEventArgs());
         await module.WaitForSpin();
@@ -158,18 +158,12 @@ public sealed class RouletteIntegrationTests
 
         page.WaitForAssertion(() => Assert.False(page.Find(".roulette-spin").HasAttribute("disabled")));
         Assert.Single(page.FindAll(".roulette-group-card"));
-        Assert.Equal(fails ? 1 : 0, api.SpeechRequests.Count);
-        Assert.All(api.SpeechRequests, request =>
-        {
-            Assert.False(request.IncludeMembers);
-            Assert.Empty(request.MembershipIds);
-            Assert.False(string.IsNullOrWhiteSpace(request.GroupName));
-        });
-        Assert.DoesNotContain(api.Requests, r => r.Method != HttpMethod.Get && !r.Path.EndsWith("/roulette/speech", StringComparison.Ordinal));
+        Assert.DoesNotContain(api.Requests, r => r.Method != HttpMethod.Get);
+        Assert.DoesNotContain(api.Requests, r => r.Path.EndsWith("/roulette/speech", StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task Auto_spin_waits_for_local_announcement_before_the_pause_and_next_group()
+    public async Task Auto_spin_waits_for_both_pre_recorded_words_before_the_pause_and_next_group_without_generating_audio()
     {
         using var api = new RouletteApi { SpeechAvailable = true };
         var module = new ControlledModule();
@@ -200,8 +194,14 @@ public sealed class RouletteIntegrationTests
         module.CompleteSpeech();
         await auto.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(2, page.FindAll(".roulette-group-card").Count);
-        Assert.Equal(2, api.SpeechRequests.Count);
-        Assert.All(api.SpeechRequests, request => { Assert.Empty(request.MembershipIds); Assert.False(request.IncludeMembers); });
+        Assert.Single(api.Requests, r => r.Path == RouletteNameCatalog.ManifestPath);
+        Assert.All(module.Calls.Where(call => call.Identifier == "playSpeechSegments"), call =>
+        {
+            var clips = Assert.IsType<string[]>(call.Arguments[1]);
+            Assert.Equal(2, clips.Length);
+            Assert.All(clips, clip => Assert.StartsWith(RouletteNameCatalog.AssetRoot + "/", clip));
+        });
+        Assert.DoesNotContain(api.Requests, r => r.Method != HttpMethod.Get);
         Assert.DoesNotContain(api.Requests, r => r.Path.EndsWith("/groups/batch", StringComparison.Ordinal));
     }
 
@@ -278,8 +278,9 @@ public sealed class RouletteIntegrationTests
         public ConcurrentQueue<JsCall> Calls { get; } = new();
         public int SpinCount => Calls.Count(c => c.Identifier == "spin");
         public int BrowserSpeechCount => Calls.Count(c => c.Identifier == "playBrowserSpeech");
-        public int LocalSpeechCount => Calls.Count(c => c.Identifier == "playSpeech");
+        public int LocalSpeechCount => Calls.Count(c => c.Identifier == "playSpeechSegments");
         public bool SoundAvailable { get; set; } = true;
+        public bool ClipsAvailable { get; set; } = true;
         public bool? AudioReady { get; set; }
         public bool ReducedMotion { get; set; }
 
@@ -299,15 +300,17 @@ public sealed class RouletteIntegrationTests
                     result = await spin.Task;
                     break;
                 case "playBrowserSpeech":
-                case "playSpeech":
+                case "playSpeechSegments":
                     var speech = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
                     _speech.Enqueue(speech);
                     _speechStarted.Release();
                     result = await speech.Task;
                     break;
                 case "setSound":
-                case "prepareSpeech":
                     result = SoundAvailable;
+                    break;
+                case "prepareSpeechSegments":
+                    result = ClipsAvailable;
                     break;
                 case "initialize":
                 case "capabilities":
@@ -361,11 +364,9 @@ public sealed class RouletteIntegrationTests
         public Guid OtherHoldId { get; } = Guid.NewGuid();
         public bool CanManage { get; set; } = true;
         public bool SpeechAvailable { get; set; }
-        public bool FailSpeech { get; set; }
         public int MemberCount { get; set; } = 9;
         public Guid CreatedSetId { get; } = Guid.NewGuid();
         public ConcurrentQueue<(HttpMethod Method, string Path)> Requests { get; } = new();
-        public ConcurrentQueue<CreateRouletteSpeech> SpeechRequests { get; } = new();
         public ConcurrentQueue<SaveGroupSet> SetRequests { get; } = new();
         public ConcurrentQueue<SaveNotionGroupBatch> GroupBatches { get; } = new();
         private readonly NotionHoldMember[] _members = Enumerable.Range(1, 9)
@@ -375,10 +376,13 @@ public sealed class RouletteIntegrationTests
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var path = request.RequestUri!.AbsolutePath["/api/".Length..];
+            var absolutePath = request.RequestUri!.AbsolutePath;
+            var path = absolutePath.StartsWith("/api/", StringComparison.Ordinal) ? absolutePath["/api/".Length..] : absolutePath;
             Requests.Enqueue((request.Method, path));
             if (request.Method == HttpMethod.Get)
             {
+                if (path == RouletteNameCatalog.ManifestPath)
+                    return SpeechAvailable ? Response(VoiceManifest()) : new(HttpStatusCode.NotFound);
                 if (path == "notion/holds") return Response(new[] {
                     new NotionHold(HoldId, "Testholdet", CanManage), new NotionHold(OtherHoldId, "Det nye hold", CanManage) });
                 if (path == $"notion/holds/{HoldId}/members") return Response(_members.Take(MemberCount).ToArray());
@@ -387,14 +391,6 @@ public sealed class RouletteIntegrationTests
                     return Response(Array.Empty<NotionGroupView>());
                 if (path == $"holds/{HoldId}/group-sets" || path == $"holds/{OtherHoldId}/group-sets")
                     return Response(Array.Empty<GroupSetView>());
-                if (path == $"holds/{HoldId}/roulette/speech" || path == $"holds/{OtherHoldId}/roulette/speech")
-                    return Response(new RouletteSpeechStatus(SpeechAvailable, "Røst", SpeechAvailable ? null : "Røst er ikke startet."));
-            }
-            if (request.Method == HttpMethod.Post && path == $"holds/{HoldId}/roulette/speech")
-            {
-                SpeechRequests.Enqueue((await request.Content!.ReadFromJsonAsync<CreateRouletteSpeech>(cancellationToken))!);
-                if (FailSpeech) return new(HttpStatusCode.ServiceUnavailable) { Content = JsonContent.Create(new { error = "local_speech_unavailable" }) };
-                return Response(new RouletteSpeechAudio("UklGRg==", "audio/wav", "Røst"));
             }
             if (request.Method == HttpMethod.Post && path == $"holds/{HoldId}/group-sets")
             {
@@ -414,5 +410,12 @@ public sealed class RouletteIntegrationTests
         }
 
         private static HttpResponseMessage Response<T>(T body) => new(HttpStatusCode.OK) { Content = JsonContent.Create(body) };
+
+        private static object VoiceManifest() => new
+        {
+            version = 1, complete = true, provider = "Røst", style = "Arenaspeaker", sampleRate = 24000,
+            clips = RouletteNameCatalog.Starts.Select((text, index) => new { id = $"prefix-{index:00}", text, file = $"prefix-{index:00}.wav" })
+                .Concat(RouletteNameCatalog.Ends.Select((text, index) => new { id = $"suffix-{index:00}", text, file = $"suffix-{index:00}.wav" })).ToArray()
+        };
     }
 }

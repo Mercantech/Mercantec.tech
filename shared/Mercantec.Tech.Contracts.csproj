@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="roulette-voice-words.json" LogicalName="Mercantec.Tech.Contracts.RouletteWords" />
+  </ItemGroup>
 </Project>

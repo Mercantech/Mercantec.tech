@@ -7,7 +7,7 @@ export function initialize(root, callback, settings = {}) {
   if (sessions.has(root)) return;
   const state = { callback, controller: new AbortController(), spinning: false, timers: new Set(), cancelSpin: null,
     audio: null, resuming: null, sound: settings?.sound === true, volume: volume(settings?.volume, .75), effects: new Set(),
-    speech: null, browserSpeech: null, speechVersion: 0, preparedSpeech: null, strips: new Set(), spinFrame: 0, frame: 0,
+    speech: null, browserSpeech: null, speechVersion: 0, preparedSpeech: null, speechSegments: new Map(), strips: new Set(), spinFrame: 0, frame: 0,
     celebration: null, celebrationTimer: 0, overviewFocus: null, oldOverflow: "", suppressClick: 0 };
   sessions.set(root, state);
   const options = { signal: state.controller.signal };
@@ -306,12 +306,140 @@ export async function playSpeech(root, base64Wav, voiceVolume = .85) {
   });
 }
 
+const segmentPath = /^\/audio\/roulette\/announcer-v1\/(prefix|suffix)-(0[0-9]|1[0-9]|2[0-3])\.wav$/;
+const maxSegmentBytes = 1024 * 1024;
+function validSpeechSegments(urls) {
+  return Array.isArray(urls) && urls.length === 2 && urls.every(url => typeof url === "string" && segmentPath.test(url))
+    && urls[0].includes("/prefix-") && urls[1].includes("/suffix-");
+}
+
+async function segmentBytes(response) {
+  const length = response.headers.get("content-length");
+  if (length && (!/^\d+$/.test(length) || Number(length) > maxSegmentBytes)) throw new Error("Voice clip is too large");
+  const reader = response.body?.getReader();
+  if (!reader) {
+    const bytes = await response.arrayBuffer();
+    if (bytes.byteLength > maxSegmentBytes) throw new Error("Voice clip is too large");
+    return bytes;
+  }
+  const chunks = []; let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxSegmentBytes) throw new Error("Voice clip is too large");
+      chunks.push(value);
+    }
+  } catch (error) {
+    try { await reader.cancel(); } catch { }
+    throw error;
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(size); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return bytes.buffer;
+}
+
+async function speechSegment(root, state, url) {
+  const cached = state.speechSegments.get(url);
+  if (cached) return cached.buffer || await cached.pending;
+  if (!unlockAudio(state) || state.speechSegments.size >= 48) return null;
+  const entry = { buffer: null, pending: null, controller: new AbortController() };
+  state.speechSegments.set(url, entry);
+  entry.pending = (async () => {
+    let timeout;
+    const cancelled = new Promise(resolve => {
+      entry.controller.signal.addEventListener("abort", () => resolve(null), { once: true });
+      timeout = setTimeout(() => entry.controller.abort(), 8000);
+    });
+    const load = async () => { try {
+      // These are public, bundled word recordings. No group name or pupil data
+      // is sent to a speech service, and each word is decoded once per page.
+      const response = await fetch(url, { signal: entry.controller.signal, mode: "same-origin", credentials: "omit", redirect: "error", cache: "force-cache" });
+      if (!response.ok) return null;
+      const bytes = await segmentBytes(response);
+      const header = new Uint8Array(bytes);
+      if (header.length < 44 || String.fromCharCode(...header.subarray(0, 4)) !== "RIFF"
+          || String.fromCharCode(...header.subarray(8, 12)) !== "WAVE") return null;
+      const buffer = await state.audio.decodeAudioData(bytes);
+      if (!buffer || !Number.isFinite(buffer.duration) || buffer.duration <= 0 || buffer.duration > 20
+          || entry.controller.signal.aborted || !root.isConnected || sessions.get(root) !== state
+          || state.speechSegments.get(url) !== entry) return null;
+      entry.buffer = buffer; return buffer;
+    } catch { return null; }
+    };
+    try { return await Promise.race([load(), cancelled]); }
+    finally {
+      clearTimeout(timeout);
+      if (!entry.buffer && state.speechSegments.get(url) === entry) state.speechSegments.delete(url);
+    }
+  })();
+  return await entry.pending;
+}
+
+export async function prepareSpeechSegments(root, urls) {
+  const state = sessions.get(root);
+  if (!state || !root.isConnected || !validSpeechSegments(urls)) return false;
+  const buffers = await Promise.all(urls.map(url => speechSegment(root, state, url)));
+  return buffers.every(Boolean) && root.isConnected && sessions.get(root) === state;
+}
+
+export async function playSpeechSegments(root, urls, voiceVolume = .85) {
+  const state = sessions.get(root);
+  if (!state || !root.isConnected || !validSpeechSegments(urls)) return false;
+  cancelSpeech(root, false);
+  const version = state.speechVersion;
+  if (!await prepareSpeechSegments(root, urls) || !await ensureAudio(state)
+      || version !== state.speechVersion || sessions.get(root) !== state || !root.isConnected) return false;
+  const buffers = urls.map(url => state.speechSegments.get(url)?.buffer);
+  if (buffers.some(buffer => !buffer)) return false;
+  return await new Promise(resolve => {
+    const gain = state.audio.createGain(), sources = [], edges = [];
+    gain.gain.value = volume(voiceVolume, .85); gain.connect(state.audio.destination);
+    let settled = false, watchdog = 0;
+    const finish = completed => {
+      if (settled) return;
+      settled = true; clearTimeout(watchdog);
+      for (const source of sources) { source.onended = null; try { source.stop(); source.disconnect(); } catch { } }
+      for (const edge of edges) { try { edge.disconnect(); } catch { } }
+      try { gain.disconnect(); } catch { }
+      if (state.speech?.finish === finish) state.speech = null;
+      resolve(completed);
+    };
+    state.speech = { sources, gain, finish };
+    try {
+      let start = state.audio.currentTime + .025;
+      for (const buffer of buffers) {
+        const source = state.audio.createBufferSource(), edge = state.audio.createGain();
+        sources.push(source); edges.push(edge); source.buffer = buffer;
+        // Short edge fades avoid clicks; a shared output gain lets the volume
+        // slider change both words without interrupting their envelopes.
+        const fade = Math.min(.005, buffer.duration / 4);
+        edge.gain.setValueAtTime(0, start);
+        edge.gain.linearRampToValueAtTime(1, start + fade);
+        edge.gain.setValueAtTime(1, start + buffer.duration - fade);
+        edge.gain.linearRampToValueAtTime(0, start + buffer.duration);
+        source.connect(edge); edge.connect(gain);
+        source.start(start);
+        start += buffer.duration + .045;
+      }
+      sources.at(-1).onended = () => finish(true);
+      watchdog = setTimeout(() => finish(false), Math.min(45000, (start - state.audio.currentTime + 2) * 1000));
+    } catch { finish(false); }
+  });
+}
+
 export function cancelSpeech(root, discardPrepared = true) {
   const state = sessions.get(root); if (!state) return;
   state.speechVersion++;
   state.speech?.finish(false);
   state.browserSpeech?.finish(false);
-  if (discardPrepared) state.preparedSpeech = null;
+  if (discardPrepared) {
+    state.preparedSpeech = null;
+    for (const [url, entry] of state.speechSegments) {
+      if (!entry.buffer) { entry.controller.abort(); state.speechSegments.delete(url); }
+    }
+  }
 }
 
 export async function playBrowserSpeech(root, text, voiceVolume = .85) {
@@ -470,6 +598,7 @@ export function cancel(root) {
 export async function dispose(root) {
   const state = sessions.get(root); if (!state) return;
   cancel(root); state.controller.abort();
+  state.speechSegments.clear();
   try { await state.audio?.close(); } catch { }
   sessions.delete(root);
 }

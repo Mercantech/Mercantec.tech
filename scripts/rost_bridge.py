@@ -6,9 +6,12 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
 import asyncio
+import hashlib
 import io
+import json
 import logging
 import threading
+from typing import Literal
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -19,14 +22,20 @@ logger = logging.getLogger("rost")
 model = None
 model_failed = False
 generation_lock = threading.Lock()
+arena_reference = None
+voice_id = None
 MODEL_ID = "CoRal-project/roest-v3-chatterbox-500m"
 MAX_AUDIO_BYTES = 8 * 1024 * 1024
 
 
 def load_model():
-    global model, model_failed
+    global model, model_failed, arena_reference, voice_id
     try:
         import torch
+        import perth
+
+        if perth.PerthImplicitWatermarker is None:
+            raise RuntimeError("Perth watermarking is unavailable. Check the local dependencies, including setuptools==80.9.0, before starting Røst.")
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
         checkpoint = Path(os.environ["ROST_MODEL_PATH"])
@@ -36,6 +45,21 @@ def load_model():
         device = "cuda" if torch.cuda.is_available() else "cpu"
         torch.set_num_threads(4)
         loaded = ChatterboxMultilingualTTS.from_local(checkpoint, device=device)
+        # A reference is configured by the operator, never supplied as an HTTP file path.
+        # Røst's Danish finetune does not support Chatterbox's exaggeration control.
+        reference = os.environ.get("ROST_ARENA_REFERENCE")
+        if reference:
+            import soundfile as sf
+
+            reference_path = Path(reference).resolve(strict=True)
+            info = sf.info(reference_path)
+            if reference_path.suffix.lower() != ".wav" or reference_path.stat().st_size > MAX_AUDIO_BYTES or not 5 <= info.duration <= 20:
+                raise ValueError("Arena reference must be a local 5–20 second WAV recording")
+            arena_reference = str(reference_path)
+        # The small built-in voice checkpoint can change independently of the model ID.
+        # Hash it too so a new default speaker cannot reuse a previous word bank.
+        voice_id = hashlib.sha256(MODEL_ID.encode() + (checkpoint / "conds.pt").read_bytes()
+                                  + (Path(arena_reference).read_bytes() if arena_reference else b"default")).hexdigest()
         # First-use vocoder initialization can exceed a normal request timeout. Keep health
         # unavailable until a short, harmless utterance has warmed the complete pipeline.
         with torch.inference_mode():
@@ -73,17 +97,19 @@ async def local_only(request: Request, call_next):
 @app.get("/health")
 async def health():
     ready = model is not None
-    return Response(content='{"ready":' + str(ready).lower() + ',"provider":"Røst","model":"' + MODEL_ID
-                    + '","state":"' + ("ready" if ready else "failed" if model_failed else "warming") + '"}',
+    return Response(content=json.dumps({"ready": ready, "provider": "Røst", "model": MODEL_ID,
+                    "state": "ready" if ready else "failed" if model_failed else "warming",
+                    "arenaReference": arena_reference is not None, "voiceId": voice_id}),
                     status_code=200 if ready else 503, media_type="application/json")
 
 
 class SpeechRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     text: str = Field(min_length=1, max_length=1600)
+    style: Literal["neutral", "arena"] = "neutral"
 
 
-def generate(text):
+def generate(text, style="neutral"):
     import numpy as np
     import soundfile as sf
     import torch
@@ -92,9 +118,18 @@ def generate(text):
     if not generation_lock.acquire(blocking=False):
         raise HTTPException(status_code=503, detail="busy")
     try:
+        original_conditionals = model.conds
+        kwargs = {"language_id": "da", "temperature": 0.6, "cfg_weight": 0.5,
+                  "exaggeration": 0.5, "repetition_penalty": 2.0, "top_p": 0.95}
+        if style == "arena" and arena_reference:
+            kwargs["audio_prompt_path"] = arena_reference
         with torch.inference_mode():
-            wav = model.generate(text, language_id="da", temperature=0.6, cfg_weight=0.5,
-                                 exaggeration=0.5, repetition_penalty=2.0, top_p=0.95)
+            try:
+                wav = model.generate(text, **kwargs)
+            finally:
+                # generate(audio_prompt_path=...) changes model.conds in Chatterbox.
+                # A later legacy neutral request must keep its original voice.
+                model.conds = original_conditionals
         samples = wav.detach().cpu().squeeze().numpy()
         if samples.size == 0 or not np.isfinite(samples).all():
             raise HTTPException(status_code=503, detail="invalid_audio")
@@ -115,7 +150,7 @@ async def speech(request: SpeechRequest):
     if not request.text.strip() or any(ord(char) < 32 for char in request.text):
         raise HTTPException(status_code=400, detail="invalid_text")
     try:
-        audio = await asyncio.to_thread(generate, request.text)
+        audio = await asyncio.to_thread(generate, request.text, request.style)
     except HTTPException:
         raise
     except Exception:

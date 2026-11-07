@@ -1,29 +1,38 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using Mercantec.Tech.Contracts;
+using Microsoft.AspNetCore.Components;
 
 namespace Mercantec.Tech.Web.Learning;
 
-public sealed class RouletteSpeechClient(HttpClient http)
+public sealed class RouletteSpeechClient(HttpClient http, NavigationManager navigation)
 {
-    public async Task<RouletteSpeechStatus> Status(Guid holdId, CancellationToken ct)
+    public async Task<RouletteSpeechStatus> Status(CancellationToken ct)
     {
-        using var response = await http.GetAsync($"holds/{holdId}/roulette/speech", ct);
+        var manifestUri = new Uri(new Uri(navigation.BaseUri), RouletteNameCatalog.ManifestPath);
+        using var response = await http.GetAsync(manifestUri, ct);
         if (!response.IsSuccessStatusCode)
-            return new(false, "Røst", "Røst er ikke tilgængelig lige nu. Du kan bruge browserstemmen.");
-        return await response.Content.ReadFromJsonAsync<RouletteSpeechStatus>(ct)
-            ?? new(false, "Røst", "Stemmens status kunne ikke hentes.");
+            return Unavailable();
+        SpeechManifest? manifest;
+        try { manifest = await response.Content.ReadFromJsonAsync<SpeechManifest>(ct); }
+        catch (JsonException) { return Unavailable(); }
+        var expected = RouletteNameCatalog.Starts.Select((text, index) => new SpeechClip($"prefix-{index:00}", text, $"prefix-{index:00}.wav"))
+            .Concat(RouletteNameCatalog.Ends.Select((text, index) => new SpeechClip($"suffix-{index:00}", text, $"suffix-{index:00}.wav"))).ToArray();
+        if (manifest is not { Version: 1, Complete: true, Provider: "Røst", Style: "Arenaspeaker", SampleRate: 24000 }
+            || manifest.Clips is null || manifest.Clips.Length != expected.Length
+            || !expected.All(clip => manifest.Clips.Count(candidate => candidate == clip) == 1))
+            return Unavailable();
+        return new(true, "Røst", "Arenaspeakeren er klar med forudindtalte navneled.");
     }
 
-    public async Task<RouletteSpeechAudio> Generate(Guid holdId, string groupName, CancellationToken ct)
-    {
-        using var response = await http.PostAsJsonAsync($"holds/{holdId}/roulette/speech",
-            new CreateRouletteSpeech(groupName, [], false), ct);
-        if (!response.IsSuccessStatusCode)
-            throw new LearningException(response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable
-                ? "Røst kunne ikke lave oplæsningen lige nu. Browserstemmen bliver brugt i stedet."
-                : "Oplæsningen kunne ikke hentes. Prøv stemmen igen.");
-        var audio = await response.Content.ReadFromJsonAsync<RouletteSpeechAudio>(ct);
-        return audio is not null && audio.ContentType == "audio/wav" && audio.AudioBase64 is { Length: > 0 and <= 12_000_000 }
-            ? audio : throw new LearningException("Stemmen returnerede ikke en gyldig lydfil.");
-    }
+    public PreparedRouletteSpeech? Prepare(string groupName) => RouletteNameCatalog.GetClipUrls(groupName) is { Length: 2 } clips
+        ? new(clips) : null;
+
+    private static RouletteSpeechStatus Unavailable() => new(false, "Røst",
+        "De forudindtalte navneled er ikke klar. Du kan bruge browserstemmen.");
+
+    private sealed record SpeechClip(string Id, string Text, string File);
+    private sealed record SpeechManifest(int Version, bool Complete, string Provider, string Style, int SampleRate, SpeechClip[]? Clips);
 }
+
+public sealed record PreparedRouletteSpeech(string[] ClipUrls);

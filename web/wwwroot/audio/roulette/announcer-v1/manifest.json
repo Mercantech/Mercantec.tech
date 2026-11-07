@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "complete": true,
+  "provider": "Røst",
+  "style": "Arenaspeaker",
+  "sampleRate": 24000,
+  "model": "CoRal-project/roest-v3-chatterbox-500m",
+  "referenceVoice": false,
+  "generation": "bf7ef8a4c26523d6a527194847597cc9264e04e1e0a65e3883aac207402ac31c",
+  "clips": [
+    {
+      "id": "prefix-00",
+      "text": "Turbo",
+      "file": "prefix-00.wav",
+      "sha256": "3623eb5ae35e3c69f5a859959576589e852b2f616130bea13fcd5023c585a775",
+      "durationMs": 740
+    },
+    {
+      "id": "prefix-01",
+      "text": "Disco",
+      "file": "prefix-01.wav",
+      "sha256": "c52f90c345d866d7abc409aebddc4cd5396c22356b9225a0f3ad4a7d054e1ea6",
+      "durationMs": 685
+    },
+    {
+      "id": "prefix-02",
+      "text": "Laser",
+      "file": "prefix-02.wav",
+      "sha256": "ef4bb79e343398c75a6989bfec62ae4603369cac3da989d0007d371ba1585817",
+      "durationMs": 1455
+    },
+    {
+      "id": "prefix-03",
+      "text": "Kakao",
+      "file": "prefix-03.wav",
+      "sha256": "1bbc00ff7bd3c542b6e3c41143b283224b7abf4a45c1eb71171ca205c1ba632b",
+      "durationMs": 1215
+    },
+    {
+      "id": "prefix-04",
+      "text": "Lyn",
+      "file": "prefix-04.wav",
+      "sha256": "5f831933548001982d2aff9d2e535327cc71f5c9dab80534fa62a453706646e2",
+      "durationMs": 1335
+    },
+    {
+      "id": "prefix-05",
+      "text": "Vaffel",
+      "file": "prefix-05.wav",
+      "sha256": "8ac6c4c2580f7da06c49275ca50330086ef100b94777de5c22d9f4d37ce9535b",
+      "durationMs": 1055
+    },
+    {
+      "id": "prefix-06",
+      "text": "Komet",
+      "file": "prefix-06.wav",
+      "sha256": "4ba5029ae0db98a7e1ddd5791da61f4e40b424961f3ebcce42f906c1b6e8a51f",
+      "durationMs": 715
+    },
+    {
+      "id": "prefix-07",
+      "text": "Glitter",
+      "file": "prefix-07.wav",
+      "sha256": "e2da549ab174d18716c56f39702b0d6aa9e5c9dabbb0e7e1de0319eaf280ebb2",
+      "durationMs": 1245
+    },
+    {
+      "id": "prefix-08",
+      "text": "Bølge",
+      "file": "prefix-08.wav",
+      "sha256": "fd1dbb0752153789e282aa6152a3657bf2d95bc19ba31b9edf847e6c8a8e23d8",
+      "durationMs": 1295
+    },
+    {
+      "id": "prefix-09",
+      "text": "Pixel",
+      "file": "prefix-09.wav",
+      "sha256": "28bbc2c5a66f6ab32c89e3b6443bbe900d166dbc160732cf994d8fc7cc509af3",
+      "durationMs": 1195
+    },
+    {
+      "id": "prefix-10",
+      "text": "Måne",
+      "file": "prefix-10.wav",
+      "sha256": "5a3a8f64ea60c0d2d0708f45abf6e99aa3a5dc8b0b9735fd9337d9b9d4bdafd5",
+      "durationMs": 1425
+    },
+    {
+      "id": "prefix-11",
+      "text": "Rakette",
+      "file": "prefix-11.wav",
+      "sha256": "d76d4f8ea72b586dd8afcb66085a9a3c07b6f168b35f6a501afb8f05c99ea8ae",
+      "durationMs": 1655
+    },
+    {
+      "id": "prefix-12",
+      "text": "Samba",
+      "file": "prefix-12.wav",
+      "sha256": "351eb670003d56189aa8b11c03e3d1d62f7e50ee0a73e031fda2ee61e205c831",
+      "durationMs": 795
+    },
+    {
+      "id": "prefix-13",
+      "text": "Kanel",
+      "file": "prefix-13.wav",
+      "sha256": "4aa7ff5f65e87dc3725e6acbe73f423bacfe6b1b19c4236a7ee9cf7b25229bb0",
+      "durationMs": 665
+    },
+    {
+      "id": "prefix-14",
+      "text": "Krystal",
+      "file": "prefix-14.wav",
+      "sha256": "63538159bf589321b554e18a528f6b3573e22534a04ee0bc39f99888e56a090d",
+      "durationMs": 725
+    },
+    {
+      "id": "prefix-15",
+      "text": "Hokus",
+      "file": "prefix-15.wav",
+      "sha256": "29dc601641437aad48ef07cd0abab30a8311f8e78dad076c64ac150f5bd817b7",
+      "durationMs": 755
+    },
+    {
+      "id": "prefix-16",
+      "text": "Neon",
+      "file": "prefix-16.wav",
+      "sha256": "c8718463885ce0895d39554017ce07dc3a0f8fcc08b4059d15dfc21df0809265",
+      "durationMs": 525
+    },
+    {
+      "id": "prefix-17",
+      "text": "Banan",
+      "file": "prefix-17.wav",
+      "sha256": "b7fb7ca1dd4847a2d7eb97a42720e57f76dc6392ea033b8f14c6c33243868763",
+      "durationMs": 695
+    },
+    {
+      "id": "prefix-18",
+      "text": "Sokkede",
+      "file": "prefix-18.wav",
+      "sha256": "71bdc5366fe85f98d4d167e2b522430337d0a0c0dc265015b0ac2a1e8bf6f815",
+      "durationMs": 1435
+    },
+    {
+      "id": "prefix-19",
+      "text": "Mango",
+      "file": "prefix-19.wav",
+      "sha256": "cfc5ec975292bea2764ab015b5e686db385ff4a2c137da927ef5c9c10ae9c67b",
+      "durationMs": 1345
+    },
+    {
+      "id": "prefix-20",
+      "text": "Trylle",
+      "file": "prefix-20.wav",
+      "sha256": "4cc50f7011b612a6835d72778c89930d800d9762b01c650f5e97d9017e725cc8",
+      "durationMs": 925
+    },
+    {
+      "id": "prefix-21",
+      "text": "Ninja",
+      "file": "prefix-21.wav",
+      "sha256": "8fff0f23f1155b5ee458ac9ea5d52ea5785f4bd1aa331df69db22b59a9ab591c",
+      "durationMs": 1285
+    },
+    {
+      "id": "prefix-22",
+      "text": "Fløde",
+      "file": "prefix-22.wav",
+      "sha256": "c088048bc0334d8e42d8230abeb5474858f3d2b849f5606ad7496f509b801a93",
+      "durationMs": 945
+    },
+    {
+      "id": "prefix-23",
+      "text": "Popcorn",
+      "file": "prefix-23.wav",
+      "sha256": "517a80e0eb2c5a4f3c9b50467216440493eeb64a06c81de1274a7acc9525aafe",
+      "durationMs": 795
+    },
+    {
+      "id": "suffix-00",
+      "text": "Pingvinerne",
+      "file": "suffix-00.wav",
+      "sha256": "4e1eee1c6b8fd9bba76a0416cea537938b592e34190f44d24f1ade8aa34a2181",
+      "durationMs": 1335
+    },
+    {
+      "id": "suffix-01",
+      "text": "Robotterne",
+      "file": "suffix-01.wav",
+      "sha256": "2ebcfe6569260513e037d0c1e86171293859ae81f652f30f366e6b46a21c6182",
+      "durationMs": 895
+    },
+    {
+      "id": "suffix-02",
+      "text": "Muffinsene",
+      "file": "suffix-02.wav",
+      "sha256": "68c6f27177baab8fcb6930c80e3d408f344a67e9fdca6016b7cc934bef9eff9f",
+      "durationMs": 1425
+    },
+    {
+      "id": "suffix-03",
+      "text": "Alpakkaerne",
+      "file": "suffix-03.wav",
+      "sha256": "b404e85ba796fad492d5ce0d66b1bd00b21b61cee0c22f25161b02a538daf23c",
+      "durationMs": 1835
+    },
+    {
+      "id": "suffix-04",
+      "text": "Opfinderne",
+      "file": "suffix-04.wav",
+      "sha256": "d811b7c25b5ff809d9a8a75f5900a8b8a742b0f6b2b784ce44f8d595efc9d56b",
+      "durationMs": 1225
+    },
+    {
+      "id": "suffix-05",
+      "text": "Kaptajnerne",
+      "file": "suffix-05.wav",
+      "sha256": "f26c1769204c8e20f111868802375ebfaaa2a9764ce6b7b0e9deac57f8e69e70",
+      "durationMs": 935
+    },
+    {
+      "id": "suffix-06",
+      "text": "Bæverne",
+      "file": "suffix-06.wav",
+      "sha256": "c5989d22c85ce481ebd6dca266b696841eec86eddee45491e2979eea96423709",
+      "durationMs": 1245
+    },
+    {
+      "id": "suffix-07",
+      "text": "Dragerne",
+      "file": "suffix-07.wav",
+      "sha256": "066bb310663413124fa84c273bce35b342d097a37f75341ecbc1044c423af464",
+      "durationMs": 795
+    },
+    {
+      "id": "suffix-08",
+      "text": "Flamingoerne",
+      "file": "suffix-08.wav",
+      "sha256": "36fa0cda1a92a89438ab2603cb7ced1cea5dbb71233f94fbcb7b57a4a001e161",
+      "durationMs": 1275
+    },
+    {
+      "id": "suffix-09",
+      "text": "Hajerne",
+      "file": "suffix-09.wav",
+      "sha256": "8e5d2a3590151b2c432cf6c40e89b17e90f38e55075ee37b4e1a526c8ac14cfe",
+      "durationMs": 1275
+    },
+    {
+      "id": "suffix-10",
+      "text": "Kænguruerne",
+      "file": "suffix-10.wav",
+      "sha256": "fbf8fb25cd00cb47eeca8865cfbfc5fec4ac90245ff722654a9f3eb93e0d9d2d",
+      "durationMs": 1405
+    },
+    {
+      "id": "suffix-11",
+      "text": "Akrobaterne",
+      "file": "suffix-11.wav",
+      "sha256": "e18cffa6d3e5cd956215ad3be8616a3c7e8a719dbe35b895a2d14b57663e3e0f",
+      "durationMs": 1065
+    },
+    {
+      "id": "suffix-12",
+      "text": "Stjerneskuddene",
+      "file": "suffix-12.wav",
+      "sha256": "f7d255dca7f5d67ef7808ebeb3015e34896a5d6364c72d56177c7b3825493c65",
+      "durationMs": 1015
+    },
+    {
+      "id": "suffix-13",
+      "text": "Hurlumhejerne",
+      "file": "suffix-13.wav",
+      "sha256": "4e6b687856476876f1d364812b431e36a25376ec465835447369edbbff54ed94",
+      "durationMs": 1615
+    },
+    {
+      "id": "suffix-14",
+      "text": "Hamsterne",
+      "file": "suffix-14.wav",
+      "sha256": "fcab88abc0c2dfadb0d5417a1e97cbdc9dcc72d4166a8192b4c58637d4e32d39",
+      "durationMs": 805
+    },
+    {
+      "id": "suffix-15",
+      "text": "Rumrejerne",
+      "file": "suffix-15.wav",
+      "sha256": "75728747400c4ef821a8ab417a1b9abb6ddc12a63f8b888d157522f268704e47",
+      "durationMs": 2885
+    },
+    {
+      "id": "suffix-16",
+      "text": "Diskokuglerne",
+      "file": "suffix-16.wav",
+      "sha256": "4d9c7487ded4c73650c761f1b0b9ac277ba9c69e0d3864d5b945e4561efe0fcb",
+      "durationMs": 1745
+    },
+    {
+      "id": "suffix-17",
+      "text": "Pindsvinene",
+      "file": "suffix-17.wav",
+      "sha256": "a1e0acb4daa8c17c0b7392dbe8f92c4e37c7e9f8d9ee79d503449731f43621f2",
+      "durationMs": 1135
+    },
+    {
+      "id": "suffix-18",
+      "text": "Troldmændene",
+      "file": "suffix-18.wav",
+      "sha256": "087f7457e5bee78e0332440424ce9bea03dd8b1fee46f13aaaf1e3671b6d4090",
+      "durationMs": 1625
+    },
+    {
+      "id": "suffix-19",
+      "text": "Kodeknækkerne",
+      "file": "suffix-19.wav",
+      "sha256": "235d4e694c6bf7f79b9e28552beafcb21e382be90335fa46929456239d43bc45",
+      "durationMs": 1705
+    },
+    {
+      "id": "suffix-20",
+      "text": "Gummistøvlerne",
+      "file": "suffix-20.wav",
+      "sha256": "564056fd2fe45511040d159cd4255015fa318e7d8f78777a83850ceb7afb266e",
+      "durationMs": 1565
+    },
+    {
+      "id": "suffix-21",
+      "text": "Vaskebjørnene",
+      "file": "suffix-21.wav",
+      "sha256": "9e3148dcbed8724615ec56f3c180b33bfa8963332da2db25a9b3481c66b08813",
+      "durationMs": 1775
+    },
+    {
+      "id": "suffix-22",
+      "text": "Lynkartoflerne",
+      "file": "suffix-22.wav",
+      "sha256": "3719750ada2143a37b9aaa28b0b161088e2ac75c3a28db98e9f828ef6d0eb1e2",
+      "durationMs": 1775
+    },
+    {
+      "id": "suffix-23",
+      "text": "Enhjørningerne",
+      "file": "suffix-23.wav",
+      "sha256": "1c53de3e81fc5cc82bbae66e0078863c9888d63634a40aa938b6a5bea5706157",
+      "durationMs": 1125
+    }
+  ]
+}

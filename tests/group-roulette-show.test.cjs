@@ -80,7 +80,7 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
     async resume() { if (audioBlocked) return await new Promise(() => {}); this.state = 'running'; }
     async close() { this.state = 'closed'; }
     createGain() {
-      const gain = { gain: { value: 1, setValueAtTime(value) { this.value = value; }, exponentialRampToValueAtTime() {} }, connect() {}, disconnect() {} };
+      const gain = { gain: { value: 1, events: [], setValueAtTime(value, at) { this.value = value; this.events.push({ value, at }); }, linearRampToValueAtTime(value, at) { this.events.push({ value, at, ramp: true }); }, exponentialRampToValueAtTime() {} }, connect() {}, disconnect() {} };
       this.gains.push(gain); return gain;
     }
     createOscillator() {
@@ -88,13 +88,13 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
       oscillator.start = () => { oscillator.started = true; }; this.oscillators.push(oscillator); return oscillator;
     }
     createBufferSource() {
-      const source = this.node(); source.start = () => { source.started = true; source.timer = clock.set(() => source.onended?.(), source.buffer.duration * 1000); };
+      const source = this.node(); source.start = (at = this.currentTime) => { source.started = true; source.startedAt = at; source.timer = clock.set(() => source.onended?.(), Math.max(0, at * 1000 - now) + source.buffer.duration * 1000); };
       this.sources.push(source); return source;
     }
     node() {
       return { connect() {}, disconnect() {}, stop(at) { clock.clear(this.timer); if (at === undefined) this.onended?.(); else this.timer = clock.set(() => this.onended?.(), Math.max(0, at * 1000 - now)); } };
     }
-    async decodeAudioData(bytes) { this.decodedBytes = bytes.byteLength; return { duration: .6 }; }
+    async decodeAudioData(bytes) { this.decodedBytes = bytes.byteLength; this.decodeCount = (this.decodeCount || 0) + 1; return { duration: .6 }; }
   }
   class SpeechEngine extends EventTarget {
     constructor() {
@@ -111,10 +111,22 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
   class Utterance { constructor(text) { this.text = text; } }
   const values = new Map(), localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   const clipboard = { text: null, async writeText(value) { this.text = value; } };
+  const clipRequests = [], clipResponses = new Map();
+  const wavBytes = () => {
+    const bytes = new Uint8Array(44);
+    bytes.set(Buffer.from('RIFF'), 0); bytes.set(Buffer.from('WAVE'), 8);
+    return bytes.buffer;
+  };
+  const clipResponse = (bytes = wavBytes(), headers = {}) => ({ ok: true, headers: { get: name => headers[name] ?? null }, arrayBuffer: async () => bytes });
   install('document', document);
   install('window', { innerWidth: 1200, innerHeight: 800, matchMedia: () => ({ matches: reduced }), ...(audio ? { AudioContext } : {}),
     ...(speech ? { speechSynthesis: speechEngine, SpeechSynthesisUtterance: Utterance } : {}) });
   install('navigator', { clipboard }); install('localStorage', localStorage); install('performance', { now: () => now });
+  install('fetch', async (url, options) => {
+    clipRequests.push({ url, options });
+    const response = clipResponses.get(url);
+    return typeof response === 'function' ? await response(options) : response ?? clipResponse();
+  });
   install('setTimeout', (action, delay) => clock.set(action, delay)); install('clearTimeout', id => clock.clear(id));
   install('cancelAnimationFrame', id => clock.clear(id)); install('requestAnimationFrame', callback => clock.set(() => callback(now), 16));
   const source = await readFile(resolve(__dirname, '../web/wwwroot/js/group-roulette-show.js'), 'utf8');
@@ -150,7 +162,8 @@ async function environment(t, { reduced = false, audio = false, audioBlocked = f
       if (descriptor) Object.defineProperty(globalThis, name, descriptor); else delete globalThis[name];
     }
   });
-  return { module, root, document, clock, fire, callbacks, visibleNames, audioContexts, speechEngine, localStorage, clipboard, canvasCalls: () => canvasCalls };
+  return { module, root, document, clock, fire, callbacks, visibleNames, audioContexts, speechEngine, localStorage, clipboard,
+    clipRequests, clipResponses, clipResponse, wavBytes, canvasCalls: () => canvasCalls };
 }
 
 test('names visibly travel through independent vertical strips while Blazor fallback text remains untouched', async t => {
@@ -357,6 +370,170 @@ test('late audio decoding after account cancellation cannot restore a stale prep
   const preparing = module.prepareSpeech(root, Buffer.from('RIFF').toString('base64'));
   module.cancel(root); decoded({ duration: .6 });
   assert.equal(await preparing, false);
+});
+
+const wordClips = (prefix = '00', suffix = '04') => [
+  `/audio/roulette/announcer-v1/prefix-${prefix}.wav`,
+  `/audio/roulette/announcer-v1/suffix-${suffix}.wav`
+];
+
+test('recorded words are fetched once and reused across different team names without speech generation', async t => {
+  const { module, root, clock, fire, audioContexts, clipRequests } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  assert.equal(await clock.finish(module.playSpeechSegments(root, wordClips())), true);
+  assert.equal(await clock.finish(module.playSpeechSegments(root, wordClips('00', '05'))), true);
+  assert.deepEqual(clipRequests.map(request => request.url), [...wordClips(), wordClips('00', '05')[1]]);
+  assert.ok(clipRequests.every(request => request.options.mode === 'same-origin' && request.options.credentials === 'omit'
+    && request.options.redirect === 'error' && request.options.cache === 'force-cache' && request.options.method === undefined));
+  assert.equal(audioContexts[0].decodeCount, 3);
+  assert.equal(audioContexts[0].sources.length, 4);
+});
+
+test('two recorded words share an audio clock, retain a short gap, and finish only after the second word', async t => {
+  const { module, root, clock, fire, audioContexts } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  let completed = false;
+  const playing = module.playSpeechSegments(root, wordClips(), .7).then(result => { completed = true; return result; });
+  await clock.advance(20); await clock.advance(20);
+  const audio = audioContexts[0], [first, second] = audio.sources;
+  assert.ok(first.started && second.started);
+  assert.ok(Math.abs(second.startedAt - first.startedAt - first.buffer.duration - .045) < .00001);
+  assert.equal(audio.gains[0].gain.value, .7);
+  for (const edge of audio.gains.slice(1)) {
+    assert.equal(edge.gain.events[0].value, 0);
+    assert.equal(edge.gain.events[1].value, 1);
+    assert.ok(Math.abs(edge.gain.events[1].at - edge.gain.events[0].at - .005) < .00001);
+    assert.equal(edge.gain.events.at(-1).value, 0);
+  }
+  await clock.advance(650); assert.equal(completed, false, 'auto progression must wait past the prefix ending');
+  assert.equal(await clock.finish(playing), true);
+});
+
+test('recorded speech keeps its own volume and continues when synthetic effects are muted', async t => {
+  const { module, root, clock, fire, audioContexts } = await environment(t, { audio: true, settings: { sound: true } });
+  fire(root.button, 'pointerdown');
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  const playing = module.playSpeechSegments(root, wordClips(), .8);
+  await clock.advance(20); await clock.advance(20);
+  const audio = audioContexts[0];
+  module.setVolume(root, .35); assert.equal(audio.gains[0].gain.value, .35);
+  assert.equal(await module.setSound(root, false), true);
+  assert.equal(audio.state, 'running');
+  assert.equal(await clock.finish(playing), true);
+});
+
+test('starting another recorded name cancels every scheduled word of the previous name', async t => {
+  const { module, root, clock, fire, audioContexts } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  const first = module.playSpeechSegments(root, wordClips());
+  await clock.advance(20); await clock.advance(20);
+  const second = module.playSpeechSegments(root, wordClips('00', '05'));
+  assert.equal(await first, false);
+  assert.equal(await clock.finish(second), true);
+  assert.equal(audioContexts[0].sources.length, 4);
+  assert.equal(clock.count(), 0, 'stopped prefix, suffix and watchdog must not leave scheduled work');
+});
+
+test('recorded-word preload survives the spin muting old speech, while explicit cancellation stops playback', async t => {
+  const { module, root, clock, fire } = await environment(t, { audio: true, reduced: true });
+  fire(root.button, 'pointerdown');
+  const preparing = module.prepareSpeechSegments(root, wordClips());
+  const spinning = module.spin(root, ['A', 'B', 'C'], ['A', 'B', 'C'], false);
+  assert.equal(await preparing, true);
+  assert.equal(await clock.finish(spinning), true);
+  const playing = module.playSpeechSegments(root, wordClips());
+  await clock.advance(20); await clock.advance(20);
+  module.cancelSpeech(root);
+  assert.equal(await playing, false);
+  assert.equal(clock.count(), 0);
+});
+
+test('only the fixed pair of public prefix and suffix clips is accepted', async t => {
+  const { module, root, clipRequests } = await environment(t, { audio: true });
+  for (const urls of [[], [wordClips()[0]], [...wordClips(), wordClips()[0]],
+    [wordClips()[1], wordClips()[0]], wordClips('24'), wordClips('00', '99'),
+    ['https://example.test/prefix-00.wav', wordClips()[1]],
+    [wordClips()[0] + '?text=Neon', wordClips()[1]],
+    ['/audio/roulette/announcer-v1/../prefix-00.wav', wordClips()[1]]]) {
+    assert.equal(await module.prepareSpeechSegments(root, urls), false);
+    assert.equal(await module.playSpeechSegments(root, urls), false);
+  }
+  assert.equal(clipRequests.length, 0);
+});
+
+test('missing, invalid and oversized recorded clips fail safely and a corrected file can be retried', async t => {
+  const { module, root, clipResponses, clipResponse } = await environment(t, { audio: true });
+  const [prefix] = wordClips();
+  clipResponses.set(prefix, { ok: false });
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), false);
+  clipResponses.set(prefix, clipResponse(new Uint8Array(44).buffer));
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), false);
+  clipResponses.set(prefix, clipResponse(undefined, { 'content-length': '1048577' }));
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), false);
+  clipResponses.delete(prefix);
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+});
+
+test('streamed clips are bounded even without content length and the body reader is cancelled', async t => {
+  const { module, root, clipResponses } = await environment(t, { audio: true });
+  let cancelled = false, released = false;
+  clipResponses.set(wordClips()[0], { ok: true, headers: { get: () => null }, body: { getReader: () => ({
+    read: async () => ({ done: false, value: new Uint8Array(1024 * 1024 + 1) }),
+    cancel: async () => { cancelled = true; }, releaseLock: () => { released = true; }
+  }) } });
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), false);
+  assert.equal(cancelled, true); assert.equal(released, true);
+});
+
+test('unresponsive clip loading times out and does not block the next attempt', async t => {
+  const { module, root, clock, clipResponses, clipRequests } = await environment(t, { audio: true });
+  clipResponses.set(wordClips()[0], () => new Promise(() => {}));
+  assert.equal(await clock.finish(module.prepareSpeechSegments(root, wordClips())), false);
+  assert.equal(clipRequests[0].options.signal.aborted, true);
+  clipResponses.delete(wordClips()[0]);
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+});
+
+test('disposal cancels clip loading immediately and late decoding cannot revive a disposed audio graph', async t => {
+  const { module, root, clock, fire, audioContexts, clipRequests } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  const lateDecodes = [];
+  audioContexts[0].decodeAudioData = () => new Promise(resolve => lateDecodes.push(resolve));
+  const preparing = module.prepareSpeechSegments(root, wordClips());
+  await clock.advance(20); await clock.advance(20);
+  assert.equal(lateDecodes.length, 2);
+  await module.dispose(root);
+  assert.equal(await preparing, false);
+  assert.ok(clipRequests.every(request => request.options.signal.aborted));
+  lateDecodes.forEach(resolve => resolve({ duration: .6 }));
+  await clock.advance(20);
+  assert.equal(audioContexts[0].state, 'closed');
+  assert.equal(audioContexts[0].sources.length, 0);
+  assert.equal(clock.count(), 0);
+  assert.equal(await module.playSpeechSegments(root, wordClips()), false);
+});
+
+test('turning speech off settles an in-flight decode immediately and late words cannot play after cancellation', async t => {
+  const { module, root, clock, fire, audioContexts, clipRequests } = await environment(t, { audio: true });
+  fire(root.button, 'pointerdown');
+  const audio = audioContexts[0], decodeNormally = audio.decodeAudioData.bind(audio), lateDecodes = [];
+  audio.decodeAudioData = () => new Promise(resolve => lateDecodes.push(resolve));
+  const playing = module.playSpeechSegments(root, wordClips());
+  await clock.advance(20); await clock.advance(20);
+  assert.equal(lateDecodes.length, 2);
+  module.cancelSpeech(root);
+  assert.equal(await clock.finish(playing, 250), false, 'stop must settle without waiting for the eight-second clip timeout');
+  assert.ok(clipRequests.every(request => request.options.signal.aborted));
+  lateDecodes.forEach(resolve => resolve({ duration: .6 }));
+  await clock.advance(20);
+  assert.equal(audio.sources.length, 0);
+  audio.decodeAudioData = decodeNormally;
+  assert.equal(await module.prepareSpeechSegments(root, wordClips()), true);
+  assert.equal(clipRequests.length, 4, 'cancelled decodes cannot repopulate the cache');
+  assert.equal(await clock.finish(module.playSpeechSegments(root, wordClips())), true);
 });
 
 test('browser speech chooses a local Danish voice and reads CamelCase team names as individual words', async t => {
