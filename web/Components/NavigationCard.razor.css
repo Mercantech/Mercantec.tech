@@ -1,0 +1,10 @@
+.navigation-card { display:flex; gap:15px; align-items:flex-start; padding:23px; border:1px solid var(--rule); border-radius:10px; background:var(--paper); color:var(--ink); min-width:0; height:100%; }
+.navigation-card:hover { border-color:var(--blue); text-decoration:none; }
+.navigation-card:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+.navigation-card-icon { display:grid; place-items:center; width:38px; height:40px; flex-shrink:0; background:var(--tint); color:var(--blue); border-radius:8px; }
+.navigation-card-icon ::deep .ui-icon { width:23px; height:23px; }
+.navigation-card-copy { min-width:0; }
+.navigation-card-copy h2,.navigation-card-copy h3 { font-size:18px; margin:0; letter-spacing:-.35px; }
+.navigation-card-description { display:block; color:var(--muted); font-size:13px; margin-top:7px; line-height:1.7; }
+.navigation-card-arrow { margin-left:auto; padding-left:6px; font-size:24px; line-height:1.4; color:var(--muted); }
+@media(max-width:560px) { .navigation-card { padding:18px; gap:12px; } .navigation-card-copy h2,.navigation-card-copy h3 { font-size:17px; } }

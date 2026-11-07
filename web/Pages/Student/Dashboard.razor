@@ -23,7 +23,7 @@ else
     var firstName = string.IsNullOrEmpty(displayName) ? null : displayName.Split(' ')[0];
 
     <div class="student-home">
-        <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(firstName) ? "" : $", {firstName}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div><a class="secondary student-activities-link" href="/activities"><UiIcon Name="chart" />Mine aktiviteter</a></header>
+        <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(firstName) ? "" : $", {firstName}").</h1><p>Din dag, dit næste skridt og plads til at bygge videre.</p></div><a class="secondary student-activities-link" href="/notifications"><UiIcon Name="check" />Mine handlinger</a></header>
         <div class="cols student-dashboard">
             <div class="student-main">
                 <section class="panel student-holds" aria-labelledby="student-holds-title">

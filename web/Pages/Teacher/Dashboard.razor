@@ -15,10 +15,10 @@ else
 {
     <header class="page-title"><div><h1>Goddag@(string.IsNullOrEmpty(Auth.DisplayName) ? "" : $", {Auth.DisplayName.Split(' ')[0]}")</h1><p>Dit overblik over undervisning, elever og det næste, der skal ske.</p></div></header>
     <div class="tiles">
-        <a class="tile" href="/courses"><UiIcon Name="book" /><h2>Forløb og hold</h2><p>Opret, importér og se medlemmer.</p></a>
+        <a class="tile" href="/courses"><UiIcon Name="book" /><h2>Mine hold</h2><p>Undervisning, opgaver og afstemninger på hvert hold.</p></a>
         <a class="tile" href="/lectio"><UiIcon Name="calendar" /><h2>Lectio</h2><p>Elever, hold, Auth-kobling og «se som elev».</p></a>
-        <a class="tile" href="/teacher/reviews"><UiIcon Name="check" /><h2>Vurdering</h2><p>Afleveringer, der venter på feedback.</p></a>
-        <a class="tile" href="/teacher/polls"><UiIcon Name="chart" /><h2>Afstemninger</h2><p>Klassens stemning og fælles valg.</p></a>
+        <a class="tile" href="/notifications"><UiIcon Name="check" /><h2>Til opfølgning</h2><p>Se holdenes afleveringer, der venter på feedback.</p></a>
+        <a class="tile" href="/library"><UiIcon Name="book" /><h2>Bibliotek</h2><p>Undervisningsplaner, fag, projekter og badgekrav.</p></a>
     </div>
     <div class="headrow"><h2>Planen for klassen</h2><a href="/teacher/planner">Åbn planlægningen</a></div><WeekCalendar CourseId="h3" />
 }

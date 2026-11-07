@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @using Mercantec.Tech.Web.Learning
 @using System.Globalization
 @inject LearningClient Client
@@ -58,8 +59,8 @@
             {
                 <article class="hq-quest @quest.Kind">
                     <span class="hq-mark"><UiIcon Name="@(quest.Kind == "main" ? "target" : quest.Kind == "daily" ? "loop" : "star")" /></span>
-                    <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Frivillig")</span>@if (quest.OccurrenceDate is DateOnly day) { <span>@day.ToString("dd.MM.yyyy")</span> }@if (quest.Audience?.Mode is "students" or "groups") { <span>Målrettet</span> }@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.GroupSetId is Guid setId) { <span>· @_sets.FirstOrDefault(s => s.Id == setId)?.Name</span> } @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow && quest.Required ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
-                    <div class="hq-actions"><a class="secondary" href="/quests/@quest.Id" aria-label="@($"Åbn {quest.Title}")">@(_canManage ? "Se afleveringer" : ViewAs.IsActive ? "Åbn quest" : "Opgave og aflevering")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => Copy(quest)" disabled="@_busy">Kopiér som ny</button> }</div>
+                    <div class="hq-content"><div class="hq-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Frivillig")</span>@if (quest.OccurrenceDate is DateOnly day) { <span>@day.ToString("dd.MM.yyyy")</span> }@if (quest.Audience?.Mode is "students" or "groups") { <span>Målrettet</span> }@if (!quest.Published) { <span class="pill">Kladde</span> }</div><h3><a href="@QuestHref(quest.Id)">@quest.Title</a></h3><p class="hq-description">@quest.Description</p><p class="hq-detail">@ModeLabel(quest.SubmissionMode) @if (quest.GroupSetId is Guid setId) { <span>· @_sets.FirstOrDefault(s => s.Id == setId)?.Name</span> } @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span class="@(deadline < DateTimeOffset.UtcNow && quest.Required ? "hq-overdue" : "")">· Frist @HoldTime.Display(deadline)</span> }</p></div>
+                    <div class="hq-actions"><a class="secondary" href="@QuestHref(quest.Id)" aria-label="@($"Åbn {quest.Title}")">@(_canManage ? "Se afleveringer" : ViewAs.IsActive ? "Åbn quest" : "Opgave og aflevering")</a>@if (_canManage) { <button type="button" class="secondary" @onclick="() => Edit(quest)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => Copy(quest)" disabled="@_busy">Kopiér som ny</button> }</div>
                 </article>
             }
         </div>
@@ -68,6 +69,9 @@
 
 @code {
     [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
+    private string QuestHref(Guid id) => WorkspaceNavigation.Quest(id, WorkspaceId, CourseId, HoldId);
     [Parameter] public bool StartCreating { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
     private readonly CancellationTokenSource _life = new();

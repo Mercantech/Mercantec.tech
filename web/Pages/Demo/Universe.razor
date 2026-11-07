@@ -7,7 +7,6 @@
 @page "/universe/unlocks"
 @page "/games"
 @page "/games/avatar-demo"
-@page "/notifications"
 @page "/onboarding"
 @using Mercantec.Tech.Web.Demo
 @inject NavigationManager Nav
@@ -77,14 +76,6 @@ else if (PathKey == "games")
     </table>
     <a class="action" href="/games/avatar-demo">Prøv Rune Run Mini med din avatar</a>
 }
-else if (PathKey == "notifications")
-{
-    <header class="page-title"><div><h1>Notifikationer</h1><p>Seneste nyt fra dine projekter og forløb.</p></div></header>
-    <div class="panel">
-        <div class="row"><span class="mark"><span class="mark-glyph">1</span></span><div><h3>Maja kommenterede Rune Run</h3><p>Den hurtige rute føles fair. <a href="/explore/projects">Åbn galleriet</a></p></div></div>
-        <div class="row"><span class="mark"><span class="mark-glyph">2</span></span><div><h3>Aflevering venter</h3><p>Indledende GDD til eget spil er sendt til vurdering.</p></div></div>
-    </div>
-}
 else
 {
     <header class="page-title"><div><h1>Velkommen til LUP</h1><p>Find dit forløb, og gør LUP til dit eget.</p></div></header>
@@ -117,7 +108,6 @@ else
         "universe/shop" => "Butik",
         "universe/unlocks" => "Oplåsninger",
         "games" => "Spil",
-        "notifications" => "Notifikationer",
         _ => "Onboarding"
     };
 

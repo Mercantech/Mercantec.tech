@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using Mercantec.Tech.Web.Theming
 @inject AuthService Auth
 @inject AuthRedirect Redirect
@@ -14,97 +14,36 @@
 <div class="lup">
     <div class="app">
         <ViewAsStudentBanner />
-        <header class="lup-header @(!Auth.IsAuthenticated ? "public-header" : null)">
+        <header class="lup-header @(Auth.IsAuthenticated ? "member-header" : "public-header")">
             <a class="brand" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform">LUP</a>
             @if (Auth.IsAuthenticated)
             {
-                <nav class="mainnav" id="campus-nav" aria-label="Hovednavigation">
-                    <NavLink href="@HomeHref" Match="NavLinkMatch.All">Overblik</NavLink>
-                    @if (IsTeacher || HasDemoCourse)
-                    {
-                        <NavLink href="@(IsTeacher ? "/teacher/polls" : "/activities")" Match="NavLinkMatch.Prefix">@(IsTeacher ? "Afstemninger" : "Aktiviteter")</NavLink>
-                    }
-                    @foreach (var group in Groups)
-                    {
-                        <details class="v3-navgroup @(AreaCurrent(group.Name) ? "is-current" : null)">
-                            <summary>@group.Name</summary>
-                            <div class="v3-menu">
-                                @foreach (var item in group.Items)
-                                {
-                                    <NavLink href="@item.Href" Match="NavLinkMatch.All">@item.Label</NavLink>
-                                }
-                            </div>
-                        </details>
-                    }
+                <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
+                    <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
+                    <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Bibliotek</a>
+                    @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                 </nav>
                 <details class="lup-mobile-nav">
                     <summary>Menu</summary>
                     <nav class="lup-mobile-menu" aria-label="Hovednavigation">
-                        <NavLink href="@HomeHref" Match="NavLinkMatch.All">Overblik</NavLink>
-                        @if (IsTeacher || HasDemoCourse)
-                        {
-                            <NavLink href="@(IsTeacher ? "/teacher/polls" : "/activities")">@(IsTeacher ? "Afstemninger" : "Aktiviteter")</NavLink>
-                        }
-                        @foreach (var group in Groups)
-                        {
-                            <details class="lup-mobile-section">
-                                <summary>@group.Name</summary>
-                                @foreach (var item in group.Items)
-                                {
-                                    <NavLink href="@item.Href" Match="NavLinkMatch.All">@item.Label</NavLink>
-                                }
-                            </details>
-                        }
+                        <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
+                        <a href="/library">Bibliotek</a>
+                        @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                     </nav>
                 </details>
                 <div class="lup-tools">
-                    <a class="lup-wallet" href="/progress" title="Din udvikling" aria-label="@($"Level 7, 1240 XP og {World.Gold} guld")">
-                        <strong>Lv. 7</strong>
-                        <span>1.240 XP</span>
-                        <span class="lup-gold"><i class="v3-gold-dot" aria-hidden="true"></i>@World.Gold</span>
-
-                    </a>
-                    <a class="lup-search-link" href="/search"><UiIcon Name="search" /><span>Søg</span></a>
-                    <details class="lup-status @(IsTeacher || HasDemoCourse ? "lup-state-important" : "lup-state-ready")">
-                        <summary aria-label="@(IsTeacher || HasDemoCourse ? "2 vigtige opgaver" : "Ingen handlinger mangler")">
-                            <span class="lup-status-dot" aria-hidden="true"></span>
-                            <span>@(IsTeacher || HasDemoCourse ? "2" : "✓")</span>
-                        </summary>
-                        <div class="lup-status-panel">
-                            <h2>Din status</h2>
-
-                            @if (IsTeacher || HasDemoCourse) { <h3 class="lup-state-important"><span class="lup-status-dot" aria-hidden="true"></span>Vigtigt · 2</h3> } else { <p class="lup-ready-message">Du er ajour. Dit univers er her også mellem forløb.</p> }
-                            @if (IsTeacher || HasDemoCourse) { <a href="@(IsTeacher ? "/teacher/reviews" : "/activities")">@(IsTeacher ? "Afleveringer til vurdering" : "Aktiviteter der venter")</a> }
-                        </div>
-                    </details>
+                    <a class="lup-search-link" href="/search" aria-label="Søg"><UiIcon Name="search" /><span>Søg</span></a>
+                    <a class="lup-notification-link" href="/notifications" aria-label="Notifikationer" title="Notifikationer"><svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M12 2v1" /></svg></a>
                     <details class="lup-account v3-navgroup">
                         <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarSprite Mini="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
-                            <p class="lup-account-name">@(AccountDisplayName)</p>
-                            <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elev (preview)" : "Elev") · LUP</p>
-                            @if (ViewAs.IsActive)
-                            {
-                                <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button>
-                            }
+                            <p class="lup-account-name">@AccountDisplayName</p>
+                            <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elevvisning" : "Elev") · LUP</p>
+                            @if (ViewAs.IsActive) { <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button> }
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
-                            <NavLink href="/rights" Match="NavLinkMatch.All">Mine rettigheder</NavLink>
-                            <NavLink href="/profile/character" Match="NavLinkMatch.All">Min avatar</NavLink>
-                            <label class="field">
-                                Eksempelforløb
-                                <select value="@_demoCourse" @onchange="SetDemoCourse">
-                                    <option value="h3">H3 · 2026</option>
-                                    <option value="game">Game Design</option>
-                                    <option value="">Intet eksempelforløb</option>
-                                </select>
-                            </label>
-                            <label class="field">
-                                Udseende
-                                <select value="@_theme" @onchange="SetTheme">
-                                    @foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }
-                                </select>
-                            </label>
-                            <NavLink href="/help" Match="NavLinkMatch.All">Hjælp</NavLink>
-                            <NavLink href="/sources" Match="NavLinkMatch.All">Om LUP</NavLink>
+                            <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
+                            <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
+                            @if (IsTeacher) { <NavLink href="/teacher/tools">Underviserværktøjer</NavLink> }
                             <button type="button" class="secondary" @onclick="Logout">Log ud</button>
                         </div>
                     </details>
@@ -114,289 +53,99 @@
             {
                 <nav class="mainnav public-nav" aria-label="Hovednavigation">
                     <a class="@(PublicArea == "learning" ? "is-current" : null)" href="/" aria-current="@(PublicArea == "learning" ? "true" : null)">Undervisning</a>
+                    <NavLink href="/library">Bibliotek</NavLink>
                     <NavLink href="/explore/projects">Projekter</NavLink>
                     <NavLink href="/sources">Om LUP</NavLink>
                 </nav>
-                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/subjects">Fag og emner</a><a href="/explore/projects">Projekter</a><a href="/badges">Badges og krav</a><a href="/sources">Om LUP</a></nav></details>
+                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/library">Bibliotek</a><a href="/explore/projects">Projekter</a><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
                     <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@ThemeCatalog.Find(_theme).Icon" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
             }
         </header>
-        <main class="body" id="main-content">
-            @Body
-        </main>
-        <footer class="footer">
-            <span>LUP · Lokal UndervisningsPlatform</span>
-            <div class="footer-links">
-                <a href="/courses/template">Undervisningsplaner</a>
-                <a href="/help">Hjælp</a>
-                <a href="/privacy">Privatliv</a>
-                <a href="/sources">Om LUP</a>
-            </div>
-        </footer>
+        <main class="body" id="main-content">@Body</main>
+        <footer class="footer"><span>LUP · Lokal UndervisningsPlatform</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
     </div>
 </div>
 
 @code {
-    private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
     private string _theme = "light";
     private bool _loginBusy;
-    private string _demoCourse { get => CourseContext.CourseId; set => CourseContext.Select(value); }
-
-    // Under «se som elev» er chrome elev — underviserens Auth-rolle er uændret.
     private bool IsTeacher => Redirect.ShowsTeacherChrome;
-    private bool HasDemoCourse => !string.IsNullOrEmpty(_demoCourse);
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
-    private string AccountDisplayName =>
-        ViewAs.IsActive
-            ? (ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev")
-            : (Auth.DisplayName ?? "Bruger");
-
-    // Fragment-only (#main-content) resolves against <base href="/"> to /#main-content (= forsiden).
+    private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
+    private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
+    private bool HoldsIsCurrent => CurrentPath is "/courses" or "/notion" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/notion/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
+    private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests" or "/journal";
     private string SkipToContentHref
     {
         get
         {
-            var path = Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath;
-            return string.IsNullOrEmpty(path) ? "/#main-content" : $"{path}#main-content";
+            var relative = Nav.ToBaseRelativePath(Nav.Uri);
+            var fragment = relative.IndexOf('#');
+            if (fragment >= 0) relative = relative[..fragment];
+            return "/" + relative + "#main-content";
         }
     }
-
-    private IReadOnlyList<NavGroup> Groups => IsTeacher ? TeacherGroups : StudentGroups;
-
-    private IReadOnlyList<NavGroup> StudentGroups =>
-    [
-        new("Læring", StudentLearning),
-        new("Udforsk", Explore),
-        new("Mit univers", Universe)
-    ];
-
-    private IEnumerable<NavItem> StudentLearning
-    {
-        get
-        {
-            yield return new("Mine hold", "/courses");
-            yield return new("Quests og afleveringer", "/afleveringer");
-            yield return new("Holdets indhold", "/notion");
-            yield return new("Forløbseksempler", "/learning");
-            yield return new("Emojis", "/emojis");
-            if (HasDemoCourse)
-            {
-                yield return new("Eksempelforløb", _demoCourse == "game" ? "/learning/game" : "/learning/h3");
-                yield return new("Eksempeluge", "/calendar");
-                yield return new("Questeksempler", "/quests");
-                yield return new("Eksempellogbog", "/journal");
-            }
-            yield return new("Lectio", "/lectio");
-            yield return new("Undervisningsplaner", "/courses/template");
-            yield return new("Uddannelse og læringsmål", "/education");
-        }
-    }
-
-    private static readonly NavItem[] Explore =
-    [
-        new("Fag og emner", "/explore/modules"),
-        new("Fælles galleri", "/explore/projects"),
-        new("Badgekatalog", "/badges")
-    ];
-
-    private static readonly NavItem[] Universe =
-    [
-        new("XP, level og guld", "/progress"),
-        new("Mine badges", "/progress/badges"),
-        new("Mine projekter", "/projects/mine"),
-        new("Min avatar", "/profile/character"),
-        new("Prøvespil", "/games/avatar-demo"),
-        new("Min lejlighed", "/apartment"),
-        new("Butik", "/universe/shop"),
-        new("Level-oplåsninger", "/universe/unlocks")
-    ];
-
-    private static readonly NavGroup[] TeacherGroups =
-    [
-        new("Læring",
-        [
-            new("Forløb og hold", "/courses"),
-            new("Forløbseditor · Test", "/notion"),
-            new("Emojis", "/emojis"),
-            new("Undervisningsplaner", "/courses/template"),
-            new("Lectio", "/lectio"),
-            new("Planlægning", "/teacher/planner"),
-            new("Afleveringer til vurdering", "/teacher/reviews"),
-            new("Elever", "/teacher/students"),
-            new("Brugere", "/users"),
-            new("Fagligt indhold", "/teacher/content"),
-            new("Tildel badges", "/teacher/badges")
-        ]),
-        new("Udforsk", Explore),
-        new("Mit univers", Universe)
-    ];
-
-    private string Initials
-    {
-        get
-        {
-            var name = AccountDisplayName;
-            if (string.IsNullOrWhiteSpace(name))
-                return "?";
-            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 1)
-                return char.ToUpperInvariant(parts[0][0]).ToString();
-            return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
-        }
-    }
-
-    protected override void OnInitialized()
-    {
-        Auth.AuthStateChanged += OnAuthChanged;
-        ViewAs.Changed += OnAuthChanged;
-        Nav.LocationChanged += OnLocation;
-        World.Changed += OnAuthChanged;
-        _demoCourse = "h3";
-        EnforceViewAsRoutes();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            await Js.InvokeVoidAsync("lupIcons");
-            return;
-        }
-
-        try
-        {
-            _theme = await Js.InvokeAsync<string>("lupTheme.get");
-            if (Auth.IsAuthenticated) await World.EnsureAsync();
-            var stored = await Js.InvokeAsync<string?>("lupCourse.get");
-            if (stored is not null)
-                _demoCourse = stored;
-            await Js.InvokeVoidAsync("lupIcons");
-            await Js.InvokeVoidAsync("lupTheme.mount");
-        }
-        catch (JSException)
-        {
-            return;
-        }
-
-        StateHasChanged();
-    }
-
     private string CurrentPath
     {
         get
         {
             var relative = Nav.ToBaseRelativePath(Nav.Uri);
             var cut = relative.IndexOfAny(['?', '#']);
-            if (cut >= 0)
-                relative = relative[..cut];
+            if (cut >= 0) relative = relative[..cut];
             return "/" + relative.Trim('/');
         }
     }
-
-    private bool AreaCurrent(string name)
+    private string Initials
     {
-        var path = CurrentPath;
-        return name switch
+        get
         {
-            "Læring" => path is "/learning" or "/calendar" or "/quests" or "/afleveringer" or "/journal" or "/education" or "/courses" or "/lectio" or "/users" or "/emojis"
-                || path.StartsWith("/learning/", StringComparison.Ordinal)
-                || path.StartsWith("/courses/", StringComparison.Ordinal)
-                || path.StartsWith("/quests/", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/planner", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/reviews", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/students", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/content", StringComparison.Ordinal)
-                || path.StartsWith("/teacher/badges", StringComparison.Ordinal),
-            "Udforsk" => path.StartsWith("/explore", StringComparison.Ordinal) || path is "/badges" || path.StartsWith("/badges/", StringComparison.Ordinal),
-            _ => path is "/progress" or "/apartment" or "/games" or "/notifications" or "/onboarding"
-                || path.StartsWith("/games/", StringComparison.Ordinal)
-                || path.StartsWith("/progress/", StringComparison.Ordinal)
-                || path.StartsWith("/projects", StringComparison.Ordinal)
-                || path.StartsWith("/profile/", StringComparison.Ordinal)
-                || path.StartsWith("/universe", StringComparison.Ordinal)
-        };
+            var parts = AccountDisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) return "?";
+            return parts.Length == 1 ? char.ToUpperInvariant(parts[0][0]).ToString() : $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
+        }
     }
-
-    private async Task SetTheme(ChangeEventArgs e)
+    protected override void OnInitialized()
     {
-        _theme = e.Value?.ToString() ?? "light";
-        await Js.InvokeVoidAsync("lupTheme.set", _theme);
+        Auth.AuthStateChanged += OnAuthChanged;
+        ViewAs.Changed += OnAuthChanged;
+        Nav.LocationChanged += OnLocation;
+        World.Changed += OnAuthChanged;
+        EnforceViewAsRoutes();
     }
-
-    private async Task SetDemoCourse(ChangeEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _demoCourse = e.Value?.ToString() ?? "";
-        await Js.InvokeVoidAsync("lupCourse.set", _demoCourse);
-    }
-
-    private void OpenPlans() => Nav.NavigateTo("/lup/index.html", forceLoad: true);
-
-    private async Task StartLogin()
-    {
-        if (!Auth.IsInitialized || Auth.IsAuthenticated || _loginBusy)
-            return;
-
-        _loginBusy = true;
+        if (!firstRender) { await Js.InvokeVoidAsync("lupIcons"); return; }
         try
         {
-            await Auth.BeginLoginAsync();
+            _theme = await Js.InvokeAsync<string>("lupTheme.get");
+            if (Auth.IsAuthenticated) await World.EnsureAsync();
+            var storedCourse = await Js.InvokeAsync<string?>("lupCourse.get");
+            if (storedCourse is not null) CourseContext.Select(storedCourse);
+            await Js.InvokeVoidAsync("lupIcons");
+            await Js.InvokeVoidAsync("lupTheme.mount");
         }
-        catch (Exception)
-        {
-            _loginBusy = false;
-            Nav.NavigateTo("/login");
-        }
-    }
-
-    private async Task Logout()
-    {
-        ViewAs.Exit();
-        await Auth.LogoutLocalAsync();
-        Nav.NavigateTo("/");
-    }
-
-    private void ExitViewAs()
-    {
-        var returnUrl = ViewAs.ReturnUrl ?? "/lectio";
-        ViewAs.Exit();
-        Nav.NavigateTo(returnUrl);
-    }
-
-    private void EnforceViewAsRoutes()
-    {
-        if (!ViewAs.IsActive)
-            return;
-
-        if (!ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath))
-            return;
-
-        Nav.NavigateTo("/student");
-    }
-
-    private void OnAuthChanged() => InvokeAsync(async () =>
-    {
-        if (Auth.IsAuthenticated) await World.EnsureAsync();
-        EnforceViewAsRoutes();
+        catch (JSException) { return; }
         StateHasChanged();
-    });
-
+    }
+    private async Task SetTheme(ChangeEventArgs e) { _theme = e.Value?.ToString() ?? "light"; await Js.InvokeVoidAsync("lupTheme.set", _theme); }
+    private async Task StartLogin()
+    {
+        if (!Auth.IsInitialized || Auth.IsAuthenticated || _loginBusy) return;
+        _loginBusy = true;
+        try { await Auth.BeginLoginAsync(); } catch { _loginBusy = false; Nav.NavigateTo("/login"); }
+    }
+    private async Task Logout() { ViewAs.Exit(); await Auth.LogoutLocalAsync(); Nav.NavigateTo("/"); }
+    private void ExitViewAs() { var returnUrl = ViewAs.ReturnUrl ?? "/lectio"; ViewAs.Exit(); Nav.NavigateTo(returnUrl); }
+    private void EnforceViewAsRoutes() { if (ViewAs.IsActive && ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath)) Nav.NavigateTo("/student"); }
+    private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) await World.EnsureAsync(); EnforceViewAsRoutes(); StateHasChanged(); });
     private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(async () =>
     {
         await Js.InvokeVoidAsync("lupNewYear.stop");
+        _theme = await Js.InvokeAsync<string>("lupTheme.get");
         EnforceViewAsRoutes();
         StateHasChanged();
     });
-
-    public void Dispose()
-    {
-        Auth.AuthStateChanged -= OnAuthChanged;
-        ViewAs.Changed -= OnAuthChanged;
-        World.Changed -= OnAuthChanged;
-        Nav.LocationChanged -= OnLocation;
-    }
-
-    private sealed record NavGroup(string Name, IEnumerable<NavItem> Items);
-    private sealed record NavItem(string Label, string Href);
+    public void Dispose() { Auth.AuthStateChanged -= OnAuthChanged; ViewAs.Changed -= OnAuthChanged; World.Changed -= OnAuthChanged; Nav.LocationChanged -= OnLocation; }
 }

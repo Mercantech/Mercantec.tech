@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @using System.Globalization
 @using Mercantec.Tech.Web.Learning
 @using Mercantec.Tech.Web.Pages.Learning
@@ -48,9 +49,9 @@
                 }
                 <div class="tc-resource-sections">
                     <section><h4>Undervisningssider <span>@selected.Resources.Count(r => r.Kind == "page")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "page")) { <p class="tc-empty-copy">@(CanManage ? "Opret den første side, eller tilknyt eksisterende sider." : "Der er endnu ingen udgivne sider i forløbet.")</p> }@foreach (var item in OrderedPages(selected.Resources)) { <a class="tc-resource-row tc-page-row" style="--depth:@item.Depth" href="@PageHref(item.Resource.ResourceId)"><UiIcon Name="book" /><span>@item.Resource.Title</span>@if (CanManage && !item.Resource.Published) { <small>Kladde</small> }<UiIcon Name="arrow" /></a> }</section>
-                    <section><h4>Quests <span>@selected.Resources.Count(r => r.Kind == "quest")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "quest")) { <p class="tc-empty-copy">@(CanManage ? "Ingen quests knyttet til forløbet endnu." : "Der er ingen udgivne quests til dig i dette forløb endnu.")</p> } else if (!CanManage) { <p class="tc-help">Åbn en quest for at læse opgaven, aflevere og se feedback.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "quest")) { <a class="tc-resource-row" href="/quests/@resource.ResourceId"><UiIcon Name="target" /><span>@resource.Title</span>@if (CanManage && !resource.Published) { <small>Kladde</small> }<span class="tc-open-quest">Åbn quest</span><UiIcon Name="arrow" /></a> }</section>
+                    <section><h4>Quests <span>@selected.Resources.Count(r => r.Kind == "quest")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "quest")) { <p class="tc-empty-copy">@(CanManage ? "Ingen quests knyttet til forløbet endnu." : "Der er ingen udgivne quests til dig i dette forløb endnu.")</p> } else if (!CanManage) { <p class="tc-help">Åbn en quest for at læse opgaven, aflevere og se feedback.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "quest")) { <a class="tc-resource-row" href="@QuestHref(resource.ResourceId)"><UiIcon Name="target" /><span>@resource.Title</span>@if (CanManage && !resource.Published) { <small>Kladde</small> }<span class="tc-open-quest">Åbn quest</span><UiIcon Name="arrow" /></a> }</section>
                     <section><h4>Materialer <span>@selected.Resources.Count(r => r.Kind == "material")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "material")) { <p class="tc-empty-copy">Ingen materialer knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "material")) { <button type="button" class="tc-resource-row" @onclick="() => _viewer = resource.FileAssetId"><UiIcon Name="folder" /><span>@resource.Title</span>@if (CanManage && !resource.Published) { <small>Kladde</small> }<span>Åbn fil</span></button> }</section>
-                    <section><h4>Kalender <span>@selected.Resources.Count(r => r.Kind == "event")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "event")) { <p class="tc-empty-copy">Ingen begivenheder knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "event").OrderBy(r => r.StartsAtUtc)) { <a class="tc-resource-row" href="/holds/@HoldId?view=calendar&event=@resource.ResourceId"><UiIcon Name="calendar" /><span>@resource.Title@if (resource.StartsAtUtc is DateTimeOffset date) { <small>@HoldTime.Display(date)</small> }</span><UiIcon Name="arrow" /></a> }</section>
+                    <section><h4>Kalender <span>@selected.Resources.Count(r => r.Kind == "event")</span></h4>@if (!selected.Resources.Any(r => r.Kind == "event")) { <p class="tc-empty-copy">Ingen begivenheder knyttet til forløbet endnu.</p> }@foreach (var resource in selected.Resources.Where(r => r.Kind == "event").OrderBy(r => r.StartsAtUtc)) { <a class="tc-resource-row" href="@CalendarHref(resource.ResourceId)"><UiIcon Name="calendar" /><span>@resource.Title@if (resource.StartsAtUtc is DateTimeOffset date) { <small>@HoldTime.Display(date)</small> }</span><UiIcon Name="arrow" /></a> }</section>
                 </div>
                 @if (_viewer is Guid fileId) { <section class="tc-file-viewer"><div class="tc-heading"><h4>Filvisning</h4><button type="button" class="secondary" @onclick="() => _viewer = null">Luk filvisning</button></div><FileViewer FileId="fileId" @key="fileId" /></section> }
             </article>
@@ -60,7 +61,7 @@
             @if (CanManage) { <label class="tc-check"><input type="checkbox" @bind="_showArchived" /> Vis arkiverede forløb</label> }
             @if (!VisibleCourses.Any()) { <div class="tc-empty"><UiIcon Name="book" /><h3>@(CanManage ? "Giv undervisningen en tydelig sammenhæng" : "Her samles holdets forløb")</h3><p>@(CanManage ? "Opret et forløb med periode og læringsmål. Tilknyt derefter sider, quests, materialer og begivenheder." : "Underviseren kan udgive forløb med undervisning og opgaver her.")</p></div> }
             <div class="tc-course-list">@foreach (var course in VisibleCourses) { <article class="tc-course-card"><div class="tc-meta"><span class="tc-state @(course.Archived ? "archived" : course.Published ? "published" : "draft")">@Status(course)</span><span>@Period(course)</span></div><h3><a href="@CourseHref(course.Id)">@course.Title</a></h3><p>@course.Description</p><div class="tc-resource-counts"><span><UiIcon Name="book" /> @course.Resources.Count(r => r.Kind == "page") sider</span><span><UiIcon Name="target" /> @course.Resources.Count(r => r.Kind == "quest") quests</span><span><UiIcon Name="folder" /> @course.Resources.Count(r => r.Kind == "material") materialer</span></div><a class="secondary" href="@CourseHref(course.Id)">Åbn forløb</a></article> }</div>
-            <p class="tc-help">@if (CanManage && _catalog.Any(r => r.LinkedCourseId is null)) { <span>@_catalog.Count(r => r.LinkedCourseId is null) indholdselementer er endnu ikke knyttet til et forløb. </span> }<a href="@($"/notion?hold={HoldId}" + (CanManage ? "" : "&published=true"))">@(CanManage ? "Åbn alle holdets sider i editoren" : "Åbn holdets udgivne undervisningssider")</a></p>
+            <p class="tc-help">@if (CanManage && _catalog.Any(r => r.LinkedCourseId is null)) { <span>@_catalog.Count(r => r.LinkedCourseId is null) indholdselementer er endnu ikke knyttet til et forløb. </span> }<a href="@WorkspaceNavigation.Editor(HoldId, WorkspaceId, null, !CanManage)">@(CanManage ? "Åbn alle holdets sider i editoren" : "Åbn holdets udgivne undervisningssider")</a></p>
             @if (CourseId is not null && _selected is null) { <p class="tc-help">Det valgte forløb er ikke tilgængeligt. Vælg et forløb fra listen.</p> }
         }
         @if (_archiveConfirm is TeachingCourseView archiving && CanManage)
@@ -72,6 +73,7 @@
 
 @code {
     [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
     [Parameter] public Guid? CourseId { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
     private static readonly string[] Kinds = ["page", "quest", "material", "event"];
@@ -137,7 +139,7 @@
     {
         if (_selected is not TeachingCourseView selected || string.IsNullOrWhiteSpace(_pageTitle)) { _error = "Giv siden en titel."; return; }
         var created = await Client.CreatePage(HoldId, selected.Id, new(_pageTitle, Guid.TryParse(_pageParent, out var parent) ? parent : null, selected.Version), ct);
-        if (!Current(generation)) return; Replace(created.Course); _dirty = false; _pageOpen = false; await OnChanged.InvokeAsync(); Nav.NavigateTo($"/notion/{created.PageId}");
+        if (!Current(generation)) return; Replace(created.Course); _dirty = false; _pageOpen = false; await OnChanged.InvokeAsync(); Nav.NavigateTo(PageHref(created.PageId));
     });
     private async Task BeginResources(TeachingCourseView course) { if (!await MaySwitchPanel()) return; ClosePanels(); _resourcesOpen = true; foreach (var resource in course.Resources) _chosen.Add(new(resource.Kind, resource.ResourceId)); }
     private async Task AskArchive(TeachingCourseView course) { if (!await MaySwitchPanel()) return; ClosePanels(); _archiveConfirm = course; }
@@ -164,8 +166,10 @@
     }
     private void Replace(TeachingCourseView saved) => _courses = [.. _courses.Where(c => c.Id != saved.Id), saved];
     private async Task BeforeNavigation(LocationChangingContext context) { if (_dirty && !await Js.InvokeAsync<bool>("confirm", "Du har ugemte ændringer i forløbet. Forlad siden og kassér dem?")) context.PreventNavigation(); }
-    private string CourseHref(Guid? id) => Nav.GetUriWithQueryParameter("course", id);
-    private string PageHref(Guid id) => $"/notion/{id}" + (CanManage ? "" : "?published=true");
+    private string CourseHref(Guid? id) => WorkspaceId == Guid.Empty ? WorkspaceNavigation.Hold(HoldId, "content", id) : WorkspaceNavigation.View(WorkspaceId, "content", id);
+    private string PageHref(Guid id) => WorkspaceNavigation.Page(id, WorkspaceId, _selected?.Id, !CanManage, HoldId);
+    private string QuestHref(Guid id) => WorkspaceNavigation.Quest(id, WorkspaceId, _selected?.Id, HoldId);
+    private string CalendarHref(Guid id) => WorkspaceId == Guid.Empty ? WorkspaceNavigation.Hold(HoldId, "calendar", _selected?.Id, eventId: id) : WorkspaceNavigation.View(WorkspaceId, "calendar", _selected?.Id, eventId: id);
     private static string Status(TeachingCourseView course) => course.Archived ? "Arkiveret" : course.Published ? "Udgivet" : "Kladde";
     private static string Period(TeachingCourseView course) => course.StartsOn is DateOnly start ? start.ToString("dd.MM.yyyy") + (course.EndsOn is DateOnly end ? $" – {end:dd.MM.yyyy}" : " og frem") : course.EndsOn is DateOnly finish ? $"Til {finish:dd.MM.yyyy}" : "Periode ikke angivet";
     private static string KindLabel(string kind) => kind switch { "page" => "Undervisningssider", "quest" => "Quests", "material" => "Materialer", _ => "Begivenheder" };

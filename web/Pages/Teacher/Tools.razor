@@ -1,0 +1,18 @@
+@page "/teacher/tools"
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+
+<PageTitle>Underviserværktøjer · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Log ind for at fortsætte.</p></div></header><a class="action" href="/login">Log ind</a> }
+else if (!Redirect.ShowsTeacherChrome) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Denne side er for undervisere.</p></div></header><a class="secondary" href="@Redirect.PostLoginPath()">Til dit overblik</a> }
+else
+{
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/teacher">Overblik</a><span>›</span><span aria-current="page">Underviserværktøjer</span></nav>
+    <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Brugere, Lectio og fælles indstillinger.</p></div></header>
+    <div class="teacher-tools-grid">
+        <NavigationCard Href="/lectio" Title="Lectio" Description="Elev- og holdoversigt, Auth-kobling og elevvisning." Icon="calendar" />
+        <NavigationCard Href="/users" Title="Brugere" Description="Brugeroversigt og rettigheder." Icon="people" />
+        <NavigationCard Href="/emojis" Title="Emojis" Description="Fælles emojis til indhold og feedback." Icon="message" />
+    </div>
+}

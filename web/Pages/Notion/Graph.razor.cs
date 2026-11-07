@@ -2,6 +2,7 @@ using System.Globalization;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Notion;
+using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -14,11 +15,15 @@ public partial class Graph
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
     [Inject] private NotionClient Client { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? CollectionId { get; set; }
     [Parameter] public Guid? HoldId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
     [SupplyParameterFromQuery(Name = "published")] public bool PublishedPreview { get; set; }
+    [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? CourseQuery { get; set; }
+    private WorkspaceRouteContext? _returnContext;
 
     private readonly CancellationTokenSource _life = new();
     private CancellationTokenSource? _requests;
@@ -61,20 +66,19 @@ public partial class Graph
         }
     }
     private bool ViewingHold => RouteIsHoldGraph || _graph?.WholeHold == true;
-    private string RouteKey => $"{CollectionId}:{HoldId}:{HoldQuery}:{ForceReadOnly}:{RouteIsHoldGraph}";
+    private string RouteKey => $"{CollectionId}:{HoldId}:{HoldQuery}:{WorkspaceQuery}:{CourseQuery}:{ForceReadOnly}:{RouteIsHoldGraph}";
     private string GraphHostKey => _graph is null ? "" : _graph.WholeHold ? $"hold:{_graph.HoldId}" : $"page:{_graph.CollectionId}";
     private string ScopeValue => _graph?.WholeHold == true ? "hold" : _graph?.CollectionId.ToString() ?? "";
-    private string PagesHref
+    private string WorkspaceHref => _returnContext?.View() ?? WorkspaceNavigation.Hold(_holdId, "content");
+    private string PagesHref => _graph is { WholeHold: false }
+        ? PagePath(_graph.CollectionId)
+        : WorkspaceNavigation.Editor(_holdId, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly);
+
+    public override Task SetParametersAsync(ParameterView parameters)
     {
-        get
-        {
-            var hold = _holdId != Guid.Empty ? _holdId : HoldId ?? HoldQuery ?? Guid.Empty;
-            var path = _graph is { WholeHold: false }
-                ? $"/notion/{_graph.CollectionId}"
-                : hold == Guid.Empty ? "/notion" : $"/notion?hold={hold}";
-            if (!ForceReadOnly) return path;
-            return path.Contains('?') ? path + "&published=true" : path + "?published=true";
-        }
+        CollectionId = HoldId = HoldQuery = WorkspaceQuery = CourseQuery = null;
+        PublishedPreview = false;
+        return base.SetParametersAsync(parameters);
     }
 
     protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; ViewAs.Changed += AccountChanged; }
@@ -299,7 +303,7 @@ public partial class Graph
         var ct = requests.Token; var account = _account;
         var published = ForceReadOnly;
         _loadedRoute = RouteKey; _loading = true; _error = null; _redirecting = false; _scriptFailed = false;
-        _graph = null; _menuPage = null;
+        _graph = null; _menuPage = null; _returnContext = null;
         _pages = []; _collections = null;
         _search = ""; _localNode = null; _showLinks = false;
         try
@@ -321,6 +325,8 @@ public partial class Graph
                 var pages = await Client.Pages(graph.HoldId, ct, published);
                 if (account != _account || ct.IsCancellationRequested) return;
                 _holdId = graph.HoldId;
+                await ResolveReturnContext(ct);
+                if (account != _account || ct.IsCancellationRequested) return;
                 _pages = pages;
                 IndexGraph(graph);
             }
@@ -332,6 +338,8 @@ public partial class Graph
                 var pages = await Client.Pages(_holdId, ct, published);
                 if (account != _account || ct.IsCancellationRequested) return;
                 _pages = pages;
+                await ResolveReturnContext(ct);
+                if (account != _account || ct.IsCancellationRequested) return;
                 var roots = _pages.Where(p => p.ParentPageId is null || _pages.All(other => other.Id != p.ParentPageId)).ToArray();
                 if (roots.Length == 1)
                 {
@@ -351,6 +359,16 @@ public partial class Graph
             if (!ct.IsCancellationRequested && !_redirecting) _loading = false;
         }
     }
+    private async Task ResolveReturnContext(CancellationToken ct)
+    {
+        if (_holdId == Guid.Empty || HoldQuery is Guid requested && requested != _holdId
+            || WorkspaceNavigation.NonEmpty(WorkspaceQuery) is null && WorkspaceNavigation.NonEmpty(CourseQuery) is null) return;
+        var route = RouteKey;
+        var context = await WorkspaceNavigation.Resolve(Http, _holdId, WorkspaceQuery, CourseQuery, ForceReadOnly, ct);
+        ct.ThrowIfCancellationRequested();
+        if (route == RouteKey) _returnContext = context;
+    }
+
     private IEnumerable<(NotionPageSummary Page, int Depth)> OrderedPages()
     {
         var pages = _pages.OrderBy(page => page.Title).ToArray();
@@ -383,10 +401,9 @@ public partial class Graph
         new string('–', item.Depth) + (item.Depth > 0 ? " " : "") + item.Page.Title;
     private string Title(Guid id) => _titles.GetValueOrDefault(id, "Side");
     private IEnumerable<NotionGraphNode> Isolated() => _graph is null ? [] : _graph.Nodes.Where(node => !_neighbors.ContainsKey(node.Id));
-    private string PagePath(Guid id) => WithPreview($"/notion/{id}");
-    private string GraphPath(Guid id) => WithPreview($"/notion/graph/{id}");
-    private string HoldGraphPath(Guid id) => WithPreview($"/notion/holds/{id}/graph");
-    private string WithPreview(string path) => ForceReadOnly ? path + "?published=true" : path;
+    private string PagePath(Guid id) => WorkspaceNavigation.Page(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly, _holdId);
+    private string GraphPath(Guid id) => WorkspaceNavigation.Graph(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly, _holdId);
+    private string HoldGraphPath(Guid id) => WorkspaceNavigation.HoldGraph(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly);
     private void ChangeScope(ChangeEventArgs args)
     {
         var value = args.Value?.ToString();
@@ -402,8 +419,8 @@ public partial class Graph
     {
         if (!Guid.TryParse(args.Value?.ToString(), out var id) || id == _holdId) return;
         Nav.NavigateTo(ViewingHold
-            ? HoldGraphPath(id)
-            : "/notion/graph?hold=" + id + (ForceReadOnly ? "&published=true" : ""));
+            ? WorkspaceNavigation.HoldGraph(id, publishedOnly: ForceReadOnly)
+            : WorkspaceNavigation.GraphIndex(id, ForceReadOnly));
     }
     private async Task Zoom(int direction)
     {

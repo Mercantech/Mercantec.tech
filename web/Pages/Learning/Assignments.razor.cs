@@ -2,6 +2,7 @@ using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Learning;
+using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
@@ -12,6 +13,7 @@ namespace Mercantec.Tech.Web.Pages.Learning;
 public partial class Assignments
 {
     [Inject] private LearningClient Client { get; set; } = null!;
+    [Inject] private HttpClient Http { get; set; } = null!;
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
@@ -19,7 +21,15 @@ public partial class Assignments
     [Parameter] public Guid QuestId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? RequestedHoldId { get; set; }
     [SupplyParameterFromQuery(Name = "submission")] public Guid? RequestedSubmissionId { get; set; }
-    private (Guid Quest, Guid? Hold, Guid? Submission) _loadedRoute;
+    [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? CourseQuery { get; set; }
+    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course) _loadedRoute;
+    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course) CurrentRoute => (QuestId, RequestedHoldId, RequestedSubmissionId, WorkspaceQuery, CourseQuery);
+    private WorkspaceRouteContext? _returnContext;
+    private string WorkspaceHref(string view = "overview", bool create = false) => _returnContext is { } context
+        ? WorkspaceNavigation.View(context.WorkspaceId, view, context.CourseId, create)
+        : WorkspaceNavigation.Hold(_holdId, view, create: create);
+    private string QuestHref(Guid id) => WorkspaceNavigation.Quest(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, _holdId);
 
     private LearningHold[] _holds = [];
     private CourseMaterialView[] _materials = [];
@@ -64,6 +74,7 @@ public partial class Assignments
         QuestId = Guid.Empty;
         RequestedHoldId = null;
         RequestedSubmissionId = null;
+        WorkspaceQuery = CourseQuery = null;
         return base.SetParametersAsync(parameters);
     }
 
@@ -80,7 +91,7 @@ public partial class Assignments
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_accountLoaded && Auth.IsAuthenticated && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId))
+        if (_accountLoaded && Auth.IsAuthenticated && _loadedRoute != CurrentRoute)
             await Reload();
     }
 
@@ -109,7 +120,7 @@ public partial class Assignments
 
     private Task Reload() => Run(async ct =>
     {
-        var route = (Quest: QuestId, Hold: RequestedHoldId, Submission: RequestedSubmissionId);
+        var route = CurrentRoute;
         _loadedRoute = route;
         _loading = true;
         try
@@ -124,11 +135,19 @@ public partial class Assignments
                 routeQuest = await Client.Quest(route.Quest, ct);
                 if (ViewAs.IsActive && !routeQuest.Published) throw new LearningException("Questen er endnu ikke udgivet til eleverne.");
             }
-            if (route != (QuestId, RequestedHoldId, RequestedSubmissionId)) return;
+            if (route != CurrentRoute) return;
             var requested = routeQuest?.HoldId ?? route.Hold;
             if (requested is Guid requestedId && _holds.Any(h => h.Id == requestedId)) _holdId = requestedId;
             if (!_holds.Any(h => h.Id == _holdId)) _holdId = _holds.FirstOrDefault()?.Id ?? Guid.Empty;
-            if (_holdId != Guid.Empty) await LoadHold(ct);
+            if (_holdId != Guid.Empty)
+            {
+                await LoadHold(ct);
+                if ((WorkspaceNavigation.NonEmpty(route.Workspace) is not null || WorkspaceNavigation.NonEmpty(route.Course) is not null)
+                    && (route.Hold is null || route.Hold == _holdId))
+                    _returnContext = await WorkspaceNavigation.Resolve(Http, _holdId, route.Workspace, route.Course, ViewAs.IsActive, ct);
+                ct.ThrowIfCancellationRequested();
+                if (route != CurrentRoute) return;
+            }
             if (routeQuest is not null)
             {
                 _quest = _quests.FirstOrDefault(q => q.Id == routeQuest.Id);
@@ -166,6 +185,7 @@ public partial class Assignments
 
     private void ClearHold()
     {
+        _returnContext = null;
         _materials = [];
         _quests = [];
         _groups = [];
@@ -370,7 +390,7 @@ public partial class Assignments
             {
                 _busy = false;
                 StateHasChanged();
-                if (Auth.IsAuthenticated && _loadedRoute != (QuestId, RequestedHoldId, RequestedSubmissionId)) await Reload();
+                if (Auth.IsAuthenticated && _loadedRoute != CurrentRoute) await Reload();
             }
         }
     }

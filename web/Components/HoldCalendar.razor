@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @using System.Globalization
 @using Mercantec.Tech.Web.Learning
 @inject LearningClient Client
@@ -36,7 +37,7 @@
             @if (entries.Length == 0) { <div class="hc-empty"><h3>Kalenderen er åben</h3><p>Ingen begivenheder eller questfrister de næste 31 dage.</p></div> }
             @foreach (var dayGroup in entries.GroupBy(e => Day(e.Start) < _anchor ? _anchor : Day(e.Start)))
             {
-                <div class="hc-agenda-day"><h4>@dayGroup.Key.ToString("dddd d. MMMM", Danish)</h4>@foreach (var entry in dayGroup) { <div class="hc-agenda-entry @(entry.QuestId is null ? "event" : "deadline")"><span>@HoldTime.Local(entry.Start).ToString("HH:mm")</span><div><strong>@entry.Title</strong>@if (entry.QuestId is Guid questId) { <p>Questfrist · <a href="/quests/@questId">Åbn quest</a></p> } else { <p>@TypeLabel(entry.Kind) @if (!string.IsNullOrWhiteSpace(entry.Location)) { <span>· @entry.Location</span> }</p>@if (!string.IsNullOrWhiteSpace(entry.Description)) { <p class="hc-description">@entry.Description</p> } }</div>@if (entry.Event is HoldCalendarEventView item && _canManage) { <button type="button" class="secondary" @onclick="() => Edit(item)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => AskDelete(item)" disabled="@_busy">Slet</button> }</div> }</div>
+                <div class="hc-agenda-day"><h4>@dayGroup.Key.ToString("dddd d. MMMM", Danish)</h4>@foreach (var entry in dayGroup) { <div class="hc-agenda-entry @(entry.QuestId is null ? "event" : "deadline")"><span>@HoldTime.Local(entry.Start).ToString("HH:mm")</span><div><strong>@entry.Title</strong>@if (entry.QuestId is Guid questId) { <p>Questfrist · <a href="@QuestHref(questId)">Åbn quest</a></p> } else { <p>@TypeLabel(entry.Kind) @if (!string.IsNullOrWhiteSpace(entry.Location)) { <span>· @entry.Location</span> }</p>@if (!string.IsNullOrWhiteSpace(entry.Description)) { <p class="hc-description">@entry.Description</p> } }</div>@if (entry.Event is HoldCalendarEventView item && _canManage) { <button type="button" class="secondary" @onclick="() => Edit(item)" disabled="@_busy">Redigér</button><button type="button" class="secondary" @onclick="() => AskDelete(item)" disabled="@_busy">Slet</button> }</div> }</div>
             }
         }
         else
@@ -49,7 +50,7 @@
                         <div class="hc-day-heading"><span>@day.ToString("ddd", Danish)</span><strong>@day.Day</strong>@if (_canManage) { <button type="button" class="hc-add" aria-label="@($"Opret begivenhed {day:dd.MM.yyyy}")" @onclick="() => New(day)" disabled="@_busy">+</button> }</div>
                         @foreach (var entry in todaysEntries)
                         {
-                            @if (entry.QuestId is Guid questId) { <a class="hc-grid-entry deadline" href="/quests/@questId"><span>@HoldTime.Local(entry.Start).ToString("HH:mm") · Questfrist</span><strong>@entry.Title</strong></a> }
+                            @if (entry.QuestId is Guid questId) { <a class="hc-grid-entry deadline" href="@QuestHref(questId)"><span>@HoldTime.Local(entry.Start).ToString("HH:mm") · Questfrist</span><strong>@entry.Title</strong></a> }
                             else { <button type="button" class="hc-grid-entry event" @onclick="() => _selected = entry.Event"><span>@(Day(entry.Start) < day ? "Fortsætter" : HoldTime.Local(entry.Start).ToString("HH:mm"))</span><strong>@entry.Title</strong>@if (!string.IsNullOrWhiteSpace(entry.Location)) { <small>@entry.Location</small> }</button> }
                         }
                     </div>
@@ -70,6 +71,9 @@
 
 @code {
     [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
+    private string QuestHref(Guid id) => WorkspaceNavigation.Quest(id, WorkspaceId, CourseId, HoldId);
     [Parameter] public bool StartCreating { get; set; }
     [Parameter] public Guid? EventId { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }

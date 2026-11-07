@@ -8,7 +8,7 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
-<PageTitle>@(Redirect.ShowsTeacherChrome ? "Forløb og hold" : "Mine hold") · LUP</PageTitle>
+<PageTitle>Mine hold · LUP</PageTitle>
 
 @if (!Auth.IsInitialized)
 {
@@ -51,13 +51,13 @@ else
 {
     <header class="page-title">
         <div>
-            <h1>Forløb og hold</h1>
+            <h1>Mine hold</h1>
             <p>Opret manuelt, eller hent et hold ind fra Lectio.</p>
         </div>
         <div class="actions">
             <a class="secondary" href="/courses/template">Undervisningsplaner</a>
             <a class="secondary" href="/lectio">Fra Lectio-hold</a>
-            <button type="button" class="action" @onclick="() => _showCreate = !_showCreate">@(_showCreate ? "Skjul" : "Nyt forløb")</button>
+            <button type="button" class="action" @onclick="() => _showCreate = !_showCreate">@(_showCreate ? "Skjul" : "Nyt hold")</button>
         </div>
     </header>
 
@@ -69,7 +69,7 @@ else
     @if (_showCreate)
     {
         <form class="panel" style="max-width:28rem;margin-bottom:16px">
-            <h2>Opret forløb</h2>
+            <h2>Opret hold</h2>
             <label class="field">Navn<input @bind="_newName" maxlength="200" /></label>
             <label class="field">Beskrivelse (valgfri)<textarea rows="2" @bind="_newDescription"></textarea></label>
             <button type="button" class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_newName))" @onclick="CreateAsync">@(_busy ? "Opretter…" : "Opret")</button>
@@ -78,11 +78,11 @@ else
 
     @if (_loading)
     {
-        <p>Henter forløb…</p>
+        <p>Henter hold…</p>
     }
     else if (_items.Count == 0)
     {
-        <div class="empty"><h2>Ingen forløb endnu</h2><p>Opret et manuelt, eller vælg et hold under Lectio.</p></div>
+        <div class="empty"><h2>Ingen hold endnu</h2><p>Opret et manuelt, eller vælg et hold under Lectio.</p></div>
     }
     else
     {

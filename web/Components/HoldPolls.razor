@@ -1,0 +1,113 @@
+@using Mercantec.Tech.Web.Navigation
+@inject PollClient Client
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IAsyncDisposable
+
+<section class="hold-polls">
+    <div class="hold-polls-heading"><div><h2>Holdets afstemninger</h2>@if (_hold is not null) { <p>@_hold.Name</p> }</div>@if (MayManage && !_creating) { <button type="button" class="action" @onclick="BeginCreate">Ny afstemning</button> }</div>
+    @if (_error is not null) { <div class="poll-error" role="alert">@_error <button type="button" class="secondary" @onclick="Load">Prøv igen</button></div> }
+    @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+    else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at se holdets afstemninger.</p> }
+    else if (_polls is null && _error is null) { <p role="status">Henter holdets afstemninger…</p> }
+    else if (_creating && MayManage && _hold is not null)
+    {
+        <button type="button" class="secondary hold-polls-back" @onclick="() => _creating = false">Tilbage til holdets afstemninger</button>
+        <PollStudio Holds="StudioHolds" FixedHoldId="HoldId" InitialKind="mood" OnCreated="Created" @key="HoldId" />
+    }
+    else if (_polls is not null)
+    {
+        @if (ViewAs.IsActive) { <p class="hold-polls-note">Elevvisning. Svar på afstemninger afgives fra elevens egen konto.</p> }
+        <div class="filters" aria-label="Filtrer holdets afstemninger">@foreach (var filter in Filters) { <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(_filter == filter)" @onclick="() => _filter = filter">@(filter == "all" ? "Alle" : PollDesign.StateLabel(filter))</button> }</div>
+        @if (!Visible.Any()) { <div class="hold-polls-empty"><UiIcon Name="chart" /><div><h3>@(_filter == "open" ? "Ingen åbne afstemninger" : "Ingen afstemninger i denne visning")</h3><p>@(MayManage ? "Opret et spørgsmål eller et stemningstjek til holdet." : "Holdets afstemninger vises her, når underviseren åbner dem.")</p></div></div> }
+        <div class="hold-poll-list">
+            @foreach (var poll in Visible)
+            {
+                <article class="hold-poll-card @(MayManage && poll.CanManage && poll.State != "draft" ? "has-results" : "")">
+                    <div class="hold-poll-copy"><div class="poll-surface-meta"><span class="poll-format"><UiIcon Name="@PollDesign.Icon(poll.Kind)" />@PollDesign.Label(poll.Kind)</span><span class="poll-state @poll.State"><i></i>@PollDesign.StateLabel(poll.State)</span></div><h3><a href="@PollHref(poll.Id)">@poll.Question</a></h3>
+                    @if (!MayManage) { <p>@(poll.HasResponded && !ViewAs.IsActive ? "Dit svar er gemt." : poll.State == "open" ? "Afstemningen er åben for holdets medlemmer." : "Afstemningen er afsluttet.")</p> }
+                    <div class="hold-poll-actions"><a class="secondary" href="@PollHref(poll.Id)">@(MayManage ? "Åbn afstemning" : poll.HasResponded && !ViewAs.IsActive ? "Se dit svar" : poll.State == "closed" ? "Se afstemning" : "Åbn og svar")</a>
+                    @if (MayManage && poll.CanManage)
+                    {
+                        @if (poll.State != "draft") { <a class="secondary" href="@PollHref(poll.Id, true)">Åbn tavlevisning</a> }
+                        <button type="button" class="@(poll.State == "open" ? "secondary" : "action")" disabled="@_busy" @onclick='() => SetState(poll, poll.State == "open" ? "closed" : "open")'>@(poll.State == "open" ? "Afslut" : poll.State == "draft" ? "Start afstemning" : "Genåbn")</button>
+                        @if (poll.State == "closed") { <button type="button" class="secondary" disabled="@_busy" @onclick="() => NewRound(poll)">Ny runde</button> }
+                    }</div></div>
+                    @if (MayManage && poll.CanManage && poll.State != "draft") { <div class="hold-poll-results"><LivePollResults Poll="poll" /></div> }
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
+    [Parameter] public bool CanManage { get; set; }
+    private PollHold? _hold;
+    private List<PollView>? _polls;
+    private bool _loading, _busy, _creating;
+    private string? _scopeKey, _error;
+    private string _filter = "open";
+    private readonly CancellationTokenSource _life = new();
+    private CancellationTokenSource _requests = new();
+    private Task? _polling;
+    private bool MayManage => CanManage && !ViewAs.IsActive && _hold?.CanManage == true;
+    private IReadOnlyList<PollHold> StudioHolds => _hold is null ? [] : [_hold];
+    private string[] Filters => MayManage ? ["open", "draft", "closed", "all"] : ["open", "closed", "all"];
+    private IEnumerable<PollView> Visible => (_polls ?? []).Where(p => p.HoldId == HoldId && (MayManage || p.State != "draft") && (_filter == "all" || p.State == _filter));
+    private string PollHref(Guid id, bool presenter = false) => WorkspaceNavigation.Poll(id, WorkspaceId, CourseId, HoldId, presenter);
+    protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; ViewAs.Changed += AccountChanged; }
+    protected override Task OnParametersSetAsync() => SyncScope();
+    protected override Task OnAfterRenderAsync(bool firstRender) { if (firstRender) _polling = Poll(); return Task.CompletedTask; }
+    private void AccountChanged() => _ = InvokeAsync(SyncScope);
+    private async Task SyncScope()
+    {
+        if (_life.IsCancellationRequested) return;
+        var key = $"{Auth.Subject}:{Auth.IsAuthenticated}:{ViewAs.IsActive}:{HoldId}:{CanManage}";
+        if (_scopeKey == key) return;
+        _requests.Cancel(); _requests.Dispose(); _requests = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
+        _scopeKey = key; _hold = null; _polls = null; _error = null; _creating = false; _loading = _busy = false; _filter = "open";
+        await Load();
+    }
+    private async Task Poll()
+    {
+        try { using var timer = new PeriodicTimer(TimeSpan.FromSeconds(6)); while (await timer.WaitForNextTickAsync(_life.Token)) if (!_creating && !_busy) await InvokeAsync(Load); }
+        catch (OperationCanceledException) { }
+    }
+    private async Task Load()
+    {
+        if (_life.IsCancellationRequested || _loading || !Auth.IsAuthenticated || HoldId == Guid.Empty) return;
+        _loading = true; var key = _scopeKey; var holdId = HoldId; var ct = _requests.Token;
+        try
+        {
+            var holds = await Client.Holds(ct); var hold = holds.SingleOrDefault(h => h.Id == holdId);
+            if (hold is null) throw new PollException("Holdet er ikke tilgængeligt for din konto.");
+            var polls = await Client.ForHold(holdId, ct);
+            if (key == _scopeKey && !ct.IsCancellationRequested) { _hold = hold; _polls = polls.Where(p => p.HoldId == holdId).ToList(); _error = null; }
+        }
+        catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException)
+        { if (key == _scopeKey && !ct.IsCancellationRequested) _error = ex is PollException ? ex.Message : "Afstemningerne kunne ikke hentes. Prøv igen."; }
+        finally { if (key == _scopeKey && !_life.IsCancellationRequested) { _loading = false; await InvokeAsync(StateHasChanged); } }
+    }
+    private void BeginCreate() { if (MayManage) _creating = true; }
+    private async Task Created(PollView poll) { if (poll.HoldId != HoldId || !MayManage) return; _creating = false; _filter = poll.State; await Load(); }
+    private async Task SetState(PollView poll, string state)
+    {
+        if (_busy || !MayManage || !poll.CanManage || poll.HoldId != HoldId) return;
+        _busy = true; var key = _scopeKey;
+        try { await Client.State(poll.Id, state, _requests.Token); if (key == _scopeKey) { _filter = state; await Load(); } }
+        catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { if (key == _scopeKey && !_life.IsCancellationRequested) _error = ex is PollException ? ex.Message : "Afstemningen kunne ikke ændres. Prøv igen."; }
+        finally { if (key == _scopeKey) _busy = false; }
+    }
+    private async Task NewRound(PollView poll)
+    {
+        if (_busy || !MayManage || !poll.CanManage || poll.HoldId != HoldId) return;
+        _busy = true; var key = _scopeKey;
+        try { await Client.Create(new(HoldId, poll.Question, poll.Kind, poll.Options, poll.ResultsMode, "open"), _requests.Token); if (key == _scopeKey) { _filter = "open"; await Load(); } }
+        catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { if (key == _scopeKey && !_life.IsCancellationRequested) _error = ex is PollException ? ex.Message : "Den nye runde kunne ikke oprettes. Prøv igen."; }
+        finally { if (key == _scopeKey) _busy = false; }
+    }
+    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= AccountChanged; ViewAs.Changed -= AccountChanged; _requests.Cancel(); await _life.CancelAsync(); if (_polling is not null) await _polling; _requests.Dispose(); _life.Dispose(); }
+}

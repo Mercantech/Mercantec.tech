@@ -2,7 +2,8 @@
 <div class="poll-studio">
     <section class="poll-editor">
         <div class="poll-editor-heading"><span class="poll-editor-symbol"><UiIcon Name="sliders" /></span><div><h2>Form spørgsmålet</h2><p>Et godt spørgsmål giver alle en vej ind i samtalen.</p></div></div>
-        <label class="poll-field">Hold<select @bind="_hold"><option value="@Guid.Empty">Vælg et hold</option>@foreach (var hold in Holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+        @if (FixedHoldId is Guid fixedId) { <div class="poll-field"><span>Hold</span><strong>@(Holds.FirstOrDefault(h => h.Id == fixedId)?.Name ?? "Det valgte hold")</strong></div> }
+        else { <label class="poll-field">Hold<select @bind="_hold"><option value="@Guid.Empty">Vælg et hold</option>@foreach (var hold in Holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }</select></label> }
         @if (!Holds.Any(h => h.CanManage)) { <p class="poll-inline-note">Opret et forløb, eller bliv tilknyttet som underviser på holdet, før du starter en afstemning. <a href="/courses">Se forløb og hold</a></p> }
         <fieldset class="poll-field"><legend>Hvordan skal klassen svare?</legend><div class="poll-format-picker">@foreach (var kind in PollDesign.Kinds) { <button type="button" aria-pressed="@DemoWorld.Pressed(_kind == kind)" @onclick="() => ChangeKind(kind)"><UiIcon Name="@PollDesign.Icon(kind)" /><span>@PollDesign.Label(kind)</span></button> }</div></fieldset>
         <label class="poll-field">Dit spørgsmål<textarea class="poll-question-input" @bind="_question" @bind:event="oninput" maxlength="200" rows="2" placeholder="Hvad vil du gerne spørge om?"></textarea><small>@_question.Length / 200</small></label>
@@ -22,6 +23,7 @@
 </div>
 @code {
     [Parameter] public IReadOnlyList<PollHold> Holds { get; set; } = [];
+    [Parameter] public Guid? FixedHoldId { get; set; }
     [Parameter] public string InitialKind { get; set; } = "mood";
     [Parameter] public EventCallback<PollView> OnCreated { get; set; }
     private Guid _hold;
@@ -31,11 +33,11 @@
     private string? _error;
     private string[] Options => _kind switch { "mood" => PollDesign.MoodNames, "scale" => ["1", "2", "3", "4", "5"], "text" => [], _ => _options.ToArray() };
     private PollView Preview => new(Guid.Empty, _hold, Holds.FirstOrDefault(h => h.Id == _hold)?.Name ?? "Dit hold", string.IsNullOrWhiteSpace(_question) ? "Dit spørgsmål vises her" : _question, _kind, Options, "open", _results, false, 0, false, null, null, null, null, null, DateTime.UtcNow);
-    protected override void OnParametersSet() { if (!_initialized) { _initialized = true; _hold = Holds.FirstOrDefault(h => h.CanManage)?.Id ?? Guid.Empty; ChangeKind(PollDesign.Kinds.Contains(InitialKind) ? InitialKind : "mood"); } }
+    protected override void OnParametersSet() { if (!_initialized) { _initialized = true; _hold = FixedHoldId is Guid fixedHold ? Holds.FirstOrDefault(h => h.Id == fixedHold && h.CanManage)?.Id ?? Guid.Empty : Holds.FirstOrDefault(h => h.CanManage)?.Id ?? Guid.Empty; ChangeKind(PollDesign.Kinds.Contains(InitialKind) ? InitialKind : "mood"); } }
     private void ChangeKind(string kind) { if (_question == PollDesign.Question(_kind)) _question = PollDesign.Question(kind); _kind = kind; if (kind == "text") _results = "teacher"; }
     private async Task Save(string state)
     {
-        if (_saving) return; _saving = true; _error = null;
+        if (_saving || _hold == Guid.Empty || FixedHoldId is Guid fixedHold && (_hold != fixedHold || !Holds.Any(h => h.Id == fixedHold && h.CanManage))) return; _saving = true; _error = null;
         try { var saved = await Client.Create(new(_hold, _question, _kind, Options, _results, state)); await OnCreated.InvokeAsync(saved); }
         catch (Exception ex) when (ex is PollException or HttpRequestException or OperationCanceledException) { _error = ex is PollException ? ex.Message : "Forbindelsen blev afbrudt. Dine valg er bevaret; prøv igen."; }
         finally { _saving = false; }

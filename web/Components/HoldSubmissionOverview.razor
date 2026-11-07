@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @using Mercantec.Tech.Web.Learning
 @inject HttpClient Http
 @inject AuthService Auth
@@ -31,7 +32,7 @@
             </tbody></table></div>
             @if (Selected is QuestSubmissionOverview selected)
             {
-                <section class="so-detail" aria-labelledby="so-selected-title"><div class="so-heading"><div><h3 id="so-selected-title">@selected.Title</h3><p>@selected.Progress.Delivered af @selected.Progress.Expected elever har afleveret. @selected.Progress.ChangesRequested kræver rettelser.</p></div><a class="secondary" href="/quests/@selected.QuestId">Åbn quest og feedback</a></div>
+                <section class="so-detail" aria-labelledby="so-selected-title"><div class="so-heading"><div><h3 id="so-selected-title">@selected.Title</h3><p>@selected.Progress.Delivered af @selected.Progress.Expected elever har afleveret. @selected.Progress.ChangesRequested kræver rettelser.</p></div><a class="secondary" href="@AssignmentHref(selected.QuestId)">Åbn quest og feedback</a></div>
                     @if (selected.Upcoming) { <p class="so-explanation">Denne forekomst gælder @selected.OccurrenceDate?.ToString("dd.MM.yyyy"). @(selected.Required ? "Den indgår først i holdets samlede mangler på den dato." : "Den er valgfri og indgår ikke i holdets samlede mangler.")</p> }
                     @if (!selected.Published) { <p class="so-explanation">Questen er en kladde. Ingen elever forventes at aflevere, før du udgiver den.</p> }
                     else
@@ -41,7 +42,7 @@
                         <div class="so-member-scroll"><table class="so-members"><thead><tr><th scope="col">Elev</th><th scope="col">Status</th><th scope="col">Aflevering</th><th scope="col">Indsendt</th><th scope="col"><span class="so-sr-only">Åbn aflevering</span></th></tr></thead><tbody>
                             @foreach (var member in VisibleMembers(selected))
                             {
-                                <tr><th scope="row">@member.DisplayName</th><td><span class="so-status @member.State @(member.Overdue ? "past-due" : null)">@StateLabel(member)</span>@if (member.Ungrouped) { <small>Mangler gruppe</small> }@if (member.SubmittedLate) { <small>Afleveret efter fristen</small> }</td><td>@(member.GroupName ?? (member.SubmissionId is not null ? "Individuel" : "—"))@if (!member.IsCurrentRevision && member.RevisionNumber is not null) { <small>Tidligere deltagersnapshot</small> }</td><td>@(member.SubmittedAtUtc is DateTimeOffset at ? HoldTime.Display(at) : "—")</td><td>@if (member.SubmissionId is Guid id) { <a class="secondary" href="/quests/@selected.QuestId?submission=@id">@(member.State == "submitted" ? "Giv feedback" : "Åbn")</a> }</td></tr>
+                                <tr><th scope="row">@member.DisplayName</th><td><span class="so-status @member.State @(member.Overdue ? "past-due" : null)">@StateLabel(member)</span>@if (member.Ungrouped) { <small>Mangler gruppe</small> }@if (member.SubmittedLate) { <small>Afleveret efter fristen</small> }</td><td>@(member.GroupName ?? (member.SubmissionId is not null ? "Individuel" : "—"))@if (!member.IsCurrentRevision && member.RevisionNumber is not null) { <small>Tidligere deltagersnapshot</small> }</td><td>@(member.SubmittedAtUtc is DateTimeOffset at ? HoldTime.Display(at) : "—")</td><td>@if (member.SubmissionId is Guid id) { <a class="secondary" href="@AssignmentHref(selected.QuestId, id)">@(member.State == "submitted" ? "Giv feedback" : "Åbn")</a> }</td></tr>
                             }
                         </tbody></table></div>
                         @if (!VisibleMembers(selected).Any()) { <p class="so-empty">Ingen elever matcher dette filter.</p> }
@@ -55,6 +56,7 @@
 
 @code {
     [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
     [Parameter] public Guid? CourseId { get; set; }
     [Parameter] public Guid? QuestId { get; set; }
     [Parameter] public string? Filter { get; set; }
@@ -69,8 +71,12 @@
     private static readonly (string Key, string Label)[] Filters = [("all","Alle"),("missing","Mangler"),("overdue","Efter fristen"),("submitted","Til vurdering"),("approved","Godkendt"),("changes-requested","Kræver rettelser")];
     private QuestSubmissionOverview? Selected => _data?.Quests.FirstOrDefault(q => q.QuestId == QuestId)
         ?? _data?.Quests.OrderByDescending(q => q.Required && q.Progress.Overdue > 0).ThenByDescending(q => q.ReviewTasks).FirstOrDefault();
-    private string QuestLink(Guid quest) => Nav.GetUriWithQueryParameters(new Dictionary<string, object?> { ["view"]="submissions",["quest"]=quest,["status"]=null });
-    private string StatusLink(string status) => Nav.GetUriWithQueryParameter("status",status == "all" ? null : status);
+    private string OverviewHref(Guid? quest, string? status = null) => WorkspaceId == Guid.Empty
+        ? WorkspaceNavigation.Hold(HoldId, "submissions", CourseId, questId: quest, status: status)
+        : WorkspaceNavigation.View(WorkspaceId, "submissions", CourseId, questId: quest, status: status);
+    private string QuestLink(Guid quest) => OverviewHref(quest);
+    private string StatusLink(string status) => OverviewHref(Selected?.QuestId ?? QuestId, status);
+    private string AssignmentHref(Guid quest, Guid? submission = null) => WorkspaceNavigation.Quest(quest, WorkspaceId, CourseId, HoldId, submission);
     private static string StateLabel(MemberSubmissionStatus row) => row.State switch
     { "approved" => "Godkendt", "changes-requested" => "Kræver rettelser", "submitted" => row.IsCurrentRevision ? "Til vurdering" : "Afleveret", "draft" => row.Overdue ? "Kladde · efter fristen" : "Kladde", _ => row.Overdue ? "Mangler · efter fristen" : "Ikke afleveret" };
     private IEnumerable<MemberSubmissionStatus> VisibleMembers(QuestSubmissionOverview quest) => quest.Members

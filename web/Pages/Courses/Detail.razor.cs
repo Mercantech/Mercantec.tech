@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 
 namespace Mercantec.Tech.Web.Pages.Courses;
@@ -27,15 +28,23 @@ public partial class Detail
     private static readonly CultureInfo Danish = CultureInfo.GetCultureInfo("da-DK");
     private static readonly TimeZoneInfo Copenhagen = TimeZoneInfo.FindSystemTimeZoneById("Europe/Copenhagen");
     private bool CanManage => _workspace?.CanManage == true && !ViewAs.IsActive;
-    private string ActiveView => Tabs.Any(t => t.Key == View) ? View! : "overview";
-    private string EditorHref => $"/notion?hold={_workspace!.HoldId}" + (CanManage ? "" : "&published=true");
+    private string ActiveView => WorkspaceNavigation.NormalizeView(View) switch
+    {
+        "submissions" when !CanManage => "quests",
+        "settings" when !CanManage => "groups",
+        var view => view
+    };
+    private string ActiveSection => WorkspaceNavigation.PrimarySection(ActiveView);
+    private WorkspaceCourse? SelectedCourse => _workspace?.Courses?.FirstOrDefault(c => c.Id == TeachingCourseId);
+    private Guid? SelectedCourseId => SelectedCourse?.Id;
+    private string EditorHref => WorkspaceNavigation.Editor(_workspace!.HoldId, Id, SelectedCourseId, !CanManage);
     private string AssignmentsHref => ViewHref("submissions");
     private WorkspaceCourse? FeaturedCourse => (_workspace?.Courses ?? []).Where(c => c.EndsOn is null || c.EndsOn >= DateOnly.FromDateTime(LocalTime(DateTimeOffset.UtcNow).DateTime))
         .OrderByDescending(c => c.Published).ThenBy(c => c.StartsOn > DateOnly.FromDateTime(LocalTime(DateTimeOffset.UtcNow).DateTime)).ThenBy(c => c.StartsOn).FirstOrDefault();
-    private string TeachingCourseHref(Guid id) => $"/courses/{Id}?view=content&course={id}";
-    private static string QuestHref(Guid questId) => $"/quests/{questId}";
-    private string PageHref(Guid pageId) => $"/notion/{pageId}" + (CanManage ? "" : "?published=true");
-    private string ViewHref(string view, bool create = false) => $"/courses/{Id}?view={view}" + (create ? "&create=true" : "");
+    private string TeachingCourseHref(Guid id) => WorkspaceNavigation.View(Id, "content", id);
+    private string QuestHref(Guid questId) => WorkspaceNavigation.Quest(questId, Id, SelectedCourseId, _workspace?.HoldId);
+    private string PageHref(Guid pageId) => WorkspaceNavigation.Page(pageId, Id, SelectedCourseId, !CanManage, _workspace?.HoldId);
+    private string ViewHref(string view, bool create = false) => WorkspaceNavigation.View(Id, view, SelectedCourseId, create);
     private static DateTimeOffset LocalTime(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, Copenhagen);
     private static string LocalDate(DateTimeOffset value) => LocalTime(value).ToString("d. MMM yyyy", Danish);
     private static string PageState(WorkspacePage page) => page.PublishedAtUtc is null ? "Kladde" : page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet";
@@ -44,13 +53,10 @@ public partial class Detail
         get
         {
             yield return ("overview", "Overblik", "screen", null);
-            yield return ("content", "Forløb", "book", _workspace?.Courses?.Length ?? 0);
-            yield return ("quests", CanManage ? "Quests" : "Quests og afleveringer", "target", _workspace?.QuestCount);
-            if (CanManage) yield return ("submissions", "Afleveringer", "check", _workspace?.Progress?.Missing);
+            yield return ("content", "Undervisning", "book", _workspace?.Courses?.Length ?? 0);
+            yield return ("quests", "Opgaver", "target", _workspace?.QuestCount);
             yield return ("calendar", "Kalender", "calendar", null);
-            yield return ("groups", CanManage || ViewAs.IsActive ? "Elever og grupper" : "Mine grupper", "people", _workspace?.GroupCount);
-            yield return ("materials", "Materialer", "folder", _workspace?.MaterialCount);
-            if (CanManage) yield return ("settings", "Holdindstillinger", "sliders", null);
+            yield return ("groups", "Klassen", "people", _workspace?.GroupCount);
         }
     }
     protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; ViewAs.Changed += AccountChanged; }

@@ -11,7 +11,7 @@ import '@blocknote/mantine/style.css';
 import './editor.css';
 import { danish } from './locale';
 import { canonicalFingerprint, publishedDocumentFromBase64 } from './persistence.mjs';
-import { pollUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPublicationAssetIds } from './document-utils.mjs';
+import { pollUrl, pollCreateUrl, selectedMembers, splitSlides, pageUrl, studentUrl, collectPublicationAssetIds } from './document-utils.mjs';
 import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
@@ -26,6 +26,8 @@ import { uploadPlatformEmoji } from './emoji-upload.mjs';
 export interface EditorContext {
   pageId: string;
   holdId: string;
+  workspaceId?: string | null;
+  courseId?: string | null;
   title: string;
   canEdit: boolean;
   members: { id: string; displayName: string }[];
@@ -67,7 +69,7 @@ const createRoster = createReactBlockSpec({
           editor.updateBlock(block, {props:{membershipIds:ids.size ? [...ids].sort().join(',') : '-'}});
         }} /> {member.displayName}</label>)}
       </details>}
-      {visible.length ? <table><thead><tr><th scope="col">Elev</th><th scope="col">Grupper</th></tr></thead><tbody>{visible.map((member: {id:string;displayName:string}) => <tr key={member.id}><td><a href={studentUrl(context.holdId,member.id) ?? undefined}>{member.displayName}</a></td><td>{context.groups?.filter(group=>group.members.some(item=>item.id===member.id)).map(group=>group.name).join(', ') || '—'}</td></tr>)}</tbody></table> : <p>Ingen elever er valgt.</p>}
+      {visible.length ? <table><thead><tr><th scope="col">Elev</th><th scope="col">Grupper</th></tr></thead><tbody>{visible.map((member: {id:string;displayName:string}) => <tr key={member.id}><td><a href={studentUrl(context.holdId,member.id,context) ?? undefined}>{member.displayName}</a></td><td>{context.groups?.filter(group=>group.members.some(item=>item.id===member.id)).map(group=>group.name).join(', ') || '—'}</td></tr>)}</tbody></table> : <p>Ingen elever er valgt.</p>}
       {editable && <GroupButton ids={visible.map((member:{id:string})=>member.id)} />}
       <p className="notion-block-hint">Navne hentes fra holdets elevliste. Listen vises ikke i præsentationen.</p>
     </section>;
@@ -83,12 +85,12 @@ const createPoll = createReactBlockSpec({
     const context = useData();
     const allowed = context && block.props.holdId === context.holdId;
     const poll = allowed ? context.polls.find(item => item.id === block.props.pollId) : undefined;
-    const url = poll ? pollUrl(poll.id) : null;
-    const presentUrl = poll ? pollUrl(poll.id, true) : null;
+    const url = poll ? pollUrl(poll.id,false,context) : null;
+    const presentUrl = poll ? pollUrl(poll.id,true,context) : null;
     return <section className="notion-poll-block" contentEditable={false} aria-label="Afstemning">
       <header><span className="notion-block-symbol" aria-hidden="true">▥</span><div><strong>{poll?.title || 'Afstemning'}</strong><small>{poll ? ({draft:'Kladde',open:'Åben for svar',closed:'Afsluttet'}[poll.state] || poll.state) : 'Vælg en afstemning fra holdet'}</small></div></header>
       {allowed && context.canEdit && editor.isEditable && <label className="notion-poll-select">Afstemning<select value={poll?.id || ''} onChange={event => editor.updateBlock(block,{props:{pollId:event.target.value}})}><option value="">Vælg afstemning</option>{context.polls.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-      {url && presentUrl ? <div className="notion-block-actions"><a href={url} target="_blank" rel="noopener noreferrer">Åbn afstemning</a>{context?.canEdit && <a href={presentUrl} target="_blank" rel="noopener noreferrer">Vis på tavlen</a>}</div> : <p className="notion-block-hint">{allowed && !context.polls.length ? <span>Holdet har ingen afstemninger endnu. <a href="/teacher/polls" target="_blank" rel="noopener noreferrer">Opret en afstemning</a>, og opdatér holdkoblingen.</span> : 'Afstemningen er ikke tilgængelig på dette hold.'}</p>}
+      {url && presentUrl ? <div className="notion-block-actions"><a href={url} target="_blank" rel="noopener noreferrer">Åbn afstemning</a>{context?.canEdit && <a href={presentUrl} target="_blank" rel="noopener noreferrer">Vis på tavlen</a>}</div> : <p className="notion-block-hint">{allowed && !context.polls.length ? <span>Holdet har ingen afstemninger endnu.{context.canEdit && <> <a href={pollCreateUrl(context)} target="_blank" rel="noopener noreferrer">Opret en afstemning</a>, og opdatér holdkoblingen.</>}</span> : 'Afstemningen er ikke tilgængelig på dette hold.'}</p>}
     </section>;
   },
   toExternalHTML: () => <p>Afstemning fra holdet</p>,
@@ -109,10 +111,10 @@ function GroupButton({ids}:{ids:string[]}) {
 }
 
 const pageMention=createReactInlineContentSpec({type:'pageMention',propSchema:{pageId:{default:''}},content:'none'},{
-  render:({inlineContent})=>{const context=useData();const page=context?.pages?.find(item=>item.id===inlineContent.props.pageId);return page ? <a className="notion-mention" href={pageUrl(page.id,context?.canEdit===false) ?? undefined} contentEditable={false}>▤ {page.title}</a> : <span className="notion-unavailable" contentEditable={false}>Side er ikke tilgængelig</span>;},
+  render:({inlineContent})=>{const context=useData();const page=context?.pages?.find(item=>item.id===inlineContent.props.pageId);return page ? <a className="notion-mention" href={pageUrl(page.id,context?.canEdit===false,context) ?? undefined} contentEditable={false}>▤ {page.title}</a> : <span className="notion-unavailable" contentEditable={false}>Side er ikke tilgængelig</span>;},
 });
 const studentMention=createReactInlineContentSpec({type:'studentMention',propSchema:{holdId:{default:''},membershipId:{default:''}},content:'none'},{
-  render:({inlineContent})=>{const context=useData();const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>Elev er ikke tilgængelig</span>;},
+  render:({inlineContent})=>{const context=useData();const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id,context) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>Elev er ikke tilgængelig</span>;},
 });
 function CustomEmojiImage({emoji,label}:{emoji:CustomEmojiRecord;label:string}) {
   const reload=useContext(EmojiReload);
@@ -133,14 +135,14 @@ const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{e
 const createPageLink=createReactBlockSpec({type:'pageLink',propSchema:{schemaVersion:{default:1},pageId:{default:''}},content:'none'},{
   render:({block,editor})=>{const context=useData();const page=context?.pages?.find(item=>item.id===block.props.pageId);return <section className="notion-link-block" contentEditable={false} aria-label="Link til side">
     {context?.canEdit && editor.isEditable && <label>Link til side<select value={page?.id || ''} onChange={event=>editor.updateBlock(block,{props:{pageId:event.target.value}})}><option value="">Vælg side eller underside</option>{context.pages?.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-    {page ? <a href={pageUrl(page.id,context?.canEdit===false) ?? undefined}>▤ {page.title}</a> : <p>Siden er ikke tilgængelig.</p>}
+    {page ? <a href={pageUrl(page.id,context?.canEdit===false,context) ?? undefined}>▤ {page.title}</a> : <p>Siden er ikke tilgængelig.</p>}
   </section>;},
   toExternalHTML:()=> <p>Link til undervisningsside</p>,
 });
 const createGroup=createReactBlockSpec({type:'holdGroup',propSchema:{schemaVersion:{default:1},holdId:{default:''},groupId:{default:''}},content:'none'},{
   render:({block,editor})=>{const context=useData();const allowed=context?.holdId===block.props.holdId;const group=allowed ? context.groups?.find(item=>item.id===block.props.groupId) : undefined;return <section className="notion-group-block" contentEditable={false} aria-label="Holdgruppe">
     {allowed && context.canEdit && editor.isEditable && <label>Gruppe<select value={group?.id || ''} onChange={event=>editor.updateBlock(block,{props:{groupId:event.target.value}})}><option value="">Vælg gemt gruppe</option>{context.groups?.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
-    {group && context ? <><strong>{group.name}</strong><ul>{group.members.map(member=><li key={member.id}><a href={studentUrl(context.holdId,member.id) ?? undefined}>{member.displayName}</a></li>)}</ul></> : <p>Vælg en gruppe fra holdet. Grupper oprettes fra elevlisten eller under holdets grupper.</p>}
+    {group && context ? <><strong>{group.name}</strong><ul>{group.members.map(member=><li key={member.id}><a href={studentUrl(context.holdId,member.id,context) ?? undefined}>{member.displayName}</a></li>)}</ul></> : <p>Vælg en gruppe fra holdet. Grupper oprettes fra elevlisten eller under holdets grupper.</p>}
   </section>;},
   toExternalHTML:()=> <p>Gruppe fra holdet</p>,
 });

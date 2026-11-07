@@ -34,12 +34,14 @@ public sealed class PollsController(AppDbContext db) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct, [FromQuery] Guid? holdId = null)
     {
         if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
+        if (holdId is Guid requestedHold && !await AccessibleHolds(sub).AnyAsync(h => h.Id == requestedHold, ct))
+            return NotFound();
         var holds = AccessibleHolds(sub).Select(h => h.Id);
         var manageable = await AccessibleHolds(sub, true).Select(h => h.Id).ToListAsync(ct);
-        var rounds = await Query().Where(p => holds.Contains(p.HoldId)
+        var rounds = await Query().Where(p => (holdId == null || p.HoldId == holdId) && holds.Contains(p.HoldId)
                 && (p.State != "draft" || manageable.Contains(p.HoldId)))
             .OrderByDescending(p => p.CreatedAtUtc).Take(100).ToListAsync(ct);
         return Ok(rounds.Select(p => View(p, sub, manageable.Contains(p.HoldId))).ToList());

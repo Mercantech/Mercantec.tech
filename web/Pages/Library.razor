@@ -1,0 +1,28 @@
+@page "/library"
+@using Mercantec.Tech.Web.Theming
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject LearningContext CourseContext
+@inject IJSRuntime Js
+
+<PageTitle>Bibliotek · LUP</PageTitle>
+<header class="page-title"><div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter og badgekrav.</p></div><a class="secondary" href="/search"><UiIcon Name="search" />Søg i biblioteket</a></header>
+<div class="library-grid">
+    <NavigationCard Href="/courses/template" Title="Undervisningsplaner" Description="Mål, indhold og ugeplaner for hovedforløb og valgfag." Icon="book" />
+    <NavigationCard Href="/subjects" Title="Fag og emner" Description="Faglige beskrivelser og materialer til undervisningen." Icon="code" />
+    <NavigationCard Href="/explore/projects" Title="Offentlige projekter" Description="Udvalgte projektpræsentationer. Projekteksempler er markeret DEMO." Icon="folder" />
+    <NavigationCard Href="/badges" Title="Badges og krav" Description="Kravene for de enkelte badges og deres niveauer." Icon="star" />
+</div>
+@if (Auth.IsAuthenticated)
+{
+    <details class="library-examples">
+        <summary>Eksempelsider</summary>
+        <div class="library-example-content"><p>Visninger med eksempeldata.</p><label class="field">Eksempelforløb<select value="@CourseContext.CourseId" @onchange="SetExampleCourse"><option value="h3">H3 · 2026</option><option value="game">Game Design</option><option value="">Intet eksempelforløb</option></select></label>
+        <nav class="library-example-links" aria-label="Eksempelsider"><a href="/learning">Forløbseksempler</a><a href="/calendar">Eksempeluge</a><a href="/quests">Questeksempler</a><a href="/journal">Eksempellogbog</a></nav>
+        @if (Redirect.ShowsTeacherChrome) { <nav class="library-example-links" aria-label="Eksempelsider for undervisere"><a href="/teacher/reviews">Eksempel på vurdering</a><a href="/teacher/students">Eksempel på elevoversigt</a><a href="/teacher/content">Eksempel på fagligt indhold</a><a href="/teacher/badges">Eksempel på badgetildeling</a></nav> }
+        </div>
+    </details>
+}
+@code {
+    private async Task SetExampleCourse(ChangeEventArgs e) { var selected = e.Value?.ToString() ?? ""; CourseContext.Select(selected); await Js.InvokeVoidAsync("lupCourse.set", selected); }
+}

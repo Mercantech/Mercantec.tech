@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @page "/holds/{HoldId:guid}"
 @inject HttpClient Http
 @inject AuthService Auth
@@ -20,33 +21,31 @@ else { <p role="status">Åbner holdet…</p> }
     [SupplyParameterFromQuery(Name = "event")] public Guid? EventId { get; set; }
     private readonly CancellationTokenSource _life = new();
     private string? _error;
-    protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
+    private int _generation;
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
     protected override Task OnParametersSetAsync() => Open();
     private void Changed() => _ = InvokeAsync(Open);
     private async Task Open()
     {
+        var generation = ++_generation;
         if (!Auth.IsInitialized || !Auth.IsAuthenticated || _life.IsCancellationRequested) return;
+        _error = null;
+        var hold = HoldId; var account = Auth.Subject; var preview = ViewAs.IsActive;
         try
         {
-            var hold = HoldId;
             using var response = await Http.GetAsync($"hold-workspace/holds/{hold}?publishedOnly={ViewAs.IsActive.ToString().ToLowerInvariant()}", _life.Token);
             if (!response.IsSuccessStatusCode) { _error = "Holdet findes ikke, eller din konto har ikke adgang til det."; return; }
             var workspace = await response.Content.ReadFromJsonAsync<HoldWorkspaceView>(_life.Token);
-            if (workspace is not null && hold == HoldId && !_life.IsCancellationRequested)
+            if (workspace is not null && generation == _generation && hold == HoldId && account == Auth.Subject && preview == ViewAs.IsActive && !_life.IsCancellationRequested)
             {
-                var query = new List<string>();
-                if (!string.IsNullOrWhiteSpace(View)) query.Add($"view={Uri.EscapeDataString(View)}");
-                if (Create) query.Add("create=true");
-                if (CourseId is Guid course) query.Add($"course={course}");
-                if (QuestId is Guid quest) query.Add($"quest={quest}");
-                if (EventId is Guid eventId) query.Add($"event={eventId}");
-                if (!string.IsNullOrWhiteSpace(Status)) query.Add($"status={Uri.EscapeDataString(Status)}");
-                Nav.NavigateTo($"/courses/{workspace.CourseId}" + (query.Count > 0 ? "?" + string.Join("&", query) : ""), replace:true);
+                var context = WorkspaceNavigation.Validate(workspace, hold, null, CourseId);
+                if (context is null) { _error = "Holdet kunne ikke åbnes. Prøv igen fra holdoversigten."; return; }
+                Nav.NavigateTo(WorkspaceNavigation.View(context.WorkspaceId, View ?? "overview", context.CourseId, Create, QuestId, Status, EventId), replace: true);
             }
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException) { _error = "Holdet kunne ikke åbnes. Prøv igen fra holdoversigten."; }
         StateHasChanged();
     }
-    public void Dispose() { Auth.AuthStateChanged -= Changed; _life.Cancel(); _life.Dispose(); }
+    public void Dispose() { Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _life.Cancel(); _life.Dispose(); }
 }

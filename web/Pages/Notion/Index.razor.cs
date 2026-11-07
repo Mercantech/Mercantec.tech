@@ -3,6 +3,7 @@ using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Notion;
+using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
@@ -15,10 +16,14 @@ public partial class Index
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
     [Inject] private NotionClient Client { get; set; } = default!;
+    [Inject] private HttpClient Http { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? PageId { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
     [SupplyParameterFromQuery(Name = "published")] public bool PublishedPreview { get; set; }
+    [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? CourseQuery { get; set; }
+    private WorkspaceRouteContext? _returnContext;
     private readonly CancellationTokenSource _life = new();
     private CancellationTokenSource? _requests;
     private IJSObjectReference? _module;
@@ -40,12 +45,13 @@ public partial class Index
     private bool CanManageHold => !ViewAs.IsActive && _holds.Any(h => h.Id == _holdId && h.CanManage);
     private bool IsEditing => _current?.CanEdit == true && !ForceReadOnly;
     private bool Authoring => CanManageHold && !ForceReadOnly;
-    private string RouteKey => $"{PageId}:{HoldQuery}:{ForceReadOnly}";
+    private string RouteKey => $"{PageId}:{HoldQuery}:{WorkspaceQuery}:{CourseQuery}:{ForceReadOnly}";
     private string StatusLabel => _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Forbindelsen kræver opmærksomhed", _ => "Forbinder…" };
     private IEnumerable<NotionPageSummary> VisiblePages => ForceReadOnly ? _pages.Where(p => p.PublishedAtUtc is not null) : _pages;
-    private string PageHref(Guid id) => $"/notion/{id}" + (ForceReadOnly ? "?published=true" : "");
-    private string GraphHref(Guid id) => $"/notion/graph/{id}" + (ForceReadOnly ? "?published=true" : "");
-    private string HoldGraphHref => $"/notion/holds/{_holdId}/graph" + (ForceReadOnly ? "?published=true" : "");
+    private string PageHref(Guid id, bool? publishedOnly = null) => WorkspaceNavigation.Page(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, publishedOnly ?? ForceReadOnly, _holdId);
+    private string GraphHref(Guid id) => WorkspaceNavigation.Graph(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly, _holdId);
+    private string HoldGraphHref => WorkspaceNavigation.HoldGraph(_holdId, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly);
+    private string WorkspaceHref(string view = "content") => _returnContext?.View(view) ?? WorkspaceNavigation.Hold(_holdId, view);
     private bool IsCollection(NotionPageSummary page) =>
         page.ParentPageId is null || !VisiblePages.Any(p => p.Id == page.ParentPageId) || VisiblePages.Any(p => p.ParentPageId == page.Id);
     private Guid CollectionRoot(Guid id)
@@ -54,6 +60,13 @@ public partial class Index
         for (var guard = 0; guard < 32 && pages.TryGetValue(id, out var page) && page.ParentPageId is Guid parent && pages.ContainsKey(parent); guard++)
             id = parent;
         return id;
+    }
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        PageId = HoldQuery = WorkspaceQuery = CourseQuery = null;
+        PublishedPreview = false;
+        return base.SetParametersAsync(parameters);
     }
 
     protected override void OnInitialized() { Auth.AuthStateChanged += AccountChanged; ViewAs.Changed += AccountChanged; }
@@ -86,6 +99,7 @@ public partial class Index
     private object EditorContext() => new
     {
         pageId = _current!.PageId, holdId = _current.HoldId, title = _current.Title,
+        workspaceId = _returnContext?.WorkspaceId, courseId = _returnContext?.CourseId,
         canEdit = IsEditing, members = _current.Members, polls = _current.Polls,
         pages = _current.Pages ?? [], groups = _groups, publishedStateBase64 = _current.PublishedStateBase64,
         publishedAtUtc = _current.PublishedAtUtc, updatedAtUtc = _current.UpdatedAtUtc,
@@ -109,7 +123,8 @@ public partial class Index
         _requests = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
         if (old is not null) { await old.CancelAsync(); old.Dispose(); }
         var ct = _requests.Token; var account = _account;
-        _loadedRoute = RouteKey; _loading = true; _error = null; _notice = null; _current = null;
+        _loadedRoute = RouteKey; _loading = true; _error = null; _notice = null; _current = null; _returnContext = null;
+        var route = RouteKey;
         try
         {
             var holds = await Client.Holds(ct);
@@ -132,6 +147,13 @@ public partial class Index
                 _groups = await Client.Groups(_holdId, ct);
                 if (VisiblePages.FirstOrDefault() is { } first) SelectContext(await FetchContext(first.Id, ct));
             }
+            if (_holdId != Guid.Empty && (HoldQuery is null || HoldQuery == _holdId)
+                && (WorkspaceNavigation.NonEmpty(WorkspaceQuery) is not null || WorkspaceNavigation.NonEmpty(CourseQuery) is not null))
+            {
+                var context = await WorkspaceNavigation.Resolve(Http, _holdId, WorkspaceQuery, CourseQuery, ForceReadOnly, ct);
+                ct.ThrowIfCancellationRequested();
+                if (route == RouteKey && account == _account) _returnContext = context;
+            }
         }
         catch (Exception ex) when (IsExpected(ex)) { if (!ct.IsCancellationRequested) Report(ex); }
         finally { if (!ct.IsCancellationRequested) _loading = false; }
@@ -148,14 +170,14 @@ public partial class Index
     private async Task BeforeNavigation(LocationChangingContext context) { if (!await CanLeave()) context.PreventNavigation(); }
     private async Task ChangeHold(ChangeEventArgs args)
     {
-        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId && await CanLeave()) Nav.NavigateTo($"/notion?hold={id}" + (ForceReadOnly ? "&published=true" : ""));
+        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId && await CanLeave()) Nav.NavigateTo(WorkspaceNavigation.Editor(id, publishedOnly: ForceReadOnly));
     }
     private async Task OpenPage(Guid id) { if (_current?.PageId != id && await CanLeave()) Nav.NavigateTo(PageHref(id)); }
     private void BeginCreate(bool child) { if (!Authoring) return; _newParent = child ? _current?.PageId : null; _newTitle = ""; _creating = true; }
     private async Task CreatePage()
     {
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
-        await Work(async ct => { var page = await Client.Create(_holdId, _newTitle.Trim(), _newParent, ct); _creating = false; Nav.NavigateTo($"/notion/{page.Id}"); });
+        await Work(async ct => { var page = await Client.Create(_holdId, _newTitle.Trim(), _newParent, ct); _creating = false; Nav.NavigateTo(PageHref(page.Id)); });
     }
     private void InsertTitleEmoji(CustomEmojiItem emoji) => _title = EmojiInsert.Append(_title, emoji.Name, 200);
     private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
@@ -203,7 +225,7 @@ public partial class Index
     private async Task CopyLink()
     {
         if (_current is null) return;
-        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", Nav.ToAbsoluteUri($"/notion/{_current.PageId}").ToString()); _notice = "Linket er kopieret. Modtageren skal have adgang til holdet."; }
+        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", Nav.ToAbsoluteUri(PageHref(_current.PageId)).ToString()); _notice = "Linket er kopieret. Modtageren skal have adgang til holdet."; }
         catch (JSException) { _error = "Linket kunne ikke kopieres. Brug adressen i browserens adresselinje."; }
     }
     private async Task Retry() { if (!await CanLeave()) return; await Unmount(); await Load(); }

@@ -5,6 +5,7 @@ using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Learning;
 using Mercantec.Tech.Web.Notion;
+using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
@@ -20,8 +21,14 @@ public partial class Roulette
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
     [Inject] private IJSRuntime Js { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private HttpClient Http { get; set; } = null!;
     [Parameter] public Guid HoldId { get; set; }
     [SupplyParameterFromQuery(Name = "set")] public Guid? SetId { get; set; }
+    [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "course")] public Guid? CourseQuery { get; set; }
+    private WorkspaceRouteContext? _returnContext;
+    private string? _navigationKey;
+    private string NavigationKey => $"{HoldId}:{WorkspaceQuery}:{CourseQuery}:{Auth.Subject}:{ViewAs.IsActive}:{Auth.IsAuthenticated}";
     private ElementReference _root;
     private IJSObjectReference? _module;
     private DotNetObjectReference<Roulette>? _callbacks;
@@ -61,7 +68,7 @@ public partial class Roulette
     private int RemainingCount => SelectedCount - CurrentAssignedCount;
     private int ProgressPercent => SelectedCount == 0 ? 0 : (int)Math.Round(CurrentAssignedCount * 100d / SelectedCount);
     private string[] SlotNames => _stageNames;
-    private string BackHref => $"/holds/{HoldId}?view=groups";
+    private string BackHref => _returnContext?.View("groups") ?? WorkspaceNavigation.Hold(HoldId, "groups");
     private string MachineStatus => _speaking ? _speechPreparation is { IsCompleted: false } ? "Henter navneklip…" : "Læser gruppen op…" : _spinning ? "Navnene ruller…" : _autoWaiting ? "Pause før næste gruppe" : _current?.Complete == true ? "Alle er fordelt!" : SelectedCount == 0 ? "Vælg deltagere" : _current is null ? "Klar til første spin" : $"Gruppe {_current.Revealed + 1} venter";
     private string SpinLabel => _speaking ? "Oplæser…" : _spinning ? "Spinder…" : _current?.Complete == true ? "Runden er færdig" : _current is null ? "Spin første gruppe" : "Spin næste gruppe";
     private IEnumerable<NotionHoldMember> RemainingMembers
@@ -77,8 +84,14 @@ public partial class Roulette
     private static string Initial(string name) => string.IsNullOrWhiteSpace(name) ? "?" : StringInfo.GetNextTextElement(name.Trim());
     private static string GroupColor(int number) => GroupColors[(Math.Max(1, number) - 1) % GroupColors.Length];
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        WorkspaceQuery = CourseQuery = null;
+        return base.SetParametersAsync(parameters);
+    }
+
     protected override void OnInitialized() { Auth.AuthStateChanged += ContextChanged; ViewAs.Changed += ContextChanged; }
-    protected override Task OnParametersSetAsync() => SyncContext();
+    protected override async Task OnParametersSetAsync() { await SyncContext(); await SyncNavigation(); }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_disposed) return;
@@ -109,7 +122,20 @@ public partial class Roulette
             if (CurrentContext(generation)) await InvokeAsync(StateHasChanged);
         }
     }
-    private void ContextChanged() => _ = InvokeAsync(async () => { await SyncContext(); if (!_disposed) StateHasChanged(); });
+    private void ContextChanged() => _ = InvokeAsync(async () => { await SyncContext(); await SyncNavigation(); if (!_disposed) StateHasChanged(); });
+    private async Task SyncNavigation()
+    {
+        if (_disposed || !Auth.IsInitialized || _navigationKey == NavigationKey) return;
+        var key = _navigationKey = NavigationKey;
+        _returnContext = null;
+        if (!Auth.IsAuthenticated || WorkspaceNavigation.NonEmpty(WorkspaceQuery) is null && WorkspaceNavigation.NonEmpty(CourseQuery) is null) return;
+        try
+        {
+            var context = await WorkspaceNavigation.Resolve(Http, HoldId, WorkspaceQuery, CourseQuery, ViewAs.IsActive, _scope.Token);
+            if (!_disposed && key == NavigationKey) _returnContext = context;
+        }
+        catch (OperationCanceledException) { }
+    }
     private async Task SyncContext()
     {
         if (_disposed || !Auth.IsInitialized) return;

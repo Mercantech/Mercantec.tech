@@ -1,0 +1,8 @@
+<a class="navigation-card" href="@Href"><span class="navigation-card-icon"><UiIcon Name="@Icon" /></span><span class="navigation-card-copy">@if (HeadingLevel == 3) { <h3>@Title</h3> } else { <h2>@Title</h2> }<span class="navigation-card-description">@Description</span></span><span class="navigation-card-arrow" aria-hidden="true">›</span></a>
+@code {
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "book";
+    [Parameter] public int HeadingLevel { get; set; } = 2;
+}

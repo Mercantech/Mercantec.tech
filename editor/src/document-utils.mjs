@@ -1,3 +1,5 @@
+/** @typedef {{ workspaceId?: string|null, courseId?: string|null, holdId?: string|null }} NavigationContext */
+
 /** Split the editorial snapshot into slides and omit class rosters at every depth. */
 export function splitSlides(blocks) {
   const slides = [[]];
@@ -28,17 +30,35 @@ export function selectedMembers(members, ids) {
   return members.filter(member => selected.has(member.id));
 }
 
-export function pollUrl(id, present = false) {
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
-  return present ? '/teacher/polls/' + id + '/present' : '/polls/' + id;
+/** @param {NavigationContext|null} [context] */
+export function pollUrl(id, present = false, context = null) {
+  if (!validId(id)) return null;
+  return navigationUrl(present ? '/teacher/polls/' + id + '/present' : '/polls/' + id, context);
 }
-
-export function pageUrl(id, published = false) {
-  return validId(id) ? '/notion/' + id + (published ? '?published=true' : '') : null;
+/** @param {NavigationContext|null} [context] */
+export function pollCreateUrl(context = null) {
+  return navigationUrl('/teacher/polls/new', context);
 }
-export function studentUrl(holdId, membershipId) {
-  return validId(holdId) && validId(membershipId) ? '/notion/holds/' + holdId + '/students/' + membershipId : null;
+/** @param {NavigationContext|null} [context] */
+export function pageUrl(id, published = false, context = null) {
+  return validId(id) ? navigationUrl('/notion/' + id, context, published) : null;
 }
+/** @param {NavigationContext|null} [context] */
+export function studentUrl(holdId, membershipId, context = null) {
+  return validId(holdId) && validId(membershipId)
+    ? navigationUrl('/notion/holds/' + holdId + '/students/' + membershipId, context) : null;
+}
+/** @param {NavigationContext|null} context */
+function navigationUrl(path, context, published = false) {
+  const query = new URLSearchParams();
+  const safeId = nonEmptyId;
+  if (safeId(context?.workspaceId)) query.set('workspace', context.workspaceId);
+  if ((safeId(context?.workspaceId) || safeId(context?.holdId)) && safeId(context?.courseId)) query.set('course', context.courseId);
+  if (safeId(context?.holdId)) query.set('hold', context.holdId);
+  if (published) query.set('published', 'true');
+  return path + (query.size ? '?' + query.toString() : '');
+}
+function nonEmptyId(id) { return validId(id) && id !== '00000000-0000-0000-0000-000000000000'; }
 function validId(id) { return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id); }
 
 /** Publication grants are identifiers, never expiring URLs or caller-provided filenames. */

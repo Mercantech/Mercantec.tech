@@ -7,6 +7,7 @@ public sealed class PollClient(HttpClient http)
 {
     public Task<List<PollHold>> Holds(CancellationToken ct = default) => Get<List<PollHold>>("polls/holds", ct);
     public Task<List<PollView>> List(CancellationToken ct = default) => Get<List<PollView>>("polls", ct);
+    public Task<List<PollView>> ForHold(Guid holdId, CancellationToken ct = default) => Get<List<PollView>>($"polls?holdId={holdId:D}", ct);
     public Task<PollView> Get(Guid id, CancellationToken ct = default) => Get<PollView>($"polls/{id}", ct);
     public Task<PollView> Create(CreatePoll draft, CancellationToken ct = default) => Post("polls", draft, ct);
     public Task<PollView> State(Guid id, string state, CancellationToken ct = default) => Post($"polls/{id}/state", new PollState(state), ct);

@@ -1,6 +1,6 @@
 ---
 type: feature
-status: plan
+status: active
 tags: [feature, navigation, search, design]
 ---
 
@@ -8,11 +8,19 @@ tags: [feature, navigation, search, design]
 
 ## Retning
 
-**LUP – Lokal UndervisningsPlatform** har én kompakt header. Overblik og Aktiviteter er direkte indgange; Læring, Udforsk og Mit univers samler relaterede funktioner. Underviseren har en tydelig indgang til afstemninger. På mindre skærme foldes navigationen ind i Menu uden en ekstra global menurække.
+**LUP – Lokal UndervisningsPlatform** har én kompakt header. Logoet åbner det personlige overblik. De fælles indgange er **Mine hold** og **Bibliotek**; undervisere har desuden **Min kalender** på tværs af hold. Søgning, én notifikationsindgang og profil ligger til højre. Mobilnavigationen foldes ind i Menu.
 
-Profilmenuen samler tema, brugerprofil og valg af aktiv rolle. Et aktivt forløb er en UI-kontekst blandt autoriserede medlemskaber; det giver ikke i sig selv adgang. Funktioner til afstemninger, egne quests og logbog skjules, når de ikke er relevante. Materialer, egne projekter og univers kan bruges mellem forløb.
+Profilmenuen samler Min profil, Mit univers, Indstillinger og Log ud. Underviserværktøjer vises kun til undervisere. Indstillinger samler tema og kontotilknytning. Biblioteket samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav; eksempelforløb er en særskilt foldet sektion for loggede ind. Mit univers samler progression, badges, egne projekter, avatar, lejlighed, butik og spil.
 
-System, lyst, mørkt, jul, nytår og hacker kan vælges frit. [[Temaer-og-nytaar]] er det fælles temakatalog og beskriver nytårstemaets frivillige fyrværkerispil. Jul har interaktiv sne, lys og en lille gave; sne kan pauses og følger reduceret bevægelse. Rainbow er udgået. En fast sti og forløbsmenu gør det muligt at vende tilbage fra emne, quest og aflevering.
+## Holdets navigation
+
+Holdcentralen har fem hovedfaner: **Overblik, Undervisning, Opgaver, Kalender og Klassen**. Undervisning har Forløb, Materialer og Afstemninger. Undervisere finder Til vurdering under Opgaver og Holdindstillinger under Klassen. Afstemninger oprettes og besvares på det valgte hold; de har fortsat HoldId som adgangsgrænse. De gamle direkte afstemningslinks virker fortsat.
+
+Valgt hold og undervisningsforløb følger med i URL'er til faner, sider, editor, quests, kalender, grupper og afstemningens tavlevisning. Brødkrummer og lokale tilbageknapper fører tilbage til samme kontekst, også efter genindlæsning. Wrapperens workspace-id og det faktiske hold-id holdes adskilt; kontekst valideres mod API'ets hold og forløb og giver aldrig adgang i sig selv. Kun et eksplicit valg af Alle holdets forløb eller et andet hold nulstiller forløbsvalget. Opgave- og kalenderfanerne viser stadig hele holdets data.
+
+Personlige sider kræver login. Biblioteket og de allerede offentlige læsesider kan åbnes uden login. Notifikationer viser aktuelle data fra de hold, brugeren har adgang til, uden opdigtede kommentarer eller tællere.
+
+System, lyst, mørkt, jul, nytår og hacker kan vælges under Indstillinger (gæster har temavalg i headeren). [[Temaer-og-nytaar]] beskriver temakataloget. Rainbow er udgået.
 
 ## Global søgning
 
@@ -20,13 +28,13 @@ Søg fra hele platformen i forløb, fag/emner, quests, badges og projekter. Resu
 
 ## Acceptkriterier
 
-- [ ] Headeren forbliver på én række ved desktop- og mobilbredder; alle funktioner er tastaturtilgængelige.
-- [ ] Navigation og handlinger tilpasses rolle, medlemskab og aktiv forløbskontekst.
-- [ ] Temavalg huskes; grundtemaer kræver ikke guld, badges eller level.
+- [x] Headeren forbliver på én række ved desktop- og mobilbredder; alle funktioner er tastaturtilgængelige.
+- [x] Navigation og handlinger tilpasses rolle, medlemskab og aktiv forløbskontekst.
+- [x] Temavalg huskes; grundtemaer kræver ikke guld, badges eller level.
 - [ ] En synlig kontekststi følger forløb → fag/emne → quest → aflevering.
 - [ ] Søgning virker på tværs af de relevante indholdstyper og giver stabile direkte links.
 - [ ] Private projekter, afleveringer og elevdata lækker ikke gennem søgeresultater eller uddrag.
-- [ ] Ingen dobbeltmenuer eller gentagne afstemningsbannere.
+- [x] Ingen dobbeltmenuer eller gentagne afstemningsbannere.
 
 ## Afhængigheder
 

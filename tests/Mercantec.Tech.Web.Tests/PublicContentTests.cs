@@ -9,6 +9,7 @@ public sealed class PublicContentTests
     [InlineData("")]
     [InlineData("/")]
     [InlineData("/search?q=Arduino")]
+    [InlineData("/library")]
     [InlineData("/courses/template/h2#theory")]
     [InlineData("/subjects/iot/mqtt")]
     [InlineData("/explore/modules")]
@@ -18,6 +19,9 @@ public sealed class PublicContentTests
 
     [Theory]
     [InlineData("/student")]
+    [InlineData("/universe")]
+    [InlineData("/settings")]
+    [InlineData("/teacher/tools")]
     [InlineData("/teacher")]
     [InlineData("/teacher/view-as/123?published=true")]
     [InlineData("/profile")]

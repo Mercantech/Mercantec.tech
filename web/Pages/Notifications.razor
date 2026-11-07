@@ -1,0 +1,37 @@
+@page "/notifications"
+@using Mercantec.Tech.Web.Navigation
+
+<PageTitle>Notifikationer · LUP</PageTitle>
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikationer</h1><p>Log ind for at se opfølgning på dine hold.</p></div></header><a class="action" href="/login">Log ind</a> }
+else
+{
+    <header class="page-title"><div><h1>Notifikationer</h1><p>Aktuelle handlinger på dine hold.</p></div><button type="button" class="secondary" disabled="@_loading" @onclick="Refresh"><UiIcon Name="loop" />Opdatér</button></header>
+    @if (_loading) { <p class="panel" role="status">Henter oplysninger fra dine hold…</p> }
+    else
+    {
+        @if (_holdError is not null) { <p class="notification-error" role="alert">@_holdError</p> }
+        @if (_pollError is not null) { <p class="notification-error" role="alert">@_pollError</p> }
+        @if (ViewAs.IsActive) { <p class="notification-note" role="note">Holdene følger den valgte elev. Personlig svarstatus for afstemninger kræver elevens egen konto.</p> }
+        @if (_previewWithoutAccount) { <section class="panel"><h2>Eleven er ikke koblet til en LUP-konto</h2><p>Der kan derfor ikke hentes personlige hold og notifikationer.</p></section> }
+        else
+        {
+            @if (IsTeacher)
+            {
+                <section class="panel notification-section"><h2>Afleveringer til vurdering</h2>
+                    @foreach (var workspace in ReviewWorkspaces) { <a class="notification-row" href="@WorkspaceNavigation.View(workspace.CourseId, "submissions", status: "submitted")"><span class="notification-mark"><UiIcon Name="check" /></span><span><strong>@workspace.Name</strong><small>@workspace.PendingReviews @(workspace.PendingReviews == 1 ? "aflevering venter" : "afleveringer venter") på vurdering</small></span><span aria-hidden="true">›</span></a> }
+                    @if (!ReviewWorkspaces.Any() && _holdError is null) { <p>Der er ingen afleveringer til vurdering på de tilgængelige hold.</p> }
+                </section>
+            }
+            @if (!ViewAs.IsActive)
+            {
+                <section class="panel notification-section"><h2>@(IsTeacher ? "Åbne afstemninger" : "Afstemninger, du mangler at besvare")</h2>
+                    @foreach (var poll in VisiblePolls) { <a class="notification-row" href="@PollHref(poll)"><span class="notification-mark"><UiIcon Name="chart" /></span><span><strong>@poll.Question</strong><small>@poll.HoldName</small></span><span aria-hidden="true">›</span></a> }
+                    @if (!VisiblePolls.Any() && _pollError is null && _holdError is null) { <p>@(IsTeacher ? "Der er ingen åbne afstemninger på de tilgængelige hold." : "Der er ingen åbne afstemninger, du mangler at svare på.")</p> }
+                </section>
+            }
+            @if (_workspaces.Count == 0 && _holdError is null) { <p class="notification-note">Der er ingen tilgængelige hold at vise.</p> }
+            <div class="actions"><a class="secondary" href="/courses">Mine hold</a></div>
+        }
+    }
+}

@@ -1,3 +1,4 @@
+@using Mercantec.Tech.Web.Navigation
 @using Mercantec.Tech.Web.Notion
 @using Mercantec.Tech.Web.Learning
 @inject NotionClient Client
@@ -31,7 +32,7 @@
                 <h3 id="my-groups-title">@(ViewAs.IsActive ? "Holdets grupper" : "Dine grupper") <span class="hold-group-count">@FilteredGroups.Count()</span></h3>
                 @if (!FilteredGroups.Any()) { <p>@(_setSelection == "all" ? "Der er ingen aktive grupper at vise. Når underviseren tilføjer dig til en gruppe, finder du den her." : "Der er ingen grupper at vise i dette sæt.")</p> }
                 <div class="hold-group-grid">@foreach (var group in FilteredGroups) { <article class="hold-group-card"><p class="hold-group-set-label">@GroupSetLabel(group)</p><h4>@group.Name</h4><ul>@foreach (var member in group.Members) { <li>@member.DisplayName</li> }</ul><span class="hold-group-help">@group.Members.Length elever</span></article> }</div>
-                <p class="hold-group-help">Åbn en quest for at se, hvilke grupper du kan aflevere med. <a href="/holds/@HoldId?view=quests">Find holdets quests</a></p>
+                <p class="hold-group-help">Åbn en quest for at se, hvilke grupper du kan aflevere med. <a href="@QuestsHref">Find holdets quests</a></p>
             </section>
         }
         @if (CanEditGroups)
@@ -82,7 +83,7 @@
         <details class="hold-roster" open="@_canManage"><summary>Holdets elever (@_members.Length)</summary><div class="hold-members-scroll"><table class="hold-members-table"><thead><tr>@if (CanEditGroups) { <th scope="col">Vælg</th> }<th scope="col">Elev</th><th scope="col">@(_setSelection == "all" ? "Grupper i visningen" : "Grupper i dette sæt")</th>@if (CanEditGroups) { <th scope="col"><span class="hold-visually-hidden">Opret gruppe</span></th> }</tr></thead><tbody>
             @foreach (var member in _members)
             {
-                <tr>@if (CanEditGroups) { <td><input type="checkbox" aria-label="@($"Vælg {member.DisplayName}")" checked="@_selected.Contains(member.Id)" disabled="@_busy" @onchange="e => SelectMember(member.Id, e)" /></td> }<td><a href="/notion/holds/@HoldId/students/@member.Id">@member.DisplayName</a></td><td>@if (!FilteredGroups.Any(g => member.GroupIds.Contains(g.Id))) { <span class="muted">Ingen gruppe i dette sæt</span> } else { @foreach (var group in FilteredGroups.Where(g => member.GroupIds.Contains(g.Id))) { <span class="pill">@group.Name</span> } }</td>@if (CanEditGroups) { <td><button type="button" class="secondary" disabled="@_busy" @onclick="() => StartWith(member.Id)" aria-label="@($"Opret gruppe med {member.DisplayName}")">Ny gruppe</button></td> }</tr>
+                <tr>@if (CanEditGroups) { <td><input type="checkbox" aria-label="@($"Vælg {member.DisplayName}")" checked="@_selected.Contains(member.Id)" disabled="@_busy" @onchange="e => SelectMember(member.Id, e)" /></td> }<td><a href="@WorkspaceNavigation.Student(HoldId, member.Id, WorkspaceId, CourseId)">@member.DisplayName</a></td><td>@if (!FilteredGroups.Any(g => member.GroupIds.Contains(g.Id))) { <span class="muted">Ingen gruppe i dette sæt</span> } else { @foreach (var group in FilteredGroups.Where(g => member.GroupIds.Contains(g.Id))) { <span class="pill">@group.Name</span> } }</td>@if (CanEditGroups) { <td><button type="button" class="secondary" disabled="@_busy" @onclick="() => StartWith(member.Id)" aria-label="@($"Opret gruppe med {member.DisplayName}")">Ny gruppe</button></td> }</tr>
             }
         </tbody></table></div></details>
         @if (_members.Length == 0) { <p>@(_canManage ? "Holdet har endnu ingen elever. Tilføj elever på holdet for at oprette grupper." : "Der er endnu ingen elever at vise på holdet.")</p> }
@@ -99,6 +100,8 @@
 
 @code {
     [Parameter] public Guid HoldId { get; set; }
+    [Parameter] public Guid WorkspaceId { get; set; }
+    [Parameter] public Guid? CourseId { get; set; }
     [Parameter] public Guid[] InitialSelection { get; set; } = [];
     [Parameter] public EventCallback OnSaved { get; set; }
     private readonly CancellationTokenSource _life = new();
@@ -124,7 +127,8 @@
         : g.GroupSetId == SelectedSetId);
     private string GroupSetLabel(NotionGroupView group) => _sets.FirstOrDefault(s => s.Id == group.GroupSetId) is GroupSetView set
         ? set.Name + (set.Archived ? " · Arkiveret" : "") : "Grupper uden sæt";
-    private string RouletteHref => $"/holds/{HoldId}/roulette" + (SelectedSetId is Guid id ? $"?set={id}" : "");
+    private string RouletteHref => WorkspaceNavigation.Roulette(HoldId, WorkspaceId, CourseId, SelectedSetId);
+    private string QuestsHref => WorkspaceId == Guid.Empty ? WorkspaceNavigation.Hold(HoldId, "quests", CourseId) : WorkspaceNavigation.View(WorkspaceId, "quests", CourseId);
     private int _version, _amount = 3, _loadVersion;
     private bool _loading, _busy, _canManage, _disposed, _roulette, _avoidPairs;
 

@@ -17,7 +17,11 @@ else if (_workspace is null)
 else
 {
     <div class="hold-workspace">
-        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">@(CanManage ? "Forløb og hold" : "Mine hold")</a><span aria-hidden="true">/</span><span>@_workspace.Name</span></nav>
+        <nav class="breadcrumbs" aria-label="Brødkrummer">
+            <a href="/courses">Mine hold</a><span aria-hidden="true">/</span><a href="@ViewHref("overview")">@_workspace.Name</a>
+            @if (SelectedCourse is not null) { <span aria-hidden="true">/</span><a href="@TeachingCourseHref(SelectedCourse.Id)">@SelectedCourse.Title</a> }
+            <span aria-hidden="true">/</span><span aria-current="page">@Tabs.First(tab => tab.Key == ActiveSection).Label</span>
+        </nav>
         <header class="hold-header">
             <div class="hold-identity"><span class="hold-emblem"><UiIcon Name="terminal" /></span><div><h1>@_workspace.Name</h1><p>@(CanManage ? "Din kommandocentral for undervisningen" : "Dit fælles sted for undervisningen")</p></div></div>
             <div class="hold-header-actions"><span class="hold-member-count"><UiIcon Name="people" /> @_workspace.MemberCount elever</span><a class="action" href="@(CanManage ? EditorHref : ViewHref("content"))"><UiIcon Name="book" />@(CanManage ? "Åbn forløbseditor" : "Find mine forløb")</a></div>
@@ -27,9 +31,31 @@ else
         <nav class="hold-nav" aria-label="Holdets værktøjer">
             @foreach (var tab in Tabs)
             {
-                <a class="@(ActiveView == tab.Key ? "is-current" : null)" href="@ViewHref(tab.Key)" aria-current="@(ActiveView == tab.Key ? "page" : null)"><UiIcon Name="@tab.Icon" /><span>@tab.Label</span>@if (tab.Count is int count) { <small>@count</small> }</a>
+                <a class="@(ActiveSection == tab.Key ? "is-current" : null)" href="@ViewHref(tab.Key)" aria-current="@(ActiveSection == tab.Key ? "page" : null)"><UiIcon Name="@tab.Icon" /><span>@tab.Label</span>@if (tab.Count is int count) { <small>@count</small> }</a>
             }
         </nav>
+        @if (ActiveSection == "content")
+        {
+            <nav class="hold-subnav" aria-label="Undervisning">
+                <a href="@ViewHref("content")" class="@(ActiveView == "content" ? "is-current" : null)" aria-current="@(ActiveView == "content" ? "page" : null)">Forløb</a>
+                <a href="@ViewHref("materials")" class="@(ActiveView == "materials" ? "is-current" : null)" aria-current="@(ActiveView == "materials" ? "page" : null)">Materialer</a>
+                <a href="@ViewHref("polls")" class="@(ActiveView == "polls" ? "is-current" : null)" aria-current="@(ActiveView == "polls" ? "page" : null)">Afstemninger</a>
+            </nav>
+        }
+        else if (ActiveSection == "quests" && CanManage)
+        {
+            <nav class="hold-subnav" aria-label="Opgaver">
+                <a href="@ViewHref("quests")" class="@(ActiveView == "quests" ? "is-current" : null)" aria-current="@(ActiveView == "quests" ? "page" : null)">Quests</a>
+                <a href="@ViewHref("submissions")" class="@(ActiveView == "submissions" ? "is-current" : null)" aria-current="@(ActiveView == "submissions" ? "page" : null)">Til vurdering @if (_workspace.PendingReviews > 0) { <span>@_workspace.PendingReviews</span> }</a>
+            </nav>
+        }
+        else if (ActiveSection == "groups" && CanManage)
+        {
+            <nav class="hold-subnav" aria-label="Klassen">
+                <a href="@ViewHref("groups")" class="@(ActiveView == "groups" ? "is-current" : null)" aria-current="@(ActiveView == "groups" ? "page" : null)">Grupper</a>
+                <a href="@ViewHref("settings")" class="@(ActiveView == "settings" ? "is-current" : null)" aria-current="@(ActiveView == "settings" ? "page" : null)">Holdindstillinger</a>
+            </nav>
+        }
         @if (ActiveView == "overview")
         {
             @if (CanManage && _workspace.Progress is SubmissionProgress progress)
@@ -81,29 +107,33 @@ else
                         }
                     </section>
                     <a class="hold-resource-link" href="@ViewHref("materials")"><UiIcon Name="folder" /><div><strong>Holdets materialer</strong><span>@_workspace.MaterialCount filer til undervisningen</span></div><UiIcon Name="arrow" /></a>
-                    @if (CanManage) { <a class="hold-resource-link" href="/teacher/polls"><UiIcon Name="chart" /><div><strong>Tag temperaturen på holdet</strong><span>Start en afstemning i undervisningen</span></div><UiIcon Name="arrow" /></a> }
+                    <a class="hold-resource-link" href="@ViewHref("polls")"><UiIcon Name="chart" /><div><strong>Holdets afstemninger</strong><span>@(CanManage ? "Start en afstemning i undervisningen" : "Svar på holdets åbne afstemninger")</span></div><UiIcon Name="arrow" /></a>
                 </aside>
             </div>
         }
         else if (ActiveView == "content")
         {
-            <HoldCourses HoldId="_workspace.HoldId" CourseId="TeachingCourseId" OnChanged="RefreshSummary" />
+            <HoldCourses HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" OnChanged="RefreshSummary" />
+        }
+        else if (ActiveView == "polls")
+        {
+            <HoldPolls HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" CanManage="CanManage" />
         }
         else if (ActiveView == "submissions" && CanManage)
         {
-            <HoldSubmissionOverview HoldId="_workspace.HoldId" CourseId="TeachingCourseId" QuestId="RequestedQuestId" Filter="SubmissionFilter" />
+            <HoldSubmissionOverview HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" QuestId="RequestedQuestId" Filter="SubmissionFilter" />
         }
         else if (ActiveView == "quests")
         {
-            <HoldQuests @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" StartCreating="Create" OnChanged="RefreshSummary" />
+            <HoldQuests @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" StartCreating="Create" OnChanged="RefreshSummary" />
         }
         else if (ActiveView == "calendar")
         {
-            <HoldCalendar @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" StartCreating="Create" EventId="RequestedEventId" OnChanged="RefreshSummary" />
+            <HoldCalendar @key="(Id, Create, ViewAs.IsActive)" HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" StartCreating="Create" EventId="RequestedEventId" OnChanged="RefreshSummary" />
         }
         else if (ActiveView == "groups")
         {
-            <HoldGroups @key="_workspace.HoldId" HoldId="_workspace.HoldId" OnSaved="RefreshSummary" />
+            <HoldGroups @key="_workspace.HoldId" HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" OnSaved="RefreshSummary" />
         }
         else if (ActiveView == "materials")
         {

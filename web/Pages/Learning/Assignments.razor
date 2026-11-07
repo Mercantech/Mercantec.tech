@@ -20,7 +20,7 @@ else
     <div class="assignments">
         <nav class="assignment-breadcrumbs" aria-label="Brødkrummer">
             <a href="/courses">Mine hold</a>
-            @if (_holdId != Guid.Empty) { <span>/</span><a href="/holds/@_holdId">@HoldName</a><span>/</span><a href="/holds/@_holdId?view=quests">Quests og afleveringer</a> }
+            @if (_holdId != Guid.Empty) { <span>/</span><a href="@WorkspaceHref()">@HoldName</a><span>/</span><a href="@WorkspaceHref("quests")">Quests og afleveringer</a> }
         </nav>
         <header class="assignment-header">
             <div><h1>@(_quest?.Title ?? "Quests og afleveringer")</h1><p>@(_quest is null ? "Find din opgave, fortsæt en kladde, og læs feedback fra din underviser." : CanManage ? "Se elevernes afleveringer, og giv feedback." : "Læs opgaven, og arbejd med din aflevering her.")</p></div>
@@ -44,15 +44,15 @@ else
         else if (_quest is null)
         {
             <label class="field assignment-hold">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@_busy">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
-            @if (CanManage) { <div class="actions"><a class="action" href="/holds/@_holdId?view=quests&create=true">Opret quest</a><a class="secondary" href="/holds/@_holdId?view=submissions">Åbn afleveringsoverblik</a><a class="secondary" href="/holds/@_holdId?view=groups">Administrér gruppesæt</a></div> }
+            @if (CanManage) { <div class="actions"><a class="action" href="@WorkspaceHref("quests", true)">Opret quest</a><a class="secondary" href="@WorkspaceHref("submissions")">Åbn afleveringsoverblik</a><a class="secondary" href="@WorkspaceHref("groups")">Administrér gruppesæt</a></div> }
             <section class="assignment-panel" aria-labelledby="quests-title">
                 <h2 id="quests-title">@(_quests.Length == 0 ? "Ingen quests endnu" : "Holdets quests")</h2>
                 @if (_quests.Length == 0) { <p>Her vises opgaverne, når din underviser udgiver dem.</p> }
                 @foreach (var quest in _quests.OrderBy(q => q.DeadlineUtc ?? DateTimeOffset.MaxValue))
                 {
                     <article class="assignment-quest">
-                        <div><div class="assignment-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Valgfri")</span>@if (!quest.Published) { <span>Kladde</span> }</div><h3><a href="/quests/@quest.Id">@quest.Title</a></h3><p class="assignment-description-preview">@quest.Description</p><p class="assignment-help">@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span>· Frist @HoldTime.Display(deadline)</span> }</p></div>
-                        <a class="secondary" href="/quests/@quest.Id">@(CanManage ? "Se afleveringer" : "Åbn quest og aflevering")</a>
+                        <div><div class="assignment-meta"><span>@HoldTime.QuestKind(quest.Kind)</span><span>@(quest.Required ? "Obligatorisk" : "Valgfri")</span>@if (!quest.Published) { <span>Kladde</span> }</div><h3><a href="@QuestHref(quest.Id)">@quest.Title</a></h3><p class="assignment-description-preview">@quest.Description</p><p class="assignment-help">@ModeLabel(quest.SubmissionMode) @if (quest.DeadlineUtc is DateTimeOffset deadline) { <span>· Frist @HoldTime.Display(deadline)</span> }</p></div>
+                        <a class="secondary" href="@QuestHref(quest.Id)">@(CanManage ? "Se afleveringer" : "Åbn quest og aflevering")</a>
                     </article>
                 }
             </section>
@@ -75,7 +75,7 @@ else
                 <div class="assignment-meta"><span>@HoldTime.QuestKind(_quest.Kind)</span><span>@(_quest.Required ? "Obligatorisk" : "Valgfri")</span>@if (!_quest.Published) { <span>Kladde</span> }</div>
                 <h2 id="quest-title">Opgaven</h2><p class="assignment-description">@_quest.Description</p>
                 <div class="assignment-facts"><span>@ModeLabel(_quest.SubmissionMode)</span><span>@(_quest.DeadlineUtc is DateTimeOffset deadline ? $"Frist {HoldTime.Display(deadline)} (dansk tid)" : "Ingen afleveringsfrist")</span></div>
-                <div class="assignment-related"><a href="/holds/@_holdId?view=content">Se holdets forløb</a><a href="/holds/@_holdId?view=groups">Se mine grupper</a>@if (CanManage) { <a href="/holds/@_holdId?view=quests">Redigér quest i holdcentralen</a> }</div>
+                <div class="assignment-related"><a href="@WorkspaceHref("content")">Se holdets forløb</a><a href="@WorkspaceHref("groups")">Se mine grupper</a>@if (CanManage) { <a href="@WorkspaceHref("quests")">Redigér quest i holdcentralen</a> }</div>
             </section>
             @if (!ViewAs.IsActive)
             {
@@ -86,7 +86,7 @@ else
                         @if (_quest.SubmissionMode == "group" && !SubmissionGroups.Any()
                             && (_submission is null || !_submission.CanEdit && _submission.State is "draft" or "changes-requested"))
                         {
-                            <div class="assignment-guidance" role="status"><strong>Du mangler en gruppe til denne quest.</strong><p>Din underviser skal tilføje dig til en gruppe, der kan aflevere opgaven. Du kan stadig læse tidligere afleveringer og feedback her.</p><a href="/holds/@_holdId?view=groups">Se mine grupper</a></div>
+                            <div class="assignment-guidance" role="status"><strong>Du mangler en gruppe til denne quest.</strong><p>Din underviser skal tilføje dig til en gruppe, der kan aflevere opgaven. Du kan stadig læse tidligere afleveringer og feedback her.</p><a href="@WorkspaceHref("groups")">Se mine grupper</a></div>
                         }
                         @if (_submission is null || _quest.SubmissionMode != "individual")
                         {

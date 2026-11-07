@@ -1,0 +1,13 @@
+.notification-section { max-width:920px; margin-bottom:18px; }
+.notification-row { display:flex; align-items:center; gap:14px; color:var(--ink); padding:16px 0; border-bottom:1px solid var(--rule); }
+.notification-row:last-of-type { border-bottom:0; }
+.notification-row:hover { text-decoration:none; }
+.notification-row:hover strong { color:var(--blue); text-decoration:underline; text-underline-offset:3px; }
+.notification-row>span:nth-child(2) { flex:1; min-width:0; }
+.notification-row strong { display:block; font-size:15px; }
+.notification-row small { display:block; color:var(--muted); font-size:12px; margin-top:4px; }
+.notification-row>span:last-child { color:var(--muted); font-size:23px; }
+.notification-mark { display:grid; place-items:center; width:37px; height:39px; flex-shrink:0; color:var(--blue); background:var(--tint); border-radius:7px; }
+.notification-mark ::deep .ui-icon { width:22px; height:22px; }
+.notification-error { border:1px solid var(--orange); border-radius:8px; padding:13px 16px; font-size:13px; margin-bottom:16px; }
+.notification-note { color:var(--muted); font-size:13px; margin:14px 0 20px; }
