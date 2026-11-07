@@ -204,8 +204,11 @@ export function buildTurnIntoUpdate(
   }
 
   if (INLINE_TARGETS.has(type)) {
-    if (type === 'callout' && block.type === 'callout' && typeof block.props?.tone === 'string') {
-      menu.tone = block.props.tone;
+    if (type === 'callout' && block.type === 'callout') {
+      for (const key of ['tone', 'emojiId', 'emojiName']) {
+        const value = block.props?.[key];
+        if (typeof value === 'string') menu[key] = value;
+      }
     }
     const update: TurnIntoUpdate = { type, content: inlineContentFor(block) };
     if (Object.keys(menu).length) update.props = menu;

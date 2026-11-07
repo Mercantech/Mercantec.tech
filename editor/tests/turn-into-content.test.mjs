@@ -130,8 +130,8 @@ test('buildTurnIntoUpdate carries raw text into code, callout, paragraph and dia
   assert.equal(buildTurnIntoUpdate(wrappedCode, 'mermaidDiagram').props.source, mermaidSource);
   assert.equal(buildTurnIntoUpdate(wrappedCode, 'codeBlock', { language: 'csharp' }, options).content, wrappedCode.content[0].text);
 
-  const warning = { type: 'callout', props: { tone: 'warning' }, content: [{ type: 'text', text: 'Pas på', styles: {} }] };
-  assert.equal(buildTurnIntoUpdate(warning, 'callout', { tone: 'info' }).props.tone, 'warning');
+  const warning = { type: 'callout', props: { tone: 'warning', emojiId: 'saved-emoji-id', emojiName: 'vatson-vinker' }, content: [{ type: 'text', text: 'Pas på', styles: {} }] };
+  assert.deepEqual(buildTurnIntoUpdate(warning, 'callout', { tone: 'info', emojiId: '', emojiName: '' }).props, warning.props);
   assert.equal(buildTurnIntoUpdate({ type: 'paragraph', content: '' }, 'mermaidDiagram').props.source, '');
 });
 
@@ -148,7 +148,7 @@ test('editor update keeps newlines and mermaid source that a type-only update dr
   });
   const callout = createBlockSpec({
     type: 'callout',
-    propSchema: { tone: { default: 'info' } },
+    propSchema: { tone: { default: 'info' }, emojiId: { default: '' }, emojiName: { default: '' } },
     content: 'inline',
   }, {
     render: () => {
@@ -200,6 +200,14 @@ test('editor update keeps newlines and mermaid source that a type-only update dr
   assert.equal(editor.document[0].type, 'callout');
   assert.equal(editor.document[0].props.tone, 'info');
   assert.equal(textOf(editor.document[0]), 'fed tekst');
+  assert.equal(editor.document[0].content[0].styles.bold, true);
+
+  editor.updateBlock(bold.id, { props: { tone: 'warning', emojiId: 'saved-emoji-id', emojiName: 'vatson-vinker' } });
+  const configuredCallout = editor.document[0];
+  editor.updateBlock(configuredCallout.id, buildTurnIntoUpdate(configuredCallout, 'callout', { tone: 'info' }));
+  assert.equal(editor.document[0].props.emojiId, 'saved-emoji-id');
+  assert.equal(editor.document[0].props.emojiName, 'vatson-vinker');
+  assert.equal(editor.document[0].props.tone, 'warning');
   assert.equal(editor.document[0].content[0].styles.bold, true);
 
   editor.replaceBlocks(editor.document, [

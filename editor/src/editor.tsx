@@ -22,6 +22,7 @@ import { captureAiTarget, type AiTarget } from './ai-conversation';
 import { formatUploadSize, uploadNotionAsset, uploadNotebookAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
+import { EmojiCatalog, EmojiReload, EmojiCreate, EmojiAnalyze, CustomEmojiImage } from './emoji-context';
 import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
 import { EmojiSuggestionMenu } from './emoji-suggestion-menu';
 import { captureEmojiQuery, resolveEmojiQuery } from './emoji-query-target.mjs';
@@ -55,10 +56,6 @@ const Context = createContext<EditorContext | null>(null);
 const useData = () => useContext(Context);
 const Runtime = createContext<Session | null>(null);
 type CustomEmojiRecord = PlatformEmoji;
-const EmojiCatalog = createContext<CustomEmojiRecord[]>([]);
-const EmojiReload = createContext<() => void>(() => {});
-const EmojiCreate = createContext<((file:File,name:string,signal:AbortSignal,metadata:EmojiMetadata)=>Promise<CustomEmojiRecord>) | undefined>(undefined);
-const EmojiAnalyze = createContext<((file:File,signal:AbortSignal)=>Promise<EmojiAnalysis>) | undefined>(undefined);
 
 const createRoster = createReactBlockSpec({
   type: 'classRoster',
@@ -127,12 +124,6 @@ const pageMention=createReactInlineContentSpec({type:'pageMention',propSchema:{p
 const studentMention=createReactInlineContentSpec({type:'studentMention',propSchema:{holdId:{default:''},membershipId:{default:''}},content:'none'},{
   render:({inlineContent})=>{const context=useData();const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id,context) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>Elev er ikke tilgængelig</span>;},
 });
-function CustomEmojiImage({emoji,label}:{emoji:CustomEmojiRecord;label:string}) {
-  const reload=useContext(EmojiReload);
-  const tried=useRef(false);
-  useEffect(()=>{tried.current=false;},[emoji.contentUrl]);
-  return <img className="notion-custom-emoji" src={emoji.contentUrl} alt={emoji.altText?.trim() || label} title={label} draggable={false} contentEditable={false} onError={()=>{if(tried.current)return;tried.current=true;reload();}} />;
-}
 const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{emojiId:{default:''},name:{default:''}},content:'none'},{
   render:({inlineContent})=>{
     const emojis=useContext(EmojiCatalog);
@@ -572,7 +563,6 @@ function App({session}:{session:Session}) {
   const emojiRevision=useRef(0);
   const loadRef=useRef<() => Promise<void>>(async()=>{});
   loadRef.current=async()=>{
-    if(session.context.domain==='notebook')return;
     try {
       const revision=emojiRevision.current;
       const token=await validToken(session);
@@ -603,7 +593,7 @@ function App({session}:{session:Session}) {
     return result;
   };
   useEffect(()=>{void loadRef.current();},[session]);
-  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={createEmoji}><EmojiAnalyze.Provider value={analyzeEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
+  return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={session.context.domain==='notebook' ? undefined : createEmoji}><EmojiAnalyze.Provider value={session.context.domain==='notebook' ? undefined : analyzeEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
     <EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary>
   </div></EmojiAnalyze.Provider></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
@@ -624,7 +614,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
     if(origin!==session.provider && session.ready && !session.destroyed){session.dirty=true;session.generation++;notify(session,session.connected?'saving':'offline',session.connected?'Gemmer i skyen…':'Forbindelsen er afbrudt. Ændringer afventer lagring.');}
   });
   session.provider=new HocuspocusProvider({
-    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=5',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
+    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=6',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
     onStatus:({status})=>{session.connected=status==='connected';if(!session.connected){session.inSync=false;notify(session,status==='connecting'?'connecting':'offline',status==='connecting'?'Forbinder til dokumentet…':'Forbindelsen er afbrudt. Redigering er sat på pause.');}},
     onSynced:({state})=>{if(!state)return;session.ready=true;session.inSync=true;session.connected=true;notify(session,session.dirty?'saving':'synced',session.dirty?'Gemmer afventende ændringer…':'Forbundet til dokumentet');},
     onAuthenticationFailed:({reason})=>{session.connected=false;session.inSync=false;notify(session,'error',reason.includes('editor_version_mismatch')?'Editoren er opdateret. Genindlæs siden for at åbne dokumentet med den nye version.':'Du har ikke længere adgang, eller dit login er udløbet. Log ind igen.');},
