@@ -59,7 +59,7 @@
     private readonly SemaphoreSlim _bindings = new(1, 1);
     private readonly CancellationTokenSource _interopLife = new();
     private DotNetObjectReference<NotificationBell>? _reference;
-    private ActionCenterItem[] PreviewItems => ActionCenterPresentation.Ordered(Actions.Items).Take(PreviewLimit).ToArray();
+    private ActionCenterItem[] PreviewItems => ActionCenterPresentation.Ordered(Actions.Items).ToArray();
     protected override void OnInitialized()
     {
         Actions.Changed += StatusChanged; Nav.LocationChanged += LocationChanged;

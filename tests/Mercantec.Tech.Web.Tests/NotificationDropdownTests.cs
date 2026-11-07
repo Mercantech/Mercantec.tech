@@ -67,7 +67,7 @@ public sealed class NotificationDropdownTests
     }
 
     [Fact]
-    public async Task Preview_prioritizes_important_actions_and_limits_the_number_of_rows_to_six()
+    public async Task Preview_prioritizes_important_actions_and_keeps_every_action_directly_accessible()
     {
         using var api = new Api { Items = [Item("Valgfri 1", "optional"), Item("Vigtig 1"), Item("Valgfri 2", "optional"),
             Item("Vigtig 2"), Item("Valgfri 3", "optional"), Item("Vigtig 3"), Item("Valgfri 4", "optional"),
@@ -78,7 +78,8 @@ public sealed class NotificationDropdownTests
         Trigger(bell).Click();
 
         var rows = bell.FindAll(".notification-preview-link");
-        Assert.Equal(6, rows.Count);
+        Assert.Equal(api.Items.Length, rows.Count);
+        Assert.Contains(rows, row => row.TextContent.Contains("Valgfri 5"));
         Assert.All(rows.Take(4), row => Assert.Contains("Vigtig", row.TextContent));
         Assert.All(rows.Skip(4), row => Assert.Contains("Valgfri", row.TextContent));
         Assert.Contains(bell.FindAll("a"), link => link.GetAttribute("href") == "/notifications");
