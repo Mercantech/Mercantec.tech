@@ -416,8 +416,8 @@ function ConnectedEditor({session}:{session:Session}) {
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
-    {!session.readOnly && emojiOpen && <div className="notion-emoji-panel" role="listbox" aria-label="Egne emojis">
-      {emojis.length===0 ? <p>Ingen egne emojis endnu. <a href="/emojis">Tilføj dem i biblioteket</a>.</p> : emojis.map(item=>
+    {!session.readOnly && emojiOpen && <div className="notion-emoji-panel" role="listbox" aria-label="Platformens emojis">
+      {emojis.length===0 ? <p>Ingen emojis endnu. <a href="/emojis">Tilføj dem i biblioteket</a>.</p> : emojis.map(item=>
         <button key={item.id} type="button" title={`:${item.name}:`} aria-label={`:${item.name}:`} onClick={()=>placeEmoji(item)}><img src={item.contentUrl} alt="" /></button>)}
     </div>}
     {!session.readOnly && (

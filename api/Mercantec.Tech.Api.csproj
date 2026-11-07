@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Emojis/Standard/*.png" LogicalName="standard-emojis/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Integrations\OpenAI\editor-block-prompt.txt">
       <LogicalName>Mercantec.Tech.Api.EditorBlockPrompt.txt</LogicalName>
     </EmbeddedResource>

@@ -1,11 +1,13 @@
 @using Mercantec.Tech.Web.Emojis
 @inject EmojiClient Emojis
+@inject IJSRuntime Js
+@implements IAsyncDisposable
 
 <div class="emoji-picker">
-    <button type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-expanded="@_open" aria-haspopup="listbox">Emoji</button>
+    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-expanded="@_open" aria-haspopup="listbox">Emoji</button>
     @if (_open)
     {
-        <div class="emoji-picker-panel" role="listbox" aria-label="Vælg emoji">
+        <div @ref="_panel" class="emoji-picker-panel" role="listbox" aria-label="Vælg emoji">
             @if (_error is not null)
             {
                 <p>@_error</p>
@@ -37,9 +39,32 @@
     private bool _open;
     private string? _error;
     private IReadOnlyList<CustomEmojiItem>? _items;
+    private ElementReference _trigger, _panel;
+    private IJSObjectReference? _positioner;
+    private bool _disposed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_disposed || !_open) return;
+        var positioner = _positioner;
+        if (positioner is null)
+        {
+            positioner = await Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js");
+            if (_disposed)
+            {
+                try { await positioner.DisposeAsync(); }
+                catch (JSDisconnectedException) { }
+                return;
+            }
+            _positioner = positioner;
+        }
+        if (_disposed || !_open) return;
+        await positioner.InvokeVoidAsync("mount", _trigger, _panel);
+    }
 
     private async Task Toggle()
     {
+        await StopPositioning();
         _open = !_open;
         if (!_open) return;
         try
@@ -56,7 +81,27 @@
 
     private async Task Choose(CustomEmojiItem item)
     {
+        await StopPositioning();
         _open = false;
         await OnPick.InvokeAsync(item);
+    }
+
+    private async Task StopPositioning()
+    {
+        if (_positioner is null) return;
+        try { await _positioner.InvokeVoidAsync("destroy", _trigger); }
+        catch (Exception error) when (error is JSException or JSDisconnectedException) { }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _disposed = true;
+        _open = false;
+        await StopPositioning();
+        if (_positioner is not null)
+        {
+            try { await _positioner.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
     }
 }

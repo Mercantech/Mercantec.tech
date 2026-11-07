@@ -2,6 +2,8 @@
 
 Self-hosted React editor island for the existing Blazor app. Uses BlockNote (MPL-2.0), Yjs13 and Hocuspocus4 (MIT). No XL packages, external collaboration service, browser document database or editor subscription.
 
+Use the [component standard and template](COMPONENT_TEMPLATE.md) when creating or changing editor blocks. It covers the platform UI, all themes, source preservation and the expected behavior in drafts, published pages, presentations and exports.
+
 ## Build
 
 Requires Node.js22 or newer. From this directory:
@@ -39,7 +41,7 @@ WebSocket: same-origin /collaboration?schemaVersion=5, room notion:<pageId>. A m
 - /afstemning: reference to an existing poll from the same hold. Opens the existing activity or presenter page; poll answers remain in the existing API.
 - /slide: real slide boundary. Presentation is a frozen editorial snapshot with keyboard navigation.
 - /læringsmål: formatted inline learning goal.
-- /diagram (aliases: mermaid, flowchart): Mermaid diagram rendered without chrome; double-click to edit source.
+- /diagram (aliases: mermaid, flowchart): a platform-themed Mermaid preview with **Diagram**/**Kode** controls in the draft and **Kopiér** for the raw source. Double-click also opens source editing.
 - /callout: highlighted note (info / tip / warning / important).
 - /kodeblok: The language button opens a searchable picker (C#, cURL, JS/TS, Python, …). The **#** button toggles line numbers per block. **Kopiér** copies the source text. Default language is C#.
 - /ai (toolbar **AI**): teacher-only OpenAI helper — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).

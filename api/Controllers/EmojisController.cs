@@ -34,9 +34,21 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         if (!CanView(id, ticket)) return Unauthorized();
         var emoji = await db.CustomEmojis.AsNoTracking().SingleOrDefaultAsync(e => e.Id == id, ct);
         if (emoji is null) return NotFound();
-        if (!storage.IsConfigured) return StatusCode(503, new { error = "object_storage_disabled" });
-        var obj = await storage.GetAsync(emoji.Key, ct);
-        if (obj is null) return NotFound();
+        Stream content;
+        if (StandardEmojiAssets.IsStandard(emoji.Key))
+        {
+            var embedded = StandardEmojiAssets.Open(emoji.Key);
+            if (embedded is null) return NotFound();
+            content = embedded;
+        }
+        else
+        {
+            if (!storage.IsConfigured) return StatusCode(503, new { error = "object_storage_disabled" });
+            var obj = await storage.GetAsync(emoji.Key, ct);
+            if (obj is null) return NotFound();
+            Response.RegisterForDisposeAsync(obj);
+            content = obj.Content;
+        }
         Response.Headers.CacheControl = "private, max-age=3600";
         Response.Headers["X-Content-Type-Options"] = "nosniff";
         Response.Headers["Referrer-Policy"] = "no-referrer";
@@ -45,8 +57,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         {
             FileNameStar = emoji.Name + Extension(emoji.ContentType)
         }.ToString();
-        Response.RegisterForDisposeAsync(obj);
-        return File(obj.Content, emoji.ContentType);
+        return File(content, emoji.ContentType);
     }
 
     [HttpPost]
@@ -140,7 +151,8 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         var key = emoji.Key;
         db.CustomEmojis.Remove(emoji);
         await db.SaveChangesAsync(ct);
-        await storage.DeleteAsync(key, CancellationToken.None);
+        if (!StandardEmojiAssets.IsStandard(key))
+            await storage.DeleteAsync(key, CancellationToken.None);
         return NoContent();
     }
 

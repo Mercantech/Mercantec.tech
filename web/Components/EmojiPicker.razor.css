@@ -7,8 +7,8 @@
     display: grid;
     grid-template-columns: repeat(6, 36px);
     gap: 4px;
-    width: max-content;
-    max-width: min(280px, 80vw);
+    width: 254px;
+    max-width: calc(100vw - 16px);
     max-height: 220px;
     overflow: auto;
     padding: 8px;
@@ -31,3 +31,8 @@
 .emoji-picker-panel button:hover,
 .emoji-picker-panel button:focus-visible { border-color: var(--blue, #2452e8); background: var(--tint, #eaf0ff); }
 .emoji-picker-panel img { width: 22px; height: 22px; object-fit: contain; display: block; margin: auto; }
+@media (pointer: coarse) {
+    .emoji-picker-toggle { min-height: 44px; }
+    .emoji-picker-panel { grid-template-columns: repeat(5, 44px); }
+    .emoji-picker-panel button { width: 44px; height: 44px; }
+}

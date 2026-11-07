@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Data.Migrations;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace Mercantec.Tech.Api.Tests;
 
@@ -116,6 +119,69 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         var controller = As(_teacher, teacher: true, storage: new DisabledObjectStorage());
         Assert.Equal(503, Assert.IsType<ObjectResult>(await controller.Upload(Png("lup.png"), "lup", default)).StatusCode);
         Assert.Empty(await _db.CustomEmojis.ToListAsync());
+    }
+
+    [Fact]
+    public async Task StandardImportIsIdempotentAndPreservesExistingNames()
+    {
+        Assert.Contains("20261107090000_SeedStandardEmojis", _db.Database.GetMigrations());
+        var existing = Read(await As(_teacher, teacher: true).Upload(Png("smile.png"), "smile", default));
+        await ImportStandards();
+        await ImportStandards();
+
+        var rows = await _db.CustomEmojis.ToListAsync();
+        Assert.Equal(40, rows.Count);
+        Assert.Equal(existing.Id, Assert.Single(rows, row => row.Name == "smile").Id);
+        Assert.Equal(39, rows.Count(row => StandardEmojiAssets.IsStandard(row.Key)));
+        Assert.Single(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task StandardImagesUseNormalTicketsAndWorkWithoutObjectStorage()
+    {
+        await ImportStandards();
+        var items = ReadList(await As(_student).List(default));
+        Assert.Equal(40, items.Count);
+        var controller = As(null, storage: new DisabledObjectStorage());
+        foreach (var item in items)
+        {
+            Assert.IsType<UnauthorizedResult>(await controller.Content(item.Id, default));
+            var ticket = QueryHelpers.ParseQuery(new Uri("https://lup.test" + item.ContentUrl).Query)["ticket"].ToString();
+            var file = Assert.IsType<FileStreamResult>(await controller.Content(item.Id, default, ticket));
+            await using var stream = file.FileStream;
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            Assert.Equal("image/png", file.ContentType);
+            Assert.Equal(item.SizeBytes, buffer.Length);
+            var bytes = buffer.ToArray();
+            Assert.Equal(PngBytes[..8], bytes[..8]);
+            Assert.Equal(72, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(16, 4)));
+            Assert.Equal(72, System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(20, 4)));
+        }
+        Assert.Empty(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task TeacherCanRenameAndDeleteImportedEmojiWithoutObjectStorage()
+    {
+        await ImportStandards();
+        var standard = Assert.Single(ReadList(await As(_student).List(default)), item => item.Name == "rocket");
+        var teacher = As(_teacher, teacher: true, storage: new DisabledObjectStorage());
+        var renamed = Read(await teacher.Rename(standard.Id, new("raket"), default));
+        Assert.Equal(standard.Id, renamed.Id);
+        Assert.Equal("raket", renamed.Name);
+
+        Assert.IsType<NoContentResult>(await teacher.Delete(standard.Id, default));
+        Assert.IsType<NotFoundResult>(await As(_student).Content(standard.Id, default));
+        Assert.Equal(39, ReadList(await As(_student).List(default)).Count);
+        Assert.Empty(_storage.Objects);
+    }
+
+    private Task ImportStandards()
+    {
+        var migration = new SeedStandardEmojis();
+        var operation = Assert.IsType<SqlOperation>(Assert.Single(migration.UpOperations));
+        return _db.Database.ExecuteSqlRawAsync(operation.Sql);
     }
 
     private EmojisController As(Guid? sub, bool teacher = false, bool admin = false, IObjectStorage? storage = null)

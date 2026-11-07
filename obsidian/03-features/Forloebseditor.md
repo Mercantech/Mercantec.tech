@@ -2,6 +2,8 @@
 
 Åbn `/notion` med Mercantec-login. Undervisere med adgang til at administrere holdet kan redigere; holdets elever kan læse de udgivne sider. Navigationen findes under Læring, og forløbets holdside linker til indhold og grupper.
 
+Nye og ændrede editorblokke følger [komponentstandarden og skabelonen](../../editor/COMPONENT_TEMPLATE.md), som beskriver platformdesign, temaer, tilgængelighed og de understøttede visninger og formater.
+
 ## Udgivelse og læsning
 
 1. Vælg et hold, opret en side eller underside, og skriv i kladden.
@@ -24,7 +26,7 @@ Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer de
 - `/video`, `/lyd`, `/billede`, `/fil`: upload medier og vedhæftninger.
 - `/slide`: indsæt en slidegrænse; **Præsenter** viser samme indhold som slides.
 - `/læringsmål`: fremhæv aktivitetens mål.
-- `/diagram` (eller `/mermaid`): indsæt et Mermaid-diagram (flowchart, sequence m.m.). Diagrammet vises uden ramme; dobbeltklik for at redigere koden.
+- `/diagram` (eller `/mermaid`): indsæt et Mermaid-diagram (flowchart, sequence m.m.). Blokken følger platformens tema og har **Diagram**/**Kode** i kladden samt **Kopiér** til kilden. Dobbeltklik åbner også koderedigering.
 - `/callout`: indsæt en fremhævet note (info, tip, advarsel eller vigtigt).
 - `/ai` (eller knappen **AI**): OpenAI-hjælper til underviser — generér blokke, omskriv markering eller lav Mermaid-diagram. Default-model: `gpt-6-luna` (`OPENAI_MODEL`). Nøglen ligger kun på API (`OPENAI_API_KEY`); browseren ser den aldrig. Systemprompten med editorens bloktyper ligger i `api/Integrations/OpenAI/editor-block-prompt.txt` og sendes med hvert kald til `POST /api/ai/editor`. Opdatér filen når block specs i `editor/src` ændres.
 - Blokmenu (⋮⋮ til venstre for blokken): **Omdan til** (overskrift, citat, liste, kode, diagram, callout, læringsmål), **AI** (hjælperen bruger den aktuelle bloks tekst) og **Slet**. Markér tekst for at ændre bloktype i værktøjslinjen. Omdannelsen lægger blokkens rå tekst eller markdown ind i det nye format, så et afsnit kan blive kode eller diagramkilde, og kode kan blive almindelig tekst.

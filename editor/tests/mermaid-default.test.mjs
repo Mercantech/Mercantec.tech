@@ -13,7 +13,8 @@ test('mermaid block ships a flowchart sample teachers can paste from Notion', ()
   assert.match(block, /dangerouslySetInnerHTML/, 'SVG skal holdes i React-state så BlockNote re-renders ikke visker diagrammet');
   assert.match(block, /flowchart TB/);
   assert.match(block, /E2E\["E2E \(End-to-End\)"\]/);
-  assert.match(block, /style UNIT fill:#e8f5e9/);
+  assert.match(block, /UNIT\["Unit"\]/);
+  assert.doesNotMatch(block, /style UNIT fill:/);
   assert.match(utils, /securityLevel:\s*'strict'/);
   assert.match(block, /formatMermaidRenderError/);
 });
