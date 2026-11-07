@@ -19,6 +19,8 @@ public sealed class PublicContentTests
     [InlineData("/characters/lupp")]
     [InlineData("/characters/vatson?from=library")]
     [InlineData("/characters/raymond#appearances")]
+    [InlineData("/characters/beaver")]
+    [InlineData("/characters/fox")]
     public void PublicReadingRoutesDoNotRequireLogin(string path) => Assert.True(PublicPageAccess.Allows(path));
 
     [Theory]
@@ -61,6 +63,13 @@ public sealed class PublicContentTests
     [InlineData("Vatson", "/characters/vatson")]
     [InlineData("VATEK", "/characters/vatson")]
     [InlineData("Raymond", "/characters/raymond")]
+    [InlineData("Bæver", "/characters/beaver")]
+    [InlineData("Ræv", "/characters/fox")]
+    [InlineData("Blå team", "/characters/beaver")]
+    [InlineData("Rød team", "/characters/fox")]
+    [InlineData("Sikkerhed og test", "/characters/beaver")]
+    [InlineData("Sikkerhed og test", "/characters/fox")]
+    [InlineData("Game Design", "/characters/lupp")]
     public void CharacterSearchFindsThePublicProfile(string query, string path)
     {
         var hit = Assert.Single(PublicCatalog.Search(query), hit => hit.Href == path);

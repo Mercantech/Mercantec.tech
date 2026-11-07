@@ -7,6 +7,8 @@
 .lup .character-lupp { --character-accent:#9368d7; }
 .lup .character-vatson { --character-accent:#c4934f; }
 .lup .character-raymond { --character-accent:#548eb9; }
+.lup .character-beaver { --character-accent:#426fa8; }
+.lup .character-fox { --character-accent:#b44d42; }
 .lup .character-card { display:flex; flex-direction:column; min-width:0; border:1px solid var(--rule); background:var(--paper); border-radius:16px; overflow:hidden; color:var(--ink); transition:border-color .15s,box-shadow .15s; }
 .lup .character-card:hover { text-decoration:none; border-color:var(--character-accent); box-shadow:0 5px 20px #0000000a; }
 .lup .character-art { position:relative; display:grid; place-items:center; background:color-mix(in srgb,var(--character-accent) 12%,var(--paper)); overflow:hidden; }
@@ -28,7 +30,7 @@
 .lup .character-hero>* { min-width:0; }
 .lup .character-main-art { aspect-ratio:1; border:1px solid var(--rule); border-radius:18px; }
 .lup .character-main-art>img { position:absolute; inset:0; padding:24px; }
-.lup .character-appearance-picker { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin-top:12px; }
+.lup .character-appearance-picker { display:grid; grid-template-columns:repeat(auto-fit,minmax(65px,1fr)); gap:7px; margin-top:12px; }
 .lup .character-appearance-picker>button { display:flex; flex-direction:column; align-items:center; gap:5px; padding:6px 3px; background:var(--paper); border:1px solid var(--rule); border-radius:9px; font-size:10px; color:var(--muted); }
 .lup .character-appearance-picker>button[aria-pressed=true] { border-color:var(--blue); color:var(--ink); background:var(--tint); }
 .lup .character-appearance-picker img { max-width:100%; object-fit:contain; }
@@ -43,6 +45,15 @@
 .lup .character-features { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:36px; border-top:1px solid var(--rule); padding-top:30px; margin-top:40px; }
 .lup .character-features h2 { font-size:20px; letter-spacing:-.5px; }
 .lup .character-features p { color:var(--muted); font-size:13px; line-height:1.85; margin-top:10px; }
+.lup .character-gallery { border-top:1px solid var(--rule); padding-top:30px; margin-top:32px; }
+.lup .character-gallery h2 { font-size:24px; letter-spacing:-.5px; }
+.lup .character-gallery header>p { color:var(--muted); font-size:13px; margin-top:9px; }
+.lup .character-gallery-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-top:22px; }
+.lup .character-gallery figure { min-width:0; margin:0; }
+.lup .character-gallery figure>a { display:block; border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper); }
+.lup .character-gallery figure>a:hover { border-color:var(--blue); }
+.lup .character-gallery img { display:block; width:100%; height:auto; }
+.lup .character-gallery figcaption { font-size:12px; color:var(--muted); margin-top:9px; }
 .lup .character-other-profiles { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; padding-top:24px; margin-top:32px; border-top:1px solid var(--rule); font-size:12px; }
 .lup .character-other-profiles>span { color:var(--muted); }
 .lup .character-other-profiles>a { display:inline-flex; gap:10px; }
@@ -50,7 +61,7 @@
 .lup .character-not-found { padding:35px 0; }
 .lup .character-not-found>p { color:var(--muted); margin:20px 0; }
 @media(max-width:850px) {
-    .lup .character-grid { gap:14px; }
+    .lup .character-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
     .lup .character-card .character-art { height:190px; }
     .lup .character-card .character-art>img { height:190px; width:190px; padding:10px; }
     .lup .character-card-copy { padding:18px; }
@@ -68,6 +79,7 @@
     .lup .character-portrait-panel { max-width:380px; width:100%; margin:auto; }
     .lup .character-main-art { max-height:330px; }
     .lup .character-features { grid-template-columns:1fr; gap:24px; margin-top:30px; }
+    .lup .character-gallery-grid { grid-template-columns:1fr; gap:20px; }
     .lup .character-other-profiles { gap:16px; }
     .lup .character-all-link { margin-left:0; }
     .lup .character-links { flex-direction:column; align-items:stretch; }

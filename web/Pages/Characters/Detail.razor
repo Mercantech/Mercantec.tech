@@ -7,7 +7,7 @@
     <PageTitle>Karakteren blev ikke fundet · LUP</PageTitle>
     <div class="characters character-not-found">
         <h1>Karakteren blev ikke fundet</h1>
-        <p>Du kan finde LUPP, Vatson og Raymond på karaktersiden.</p>
+        <p>Find underviserne og hjælperne på karaktersiden.</p>
         <a class="action" href="/characters">Se alle karakterer</a>
     </div>
 }
@@ -29,7 +29,7 @@ else
                 </div>
                 @if (character.Appearances.Count > 1)
                 {
-                    <div class="character-appearance-picker" role="group" aria-label="Vælg Raymonds udtryk">
+                    <div class="character-appearance-picker" role="group" aria-label="@($"Vælg udtryk for {character.Name}")">
                         @for (var i = 0; i < character.Appearances.Count; i++)
                         {
                             var index = i;
@@ -72,6 +72,27 @@ else
                 <section><h2>@feature.Title</h2><p>@feature.Description</p></section>
             }
         </div>
+
+        @if (character.Illustrations.Count > 0)
+        {
+            <section class="character-gallery" aria-labelledby="character-gallery-title">
+                <header>
+                    <h2 id="character-gallery-title">@character.Name i undervisningen</h2>
+                    <p>Illustrationer fra Game Design-forløbet. Vælg et billede for at se det i fuld størrelse.</p>
+                </header>
+                <div class="character-gallery-grid">
+                    @foreach (var illustration in character.Illustrations)
+                    {
+                        <figure>
+                            <a href="@illustration.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {illustration.Title} i fuld størrelse (åbner i ny fane)")">
+                                <img src="@illustration.Image" alt="@illustration.Alt" width="@illustration.Width" height="@illustration.Height" loading="lazy" decoding="async" />
+                            </a>
+                            <figcaption>@illustration.Title</figcaption>
+                        </figure>
+                    }
+                </div>
+            </section>
+        }
 
         <nav class="character-other-profiles" aria-label="Mød de andre karakterer">
             <span>Mød også</span>

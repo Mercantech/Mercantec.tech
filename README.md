@@ -2,7 +2,7 @@
 
 Central læringsplatform for undervisning (Kasper & Mathias).
 
-På `/characters` kan alle møde LUPP, Vatson fra det kommende VATEK-projekt og Raymond fra SQL-H1. Hver karakter har sin egen underside; Raymonds oprindelige illustrationer er genbrugt fra SQL-H1. Se [karaktersiderne](obsidian/03-features/Karaktersider.md).
+På `/characters` kan alle møde Game Design-underviseren LUPP, Vatson fra det kommende VATEK-projekt, Raymond fra SQL-H1 og Bæver/Ræv fra Sikkerhed og test. Hver karakter har sin egen underside. LUPPs originale Notion-billeder og Raymonds SQL-H1-illustrationer er genbrugt. Se [karaktersiderne](obsidian/03-features/Karaktersider.md).
 
 Repository og domæne hedder fortsat `Mercantec.tech` / `mercantec.tech`.
 
