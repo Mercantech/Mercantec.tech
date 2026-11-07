@@ -197,7 +197,6 @@ else
             await using var stream = _file.OpenReadStream(EmojiClient.MaxBytes, request.Token);
             var result = await Emojis.Analyze(stream, _file.Name, request.Token);
             if (request.IsCancellationRequested || generation != _fileGeneration) return;
-            if (!_editedMetadata.Contains("name")) _name = EmojiUploadDraft.SuggestName(result.Name + ".png", (_items ?? []).Select(item => item.Name));
             if (!_editedMetadata.Contains("alt")) _altText = result.AltText;
             if (!_editedMetadata.Contains("category")) _uploadCategory = result.Category;
             if (!_editedMetadata.Contains("keywords")) _keywords = string.Join(", ", result.Keywords ?? []);

@@ -87,13 +87,13 @@ test('analysis sends only original GIF file to the read-only endpoint and does n
   assert.deepEqual(result, { name: 'glad_maskot', altText: 'En glad lilla maskot', category: 'smileys', keywords: ['glad', 'maskot'] });
 });
 
-test('late AI suggestions preserve edited fields and deconflict untouched name suggestions', () => {
+test('late AI suggestions preserve filename defaults and manually edited fields', () => {
   const draft = { name: 'mit_navn', altText: 'Min egen beskrivelse', category: 'learning', keywordsText: 'mine, søgeord' };
   const suggestion = { name: 'glad', altText: 'AI-beskrivelse', category: 'smileys', keywords: ['fest', 'smil'] };
-  assert.deepEqual(mergeEmojiAnalysis(draft, suggestion, new Set(['name', 'altText']), ['glad']),
+  assert.deepEqual(mergeEmojiAnalysis(draft, suggestion, new Set(['name', 'altText'])),
     { name: 'mit_navn', altText: 'Min egen beskrivelse', category: 'smileys', keywordsText: 'fest, smil' });
-  assert.deepEqual(mergeEmojiAnalysis(draft, suggestion, new Set(['category', 'keywordsText']), ['glad', 'glad_2']),
-    { name: 'glad_3', altText: 'AI-beskrivelse', category: 'learning', keywordsText: 'mine, søgeord' });
+  assert.deepEqual(mergeEmojiAnalysis(draft, suggestion, new Set(['category', 'keywordsText'])),
+    { name: 'mit_navn', altText: 'AI-beskrivelse', category: 'learning', keywordsText: 'mine, søgeord' });
   assert.deepEqual(mergeEmojiAnalysis(draft, suggestion, new Set(Object.keys(draft))), draft);
 });
 

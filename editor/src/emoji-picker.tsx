@@ -92,7 +92,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
     void onAnalyze(selected, controller.signal).then(result => {
       if (!mounted.current || controller.signal.aborted || generation !== analysisGeneration.current) return;
       setDraft(current => generation === analysisGeneration.current && !controller.signal.aborted
-        ? mergeEmojiAnalysis(current, result, editedFields.current, emojis.map(item => item.name)) as EmojiDraft : current);
+        ? mergeEmojiAnalysis(current, result, editedFields.current) as EmojiDraft : current);
       setAnalysisNotice('Billedanalysen er klar. Du kan rette alle felter, før du gemmer.');
     }).catch(failure => {
       if (mounted.current && !controller.signal.aborted && generation === analysisGeneration.current)

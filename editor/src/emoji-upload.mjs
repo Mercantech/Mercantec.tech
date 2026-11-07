@@ -28,11 +28,11 @@ export function validateEmojiMetadata(metadata = {}) {
   return null;
 }
 
-/** Late analysis may fill untouched fields, but never overwrite the user's draft. */
-export function mergeEmojiAnalysis(draft, analysis, editedFields, existingNames = []) {
+/** Keep filename-based names and manual edits; analysis may fill untouched descriptions. */
+export function mergeEmojiAnalysis(draft, analysis, editedFields) {
   const metadata = normalizeEmojiMetadata(analysis);
   const suggested = {
-    name: suggestEmojiName((normalizeEmojiName(analysis?.name) || draft.name || 'emoji') + '.png', existingNames),
+    name: draft.name,
     altText: metadata.altText.slice(0, 240),
     category: metadata.category,
     keywordsText: metadata.keywords.slice(0, 12).map(word => word.slice(0, 32)).join(', '),
