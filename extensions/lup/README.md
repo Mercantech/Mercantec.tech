@@ -1,99 +1,98 @@
-# LUP til Chrome
+# LUP til Chrome – version 0.2
 
-Første funktion: Højreklik på et billede og vælg **Tilføj som emoji på LUP.dk**.
-Udvidelsen viser billedet og et kort navn. **Fortsæt på LUP.dk** åbner en ny
-fane med LUPs normale emoji-formular. Her gennemgår du beskrivelse og øvrige
-felter og trykker **Upload**. Tilføjelse kræver underviseradgang i LUP.
+Højreklik på et billede → **Tilføj som emoji på LUP.dk**. Udvidelsen
+åbner sit eget billedvindue. Vælg hele billedet eller et kvadratisk udsnit,
+zoom og træk motivet, ret navn og beskrivelse, og tryk **Gem emoji på LUP**.
+Emojien gemmes direkte, og billedvinduet bliver stående. Ingen LUP-fane åbnes
+ved upload.
 
-## Installer lokalt
+## Installer og forbind én gang
 
-1. Åbn `chrome://extensions` i Chrome.
-2. Slå **Udviklertilstand** til øverst til højre.
-3. Vælg **Indlæs upakket**, og vælg mappen `extensions/lup` fra dette repo.
-4. Fastgør eventuelt LUP i værktøjslinjen. Højreklik på et billede på en normal
-   hjemmeside for at begynde.
+1. Byg pakken med `scripts/Package-LupExtension.ps1` fra repository-roden.
+   Scriptet installerer om nødvendigt de låste billedværktøjsafhængigheder
+   og pakker runtime, model, licenser og udvidelse i
+   `.tools/lup-extension/LUP-0.2.0.zip`.
+2. Pak ZIP-filen ud. Åbn `chrome://extensions`, slå **Udviklertilstand** til,
+   og vælg den udpakkede mappe med **Indlæs upakket**. Alternativt kan den
+   byggede `extensions/lup`-mappe bruges direkte. Den skal blive liggende.
+3. Åbn [Forbind LUP-udvidelsen](https://lup.dk/extension), og log ind med
+   Mercantec Auth. Opret en personlig uploadnøgle og kopiér den.
+4. Åbn LUP-ikonet i Chrome, indsæt nøglen, og tryk **Forbind LUP**.
 
-Udvidelsen er ikke udgivet i Chrome Web Store. Den lokale mappe skal blive
-liggende. Efter kildeændringer trykkes **Genindlæs** i `chrome://extensions`;
-genindlæs også den åbne LUP-fane. Udvidelsen kræver den tilsvarende
-emoji-importfunktion på LUP.dk. En ældre LUP-version kan ikke modtage kladden.
+Adgangen er afgrænset til Mathias og Kasper. Oprettelse kræver en godkendt
+Mercantec-identitet og underviserrolle. Nøglen vises kun ved oprettelsen og
+udløber efter 90 dage. Hver konto kan have fem aktive forbindelser. En nøgle
+kan tilbagekaldes på samme side; det slår igennem ved næste API-kald.
 
-En ZIP-pakke kan dannes med `scripts/Package-LupExtension.ps1`; den lægges i
-`.tools/lup-extension/LUP-0.1.0.zip`. Pak ZIP-filen ud, og vælg den udpakkede
-mappe med **Indlæs upakket**. Kildekode, tests og dokumentation ligger fortsat i
-repositoryet; pakken indeholder kun udvidelsens nødvendige runtime-filer.
+**Glem forbindelse** fjerner nøglen på den aktuelle computer. Tilbagekald på
+LUP.dk bruges, hvis nøglen også skal ophøre med at virke på serveren.
+Efter kildeændringer genindlæses udvidelsen i `chrome://extensions`.
+Udvidelsen er endnu ikke udgivet i Chrome Web Store.
 
-## Billeder og adgang
+## Beskæring og baggrund
 
-- PNG, JPEG, WebP og AVIF kan klargøres til et emoji-billede på højst 256 KB.
-  Store stillbilleder tilpasses til højst 256 pixels på den længste led og
-  gemmes som PNG. Om nødvendigt prøves 192 og 128 pixels.
-- GIF-filer på højst 256 KB bevares med animation. Større GIF-filer konverteres
-  til et stillbillede; dette vises under forhåndsvisningen.
-- Kilden må højst fylde 8 MB og have 16 megapixel. SVG understøttes ikke.
-- Hentning bruger billedets HTTP(S)-adresse. Chrome kan kræve adgang til netop
-  billedets hjemmeside; tilladelsen gives på en særskilt knap. Tilladelsen kan
-  senere fjernes i Chromes indstillinger for udvidelsen.
-- Adresser til lokale filer, data- og blob-billeder samt billeder, der kræver
-  cookies/login eller blokerer download, kan kræve at du gemmer billedet og
-  vælger filen manuelt. Chrome Web Store og interne Chrome-sider har deres
-  egne begrænsninger.
+- **Beskær til kvadrat** giver et kvadratisk udsnit. Brug zoomskyderen,
+  træk/touch eller x/y-skyderne. Piletaster flytter motivet, +/− zoomer,
+  og Home nulstiller. Den fulde kildeopløsning bruges til beskæringen.
+- **Brug hele billedet** bevarer billedets format. Små GIF-filer kan dermed
+  beholde animationen. Beskæring og baggrundsfjernelse giver et PNG-stillbillede.
+- **Fjern baggrund** kører lokalt med den medfølgende model. **Stop** afbryder
+  beregningen, og **Brug original** vælger det oprindelige billede igen.
+- Output er højst 256 KB og tilpasses emojiformatet. Beskårne billeder er
+  højst 256 × 256 pixels. Kilden må højst fylde 8 MB og have 16 megapixel.
+  SVG understøttes ikke. Billedet gemmes først ved tryk på gemmeknappen.
 
-## Login og kladder
+Hvis billedserveren kræver tilladelse, vises en knap til netop det domæne.
+Blob-/dataadresser, private billeder og servere, som blokerer download, kan
+kræve, at billedet gemmes og vælges som lokal fil.
 
-Udvidelsen opbevarer ikke adgangstokens og kalder ikke LUPs API. LUPs normale
-Mercantec Auth-login og rettigheder bruges i destinationsfanen. En ny fane kan
-kræve login, selv om en anden LUP-fane er åben. Importen skal fortsættes i den
-fane, udvidelsen åbnede.
+## Nøgler, data og rettigheder
 
-Kildejob og billedkladder udløber efter 30 minutter. De gemmes kun i Chromes
-`storage.session`, bliver utilgængelige ved udløb og fjernes ved næste
-oprydning eller når browserens session slutter. Der opbevares højst otte
-kildejob og otte billedkladder ad gangen; de ældste ryddes først. Kladden
-bevares under login og genindlæsning og slettes efter en vellykket upload.
-En udløbet kladde startes igen ved at højreklikke på billedet.
+Rigtige nøgler indgår ikke i kode, manifest, `.env`, ZIP eller Git. Nøglen
+gemmes i den lokale Chrome-profils `storage.local`, uden synkronisering.
+Storageadgang er begrænset til udvidelsens egne betroede sider; content scripts
+og websider kan ikke hente nøglen gennem beskedprotokollen. Serveren gemmer kun
+SHA256-hashen samt ejer, udløb og tilbagekaldelsesstatus.
 
-## Data og tilladelser
+Nøglen kan kun bruges mod `GET /api/extension/status` og
+`POST /api/extension/emojis` med scope `emoji:create`. Den giver ikke adgang til
+listning, omdøbning, sletning eller andre API'er og kan ikke oprette nye nøgler.
+Disse nøglefunktioner kræver normal Mercantec JWT-login på LUP-siden.
+Upload genbruger API'ets validering af navn, filsignatur, filstørrelse og
+biblioteksgrænse. Ejerens stabile Auth-`sub` registreres som opretter.
+Der er en grænse på 30 uploadforsøg pr. minut pr. nøgle.
 
-- `contextMenus` til menupunktet på billeder.
-- `activeTab` til midlertidig adgang efter dit højreklik.
-- `storage` til tidsbegrænsede kildeadresser og billedkladder i hukommelsen.
-- Content script kun på **https://lup.dk/** til aflevering af kladden til
-  emoji-formularen.
-- Valgfri HTTP(S)-værtsadgang bliver kun anmodet for det valgte billedes
-  hjemmeside. Der gives ingen obligatorisk adgang til alle hjemmesider.
+Serverens ikke-hemmelige kontoliste konfigureres med
+`ExtensionUpload__AllowedEmails` og `ExtensionUpload__AllowedSubjects`
+(`EXTENSION_UPLOAD_ALLOWED_EMAILS` / `EXTENSION_UPLOAD_ALLOWED_SUBJECTS` i
+Compose). Standardkonfigurationen bruger de eksisterende konti og Mathias'
+stabile Auth-id, så et tilknyttet e-mailalias ikke giver adgang til en anden
+bruger. En tom liste giver ingen adgang. Tilbagekaldelse og kontolisten
+kontrolleres ved hvert kald.
 
-Billeddownload sender ikke cookies eller en henvisende sideadresse. Når du
-fortsætter, afleveres kun selve billedet, filtypen og det valgte navn til den
-bestemte LUP-fane. Kildens URL afleveres ikke til LUP. LUPs sædvanlige
-billedanalyse og upload gælder derefter; analysen kan bruge den AI-tjeneste,
-LUP er konfigureret med. Der er ingen analyse-, login- eller uploadtjeneste
-indbygget i udvidelsen.
+Billeddownload og upload sender ikke cookies. Upload går kun til den faste
+HTTPS-adresse på LUP.dk; nøglen sendes som Authorization-header, aldrig i URL.
+Kildens adresse videresendes ikke til LUP. Beskæring og baggrundsfjernelse
+kører lokalt. Gemning sender alene det valgte billede, navn og beskrivelse;
+den direkte udvidelsesupload udfører ingen ekstern AI-metadataanalyse.
 
-Import-id er tilfældigt og bundet til destinationsfanens id. Modtagelse af
-billeddata kræver præcis HTTPS-origin `https://lup.dk`, stien `/emojis` og den
-matchende importparameter. En uploadkvittering accepteres også efter, at LUP
-har fjernet importparameteren, men kræver stadig samme fane, origin, sti og
-gyldige kladde. Andre faner og andre origins får ingen billeddata.
+Kildejob er bundet til billedvinduets fane og udløber efter 30 minutter.
+Fejl ved gemning bevarer kladden; vellykket gemning rydder jobbet. Der gemmes
+højst otte kildejob ad gangen. Den tidligere LUP-sideimport er bevaret for
+kompatibilitet med ældre installationer.
 
-Udvidelsen bruger Chromes standardikon og tekstnavnet LUP. Der er endnu ikke
-tilføjet et særskilt LUP-logo.
-
-## Kontrol
-
-Fra repository-roden med Node 20 eller nyere:
+## Udvikling og kontrol
 
 ```powershell
-node --test extensions/lup/test/*.test.mjs
+node --test extensions/lup/test/*.test.mjs tests/LupExtension/*.test.mjs
+dotnet test tests/Mercantec.Tech.Api.Tests --filter FullyQualifiedName~ExtensionUpload
+dotnet test tests/Mercantec.Tech.Web.Tests
+npm --prefix image-tools test
+npm --prefix editor run build
 ```
 
-Testene kontrollerer blandt andet størrelse, udløb, base64, origin, tabbinding,
-genlevering og uploadkvittering. Browserkontrol skal desuden gennemgå det
-virkelige højreklik, billedkonvertering, tilladelsesdialog, login, reload og
-upload i LUP. Udvidelsen er en klient og kræver ingen Docker-service; den
-eksisterende Docker-hostede LUP håndterer login, analyse og lagring.
-
-Chrome-dokumentation:
-[contextMenus](https://developer.chrome.com/docs/extensions/reference/api/contextMenus),
-[valgfri tilladelser](https://developer.chrome.com/docs/extensions/reference/api/permissions),
-[netværksadgang](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests).
+Den nye database-migration opretter kun tabellen til hashede forbindelser.
+Normal LUP-login forbliver authorization code + PKCE via Mercantec Auth.
+Billedruntime/model og tilhørende licenser bygges fra `image-tools/` og pakkes
+lokalt i udvidelsen; Chrome henter ikke eksekverbar kode fra en CDN.
+Se [billedværktøjer](../../image-tools/README.md) for model og kilder.

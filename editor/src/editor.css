@@ -737,3 +737,4 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
   .notion-code-toolbar .notion-code-line-toggle { min-width: 44px; }
   .notion-code-language-search { min-height: 44px; font-size: 1rem; }
 }
+.notion-emoji-crop-panel{min-width:0;padding:8px;border:1px solid var(--notion-rule);border-radius:8px;background:var(--notion-paper)}

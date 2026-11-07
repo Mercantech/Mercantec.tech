@@ -158,15 +158,105 @@ public sealed class EmojiBackgroundEditorTests
         Assert.Equal([true], busy);
     }
 
+    [Fact]
+    public async Task CroppingBlocksUploadUntilAppliedAndCanBeFollowedByBackgroundRemoval()
+    {
+        await using var context = new BunitContext();
+        var runtime = new BackgroundRuntime();
+        context.Services.AddSingleton<IJSRuntime>(runtime);
+        var original = Image("original");
+        var changed = new List<IBrowserFile>();
+        var busy = new List<bool>();
+        var component = context.Render<EmojiBackgroundEditor>(p => p.Add(x => x.File, original)
+            .Add(x => x.FileChanged, file => changed.Add(file)).Add(x => x.BusyChanged, state => busy.Add(state)));
+
+        Button(component, "Beskær og zoom").Click();
+        component.WaitForAssertion(() => Assert.False(Button(component, "Brug beskæring").HasAttribute("disabled")));
+        Assert.Equal([true], busy);
+        runtime.Crop.Result.SetResult(JsonSerializer.Serialize(new { changed = true, contentType = "image/png", base64 = Png }));
+        Button(component, "Brug beskæring").Click();
+        component.WaitForAssertion(() => Assert.Single(changed));
+        Assert.Equal([true, false], busy);
+        Assert.Contains(17, runtime.Crop.Destroyed);
+        component.Render(p => p.Add(x => x.File, changed[0]));
+        runtime.Module.Result.SetResult(Result);
+        Button(component, "Fjern baggrund").Click();
+        component.WaitForAssertion(() => Assert.Equal(2, changed.Count));
+        Assert.Equal(1, runtime.Module.Calls);
+        Button(component, "Brug original").Click();
+        Assert.Same(original, changed[2]);
+    }
+
+    [Fact]
+    public async Task CancellingCropKeepsTheCurrentImageAndReleasesParentBusyState()
+    {
+        await using var context = new BunitContext();
+        var runtime = new BackgroundRuntime();
+        context.Services.AddSingleton<IJSRuntime>(runtime);
+        var changed = new List<IBrowserFile>();
+        var busy = new List<bool>();
+        var component = context.Render<EmojiBackgroundEditor>(p => p.Add(x => x.File, Image("original"))
+            .Add(x => x.FileChanged, file => changed.Add(file)).Add(x => x.BusyChanged, state => busy.Add(state)));
+        var preview = component.Find("img").GetAttribute("src");
+        Button(component, "Beskær og zoom").Click();
+        component.WaitForAssertion(() => Assert.Equal(1, runtime.Crop.Mounts));
+        Button(component, "Annuller beskæring").Click();
+        Assert.Empty(changed);
+        Assert.Equal(preview, component.Find("img").GetAttribute("src"));
+        Assert.Equal([true, false], busy);
+        Assert.Single(runtime.Crop.Destroyed);
+    }
+
+    [Fact]
+    public async Task ANewFileDiscardsAnInFlightCropAndLateBytesCannotReplaceIt()
+    {
+        await using var context = new BunitContext();
+        var runtime = new BackgroundRuntime();
+        context.Services.AddSingleton<IJSRuntime>(runtime);
+        var changed = new List<IBrowserFile>();
+        var component = context.Render<EmojiBackgroundEditor>(p => p.Add(x => x.File, Image("original"))
+            .Add(x => x.FileChanged, file => changed.Add(file)));
+        Button(component, "Beskær og zoom").Click();
+        component.WaitForAssertion(() => Assert.False(Button(component, "Brug beskæring").HasAttribute("disabled")));
+        var pending = Button(component, "Brug beskæring").ClickAsync(new MouseEventArgs());
+        component.Render(p => p.Add(x => x.File, Image("anden")));
+        runtime.Crop.Result.SetResult(JsonSerializer.Serialize(new { changed = true, contentType = "image/png", base64 = Png }));
+        await pending;
+        Assert.Empty(changed);
+        Assert.Empty(component.FindAll(".emoji-crop-panel"));
+        Assert.Single(runtime.Crop.Destroyed);
+    }
+
+    private static AngleSharp.Dom.IElement Button(IRenderedComponent<EmojiBackgroundEditor> component, string text) =>
+        component.FindAll("button").Single(button => button.TextContent.Trim() == text);
+
     private sealed class BackgroundRuntime : IJSRuntime
     {
         public BackgroundModule Module { get; } = new();
+        public CropModule Crop { get; } = new();
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, default, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             Assert.Equal("import", identifier);
-            Assert.Equal("/js/emoji-background.js", args![0]);
+            if (Equals(args![0], "/js/emoji-crop-adapter.js")) return ValueTask.FromResult((TValue)(object)Crop);
+            Assert.Equal("/js/emoji-background.js", args[0]);
             return ValueTask.FromResult((TValue)(object)Module);
+        }
+    }
+
+    private sealed class CropModule : IJSObjectReference
+    {
+        public TaskCompletionSource<string> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public List<int> Destroyed { get; } = [];
+        public int Mounts { get; private set; }
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, default, args);
+        public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+        {
+            if (identifier == "mount") { Mounts++; return (TValue)(object)17; }
+            if (identifier == "destroy") { Destroyed.Add((int)args![0]!); return default!; }
+            Assert.Equal("result", identifier);
+            return JsonSerializer.Deserialize<TValue>(await Result.Task, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
         }
     }
 

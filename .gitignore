@@ -35,3 +35,6 @@ collaboration/node_modules/
 web/wwwroot/notion-editor/
 image-tools/node_modules/
 web/wwwroot/image-tools/
+extensions/lup/image-tools/
+extensions/lup/emoji-background.js
+extensions/lup/emoji-background-worker.js

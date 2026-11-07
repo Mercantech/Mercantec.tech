@@ -1,16 +1,45 @@
 import { MAX_BYTES, MAX_DOWNLOAD_BYTES, MAX_PIXELS, MIME_TYPES, sourceUrl, originPattern, sanitizeName, validId } from './core.mjs';
+import { createCropEditor } from './crop.mjs';
 
 const status = document.querySelector('#status');
 const name = document.querySelector('#name');
+const altText = document.querySelector('#alt-text');
+const connection = document.querySelector('#connection');
 const continueButton = document.querySelector('#continue');
 const permissionButton = document.querySelector('#permission');
 const fileInput = document.querySelector('#file');
+const backgroundButton = document.querySelector('#remove-background');
+const stopBackgroundButton = document.querySelector('#stop-background');
+const originalButton = document.querySelector('#restore-original');
 const id = new URL(location.href).searchParams.get('job');
-let source = null, prepared = null, previewUrl = null, busy = false, editedName = false, generation = 0;
+let source = null, prepared = null, cropEditor = null, busy = false, editedName = false, generation = 0, connected = false, saved = false, editedAlt = false;
+let originalSource = null, originalPrepared = null, originalFileName = '', originalNote = '';
+let backgroundEdited = false, cropActive = false, backgroundJob = null, backgroundSerial = 0, backgroundModule = null;
 name.addEventListener('input', () => { editedName = true; });
+name.addEventListener('input', () => { if (!editedAlt) altText.value = name.value.replaceAll('_', ' '); });
+altText.addEventListener('input', () => { editedAlt = true; });
 
 function message(text, error = false) { status.textContent = text; status.classList.toggle('error', error); }
-function setBusy(value) { busy = value; continueButton.disabled = value || !prepared; fileInput.disabled = value; permissionButton.disabled = value; }
+function refreshImageActions() {
+  backgroundButton.disabled = busy || saved || !prepared || backgroundEdited;
+  stopBackgroundButton.hidden = backgroundJob === null;
+  stopBackgroundButton.disabled = saved;
+  originalButton.hidden = !originalSource || !(backgroundEdited || cropActive);
+  originalButton.disabled = busy || saved;
+}
+function setBusy(value) { busy = value; continueButton.disabled = value || !prepared || !connected || saved; fileInput.disabled = value || saved; permissionButton.disabled = value || saved; cropEditor?.setDisabled(value || saved); refreshImageActions(); }
+async function updateConnection() {
+  if (!validId(id) || saved) return;
+  try {
+    const state = await chrome.runtime.sendMessage({ type: 'prepare:status', id });
+    connected = state?.connected === true;
+    connection.textContent = connected ? `Forbundet${state.email ? ' som ' + state.email : ''}.`
+      : state?.message || 'Ikke forbundet. Åbn indstillingerne og tilføj din uploadnøgle.';
+  } catch { connected = false; connection.textContent = 'Forbindelsen kunne ikke kontrolleres. Prøv igen senere.'; }
+  setBusy(busy);
+}
+window.addEventListener('focus', () => { if (!busy) void updateConnection(); });
+chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && !saved) void updateConnection(); });
 
 async function boundedImageFetch(url) {
   const controller = new AbortController();
@@ -70,24 +99,109 @@ async function adaptImage(blob) {
 async function prepare(blob, fileName) {
   const current = ++generation;
   prepared = null;
+  cropEditor?.destroy(); cropEditor = null;
   document.querySelector('#preview-wrap').hidden = true;
   document.querySelector('#details').textContent = '';
   setBusy(true); message('Klargør billedet…');
   try {
     const result = await adaptImage(blob);
     if (current !== generation) return;
-    prepared = result.blob;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = URL.createObjectURL(prepared);
-    document.querySelector('#preview').src = previewUrl;
-    document.querySelector('#preview-wrap').hidden = false;
-    document.querySelector('#details').textContent = `${Math.ceil(prepared.size / 1024)} KB · ${result.note}`;
-    if (!editedName) name.value = sanitizeName(fileName);
-    permissionButton.hidden = true;
-    message('Billedet er klar. Fortsæt for at gennemgå det på LUP.dk.');
+    originalSource = blob; originalPrepared = result.blob; originalFileName = fileName; originalNote = result.note;
+    backgroundEdited = false;
+    await installImage(blob, result, fileName, current);
+    message('Billedet er klar. Vælg udsnit og zoom, og gem emojien herfra.');
   } catch (error) { message(error.message || 'Billedet kunne ikke læses.', true); }
   finally { if (current === generation) setBusy(false); }
 }
+
+async function installImage(blob, result, fileName, current) {
+  const previous = cropEditor;
+  const editor = await createCropEditor(document.querySelector('#crop-editor'), blob, state => {
+    if (current !== generation) return;
+    cropActive = state.enabled;
+    document.querySelector('#details').textContent = state.enabled
+      ? `Kvadratisk udsnit · ${Math.round(state.zoom * 100)} % zoom · gemmes som PNG-stillbillede.`
+      : `${Math.ceil(result.blob.size / 1024)} KB · ${result.note}`;
+    refreshImageActions();
+  }, { wholeBlob: result.blob, previewId: 'preview' });
+  if (current !== generation) { editor.destroy(); return false; }
+  previous?.destroy();
+  cropEditor = editor;
+  prepared = result.blob;
+  cropActive = false;
+  document.querySelector('#preview-wrap').hidden = false;
+  if (!editedName) name.value = sanitizeName(fileName);
+  if (!editedAlt) altText.value = name.value.replaceAll('_', ' ');
+  permissionButton.hidden = true;
+  refreshImageActions();
+  return true;
+}
+
+async function imageDataUrl(blob) {
+  let binary = '';
+  for (const byte of new Uint8Array(await blob.arrayBuffer())) binary += String.fromCharCode(byte);
+  return `data:${blob.type};base64,${btoa(binary)}`;
+}
+
+function processedPng(result) {
+  if (result?.contentType !== 'image/png' || typeof result.base64 !== 'string'
+    || !result.base64.length || result.base64.length > Math.ceil(MAX_BYTES / 3) * 4)
+    throw new Error('Baggrundsfjernelsen gav ikke et gyldigt PNG-billede. Det valgte billede er bevaret.');
+  const raw = atob(result.base64);
+  const bytes = Uint8Array.from(raw, character => character.charCodeAt(0));
+  if (!bytes.length || bytes.length > MAX_BYTES || ![137,80,78,71,13,10,26,10].every((value,index) => bytes[index] === value))
+    throw new Error('Baggrundsfjernelsen gav ikke et gyldigt PNG-billede. Det valgte billede er bevaret.');
+  return new Blob([bytes], { type: 'image/png' });
+}
+
+backgroundButton.addEventListener('click', async () => {
+  if (busy || saved || !prepared || !cropEditor || backgroundEdited) return;
+  const serial = ++backgroundSerial, current = generation;
+  const job = crypto.randomUUID(); backgroundJob = job;
+  setBusy(true); message('Fjerner baggrunden lokalt… Første gang kan tage lidt længere tid.');
+  try {
+    const image = await cropEditor.getBlob();
+    const data = await imageDataUrl(image);
+    if (serial !== backgroundSerial || current !== generation) return;
+    const module = await (backgroundModule ??= import('./emoji-background.js'));
+    if (serial !== backgroundSerial || current !== generation) return;
+    const result = await module.removeBackground(data, job);
+    if (serial !== backgroundSerial || current !== generation) return;
+    const blob = processedPng(result);
+    await installImage(blob, { blob, note: 'Baggrunden er fjernet. PNG-stillbilledet kan stadig beskæres.' }, originalFileName, current);
+    if (serial !== backgroundSerial || current !== generation) return;
+    backgroundEdited = true;
+    message('Baggrunden er fjernet. Gennemgå resultatet, eller vælg Brug original.');
+  } catch (error) {
+    if (serial === backgroundSerial && current === generation) {
+      if (error instanceof TypeError) backgroundModule = null;
+      message(error instanceof Error && error.name !== 'AbortError'
+        ? error.message : 'Baggrunden kunne ikke fjernes. Det valgte billede er bevaret.', true);
+    }
+  } finally {
+    if (serial === backgroundSerial && current === generation) { backgroundJob = null; setBusy(false); }
+  }
+});
+
+stopBackgroundButton.addEventListener('click', () => {
+  if (backgroundJob === null || saved) return;
+  const job = backgroundJob;
+  backgroundJob = null; backgroundSerial++;
+  void backgroundModule?.then(module => module.cancel(job)).catch(() => {});
+  setBusy(false); message('Baggrundsfjernelsen er stoppet. Det valgte billede er bevaret.');
+});
+
+originalButton.addEventListener('click', async () => {
+  if (busy || saved || !originalSource || !originalPrepared) return;
+  const current = ++generation;
+  setBusy(true);
+  try {
+    await installImage(originalSource, { blob: originalPrepared, note: originalNote }, originalFileName, current);
+    backgroundEdited = false;
+    message('Originalbilledet er valgt igen. Navn og beskrivelse er bevaret.');
+  } catch { message('Originalbilledet kunne ikke åbnes. Vælg filen igen.', true); }
+  finally { if (current === generation) setBusy(false); }
+});
 
 async function fetchSource() {
   setBusy(true); message('Henter billedet…');
@@ -126,22 +240,32 @@ fileInput.addEventListener('change', () => { const file = fileInput.files?.[0]; 
 
 document.querySelector('#form').addEventListener('submit', async event => {
   event.preventDefault();
-  if (!prepared || busy) return;
+  if (!prepared || busy || saved) return;
+  if (!connected) { message('Forbind LUP i indstillingerne først.', true); return; }
   const shortName = name.value.trim();
   if (!/^[a-z0-9_-]{2,32}$/.test(shortName)) { message('Brug 2–32 små bogstaver, tal, _ eller - i navnet.', true); name.focus(); return; }
+  if (!altText.value.trim() || altText.value.length > 240) { message('Skriv en kort beskrivelse af billedet.', true); altText.focus(); return; }
   setBusy(true);
   try {
-    const bytes = new Uint8Array(await prepared.arrayBuffer());
+    const image = cropEditor ? await cropEditor.getBlob() : prepared;
+    const bytes = new Uint8Array(await image.arrayBuffer());
     let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
-    const response = await chrome.runtime.sendMessage({ type: 'prepare:continue', id, name: shortName, contentType: prepared.type, base64: btoa(binary) });
-    if (!response?.ok) throw new Error(response?.message || 'LUP.dk kunne ikke åbnes.');
-    message('LUP.dk er åbnet i en ny fane. Gennemgå felterne dér, og tryk Upload. Du kan lukke denne fane.');
-    continueButton.textContent = 'Åbnet på LUP.dk';
-    fileInput.disabled = true;
+    const response = await chrome.runtime.sendMessage({ type: 'prepare:upload', id, name: shortName, altText: altText.value.trim(), contentType: image.type, base64: btoa(binary) });
+    if (!response?.ok) throw new Error(response?.message || 'Emojien kunne ikke gemmes.');
+    saved = true;
+    message(`:${response.name}: er gemt i LUPs emojibibliotek. Du kan lukke denne fane.`);
+    continueButton.textContent = 'Emojien er gemt';
+    name.disabled = altText.disabled = true;
+    setBusy(false);
   } catch (error) { message(error.message, true); setBusy(false); }
 });
 
-window.addEventListener('unload', () => { if (previewUrl) URL.revokeObjectURL(previewUrl); });
+window.addEventListener('unload', () => {
+  backgroundSerial++;
+  const job = backgroundJob; backgroundJob = null;
+  if (job) void backgroundModule?.then(module => module.cancel(job)).catch(() => {});
+  cropEditor?.destroy();
+});
 
 async function start() {
   if (!validId(id)) { message('Billedkladden mangler. Højreklik på et billede for at begynde.', true); fileInput.disabled = true; return; }
@@ -153,6 +277,7 @@ async function start() {
       await new Promise(resolve => setTimeout(resolve, 250));
     }
     if (!response?.ok) throw new Error(response?.message || 'Billedkladden kunne ikke læses.');
+    await updateConnection();
     source = sourceUrl(response.srcUrl);
     if (!source) { message('Dette billede kan ikke hentes direkte. Gem billedet på computeren, og vælg filen nedenfor.', true); return; }
     await fetchSource();

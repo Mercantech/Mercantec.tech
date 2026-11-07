@@ -34,8 +34,15 @@
             string? importReturn = null;
             try
             {
+                await using var access = await JS.InvokeAsync<IJSObjectReference>("import", "./js/extension-access.js");
+                importReturn = await access.InvokeAsync<string?>("consumeLoginReturnPath");
+            }
+            catch (JSException) { }
+            try
+            {
                 await using var module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/lup-emoji-import.js");
-                importReturn = await module.InvokeAsync<string?>("consumeLoginReturnPath");
+                var emojiReturn = await module.InvokeAsync<string?>("consumeLoginReturnPath");
+                importReturn ??= emojiReturn;
             }
             catch (JSException) { }
             Nav.NavigateTo(importReturn ?? Redirect.PostLoginPath());

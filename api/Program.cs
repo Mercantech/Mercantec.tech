@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Integrations.Azure;
 using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Integrations.OpenAI;
@@ -168,6 +169,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddExtensionUpload(builder.Configuration);
 
 var corsOrigins = builder.Configuration["Cors:SpaOrigins"]?
     .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

@@ -10,6 +10,7 @@ WORKDIR /src/image-tools
 COPY image-tools/package.json image-tools/package-lock.json ./
 RUN npm ci
 COPY image-tools/ ./
+COPY extensions/lup/crop.mjs extensions/lup/crop.css /src/extensions/lup/
 RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build

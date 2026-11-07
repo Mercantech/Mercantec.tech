@@ -1,0 +1,200 @@
+@page "/extension"
+@using Mercantec.Tech.Web.Extensions
+@inject AuthService Auth
+@inject ExtensionAccessClient Access
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Chrome-udvidelse · LUP</PageTitle>
+
+<header class="page-title"><div><h1>LUP til Chrome</h1><p>Forbind udvidelsen, så du kan gemme emojis direkte fra billedvinduet.</p></div></header>
+@if (_error is not null) { <p class="callout" role="alert">@_error</p> }
+@if (_notice is not null) { <p class="callout" role="status">@_notice</p> }
+
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <section class="panel extension-panel">
+        <h2>Forbind din udvidelse</h2>
+        <p>Log ind med Mercantec Auth for at oprette din personlige adgang. Denne opsætning skal kun foretages én gang i hver browser.</p>
+        <button type="button" class="action" disabled="@_busy" @onclick="BeginLogin">Log ind og forbind udvidelsen</button>
+    </section>
+}
+else if (_state is null)
+{
+    @if (_error is null) { <p role="status">Henter adgang…</p> }
+    else { <button type="button" class="secondary" disabled="@_busy" @onclick="Reload">Prøv igen</button> }
+}
+else if (!_state.Enabled)
+{
+    <section class="panel extension-panel"><h2>Adgang er begrænset</h2><p>Direkte upload fra Chrome er kun tilgængelig for de godkendte konti. Det almindelige emojibibliotek følger fortsat dine normale LUP-rettigheder.</p><a href="/emojis">Åbn emojibiblioteket</a></section>
+}
+else
+{
+    <section class="panel extension-panel">
+        <h2>Opret forbindelse</h2>
+        <p>Opret en personlig nøgle, og indsæt den i indstillingerne i LUP-udvidelsen. Derefter kan du beskære og gemme en emoji uden at åbne LUP-siden.</p>
+        <label class="field">Navn på forbindelsen<input @bind="_label" maxlength="80" disabled="@_busy" placeholder="LUP i Chrome" /></label>
+        <button type="button" class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_label))" @onclick="Create">Opret personlig nøgle</button>
+        @if (_rawKey is not null)
+        {
+            <div class="extension-new-key" role="status">
+                <strong>Din nøgle er klar</strong>
+                <p>Kopiér den nu. Du kan ikke hente den igen efter genindlæsning.</p>
+                <label class="field">Personlig adgangsnøgle<input type="password" value="@_rawKey" readonly autocomplete="off" spellcheck="false" /></label>
+                <button type="button" class="secondary" disabled="@_busy" @onclick="Copy">Kopiér nøgle</button>
+                <p class="extension-hint">Åbn LUP-udvidelsens indstillinger, indsæt nøglen, og tryk Forbind. Nøglen giver kun adgang til at tilføje emojis. Den udløber efter 90 dage og kan tilbagekaldes nedenfor.</p>
+            </div>
+        }
+    </section>
+    <section class="panel extension-panel">
+        <h2>Dine forbindelser</h2>
+        @if (_state.Keys.Count == 0)
+        {
+            <p>Du har endnu ingen forbindelser.</p>
+        }
+        else
+        {
+            <ul class="extension-keys">
+            @foreach (var item in _state.Keys)
+            {
+                <li @key="item.Id">
+                    <div><strong>@item.Label</strong><p class="extension-hint">Oprettet @Date(item.CreatedAtUtc) · Udløber @Date(item.ExpiresAtUtc)</p>
+                        @if (item.RevokedAtUtc is not null) { <p class="extension-hint">Tilbagekaldt @Date(item.RevokedAtUtc.Value)</p> }
+                        else if (item.ExpiresAtUtc <= DateTimeOffset.UtcNow) { <p class="extension-hint">Udløbet</p> }
+                        else if (item.LastUsedAtUtc is not null) { <p class="extension-hint">Senest brugt @Date(item.LastUsedAtUtc.Value)</p> }
+                    </div>
+                    @if (item.RevokedAtUtc is null && item.ExpiresAtUtc > DateTimeOffset.UtcNow)
+                    { <button type="button" class="secondary" disabled="@_busy" @onclick="() => Revoke(item.Id)">Tilbagekald</button> }
+                </li>
+            }
+            </ul>
+        }
+        <p class="extension-hint">Tilbagekald en forbindelse, hvis en browser ikke længere skal kunne tilføje emojis. Andre LUP-funktioner og dit Mercantec-login berøres ikke.</p>
+    </section>
+}
+
+@code {
+    private readonly CancellationTokenSource _life = new();
+    private ExtensionAccessState? _state;
+    private string _label = "LUP i Chrome";
+    private string? _rawKey, _error, _notice, _subject;
+    private Guid? _newKeyId;
+    private IJSObjectReference? _module;
+    private bool _busy, _disposed;
+    private int _authGeneration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAuth;
+        if (Auth.IsInitialized && Auth.IsAuthenticated) { _subject = Auth.Subject; await Load(_authGeneration); }
+    }
+
+    private void OnAuth() => InvokeAsync(async () =>
+    {
+        if (_disposed) return;
+        if (!Auth.IsAuthenticated || _subject != Auth.Subject)
+        {
+            ++_authGeneration;
+            _rawKey = null; _newKeyId = null; _state = null; _error = _notice = null;
+            _busy = false;
+            _subject = Auth.Subject;
+        }
+        if (Auth.IsAuthenticated && _state is null) await Load(_authGeneration);
+        StateHasChanged();
+    });
+
+    private async Task Load(int generation)
+    {
+        try
+        {
+            var state = await Access.Get(_life.Token);
+            if (!_disposed && generation == _authGeneration && Auth.IsAuthenticated) _state = state;
+        }
+        catch (ExtensionAccessException error) { if (!_disposed && generation == _authGeneration) _error = error.Message; }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task<IJSObjectReference> Module()
+    {
+        var module = _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/extension-access.js");
+        if (!_disposed) return module;
+        await module.DisposeAsync();
+        throw new OperationCanceledException();
+    }
+
+    private async Task Reload()
+    {
+        if (_busy || _disposed || !Auth.IsAuthenticated) return;
+        var generation = _authGeneration;
+        _busy = true; _error = null;
+        try { await Load(generation); }
+        finally { if (!_disposed && generation == _authGeneration) _busy = false; }
+    }
+
+    private async Task BeginLogin()
+    {
+        if (_busy || _disposed) return;
+        _busy = true; _error = _notice = null;
+        try { await (await Module()).InvokeVoidAsync("prepareLogin"); await Auth.BeginLoginAsync(); }
+        catch (Exception error) when (error is JSException or HttpRequestException or InvalidOperationException or OperationCanceledException)
+        { if (!_disposed) { _busy = false; _error = "Login kunne ikke startes. Prøv igen."; } }
+    }
+
+    private async Task Create()
+    {
+        if (_busy || _disposed || _state?.Enabled != true) return;
+        var generation = _authGeneration;
+        _busy = true; _rawKey = null; _newKeyId = null; _error = _notice = null;
+        try
+        {
+            var created = await Access.Create(_label.Trim(), _life.Token);
+            if (_disposed || generation != _authGeneration || !Auth.IsAuthenticated) return;
+            _rawKey = created.Key; _newKeyId = created.Id;
+            await Load(generation);
+        }
+        catch (ExtensionAccessException error) { if (!_disposed && generation == _authGeneration) _error = error.Message; }
+        catch (OperationCanceledException) { }
+        finally { if (!_disposed && generation == _authGeneration) _busy = false; }
+    }
+
+    private async Task Copy()
+    {
+        if (_rawKey is null || _busy || _disposed) return;
+        try { await (await Module()).InvokeVoidAsync("copyKey", _rawKey); if (!_disposed) _notice = "Nøglen er kopieret. Indsæt den i LUP-udvidelsens indstillinger."; }
+        catch (Exception error) when (error is JSException or OperationCanceledException) { if (!_disposed) _error = "Nøglen kunne ikke kopieres automatisk. Markér nøglefeltet, og kopiér det manuelt."; }
+    }
+
+    private async Task Revoke(Guid id)
+    {
+        if (_busy || _disposed || _state?.Enabled != true) return;
+        var generation = _authGeneration;
+        _busy = true; _error = _notice = null;
+        try
+        {
+            await Access.Revoke(id, _life.Token);
+            if (_disposed || generation != _authGeneration || !Auth.IsAuthenticated) return;
+            if (_newKeyId == id) { _rawKey = null; _newKeyId = null; }
+            _notice = "Forbindelsen er tilbagekaldt.";
+            await Load(generation);
+        }
+        catch (ExtensionAccessException error) { if (!_disposed && generation == _authGeneration) _error = error.Message; }
+        catch (OperationCanceledException) { }
+        finally { if (!_disposed && generation == _authGeneration) _busy = false; }
+    }
+
+    private static string Date(DateTimeOffset date) => date.ToLocalTime().ToString("dd.MM.yyyy");
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true; ++_authGeneration;
+        _rawKey = null; _newKeyId = null; _state = null;
+        Auth.AuthStateChanged -= OnAuth;
+        _life.Cancel(); _life.Dispose();
+        if (_module is not null) { try { await _module.DisposeAsync(); } catch (JSException) { } }
+    }
+}

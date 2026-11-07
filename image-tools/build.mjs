@@ -30,6 +30,8 @@ await writeFile(modelPath, model);
 for (const filename of ['ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'ort-wasm-simd-threaded.wasm'])
     await copyFile(resolve(runtime, 'dist', filename), resolve(output, filename));
 await copyFile(resolve(directory, 'background-core.mjs'), resolve(output, 'background-core.mjs'));
+await copyFile(resolve(directory, '../extensions/lup/crop.mjs'), resolve(output, 'emoji-crop.mjs'));
+await copyFile(resolve(directory, '../extensions/lup/crop.css'), resolve(output, 'crop.css'));
 
 // Keep redistribution notices beside the generated binaries and model.
 for (const filename of ['U2NET-LICENSE.txt', 'REMBG-LICENSE.txt', 'ONNXRUNTIME-LICENSE.txt', 'ONNXRUNTIME-THIRD-PARTY-NOTICES.txt'])

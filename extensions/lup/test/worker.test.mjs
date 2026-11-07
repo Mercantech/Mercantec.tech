@@ -4,6 +4,8 @@ import { TTL_MS, JOB_TTL_MS } from '../core.mjs';
 
 const id = 'a1234567-89ab-4cde-8f01-23456789abcd';
 const records = new Map();
+const localRecords = new Map();
+const accessLevels = [];
 const createdTabs = [];
 const createdMenus = [];
 const listeners = {};
@@ -28,6 +30,12 @@ globalThis.chrome = {
     create: options => { createdMenus.push(clone(options)); },
   },
   storage: {
+    local: {
+      get: async key => localRecords.has(key) ? { [key]: clone(localRecords.get(key)) } : {},
+      set: async entries => { for (const [key, value] of Object.entries(entries)) localRecords.set(key, clone(value)); },
+      remove: async key => localRecords.delete(key),
+      setAccessLevel: async options => { accessLevels.push(clone(options)); },
+    },
     session: {
       get: async keys => {
         const names = keys === null ? [...records.keys()] : typeof keys === 'string' ? [keys] : keys;
@@ -46,11 +54,15 @@ globalThis.chrome = {
     },
   },
 };
-globalThis.fetch = () => { throw new Error('The handoff worker must not fetch images, API data, or auth tokens.'); };
+const unexpectedFetch = () => { throw new Error('This worker scenario must not make a network request.'); };
+globalThis.fetch = unexpectedFetch;
 const { handleMessage } = await import('../worker.mjs');
 
 beforeEach(() => {
   records.clear();
+  localRecords.clear();
+  accessLevels.length = 0;
+  globalThis.fetch = unexpectedFetch;
   createdTabs.length = 0;
   createdMenus.length = 0;
   removedMenus = 0;
@@ -82,6 +94,7 @@ test('installation creates exactly the Danish image-only context menu', async ()
   await listeners.installed();
   assert.equal(removedMenus, 1);
   assert.deepEqual(createdMenus, [{ id: 'lup-add-emoji', title: 'Tilføj som emoji på LUP.dk', contexts: ['image'] }]);
+  assert.deepEqual(accessLevels, [{ accessLevel: 'TRUSTED_CONTEXTS' }]);
 });
 
 const nextTurn = () => new Promise(resolve => setImmediate(resolve));
@@ -256,4 +269,145 @@ test('creating a pending draft removes expired storage entries and keeps a bound
   assert.equal(records.has('job:expired'), false);
   assert.equal([...records.keys()].filter(key => key.startsWith('pending:')).length, 8);
   assert.equal(records.has('pending:01234567-89ab-4cde-8f01-23456789abcd'), false);
+});
+
+// These are deliberately artificial fixture values, never real upload credentials.
+const accessKey = 'lup_' + 'A'.repeat(43);
+const replacementKey = 'lup_' + 'B'.repeat(43);
+const accessSlot = 'lup.upload.access';
+const popupSender = () => ({ url: extensionUrl('popup.html') });
+const statusResponse = changes => ({ connected: true, scope: 'emoji:create', email: 'teacher@example.test', ...changes });
+const jsonResponse = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
+const uploadMessage = changes => ({ type: 'prepare:upload', id, name: 'min_emoji', altText: 'En prøveemoji',
+  contentType: 'image/png', base64: 'iVBORw0KGgo=', ...changes });
+
+test('only the extension popup can inspect, replace or clear upload settings', async () => {
+  localRecords.set(accessSlot, accessKey);
+  for (const sender of [lupSender(), prepareSender(), {}, { url: 'chrome-extension://other-id/popup.html' },
+    { url: extensionUrl('prepare.html') }, { url: 'https://lup.dk/popup.html' }]) {
+    for (const type of ['settings:status', 'settings:save', 'settings:clear']) {
+      const result = await handleMessage({ type, key: replacementKey }, sender);
+      assert.equal(result.ok, false);
+      assert.equal(JSON.stringify(result).includes(accessKey), false);
+      assert.equal(localRecords.get(accessSlot), accessKey);
+    }
+  }
+});
+
+test('upload key saving requires well-formed credentials and a known server scope', async () => {
+  let requests = 0;
+  globalThis.fetch = async () => { requests++; return jsonResponse(statusResponse()); };
+  for (const key of ['', 'not-a-key', 'lup_' + 'A'.repeat(42), 'lup_' + 'A'.repeat(44), null])
+    assert.equal((await handleMessage({ type: 'settings:save', key }, popupSender())).ok, false);
+  assert.equal(requests, 0);
+  for (const state of [statusResponse({ scope: 'admin:*' }), statusResponse({ connected: false }), null]) {
+    globalThis.fetch = async () => jsonResponse(state);
+    assert.equal((await handleMessage({ type: 'settings:save', key: accessKey }, popupSender())).ok, false);
+    assert.equal(localRecords.has(accessSlot), false);
+  }
+});
+
+test('successful connection and status reveal identity/scope status without returning the credential', async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options) => { calls.push({ url, options }); return jsonResponse(statusResponse()); };
+  const saved = await handleMessage({ type: 'settings:save', key: '  ' + accessKey + '  ' }, popupSender());
+  assert.deepEqual(saved, { ok: true, connected: true, email: 'teacher@example.test' });
+  assert.equal(localRecords.get(accessSlot), accessKey);
+  const status = await handleMessage({ type: 'settings:status' }, popupSender());
+  assert.deepEqual(status, saved);
+  assert.equal(JSON.stringify([saved, status]).includes(accessKey), false);
+  for (const call of calls) {
+    assert.equal(call.url, 'https://lup.dk/api/extension/status');
+    assert.equal(call.options.headers.Authorization, 'Bearer ' + accessKey);
+    assert.equal(call.options.credentials, 'omit');
+    assert.equal(call.options.redirect, 'error');
+    assert.equal(call.options.referrerPolicy, 'no-referrer');
+  }
+  assert.deepEqual(await handleMessage({ type: 'settings:clear' }, popupSender()), { ok: true });
+  assert.equal(localRecords.has(accessSlot), false);
+});
+
+test('failed replacement key validation preserves a previously working local connection', async () => {
+  localRecords.set(accessSlot, accessKey);
+  globalThis.fetch = async () => jsonResponse({ error: 'extension_access_invalid' }, 401);
+  const result = await handleMessage({ type: 'settings:save', key: replacementKey }, popupSender());
+  assert.equal(result.ok, false);
+  assert.equal(localRecords.get(accessSlot), accessKey);
+  assert.equal(JSON.stringify(result).includes(replacementKey), false);
+  globalThis.fetch = async () => { throw new TypeError('Fixture connection failed'); };
+  assert.equal((await handleMessage({ type: 'settings:save', key: replacementKey }, popupSender())).ok, false);
+  assert.equal(localRecords.get(accessSlot), accessKey);
+});
+
+test('direct upload requires a bound valid source job and a configured credential', async () => {
+  records.set(`job:${id}`, job());
+  for (const sender of [prepareSender(8), lupSender(), popupSender(), {}])
+    assert.equal((await handleMessage(uploadMessage(), sender)).ok, false);
+  assert.equal((await handleMessage(uploadMessage(), prepareSender())).ok, false);
+  localRecords.set(accessSlot, 'invalid-local-value');
+  assert.equal((await handleMessage(uploadMessage(), prepareSender())).ok, false);
+  localRecords.set(accessSlot, accessKey);
+  records.set(`job:${id}`, job({ expiresAt: Date.now() - 1 }));
+  assert.equal((await handleMessage(uploadMessage(), prepareSender())).ok, false);
+  assert.equal(createdTabs.length, 0);
+});
+
+test('invalid direct image/metadata input does not send credentials or create a new tab', async () => {
+  records.set(`job:${id}`, job()); localRecords.set(accessSlot, accessKey);
+  for (const changes of [{ contentType: 'image/svg+xml' }, { base64: 'invalid' }, { name: '<script>' },
+    { altText: '' }, { altText: '   ' }, { altText: 'a'.repeat(241) }])
+    assert.equal((await handleMessage(uploadMessage(changes), prepareSender())).ok, false);
+  assert.equal(records.has(`job:${id}`), true); assert.equal(createdTabs.length, 0);
+});
+
+test('direct upload sends only the prepared bytes and metadata to the fixed API and removes the job after success', async () => {
+  records.set(`job:${id}`, job()); localRecords.set(accessSlot, accessKey);
+  let received;
+  globalThis.fetch = async (url, options) => {
+    received = { url, options };
+    assert.equal(options.method, 'POST');
+    assert.equal(options.credentials, 'omit'); assert.equal(options.cache, 'no-store');
+    assert.equal(options.redirect, 'error'); assert.equal(options.referrerPolicy, 'no-referrer');
+    assert.equal(options.headers.Authorization, 'Bearer ' + accessKey);
+    assert.deepEqual([...options.body.keys()].sort(), ['altText', 'category', 'file', 'name']);
+    assert.equal(options.body.get('name'), 'min_emoji');
+    assert.equal(options.body.get('altText'), 'En prøveemoji');
+    assert.equal(options.body.get('category'), 'custom');
+    const image = options.body.get('file');
+    assert.equal(image.name, 'min_emoji.png'); assert.equal(image.type, 'image/png');
+    assert.deepEqual(Buffer.from(await image.arrayBuffer()), Buffer.from(uploadMessage().base64, 'base64'));
+    return jsonResponse({ id: 'f34bc0d0-c04b-4f3c-a818-c73a3bff1524', name: 'min_emoji' });
+  };
+  const result = await handleMessage(uploadMessage(), prepareSender());
+  assert.equal(result.ok, true); assert.equal(result.name, 'min_emoji');
+  assert.equal(received.url, 'https://lup.dk/api/extension/emojis');
+  assert.equal(records.has(`job:${id}`), false); assert.equal(createdTabs.length, 0);
+  assert.equal(JSON.stringify(result).includes(accessKey), false);
+});
+
+test('server conflict, authorization failure, invalid response and network failure keep the editable job', async () => {
+  records.set(`job:${id}`, job()); localRecords.set(accessSlot, accessKey);
+  for (const fixture of [() => jsonResponse({ error: 'name_taken' }, 409),
+    () => jsonResponse({ error: 'extension_access_invalid' }, 401), () => jsonResponse({}),
+    () => { throw new TypeError('Fixture disconnected'); }]) {
+    globalThis.fetch = async () => fixture();
+    const result = await handleMessage(uploadMessage(), prepareSender());
+    assert.equal(result.ok, false); assert.equal(records.has(`job:${id}`), true); assert.equal(createdTabs.length, 0);
+    assert.equal(JSON.stringify(result).includes(accessKey), false);
+  }
+  // A later retry succeeds, proving the active guard is released after every failure.
+  globalThis.fetch = async () => jsonResponse({ id: 'success', name: 'min_emoji' });
+  assert.equal((await handleMessage(uploadMessage(), prepareSender())).ok, true);
+});
+
+test('parallel submit cannot create duplicate direct uploads for one editable job', async () => {
+  records.set(`job:${id}`, job()); localRecords.set(accessSlot, accessKey);
+  let release, calls = 0;
+  globalThis.fetch = () => { calls++; return new Promise(resolve => { release = resolve; }); };
+  const first = handleMessage(uploadMessage(), prepareSender());
+  await eventually(() => calls === 1);
+  assert.equal((await handleMessage(uploadMessage(), prepareSender())).ok, false);
+  assert.equal(calls, 1);
+  release(jsonResponse({ id: 'success', name: 'min_emoji' }));
+  assert.equal((await first).ok, true); assert.equal(records.has(`job:${id}`), false);
 });

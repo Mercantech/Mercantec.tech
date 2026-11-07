@@ -28,6 +28,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
         ConfigureNotionGroupsMedia(modelBuilder);
         ConfigurePreviews(modelBuilder);
         ConfigureEmojis(modelBuilder);
+        ConfigureExtensionUploads(modelBuilder);
         modelBuilder.Entity<PollRound>(e =>
         {
             e.ToTable("poll_rounds");
