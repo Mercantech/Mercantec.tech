@@ -16,7 +16,7 @@ public sealed class ActionCenterTests
     private static readonly Guid Resource = Guid.Parse("44444444-4444-4444-8444-444444444444");
     private static ActionCenterItem Item(string severity, string kind = "submission", int count = 1) => new(kind, severity, Hold, Workspace, null, Resource, null, "Opgave", "H3", null, count);
     private static Task<LearningUiTestContext> Context(Api api, bool teacher = false, bool preview = false) => LearningUiTestContext.CreateAsync(api, teacher, preview,
-        services => { services.AddSingleton<ActionCenterChanges>(); services.AddSingleton<ActionCenterService>(); });
+        NotificationDropdownTestSupport.Configure);
 
     [Theory]
     [InlineData("important", "important")]
@@ -27,9 +27,11 @@ public sealed class ActionCenterTests
         using var api = new Api { Items = severity == "empty" ? [] : [Item(severity)] };
         await using var context = await Context(api);
         var bell = context.Render<NotificationBell>();
-        bell.WaitForAssertion(() => Assert.Equal(expected, bell.Find("a").GetAttribute("data-status")));
-        Assert.StartsWith("Notifikationer:", bell.Find("a").GetAttribute("aria-label"));
-        Assert.Equal("/notifications", bell.Find("a").GetAttribute("href"));
+        bell.WaitForAssertion(() => Assert.Equal(expected, bell.Find("button.notification-bell").GetAttribute("data-status")));
+        Assert.StartsWith("Notifikationer:", bell.Find("button.notification-bell").GetAttribute("aria-label"));
+        Assert.Equal("false", bell.Find("button.notification-bell").GetAttribute("aria-expanded"));
+        Assert.False(string.IsNullOrWhiteSpace(bell.Find("button.notification-bell").GetAttribute("aria-controls")));
+        Assert.Null(bell.Find("button.notification-bell").GetAttribute("href"));
         Assert.Equal(1, api.Reads);
     }
 
@@ -108,7 +110,7 @@ public sealed class ActionCenterTests
         api.Items = [];
         context.ViewAs.Enter("student-lectio", "Elev", authSub: target);
         bell.WaitForAssertion(() => Assert.Equal($"me/actions?asUser={target}", api.LastPath));
-        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("a").GetAttribute("data-status")));
+        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("button.notification-bell").GetAttribute("data-status")));
         Assert.Equal(ActionCenterStatus.Clear, service.Status);
         Assert.Equal(0, service.OptionalCount);
         Assert.Equal(2, api.Reads);
@@ -129,7 +131,7 @@ public sealed class ActionCenterTests
         context.ViewAs.Enter("pupil", "Elev", authSub: target);
         gate.SetResult(true);
         await oldRequest;
-        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("a").GetAttribute("data-status")));
+        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("button.notification-bell").GetAttribute("data-status")));
         Assert.Equal($"me/actions?asUser={target}", api.LastPath);
         Assert.Equal(ActionCenterStatus.Clear, service.Status);
         Assert.Empty(service.Items);
@@ -153,11 +155,11 @@ public sealed class ActionCenterTests
         using var api = new Api { Items = [Item("optional", "poll")] };
         await using var context = await Context(api);
         var bell = context.Render<NotificationBell>();
-        bell.WaitForAssertion(() => Assert.Equal("optional", bell.Find("a").GetAttribute("data-status")));
+        bell.WaitForAssertion(() => Assert.Equal("optional", bell.Find("button.notification-bell").GetAttribute("data-status")));
         var client = new PollClient(context.Services.GetRequiredService<HttpClient>(), context.Services.GetRequiredService<ActionCenterChanges>());
         api.Items = [];
         await client.Answer(Resource, new PollAnswer(0, null));
-        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("a").GetAttribute("data-status")));
+        bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("button.notification-bell").GetAttribute("data-status")));
         Assert.Equal(2, api.Reads);
     }
 
