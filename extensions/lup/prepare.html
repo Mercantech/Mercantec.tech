@@ -9,6 +9,7 @@
   <header class="app-header">
     <div class="brand-lockup"><span class="brand">LUP</span><span class="brand-caption">Dit emojiværksted</span></div>
     <div class="header-actions">
+      <a class="icon-button" href="search.html" target="_blank" rel="noopener" aria-label="Søg efter billeder" title="Søg efter billeder"><img src="assets/icons/search.svg" alt=""></a>
       <span class="connection-pill" id="connection-wrap" data-state="loading"><span class="status-orb" aria-hidden="true"></span><span id="connection" role="status">Forbinder…</span></span>
       <a class="icon-button" href="popup.html" target="_blank" rel="noopener" aria-label="Forbindelse og indstillinger" title="Forbindelse og indstillinger"><img src="assets/icons/sliders-horizontal.svg" alt=""></a>
     </div>
@@ -27,6 +28,7 @@
       <p id="details" class="image-details"></p>
       <button id="permission" class="permission-button" hidden>Giv adgang til billedets hjemmeside</button>
       <details class="image-help"><summary>Om format og baggrund</summary><p>Baggrundsfjernelse foregår lokalt. Beskæring og baggrundsfjernelse giver et PNG-stillbillede. Vælg Brug original for at vende tilbage, også til en eventuel animation. Du kan også trække en billedfil ind i feltet ovenfor.</p></details>
+      <div class="source-credit" id="source-credit" hidden><div><span class="section-kicker">FUNDET VIA OPENVERSE</span><a id="source-title" target="_blank" rel="noopener noreferrer"></a><p id="source-creator"></p></div><a id="source-license" class="license-badge" target="_blank" rel="noopener noreferrer"></a></div>
     </section>
     <aside class="save-column">
       <section class="save-card" aria-labelledby="save-heading">
@@ -37,6 +39,7 @@
           <div class="field-label-row"><label class="field-label" for="alt-text">Beskrivelse</label><span id="description-count" class="field-counter" aria-hidden="true">0/240</span></div><textarea id="alt-text" rows="2" maxlength="240" required placeholder="Hvad viser din emoji?" aria-describedby="description-hint"></textarea><p class="field-hint" id="description-hint">Beskriv motivet, så alle kan være med.</p>
           <button id="continue" class="primary-button save-button" type="submit" disabled><span id="save-label">Gem emoji på LUP</span><img src="assets/icons/arrow-right.svg" alt=""></button>
           <p class="save-caption">Direkte til dit emojibibliotek. Du bliver her.</p>
+          <button id="back-to-search" class="back-to-search" type="button" hidden><img src="assets/icons/chevron-left.svg" alt="">Tilbage til søgningen</button>
         </form>
         <div id="status" class="feedback" role="status" aria-live="polite" data-kind="progress">Henter billedkladden…</div>
       </section>

@@ -1,11 +1,14 @@
 import { JOB_TTL_MS, TTL_MS, validId, sourceUrl, validDraft, validateDraftAccess, validateDraftCompletion } from './core.mjs';
+import { searchImages, normalizeSearchQuery, MAX_SEARCH_PAGE } from './image-search.mjs';
 
 const MENU_ID = 'lup-add-emoji';
 const MAX_PENDING = 8;
+const MAX_SEARCH_RESULTS = 200;
 const ACCESS_KEY = 'lup.upload.access';
 const KEY_PATTERN = /^lup_[A-Za-z0-9_-]{43}$/;
 const fail = (message, retry = false) => ({ ok: false, message, retry });
 const activeUploads = new Set();
+let imageJobQueue = Promise.resolve();
 const publicError = error => error instanceof TypeError ? 'LUP kunne ikke kontaktes. Kontrollér forbindelsen, og prøv igen.'
   : error?.name === 'TimeoutError' ? 'LUP svarede ikke i tide. Prøv igen senere.' : error?.message || 'Forbindelsen kunne ikke gennemføres.';
 
@@ -14,6 +17,67 @@ function ownPopup(sender) {
     const actual = new URL(sender.url), expected = new URL(chrome.runtime.getURL('popup.html'));
     return actual.protocol === expected.protocol && actual.host === expected.host && actual.pathname === expected.pathname;
   } catch { return false; }
+}
+
+function ownSearch(sender) {
+  if (!Number.isInteger(sender?.tab?.id) || sender.tab.id <= 0) return false;
+  try {
+    const actual = new URL(sender.url), expected = new URL(chrome.runtime.getURL('search.html'));
+    return actual.protocol === expected.protocol && actual.host === expected.host && actual.pathname === expected.pathname;
+  } catch { return false; }
+}
+
+function cachedSearchItem(value) {
+  if (!value || !validId(value.id) || !['cc0', 'pdm'].includes(value.license)
+    || typeof value.title !== 'string' || !value.title.trim() || value.title.length > 240
+    || typeof value.creator !== 'string' || value.creator.length > 240
+    || typeof value.licenseLabel !== 'string' || !value.licenseLabel.trim() || value.licenseLabel.length > 80) return null;
+  const thumbnailUrl = `https://api.openverse.org/v1/images/${value.id}/thumb/`;
+  const imageUrl = thumbnailUrl + '?full_size=true';
+  const attributionSource = sourceUrl(value.sourceUrl);
+  const licenseUrl = value.license === 'cc0'
+    ? 'https://creativecommons.org/publicdomain/zero/1.0/' : 'https://creativecommons.org/publicdomain/mark/1.0/';
+  if (value.thumbnailUrl !== thumbnailUrl || value.imageUrl !== imageUrl || value.licenseUrl !== licenseUrl || !attributionSource) return null;
+  return { id: value.id, title: value.title, creator: value.creator, license: value.license,
+    licenseLabel: value.licenseLabel, licenseUrl, sourceUrl: attributionSource.href, thumbnailUrl, imageUrl };
+}
+
+async function cacheSearchItems(items) {
+  await prune();
+  const expiresAt = Date.now() + JOB_TTL_MS;
+  const entries = Object.fromEntries(items.map(item => [`search:${item.id}`, { ...item, expiresAt }]));
+  if (items.length) await chrome.storage.session.set(entries);
+  const cached = Object.entries(await chrome.storage.session.get(null)).filter(([key]) => key.startsWith('search:'))
+    .sort((a, b) => a[1].expiresAt - b[1].expiresAt);
+  if (cached.length > MAX_SEARCH_RESULTS) await chrome.storage.session.remove(cached.slice(0, cached.length - MAX_SEARCH_RESULTS).map(([key]) => key));
+}
+
+async function searchMessage(message, sender) {
+  if (!ownSearch(sender)) return fail('Billedsøgning kan kun bruges fra LUP-udvidelsens søgeside.');
+  if (message.type === 'search:query') {
+    const query = normalizeSearchQuery(message.query);
+    if (!query || !Number.isInteger(message.page) || message.page < 1 || message.page > MAX_SEARCH_PAGE)
+      return fail('Skriv et søgeord, og vælg en gyldig resultatside.');
+    try {
+      const response = await searchImages(query, message.page);
+      const items = (Array.isArray(response.items) ? response.items : []).map(cachedSearchItem).filter(Boolean).slice(0, MAX_SEARCH_RESULTS);
+      await cacheSearchItems(items);
+      return { ok: true, query, page: message.page, items, nextPage: response.nextPage };
+    } catch (error) {
+      return fail(error instanceof TypeError ? 'Billedsøgningen kunne ikke kontaktes. Prøv igen senere.'
+        : error?.name === 'TimeoutError' ? 'Billedsøgningen svarede ikke i tide. Prøv igen.'
+          : error?.message || 'Billederne kunne ikke hentes. Prøv igen.');
+    }
+  }
+  if (message.type !== 'search:select' || !validId(message.resultId)) return fail('Vælg et billede fra søgeresultaterne.');
+  const stored = (await chrome.storage.session.get(`search:${message.resultId}`))[`search:${message.resultId}`];
+  const item = cachedSearchItem(stored);
+  if (!item || !Number.isFinite(stored.expiresAt) || stored.expiresAt <= Date.now()
+    || stored.expiresAt > Date.now() + JOB_TTL_MS) return fail('Søgeresultatet er udløbet. Søg efter billedet igen.');
+  try {
+    const { imageUrl, ...searchSource } = item;
+    return { ok: true, ...await openImageJob(imageUrl, searchSource, sender.tab.id) };
+  } catch { return fail('Billedvinduet kunne ikke åbnes. Prøv igen.'); }
 }
 
 async function apiRequest(path, key, init = {}) {
@@ -68,7 +132,7 @@ async function settingsMessage(message, sender) {
 
 async function prune() {
   const entries = await chrome.storage.session.get(null);
-  const obsolete = Object.entries(entries).filter(([key, item]) => /^(pending|job):/.test(key)
+  const obsolete = Object.entries(entries).filter(([key, item]) => /^(pending|job|search):/.test(key)
     && (!item || !Number.isFinite(item.expiresAt) || item.expiresAt <= Date.now())).map(([key]) => key);
   if (obsolete.length) await chrome.storage.session.remove(obsolete);
 }
@@ -88,14 +152,30 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 chrome.runtime.onStartup.addListener(() => { void prune(); });
 
-export async function openImageJob(srcUrl) {
+export function openImageJob(srcUrl, searchSource = null, searchTabId = null) {
+  // Multiple search tabs may select images at once. Keep pruning and creation
+  // together so concurrent selections cannot exceed the eight-job bound.
+  const operation = imageJobQueue.then(() => createImageJob(srcUrl, searchSource, searchTabId));
+  imageJobQueue = operation.catch(() => {});
+  return operation;
+}
+
+async function createImageJob(srcUrl, searchSource, searchTabId) {
   await makeRoom('job:');
   const id = crypto.randomUUID();
   const selected = sourceUrl(srcUrl);
   const job = { id, srcUrl: selected?.href ?? null, expiresAt: Date.now() + JOB_TTL_MS, prepareTabId: null };
+  if (searchSource) job.searchSource = searchSource;
+  if (searchSource && Number.isInteger(searchTabId) && searchTabId > 0) job.searchTabId = searchTabId;
   await chrome.storage.session.set({ [`job:${id}`]: job });
-  const tab = await chrome.tabs.create({ url: chrome.runtime.getURL(`prepare.html?job=${id}`) });
-  await chrome.storage.session.set({ [`job:${id}`]: { ...job, prepareTabId: tab.id } });
+  try {
+    const tab = await chrome.tabs.create({ url: chrome.runtime.getURL(`prepare.html?job=${id}`) });
+    await chrome.storage.session.set({ [`job:${id}`]: { ...job, prepareTabId: tab.id } });
+    return { id };
+  } catch {
+    await chrome.storage.session.remove(`job:${id}`);
+    throw new Error('Billedvinduet kunne ikke åbnes.');
+  }
 }
 
 chrome.contextMenus.onClicked.addListener((info) => {
@@ -115,13 +195,16 @@ function prepareSender(sender, id, job) {
 
 export async function handleMessage(message, sender) {
   if (typeof message?.type === 'string' && message.type.startsWith('settings:')) return settingsMessage(message, sender);
+  if (typeof message?.type === 'string' && message.type.startsWith('search:')) return searchMessage(message, sender);
   if (!message || typeof message !== 'object' || !validId(message.id)) return fail('Importen er ugyldig. Vælg billedet igen.');
   if (['prepare:get', 'prepare:continue', 'prepare:status', 'prepare:upload'].includes(message.type)) {
     const key = `job:${message.id}`;
     const job = (await chrome.storage.session.get(key))[key];
     if (job && job.prepareTabId === null && job.expiresAt > Date.now()) return fail('Forbereder…', true);
     if (!prepareSender(sender, message.id, job)) return fail('Billedkladden er udløbet. Højreklik på billedet igen.');
-    if (message.type === 'prepare:get') return { ok: true, srcUrl: job.srcUrl };
+    if (message.type === 'prepare:get') return { ok: true, srcUrl: job.srcUrl,
+      ...(job.searchSource ? { searchSource: job.searchSource } : {}),
+      ...(job.searchSource && Number.isInteger(job.searchTabId) && job.searchTabId > 0 ? { searchTabId: job.searchTabId } : {}) };
     if (message.type === 'prepare:status') return connectionStatus();
     if (message.type === 'prepare:upload') {
       const candidate = { id: message.id, name: message.name, contentType: message.contentType,

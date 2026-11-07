@@ -1,4 +1,4 @@
-# LUP til Chrome – version 0.3
+# LUP til Chrome – version 0.4
 
 Højreklik på et billede → **Tilføj som emoji på LUP.dk**. Udvidelsen
 åbner sit eget billedvindue. Vælg hele billedet eller et kvadratisk udsnit,
@@ -11,7 +11,7 @@ ved upload.
 1. Byg pakken med `scripts/Package-LupExtension.ps1` fra repository-roden.
    Scriptet installerer om nødvendigt de låste billedværktøjsafhængigheder
    og pakker runtime, model, licenser og udvidelse i
-   `.tools/lup-extension/LUP-0.3.0.zip`.
+   `.tools/lup-extension/LUP-0.4.0.zip`.
 2. Pak ZIP-filen ud. Åbn `chrome://extensions`, slå **Udviklertilstand** til,
    og vælg den udpakkede mappe med **Indlæs upakket**. Alternativt kan den
    byggede `extensions/lup`-mappe bruges direkte. Den skal blive liggende.
@@ -28,6 +28,45 @@ kan tilbagekaldes på samme side; det slår igennem ved næste API-kald.
 LUP.dk bruges, hvis nøglen også skal ophøre med at virke på serveren.
 Efter kildeændringer genindlæses udvidelsen i `chrome://extensions`.
 Udvidelsen er endnu ikke udgivet i Chrome Web Store.
+
+Ved opdatering pakkes filerne ud oven i den eksisterende udvidelsesmappe.
+Genindlæs derefter i `chrome://extensions`, så den samme Chrome-profil
+beholder sin personlige nøgle. Version 0.4 tilføjer adgang til Openverse.
+
+## Find nye billeder
+
+Skriv et søgeord i LUP-popupen, eller åbn søgeikonet i billedværkstedet.
+Søgningen henter nye billeder fra [Openverse](https://openverse.org) og
+viser kun resultater markeret **CC0** eller **Public domain**. Der kræves
+ingen ekstra API-nøgle. Engelske ord giver ofte flere resultater; forslagene
+Katte, Hunde, Robotter, Rummet og Blomster bruger engelske søgeord.
+
+Hvert resultat har titel, ophav, kildeside og licenslink. **Vælg billede**
+åbner den eksisterende beskæring og baggrundsfjernelse. **Gem emoji på LUP**
+er stadig den eneste handling, der uploader til biblioteket. Søgefane,
+forespørgsel, resultater og scroll bevares, og **Tilbage til søgningen**
+gør det nemt at vælge næste motiv. Oprettelsen bruger fortsat jeres
+eksisterende personlige uploadnøgler.
+
+Kildedata følger redigeringskladden og vises også efter beskæring. Vælges
+en anden lokal billedfil, fjernes de tidligere kildedata. Kilde- og
+licensoplysninger gemmes ikke permanent i LUPs emojidatabase.
+
+Søgninger sendes kun ved en søgehandling, med 20 resultater ad gangen og
+højst ti sider. Søgevisningen og højst 200 valgbare resultater gemmes
+midlertidigt i 30 minutter. Openverse har egne hastighedsgrænser, som vises
+som en fejl, hvis de nås. Søgesiden gendanner sin visning uden en ny søgning.
+
+Søgning og billeddownload sender aldrig LUP-nøglen, cookies eller referrer
+til Openverse. Thumbnail- og billedadresser konstrueres fra et kontrolleret
+UUID på den faste Openverse-host. Den fulde billedversion bruges først;
+en mindre forhåndsvisning prøves, hvis originalen ikke kan indlæses inden
+for udvidelsens billedgrænser. Det almindelige højreklik virker fortsat
+på andre hjemmesider med eventuel tilladelse til det valgte domæne.
+
+LUP er ikke godkendt eller certificeret af Openverse. Se
+[API-dokumentation](https://api.openverse.org/v1/) og
+[vilkår](https://docs.openverse.org/terms_of_service).
 
 ## Beskæring og baggrund
 

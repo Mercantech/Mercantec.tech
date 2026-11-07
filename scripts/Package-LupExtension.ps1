@@ -20,7 +20,7 @@ foreach ($lupImageFile in @('ort.wasm.min.mjs', 'ort-wasm-simd-threaded.mjs', 'o
 foreach ($lupRuntimeFile in @('emoji-background.js', 'emoji-background-worker.js')) {
     Copy-Item -LiteralPath (Join-Path $lupRepository "web/wwwroot/js/$lupRuntimeFile") -Destination (Join-Path $lupExtension $lupRuntimeFile) -Force
 }
-$lupPackageFiles = @('manifest.json', 'worker.mjs', 'core.mjs', 'content.js', 'prepare.html', 'prepare.mjs', 'popup.html', 'popup.mjs', 'style.css', 'crop.mjs', 'crop.css', 'emoji-background.js', 'emoji-background-worker.js')
+$lupPackageFiles = @('manifest.json', 'worker.mjs', 'core.mjs', 'content.js', 'prepare.html', 'prepare.mjs', 'popup.html', 'popup.mjs', 'style.css', 'crop.mjs', 'crop.css', 'emoji-background.js', 'emoji-background-worker.js', 'image-search.mjs', 'search.html', 'search.mjs', 'search.css')
 $lupPackagePaths = foreach ($lupPackageFile in $lupPackageFiles) {
     $lupPackagePath = Join-Path $lupExtension $lupPackageFile
     if (-not (Test-Path -LiteralPath $lupPackagePath -PathType Leaf)) { throw "Missing extension file: $lupPackageFile" }

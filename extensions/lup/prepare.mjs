@@ -1,5 +1,6 @@
 import { MAX_BYTES, MAX_DOWNLOAD_BYTES, MAX_PIXELS, MIME_TYPES, sourceUrl, originPattern, sanitizeName, validId } from './core.mjs';
 import { createCropEditor } from './crop.mjs';
+import { normalizeSearchImage } from './image-search.mjs';
 
 const status = document.querySelector('#status');
 const name = document.querySelector('#name');
@@ -16,6 +17,7 @@ let source = null, prepared = null, cropEditor = null, busy = false, editedName 
 let originalSource = null, originalPrepared = null, originalFileName = '', originalNote = '';
 let backgroundEdited = false, cropActive = false, backgroundJob = null, backgroundSerial = 0, backgroundModule = null;
 let uploading = false, previewRevision = 0, previewTimer = null, previewUrl = null;
+let searchSource = null, sourceMetadata = null, searchTabId = null;
 name.addEventListener('input', () => { editedName = true; });
 name.addEventListener('input', () => { if (!editedAlt) altText.value = name.value.replaceAll('_', ' '); updateMetadataPreview(); });
 altText.addEventListener('input', () => { editedAlt = true; updateMetadataPreview(); });
@@ -168,7 +170,7 @@ async function adaptImage(blob) {
   } finally { bitmap.close(); }
 }
 
-async function prepare(blob, fileName) {
+async function prepare(blob, fileName, metadata = null) {
   const previousGeneration = generation, previousEditor = cropEditor;
   const current = ++generation;
   if (!prepared) {
@@ -179,20 +181,24 @@ async function prepare(blob, fileName) {
   setBusy(true); message('Klargør billedet…', false, 'progress');
   try {
     const result = await adaptImage(blob);
-    if (current !== generation) return;
-    if (!await installImage(blob, result, fileName, current)) return;
+    if (current !== generation) return false;
+    if (!await installImage(blob, result, fileName, current, metadata)) return false;
+    searchSource = metadata;
+    updateSourceCredit();
     originalSource = blob; originalPrepared = result.blob; originalFileName = fileName; originalNote = result.note;
     backgroundEdited = false;
     message('Billedet er klar. Vælg udsnit og zoom, og gem emojien herfra.');
+    return true;
   } catch (error) {
     if (current !== generation) return;
     if (previousEditor === cropEditor) generation = previousGeneration;
     message(`${error.message || 'Billedet kunne ikke læses.'}${prepared ? ' Dit tidligere billede er bevaret.' : ''}`, true);
+    return false;
   }
   finally { if (current === generation || previousGeneration === generation) setBusy(false); }
 }
 
-async function installImage(blob, result, fileName, current) {
+async function installImage(blob, result, fileName, current, metadata = searchSource) {
   const previous = cropEditor;
   const editor = await createCropEditor(document.querySelector('#crop-editor'), blob, state => {
     if (current !== generation) return;
@@ -216,12 +222,29 @@ async function installImage(blob, result, fileName, current) {
   document.querySelector('#preview-wrap').hidden = false;
   document.querySelector('#empty-preview').hidden = true;
   if (!editedName) name.value = sanitizeName(fileName);
-  if (!editedAlt) altText.value = name.value.replaceAll('_', ' ');
+  if (!editedAlt) altText.value = metadata?.title || name.value.replaceAll('_', ' ');
   updateMetadataPreview(); requestPreview();
   permissionButton.hidden = true;
   refreshImageActions();
   return true;
 }
+
+function updateSourceCredit() {
+  document.querySelector('#source-credit').hidden = !searchSource;
+  if (!searchSource) return;
+  const title = document.querySelector('#source-title');
+  title.textContent = searchSource.title; title.href = searchSource.sourceUrl;
+  document.querySelector('#source-creator').textContent = searchSource.creator ? `Af ${searchSource.creator}` : 'Se ophav og detaljer på kildesiden.';
+  const license = document.querySelector('#source-license');
+  license.textContent = `Markeret ${searchSource.licenseLabel}`; license.href = searchSource.licenseUrl;
+}
+
+document.querySelector('#back-to-search').addEventListener('click', async () => {
+  if (Number.isInteger(searchTabId) && searchTabId > 0) {
+    try { await chrome.tabs.update(searchTabId, { active: true }); return; } catch { /* The original tab may have been closed. */ }
+  }
+  await chrome.tabs.create({ url: chrome.runtime.getURL('search.html') });
+});
 
 async function imageDataUrl(blob) {
   let binary = '';
@@ -289,25 +312,35 @@ originalButton.addEventListener('click', async () => {
   finally { if (current === generation) setBusy(false); }
 });
 
-async function fetchSource() {
+async function fetchSource(metadata = sourceMetadata) {
   setBusy(true); message('Henter billedet…', false, 'progress');
   try {
     const pattern = originPattern(source.href);
     // activeTab can grant temporary access after the user's context-menu click.
     const granted = await chrome.permissions.contains({ origins: [pattern] });
-    let blob;
+    let blob, fallback = false;
     try { blob = await boundedImageFetch(source.href); }
     catch (error) {
+      if (metadata) {
+        fallback = true;
+        blob = await boundedImageFetch(metadata.thumbnailUrl);
+      } else {
       if (!granted && error instanceof TypeError) {
         permissionButton.hidden = false;
         permissionButton.textContent = `Giv adgang til ${source.host}`;
         throw new Error('Chrome har brug for adgang til billedets hjemmeside. Giv adgang nedenfor, eller vælg en lokal fil.');
       }
       throw error;
+      }
     }
-    let filename = source.pathname.split('/').at(-1) || 'emoji';
+    let filename = metadata?.title || source.pathname.split('/').at(-1) || 'emoji';
     try { filename = decodeURIComponent(filename); } catch { /* A malformed URL filename does not invalidate decoded image pixels. */ }
-    await prepare(blob, filename);
+    const ready = await prepare(blob, filename, metadata);
+    if (!ready && metadata && !fallback) {
+      setBusy(true);
+      message('Klargør en mindre udgave af billedet…', false, 'progress');
+      await prepare(await boundedImageFetch(metadata.thumbnailUrl), filename, metadata);
+    }
   } catch (error) { message(error.name === 'AbortError' ? 'Billedserveren svarede ikke i tide. Vælg en lokal fil.'
     : error instanceof TypeError ? 'Billedet kunne ikke hentes. Gem billedet og vælg filen nedenfor.' : error.message, true); }
   finally { setBusy(false); }
@@ -381,6 +414,11 @@ async function start() {
     }
     if (!response?.ok) throw new Error(response?.message || 'Billedkladden kunne ikke læses.');
     await updateConnection();
+    sourceMetadata = normalizeSearchImage(response.searchSource);
+    if (Number.isInteger(response.searchTabId) && response.searchTabId > 0) {
+      searchTabId = response.searchTabId;
+      document.querySelector('#back-to-search').hidden = false;
+    }
     source = sourceUrl(response.srcUrl);
     if (!source) { message('Dette billede kan ikke hentes direkte. Gem billedet på computeren, og vælg filen nedenfor.', true); return; }
     await fetchSource();

@@ -85,6 +85,18 @@ function draft(changes = {}) {
 const prepareSender = (tabId = 7, url = extensionUrl(`prepare.html?job=${id}`)) => ({ url, tab: { id: tabId } });
 const lupSender = (tabId = 42, url = `https://lup.dk/emojis?lupImport=${id}`) => ({ url, tab: { id: tabId } });
 const prepareMessage = changes => ({ type: 'prepare:continue', id, name: 'min_emoji', contentType: 'image/png', base64: 'YQ==', ...changes });
+const searchId = 'c1234567-89ab-4cde-8f01-23456789abcd';
+const searchSender = (tabId = 81, url = extensionUrl('search.html')) => ({ url, tab: { id: tabId } });
+const searchItem = changes => ({ id: searchId, title: 'En glad kat', creator: 'Fixturefotograf', license: 'cc0',
+  licenseLabel: 'CC0', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+  sourceUrl: 'https://commons.wikimedia.org/wiki/File:Cat.jpg',
+  thumbnailUrl: `https://api.openverse.org/v1/images/${searchId}/thumb/`,
+  imageUrl: `https://api.openverse.org/v1/images/${searchId}/thumb/?full_size=true`, ...changes });
+const cachedSearch = changes => ({ ...searchItem(), expiresAt: Date.now() + JOB_TTL_MS - 1000, ...changes });
+const rawSearchItem = changes => ({ id: searchId, title: 'En glad kat', creator: 'Fixturefotograf', license: 'cc0',
+  license_url: 'https://creativecommons.org/publicdomain/zero/1.0/', foreign_landing_url: 'https://commons.wikimedia.org/wiki/File:Cat.jpg',
+  url: 'https://images.example.test/cat.jpg', thumbnail: 'https://images.example.test/cat-thumb.jpg',
+  width: 640, height: 480, ...changes });
 
 test('worker installs its entry-point listeners synchronously', () => {
   for (const name of ['installed', 'startup', 'message', 'clicked']) assert.equal(typeof listeners[name], 'function');
@@ -410,4 +422,132 @@ test('parallel submit cannot create duplicate direct uploads for one editable jo
   assert.equal(calls, 1);
   release(jsonResponse({ id: 'success', name: 'min_emoji' }));
   assert.equal((await first).ok, true); assert.equal(records.has(`job:${id}`), false);
+});
+
+test('only the exact extension search page can query or select a public image', async () => {
+  records.set(`search:${searchId}`, cachedSearch()); localRecords.set(accessSlot, accessKey);
+  for (const sender of [lupSender(), prepareSender(), popupSender(), {}, searchSender(0), searchSender(-1),
+    searchSender(81, 'chrome-extension://other-id/search.html'), searchSender(81, 'https://lup.dk/search.html'),
+    searchSender(81, extensionUrl('search.html/')), { url: extensionUrl('search.html') }]) {
+    for (const message of [{ type: 'search:query', query: 'cat', page: 1 }, { type: 'search:select', resultId: searchId }]) {
+      const result = await handleMessage(message, sender);
+      assert.equal(result.ok, false);
+      assert.equal(JSON.stringify(result).includes(accessKey), false);
+    }
+  }
+  assert.equal(createdTabs.length, 0); assert.equal(localRecords.get(accessSlot), accessKey);
+});
+
+test('invalid search inputs never request the provider or mutate image jobs', async () => {
+  for (const message of [{ type: 'search:query', query: '', page: 1 }, { type: 'search:query', query: '   ', page: 1 },
+    { type: 'search:query', query: null, page: 1 }, { type: 'search:query', query: 'cat', page: 0 },
+    { type: 'search:query', query: 'cat', page: 11 }, { type: 'search:query', query: 'cat', page: 1.5 },
+    { type: 'search:query', query: 'cat', page: '1' }, { type: 'search:select', resultId: 'not-a-uuid' },
+    { type: 'search:unknown' }]) assert.equal((await handleMessage(message, searchSender())).ok, false);
+  assert.equal(records.size, 0); assert.equal(createdTabs.length, 0);
+});
+
+test('public image search sends no LUP authorization, caches normalized items and returns no credential', async () => {
+  localRecords.set(accessSlot, accessKey); let requests = 0;
+  globalThis.fetch = async (url, options = {}) => {
+    requests++; const actual = new URL(url);
+    assert.equal(actual.origin, 'https://api.openverse.org'); assert.equal(actual.pathname, '/v1/images/');
+    assert.equal(actual.searchParams.get('q'), 'cat'); assert.equal(actual.searchParams.get('page'), '1');
+    assert.equal(new Headers(options.headers).has('authorization'), false);
+    assert.equal(options.credentials, 'omit');
+    return jsonResponse({ results: [rawSearchItem()], result_count: 1, page_count: 1, page: 1, next: null });
+  };
+  const response = await handleMessage({ type: 'search:query', query: '  cat  ', page: 1 }, searchSender());
+  assert.equal(response.ok, true); assert.equal(response.query, 'cat'); assert.equal(response.page, 1);
+  assert.equal(response.items.length, 1); assert.equal(response.items[0].id, searchId);
+  assert.equal(response.items[0].imageUrl, searchItem().imageUrl);
+  assert.equal(JSON.stringify(response).includes(accessKey), false);
+  assert.equal(requests, 1); assert.equal(createdTabs.length, 0);
+  const cached = records.get(`search:${searchId}`);
+  assert.equal(cached.id, searchId); assert(cached.expiresAt > Date.now());
+  assert(cached.expiresAt <= Date.now() + JOB_TTL_MS);
+});
+
+test('search selection opens an existing bound crop job from cached provider identity, never page-supplied URLs', async () => {
+  records.set(`search:${searchId}`, cachedSearch()); localRecords.set(accessSlot, accessKey);
+  const localGet = chrome.storage.local.get;
+  chrome.storage.local.get = async () => { throw new Error('Search must not inspect the upload credential.'); };
+  let response;
+  try {
+    response = await handleMessage({ type: 'search:select', resultId: searchId, imageUrl: 'https://attacker.test/private.png' }, searchSender());
+  } finally { chrome.storage.local.get = localGet; }
+  assert.equal(response.ok, true); assert.equal(createdTabs.length, 1);
+  const stored = records.get(`job:${response.id}`);
+  assert.equal(stored.srcUrl, searchItem().imageUrl); assert.equal(stored.prepareTabId, createdTabs[0].id);
+  assert.equal(createdTabs[0].url, extensionUrl(`prepare.html?job=${response.id}`));
+  const { imageUrl, ...metadata } = searchItem();
+  assert.deepEqual(stored.searchSource, metadata);
+  assert.equal(stored.searchTabId, 81);
+  assert.equal(JSON.stringify(response).includes(accessKey), false);
+  assert.equal(localRecords.get(accessSlot), accessKey); assert.equal(records.has(`search:${searchId}`), true);
+  const sender = { url: createdTabs[0].url, tab: { id: createdTabs[0].id } };
+  const prepared = await handleMessage({ type: 'prepare:get', id: response.id }, sender);
+  assert.deepEqual(prepared.searchSource, metadata); assert.equal(prepared.srcUrl, imageUrl);
+  assert.equal(prepared.searchTabId, 81);
+  for (const untrusted of [searchSender(), lupSender(), { ...sender, tab: { id: sender.tab.id + 1 } }]) {
+    const denied = await handleMessage({ type: 'prepare:get', id: response.id }, untrusted);
+    assert.equal(denied.ok, false); assert.equal(denied.searchSource, undefined);
+    assert.equal(denied.searchTabId, undefined);
+  }
+});
+
+test('expired, unrecorded or tampered search entries cannot open a crop job', async () => {
+  for (const changes of [{ expiresAt: Date.now() - 1 }, { expiresAt: Date.now() + JOB_TTL_MS + 10000 },
+    { expiresAt: 'tomorrow' }, { license: 'by' }, { imageUrl: 'https://attacker.test/image.png' },
+    { imageUrl: 'http://api.openverse.org/v1/images/' + searchId + '/thumb/?full_size=true' },
+    { thumbnailUrl: 'https://attacker.test/thumb.jpg' }, { licenseUrl: 'https://attacker.test/license' },
+    { sourceUrl: 'javascript:alert(1)' }, { sourceUrl: 'https://user:password@example.test/' }]) {
+    records.set(`search:${searchId}`, cachedSearch(changes));
+    assert.equal((await handleMessage({ type: 'search:select', resultId: searchId }, searchSender())).ok, false);
+  }
+  records.delete(`search:${searchId}`);
+  assert.equal((await handleMessage({ type: 'search:select', resultId: searchId }, searchSender())).ok, false);
+  assert.equal(createdTabs.length, 0); assert.equal([...records.keys()].some(key => key.startsWith('job:')), false);
+});
+
+test('a failed image tab creation removes its unbound job and preserves the cached search result for retry', async () => {
+  records.set(`search:${searchId}`, cachedSearch());
+  createHook = async () => { throw new Error('Fixture tab unavailable'); };
+  const result = await handleMessage({ type: 'search:select', resultId: searchId }, searchSender());
+  assert.equal(result.ok, false); assert.equal([...records.keys()].some(key => key.startsWith('job:')), false);
+  assert.equal(records.has(`search:${searchId}`), true);
+  createHook = null;
+  assert.equal((await handleMessage({ type: 'search:select', resultId: searchId }, searchSender())).ok, true);
+});
+
+test('search result storage is bounded to 200 and prunes expired entries without evicting the latest response', async () => {
+  for (let i = 0; i < 201; i++) records.set(`search:old-${i}`, { expiresAt: Date.now() + 1000 + i });
+  records.set('search:expired', { expiresAt: Date.now() - 1 });
+  globalThis.fetch = async () => jsonResponse({ results: [rawSearchItem()], result_count: 1, page_count: 1, page: 1, next: null });
+  assert.equal((await handleMessage({ type: 'search:query', query: 'cat', page: 1 }, searchSender())).ok, true);
+  assert.equal([...records.keys()].filter(key => key.startsWith('search:')).length, 200);
+  assert.equal(records.has('search:expired'), false); assert.equal(records.has('search:old-0'), false);
+  assert.equal(records.has(`search:${searchId}`), true);
+});
+
+test('repeated search selections retain a bounded eight image jobs while preserving search results', async () => {
+  records.set(`search:${searchId}`, cachedSearch());
+  for (let i = 0; i < 10; i++) assert.equal((await handleMessage({ type: 'search:select', resultId: searchId }, searchSender())).ok, true);
+  assert.equal(createdTabs.length, 10); assert.equal([...records.keys()].filter(key => key.startsWith('job:')).length, 8);
+  assert.equal(records.has(`search:${searchId}`), true);
+});
+
+test('provider failures preserve previous cached results and never disclose the local upload credential', async () => {
+  records.set(`search:${searchId}`, cachedSearch()); localRecords.set(accessSlot, accessKey);
+  globalThis.fetch = async () => { throw new TypeError('Fixture disconnected'); };
+  const response = await handleMessage({ type: 'search:query', query: 'cat', page: 1 }, searchSender());
+  assert.equal(response.ok, false); assert.equal(records.has(`search:${searchId}`), true);
+  assert.equal(JSON.stringify(response).includes(accessKey), false); assert.equal(localRecords.get(accessSlot), accessKey);
+});
+
+test('concurrent search selections cannot race past the eight editable image job bound', async () => {
+  records.set(`search:${searchId}`, cachedSearch());
+  const results = await Promise.all(Array.from({ length: 12 }, () => handleMessage({ type: 'search:select', resultId: searchId }, searchSender())));
+  assert(results.every(result => result.ok)); assert.equal(createdTabs.length, 12);
+  assert.equal([...records.keys()].filter(key => key.startsWith('job:')).length, 8);
 });

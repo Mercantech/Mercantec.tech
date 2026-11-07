@@ -18,6 +18,12 @@
     <p class="subtitle">Beskær, fjern baggrunden og gem direkte i LUP.</p>
   </section>
 
+  <form class="popup-image-search" action="search.html" method="get" target="_blank">
+    <label class="visually-hidden" for="image-query">Søg efter billeder</label>
+    <input id="image-query" name="q" type="search" minlength="2" maxlength="100" placeholder="Søg efter billeder…" required autocomplete="off">
+    <button type="submit" aria-label="Søg efter billeder"><img src="assets/icons/search.svg" alt=""></button>
+  </form>
+
   <section class="connection-card" data-state="loading" aria-labelledby="connection-heading">
     <span class="status-orb" aria-hidden="true"></span>
     <div class="connection-copy">
@@ -28,11 +34,8 @@
   </section>
 
   <section id="ready-guide" class="popup-ready" aria-labelledby="ready-heading" hidden>
-    <h2 id="ready-heading" class="section-kicker">Sådan gør du</h2>
-    <ol class="quick-steps">
-      <li><span class="step-number" aria-hidden="true">1</span><div><strong>Find et billede, du kan lide</strong><p>Højreklik, og vælg <b>Tilføj som emoji på LUP.dk</b>.</p></div></li>
-      <li><span class="step-number" aria-hidden="true">2</span><div><strong>Gør det til dit eget</strong><p>Vælg udsnit, tilpas baggrunden og gem. Du bliver i billedvinduet.</p></div></li>
-    </ol>
+    <h2 id="ready-heading" class="section-kicker">Har du allerede fundet et billede?</h2>
+    <p class="popup-context-hint">Højreklik på det, og vælg <b>Tilføj som emoji på LUP.dk</b>. Så åbner dit billedværksted.</p>
   </section>
 
   <details id="connection-settings" class="connection-settings" open>
