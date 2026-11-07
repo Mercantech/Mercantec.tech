@@ -73,6 +73,6 @@ test('drag handle menu opens the existing AI helper on the block', () => {
   assert.match(helper, /selectionTextForAi/);
   assert.match(helper, /anchoredApplyMode/);
   assert.match(editor, /OpenAiOnBlockProvider/);
-  assert.match(editor, /blockPlainText/);
+  assert.match(editor, /captureAiTarget/);
   assert.match(editor, /anchorText=\{aiAnchor\?\.text \?\? null\}/);
 });

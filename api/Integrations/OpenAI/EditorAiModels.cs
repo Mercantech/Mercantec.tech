@@ -10,7 +10,10 @@ public sealed record EditorAiRequest(
     string? PageTitle = null,
     string? HoldId = null,
     IReadOnlyList<EditorAiPageRef>? Pages = null,
-    IReadOnlyList<EditorAiMemberRef>? Members = null);
+    IReadOnlyList<EditorAiMemberRef>? Members = null,
+    IReadOnlyList<EditorAiTurn>? History = null);
+
+public sealed record EditorAiTurn(string Role, string Text);
 
 public sealed record EditorAiPageRef(string Id, string Title);
 

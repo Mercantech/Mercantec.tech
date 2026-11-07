@@ -188,6 +188,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+var editorAiOptions = app.Services.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+var editorAiModel = string.IsNullOrWhiteSpace(editorAiOptions.Model) ? "gpt-6-luna" : editorAiOptions.Model.Trim();
+var editorAiModelLabel = editorAiModel.Length <= 80 && editorAiModel.StartsWith("gpt-", StringComparison.Ordinal)
+    && editorAiModel.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.')
+        ? editorAiModel : "custom";
+app.Logger.LogInformation("Editor AI configuration: configured={Configured}; model={Model}",
+    editorAiOptions.IsConfigured, editorAiModelLabel);
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

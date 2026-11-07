@@ -16,8 +16,8 @@ import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionBlockTypeSelect, NotionDragHandleMenu } from './turn-into';
-import { blockPlainText } from './ai-block-text';
 import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
+import { captureAiTarget, type AiTarget } from './ai-conversation';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type PlatformEmoji } from './emoji-picker';
@@ -317,20 +317,18 @@ function ConnectedEditor({session}:{session:Session}) {
   const emojiPanelId=useId();
   const closeEmoji=()=>{setEmojiOpen(false);emojiTrigger.current?.focus({preventScroll:true});};
   const [aiOpen,setAiOpen]=useState(false);
-  const [aiAnchor,setAiAnchor]=useState<{id:string;text:string}|null>(null);
+  const [aiAnchor,setAiAnchor]=useState<AiTarget|null>(null);
   const openAi=(blockId?:string)=>{
     if(!canEdit(session))return;
-    if(!blockId){setAiAnchor(null);setAiOpen(true);return;}
-    const block=editor.getBlock(blockId);
-    if(!block)return;
-    if(block.content!==undefined){
-      editor.focus();
-      try{editor.setTextCursorPosition(block,'end');}catch{/* Void blocks have no caret. */}
-    }
-    setAiAnchor({id:block.id,text:blockPlainText(block)});
+    const snapshot=captureAiTarget(editor,blockId);
+    if(blockId && !snapshot)return;
+    setAiAnchor(snapshot);
     setAiOpen(true);
   };
-  const onAiOpenChange=(open:boolean)=>{setAiOpen(open);if(!open)setAiAnchor(null);};
+  const onAiOpenChange=(open:boolean)=>{
+    if(open && (!aiAnchor || !editor.getBlock(aiAnchor.id)))setAiAnchor(captureAiTarget(editor));
+    setAiOpen(open);
+  };
   const placeEmoji=(item:CustomEmojiRecord)=>{
     if(!canEdit(session))return;
     editor.focus();
@@ -419,7 +417,7 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('mermaidDiagram')} disabled={!enabled}>Diagram</button>
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
-      <button type="button" onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
+      <button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
       <button ref={emojiTrigger} type="button" onClick={()=>{if(!emojiOpen)reloadEmojis();setEmojiOpen(open=>!open);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
@@ -438,6 +436,8 @@ function ConnectedEditor({session}:{session:Session}) {
         onOpenChange={onAiOpenChange}
         anchorBlockId={aiAnchor?.id ?? null}
         anchorText={aiAnchor?.text ?? null}
+        target={aiAnchor}
+        onCaptureContext={()=>setAiAnchor(captureAiTarget(editor))}
       />
     )}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}

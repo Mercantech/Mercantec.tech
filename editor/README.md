@@ -44,10 +44,20 @@ WebSocket: same-origin /collaboration?schemaVersion=5, room notion:<pageId>. A m
 - /diagram (aliases: mermaid, flowchart): a platform-themed Mermaid preview with **Diagram**/**Kode** controls in the draft and **Kopiér** for the raw source. Double-click also opens source editing.
 - /callout: highlighted note (info / tip / warning / important).
 - /kodeblok: The language button opens a searchable picker (C#, cURL, JS/TS, Python, …). The **#** button toggles line numbers per block. **Kopiér** copies the source text. Default language is C#.
-- /ai (toolbar **AI**): teacher-only OpenAI helper — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).
+- /ai (toolbar **AI**): opens the floating writing assistant — generate blocks, rewrite selection, or Mermaid via `POST /api/ai/editor` (API proxy; `OPENAI_API_KEY` never in the browser). Default model `gpt-6-luna` (`OPENAI_MODEL`).
 - Drag handle ▤ → **Omdan til** (H1–H3, citat, lister, kode, diagram, callout, læringsmål), **AI** (samme hjælper på den blok, med blokkens tekst som udgangspunkt) or **Slet**. The selection toolbar uses the same conversion. The block's raw text or markdown is copied into the new format (code, callout, paragraph, Mermaid `source`, and the other text blocks).
 
 Each custom block stores schemaVersion1. Add future schema migrations deliberately; never seed collaborative initialContent independently in each browser. Editing pauses on connection loss and pending edits stay in memory in the open tab. A beforeunload listener warns before losing unpersisted local edits. No persistent offline editing is enabled.
+
+## Personlig skriveassistent
+
+Den lilla maskot åbner assistenten i siden af editoren. Værktøjslinjens **AI**, `/ai` og blokkens AI-menu åbner samme samtale. Assistenten er tilgængelig under redigering for undervisere; udgivet indhold og elevvisning viser den ikke.
+
+Svar vises som forslag, der kan følges op i samtalen. Dokumentet ændres først ved **Indsæt** eller **Erstat**. Udgangspunktet fastholdes, når skrivefeltet får fokus, og et forslag må ikke erstatte en blok eller markering, som siden er ændret eller slettet. Indsatte ændringer følger editorens normale fortrydelse.
+
+Minimering bevarer den aktuelle samtale og kladden til beskeden. Samtalen holdes kun i editorens aktuelle side-session, ikke i localStorage eller databasen. Hvert API-kald bruger højst de seneste seks gyldige `history`-beskeder (`user`/`assistant`) á 4000 tegn, ud over den aktuelle instruktion og den eksisterende afgrænsede sidekontekst.
+
+Serverens startup-log angiver kun, om OpenAI er konfigureret, samt det aktive modelnavn. Nøgler bliver aldrig logget. Modelvalget er fortsat [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna), den effektive lavprismodel i den aktuelle GPT-6-serie; kontrollér [aktuelle priser](https://developers.openai.com/api/docs/pricing), før standarden ændres.
 
 ## Browser QA fixture
 

@@ -14,6 +14,8 @@ public sealed class OpenAiEditorClient(
 {
     public const int MaxPromptChars = 4000;
     public const int MaxSelectionChars = 8000;
+    public const int MaxHistoryTurns = 6;
+    public const int MaxHistoryTurnChars = 4000;
 
     /// <summary>
     /// Komponentkataloget i editor-block-prompt.txt sendes med hvert kald.
@@ -100,11 +102,7 @@ public sealed class OpenAiEditorClient(
             temperature = 0.4,
             max_completion_tokens = 3500,
             response_format = new { type = "json_object" },
-            messages = new object[]
-            {
-                new { role = "system", content = BuildSystemPrompt(action) },
-                new { role = "user", content = UserPrompt(action, prompt, selection, request) }
-            }
+            messages = BuildMessages(action, prompt, selection, request)
         };
 
         var http = httpClientFactory.CreateClient("openai");
@@ -138,12 +136,26 @@ public sealed class OpenAiEditorClient(
     }
 
     public static string BuildSystemPrompt(string? action) =>
-        BlockCatalog + "\n\n" + NormalizeAction(action) switch
+        BlockCatalog + "\n\n" + (NormalizeAction(action) switch
         {
             "mermaid" => "Opgaven er præcis ét mermaidDiagram. props.source er gyldig Mermaid uden forklaring og uden kodehegn.",
-            "rewrite" => "Opgaven er at omskrive markeringen til blokke. Returnér ikke mermaidDiagram.",
-            _ => "Opgaven er at generere nye blokke ud fra instruktionen."
-        };
+            "rewrite" => "Opgaven er at omskrive markeringen til blokke. Bevar mening, fakta og relevant formattering, medmindre brugeren beder om andet. Returnér ikke mermaidDiagram.",
+            _ => "Opgaven er at foreslå nye blokke ud fra brugerens aktuelle instruktion og den relevante samtalehistorik."
+        });
+
+    private static IReadOnlyList<object> BuildMessages(string action, string prompt, string selection, EditorAiRequest request)
+    {
+        var messages = new List<object> { new { role = "system", content = BuildSystemPrompt(action) } };
+        // The caller may supply dialogue context, never another system/developer instruction.
+        var history = (request.History ?? [])
+            .Where(turn => turn is not null && !string.IsNullOrWhiteSpace(turn.Text)
+                && turn.Role?.Trim().ToLowerInvariant() is "user" or "assistant")
+            .TakeLast(MaxHistoryTurns);
+        foreach (var turn in history)
+            messages.Add(new { role = turn.Role.Trim().ToLowerInvariant(), content = Truncate(turn.Text.Trim(), MaxHistoryTurnChars) });
+        messages.Add(new { role = "user", content = UserPrompt(action, prompt, selection, request) });
+        return messages;
+    }
 
     public static string NormalizeAction(string? action) =>
         (action ?? "").Trim().ToLowerInvariant() switch

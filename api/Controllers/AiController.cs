@@ -8,7 +8,7 @@ namespace Mercantec.Tech.Api.Controllers;
 [ApiController, Authorize, Route("api/ai")]
 public sealed class AiController(OpenAiEditorClient openAi) : ControllerBase
 {
-    /// <summary>Underviser-AI til forløbseditoren: generér, omskriv eller Mermaid via OpenAI-proxy.</summary>
+    /// <summary>Skriveassistent til forløbseditoren med afgrænset samtalekontekst: generér, omskriv eller Mermaid.</summary>
     [HttpPost("editor")]
     public async Task<IActionResult> Editor([FromBody] EditorAiRequest? body, CancellationToken ct)
     {
