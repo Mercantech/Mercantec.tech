@@ -1,7 +1,7 @@
 @using Mercantec.Tech.Web.Public
 @if (PublicCatalog.FindBadge(BadgeId) is { } badge)
 {
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><a href="/badges">Badges og krav</a><span>›</span><span aria-current="page">@badge.Name</span></nav>
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/library?category=badges">Bibliotek</a><span>›</span><a href="/badges">Badges og krav</a><span>›</span><span aria-current="page">@badge.Name</span></nav>
     <header class="page-title"><div><h1>@badge.Name</h1><p>@badge.Description</p></div></header>
     <div class="cols"><article class="panel"><h2>@(badge.Special ? "Krav" : "Krav for hvert niveau")</h2>
         @if (badge.Special)

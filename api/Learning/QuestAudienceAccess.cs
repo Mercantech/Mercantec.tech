@@ -7,6 +7,13 @@ namespace Mercantec.Tech.Api.Learning;
 /// <summary>One audience rule used by quest reads, assignment starts, and the teacher's expected roster.</summary>
 public sealed class QuestAudienceAccess(AppDbContext db)
 {
+    /// <summary>Current assignments only; historical read access is not a new obligation.</summary>
+    public IQueryable<LearningQuest> AssignedTo(IQueryable<LearningQuest> quests, Guid sub) => quests.Where(q => q.Published
+        && db.Memberships.Any(m => m.HoldId == q.HoldId && m.UserSub == sub)
+        && (q.AudienceMode == "hold"
+            || q.AudienceMode == "students" && db.QuestAudienceMemberships.Any(a => a.QuestId == q.Id && a.Membership.UserSub == sub && a.Membership.HoldId == q.HoldId)
+            || q.AudienceMode == "groups" && db.QuestAudienceGroups.Any(a => a.QuestId == q.Id && a.Group.HoldId == q.HoldId && a.Group.Members.Any(m => m.Membership.UserSub == sub && m.Membership.HoldId == q.HoldId))));
+
     public IQueryable<LearningQuest> Readable(IQueryable<LearningQuest> quests, Guid sub) => quests.Where(q => q.Published
         && db.Memberships.Any(m => m.HoldId == q.HoldId && m.UserSub == sub)
         && (q.AudienceMode == "hold"

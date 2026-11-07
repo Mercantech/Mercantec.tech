@@ -1,37 +1,42 @@
 @page "/notifications"
-@using Mercantec.Tech.Web.Navigation
+@using Mercantec.Tech.Web.Activity
 
 <PageTitle>Notifikationer · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikationer</h1><p>Log ind for at se opfølgning på dine hold.</p></div></header><a class="action" href="/login">Log ind</a> }
+else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikationer</h1><p>Log ind for at se dine handlinger.</p></div></header><a class="action" href="/login">Log ind</a> }
 else
 {
-    <header class="page-title"><div><h1>Notifikationer</h1><p>Aktuelle handlinger på dine hold.</p></div><button type="button" class="secondary" disabled="@_loading" @onclick="Refresh"><UiIcon Name="loop" />Opdatér</button></header>
-    @if (_loading) { <p class="panel" role="status">Henter oplysninger fra dine hold…</p> }
-    else
-    {
-        @if (_holdError is not null) { <p class="notification-error" role="alert">@_holdError</p> }
-        @if (_pollError is not null) { <p class="notification-error" role="alert">@_pollError</p> }
-        @if (ViewAs.IsActive) { <p class="notification-note" role="note">Holdene følger den valgte elev. Personlig svarstatus for afstemninger kræver elevens egen konto.</p> }
-        @if (_previewWithoutAccount) { <section class="panel"><h2>Eleven er ikke koblet til en LUP-konto</h2><p>Der kan derfor ikke hentes personlige hold og notifikationer.</p></section> }
+    <div class="action-center">
+        <header class="page-title"><div><h1>Notifikationer</h1><p>Dine afstemninger og afleveringer på tværs af hold.</p></div><button type="button" class="secondary" disabled="@Actions.IsLoading" @onclick="Refresh"><UiIcon Name="loop" />Opdatér</button></header>
+        @if (ViewAs.IsActive) { <p class="notification-note">Viser status for @ViewAs.DisplayName på de hold, du underviser.</p> }
+        @if (Actions.Error is not null)
+        {
+            <section class="notification-error" role="alert"><UiIcon Name="shield" /><div><h2>Status kunne ikke hentes</h2><p>@Actions.Error</p></div><button class="secondary" disabled="@Actions.IsLoading" @onclick="Refresh">Prøv igen</button></section>
+        }
+        else if (Actions.Snapshot is null)
+        {
+            <p class="panel" role="status">Henter dine afstemninger og afleveringer…</p>
+        }
         else
         {
-            @if (IsTeacher)
+            <section class="notification-summary @Actions.Status.ToString().ToLowerInvariant()" aria-label="Din samlede status">
+                <span class="summary-symbol" aria-hidden="true"><UiIcon Name="@(Actions.Status == ActionCenterStatus.Clear ? "check" : "target")" /></span>
+                <div><h2>@Actions.Label</h2><p>@(Actions.Status == ActionCenterStatus.Clear ? "Du har ingen ubesvarede afstemninger eller afleveringer, der kræver din handling." : "Åbn en handling for at svare, aflevere eller give feedback.")</p></div>
+            </section>
+            @foreach (var severity in new[] { "important", "optional" })
             {
-                <section class="panel notification-section"><h2>Afleveringer til vurdering</h2>
-                    @foreach (var workspace in ReviewWorkspaces) { <a class="notification-row" href="@WorkspaceNavigation.View(workspace.CourseId, "submissions", status: "submitted")"><span class="notification-mark"><UiIcon Name="check" /></span><span><strong>@workspace.Name</strong><small>@workspace.PendingReviews @(workspace.PendingReviews == 1 ? "aflevering venter" : "afleveringer venter") på vurdering</small></span><span aria-hidden="true">›</span></a> }
-                    @if (!ReviewWorkspaces.Any() && _holdError is null) { <p>Der er ingen afleveringer til vurdering på de tilgængelige hold.</p> }
-                </section>
+                var rows = Items(severity).ToArray();
+                @if (rows.Length > 0)
+                {
+                    <section class="notification-section @severity" aria-labelledby="@($"actions-{severity}")"><div class="notification-heading"><span class="status-dot" aria-hidden="true"></span><h2 id="@($"actions-{severity}")">@(severity == "important" ? "Vigtigt" : "Det kan du gøre")</h2><span>@rows.Sum(i => Math.Max(1, i.Count))</span></div>
+                        @foreach (var item in rows)
+                        {
+                            <a class="notification-row" href="@Href(item)"><span class="notification-mark"><UiIcon Name="@Icon(item)" /></span><div class="notification-copy"><small>@item.HoldName</small><h3>@item.Title</h3><p>@KindLabel(item)@if (item.DeadlineUtc is DateTimeOffset deadline) { <span> · Frist @DateLabel(deadline)</span> }</p></div><span class="notification-open">@(item.Kind == "poll" ? "Svar" : item.Kind == "review" ? "Giv feedback" : "Åbn opgave") <span aria-hidden="true">›</span></span></a>
+                        }
+                    </section>
+                }
             }
-            @if (!ViewAs.IsActive)
-            {
-                <section class="panel notification-section"><h2>@(IsTeacher ? "Åbne afstemninger" : "Afstemninger, du mangler at besvare")</h2>
-                    @foreach (var poll in VisiblePolls) { <a class="notification-row" href="@PollHref(poll)"><span class="notification-mark"><UiIcon Name="chart" /></span><span><strong>@poll.Question</strong><small>@poll.HoldName</small></span><span aria-hidden="true">›</span></a> }
-                    @if (!VisiblePolls.Any() && _pollError is null && _holdError is null) { <p>@(IsTeacher ? "Der er ingen åbne afstemninger på de tilgængelige hold." : "Der er ingen åbne afstemninger, du mangler at svare på.")</p> }
-                </section>
-            }
-            @if (_workspaces.Count == 0 && _holdError is null) { <p class="notification-note">Der er ingen tilgængelige hold at vise.</p> }
-            <div class="actions"><a class="secondary" href="/courses">Mine hold</a></div>
+            <div class="notification-footer"><a href="/courses">Mine hold</a><p>Rød: vigtigt. Orange: kan gøres. Grøn: intet mangler.</p></div>
         }
-    }
+    </div>
 }

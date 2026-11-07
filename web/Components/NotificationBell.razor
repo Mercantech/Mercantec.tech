@@ -1,0 +1,16 @@
+@using Mercantec.Tech.Web.Activity
+@inject ActionCenterService Actions
+@inject NavigationManager Nav
+@implements IDisposable
+
+<a class="notification-bell" href="/notifications" aria-label="@($"Notifikationer: {Actions.Label}")" title="@Actions.Label" aria-busy="@Actions.IsLoading.ToString().ToLowerInvariant()" data-status="@Actions.Status.ToString().ToLowerInvariant()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M12 2v1" /></svg>
+    <span class="notification-indicator" aria-hidden="true"></span>
+</a>
+@code {
+    protected override void OnInitialized() { Actions.Changed += StatusChanged; Nav.LocationChanged += LocationChanged; }
+    protected override Task OnAfterRenderAsync(bool firstRender) => firstRender ? Actions.EnsureAsync() : Task.CompletedTask;
+    private void StatusChanged() => _ = InvokeAsync(StateHasChanged);
+    private void LocationChanged(object? sender, LocationChangedEventArgs args) => _ = Actions.RefreshAsync();
+    public void Dispose() { Actions.Changed -= StatusChanged; Nav.LocationChanged -= LocationChanged; }
+}

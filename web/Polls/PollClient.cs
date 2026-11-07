@@ -1,9 +1,10 @@
 using System.Net.Http.Json;
+using Mercantec.Tech.Web.Activity;
 using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Web.Polls;
 
-public sealed class PollClient(HttpClient http)
+public sealed class PollClient(HttpClient http, ActionCenterChanges? actionChanges = null)
 {
     public Task<List<PollHold>> Holds(CancellationToken ct = default) => Get<List<PollHold>>("polls/holds", ct);
     public Task<List<PollView>> List(CancellationToken ct = default) => Get<List<PollView>>("polls", ct);
@@ -25,7 +26,9 @@ public sealed class PollClient(HttpClient http)
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(15));
         using var response = await http.PostAsJsonAsync(path, body, timeout.Token);
-        return await Read<PollView>(response, timeout.Token);
+        var result = await Read<PollView>(response, timeout.Token);
+        actionChanges?.Notify();
+        return result;
     }
     private static async Task<T> Read<T>(HttpResponseMessage response, CancellationToken ct)
     {

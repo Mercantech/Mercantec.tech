@@ -10,7 +10,7 @@
 {
     @if (PublicCatalog.FindProject(ProjectId) is { } project)
     {
-        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><a href="/explore/projects">Projekter</a><span>›</span><span aria-current="page">@project.Name</span></nav>
+        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/library?category=projects">Bibliotek</a><span>›</span><a href="/explore/projects">Projekter</a><span>›</span><span aria-current="page">@project.Name</span></nav>
         <header class="page-title"><div><span class="pill">DEMO</span><h1>@project.Name</h1><p>@project.Description</p></div></header>
         <div class="public-content-columns"><article class="article"><img class="public-project-image" src="lup/assets/@project.Cover" alt="@project.Name" width="960" height="540" /><h2>Projektet</h2><ul class="goals">@foreach (var feature in project.Features) { <li>@feature</li> }</ul><p class="public-demo-note">Dette er et projekteksempel fra undervisningen.</p></article><aside class="panel"><h2>Teknologier og emner</h2><ul class="goals">@foreach (var technology in project.Technologies) { <li>@technology</li> }</ul><a href="@CourseTemplateCatalog.Find(project.CourseSlug)!.Path">Se forløbet</a></aside></div>
     }
@@ -18,13 +18,13 @@
 }
 else if (SubjectId is null)
 {
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><span aria-current="page">Fag og emner</span></nav>
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/library?category=subjects">Bibliotek</a><span>›</span><span aria-current="page">Fag og emner</span></nav>
     <header class="page-title"><div><h1>Fag og emner</h1></div></header>
     <div class="subject-grid">@foreach (var subject in PublicCatalog.Subjects) { <a class="subject-card" href="@subject.Path"><span class="subject-icon"><UiIcon Name="@subject.Icon" /></span><div><h2>@subject.Name</h2><p>@subject.Description</p></div></a> }</div>
 }
 else if (Subject is not null && (LessonId is null || Lesson is not null))
 {
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/">Forside</a><span>›</span><a href="/subjects">Fag og emner</a><span>›</span>@if (Lesson is not null) { <a href="@Subject.Path">@Subject.Name</a><span>›</span> }<span aria-current="page">@(Lesson?.Name ?? Subject.Name)</span></nav>
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/library?category=subjects">Bibliotek</a><span>›</span><a href="/subjects">Fag og emner</a><span>›</span>@if (Lesson is not null) { <a href="@Subject.Path">@Subject.Name</a><span>›</span> }<span aria-current="page">@(Lesson?.Name ?? Subject.Name)</span></nav>
     <header class="page-title"><div><h1>@(Lesson?.Name ?? Subject.Name)</h1><p>@(Lesson?.Lead ?? Subject.Description)</p></div></header>
     <div class="course-document"><aside class="course-toc"><h2>@Subject.Name</h2><a href="@Subject.Path">Om faget</a>@foreach (var lesson in PublicCatalog.Lessons(Subject)) { <a class="@(lesson.Id == LessonId ? "current" : null)" href="@(Subject.Path + "/" + lesson.Id)">@lesson.Name</a> }<a href="@Subject.Plan.Path">@Subject.Plan.Short · Undervisningsplan</a></aside><article class="article">
         @if (Lesson is not null) { <h2>@Lesson.Name</h2><p>@Lesson.Body</p><h3>Mål</h3><p>@Lesson.Goal</p> }

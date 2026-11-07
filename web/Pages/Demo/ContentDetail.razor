@@ -7,7 +7,7 @@
 @implements IDisposable
 <PageTitle>@Title · LUP</PageTitle>
 @if (!Auth.IsInitialized) { <p>Indlæser…</p> }
-else if (!Auth.IsAuthenticated && BadgeId is not null) { <PublicBadgeRequirements BadgeId="@BadgeId" /> }
+else if (BadgeId is not null) { <PublicBadgeRequirements BadgeId="@BadgeId" /> }
 else if (!Auth.IsAuthenticated) { <p>Du skal være logget ind. <a href="/login">Log ind</a></p> }
 else if (Quest is not null) {
     <CourseNavigation Course="Course!" Current="@Quest.Name" />
@@ -16,14 +16,6 @@ else if (Quest is not null) {
     <div class="cols"><article class="article"><h2>Opgaven</h2><p>@Quest.Desc</p><h3>Det skal du vise</h3><p>Vis dit arbejde, forklar dine vigtigste valg, og dokumentér, at løsningen kan afprøves.</p><div class="v3-reward-line"><UiIcon Name="star" />100 XP <span>+</span><i class="v3-gold-dot"></i>20 guld ved godkendelse</div>
     <div class="actions"><button type="button" class="secondary v4-done-button" aria-pressed="@DemoWorld.Pressed(World.IsDone(Quest.Id))" @onclick="() => World.ToggleDone(Quest.Id)">@(World.IsDone(Quest.Id) ? "✓ Udført" : "Markér udført")</button><button type="button" class="action" disabled title="Aflevering bliver tilgængelig, når quests er tilkoblet forløbet">Lav aflevering</button><a class="secondary" href="/quests?course=@Quest.Course">Alle forløbets quests</a></div></article><aside class="panel"><h2>Din aflevering</h2><span class="pill orange">Ikke afleveret</span><p>Dit svar og underviserens feedback er private. Et projekt i galleriet oprettes særskilt.</p><h3>Forløb</h3><p><a href="/learning/@Quest.Course">@Course.Name</a></p></aside></div>
 }
-else if (Badge is not null) {
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/badges">Badgekatalog</a><span>›</span><span aria-current="page">@Badge.Name</span></nav>
-    <section class="badge-detail-hero"><div><span class="pill">@Badge.Topic</span><h1>@Badge.Name</h1><p>@Badge.Desc</p><span class="@(Badge.Rank > 0 ? "v2-owned" : "v2-missing")">@(Badge.Rank > 0 ? "✓ " + Badge.RankName + " opnået" : "Ikke opnået endnu")</span></div><BadgeMark Rank="Badge.Rank" Icon="@Badge.Icon" /></section>
-    <div class="cols"><article class="panel"><h2>@(Badge.Special ? "Sådan opnår du badget" : "Fem trin i din udvikling")</h2>
-    @if (Badge.Special) { <p>@Badge.Desc</p><p>Aftal kriteriet med din underviser. Badget åbner for særligt tøj i butikken.</p> }
-    else { @for (var i = 0; i < 5; i++) { <section class="v2-rank"><span class="rank-dot @(i < Badge.Rank ? "achieved" : "")">@(i < Badge.Rank ? "✓" : i + 1)</span><div><h3>@DemoCatalog.RankNames[i]</h3><p>@DemoCatalog.RankCriteria[i]</p><small class="muted">@(i < Badge.Rank ? "Opnået" : i == Badge.Rank ? "Dit næste skridt" : "Ikke opnået endnu")</small></div></section> } }
-    </article><aside class="panel"><h2>Arbejd videre</h2><p>Et badge viser din forståelse af et emne. Du og underviseren vurderer dit næste niveau sammen.</p><div class="actions"><a class="secondary" href="/learning">Find fagligt indhold</a><a class="secondary" href="/universe/unlocks">Se oplåsninger</a></div></aside></div>
-}
 
 else { <div class="empty"><h1>Siden findes ikke</h1><a href="/learning">Tilbage til min læring</a></div> }
 @code {
@@ -31,8 +23,7 @@ else { <div class="empty"><h1>Siden findes ikke</h1><a href="/learning">Tilbage 
     [Parameter] public string? BadgeId { get; set; }
     private DemoCatalog.Quest? Quest => DemoCatalog.Quests.FirstOrDefault(q => q.Id == QuestId);
     private DemoCatalog.Course? Course => DemoCatalog.Courses.FirstOrDefault(c => c.Id == Quest?.Course);
-    private DemoCatalog.Badge? Badge => DemoCatalog.Badges.FirstOrDefault(b => b.Id == BadgeId);
-    private string Title => Quest?.Name ?? Badge?.Name ?? "Indhold";
+    private string Title => Quest?.Name ?? Mercantec.Tech.Web.Public.PublicCatalog.FindBadge(BadgeId)?.Name ?? "Indhold";
     public override Task SetParametersAsync(ParameterView parameters) { QuestId = null; BadgeId = null; return base.SetParametersAsync(parameters); }
     protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; World.Changed += OnAuth; if (Auth.IsAuthenticated) await World.EnsureAsync(); }
     private void OnAuth() => InvokeAsync(StateHasChanged);

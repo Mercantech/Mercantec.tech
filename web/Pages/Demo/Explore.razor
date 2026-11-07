@@ -40,6 +40,7 @@ else if (PathKey == "search")
 }
 else if (PathKey == "explore/projects")
 {
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/library?category=projects">Bibliotek</a><span>›</span><span aria-current="page">Offentlige projekter</span></nav>
     <header class="page-title"><div><h1>Offentlige projekter</h1><p>Projekteksemplerne er markeret DEMO.</p></div>@if (Auth.IsAuthenticated) { <a class="secondary" href="/projects/mine">Mine projekter</a> }</header><PublicProjectGallery />
     @if (Auth.IsAuthenticated) { <div class="headrow"><h2>Delt i holdets galleri</h2></div><ProjectGallery /> }
 }
@@ -49,7 +50,7 @@ else if (PathKey == "explore/modules")
 }
 else if (PathKey == "badges")
 {
-    @if (Auth.IsAuthenticated) { <header class="page-title"><div><h1>Badgekatalog</h1></div><a class="secondary" href="/progress/badges">Mine badges</a></header><BadgeGallery /> } else { <PublicBadgeCatalog /> }
+    <PublicBadgeCatalog ShowCollectionLink="Auth.IsAuthenticated" />
 }
 else if (PathKey == "help")
 {

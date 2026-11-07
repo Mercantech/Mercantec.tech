@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Mercantec.Tech.Web.Activity;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace Mercantec.Tech.Web.Learning;
 
-public sealed class LearningClient(HttpClient http)
+public sealed class LearningClient(HttpClient http, ActionCenterChanges? actionChanges = null)
 {
     public const long MaxFileBytes = 100 * 1024 * 1024;
 
@@ -64,7 +65,9 @@ public sealed class LearningClient(HttpClient http)
     {
         using var request = new HttpRequestMessage(method, url) { Content = JsonContent.Create(body) };
         using var response = await http.SendAsync(request, ct);
-        return await Read<T>(response, ct);
+        var result = await Read<T>(response, ct);
+        actionChanges?.Notify();
+        return result;
     }
 
     private static async Task<T> Read<T>(HttpResponseMessage response, CancellationToken ct)

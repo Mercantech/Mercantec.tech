@@ -1,28 +1,151 @@
 @page "/library"
-@using Mercantec.Tech.Web.Theming
+@using Mercantec.Tech.Web.Public
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject LearningContext CourseContext
 @inject IJSRuntime Js
+@inject NavigationManager Nav
 
 <PageTitle>Bibliotek · LUP</PageTitle>
-<header class="page-title"><div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter og badgekrav.</p></div><a class="secondary" href="/search"><UiIcon Name="search" />Søg i biblioteket</a></header>
-<div class="library-grid">
-    <NavigationCard Href="/courses/template" Title="Undervisningsplaner" Description="Mål, indhold og ugeplaner for hovedforløb og valgfag." Icon="book" />
-    <NavigationCard Href="/subjects" Title="Fag og emner" Description="Faglige beskrivelser og materialer til undervisningen." Icon="code" />
-    <NavigationCard Href="/explore/projects" Title="Offentlige projekter" Description="Udvalgte projektpræsentationer. Projekteksempler er markeret DEMO." Icon="folder" />
-    <NavigationCard Href="/badges" Title="Badges og krav" Description="Kravene for de enkelte badges og deres niveauer." Icon="star" />
+<div class="library">
+    <header class="library-intro">
+        <div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter og badgekrav.</p></div>
+        <form class="library-search" role="search" @onsubmit="Search" @onsubmit:preventDefault>
+            <label class="visually-hidden" for="library-search">Søg i biblioteket</label>
+            <UiIcon Name="search" />
+            <input id="library-search" type="search" value="@_query" @oninput="UpdateSearch" placeholder="Søg efter fx API, Arduino eller game design" maxlength="200" />
+            @if (IsSearching) { <button type="button" @onclick="ClearSearch">Ryd</button> }
+        </form>
+    </header>
+    <div class="library-categories" role="group" aria-label="Indhold i biblioteket">
+        @foreach (var category in Categories)
+        {
+            <button type="button" aria-pressed="@(IsCurrent(category.Id) ? "true" : "false")" aria-controls="library-content" @onclick="() => SelectCategory(category.Id)"><UiIcon Name="@category.Icon" /><span>@category.Name</span><span class="library-count">@CategoryCount(category.Id)</span></button>
+        }
+    </div>
+    <div id="library-content" class="library-content">
+        @if (IsSearching)
+        {
+            <div class="library-section-heading"><div><h2>Søgeresultater</h2><p role="status">@VisibleHits.Count() @(VisibleHits.Count() == 1 ? "resultat" : "resultater") for “@_query.Trim()”@(SearchCategoryName is string name ? " i " + name : "")</p></div>@if (_searchCategory != "all") { <button class="secondary" type="button" @onclick="Search">Vis alle kategorier</button> }</div>
+            @if (!VisibleHits.Any())
+            {
+                <div class="library-empty"><UiIcon Name="search" /><h3>Ingen resultater</h3><p>Prøv et kortere søgeord eller vælg en anden kategori.</p><button class="secondary" type="button" @onclick="ClearSearch">Ryd søgning</button></div>
+            }
+            else
+            {
+                <div class="library-search-results">
+                    @foreach (var category in Categories)
+                    {
+                        var hits = VisibleHits.Where(hit => CategoryFor(hit) == category.Id).ToArray();
+                        if (hits.Length == 0) { continue; }
+                        <section aria-labelledby="@("library-results-" + category.Id)"><h3 id="@("library-results-" + category.Id)">@category.Name <span>@hits.Length</span></h3><ul>@foreach (var hit in hits) { <li><a href="@hit.Href"><span><strong>@hit.Title</strong><small>@hit.Description</small></span><span class="library-chevron" aria-hidden="true">›</span></a></li> }</ul></section>
+                    }
+                </div>
+            }
+        }
+        else if (_category == "courses")
+        {
+            <div class="library-section-heading"><div><h2>Forløb og læringsplaner</h2><p>Hovedforløb og valgfag med mål, projekt og ugeplan.</p></div><a href="/courses/template">Samlet planoversigt</a></div>
+            <div class="library-course-browser">
+                <nav class="library-course-index" aria-label="Vælg læringsplan">
+                    @foreach (var kind in new[] { CourseKind.Hovedforlob, CourseKind.Valgfag })
+                    {
+                        <h3>@(kind == CourseKind.Hovedforlob ? "Hovedforløb" : "Valgfag")</h3>
+                        @foreach (var course in CourseTemplateCatalog.All.Where(course => course.Kind == kind))
+                        {
+                            <button type="button" aria-pressed="@(course.Slug == _selectedCourse ? "true" : "false")" aria-controls="library-course-preview" @onclick="() => SelectPlan(course.Slug)"><span><strong>@course.Short</strong><small>@CourseSummary(course)</small></span><span class="library-chevron" aria-hidden="true">›</span></button>
+                        }
+                    }
+                </nav>
+                <label class="library-course-select field">Vælg læringsplan<select value="@_selectedCourse" @onchange="SelectCourse">@foreach (var kind in new[] { CourseKind.Hovedforlob, CourseKind.Valgfag }) { <optgroup label="@(kind == CourseKind.Hovedforlob ? "Hovedforløb" : "Valgfag")">@foreach (var course in CourseTemplateCatalog.All.Where(course => course.Kind == kind)) { <option value="@course.Slug">@course.Short · @CourseSummary(course)</option> }</optgroup> }</select></label>
+                <article class="library-course-preview" id="library-course-preview" aria-labelledby="library-course-title">
+                    @if (SelectedCover is { } cover) { <img class="library-course-cover" src="lup/assets/@cover.Cover" alt="@cover.Subject" width="960" height="380" /> }
+                    <div class="library-course-body">
+                        <header><div><h3 id="library-course-title">@SelectedCourse.Title</h3><p>@SelectedCourse.Lead</p></div><a class="action" href="@SelectedCourse.Path">Åbn læringsplan</a></header>
+                        <dl class="library-course-facts"><div><dt>Varighed</dt><dd>@SelectedCourse.DurationLabel</dd></div><div><dt>Projekt</dt><dd>@SelectedCourse.Project</dd></div></dl>
+                        <div class="library-course-details"><section><h4>Det arbejder du med</h4><ul class="library-themes">@foreach (var theme in SelectedCourse.Themes) { <li>@theme.Name</li> }</ul></section><section><h4>Udvalgte mål</h4><ul class="library-goals">@foreach (var goal in SelectedCourse.Goals.Take(3)) { <li>@goal</li> }</ul></section></div>
+                        <details class="library-week-preview" @key="_selectedCourse"><summary>Se ugeplanen</summary><ol>@foreach (var week in SelectedCourse.Weeks) { <li><strong>@week.Title</strong>@if (!string.IsNullOrWhiteSpace(week.Focus)) { <p>@week.Focus</p> }</li> }</ol></details>
+                    </div>
+                </article>
+            </div>
+        }
+        else if (_category == "subjects")
+        {
+            <div class="library-section-heading"><div><h2>Fag og emner</h2><p>Find et fag, eller gå direkte til et emne.</p></div><a href="/subjects">Alle fag</a></div>
+            <div class="library-subject-grid">
+                @foreach (var subject in PublicCatalog.Subjects)
+                {
+                    var lessons = PublicCatalog.Lessons(subject).ToArray();
+                    <article class="library-subject"><header><span class="library-subject-icon"><UiIcon Name="@subject.Icon" /></span><div><h3><a href="@subject.Path">@subject.Name</a></h3><p>@subject.Description</p></div></header>
+                        @if (lessons.Length > 0) { <ul class="library-lesson-list">@foreach (var lesson in lessons.Take(3)) { <li><a href="@(subject.Path + "/" + lesson.Id)"><span>@lesson.Name</span><span aria-hidden="true">›</span></a></li> }</ul> }
+                        else { <p class="library-subject-plan">Indgår i <a href="@subject.Plan.Path">@subject.Plan.Short</a></p> }
+                        <a class="library-subject-open" href="@subject.Path">@(lessons.Length > 3 ? "Se alle " + lessons.Length + " emner" : "Se fag og materialer")</a>
+                    </article>
+                }
+            </div>
+        }
+        else if (_category == "projects")
+        {
+            <div class="library-section-heading"><div><h2>Udvalgte projekter</h2><p>Undervisningseksempler markeret DEMO.</p></div><a href="/explore/projects">Projektgalleri</a></div>
+            <div class="library-projects">
+                @foreach (var project in PublicCatalog.Projects)
+                {
+                    <article class="library-project"><a class="library-project-cover" href="@project.Path" aria-label="@("Se " + project.Name)"><img src="lup/assets/@project.Cover" alt="@project.Name" width="640" height="360" loading="lazy" /><span class="library-demo">DEMO</span></a><div class="library-project-body"><p class="library-project-category">@project.Category</p><h3><a href="@project.Path">@project.Name</a></h3><p>@project.Description</p><ul class="library-technologies" aria-label="Teknologier og emner">@foreach (var technology in project.Technologies) { <li>@technology</li> }</ul><a class="library-project-open" href="@project.Path">Se projekt</a></div></article>
+                }
+            </div>
+        }
+        else if (_category == "badges")
+        {
+            <div class="library-section-heading"><div><h2>Badges og krav</h2><p>Faglige badges har fem niveauer. Særlige badges har egne kriterier.</p></div><a href="/badges">Hele badgekataloget</a></div>
+            <details class="library-rank-guide"><summary>Sådan fungerer de fem niveauer</summary><ol>@for (var i = 0; i < DemoCatalog.RankNames.Length; i++) { <li><span class="library-rank-number">@(i + 1)</span><div><h3>@DemoCatalog.RankNames[i]</h3><p>@DemoCatalog.RankCriteria[i]</p></div></li> }</ol></details>
+            <div class="library-badges">
+                @foreach (var badge in PublicCatalog.Badges)
+                {
+                    <a class="library-badge" href="@("/badges/" + badge.Id)"><span class="library-badge-mark"><UiIcon Name="@badge.Icon" /></span><span><span class="library-badge-topic">@badge.Topic</span><strong>@badge.Name</strong><small>@badge.Description</small><span class="library-badge-requirements">@(badge.Special ? "Særlige krav og oplåsning" : "Krav for fem niveauer")</span></span><span class="library-chevron" aria-hidden="true">›</span></a>
+                }
+            </div>
+        }
+    </div>
+    @if (Auth.IsAuthenticated)
+    {
+        <details class="library-examples"><summary>Eksempelsider</summary><div class="library-example-content"><p>Visninger med eksempeldata.</p><label class="field">Eksempelforløb<select value="@CourseContext.CourseId" @onchange="SetExampleCourse"><option value="h3">H3 · 2026</option><option value="game">Game Design</option><option value="">Intet eksempelforløb</option></select></label><nav class="library-example-links" aria-label="Eksempelsider"><a href="/learning">Forløbseksempler</a><a href="/calendar">Eksempeluge</a><a href="/quests">Questeksempler</a></nav>@if (Redirect.ShowsTeacherChrome) { <nav class="library-example-links" aria-label="Eksempelsider for undervisere"><a href="/teacher/reviews">Eksempel på vurdering</a><a href="/teacher/students">Eksempel på elevoversigt</a><a href="/teacher/content">Eksempel på fagligt indhold</a><a href="/teacher/badges">Eksempel på badgetildeling</a></nav> }</div></details>
+    }
 </div>
-@if (Auth.IsAuthenticated)
-{
-    <details class="library-examples">
-        <summary>Eksempelsider</summary>
-        <div class="library-example-content"><p>Visninger med eksempeldata.</p><label class="field">Eksempelforløb<select value="@CourseContext.CourseId" @onchange="SetExampleCourse"><option value="h3">H3 · 2026</option><option value="game">Game Design</option><option value="">Intet eksempelforløb</option></select></label>
-        <nav class="library-example-links" aria-label="Eksempelsider"><a href="/learning">Forløbseksempler</a><a href="/calendar">Eksempeluge</a><a href="/quests">Questeksempler</a><a href="/journal">Eksempellogbog</a></nav>
-        @if (Redirect.ShowsTeacherChrome) { <nav class="library-example-links" aria-label="Eksempelsider for undervisere"><a href="/teacher/reviews">Eksempel på vurdering</a><a href="/teacher/students">Eksempel på elevoversigt</a><a href="/teacher/content">Eksempel på fagligt indhold</a><a href="/teacher/badges">Eksempel på badgetildeling</a></nav> }
-        </div>
-    </details>
-}
 @code {
+    [SupplyParameterFromQuery(Name = "category")] public string? Category { get; set; }
+    [SupplyParameterFromQuery(Name = "plan")] public string? Plan { get; set; }
+    private string? _appliedCategory, _appliedPlan;
+    protected override void OnParametersSet()
+    {
+        var category = Categories.Any(item => item.Id == Category) ? Category! : "courses";
+        if (_appliedCategory != category)
+        {
+            _appliedCategory = category; _category = category; _query = ""; _searchCategory = "all";
+        }
+        var plan = CourseTemplateCatalog.Find(Plan)?.Slug ?? "h3";
+        if (_appliedPlan != plan) { _appliedPlan = plan; _selectedCourse = plan; }
+    }
+    private static readonly (string Id, string Name, string Icon)[] Categories = [("courses", "Forløb", "book"), ("subjects", "Fag og emner", "code"), ("projects", "Projekter", "folder"), ("badges", "Badgekrav", "star")];
+    private string _category = "courses", _selectedCourse = "h3", _query = "", _searchCategory = "all";
+    private bool IsSearching => !string.IsNullOrWhiteSpace(_query);
+    private CourseTemplate SelectedCourse => CourseTemplateCatalog.Find(_selectedCourse)!;
+    private PublicCourse? SelectedCover => PublicCatalog.FeaturedCourses.FirstOrDefault(course => course.Slug == _selectedCourse);
+    private PublicSearchHit[] SearchHits => PublicCatalog.Search(_query).ToArray();
+    private IEnumerable<PublicSearchHit> VisibleHits => SearchHits.Where(hit => _searchCategory == "all" || CategoryFor(hit) == _searchCategory);
+    private string? SearchCategoryName => Categories.FirstOrDefault(category => category.Id == _searchCategory).Name;
+    private bool IsCurrent(string category) => (IsSearching ? _searchCategory : _category) == category;
+    private int CategoryCount(string category) => IsSearching ? SearchHits.Count(hit => CategoryFor(hit) == category) : category switch { "courses" => CourseTemplateCatalog.All.Length, "subjects" => PublicCatalog.Subjects.Count, "projects" => PublicCatalog.Projects.Count, _ => PublicCatalog.Badges.Count };
+    private static string CategoryFor(PublicSearchHit hit) => hit.Kind switch { "Forløb" => "courses", "Fag" or "Emne" => "subjects", "Badgekrav" => "badges", _ => "projects" };
+    private static string CourseSummary(CourseTemplate course) => PublicCatalog.FeaturedCourses.FirstOrDefault(feature => feature.Slug == course.Slug)?.Subject ?? (course.Slug switch { "h4" => "Mobiludvikling", "h5" => "Linux, Docker og drift", "h6" => "Svendeprøve", "deploy-or-die" => "Containere og deployment", _ => "Data og modeller" });
+    private void SelectCategory(string category) { if (IsSearching) _searchCategory = category; else NavigateLibrary(category, _selectedCourse); }
+    private void UpdateSearch(ChangeEventArgs e) { _query = e.Value?.ToString() ?? ""; _searchCategory = "all"; }
+    private void ClearSearch() { _query = ""; _searchCategory = "all"; }
+    private void Search() => _searchCategory = "all";
+    private void SelectCourse(ChangeEventArgs e) => SelectPlan(e.Value?.ToString());
+    private void SelectPlan(string? plan)
+    {
+        if (CourseTemplateCatalog.Find(plan) is { } course) NavigateLibrary(_category, course.Slug);
+    }
+    private void NavigateLibrary(string category, string plan) => Nav.NavigateTo("/library?category=" + category + "&plan=" + plan);
     private async Task SetExampleCourse(ChangeEventArgs e) { var selected = e.Value?.ToString() ?? ""; CourseContext.Select(selected); await Js.InvokeVoidAsync("lupCourse.set", selected); }
 }

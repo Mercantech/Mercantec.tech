@@ -18,8 +18,5 @@ main { flex:1; }
 
 .lup-header.member-header .lup-tools { margin-left:auto; }
 .lup-header.member-header .member-nav ::deep a { white-space:nowrap; }
-.lup-notification-link { display:grid; place-items:center; width:36px; height:36px; border-radius:7px; color:var(--muted); }
-.lup-notification-link:hover { color:var(--blue); background:var(--tint); text-decoration:none; }
-.notification-icon { width:21px; height:21px; }
 .lup-header.member-header .lup-account .v3-menu { min-width:215px; }
 @media(max-width:900px) { .lup-header.member-header .member-nav { display:none; } .lup-header.member-header .lup-mobile-nav { display:block; } }
