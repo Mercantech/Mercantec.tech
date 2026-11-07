@@ -20,6 +20,7 @@ import { blockPlainText } from './ai-block-text';
 import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
 import { formatUploadSize, uploadNotionAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
+import { EmojiPicker, type PlatformEmoji } from './emoji-picker';
 
 export interface EditorContext {
   pageId: string;
@@ -40,7 +41,7 @@ type Status = 'connecting' | 'synced' | 'saving' | 'saved' | 'offline' | 'error'
 const Context = createContext<EditorContext | null>(null);
 const useData = () => useContext(Context);
 const Runtime = createContext<Session | null>(null);
-type CustomEmojiRecord = { id: string; name: string; contentUrl: string };
+type CustomEmojiRecord = PlatformEmoji;
 const EmojiCatalog = createContext<CustomEmojiRecord[]>([]);
 const EmojiReload = createContext<() => void>(() => {});
 
@@ -308,6 +309,9 @@ function ConnectedEditor({session}:{session:Session}) {
   const enabled=canEdit(session);
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
+  const emojiTrigger=useRef<HTMLButtonElement>(null);
+  const emojiPanelId=useId();
+  const closeEmoji=()=>{setEmojiOpen(false);emojiTrigger.current?.focus({preventScroll:true});};
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<{id:string;text:string}|null>(null);
   const openAi=(blockId?:string)=>{
@@ -412,14 +416,11 @@ function ConnectedEditor({session}:{session:Session}) {
       <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
       <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
       <button type="button" onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
-      <button type="button" onClick={()=>setEmojiOpen(open=>!open)} disabled={!enabled} aria-expanded={emojiOpen} title="Vælg emoji (:navn)">Emoji</button>
+      <button ref={emojiTrigger} type="button" onClick={()=>setEmojiOpen(open=>!open)} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button>
       </>}
       <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>
     </div>
-    {!session.readOnly && emojiOpen && <div className="notion-emoji-panel" role="listbox" aria-label="Platformens emojis">
-      {emojis.length===0 ? <p>Ingen emojis endnu. <a href="/emojis">Tilføj dem i biblioteket</a>.</p> : emojis.map(item=>
-        <button key={item.id} type="button" title={`:${item.name}:`} aria-label={`:${item.name}:`} onClick={()=>placeEmoji(item)}><img src={item.contentUrl} alt="" /></button>)}
-    </div>}
+    {!session.readOnly && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} />}
     {!session.readOnly && (
       <AiHelperPanel
         editor={editor}
@@ -499,7 +500,7 @@ function App({session}:{session:Session}) {
       const next:CustomEmojiRecord[]=[];
       for(const item of data){
         if(item && typeof item.id==='string' && typeof item.name==='string' && typeof item.contentUrl==='string')
-          next.push({id:item.id,name:item.name,contentUrl:item.contentUrl});
+          next.push({id:item.id,name:item.name,contentUrl:item.contentUrl,isStandard:item.isStandard===true,category:typeof item.category==='string' ? item.category : 'custom',keywords:Array.isArray(item.keywords) ? item.keywords.filter((word:unknown):word is string=>typeof word==='string') : []});
       }
       setEmojis(next);
     } catch { /* Editoren virker også uden emoji-biblioteket. */ }

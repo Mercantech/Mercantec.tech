@@ -53,6 +53,9 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         var created = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), ":Lup:", default));
         Assert.Equal("lup", created.Name);
         Assert.Equal("image/png", created.ContentType);
+        Assert.False(created.IsStandard);
+        Assert.Equal("custom", created.Category);
+        Assert.Empty(created.Keywords!);
         Assert.StartsWith($"/api/emojis/{created.Id}/content?ticket=", created.ContentUrl);
         Assert.Equal("lup", Assert.Single(ReadList(await As(_student).List(default))).Name);
 
@@ -133,6 +136,9 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.Equal(40, rows.Count);
         Assert.Equal(existing.Id, Assert.Single(rows, row => row.Name == "smile").Id);
         Assert.Equal(39, rows.Count(row => StandardEmojiAssets.IsStandard(row.Key)));
+        var ownSmile = Assert.Single(ReadList(await As(_student).List(default)), item => item.Name == "smile");
+        Assert.False(ownSmile.IsStandard);
+        Assert.Equal("custom", ownSmile.Category);
         Assert.Single(_storage.Objects);
     }
 
@@ -145,6 +151,9 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         var controller = As(null, storage: new DisabledObjectStorage());
         foreach (var item in items)
         {
+            Assert.True(item.IsStandard);
+            Assert.Contains(item.Category, new[] { "smileys", "gestures", "symbols", "learning", "technology", "everyday" });
+            Assert.NotEmpty(item.Keywords!);
             Assert.IsType<UnauthorizedResult>(await controller.Content(item.Id, default));
             var ticket = QueryHelpers.ParseQuery(new Uri("https://lup.test" + item.ContentUrl).Query)["ticket"].ToString();
             var file = Assert.IsType<FileStreamResult>(await controller.Content(item.Id, default, ticket));
@@ -170,6 +179,11 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         var renamed = Read(await teacher.Rename(standard.Id, new("raket"), default));
         Assert.Equal(standard.Id, renamed.Id);
         Assert.Equal("raket", renamed.Name);
+        Assert.True(renamed.IsStandard);
+        Assert.Equal("technology", renamed.Category);
+        Assert.Contains("rocket", renamed.Keywords!);
+        Assert.Contains("raket", renamed.Keywords!);
+        Assert.Equal(standard.Keywords, renamed.Keywords);
 
         Assert.IsType<NoContentResult>(await teacher.Delete(standard.Id, default));
         Assert.IsType<NotFoundResult>(await As(_student).Content(standard.Id, default));

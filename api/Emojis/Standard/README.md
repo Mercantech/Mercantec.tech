@@ -7,3 +7,5 @@ Grafikken er skabt af Twitter, Inc. og Twemoji-bidragydere og distribueres under
 Datamigrationen `SeedStandardEmojis` importerer pakken én gang i det eksisterende bibliotek. Eksisterende navne og ID'er bevares ved konflikt. Undervisere kan derefter omdøbe og slette disse emojis på samme måde som uploadede billeder.
 
 Billederne indgår som indlejrede API-ressourcer med nøgler under `standard-emojis/`. De bliver vist gennem bibliotekets almindelige autentifikation og billedtickets. Egne uploads bruger fortsat det konfigurerede objektlager.
+
+API'et udleder `isStandard`, `category` og danske/engelske `keywords` fra den stabile billednøgle. Kategorier og søgeord findes i `StandardEmojiMetadata.cs` og følger med ved omdøb. Egne uploads returnerer `isStandard: false`, `category: "custom"` og søger på deres aktuelle navn. Vælgernes søgning og kategorier ændrer ingen gemte emojis eller dokumenter.

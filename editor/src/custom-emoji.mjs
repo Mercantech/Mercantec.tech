@@ -1,9 +1,31 @@
-/** Custom platform emojis (:navn:) shared by the colon menu and typed shortcodes. */
+/** Platform emoji metadata is shared by the picker, colon menu and typed shortcodes. */
 
-export function filterCustomEmojis(emojis, query) {
-  const q = String(query ?? '').trim().toLowerCase().replace(/^:+/, '').replace(/:+$/, '');
+export const emojiCategories = [
+  { id: 'all', label: 'Alle' },
+  { id: 'custom', label: 'Egne' },
+  { id: 'smileys', label: 'Smileys' },
+  { id: 'gestures', label: 'Hænder' },
+  { id: 'symbols', label: 'Symboler' },
+  { id: 'learning', label: 'Læring' },
+  { id: 'technology', label: 'Teknik' },
+  { id: 'everyday', label: 'Hverdag' },
+];
+
+function normalizeSearch(value) {
+  return String(value ?? '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+    .replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/[:_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function filterCustomEmojis(emojis, query, category = 'all') {
+  const words = normalizeSearch(query).split(' ').filter(Boolean);
   const list = Array.isArray(emojis) ? emojis : [];
-  return list.filter((item) => item && typeof item.name === 'string' && (!q || item.name.toLowerCase().includes(q)));
+  return list.filter((item) => {
+    if (!item || typeof item.name !== 'string') return false;
+    if (category === 'custom' ? item.isStandard === true : category !== 'all' && !(item.isStandard === true && item.category === category)) return false;
+    const keywords = Array.isArray(item.keywords) ? item.keywords.filter(word => typeof word === 'string') : [];
+    const text = normalizeSearch([item.name, ...keywords].join(' '));
+    return words.every(word => text.includes(word));
+  });
 }
 
 export function expandEmojiShortcodes(content, emojis) {

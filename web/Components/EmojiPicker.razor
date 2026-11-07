@@ -4,31 +4,69 @@
 @implements IAsyncDisposable
 
 <div class="emoji-picker">
-    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-expanded="@_open" aria-haspopup="listbox">Emoji</button>
+    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-expanded="@(_open ? "true" : "false")" aria-haspopup="dialog" aria-controls="@(_open ? _panelId : null)">Emoji</button>
     @if (_open)
     {
-        <div @ref="_panel" class="emoji-picker-panel" role="listbox" aria-label="Vælg emoji">
-            @if (_error is not null)
-            {
-                <p>@_error</p>
-            }
-            else if (_items is null)
-            {
-                <p>Henter emojis…</p>
-            }
-            else if (_items.Count == 0)
-            {
-                <p>Ingen emojis endnu. <a href="/emojis">Åbn biblioteket</a></p>
-            }
-            else
-            {
-                @foreach (var item in _items)
+        var visible = EmojiPickerCatalog.Filter(_items ?? [], _query, _category);
+        var preview = visible.FirstOrDefault(item => item.Id == _previewId) ?? visible.FirstOrDefault();
+        <div @ref="_panel" id="@_panelId" class="emoji-picker-panel" role="dialog" aria-label="Vælg emoji">
+            <div class="emoji-picker-heading">
+                <strong>Vælg emoji</strong>
+                <button type="button" class="emoji-picker-close" aria-label="Luk emoji-vælger" title="Luk (Escape)" @onclick="() => Close(true)">×</button>
+            </div>
+            <label class="emoji-picker-search-label">
+                <span class="emoji-picker-sr-only">Søg efter emoji</span>
+                <input class="emoji-picker-search" type="search" value="@_query" @oninput="Search" placeholder="Søg navn eller fx glad, raket…" autocomplete="off" spellcheck="false" maxlength="100" disabled="@(_items is null)" />
+            </label>
+            <div class="emoji-picker-categories" role="group" aria-label="Emojikategorier">
+                @foreach (var category in EmojiPickerCatalog.Categories)
                 {
-                    <button type="button" role="option" title="@($":{item.Name}:")" aria-label="@($":{item.Name}:")" @onclick="() => Choose(item)">
-                        <img src="@item.ContentUrl" alt="" />
-                    </button>
+                    <button type="button" class="emoji-picker-category" aria-pressed="@(_category == category.Id ? "true" : "false")" @onclick="() => SetCategory(category.Id)">@category.Label</button>
                 }
-            }
+            </div>
+            <div class="emoji-picker-results">
+                @if (_error is not null)
+                {
+                    <div class="emoji-picker-empty" role="alert"><p>@_error</p><button type="button" @onclick="() => Load(true)">Prøv igen</button></div>
+                }
+                else if (_items is null)
+                {
+                    <p class="emoji-picker-empty" role="status">Henter emojis…</p>
+                }
+                else if (_items.Count == 0)
+                {
+                    <p class="emoji-picker-empty">Ingen emojis endnu. <a href="/emojis">Åbn biblioteket</a></p>
+                }
+                else if (visible.Count == 0)
+                {
+                    <div class="emoji-picker-empty">
+                        <p>@(_category == "custom" && string.IsNullOrWhiteSpace(_query) ? "Ingen egne emojis endnu." : "Ingen emojis matcher dine valg.")</p>
+                        <button type="button" @onclick="Reset">Vis alle emojis</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="emoji-picker-grid" role="listbox" aria-label="Emojis">
+                        @foreach (var item in visible)
+                        {
+                            <button @key="item.Id" type="button" class="emoji-picker-option" role="option" aria-selected="false" title="@($":{item.Name}:")" aria-label="@($":{item.Name}:")" @onmouseenter="() => _previewId = item.Id" @onfocus="() => _previewId = item.Id" @onclick="() => Choose(item)">
+                                <img src="@item.ContentUrl" alt="" draggable="false" />
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="emoji-picker-footer">
+                @if (preview is not null)
+                {
+                    <span class="emoji-picker-preview"><img src="@preview.ContentUrl" alt="" /><span>:@preview.Name:</span></span>
+                }
+                else
+                {
+                    <span class="emoji-picker-preview">Find din næste emoji</span>
+                }
+                <span class="emoji-picker-count" role="status" aria-live="polite" aria-atomic="true">@visible.Count @(visible.Count == 1 ? "emoji" : "emojis")</span>
+            </div>
         </div>
     }
 </div>
@@ -36,61 +74,117 @@
 @code {
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public EventCallback<CustomEmojiItem> OnPick { get; set; }
-    private bool _open;
+    private readonly string _panelId = "emoji-picker-" + Guid.NewGuid().ToString("N");
+    private bool _open, _focusSearch, _disposed, _moduleDisposed;
+    private string _query = "", _category = "all";
     private string? _error;
+    private Guid? _previewId;
     private IReadOnlyList<CustomEmojiItem>? _items;
     private ElementReference _trigger, _panel;
     private IJSObjectReference? _positioner;
-    private bool _disposed;
+    private Task<IJSObjectReference>? _positionerLoad;
+    private DotNetObjectReference<EmojiPicker>? _reference;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_disposed || !_open) return;
-        var positioner = _positioner;
-        if (positioner is null)
+        var positioner = await (_positionerLoad ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js").AsTask());
+        if (_disposed)
         {
-            positioner = await Js.InvokeAsync<IJSObjectReference>("import", "/js/emoji-picker.js");
-            if (_disposed)
-            {
-                try { await positioner.DisposeAsync(); }
-                catch (JSDisconnectedException) { }
-                return;
-            }
-            _positioner = positioner;
+            await DisposeModule(positioner);
+            return;
         }
-        if (_disposed || !_open) return;
-        await positioner.InvokeVoidAsync("mount", _trigger, _panel);
+        _positioner = positioner;
+        if (!_open) return;
+        _reference ??= DotNetObjectReference.Create(this);
+        try
+        {
+            if (await positioner.InvokeAsync<bool>("mount", _trigger, _panel, _reference, _focusSearch))
+                _focusSearch = false;
+        }
+        catch (JSException) when (_disposed) { }
     }
 
     private async Task Toggle()
     {
-        await StopPositioning();
-        _open = !_open;
-        if (!_open) return;
+        if (_open) { await Close(true); return; }
+        if (_disposed || Disabled) return;
+        _open = true;
+        _focusSearch = true;
+        await Load();
+    }
+
+    private async Task Load(bool refresh = false)
+    {
         try
         {
-            _items = await Emojis.List();
+            var items = await Emojis.List(refresh);
+            if (_disposed) return;
+            _items = items;
             _error = null;
         }
         catch (EmojiException ex)
         {
+            if (_disposed) return;
             _error = ex.Message;
             _items = [];
         }
     }
 
+    private void Search(ChangeEventArgs args)
+    {
+        _query = args.Value?.ToString() ?? "";
+        _previewId = null;
+    }
+
+    private void SetCategory(string category)
+    {
+        _category = category;
+        _previewId = null;
+    }
+
+    private void Reset()
+    {
+        _query = "";
+        _category = "all";
+        _previewId = null;
+        _focusSearch = true;
+    }
+
     private async Task Choose(CustomEmojiItem item)
     {
-        await StopPositioning();
-        _open = false;
+        await Close(true);
         await OnPick.InvokeAsync(item);
     }
 
-    private async Task StopPositioning()
+    [JSInvokable]
+    public Task Dismiss(bool restoreFocus) => InvokeAsync(async () =>
     {
-        if (_positioner is null) return;
-        try { await _positioner.InvokeVoidAsync("destroy", _trigger); }
+        if (_disposed || !_open) return;
+        await Close(restoreFocus);
+        StateHasChanged();
+    });
+
+    private async Task Close(bool restoreFocus)
+    {
+        _open = false;
+        _focusSearch = false;
+        await StopPositioning(restoreFocus);
+    }
+
+    private async Task StopPositioning(bool restoreFocus = false)
+    {
+        if (_positioner is null || _moduleDisposed) return;
+        try { await _positioner.InvokeVoidAsync("destroy", _trigger, restoreFocus); }
         catch (Exception error) when (error is JSException or JSDisconnectedException) { }
+    }
+
+    private async ValueTask DisposeModule(IJSObjectReference module)
+    {
+        if (_moduleDisposed) return;
+        _moduleDisposed = true;
+        try { await module.DisposeAsync(); }
+        catch (JSDisconnectedException) { }
     }
 
     public async ValueTask DisposeAsync()
@@ -98,10 +192,7 @@
         _disposed = true;
         _open = false;
         await StopPositioning();
-        if (_positioner is not null)
-        {
-            try { await _positioner.DisposeAsync(); }
-            catch (JSDisconnectedException) { }
-        }
+        _reference?.Dispose();
+        if (_positioner is not null) await DisposeModule(_positioner);
     }
 }

@@ -161,7 +161,10 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         var expires = DateTimeOffset.UtcNow.Add(TicketLifetime);
         var token = tickets.Protect(JsonSerializer.Serialize(new EmojiTicket(emoji.Id, expires)));
         var url = $"/api/emojis/{emoji.Id}/content?ticket={Uri.EscapeDataString(token)}";
-        return new CustomEmojiView(emoji.Id, emoji.Name, emoji.ContentType, emoji.SizeBytes, emoji.UpdatedAtUtc, url);
+        var standard = StandardEmojiAssets.IsStandard(emoji.Key);
+        var metadata = StandardEmojiMetadata.Find(emoji.Key);
+        return new CustomEmojiView(emoji.Id, emoji.Name, emoji.ContentType, emoji.SizeBytes, emoji.UpdatedAtUtc, url,
+            standard, metadata?.Category ?? (standard ? "symbols" : "custom"), metadata?.Keywords ?? []);
     }
 
     private bool CanView(Guid id, string? ticket)
@@ -187,6 +190,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
     };
 
     public sealed record RenameEmoji(string? Name);
-    public sealed record CustomEmojiView(Guid Id, string Name, string ContentType, long SizeBytes, DateTimeOffset UpdatedAtUtc, string ContentUrl);
+    public sealed record CustomEmojiView(Guid Id, string Name, string ContentType, long SizeBytes, DateTimeOffset UpdatedAtUtc, string ContentUrl,
+        bool IsStandard = false, string Category = "custom", string[]? Keywords = null);
     private sealed record EmojiTicket(Guid EmojiId, DateTimeOffset ExpiresAtUtc);
 }
