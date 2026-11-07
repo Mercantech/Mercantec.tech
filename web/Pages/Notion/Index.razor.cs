@@ -40,13 +40,15 @@ public partial class Index
     private string? _account, _loadedRoute, _error, _notice;
     private string _title = "", _newTitle = "", _status = "connecting", _statusDetail = "";
     private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups;
+    private bool _savingTitle;
+    private Task<bool>? _titleSaveTask;
     private bool CanUse => Auth.IsAuthenticated;
     private bool ForceReadOnly => PublishedPreview || ViewAs.IsActive;
     private bool CanManageHold => !ViewAs.IsActive && _holds.Any(h => h.Id == _holdId && h.CanManage);
     private bool IsEditing => _current?.CanEdit == true && !ForceReadOnly;
     private bool Authoring => CanManageHold && !ForceReadOnly;
     private string RouteKey => $"{PageId}:{HoldQuery}:{WorkspaceQuery}:{CourseQuery}:{ForceReadOnly}";
-    private string StatusLabel => _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Forbindelsen kræver opmærksomhed", _ => "Forbinder…" };
+    private string StatusLabel => _savingTitle ? "Gemmer titel…" : _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Forbindelsen kræver opmærksomhed", _ => "Forbinder…" };
     private IEnumerable<NotionPageSummary> VisiblePages => ForceReadOnly ? _pages.Where(p => p.PublishedAtUtc is not null) : _pages;
     private string PageHref(Guid id, bool? publishedOnly = null) => WorkspaceNavigation.Page(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, publishedOnly ?? ForceReadOnly, _holdId);
     private string GraphHref(Guid id) => WorkspaceNavigation.Graph(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly, _holdId);
@@ -162,6 +164,7 @@ public partial class Index
     private void SelectContext(NotionPageContext context) { _current = context; _title = context.Title; _status = "connecting"; _statusDetail = ""; _needsMount = true; _creating = false; }
     private async Task<bool> CanLeave()
     {
+        if (!await SaveTitle()) return false;
         if (!_mounted || _module is null || !IsEditing) return true;
         if (!await _module.InvokeAsync<bool>("hasUnsavedChanges", _editorElement)) return true;
         _error = "Vent på, at ændringer og uploads er gemt i skyen. Hold siden åben, hvis forbindelsen er afbrudt.";
@@ -179,12 +182,38 @@ public partial class Index
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
         await Work(async ct => { var page = await Client.Create(_holdId, _newTitle.Trim(), _newParent, ct); _creating = false; Nav.NavigateTo(PageHref(page.Id)); });
     }
-    private void InsertTitleEmoji(CustomEmojiItem emoji) => _title = EmojiInsert.Append(_title, emoji.Name, 200);
     private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
-    private async Task RenamePage()
+    private async Task RenamePage() => await SaveTitle();
+    private async Task<bool> SaveTitle()
     {
-        if (!IsEditing || _current is null || string.IsNullOrWhiteSpace(_title)) return;
-        await Work(async ct => { await Client.Rename(_current.PageId, _title.Trim(), ct); await UpdateContext(ct); _notice = "Titlen er gemt i kladden."; });
+        while (!_disposed && IsEditing && _current is not null)
+        {
+            if (_titleSaveTask is { IsCompleted: false } pending)
+            {
+                if (!await pending) return false;
+                continue;
+            }
+            var title = _title.Trim();
+            if (title == _current.Title) return true;
+            if (title.Length == 0) { _error = "Skriv en titel."; return false; }
+            _titleSaveTask = SaveTitleCore(_current.PageId, _account, title);
+            if (!await _titleSaveTask) return false;
+        }
+        return !_disposed;
+    }
+    private async Task<bool> SaveTitleCore(Guid id, string? account, string title)
+    {
+        _savingTitle = true; _error = null;
+        try
+        {
+            var ct = _requests?.Token ?? _life.Token;
+            await Client.Rename(id, title, ct);
+            if (_disposed || _current?.PageId != id || _account != account) return false;
+            await UpdateContext(ct);
+            return !_disposed && _current?.PageId == id && _account == account;
+        }
+        catch (Exception ex) when (IsExpected(ex)) { Report(ex); return false; }
+        finally { _savingTitle = false; }
     }
     private async Task UpdateContext(CancellationToken ct)
     {
@@ -206,7 +235,6 @@ public partial class Index
     private async Task PublishPage()
     {
         if (!IsEditing || _current is null || _module is null || !_mounted || !await CanLeave()) return;
-        if (_title.Trim() != _current.Title) { _error = "Gem sidens titel, før du udgiver."; return; }
         await Work(async ct =>
         {
             var id = _current.PageId;
@@ -214,18 +242,24 @@ public partial class Index
             var context = await Client.Context(id, ct);
             await Client.Publish(id, context.DraftRevision, data.ExpectedFingerprint, data.AssetIds, ct);
             await UpdateContext(ct);
-            _notice = "Siden er udgivet til eleverne på holdet. Du kan arbejde videre i kladden.";
+            _notice = "Siden er udgivet.";
         });
     }
     private async Task UnpublishPage()
     {
         if (!IsEditing || _current is null) return;
-        await Work(async ct => { await Client.Unpublish(_current.PageId, ct); await UpdateContext(ct); _notice = "Udgivelsen er trukket tilbage. Eleverne kan ikke længere åbne siden og dens vedhæftninger."; });
+        await Work(async ct => { await Client.Unpublish(_current.PageId, ct); await UpdateContext(ct); _notice = "Udgivelsen er trukket tilbage."; });
+    }
+    private async Task PresentPage()
+    {
+        if (!_mounted || _module is null || !await SaveTitle()) return;
+        try { await _module.InvokeVoidAsync("setPresentation", _editorElement, true); }
+        catch (JSException ex) { Report(ex); }
     }
     private async Task CopyLink()
     {
         if (_current is null) return;
-        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", Nav.ToAbsoluteUri(PageHref(_current.PageId)).ToString()); _notice = "Linket er kopieret. Modtageren skal have adgang til holdet."; }
+        try { await Js.InvokeVoidAsync("navigator.clipboard.writeText", Nav.ToAbsoluteUri(PageHref(_current.PageId)).ToString()); _notice = "Linket er kopieret."; }
         catch (JSException) { _error = "Linket kunne ikke kopieres. Brug adressen i browserens adresselinje."; }
     }
     private async Task Retry() { if (!await CanLeave()) return; await Unmount(); await Load(); }

@@ -20,7 +20,6 @@ else
     <header class="page-title">
         <div>
             <h1>Emojis</h1>
-            <p>Et fælles bibliotek med standardemojis og egne billeder. Skriv <kbd>:navn:</kbd> i forløbseditoren, eller vælg med kolon-menuen og knappen Emoji. Brug også vælgeren i sidetitler, afleveringer og feedback.</p>
         </div>
     </header>
 
@@ -200,7 +199,7 @@ else
             if (!_editedMetadata.Contains("alt")) _altText = result.AltText;
             if (!_editedMetadata.Contains("category")) _uploadCategory = result.Category;
             if (!_editedMetadata.Contains("keywords")) _keywords = string.Join(", ", result.Keywords ?? []);
-            _analysisMessage = "AI har foreslået metadata. Du kan rette alle felterne før gemning.";
+            _analysisMessage = "Analyse klar.";
         }
         catch (OperationCanceledException) { }
         catch (Exception error) when (error is EmojiException or IOException)
@@ -270,7 +269,7 @@ else
             var metadata = new EmojiUploadMetadata(_renameAlt, _renameCategory, EmojiUploadDraft.ParseKeywords(_renameKeywords));
             var updated = await Emojis.Rename(id, _rename, _life.Token, metadata);
             _renaming = null;
-            _notice = $"Navnet er nu :{updated.Name}:. Allerede indsatte emojis i editoren følger med.";
+            _notice = $"Navnet er nu :{updated.Name}:.";
             await Load();
         }
         catch (EmojiException ex) { _error = ex.Message; }

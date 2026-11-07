@@ -10,7 +10,7 @@
 else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne holdets grupper.</p> }
 else
 {
-    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Mine hold</a><span>›</span><a href="@WorkspaceHref("groups")">Klassen</a><span>›</span><span>Elever og grupper</span></nav><h1>Holdets grupper</h1><p>Grupperne hører til holdet og kan bruges på flere sider.</p></div><a class="secondary" href="@WorkspaceHref()">Holdets indhold</a></header>
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Mine hold</a><span>›</span><a href="@WorkspaceHref("groups")">Klassen</a><span>›</span><span>Elever og grupper</span></nav><h1>Holdets grupper</h1></div><a class="secondary" href="@WorkspaceHref()">Holdets indhold</a></header>
     <div class="panel"><HoldGroups HoldId="HoldId" WorkspaceId="@(_returnContext?.WorkspaceId ?? Guid.Empty)" CourseId="_returnContext?.CourseId" InitialSelection="Selection" /></div>
 }
 @code {

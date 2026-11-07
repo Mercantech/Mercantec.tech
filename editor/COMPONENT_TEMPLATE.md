@@ -9,6 +9,7 @@ En komponent skal kunne bruges af underviseren i kladden og forstås af eleven p
 - Brug platformens eksisterende farver, skrifter, afstande og kontrolstørrelser. Editorens `--notion-paper`, `--notion-ink`, `--notion-muted`, `--notion-rule`, `--notion-blue` og `--notion-tint` følger LUP.
 - Hold komponenten kompakt. En kort etiket og de relevante handlinger kan ligge i en diskret værktøjslinje. Indholdet skal have mest plads.
 - Vis avancerede valg efter en brugerhandling. Knapper med ikoner skal have et tydeligt navn for skærmlæsere og en forklarende titel.
+- Hold UI-tekster til handlinger, indhold, status og fejl. Undgå slogans, gentagne genvejsguides og forklaringer på implementationen. Længere vejledning hører til i dokumentationen.
 - Brug samme sprog og knaptekster på tværs af blokke, eksempelvis **Kode**, **Diagram** og **Kopiér**.
 - Indholdet skal passe i editorens kolonne ved 320 px og 390 px. Brede kodeeksempler og diagrammer får et lokalt rulleområde.
 - Layoutet skal bevare sin placering, når en knap viser feedback, et diagram opdateres eller en menu åbnes.

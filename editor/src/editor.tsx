@@ -79,7 +79,6 @@ const createRoster = createReactBlockSpec({
       </details>}
       {visible.length ? <table><thead><tr><th scope="col">Elev</th><th scope="col">Grupper</th></tr></thead><tbody>{visible.map((member: {id:string;displayName:string}) => <tr key={member.id}><td><a href={studentUrl(context.holdId,member.id,context) ?? undefined}>{member.displayName}</a></td><td>{context.groups?.filter(group=>group.members.some(item=>item.id===member.id)).map(group=>group.name).join(', ') || '—'}</td></tr>)}</tbody></table> : <p>Ingen elever er valgt.</p>}
       {editable && <GroupButton ids={visible.map((member:{id:string})=>member.id)} />}
-      <p className="notion-block-hint">Navne hentes fra holdets elevliste. Listen vises ikke i præsentationen.</p>
     </section>;
   },
   toExternalHTML: () => <p>Elevliste fra holdet</p>,
@@ -98,7 +97,7 @@ const createPoll = createReactBlockSpec({
     return <section className="notion-poll-block" contentEditable={false} aria-label="Afstemning">
       <header><span className="notion-block-symbol" aria-hidden="true">▥</span><div><strong>{poll?.title || 'Afstemning'}</strong><small>{poll ? ({draft:'Kladde',open:'Åben for svar',closed:'Afsluttet'}[poll.state] || poll.state) : 'Vælg en afstemning fra holdet'}</small></div></header>
       {allowed && context.canEdit && editor.isEditable && <label className="notion-poll-select">Afstemning<select value={poll?.id || ''} onChange={event => editor.updateBlock(block,{props:{pollId:event.target.value}})}><option value="">Vælg afstemning</option>{context.polls.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-      {url && presentUrl ? <div className="notion-block-actions"><a href={url} target="_blank" rel="noopener noreferrer">Åbn afstemning</a>{context?.canEdit && <a href={presentUrl} target="_blank" rel="noopener noreferrer">Vis på tavlen</a>}</div> : <p className="notion-block-hint">{allowed && !context.polls.length ? <span>Holdet har ingen afstemninger endnu.{context.canEdit && <> <a href={pollCreateUrl(context)} target="_blank" rel="noopener noreferrer">Opret en afstemning</a>, og opdatér holdkoblingen.</>}</span> : 'Afstemningen er ikke tilgængelig på dette hold.'}</p>}
+      {url && presentUrl ? <div className="notion-block-actions"><a href={url} target="_blank" rel="noopener noreferrer">Åbn afstemning</a>{context?.canEdit && <a href={presentUrl} target="_blank" rel="noopener noreferrer">Vis på tavlen</a>}</div> : <p className="notion-block-hint">{allowed && !context.polls.length ? <span>Holdet har ingen afstemninger endnu.{context.canEdit && <> <a href={pollCreateUrl(context)} target="_blank" rel="noopener noreferrer">Opret en afstemning</a>.</>}</span> : 'Afstemningen er ikke tilgængelig på dette hold.'}</p>}
     </section>;
   },
   toExternalHTML: () => <p>Afstemning fra holdet</p>,
@@ -324,7 +323,6 @@ function ConnectedEditor({session}:{session:Session}) {
   const createEmoji=useContext(EmojiCreate);
   const analyzeEmoji=useContext(EmojiAnalyze);
   const reloadEmojis=useContext(EmojiReload);
-  const emojiTrigger=useRef<HTMLButtonElement>(null);
   const emojiPanelId=useId();
   const closeEmoji=()=>{
     const target=activeEmojiTarget.current ?? queuedEmojiTarget.current;
@@ -332,12 +330,21 @@ function ConnectedEditor({session}:{session:Session}) {
     setEmojiUploadFile(null);
     queuedEmojiTarget.current=null;
     activeEmojiTarget.current=null;
-    if(!target){emojiTrigger.current?.focus({preventScroll:true});return;}
     editor.focus();
+    if(!target)return;
     try {
       const range=resolveEmojiQuery(editor,target);
       editor.transact(tr=>{tr.setSelection(TextSelection.create(tr.doc,range.to));});
     } catch { /* A changed target keeps the editor's current selection and text. */ }
+  };
+  const openEmoji=()=>{
+    if(!canEdit(session)||notebook)return;
+    queuedEmojiTarget.current=null;
+    activeEmojiTarget.current=null;
+    setEmojiUploadFile(null);
+    setEmojiInsertError('');
+    reloadEmojis();
+    setEmojiOpen(true);
   };
   const startColonUpload=()=>{
     if(!canEdit(session)||!createEmoji)return;
@@ -460,6 +467,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Upload billede',subtext:'Tilføj et billede fra din computer',aliases:['billede','foto','image'],group:'Medier',onItemClick:()=>insert('pageMedia','image')},
     {title:'Upload lyd',subtext:'Tilføj MP3, WAV eller OGG',aliases:['lyd','audio'],group:'Medier',onItemClick:()=>insert('pageMedia','audio')},
     {title:'Upload fil',subtext:'PDF, dokument, ZIP eller mediefil',aliases:['fil','vedhæftning','upload'],group:'Medier',onItemClick:()=>insert('pageMedia')},
+    {title:'Emoji',subtext:'Vælg en emoji eller tilføj din egen',aliases:['emoji','emojis','smiley'],group:'Medier',onItemClick:openEmoji},
     {title:'Elever fra holdet',subtext:'Indsæt en levende elevliste',aliases:['elever','klasse','hold','students'],group:'Undervisning',icon:<span aria-hidden="true">◉</span>,onItemClick:()=>insert('classRoster')},
     {title:'Afstemning',subtext:'Kobl en afstemning fra holdet på siden',aliases:['afstemning','poll','stemning'],group:'Undervisning',icon:<span aria-hidden="true">▥</span>,onItemClick:()=>insert('holdPoll')},
     {title:'Slidegrænse',subtext:'Start næste slide i præsentationen',aliases:['slide','slides','præsentation'],group:'Undervisning',icon:<span aria-hidden="true">▱</span>,onItemClick:()=>insert('slideBreak')},
@@ -467,25 +475,9 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Diagram',subtext:'Mermaid flowchart, sequence m.m.',aliases:['diagram','mermaid','flowchart','graf'],group:'Undervisning',icon:<span aria-hidden="true">◈</span>,onItemClick:()=>insert('mermaidDiagram')},
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
     {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
-  ].filter(item=>!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','AI'].includes(item.title));
+    {title:'Præsenter',subtext:'Vis dokumentet som slides',aliases:['præsenter','præsentation','slides','presentation'],group:'Visning',onItemClick:()=>openPresentation(session)},
+  ].filter(item=>!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','Emoji','AI','Præsenter'].includes(item.title));
   return <OpenAiOnBlockProvider openOnBlock={notebook?null:openAi}>
-    <div className="notion-editor-tools" role="toolbar" aria-label="Dokumentværktøjer">
-      {!session.readOnly && <>
-      <button type="button" onClick={()=>editor.undo()} disabled={!enabled} title="Fortryd (Ctrl+Z)">↶ <span>Fortryd</span></button>
-      <button type="button" onClick={()=>editor.redo()} disabled={!enabled} title="Gendan (Ctrl+Shift+Z)">↷ <span>Gendan</span></button>
-      <span className="notion-tool-divider" />
-      {!notebook && <><button type="button" onClick={()=>insert('classRoster')} disabled={!enabled}>Elever</button>
-      <button type="button" onClick={()=>insert('holdPoll')} disabled={!enabled}>Afstemning</button>
-      <button type="button" onClick={()=>insert('slideBreak')} disabled={!enabled}>Slidegrænse</button></>}
-      <button type="button" onClick={()=>insert('pageLink')} disabled={!enabled}>Link til side</button>
-      <button type="button" onClick={()=>insert('mermaidDiagram')} disabled={!enabled}>Diagram</button>
-      <button type="button" onClick={()=>insert('callout')} disabled={!enabled}>Callout</button>
-      <button type="button" onClick={()=>insert('pageMedia','video')} disabled={!enabled}>Upload video</button>
-      {!notebook && <><button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled} title="AI-hjælper (/ai)">AI</button>
-      <button ref={emojiTrigger} type="button" onClick={()=>{if(emojiOpen){closeEmoji();return;}queuedEmojiTarget.current=null;activeEmojiTarget.current=null;setEmojiUploadFile(null);setEmojiInsertError('');reloadEmojis();setEmojiOpen(true);}} disabled={!enabled} aria-expanded={emojiOpen} aria-controls={emojiOpen ? emojiPanelId : undefined} title="Vælg emoji (:navn)">Emoji</button></>}
-      </>}
-      {!notebook && <button type="button" className="notion-present-button" onClick={()=>openPresentation(session)}>Præsenter</button>}
-    </div>
     {!session.readOnly && !notebook && enabled && createEmoji && <input ref={colonFileInput} className="notion-emoji-file notion-emoji-colon-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede fra kolonmenu" onChange={chooseColonFile} tabIndex={-1} />}
     {emojiInsertError && <p className="notion-editor-persistence-error" role="alert">{emojiInsertError}</p>}
     {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} initialFile={emojiUploadFile} />}
@@ -525,7 +517,6 @@ function ConnectedEditor({session}:{session:Session}) {
         }} />}
       </>}
     </BlockNoteView>
-    <footer className="notion-editor-footnote"><span>{notebook ? (session.readOnly?'Senest gemte indhold':<>Skriv <kbd>/</kbd> for indhold og <kbd>@</kbd> for sider.</>) : session.readOnly ? 'Udgivet undervisningsindhold' : <>Skriv <kbd>/</kbd> for indhold, <kbd>@</kbd> for sider og <kbd>:</kbd> for emoji.</>}</span>{!notebook && <a href="/emojis">Emojis</a>}<a href="/notion-editor/THIRD-PARTY-NOTICES.txt" target="_blank" rel="noopener noreferrer">Open source</a></footer>
   </OpenAiOnBlockProvider>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {

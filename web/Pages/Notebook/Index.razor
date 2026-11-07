@@ -13,7 +13,7 @@ else if (!Auth.IsAuthenticated) { <section class="panel"><h1>Din notesbog</h1><p
 else if (ViewAs.IsActive) { <section class="panel"><h1>Notesbøger</h1><p>Afslut elevvisningen for at åbne elevens notesbog med din egen underviseradgang.</p><a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a></section> }
 else
 {
-    <header class="page-title nb-heading"><div><h1>@Heading</h1><p>@(TemplateMode ? "Byg fælles skabeloner. Aktivering bruges til nye indlæg; eksisterende noter bevares." : "Noter, faglige forbindelser og logbog gennem din uddannelse.")</p></div><div class="nb-actions">@if (IsTeacher) { <a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a><a class="secondary" href="/teacher/notebook-templates">Skabeloner</a> }@if (!TemplateMode && !Own) { <a class="secondary" href="/notebook">Min notesbog</a> }<button class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button></div></header>
+    <header class="page-title nb-heading"><div><h1>@Heading</h1></div><div class="nb-actions">@if (IsTeacher) { <a class="secondary" href="/teacher/notebooks">Elevnotesbøger</a><a class="secondary" href="/teacher/notebook-templates">Skabeloner</a> }@if (!TemplateMode && !Own) { <a class="secondary" href="/notebook">Min notesbog</a> }<button class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button></div></header>
     @if (_error is not null) { <div class="nb-message nb-error" role="alert">@_error @if (_comment.Length > 0 || _commentDrafts.Count > 0) { <button type="button" class="secondary" @onclick="DiscardCommentDrafts">Kassér kommentarudkast</button> }</div> }
     @if (_notice is not null) { <p class="nb-message" role="status">@_notice</p> }
     @if (_loading) { <p role="status">Henter notesbogen…</p> }
@@ -54,7 +54,7 @@ else
                 }
                 @if (_current is null)
                 {
-                    <div class="nb-empty"><UiIcon Name="book" /><h2>@(TemplateMode ? "Fælles afsæt for elevernes logbog" : "Et sted til dine egne forbindelser")</h2><p>@(TemplateMode ? "Opret eller vælg en skabelon og skriv spørgsmålene i editoren." : "Opret en note eller vælg en logbogsskabelon. Link dine sider med @ og brug tags til at samle emner.")</p>@if (Own) { <button class="action" @onclick="() => BeginCreate(false)">Opret første note</button> }</div>
+                    <div class="nb-empty"><UiIcon Name="book" /><h2>Ingen sider</h2><p>@(TemplateMode ? "Opret eller vælg en skabelon." : "Opret en note eller vælg en logbogsskabelon.")</p>@if (Own) { <button class="action" @onclick="() => BeginCreate(false)">Opret første note</button> }</div>
                 }
                 else
                 {

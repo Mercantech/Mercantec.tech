@@ -93,7 +93,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
       if (!mounted.current || controller.signal.aborted || generation !== analysisGeneration.current) return;
       setDraft(current => generation === analysisGeneration.current && !controller.signal.aborted
         ? mergeEmojiAnalysis(current, result, editedFields.current) as EmojiDraft : current);
-      setAnalysisNotice('Billedanalysen er klar. Du kan rette alle felter, før du gemmer.');
+      setAnalysisNotice('Analyse klar.');
     }).catch(failure => {
       if (mounted.current && !controller.signal.aborted && generation === analysisGeneration.current)
         setAnalysisNotice((failure instanceof Error ? failure.message : 'Billedet kunne ikke analyseres.') + ' Udfyld felterne manuelt, og gem, når du er klar.');
@@ -199,7 +199,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze, 
       {analyzing && <div className="notion-emoji-analysis-status"><p role="status">AI analyserer billedet…</p><button type="button" onClick={() => stopAnalysis()}>Stop analyse</button></div>}
       {analysisNotice && <p className="notion-emoji-analysis-notice" role="status">{analysisNotice}</p>}
       <label className="notion-emoji-upload-name">Emoji-navn<input ref={nameInput} value={draft.name} onChange={event => editDraft('name', event.target.value)} maxLength={32} autoComplete="off" spellCheck={false} disabled={busy} aria-invalid={!normalizeEmojiName(draft.name)} aria-describedby={`${id}-upload-hint`} /></label>
-      <p id={`${id}-upload-hint`}>Brug 2–32 tegn: a-z, 0-9, _ og -. Navnet kan rettes inden gemning.</p>
+      <p id={`${id}-upload-hint`}>2–32 tegn: a-z, 0-9, _ og -.</p>
       <p className="notion-emoji-upload-shortcode">:{normalizeEmojiName(draft.name) ?? draft.name}:</p>
       <label className="notion-emoji-upload-name">ALT-tekst<textarea rows={2} value={draft.altText} onChange={event => editDraft('altText', event.target.value)} maxLength={240} disabled={busy} placeholder="Beskriv kort, hvad emojien viser" /></label>
       <label className="notion-emoji-upload-name">Kategori<select value={draft.category} onChange={event => editDraft('category', event.target.value)} disabled={busy}>{emojiCategories.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{item.id === 'custom' ? 'Uden kategori' : item.label}</option>)}</select></label>

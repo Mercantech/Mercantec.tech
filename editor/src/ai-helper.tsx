@@ -410,7 +410,7 @@ export function AiHelperPanel({
         insertAiBlocks(editor, blocks, mode === 'replace' ? 'rewrite' : turn.action === 'mermaid' ? 'mermaid' : 'generate', snapshot.id);
       }
       setTurns(current => current.map(item => item.id === turn.id ? { ...item, applied: true } : item));
-      setFeedback(mode === 'replace' ? 'Teksten er erstattet. Du kan fortryde i editoren.' : 'Forslaget er indsat. Du kan fortryde i editoren.');
+      setFeedback(mode === 'replace' ? 'Teksten er erstattet.' : 'Indsat.');
       onCaptureContext?.();
     } catch (failure) { setError(failure instanceof Error ? failure.message : 'Forslaget kunne ikke indsættes.'); }
   };
@@ -440,19 +440,18 @@ export function AiHelperPanel({
         <button type="button" className="notion-ai-minimize" onClick={() => onOpenChange(false)} aria-label="Minimér AI-assistent" title="Minimér (Esc)">−</button>
       </header>
       <div className="notion-ai-context">
-        <p className="notion-ai-source">{currentTarget?.text ? <><span>{currentTarget.selection ? 'Markering' : 'Aktuel blok'}</span> {blockTextPreview(currentTarget.text, 100)}</> : 'Vælg tekst i dokumentet, eller beskriv det, du vil skrive.'}</p>
+        {currentTarget?.text && <p className="notion-ai-source"><span>{currentTarget.selection ? 'Markering' : 'Aktuel blok'}</span> {blockTextPreview(currentTarget.text, 100)}</p>}
         <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => { onCaptureContext?.(); inputRef.current?.focus({ preventScroll: true }); }} disabled={!enabled || busy}>Brug aktuel tekst</button>
       </div>
       <div ref={logRef} className="notion-ai-conversation" role="log" aria-label="Samtale med AI-assistenten" aria-live="polite" aria-relevant="additions text" onScroll={() => {
         const log = logRef.current; if (log) nearBottom.current = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
       }}>
-        {turns.length === 0 && <div className="notion-ai-welcome"><strong>Lad os arbejde med teksten</strong><p>Jeg kan hjælpe med formuleringer, nye afsnit og diagrammer. Du ser altid forslaget, før du vælger at indsætte det.</p></div>}
         {turns.map(turn => <div className="notion-ai-turn" key={turn.id}>
           <div className="notion-ai-user-message"><span>{actionNames[turn.action]}</span><p>{turn.prompt}</p></div>
           {turn.state === 'pending' && <p className="notion-ai-working" role="status">Jeg arbejder på et forslag…</p>}
           {(turn.state === 'failed' || turn.state === 'stopped') && <p className="notion-ai-error" role={turn.state === 'failed' ? 'alert' : 'status'}>{turn.error}</p>}
           {turn.response && <article className="notion-ai-proposal" aria-label="AI-forslag">
-            <p className="notion-ai-answer">{turn.response.assistantNote?.trim() || 'Her er et forslag, vi kan arbejde videre med.'}</p>
+            {turn.response.assistantNote?.trim() && <p className="notion-ai-answer">{turn.response.assistantNote.trim()}</p>}
             <details className="notion-ai-proposal-preview" open><summary>Forslag · {turn.response.blocks!.length} {turn.response.blocks!.length === 1 ? 'blok' : 'blokke'}</summary><pre>{aiBlocksPreview(turn.response.blocks!)}</pre></details>
             <div className="notion-ai-proposal-actions">
               <button type="button" disabled={!enabled || turn.applied} onClick={() => apply(turn, 'insert')}>Indsæt forslag</button>

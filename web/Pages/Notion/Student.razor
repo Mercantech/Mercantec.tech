@@ -13,7 +13,7 @@ else if (!Auth.IsAuthenticated) { <p><a href="/login">Log ind</a> for at åbne e
 else if (_error is not null) { <div class="panel"><h1>Eleven er ikke tilgængelig</h1><p role="alert">@_error</p><a class="secondary" href="/courses">Til forløb og hold</a></div> }
 else if (_student is not null)
 {
-    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="@WorkspaceHref()">Holdets indhold</a><span>›</span><span>Elev</span></nav><h1>@_student.DisplayName</h1><p>Elev på holdet.</p></div><a class="secondary" href="@WorkspaceNavigation.Groups(HoldId, _returnContext?.WorkspaceId, _returnContext?.CourseId, [MemberId])">Elever og grupper</a></header>
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="@WorkspaceHref()">Holdets indhold</a><span>›</span><span>Elev</span></nav><h1>@_student.DisplayName</h1></div><a class="secondary" href="@WorkspaceNavigation.Groups(HoldId, _returnContext?.WorkspaceId, _returnContext?.CourseId, [MemberId])">Elever og grupper</a></header>
     <section class="panel"><h2>Grupper</h2>@if (_student.Groups.Length == 0) { <p>Der er ingen grupper at vise for din konto.</p> }@foreach (var group in _student.Groups) { <article style="padding:16px 0;border-bottom:1px solid var(--rule)"><div><h3>@group.Name</h3><p>@string.Join(", ", group.Members.Select(m => m.DisplayName))</p></div></article> }</section>
 }
 @code {
