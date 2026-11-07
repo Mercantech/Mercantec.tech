@@ -75,6 +75,31 @@ test('default template has three editable H2 prompts and empty answers; blank no
   assert.throws(() => cloneNotebookDocument({ pageId: 'invalid', defaultTemplate: true }));
   assert.throws(() => cloneNotebookDocument({ pageId: id, stateBase64: 'invalid' }));
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/default-notebook-template.json', import.meta.url)));
-  assert.deepEqual(notebookStateProjection(Buffer.from(fixture.stateBase64, 'base64')), fixture);
+  assert.deepEqual(notebookStateProjection(Buffer.from(fixture.stateBase64, 'base64')), { ...fixture, drawingIds: [], drawingBlocks: {} });
   doc.destroy();
+});
+
+test('nested notebook drawing blocks remap to independent drawings and fresh block IDs', () => {
+  const source = new Y.Doc({ gc: false });
+  const drawing = element('drawing', { drawingId: oldAsset, schemaVersion: 1 });
+  const container = element('blockContainer', { id: 'old-drawing-block' }, [drawing]);
+  source.getXmlFragment('document-store').insert(0, [element('blockGroup', {}, [element('blockContainer', { id: 'parent' }, [element('paragraph', {}, []), element('blockGroup', {}, [container])])])]);
+  assert.deepEqual(projectNotebookDocument(source).drawingIds, [oldAsset]);
+  const request = { stateBase64: encode(source), pageId: targetId, drawingMap: { [oldAsset]: newAsset } };
+  const result = cloneNotebookDocument(request), copy = decode(result.stateBase64);
+  assert.deepEqual(result.drawingIds, [newAsset]);
+  const copied = copy.getXmlFragment('document-store').get(0).get(0).get(1).get(0);
+  assert.notEqual(copied.getAttribute('id'), 'old-drawing-block');
+  assert.equal(result.drawingBlocks[newAsset], copied.getAttribute('id'));
+  assert.equal(copied.get(0).getAttribute('drawingId'), newAsset);
+  assert.throws(() => cloneNotebookDocument({ ...request, drawingMap: {} }), /Missing notebook drawing/);
+  assert.throws(() => cloneNotebookDocument({ ...request, drawingMap: { [oldAsset]: oldAsset } }), /Invalid notebook drawing/);
+  source.destroy(); copy.destroy();
+});
+
+test('nullable C# drawingMap transport keeps legacy blank template creation working', () => {
+  const projection = cloneNotebookDocument({ stateBase64: null, pageId: id, assetMap: {}, defaultTemplate: false, drawingMap: null });
+  assert.equal(projection.plainText, '');
+  assert.deepEqual(projection.drawingIds, []);
+  assert.deepEqual(projection.drawingBlocks, {});
 });

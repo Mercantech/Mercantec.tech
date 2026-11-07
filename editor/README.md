@@ -18,6 +18,29 @@ Self-hosted React editor island for the existing Blazor app. Uses BlockNote (MPL
 
 Use the [component standard and template](COMPONENT_TEMPLATE.md) when creating or changing editor blocks. It covers the platform UI, all themes, source preservation and the expected behavior in drafts, published pages, presentations and exports.
 
+## Indlejrede tegninger
+
+`/tegning` indsætter `drawing` med et stabilt `drawingId` og åbner Excalidraw 0.18.1.
+Blokken viser et temaafhængigt PNG-preview; selve scenen og filerne gemmes separat.
+SDK'et indlæses ved behov, og skrifter leveres fra `/notion-editor/excalidraw/fonts/`.
+PNG, SVG og redigerbar `.excalidraw` eksporteres fra tegningens menu.
+
+Tegningen har eget `drawing:<id>`-rum. Elementer og slettemarkeringer deles via Yjs;
+zoom, markering og værktøjsvalg er lokale. Billeder uploades til privat S3-lagring
+(3 MiB per billede), mens den kodede scene højst må fylde 1 MiB. Ugemte ændringer
+bevares i den åbne fane ved grænse- eller netværksfejl og kan stadig eksporteres.
+
+På undervisningssider er en fast snapshot standard. Tegningens adgangsmenu kan vælge
+live-tavle og give eksisterende læsere tegningsret. Elevadgang aktiveres først, når
+livebindingen er udgivet, og giver aldrig ret til at redigere sidens tekst. I notesbøger
+styrer ejeren tegningsadgangen for eksisterende læsere. Kopier får nye tegninger og
+filrettigheder uden at arve grants eller livebindinger.
+
+Værtskonteksten medsender `userSub` og udgivelsens `drawings`-bindinger. `getPublicationData`
+afventer tegningernes gemmekvitteringer og begge previews og returnerer revisionskrav
+til API'ets atomiske udgivelse. `hasUnsavedChanges` omfatter også tegninger på en
+ellers skrivebeskyttet side. Browseraccept: [Notebook.BrowserQa](../tests/Notebook.BrowserQa/README.md).
+
 ## Build
 
 Requires Node.js22 or newer. From this directory:
@@ -47,7 +70,7 @@ DotNet object methods:
 - OnNotionStatus(status, detail): connecting, synced, saving, saved, offline or error. synced means connected; saved means a persisted snapshot matches the current Yjs state.
 - GetNotionToken(): returns a current access token for connections and private media access, including authenticated read-only students.
 
-WebSocket: same-origin /collaboration?schemaVersion=6, room notion:<pageId>. A missing or incompatible client version is rejected before document loading; the current editor asks the user to reload. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
+WebSocket: same-origin /collaboration?schemaVersion=7, room notion:<pageId>. A missing or incompatible client version is rejected before document loading; the current editor asks the user to reload. The server authorizes each room against ASP.NET. A server stateless {type:'persisted',fingerprintHash:<sha256 hex>,savedAtUtc:<ISO>,stateVector:<base64>} acknowledges storage. The client compares a canonical SHA256 fingerprint of sorted state-vector entries and normalized DeleteSet ranges plus its local edit generation before clearing dirty state. This includes deletions, which a state vector alone cannot detect, and remains stable when server garbage collection encodes deleted structs differently from client UndoManager retention. A persistenceError event preserves dirty state and displays a storage error until a matching successful acknowledgement arrives.
 
 ## Custom blocks
 
@@ -87,7 +110,7 @@ The build generates public/THIRD-PARTY-NOTICES.txt from locked runtime packages,
 
 `mountReadOnly(element, context, accessToken, callbacks)` anvender kun `publishedStateBase64` fra det autoriserede publicerings-API. Det opretter en lokal Y.Doc uden WebSocket-provider, så lærerens nye kladdeændringer ikke kan nå elevvisningen. Brug samme schema til redigering og læsning.
 
-`getPublicationData(element)` returnerer asynkront `{ expectedFingerprint, assetIds }`. Kaldet afvises ved afventende lagring, upload eller samtidige ændringer under hashberegningen. Værten sender også `expectedRevision` fra frisk API-kontekst; API'et kopierer kun den tilsvarende lagrede kladde.
+`getPublicationData(element)` returnerer asynkront `{ expectedFingerprint, assetIds, drawings }`. Kaldet afvises ved afventende lagring, upload eller samtidige ændringer under hashberegningen. Værten sender også `expectedRevision` fra frisk API-kontekst; API'et kopierer kun den tilsvarende lagrede kladde.
 
 `context.pages` består af `{ id, title, parentPageId }` fra holdets autoriserede sider. `@` indsætter ID-baserede links til sider eller enkelte elever. `/side` indsætter en linkblok med sidevalg. Titler og elevnavne slås op fra konteksten, så ukendte eller ikke-udgivne mål ikke viser skjulte etiketter i elevvisningen.
 

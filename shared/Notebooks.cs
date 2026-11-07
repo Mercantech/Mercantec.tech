@@ -26,12 +26,14 @@ public sealed record NotebookTemplateView(Guid Id, Guid DocumentId, string Title
     bool IsActive, int Version, DateTimeOffset UpdatedAtUtc);
 public sealed record CreateNotebookTemplate(string Title, string Cadence);
 public sealed record UpdateNotebookTemplate(string Title, string Cadence);
-public sealed record ActivateNotebookTemplate(long ExpectedRevision, string ExpectedFingerprint);
+public sealed record ActivateNotebookTemplate(long ExpectedRevision, string ExpectedFingerprint,
+    DrawingPublicationRequest[]? Drawings = null);
 public sealed record EnsureJournalEntry(Guid TemplateId, Guid RequestId, DateOnly? PeriodDate = null,
     Guid? HoldId = null);
 
 // These projections are accepted only from the authenticated collaboration service.
 public sealed record StoreNotebookDocument(string StateBase64, string Fingerprint, string PlainText,
-    Guid[] LinkIds, Guid[] AssetIds);
+    Guid[] LinkIds, Guid[] AssetIds, Guid[]? DrawingIds = null,
+    Dictionary<string, string>? DrawingBlocks = null);
 public sealed record CloneNotebookDocument(string? StateBase64, Guid PageId,
-    Dictionary<string, string> AssetMap, bool DefaultTemplate = false);
+    Dictionary<string, string> AssetMap, bool DefaultTemplate = false, Dictionary<string, string>? DrawingMap = null);

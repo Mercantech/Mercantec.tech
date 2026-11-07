@@ -2,6 +2,7 @@ using System.Text.Json;
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Drawings;
 using Mercantec.Tech.Api.Learning;
 using Mercantec.Tech.Api.Notebooks;
 using Mercantec.Tech.Contracts;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Mercantec.Tech.Api.Controllers;
 
 [ApiController, Authorize, Route("api/notebooks")]
-public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess access, NotebookEngineClient engine) : ControllerBase
+public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess access, NotebookEngineClient engine, DrawingService drawings) : ControllerBase
 {
     [HttpGet("today")]
     public IActionResult Today()
@@ -53,6 +54,7 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         var now = DateTimeOffset.UtcNow;
         var doc = new NotebookDocument { Id = id, Kind = "template", Title = request.Title.Trim(),
             YjsState = state, Revision = 1, Fingerprint = projection.Fingerprint, SearchText = projection.PlainText,
+            DrawingIdsJson = JsonSerializer.Serialize(projection.DrawingIds ?? []),
             CreatedAtUtc = now, UpdatedAtUtc = now };
         var template = new NotebookTemplate { Id = id, Cadence = request.Cadence };
         db.NotebookDocuments.Add(doc); db.NotebookTemplates.Add(template);
@@ -105,6 +107,14 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         if (UserClaims.GetSub(User) is null) return Unauthorized();
         if (!UserClaims.IsTeacher(User)) return Forbid();
         if (string.IsNullOrWhiteSpace(request.ExpectedFingerprint)) return BadRequest(new { error = "save_template_first" });
+        var savedDrawingIds = await db.NotebookDocuments.AsNoTracking().Where(d => d.Id == id && d.Kind == "template")
+            .Select(d => d.DrawingIdsJson).SingleOrDefaultAsync(ct);
+        if (savedDrawingIds is null) return NotFound();
+        var drawingIds = JsonSerializer.Deserialize<Guid[]>(savedDrawingIds) ?? [];
+        // Checkpoints may store a drawing and touch its parent, so flush before taking the parent row lock.
+        try { await drawings.CheckpointAsync(drawingIds, ct); }
+        catch (HttpRequestException) { return Unavailable(); }
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested) { return Unavailable(); }
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         // A conditional row lock makes checking and copying the saved draft one atomic action.
         var matching = await db.NotebookDocuments.Where(d => d.Id == id && d.Kind == "template"
@@ -114,8 +124,14 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         var template = await db.NotebookTemplates.SingleOrDefaultAsync(t => t.Id == id, ct);
         if (template is null) return NotFound();
         var doc = await db.NotebookDocuments.AsNoTracking().SingleAsync(d => d.Id == id, ct);
+        DrawingPublicationBinding[] drawingBindings;
+        try { drawingBindings = await drawings.PrepareTemplateAsync(id, JsonSerializer.Deserialize<Guid[]>(doc.DrawingIdsJson) ?? [], request.Drawings, ct); }
+        catch (DrawingException error) { return DrawingFailure(error); }
+        catch (HttpRequestException) { return Unavailable(); }
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested) { return Unavailable(); }
         var version = new NotebookTemplateVersion { Id = Guid.NewGuid(), TemplateId = id, Number = template.Version + 1,
             Title = doc.Title, Cadence = template.Cadence, State = doc.YjsState!, AssetIdsJson = doc.AssetIdsJson,
+            DrawingsJson = JsonSerializer.Serialize(drawingBindings),
             CreatedAtUtc = DateTimeOffset.UtcNow };
         db.NotebookTemplateVersions.Add(version);
         await db.SaveChangesAsync(ct);
@@ -172,17 +188,27 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
             SizeBytes = a.SizeBytes, UploadedBySub = sub, CreatedAtUtc = now }).ToArray();
         var map = originals.Zip(copies).ToDictionary(pair => pair.First.Id.ToString(), pair => pair.Second.Id.ToString());
         StoreNotebookDocument projection;
-        try { projection = await engine.CloneAsync(new(Convert.ToBase64String(version.State), id, map), ct); }
+        DrawingCloneResult drawingCopies;
+        try
+        {
+            var bindings = JsonSerializer.Deserialize<DrawingPublicationBinding[]>(version.DrawingsJson) ?? [];
+            drawingCopies = await drawings.CloneTemplateAsync(version.TemplateId, id, bindings, ct);
+            projection = await engine.CloneAsync(new(Convert.ToBase64String(version.State), id, map, DrawingMap: drawingCopies.DrawingMap), ct);
+        }
+        catch (DrawingException error) { return DrawingFailure(error); }
         catch (HttpRequestException) { return Unavailable(); }
         catch (TaskCanceledException) when (!ct.IsCancellationRequested) { return Unavailable(); }
         NotebookDocumentValidation.ValidProjection(projection, out var state);
         if (!projection.AssetIds.ToHashSet().SetEquals(copies.Select(a => a.Id))) return Unavailable();
+        if (!(projection.DrawingIds ?? []).ToHashSet().SetEquals(drawingCopies.DrawingMap.Values.Select(Guid.Parse))) return Unavailable();
+        try { drawings.BindClonedBlocks(projection.DrawingBlocks); }
+        catch (DrawingException error) { return DrawingFailure(error); }
         var title = version.Cadence == "free" ? version.Title : $"{version.Title} · {start:dd.MM.yyyy}";
         var doc = new NotebookDocument { Id = id, NotebookId = notebook.Id, Kind = "journal", Title = title.Length > 200 ? title[..200] : title,
             TemplateId = version.TemplateId, TemplateVersionId = version.Id, RequestId = request.RequestId,
             PeriodKey = periodKey, PeriodStart = start, HoldId = request.HoldId, YjsState = state,
             Fingerprint = projection.Fingerprint, SearchText = projection.PlainText,
-            AssetIdsJson = JsonSerializer.Serialize(projection.AssetIds), Revision = 1,
+            AssetIdsJson = JsonSerializer.Serialize(projection.AssetIds), DrawingIdsJson = JsonSerializer.Serialize(projection.DrawingIds ?? []), Revision = 1,
             CreatedAtUtc = now, UpdatedAtUtc = now };
         var linkedTargets = await db.NotebookDocuments.AsNoTracking().Where(d => d.NotebookId == notebook.Id
             && projection.LinkIds.Contains(d.Id)).Select(d => d.Id).ToArrayAsync(ct);
@@ -213,4 +239,5 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
     private static NotebookPageSummary PageView(NotebookDocument d) => new(d.Id, d.NotebookId!.Value, d.Title, d.ParentPageId,
         d.Kind, JsonSerializer.Deserialize<string[]>(d.TagsJson) ?? [], d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision);
     private ObjectResult Unavailable() => StatusCode(503, new { error = "document_service_unavailable", message = "Dokumentet kunne ikke oprettes. Prøv igen om lidt." });
+    private ObjectResult DrawingFailure(DrawingException error) => StatusCode(error.Status, new { error = error.Code, message = error.Message });
 }

@@ -17,4 +17,7 @@ for (const [path, entry] of Object.entries(lock.packages)) {
     try { output += '\n' + file + '\n' + await readFile(resolve(directory, file), 'utf8') + '\n'; } catch {}
   }
 }
-await writeFile(resolve(root, 'public/THIRD-PARTY-NOTICES.txt'), output.trimEnd() + '\n');
+for (const file of ['EXCALIDRAW-LICENSE.txt', 'FONT-NOTICES.txt']) {
+  output += '\n' + '='.repeat(72) + '\n' + await readFile(resolve(root, 'public/excalidraw', file), 'utf8') + '\n';
+}
+await writeFile(resolve(root, 'public/THIRD-PARTY-NOTICES.txt'), output.replace(/[\t ]+$/gm, '').trimEnd() + '\n');

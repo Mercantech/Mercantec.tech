@@ -7,7 +7,8 @@ public static class NotionMediaPolicy
     public static bool IsPrivateKey(string? key) => !string.IsNullOrEmpty(key)
         && key.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries)
             .Any(segment => segment.Equals("notion-private", StringComparison.OrdinalIgnoreCase)
-                || segment.Equals("notebook-private", StringComparison.OrdinalIgnoreCase));
+                || segment.Equals("notebook-private", StringComparison.OrdinalIgnoreCase)
+                || segment.Equals("drawing-private", StringComparison.OrdinalIgnoreCase));
 
     public static NotionMediaType? Classify(string fileName) => Path.GetExtension(fileName).ToLowerInvariant() switch
     {

@@ -455,6 +455,6 @@ public sealed partial class OpenAiEditorClientTests
         }
     }
 
-    [GeneratedRegex(@"type:\s*'([A-Za-z][A-Za-z0-9]*)'")]
+    [GeneratedRegex(@"create(?:React)?(?:Block|InlineContent)Spec\s*\(\s*\{[^{}]*?\btype:\s*'([A-Za-z][A-Za-z0-9]*)'")]
     private static partial Regex TypePattern();
 }

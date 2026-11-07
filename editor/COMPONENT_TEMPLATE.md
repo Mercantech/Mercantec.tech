@@ -74,6 +74,24 @@ Diagrammets standardfarver hentes fra den lokale platformvært. Gemt Mermaid-kod
 
 Implementeringen findes i [mermaid-block.tsx](src/mermaid-block.tsx), fælles kildebehandling i [mermaid-utils.ts](src/mermaid-utils.ts) og udseendet i [editor.css](src/editor.css).
 
+## Tegninger
+
+`drawing` gemmer kun `drawingId` og schemaVersion. Scenen er et separat autoriseret
+dokument; tegningsret ændrer ikke skriveadgang til forældredokumentet. Editorens
+globale schema og samarbejdsserver skal opdateres samlet (nu 7).
+
+Inlinevisning, præsentation og print viser det relevante lys/mørke PNG-preview uden
+intern scroll eller dekorativ ramme. Klik åbner Excalidraw i en fuldskærmsdialog;
+lukning skal gendanne dokumentets markering og scroll. Temaet ændrer værktøjsfladen
+og previewvalget, mens tegnede farver bevares. Native PNG/SVG/Excalidraw-eksport
+bevarer selve tegningen. Ekstern HTML har en tekstlig figure-fallback; kopiering
+inden for LUP opretter en selvstændig scene og nye filrettigheder.
+
+Udgivelse fryser som standard scene, billeder og preview atomisk. Livebinding er
+et eksplicit valg, som først aktiverer elevadgang ved udgivelse. Scenegrænse,
+uploadfejl og afbrudt forbindelse må ikke slette det lokale arbejde eller forhindre
+eksport fra den åbne tegning. Zoom, markering og værktøjsvalg må ikke deles i Yjs.
+
 ## Skabelon til en komponentbeskrivelse
 
 Kopiér afsnittet nedenfor og erstat felterne i kantede parenteser.

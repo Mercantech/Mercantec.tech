@@ -14,7 +14,9 @@ public static class NotebookDocumentValidation
             || projection.PlainText is null || projection.PlainText.Length > MaxStateBytes
             || projection.LinkIds is null || projection.AssetIds is null
             || projection.LinkIds.Length > 100_000 || projection.AssetIds.Length > 100_000
-            || projection.LinkIds.Contains(Guid.Empty) || projection.AssetIds.Contains(Guid.Empty)) return false;
+            || projection.LinkIds.Contains(Guid.Empty) || projection.AssetIds.Contains(Guid.Empty)
+            || projection.DrawingIds is { Length: > 1000 } || projection.DrawingIds?.Contains(Guid.Empty) == true
+            || projection.DrawingIds?.Distinct().Count() != projection.DrawingIds?.Length) return false;
         try { state = Convert.FromBase64String(projection.StateBase64); }
         catch (FormatException) { return false; }
         return state.Length is > 0 and <= MaxStateBytes;

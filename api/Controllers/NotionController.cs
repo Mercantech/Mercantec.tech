@@ -2,6 +2,7 @@ using Mercantec.Tech.Api.Auth;
 using System.Text.Json;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Drawings;
 using Mercantec.Tech.Api.Learning;
 using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
@@ -13,7 +14,7 @@ namespace Mercantec.Tech.Api.Controllers;
 
 /// <summary>Hold-scoped authoring and immutable published reading. Only managers join draft collaboration.</summary>
 [ApiController, Authorize, Route("api/notion")]
-public sealed class NotionController(AppDbContext db, CourseAccess access) : ControllerBase
+public sealed class NotionController(AppDbContext db, CourseAccess access, DrawingService? drawings = null) : ControllerBase
 {
     [HttpGet("holds")]
     public async Task<IActionResult> Holds(CancellationToken ct)
@@ -182,7 +183,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
     {
         var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
             .Select(p => new { p.Id, p.HoldId, p.Title, p.UpdatedAtUtc, p.PublishedAtUtc, p.PublishedTitle,
-                p.DraftRevision, p.PublishedRevision, p.PublishedState }).SingleOrDefaultAsync(ct);
+                p.DraftRevision, p.PublishedRevision, p.PublishedState, p.PublishedDrawingsJson }).SingleOrDefaultAsync(ct);
         if (page is null || !await access.CanAccessAsync(page.HoldId, User, ct)) return NotFound();
         var edit = !publishedOnly && await access.CanManageAsync(page.HoldId, User, ct);
         if (!edit && (page.PublishedAtUtc is null || page.PublishedTitle is null || page.PublishedState is not { Length: > 0 })) return NotFound();
@@ -205,7 +206,8 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
         return Ok(new NotionPageContext(page.Id, page.HoldId, edit ? page.Title : page.PublishedTitle!, edit, members, polls,
             edit ? page.UpdatedAtUtc : page.PublishedAtUtc!.Value, pages, page.PublishedAtUtc,
             edit ? page.DraftRevision : page.PublishedRevision ?? 0, page.PublishedRevision,
-            state is null ? null : Convert.ToBase64String(state), page.PublishedTitle));
+            state is null ? null : Convert.ToBase64String(state), page.PublishedTitle,
+            edit ? [] : DrawingAccess.Bindings(page.PublishedDrawingsJson)));
     }
 
     [HttpPost("pages/{id:guid}/publish")]
@@ -227,6 +229,24 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
             return BadRequest(new { error = "invalid_assets" });
         var now = DateTimeOffset.UtcNow;
         var assets = JsonSerializer.Serialize(request.AssetIds);
+        var drawingIds = JsonSerializer.Deserialize<Guid[]>(page.DrawingIdsJson) ?? [];
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction = null;
+        try
+        {
+        DrawingPublicationBinding[] bindings = [];
+        if (drawingIds.Length > 0 || (request.Drawings?.Length ?? 0) > 0)
+        {
+            if (drawings is null) return StatusCode(503, new { error = "drawing_service_unavailable" });
+            // A checkpoint may persist a new parent revision: it must happen before any row lock.
+            await drawings.CheckpointAsync(drawingIds, ct);
+            transaction = await db.Database.BeginTransactionAsync(ct);
+            var locked = await db.NotionPages.Where(p => p.Id == id && p.DraftRevision == request.ExpectedRevision
+                && p.DraftFingerprint == request.ExpectedFingerprint && p.PublicationVersion == page.PublicationVersion)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.UpdatedAtUtc, p => p.UpdatedAtUtc), ct);
+            if (locked != 1) return Conflict(new { error = "draft_changed" });
+            bindings = await drawings.PreparePublicationAsync("notion", id, drawingIds, request.Drawings, ct);
+        }
+        var drawingManifest = JsonSerializer.Serialize(bindings, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         // The snapshot and its file grants change in one conditional SQL update. New draft saves,
         // title changes or a concurrent withdrawal invalidate this publication attempt.
         var written = await db.NotionPages.Where(p => p.Id == id && p.DraftRevision == request.ExpectedRevision
@@ -234,10 +254,16 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.PublishedState, page.YjsState)
                 .SetProperty(p => p.PublishedTitle, page.Title).SetProperty(p => p.PublishedAtUtc, now)
                 .SetProperty(p => p.PublishedBySub, sub).SetProperty(p => p.PublishedRevision, request.ExpectedRevision)
-                .SetProperty(p => p.PublishedAssetIdsJson, assets).SetProperty(p => p.PublicationVersion, p => p.PublicationVersion + 1), ct);
+                .SetProperty(p => p.PublishedAssetIdsJson, assets).SetProperty(p => p.PublishedDrawingsJson, drawingManifest)
+                .SetProperty(p => p.PublicationVersion, p => p.PublicationVersion + 1), ct);
         if (written == 0) return Conflict(new { error = "draft_changed" });
+        if (transaction is not null) await transaction.CommitAsync(ct);
         Response.Headers.CacheControl = "no-store";
         return Ok(View(await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct)));
+        }
+        catch (DrawingException ex) { return StatusCode(ex.Status, new { error = ex.Code, message = ex.Message }); }
+        catch (HttpRequestException) { return StatusCode(503, new { error = "drawing_service_unavailable" }); }
+        finally { if (transaction is not null) await transaction.DisposeAsync(); }
     }
 
     [HttpPost("pages/{id:guid}/unpublish")]
@@ -248,7 +274,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access) : Con
         await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.PublishedState, (byte[]?)null).SetProperty(p => p.PublishedTitle, (string?)null)
             .SetProperty(p => p.PublishedAtUtc, (DateTimeOffset?)null).SetProperty(p => p.PublishedBySub, (Guid?)null)
-            .SetProperty(p => p.PublishedRevision, (long?)null).SetProperty(p => p.PublishedAssetIdsJson, "[]")
+            .SetProperty(p => p.PublishedRevision, (long?)null).SetProperty(p => p.PublishedAssetIdsJson, "[]").SetProperty(p => p.PublishedDrawingsJson, "[]")
             .SetProperty(p => p.PublicationVersion, p => p.PublicationVersion + 1), ct);
         Response.Headers.CacheControl = "no-store";
         return Ok(View(await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct)));

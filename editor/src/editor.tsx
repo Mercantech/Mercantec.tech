@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, trackPosition, type BlockNoteEditor } from '@blocknote/core';
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu, SuggestionMenu } from '@blocknote/core/extensions';
@@ -26,6 +26,8 @@ import { EmojiCatalog, EmojiReload, EmojiCreate, EmojiAnalyze, CustomEmojiImage 
 import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
 import { EmojiSuggestionMenu } from './emoji-suggestion-menu';
 import { captureEmojiQuery, resolveEmojiQuery } from './emoji-query-target.mjs';
+import { createDrawing } from './drawing-block';
+import { DrawingEnvironmentProvider, requestCreateDrawing, requestOpenDrawing, collectDrawingPublicationData, type DrawingEnvironment } from './drawing-context';
 
 export interface EditorContext {
   domain?: 'notion' | 'notebook';
@@ -45,6 +47,8 @@ export interface EditorContext {
   polls: { id: string; title: string; state: string }[];
   updatedAtUtc: string;
   userName?: string;
+  userSub?: string;
+  drawings?: { drawingId:string;blockId:string;mode:string;snapshotId:string|null;revision:number;fingerprint:string }[];
   pages?: {id:string;title:string;parentPageId?:string|null}[];
   groups?: {id:string;name:string;members:{id:string;displayName:string}[]}[];
   publishedStateBase64?:string|null;
@@ -252,7 +256,7 @@ const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersi
   toExternalHTML:()=> <p>Vedhæftet undervisningsfil</p>,
 });
 const schema = BlockNoteSchema.create({
-  blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout()},
+  blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout(),drawing:createDrawing()},
   inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention,customEmoji},
 });
 type Editor = BlockNoteEditor<typeof schema.blockSchema, typeof schema.inlineContentSchema, typeof schema.styleSchema>;
@@ -261,16 +265,25 @@ interface Session {
   root: Root; context: EditorContext; callbacks?: DotnetCallbacks; doc: Y.Doc; provider?: HocuspocusProvider;
   editor?: Editor; ready: boolean; inSync: boolean; connected: boolean; dirty: boolean; generation: number;
   destroyed: boolean; status: Status; detail: string; presenting: boolean; slides: ReturnType<typeof splitSlides>;
-  readOnly:boolean; accessToken:string; pendingUploads:number;
+  readOnly:boolean; accessToken:string; pendingUploads:number; drawingDirty?:boolean;
   theme: 'light' | 'dark'; render: () => void; removeListeners: () => void;
 }
 const sessions = new WeakMap<HTMLElement, Session>();
 function notify(session: Session, status: Status, detail: string) {
   if(session.destroyed) return;
+  if(session.drawingDirty && (status==='saved' || status==='synced')){status='saving';detail='Gemmer tegning…';}
   session.status=status; session.detail=detail; session.render();
   void session.callbacks?.invokeMethodAsync('OnNotionStatus',status,detail).catch(() => {});
 }
 function canEdit(session: Session) { return !session.readOnly && session.context.canEdit && session.connected && session.inSync && !session.presenting; }
+function drawingEnvironment(session:Session):DrawingEnvironment {
+  return {domain:session.context.domain==='notebook'?'notebook':'notion',documentId:session.context.pageId,
+    published:session.context.domain!=='notebook' && session.readOnly,readOnly:session.readOnly,
+    presentation:session.presenting,theme:session.theme,bindings:session.context.drawings,
+    getToken:()=>validToken(session),userName:session.context.userName || 'Bruger',userSub:session.context.userSub,
+    onDirty:dirty=>{if(session.destroyed || Boolean(session.drawingDirty)===dirty)return;session.drawingDirty=dirty;
+      if(dirty)notify(session,'saving','Gemmer tegning…');else if(!session.dirty)notify(session,'saved','Gemt i skyen');}};
+}
 function readTheme(): 'light' | 'dark' {
   const root = document.documentElement;
   const resolved = root.dataset.bsTheme;
@@ -456,11 +469,28 @@ function ConnectedEditor({session}:{session:Session}) {
     else if(type==='callout')add({type,props:{tone:'info'},content:'Skriv din note her…'});
     else add({type});
   };
+  const insertDrawing=async()=>{
+    if(!enabled)return;
+    editor.focus();
+    const cursor=editor.getTextCursorPosition().block;
+    const empty=cursor.type==='paragraph' && Array.isArray(cursor.content) && cursor.content.length===0;
+    const block=empty ? (editor.updateBlock(cursor.id,{type:'drawing',props:{drawingId:''}}),editor.getBlock(cursor.id)!)
+      : editor.insertBlocks([{type:'drawing',props:{drawingId:''}}],cursor,'after')[0];
+    const next=editor.insertBlocks([{type:'paragraph'}],block,'after')[0];
+    editor.setTextCursorPosition(next,'start');
+    try {
+      const created=await requestCreateDrawing(drawingEnvironment(session),block.id);
+      if(session.destroyed || !editor.getBlock(block.id))return;
+      editor.updateBlock(block.id,{props:{drawingId:created.id}});
+      requestOpenDrawing(block.id);
+    } catch(error) {setEmojiInsertError(error instanceof Error?error.message:'Tegningen kunne ikke oprettes. Prøv igen.');}
+  };
   const mentionItems=[
     ...(session.context.pages || []).map(page=>({title:page.title,aliases:['side','underside'],group:'Sider',onItemClick:()=>editor.insertInlineContent([{type:'pageMention',props:{pageId:page.id}},' '])})),
     ...(notebook?[]:session.context.members).map(member=>({title:member.displayName,aliases:['elev'],group:'Elever',onItemClick:()=>editor.insertInlineContent([{type:'studentMention',props:{holdId:session.context.holdId,membershipId:member.id}},' '])})),
   ];
   const customItems=[
+    {title:'Tegning',aliases:['tegning','excalidraw','canvas','whiteboard'],group:'Medier',onItemClick:()=>{void insertDrawing();}},
     {title:'Link til side',subtext:notebook?'Vælg en side fra notesbogen':'Vælg en side eller underside fra holdet',aliases:['side','underside','link'],group:'Undervisning',onItemClick:()=>insert('pageLink')},
     {title:'Gemt gruppe',subtext:'Indsæt en gemt gruppe fra holdet',aliases:['gruppe','grupper'],group:'Undervisning',onItemClick:()=>insert('holdGroup')},
     {title:'Upload video',subtext:notebook?'Tilføj MP4 eller WebM til siden':'Del MP4 eller WebM med holdet ved udgivelse',aliases:['video','upload'],group:'Medier',onItemClick:()=>insert('pageMedia','video')},
@@ -584,9 +614,10 @@ function App({session}:{session:Session}) {
     return result;
   };
   useEffect(()=>{void loadRef.current();},[session]);
+  const drawingEnv=useMemo(()=>drawingEnvironment(session),[session,session.context,session.theme,session.presenting]);
   return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={session.context.domain==='notebook' ? undefined : createEmoji}><EmojiAnalyze.Provider value={session.context.domain==='notebook' ? undefined : analyzeEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
-    <EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary>
+    <DrawingEnvironmentProvider value={drawingEnv}><EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary></DrawingEnvironmentProvider>
   </div></EmojiAnalyze.Provider></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
 }
 
@@ -597,7 +628,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
   const session:Session={root:createRoot(element),context,callbacks:dotnetCallbacks,doc:new Y.Doc(),ready:false,inSync:false,connected:false,dirty:false,generation:0,destroyed:false,readOnly:false,accessToken,pendingUploads:0,status:'connecting',detail:'Forbinder til dokumentet…',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
-  const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty || session.pendingUploads>0){event.preventDefault();event.returnValue='';}};
+  const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty || session.pendingUploads>0 || session.drawingDirty){event.preventDefault();event.returnValue='';}};
   window.addEventListener('beforeunload',onBeforeUnload);
   const removeThemeListener=observeTheme(session);
   session.removeListeners=()=>{window.removeEventListener('beforeunload',onBeforeUnload);removeThemeListener();};
@@ -605,7 +636,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
     if(origin!==session.provider && session.ready && !session.destroyed){session.dirty=true;session.generation++;notify(session,session.connected?'saving':'offline',session.connected?'Gemmer i skyen…':'Forbindelsen er afbrudt. Ændringer afventer lagring.');}
   });
   session.provider=new HocuspocusProvider({
-    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=6',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
+    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=7',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
     onStatus:({status})=>{session.connected=status==='connected';if(!session.connected){session.inSync=false;notify(session,status==='connecting'?'connecting':'offline',status==='connecting'?'Forbinder til dokumentet…':'Forbindelsen er afbrudt. Redigering er sat på pause.');}},
     onSynced:({state})=>{if(!state)return;session.ready=true;session.inSync=true;session.connected=true;notify(session,session.dirty?'saving':'synced',session.dirty?'Gemmer afventende ændringer…':'Forbundet til dokumentet');},
     onAuthenticationFailed:({reason})=>{session.connected=false;session.inSync=false;notify(session,'error',reason.includes('editor_version_mismatch')?'Editoren er opdateret. Genindlæs siden for at åbne dokumentet med den nye version.':'Du har ikke længere adgang, eller dit login er udløbet. Log ind igen.');},
@@ -636,21 +667,25 @@ export async function mountReadOnly(element:HTMLElement,context:EditorContext,ac
   const session:Session={root:createRoot(element),context:{...context,canEdit:false},callbacks:dotnetCallbacks,doc,ready:true,inSync:true,connected:false,dirty:false,generation:0,destroyed:false,readOnly:true,accessToken,pendingUploads:0,status:'synced',detail:'Udgivet undervisningsindhold',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
-  session.removeListeners=observeTheme(session);
+  const removeThemeListener=observeTheme(session);
+  const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.drawingDirty){event.preventDefault();event.returnValue='';}};
+  window.addEventListener('beforeunload',onBeforeUnload);
+  session.removeListeners=()=>{removeThemeListener();window.removeEventListener('beforeunload',onBeforeUnload);};
   notify(session,'synced',context.domain==='notebook'?'Senest gemte indhold':'Udgivet undervisningsindhold');
 }
 
-export async function getPublicationData(element:HTMLElement):Promise<{expectedFingerprint:string;assetIds:string[]}> {
+export async function getPublicationData(element:HTMLElement):Promise<{expectedFingerprint:string;assetIds:string[];drawings:Awaited<ReturnType<typeof collectDrawingPublicationData>>}> {
   const session=sessions.get(element);
-  if(!session || session.readOnly || !session.editor || !canEdit(session) || session.dirty || session.pendingUploads>0)
+  if(!session || session.readOnly || !session.editor || !canEdit(session) || session.dirty || session.pendingUploads>0 || session.drawingDirty)
     throw new Error('Vent på, at alle ændringer og uploads er gemt i skyen, før du udgiver.');
   const generation=session.generation;
   const fingerprint=canonicalFingerprint(session.doc);
   const assetIds=collectPublicationAssetIds(session.editor.document,session.context.pageId);
+  const drawings=await collectDrawingPublicationData(drawingEnvironment(session),session.editor.document);
   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(fingerprint));
-  if(session.destroyed || session.dirty || session.pendingUploads>0 || generation!==session.generation || fingerprint!==canonicalFingerprint(session.doc))
+  if(session.destroyed || session.dirty || session.pendingUploads>0 || session.drawingDirty || generation!==session.generation || fingerprint!==canonicalFingerprint(session.doc))
     throw new Error('Dokumentet blev ændret under udgivelsen. Vent på lagring, og prøv igen.');
-  return {expectedFingerprint:Array.from(new Uint8Array(digest)).map(value=>value.toString(16).padStart(2,'0')).join(''),assetIds};
+  return {expectedFingerprint:Array.from(new Uint8Array(digest)).map(value=>value.toString(16).padStart(2,'0')).join(''),assetIds,drawings};
 }
 export function destroy(element:HTMLElement):void {
   const session=sessions.get(element);if(!session)return;
@@ -679,4 +714,4 @@ export function setPresentation(element:HTMLElement,presenting:boolean):void {
   const session=sessions.get(element);if(!session)return;
   if(presenting)openPresentation(session);else{session.presenting=false;session.render();}
 }
-export function hasUnsavedChanges(element:HTMLElement):boolean {const session=sessions.get(element);return Boolean(session && (session.dirty || session.pendingUploads>0));}
+export function hasUnsavedChanges(element:HTMLElement):boolean {const session=sessions.get(element);return Boolean(session && (session.dirty || session.pendingUploads>0 || session.drawingDirty));}

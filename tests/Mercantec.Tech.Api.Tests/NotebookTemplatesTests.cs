@@ -5,9 +5,11 @@ using System.Text.Json;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Drawings;
 using Mercantec.Tech.Api.Notebooks;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +44,9 @@ public sealed class NotebookTemplatesTests : IAsyncLifetime
         db.ChangeTracker.Clear();
         var claims = new List<Claim> { new("sub", (isTeacher ? teacher : pupil).ToString()) };
         if (isTeacher) claims.Add(new("role", "Underviser"));
-        return new(db, new(db), new(new HttpClient(handler), Config, new(Config)))
+        var http = new HttpClient(handler);
+        var drawings = new DrawingService(db, new(db, new(db), new(db)), null!, new Factory(handler), Config, new(Config), new EphemeralDataProtectionProvider());
+        return new(db, new(db), new(http, Config, new(Config)), drawings)
         { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = new(new ClaimsIdentity(claims, "test")) } } };
     }
     private static T Value<T>(IActionResult result) => Assert.IsType<T>(Assert.IsType<OkObjectResult>(result).Value);
@@ -154,6 +158,98 @@ public sealed class NotebookTemplatesTests : IAsyncLifetime
         Assert.Contains(copy.Id.ToString(), stored.AssetIdsJson);
     }
 
+    [Fact]
+    public async Task TemplateDrawingActivationCheckpointsBeforeLockAndRejectsStaleDrawingConsent()
+    {
+        var drawing = await AddTemplateDrawing();
+        handler.BeforeCheckpoint = () => Assert.Null(db.Database.CurrentTransaction);
+        var context = Value<NotebookDocumentContext>(await As(true).Context(NotebookDefaults.TemplateId, default));
+        var bad = await As(true).Activate(NotebookDefaults.TemplateId, new(context.Revision, context.Fingerprint!,
+            [new(drawing.Id, "snapshot", drawing.Revision + 1, drawing.Fingerprint!)]), default);
+        Assert.Equal(409, Assert.IsType<ObjectResult>(bad).StatusCode);
+        Assert.Empty(await db.DrawingSnapshots.ToArrayAsync());
+        var good = await As(true).Activate(NotebookDefaults.TemplateId, new(context.Revision, context.Fingerprint!,
+            [new(drawing.Id, "snapshot", drawing.Revision, drawing.Fingerprint!)]), default);
+        Value<NotebookTemplateView>(good);
+        Assert.True(handler.CheckpointCalls >= 2);
+        var template = await db.NotebookTemplates.AsNoTracking().SingleAsync(t => t.Id == NotebookDefaults.TemplateId);
+        var version = await db.NotebookTemplateVersions.AsNoTracking().SingleAsync(v => v.Id == template.ActiveVersionId);
+        var binding = Assert.Single(JsonSerializer.Deserialize<DrawingPublicationBinding[]>(version.DrawingsJson)!);
+        Assert.Equal(drawing.Id, binding.DrawingId); Assert.Equal("snapshot", binding.Mode); Assert.NotNull(binding.SnapshotId);
+        Assert.Single(await db.DrawingSnapshots.ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task JournalDrawingCopiesUseImmutableSnapshotAndIndependentDrawingAssetAndBlockBindings()
+    {
+        var source = await AddTemplateDrawing();
+        var context = Value<NotebookDocumentContext>(await As(true).Context(NotebookDefaults.TemplateId, default));
+        Value<NotebookTemplateView>(await As(true).Activate(NotebookDefaults.TemplateId,
+            new(context.Revision, context.Fingerprint!, [new(source.Id, "snapshot", source.Revision, source.Fingerprint!)]), default));
+        var head = await db.Drawings.SingleAsync(d => d.Id == source.Id);
+        head.SceneJson = "{\"elements\":[{\"id\":\"new-head\",\"type\":\"text\",\"text\":\"Senere kladde\"}],\"files\":{},\"appState\":{\"viewBackgroundColor\":\"#ffffff\"}}";
+        head.Fingerprint = new string('b', 64); head.Revision++;
+        await db.SaveChangesAsync();
+        var first = Value<NotebookPageSummary>(await As().EnsureEntry(new(NotebookDefaults.TemplateId, Guid.NewGuid(), new DateOnly(2026, 11, 1)), default));
+        var firstRequest = handler.LastRequest!;
+        var second = Value<NotebookPageSummary>(await As().EnsureEntry(new(NotebookDefaults.TemplateId, Guid.NewGuid(), new DateOnly(2026, 11, 2)), default));
+        var copies = await db.Drawings.AsNoTracking().Where(d => d.NotebookDocumentId == first.Id || d.NotebookDocumentId == second.Id).ToArrayAsync();
+        Assert.Equal(2, copies.Length); Assert.NotEqual(copies[0].Id, copies[1].Id);
+        Assert.All(copies, copy =>
+        {
+            Assert.NotEqual(source.Id, copy.Id); Assert.StartsWith("cloned-", copy.BlockId);
+            Assert.DoesNotContain("Senere kladde", copy.SceneJson); Assert.Contains("Original", copy.SceneJson);
+            Assert.Equal(1, copy.Revision); Assert.Equal(copy.Fingerprint, copy.PreviewFingerprint);
+        });
+        var firstCopy = copies.Single(d => d.NotebookDocumentId == first.Id);
+        var secondDrawingId = copies.Single(d => d.NotebookDocumentId == second.Id).Id;
+        Assert.Equal(firstCopy.Id.ToString(), firstRequest.DrawingMap![source.Id.ToString()]);
+        var firstAssets = await db.DrawingAssets.Where(a => a.DrawingId == firstCopy.Id).Select(a => a.Id).ToArrayAsync();
+        var secondAssets = await db.DrawingAssets.Where(a => a.DrawingId == secondDrawingId).Select(a => a.Id).ToArrayAsync();
+        Assert.Equal(3, firstAssets.Length); Assert.Empty(firstAssets.Intersect(secondAssets));
+        Assert.Empty(await db.DrawingGrants.Where(g => g.DrawingId == firstCopy.Id).ToArrayAsync());
+        var firstDoc = await db.NotebookDocuments.AsNoTracking().SingleAsync(d => d.Id == first.Id);
+        Assert.Equal(new[] { firstCopy.Id }, JsonSerializer.Deserialize<Guid[]>(firstDoc.DrawingIdsJson));
+        var again = Value<NotebookPageSummary>(await As().EnsureEntry(new(NotebookDefaults.TemplateId, Guid.NewGuid(), new DateOnly(2026, 11, 1)), default));
+        Assert.Equal(first.Id, again.Id);
+        Assert.Equal(3, await db.Drawings.CountAsync());
+    }
+
+    [Fact]
+    public async Task FailedDrawingBlockBindingNeverPersistsPartialJournalOrDrawingCopies()
+    {
+        var source = await AddTemplateDrawing();
+        var context = Value<NotebookDocumentContext>(await As(true).Context(NotebookDefaults.TemplateId, default));
+        Value<NotebookTemplateView>(await As(true).Activate(NotebookDefaults.TemplateId,
+            new(context.Revision, context.Fingerprint!, [new(source.Id, "snapshot", source.Revision, source.Fingerprint!)]), default));
+        handler.MissingDrawingBinding = true;
+        var result = await As().EnsureEntry(new(NotebookDefaults.TemplateId, Guid.NewGuid()), default);
+        Assert.Equal(400, Assert.IsType<ObjectResult>(result).StatusCode);
+        Assert.Equal(1, await db.Drawings.CountAsync());
+        Assert.Equal(3, await db.DrawingAssets.CountAsync());
+        Assert.Empty(await db.NotebookDocuments.Where(d => d.NotebookId == notebookId).ToArrayAsync());
+    }
+
+    private async Task<Drawing> AddTemplateDrawing()
+    {
+        var id = Guid.NewGuid(); var image = Guid.NewGuid(); var light = Guid.NewGuid(); var dark = Guid.NewGuid();
+        var drawing = new Drawing { Id = id, NotebookDocumentId = NotebookDefaults.TemplateId, BlockId = "template-drawing-block",
+            YjsState = [0, 0], Fingerprint = new string('a', 64), Revision = 1,
+            SceneJson = JsonSerializer.Serialize(new { elements = new object[] { new { id = "image", type = "image", fileId = "hash", text = "Original" } },
+                files = new Dictionary<string, object> { ["hash"] = new { assetId = image } }, appState = new { viewBackgroundColor = "#ffffff" } }),
+            AssetIdsJson = JsonSerializer.Serialize(new[] { image }), PreviewLightAssetId = light, PreviewDarkAssetId = dark,
+            PreviewFingerprint = new string('a', 64), PreviewRevision = 1, CreatedBySub = teacher,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow };
+        db.Drawings.Add(drawing);
+        foreach (var (asset, kind) in new[] { (image, "image"), (light, "preview-light"), (dark, "preview-dark") })
+            db.DrawingAssets.Add(new() { Id = asset, DrawingId = id, Key = "drawing-private/" + asset, OriginalName = "drawing.png", Kind = kind,
+                ContentType = "image/png", SizeBytes = 100, UploadedBySub = teacher, CreatedAtUtc = DateTimeOffset.UtcNow });
+        var doc = await db.NotebookDocuments.SingleAsync(d => d.Id == NotebookDefaults.TemplateId);
+        doc.DrawingIdsJson = JsonSerializer.Serialize(new[] { id });
+        await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        return drawing;
+    }
+
     [Theory]
     [InlineData("2026-03-28T23:30:00Z", "2026-03-29")]
     [InlineData("2026-10-24T22:30:00Z", "2026-10-25")]
@@ -172,16 +268,41 @@ public sealed class NotebookTemplatesTests : IAsyncLifetime
         public int Calls { get; private set; }
         public CloneNotebookDocument? LastRequest { get; private set; }
         public Func<Task>? BeforeReturn { get; set; }
+        public Action? BeforeCheckpoint { get; set; }
+        public int CheckpointCalls { get; private set; }
+        public bool MissingDrawingBinding { get; set; }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
+            if (request.RequestUri!.AbsolutePath == "/internal/drawing/checkpoint")
+            {
+                CheckpointCalls++; BeforeCheckpoint?.Invoke();
+                return new(HttpStatusCode.OK) { Content = JsonContent.Create(new { drawings = Array.Empty<object>() }) };
+            }
+            if (request.RequestUri.AbsolutePath == "/internal/drawing/clone")
+            {
+                var body = await request.Content!.ReadFromJsonAsync<JsonElement>(ct);
+                var scene = System.Text.Json.Nodes.JsonNode.Parse(body.GetProperty("sceneJson").GetString()!)!;
+                var assets = new List<Guid>();
+                foreach (var file in scene["files"]!.AsObject())
+                {
+                    var old = file.Value!["assetId"]!.GetValue<string>();
+                    var mapped = body.GetProperty("assetMap").GetProperty(old).GetString()!;
+                    file.Value["assetId"] = mapped; assets.Add(Guid.Parse(mapped));
+                }
+                return new(HttpStatusCode.OK) { Content = JsonContent.Create(new StoreDrawingDocument(Convert.ToBase64String([0, 0]), new string('a', 64), scene.ToJsonString(), assets.ToArray())) };
+            }
             Calls++; Assert.Equal("/internal/notebook/clone", request.RequestUri!.AbsolutePath);
             Assert.True(request.Headers.Contains("X-Notion-Service-Key"));
             LastRequest = await request.Content!.ReadFromJsonAsync<CloneNotebookDocument>(ct);
             if (BeforeReturn is { } action) { BeforeReturn = null; await action(); }
             // Transport fake; actual live-tree cloning, fresh block IDs and media rebinding are covered in Node tests.
             var projection = new StoreNotebookDocument(LastRequest!.StateBase64 ?? Convert.ToBase64String([0, 0]),
-                new string('a', 64), "Refleksion", [], LastRequest.AssetMap.Values.Select(Guid.Parse).ToArray());
+                new string('a', 64), "Refleksion", [], LastRequest.AssetMap.Values.Select(Guid.Parse).ToArray(),
+                LastRequest.DrawingMap?.Values.Select(Guid.Parse).ToArray() ?? [],
+                MissingDrawingBinding ? [] : LastRequest.DrawingMap?.Values.ToDictionary(value => value, value => "cloned-" + Guid.Parse(value).ToString("N")));
             return new(HttpStatusCode.OK) { Content = JsonContent.Create(projection) };
         }
     }
+
+    private sealed class Factory(HttpMessageHandler handler) : IHttpClientFactory { public HttpClient CreateClient(string name) => new(handler, disposeHandler: false); }
 }

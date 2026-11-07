@@ -15,7 +15,8 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionHoldMember[]> Members(Guid holdId, CancellationToken ct) => Get<NotionHoldMember[]>($"notion/holds/{holdId}/members", ct);
     public Task<NotionStudentProfile> Student(Guid holdId, Guid memberId, CancellationToken ct) => Get<NotionStudentProfile>($"notion/holds/{holdId}/members/{memberId}", ct);
     public Task<NotionPageSummary> Create(Guid holdId, string title, Guid? parentPageId, CancellationToken ct) => Post<NotionPageSummary>("notion/pages", new { holdId, title, parentPageId }, ct);
-    public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds }, ct);
+    public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct,
+        DrawingPublicationRequest[]? drawings = null) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds, drawings }, ct);
     public Task<NotionPageSummary> Unpublish(Guid id, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/unpublish", new {}, ct);
     public Task<NotionGroupView> CreateGroup(Guid holdId, string name, Guid[] membershipIds, CancellationToken ct, Guid? groupSetId = null) => Post<NotionGroupView>($"notion/holds/{holdId}/groups", new SaveNotionGroup(name, membershipIds, GroupSetId: groupSetId), ct);
     public Task<NotionGroupView[]> CreateGroupBatch(Guid holdId, SaveNotionGroup[] groups, CancellationToken ct, Guid? groupSetId = null, Guid? requestId = null) => Post<NotionGroupView[]>($"notion/holds/{holdId}/groups/batch", new SaveNotionGroupBatch(groups, groupSetId, requestId), ct);
@@ -56,6 +57,9 @@ public sealed class NotionClient(HttpClient http)
                 "group_changed" => "Gruppen er ændret af en anden. Opdatér listen, og prøv igen.",
                 "draft_changed" or "stale_draft" or "publication_conflict" => "Kladden er ændret. Vent på lagring, og prøv at udgive igen.",
                 "invalid_assets" => "En vedhæftning er ikke tilgængelig på denne side. Fjern den, eller upload den igen.",
+                "drawing_changed" => "Tegningen er ændret. Vent på lagring, og prøv at udgive igen.",
+                "drawing_preview_required" => "Åbn tegningen, og vent på, at forhåndsvisningen er gemt, før du udgiver.",
+                "drawing_service_unavailable" => "Tegningerne kunne ikke gemmes lige nu. Prøv igen.",
                 _ => (int)response.StatusCode switch
                 {
                     401 => "Log ind igen for at åbne indholdet.",

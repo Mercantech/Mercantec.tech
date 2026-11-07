@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Data.Common;
+using System.Text.Json;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
@@ -206,11 +207,45 @@ public sealed class NotionControllerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task StorageSavesAuthoritativeDrawingProjectionAndRejectsForeignOrMismatchedBindings()
+    {
+        var page = await Create();
+        var other = await Create();
+        var drawing = new Drawing { Id = Guid.NewGuid(), NotionPageId = page.Id, BlockId = "drawing-block", CreatedBySub = teacher };
+        var foreign = new Drawing { Id = Guid.NewGuid(), NotionPageId = other.Id, BlockId = "foreign-block", CreatedBySub = teacher };
+        db.Drawings.AddRange(drawing, foreign);
+        await db.SaveChangesAsync();
+
+        async Task<IActionResult> Write(Guid[] ids, Dictionary<string, string>? blocks)
+        {
+            var controller = Storage(body: JsonSerializer.SerializeToUtf8Bytes(new StoreNotionDocument(
+                Convert.ToBase64String([7, 8, 9]), Fingerprint, ids, blocks)));
+            controller.Request.ContentType = "application/json";
+            return await controller.WriteState(page.Id, default);
+        }
+
+        Assert.IsType<BadRequestObjectResult>(await Write([foreign.Id], new() { [foreign.Id.ToString()] = foreign.BlockId }));
+        Assert.IsType<BadRequestObjectResult>(await Write([drawing.Id, drawing.Id], new() { [drawing.Id.ToString()] = drawing.BlockId }));
+        Assert.IsType<BadRequestObjectResult>(await Write([drawing.Id], null));
+        Assert.IsType<BadRequestObjectResult>(await Write([drawing.Id], new() { [drawing.Id.ToString()] = "different-block" }));
+        Assert.Null(await db.NotionPages.Where(p => p.Id == page.Id).Select(p => p.YjsState).SingleAsync());
+        Assert.IsType<OkObjectResult>(await Write([drawing.Id], new() { [drawing.Id.ToString()] = drawing.BlockId }));
+        var saved = await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == page.Id);
+        Assert.Equal(new byte[] { 7, 8, 9 }, saved.YjsState);
+        Assert.Equal(Fingerprint, saved.DraftFingerprint);
+        Assert.Equal(new[] { drawing.Id }, JsonSerializer.Deserialize<Guid[]>(saved.DrawingIdsJson));
+
+        // An upgraded collaboration server can also remove the final drawing reference.
+        Assert.IsType<OkObjectResult>(await Write([], new()));
+        Assert.Equal("[]", await db.NotionPages.Where(p => p.Id == page.Id).Select(p => p.DrawingIdsJson).SingleAsync());
+    }
+
+    [Fact]
     public async Task StorageRejectsEmptyWrongTypeAndOversizedRequestsIncludingChunkedBodies()
     {
         var page = await Create();
         Assert.IsType<BadRequestObjectResult>(await Storage().WriteState(page.Id, default));
-        var wrongType = Storage(body: [1]); wrongType.Request.ContentType = "application/json";
+        var wrongType = Storage(body: [1]); wrongType.Request.ContentType = "text/plain";
         Assert.Equal(415, Assert.IsType<StatusCodeResult>(await wrongType.WriteState(page.Id, default)).StatusCode);
         var oversized = Storage(body: [1]); oversized.Request.ContentLength = NotionStorageController.MaxStateBytes + 1;
         Assert.Equal(413, Assert.IsType<StatusCodeResult>(await oversized.WriteState(page.Id, default)).StatusCode);

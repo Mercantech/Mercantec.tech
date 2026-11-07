@@ -69,6 +69,39 @@
 @media print{.notion-ai-assistant{display:none!important}}
 @keyframes notion-ai-breathe{50%{opacity:.35}}
 .notion-custom-emoji{width:1.15em;height:1.15em;object-fit:contain;vertical-align:-0.2em;display:inline-block}
+.notion-drawing-block{width:100%;min-width:0;margin:8px 0;color:var(--notion-ink)}
+.notion-drawing-preview{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:64px;margin:0;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--notion-muted);font:inherit;cursor:pointer}
+.notion-drawing-preview img{display:block;width:auto;max-width:100%;height:auto;margin:auto}
+.notion-drawing-preview:focus-visible{outline:2px solid var(--notion-blue);outline-offset:3px}
+.notion-drawing-preview:disabled{cursor:default}
+.notion-drawing-dialog{display:none;position:fixed;inset:0;box-sizing:border-box;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:var(--notion-paper);color:var(--notion-ink);font:13px/1.4 'DM Sans',sans-serif;overflow:hidden}
+.notion-drawing-dialog[open]{display:flex;flex-direction:column}
+.notion-drawing-dialog-head{display:flex;flex:none;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:8px 12px;border-bottom:1px solid var(--notion-rule);background:var(--notion-paper);min-width:0}
+.notion-drawing-dialog-head strong{font-size:14px}
+.notion-drawing-status{min-width:0;font-size:11px;color:var(--notion-muted)}
+.notion-drawing-actions{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-left:auto;min-width:0}
+.notion-drawing-dialog-head button,.notion-drawing-settings button,.notion-drawing-actions summary{box-sizing:border-box;min-height:34px;padding:6px 10px;border:1px solid var(--notion-rule);border-radius:6px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;cursor:pointer}
+.notion-drawing-dialog-head button:hover,.notion-drawing-settings button:hover,.notion-drawing-actions summary:hover{border-color:var(--notion-blue);background:var(--notion-tint)}
+.notion-drawing-dialog-head button:disabled,.notion-drawing-settings button:disabled{opacity:.5;cursor:default}
+.notion-drawing-dialog-head button:focus-visible,.notion-drawing-settings button:focus-visible,.notion-drawing-actions summary:focus-visible,.notion-drawing-settings input:focus-visible,.notion-drawing-settings select:focus-visible{outline:2px solid var(--notion-blue);outline-offset:2px}
+.notion-drawing-actions summary{display:inline-flex;align-items:center;list-style:none;white-space:nowrap}
+.notion-drawing-actions summary::-webkit-details-marker{display:none}
+.notion-drawing-actions details[open]{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.notion-drawing-canvas{position:relative;flex:1;min-width:0;min-height:0;width:100%;overflow:hidden}
+.notion-drawing-dialog .notion-drawing-canvas>.excalidraw{width:100%;height:100%;--color-primary:var(--notion-blue);--color-primary-darker:var(--notion-blue);--color-primary-light:var(--notion-tint);--color-primary-light-darker:var(--notion-tint);--color-surface-lowest:var(--notion-paper);--color-surface-low:color-mix(in srgb,var(--notion-ink) 5%,var(--notion-paper));--color-surface-mid:color-mix(in srgb,var(--notion-ink) 8%,var(--notion-paper));--color-surface-high:color-mix(in srgb,var(--notion-ink) 12%,var(--notion-paper));--color-on-surface:var(--notion-ink);--color-surface-primary-container:var(--notion-tint);--color-on-primary-container:var(--notion-blue)}
+.notion-drawing-error{flex:none;margin:0!important;padding:8px 12px;border-left:3px solid var(--orange,#a84613);background:var(--peach,#fff0e3);color:var(--notion-ink);font-size:12px}
+.notion-drawing-settings,.notion-drawing-emoji-picker{position:absolute;z-index:6;top:64px;right:12px;box-sizing:border-box;width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 80px);overflow:auto;overscroll-behavior:contain;border:1px solid var(--notion-rule);border-radius:9px;background:var(--notion-paper);color:var(--notion-ink);box-shadow:0 8px 28px color-mix(in srgb,var(--notion-ink) 14%,transparent)}
+.notion-drawing-settings{display:grid;gap:10px;padding:12px}
+.notion-drawing-settings label{display:grid;gap:5px;font-size:12px}
+.notion-drawing-settings input,.notion-drawing-settings select{box-sizing:border-box;width:100%;min-width:0;min-height:38px;padding:7px 9px;border:1px solid var(--notion-rule);border-radius:6px;background:var(--notion-paper);color:var(--notion-ink);font:inherit}
+.notion-drawing-candidates{display:grid;gap:4px;max-height:220px;overflow:auto}
+.notion-drawing-candidates button{text-align:left}
+.notion-drawing-grant{display:flex;gap:8px;align-items:center;justify-content:space-between;min-width:0}
+.notion-drawing-grant span{min-width:0;overflow-wrap:anywhere}
+.notion-drawing-emoji-picker .notion-emoji-panel{width:100%;max-width:none;margin:0;border:0;box-shadow:none}
+@media(max-width:640px){.notion-drawing-dialog-head{padding:6px 8px;gap:5px 8px}.notion-drawing-actions{width:100%;margin-left:0}.notion-drawing-settings,.notion-drawing-emoji-picker{top:112px;right:8px;width:calc(100vw - 16px);max-height:calc(100dvh - 128px)}.notion-drawing-settings input,.notion-drawing-settings select{font-size:16px}}
+@media(pointer:coarse){.notion-drawing-actions>button,.notion-drawing-actions summary,.notion-drawing-actions details button,.notion-drawing-settings button{min-width:44px;min-height:44px}}
+@media print{.notion-drawing-dialog{display:none!important}.notion-drawing-preview{cursor:default;break-inside:avoid-page}}
 .bn-grid-suggestion-menu-item .notion-custom-emoji{width:22px;height:22px;vertical-align:middle}
 .notion-emoji-panel{display:flex;flex-direction:column;gap:6px;width:calc(100% - 32px);max-width:340px;min-width:0;box-sizing:border-box;margin:0 16px 12px;padding:8px;border:1px solid var(--notion-rule);border-radius:10px;background:var(--notion-paper);color:var(--notion-ink);box-shadow:0 6px 20px color-mix(in srgb,var(--notion-ink) 8%,transparent)}
 .notion-emoji-panel button{min-height:34px;flex-shrink:0;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--notion-ink);font:inherit;font-size:12px;cursor:pointer}

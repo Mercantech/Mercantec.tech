@@ -23,4 +23,4 @@ Blokke:
 - pageLink: ingen content. props.pageId fra sidekataloget. Titlen hentes af editoren.
 - divider og slideBreak: ingen content og ingen children.
 
-Maks 12 blokke på øverste niveau. Lav ikke classRoster, holdPoll, holdGroup, pageMedia, image, video, audio eller file — de kræver holddata eller upload.
+Maks 12 blokke på øverste niveau. Lav ikke classRoster, holdPoll, holdGroup, pageMedia, image, video, audio, file eller drawing — de kræver holddata, upload eller en separat tegning. Tegninger oprettes med /tegning; opfind aldrig drawingId.

@@ -35,15 +35,28 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
         var assets = request.AssetIds.Distinct().ToArray();
         if (assets.Length != await db.NotebookAssets.CountAsync(a => a.DocumentId == id && assets.Contains(a.Id), ct))
             return BadRequest(new { error = "invalid_document_asset" });
+        var drawingIds = request.DrawingIds ?? [];
+        if (drawingIds.Length != await db.Drawings.CountAsync(d => d.NotebookDocumentId == id && drawingIds.Contains(d.Id), ct))
+            return BadRequest(new { error = "invalid_drawing" });
+        if (drawingIds.Length > 0)
+        {
+            var owned = await db.Drawings.AsNoTracking().Where(d => d.NotebookDocumentId == id && drawingIds.Contains(d.Id))
+                .Select(d => new { d.Id, d.BlockId }).ToArrayAsync(ct);
+            if (request.DrawingBlocks is null || request.DrawingBlocks.Count != drawingIds.Length || owned.Any(d =>
+                !request.DrawingBlocks.TryGetValue(d.Id.ToString(), out var blockId) || blockId != d.BlockId))
+                return BadRequest(new { error = "invalid_drawing" });
+        }
         if (doc.Fingerprint == request.Fingerprint)
             return Ok(new { savedAtUtc = doc.UpdatedAtUtc });
         var updated = DateTimeOffset.UtcNow;
         var manifest = JsonSerializer.Serialize(assets);
+        var drawingManifest = JsonSerializer.Serialize(drawingIds);
         // Atomic increments preserve metadata revisions arriving between our read and this write.
         await db.NotebookDocuments.Where(d => d.Id == id).ExecuteUpdateAsync(update => update
             .SetProperty(d => d.YjsState, state).SetProperty(d => d.Fingerprint, request.Fingerprint)
             .SetProperty(d => d.Revision, d => d.Revision + 1).SetProperty(d => d.SearchText, request.PlainText)
-            .SetProperty(d => d.AssetIdsJson, manifest).SetProperty(d => d.UpdatedAtUtc, updated), ct);
+            .SetProperty(d => d.AssetIdsJson, manifest).SetProperty(d => d.DrawingIdsJson, drawingManifest)
+            .SetProperty(d => d.UpdatedAtUtc, updated), ct);
         var oldLinks = await db.NotebookLinks.Where(l => l.FromId == id).ToArrayAsync(ct);
         db.NotebookLinks.RemoveRange(oldLinks);
         // Targets must be in this notebook; inaccessible and cross-domain IDs cannot enter its graph.

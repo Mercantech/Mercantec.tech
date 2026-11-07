@@ -5,18 +5,52 @@
 `notebook:<document-guid>` bruger samme proces og gemmekvitteringer som forløbseditoren,
 men autoriseres gennem `/api/notebooks/collaboration/authorize`. Serveren bestemmer,
 om dokumentet er elevens egen note eller en lærerstyret skabelonkladde. Læsere forbinder
-ikke til skrivekanalen. Eksisterende `notion:`-rum og deres binære lagringsprotokol er uændrede.
+ikke til skrivekanalen. Eksisterende `notion:`-rum bruger samme transport og understøtter
+fortsat ældre interne binære lagringskald.
 
 Notesbogens interne lagring ligger under `/api/internal/notebooks/documents/{id}/state`.
 GET returnerer Yjs-bytes; PUT gemmer JSON med `stateBase64`, `fingerprint`, `plainText`,
-`linkIds` og `assetIds`. Projektionen afledes fra den levende XML-struktur, så slettet
+`linkIds`, `assetIds`, `drawingIds` og `drawingBlocks` (drawing-ID til nærmeste blok-ID). Projektionen afledes fra den levende XML-struktur, så slettet
 CRDT-historik ikke bliver søgbar eller skaber backlinks.
 
 API'et kan kalde `POST /internal/notebook/clone` med den eksisterende interne servicenøgle
-og `{stateBase64, pageId, assetMap, defaultTemplate}`. Kaldet accepterer aldrig en browser-
+og `{stateBase64, pageId, assetMap, drawingMap, defaultTemplate}`. Kaldet accepterer aldrig en browser-
 Origin. Svaret har samme format som lagringsprojektionen. Kopier får friske CRDT- og blok-ID'er;
 medier ombindes til de nye side-/asset-ID'er, og tidligere slettet indhold kopieres ikke.
+`drawingMap` binder tegningsblokke til selvstændige kopier; manglende mapping for en faktisk tegning afvises.
 `defaultTemplate: true` opretter de tre refleksionsspørgsmål; manglende state opretter et tomt dokument.
+
+## Tegninger
+
+`drawing:<guid>` kræver et kanonisk navn med små bogstaver. `/api/drawings/collaboration/authorize`
+giver særskilt `canRead` og `canEdit`; læsere modtager scene og awareness, men deres Yjs-skrivninger
+anvendes aldrig. Rettigheder genkontrolleres hvert 15. sekund, og ændringer sendes som
+`{type:"permissions",canRead:true,canEdit,accessVersion}`. API'et kan straks invalidere adgang
+gennem `POST /internal/drawing/invalidate` med `{drawingId}`.
+
+Y.Doc indeholder kun `elements` (hele SDK-elementobjekter per ID, inklusive tombstones),
+`files` (SDK-fil-ID til `{assetId}`) og `scene` (`viewBackgroundColor`). Zoom, selection og
+andre personlige visningsvalg deles ikke. Filbytes/data-URL'er hører til API'ets fillager,
+aldrig Yjs. Tegningers encoded state og hver indkommende update er begrænset til **1 MiB**.
+En isoleret scratch-merge valideres før apply/broadcast; skrivninger serialiseres per rum,
+så samtidige updates ikke kan omgå den samlede grænse.
+
+Intern GET/PUT bruger `/api/internal/drawings/{id}/state`. GET giver binær state eller204;
+PUT gemmer `{stateBase64,fingerprint,sceneJson,assetIds}`. `sceneJson` er kanonisk
+`{elements,files,appState:{viewBackgroundColor}}`; elementer sorteres efter SDK-index og ID.
+En durable `persisted`-kvittering indeholder også `revision`, `fingerprint` og eventuel
+`accessVersion`, ud over eksisterende fingerprintHash og stateVector. En fejl bevarer dirty state.
+
+Interne service-key-beskyttede POST-ruter (ingen browser-Origin) er:
+
+- `/internal/drawing/clone`: `{stateBase64,assetMap}` giver frisk CRDT-state uden slettet CRDT-historik.
+  Alternativ `{sceneJson,assetMap}` medtager kun levende elementer og deres refererede filer til snapshots.
+- `/internal/drawing/checkpoint`: `{drawingIds}` flusher levende rum under deres save-mutex og returnerer
+  `{drawings:[{id,fingerprint,revision,savedAtUtc}]}`. Kald før API'ets parent-row lock for at undgå deadlock.
+- `/internal/drawing/invalidate`: `{drawingId}` genautoriserer aktive forbindelser med det samme.
+
+Notions interne PUT bruger nu også JSON `{stateBase64,fingerprint,drawingIds,drawingBlocks}`,
+afledt fra den levende XML-struktur. API'et bevarer understøttelse af ældre binære PUT-kald.
 
 Self-hosted Hocuspocus 4 + Yjs 13 service for `/notion`. This service has no paid
 cloud dependency. The app's ASP.NET API is the authority for JWT verification,
@@ -96,7 +130,7 @@ to prevent forged save notifications.
 A failed write emits `{"type":"persistenceError","message":"..."}`. A connected
 or synchronized provider alone is not proof of durable storage.
 
-Every binary storage PUT includes `X-Notion-State-Fingerprint`, the 64-character
+Legacy binary storage PUTs include `X-Notion-State-Fingerprint`, the 64-character
 lowercase hexadecimal canonical fingerprint of that exact snapshot. The API
 stores it alongside the binary and advances the draft revision only if the
 fingerprint changes. Loading an older document stamps this metadata before
@@ -112,10 +146,10 @@ revision and fingerprint must still match. Students read that snapshot through
 the authorized page context, without joining this service or receiving draft
 state. Only teachers with management access can authenticate to draft rooms.
 
-WebSocket clients must connect with `?schemaVersion=6`. Missing or older schema
+WebSocket clients must connect with `?schemaVersion=7`. Missing or older schema
 versions are rejected with `editor_version_mismatch` before authorization or
 document loading. Older editor tabs must reload to edit documents with the
-current block types and properties, including saved callout emoji icons.
+current block types and properties, including saved callout emoji icons and drawing blocks.
 
 ## Operational limits
 

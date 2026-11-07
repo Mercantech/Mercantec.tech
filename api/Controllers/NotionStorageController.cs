@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,15 +27,48 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         return document.YjsState is { Length: > 0 } bytes ? File(bytes, "application/octet-stream") : NoContent();
     }
 
-    [HttpPut("{id:guid}/state"), RequestSizeLimit(MaxStateBytes)]
+    [HttpPut("{id:guid}/state"), RequestSizeLimit(48 * 1024 * 1024)]
     public async Task<IActionResult> WriteState(Guid id, CancellationToken ct)
     {
         var denied = CheckServiceKey();
         if (denied is not null) return denied;
-        if (!string.Equals(Request.ContentType?.Split(';')[0].Trim(), "application/octet-stream", StringComparison.OrdinalIgnoreCase))
+        var contentType = Request.ContentType?.Split(';')[0].Trim();
+        var json = string.Equals(contentType, "application/json", StringComparison.OrdinalIgnoreCase);
+        if (!json && !string.Equals(contentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase))
             return StatusCode(StatusCodes.Status415UnsupportedMediaType);
-        if (Request.ContentLength > MaxStateBytes) return StatusCode(StatusCodes.Status413PayloadTooLarge);
+        if (Request.ContentLength > (json ? 24 * 1024 * 1024 : MaxStateBytes)) return StatusCode(StatusCodes.Status413PayloadTooLarge);
         if (!await db.NotionPages.AnyAsync(p => p.Id == id, ct)) return NotFound();
+        byte[] bytes;
+        string? fingerprint;
+        string? drawingManifest = null;
+        if (json)
+        {
+            StoreNotionDocument? projection;
+            try { projection = await Request.ReadFromJsonAsync<StoreNotionDocument>(ct); }
+            catch (JsonException) { return BadRequest(new { error = "invalid_document" }); }
+            if (projection?.StateBase64 is not { Length: > 0 and <= 24 * 1024 * 1024 }
+                || !IsFingerprint(projection.Fingerprint)) return BadRequest(new { error = "invalid_document" });
+            try { bytes = Convert.FromBase64String(projection.StateBase64); }
+            catch (FormatException) { return BadRequest(new { error = "invalid_document" }); }
+            if (bytes.Length is 0 or > MaxStateBytes) return BadRequest(new { error = "invalid_document" });
+            var drawingIds = projection.DrawingIds ?? [];
+            if (drawingIds.Length > 1000 || drawingIds.Contains(Guid.Empty) || drawingIds.Distinct().Count() != drawingIds.Length
+                || await db.Drawings.CountAsync(d => d.NotionPageId == id && drawingIds.Contains(d.Id), ct) != drawingIds.Length)
+                return BadRequest(new { error = "invalid_drawing" });
+            if (drawingIds.Length > 0)
+            {
+                var bindings = projection.DrawingBlocks;
+                var owned = await db.Drawings.AsNoTracking().Where(d => d.NotionPageId == id && drawingIds.Contains(d.Id))
+                    .Select(d => new { d.Id, d.BlockId }).ToArrayAsync(ct);
+                if (bindings is null || bindings.Count != drawingIds.Length || owned.Any(d =>
+                    !bindings.TryGetValue(d.Id.ToString(), out var blockId) || blockId != d.BlockId))
+                    return BadRequest(new { error = "invalid_drawing" });
+            }
+            fingerprint = projection.Fingerprint;
+            drawingManifest = JsonSerializer.Serialize(drawingIds);
+        }
+        else
+        {
         using var state = new MemoryStream();
         var buffer = new byte[81920];
         int count;
@@ -44,17 +79,19 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         }
         if (state.Length == 0) return BadRequest(new { error = "empty_state" });
         var hasFingerprint = Request.Headers.ContainsKey("X-Notion-State-Fingerprint");
-        string? fingerprint = hasFingerprint ? Request.Headers["X-Notion-State-Fingerprint"].ToString() : null;
+        fingerprint = hasFingerprint ? Request.Headers["X-Notion-State-Fingerprint"].ToString() : null;
         if (hasFingerprint && !IsFingerprint(fingerprint)) return BadRequest(new { error = "invalid_fingerprint" });
+        bytes = state.ToArray();
+        }
         var updated = DateTimeOffset.UtcNow;
-        var bytes = state.ToArray();
         // Atomic column update leaves concurrently renamed page metadata intact.
         var written = await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, updated)
             // The authenticated v1 service may still flush while Compose replaces it. Preserve
             // those bytes, but require the v2 service to stamp them before publication.
             .SetProperty(p => p.DraftRevision, p => fingerprint != null && p.DraftFingerprint == fingerprint ? p.DraftRevision : p.DraftRevision + 1)
-            .SetProperty(p => p.DraftFingerprint, fingerprint), ct);
+            .SetProperty(p => p.DraftFingerprint, fingerprint)
+            .SetProperty(p => p.DrawingIdsJson, p => drawingManifest ?? p.DrawingIdsJson), ct);
         if (written == 0) return NotFound();
         return Ok(new { savedAtUtc = updated });
     }

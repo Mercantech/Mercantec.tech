@@ -5,6 +5,7 @@ import * as Y from 'yjs';
 import { createApiClient, documentDomainFromName, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
 import { fingerprintHash } from './fingerprint.mjs';
 import { cloneNotebookDocument } from './notebook-documents.mjs';
+import { cloneDrawingDocument, drawingStateProjection, validateDrawingUpdate, MAX_DRAWING_BYTES } from './drawing-documents.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
 const SCHEMA_MISMATCH = { code: 4409, reason: 'editor_version_mismatch' };
@@ -24,13 +25,33 @@ export function createCollaborationServer({
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('PORT must be a valid TCP port');
   const sessions = new Set();
   const cloneSecret = resolveServiceSecret(serviceSecret, serviceSecretFile);
+  const drawingQueues = new WeakMap();
+  async function lockDrawing(document) {
+    const previous = drawingQueues.get(document) ?? Promise.resolve();
+    let unlock;
+    const pending = new Promise(resolve => { unlock = resolve; });
+    drawingQueues.set(document, pending);
+    await previous;
+    let released = false;
+    return () => { if (released) return; released = true; unlock(); if (drawingQueues.get(document) === pending) drawingQueues.delete(document); };
+  }
 
   async function checkAccess(context, documentName, force = false) {
     if (!context?.token || Date.now() >= context.expiresAt + TOKEN_CLOCK_SKEW_MS) throw DENIED;
     if (!force && Date.now() - context.authorizedAt < reauthorizeMs) return;
     // Share a pending check between the timer and arriving document updates.
+    const generation = context.authorizationGeneration ?? 0;
     context.pendingAuthorization ??= api.authorize(documentName, context.token).then(permission => {
+      if (generation !== (context.authorizationGeneration ?? 0)) throw DENIED;
+      const changed = context.canEdit !== permission.canEdit;
       context.expiresAt = permission.expiresAt;
+      context.canRead = permission.canRead;
+      context.canEdit = permission.canEdit;
+      context.accessVersion = permission.accessVersion;
+      if (context.connection && documentDomainFromName(documentName) === 'drawing') {
+        context.connection.readOnly = permission.canEdit !== true;
+        if (changed) context.connection.sendStateless(JSON.stringify({ type: 'permissions', canRead: true, canEdit: permission.canEdit, accessVersion: permission.accessVersion }));
+      }
       context.authorizedAt = Date.now();
     }).catch(() => { throw DENIED; }).finally(() => { context.pendingAuthorization = null; });
     await context.pendingAuthorization;
@@ -40,10 +61,31 @@ export function createCollaborationServer({
     if (!context) return;
     clearInterval(context.reauthorizationTimer);
     clearTimeout(context.expiryTimer);
+    context.closed = true;
     sessions.delete(context);
   }
 
-  return new Server({
+  async function persistDocument(documentName, document) {
+    const state = Y.encodeStateAsUpdate(document), vector = Y.encodeStateVector(document);
+    const fingerprint = fingerprintHash(state, vector);
+    try {
+      const result = await api.store(documentName, state, fingerprint);
+      const metadata = typeof result === 'string' ? { savedAtUtc: result } : result;
+      if (fingerprint === fingerprintHash(Y.encodeStateAsUpdate(document), Y.encodeStateVector(document))) {
+        document.broadcastStateless(JSON.stringify({
+          type: 'persisted', ...metadata,
+          stateVector: Buffer.from(vector).toString('base64'),
+          stateHash: createHash('sha256').update(state).digest('hex'), fingerprintHash: fingerprint,
+        }));
+      }
+      return { id: documentIdFromName(documentName), fingerprint, ...metadata };
+    } catch {
+      document.broadcastStateless(JSON.stringify({ type: 'persistenceError', message: 'Indholdet er endnu ikke gemt i skyen. Prøver igen.' }));
+      throw new Error('Document persistence failed');
+    }
+  }
+
+  const server = new Server({
     name: 'lup-notion-collaboration', port, address, quiet: true, stopOnSignals: false,
     timeout: 30000, debounce: debounceMs, maxDebounce: maxDebounceMs,
     websocketOptions: { maxPayload: 2 * 1024 * 1024 },
@@ -62,7 +104,7 @@ export function createCollaborationServer({
     },
 
     async onRequest({ request, response }) {
-      if (request.method === 'POST' && request.url === '/internal/notebook/clone') {
+      if (request.method === 'POST' && ['/internal/notebook/clone', '/internal/drawing/clone', '/internal/drawing/checkpoint', '/internal/drawing/invalidate'].includes(request.url)) {
         const supplied = request.headers['x-notion-service-key'];
         const authorized = typeof supplied === 'string' && supplied.length <= 1024 && cloneSecret.length >= 32
           && timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(cloneSecret).digest());
@@ -78,7 +120,42 @@ export function createCollaborationServer({
             if (size > 24 * 1024 * 1024) throw new Error('Clone request too large');
             chunks.push(chunk);
           }
-          const result = cloneNotebookDocument(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+          let result;
+          if (request.url === '/internal/notebook/clone') result = cloneNotebookDocument(body);
+          else if (request.url === '/internal/drawing/clone') result = cloneDrawingDocument(body);
+          else if (request.url === '/internal/drawing/checkpoint') {
+            if (!Array.isArray(body?.drawingIds) || body.drawingIds.length > 500) throw new Error('Invalid drawing IDs');
+            const ids = [...new Set(body.drawingIds.map(id => documentIdFromName(`drawing:${id}`)))];
+            const drawings = [];
+            for (const id of ids) {
+              const name = `drawing:${id}`, document = server.hocuspocus.documents.get(name);
+              if (document) {
+                if (document.isLoading) throw new Error('Drawing is loading');
+                drawings.push(await document.saveMutex.runExclusive(() => persistDocument(name, document)));
+              } else {
+                const state = await api.load(name);
+                if (!state) throw new Error('Drawing has no stored state');
+                const fingerprint = fingerprintHash(state, Y.encodeStateVectorFromUpdate(state));
+                drawings.push({ id, fingerprint, ...await api.store(name, state, fingerprint) });
+              }
+            }
+            result = { drawings };
+          } else {
+            const id = documentIdFromName(`drawing:${body?.drawingId}`), name = `drawing:${id}`;
+            const matching = [...sessions].filter(context => context.documentName === name);
+            for (const context of matching) {
+              context.authorizationGeneration = (context.authorizationGeneration ?? 0) + 1;
+              context.authorizedAt = 0;
+              context.connection.readOnly = true;
+            }
+            await Promise.all(matching.map(async context => {
+              await context.pendingAuthorization?.catch(() => {});
+              try { await checkAccess(context, name, true); }
+              catch { stopSession(context); context.connection.close(DENIED); }
+            }));
+            result = { invalidated: true };
+          }
           response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
           response.end(JSON.stringify(result));
         } catch {
@@ -93,19 +170,23 @@ export function createCollaborationServer({
       throw null;
     },
 
-    async onAuthenticate({ documentName, token, requestParameters }) {
+    async onAuthenticate({ documentName, token, requestParameters, connectionConfig }) {
       // An older editor can discard block types or props it does not know.
-      if (requestParameters?.get('schemaVersion') !== '6') throw SCHEMA_MISMATCH;
+      if (requestParameters?.get('schemaVersion') !== '7') throw SCHEMA_MISMATCH;
       const documentId = documentIdFromName(documentName);
       // Hocuspocus keys live rooms by the raw name, while storage uses the UUID.
       // Do not allow two differently-cased notebook rooms to overwrite one document.
-      if (documentDomainFromName(documentName) === 'notebook' && documentName !== `notebook:${documentId}`) throw DENIED;
+      const domain = documentDomainFromName(documentName);
+      if (domain !== 'notion' && documentName !== `${domain}:${documentId}`) throw DENIED;
       const permission = await api.authorize(documentName, token);
-      return { token, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };
+      if (domain === 'drawing') connectionConfig.readOnly = permission.canEdit !== true;
+      return { token, documentName, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };
     },
 
     async connected({ context, documentName, connection }) {
+      context.connection = connection;
       sessions.add(context);
+      if (documentDomainFromName(documentName) === 'drawing') connection.sendStateless(JSON.stringify({ type: 'permissions', canRead: true, canEdit: context.canEdit, accessVersion: context.accessVersion }));
       const close = () => { stopSession(context); connection.close(DENIED); };
       // Keep the socket open through the same skew window the authorize check allows.
       context.expiryTimer = setTimeout(close, Math.min(
@@ -121,6 +202,7 @@ export function createCollaborationServer({
 
     async beforeHandleMessage({ context, documentName, update }) {
       await checkAccess(context, documentName);
+      if (documentDomainFromName(documentName) === 'drawing' && update.byteLength > MAX_DRAWING_BYTES + 1024) throw { code: 4409, reason: 'drawing_state_limit' };
       if (Date.now() - context.windowStarted >= 1000) {
         context.windowStarted = Date.now();
         context.messagesInWindow = 0;
@@ -135,40 +217,39 @@ export function createCollaborationServer({
       if (type === MessageType.Stateless || type === MessageType.BroadcastStateless) throw DENIED;
     },
 
+    async beforeSync({ context, documentName, document, connection, type, payload }) {
+      if (documentDomainFromName(documentName) !== 'drawing' || type === 0) return;
+      if (payload.byteLength > MAX_DRAWING_BYTES) throw { code: 4409, reason: 'drawing_state_limit' };
+      if (connection.readOnly) return;
+      const release = await lockDrawing(document);
+      try {
+        if (context.closed) throw DENIED;
+        if (connection.readOnly) { release(); return; }
+        validateDrawingUpdate(document, payload);
+        context.releaseDrawingMessage = release;
+      } catch (error) { release(); throw { code: 4409, reason: 'invalid_drawing_state' }; }
+    },
+
+    async afterHandleMessage({ context }) {
+      context.releaseDrawingMessage?.();
+      context.releaseDrawingMessage = null;
+    },
+
     async onLoadDocument({ documentName }) {
       const state = await api.load(documentName);
+      if (state && documentDomainFromName(documentName) === 'drawing') drawingStateProjection(state);
       // Stamp legacy persisted documents with canonical publication metadata before editing.
       // Re-saving an identical fingerprint does not advance the API's draft revision.
       if (state) await api.store(documentName, state, fingerprintHash(state, Y.encodeStateVectorFromUpdate(state)));
       return state ?? undefined;
     },
 
-    async onStoreDocument({ documentName, document }) {
-      const state = Y.encodeStateAsUpdate(document);
-      const vector = Y.encodeStateVector(document);
-      const fingerprint = fingerprintHash(state, vector);
-      try {
-        const savedAtUtc = await api.store(documentName, state, fingerprint);
-        // New edits, including deletes (which need not advance a state vector),
-        // can arrive during PUT. Never call such a newer state "saved".
-        if (fingerprint === fingerprintHash(Y.encodeStateAsUpdate(document), Y.encodeStateVector(document))) {
-          document.broadcastStateless(JSON.stringify({
-            type: 'persisted', savedAtUtc,
-            stateVector: Buffer.from(vector).toString('base64'),
-            stateHash: createHash('sha256').update(state).digest('hex'),
-            fingerprintHash: fingerprint,
-          }));
-        }
-      } catch {
-        document.broadcastStateless(JSON.stringify({ type: 'persistenceError', message: 'Indholdet er endnu ikke gemt i skyen. Prøver igen.' }));
-        // Hocuspocus retains the dirty document and retries failed storage.
-        throw new Error('Document persistence failed');
-      }
-    },
+    async onStoreDocument({ documentName, document }) { await persistDocument(documentName, document); },
 
     async onDisconnect({ context }) { stopSession(context); },
     async onDestroy() { for (const context of sessions) stopSession(context); },
   });
+  return server;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -25,3 +25,40 @@ læseopdatering efter 15 sekunder, mobilbredde og bevaret skrive-/scrollkontekst
 Dette testprojekt er ikke del af produktionsappen, løsningen eller Docker-builds.
 Den særlige auth-handler accepterer kun fixture-processens tre præcise fiktive tokens.
 Ingen auth-omgåelse eller QA-rute tilføjes til den rigtige API.
+
+## Tegninger: automatiseret browseraccept
+
+Fixture registrerer de rigtige `DrawingAccess`/`DrawingService`-tjenester, alle40 indlejrede
+standardemoji-grafikker og ét custom klistermærke i hukommelseslageret. Ingen AI-provider
+registreres. Testen skriver kun til denne fixtures SQLite/S3-erstatning i hukommelsen.
+
+Når ovenstående launcher melder klar, køres acceptscriptet i en anden terminal:
+
+```powershell
+node editor/tests/qa-drawing-browser.mjs
+```
+
+Scriptet bruger Playwright-installationen i `%TEMP%/mercantec-graph-qa/node_modules/playwright`.
+Sæt `PLAYWRIGHT_MODULE` til en anden lokal `playwright/index.mjs` ved behov, eller
+`DRAWING_QA_HEADED=1` for et synligt browserforløb. Browseren må kun kontakte loopback-hosts;
+opstart kræver fixtures specifikke healthmarkør, så produktions-URL'er afvises.
+
+Reelle UI-forløb dækker:
+
+- Oprettelse via `/tegning`, Excalidraw-figurer, luk/genåbn og bevaret editorfokus.
+- Standard/custom emojis som billeder, native PNG-upload og PNG/SVG/redigerbar Excalidraw-eksport.
+- Udgivet live-tavle med elevskriver, anden elev som læser, samtidige sceneændringer og tilbagekaldelse.
+- Forældredokumentet forbliver skrivebeskyttet for elevskriveren; udgivet snapshot ændres ikke af kladden.
+- Systemtema med både lys/mørk præference plus alle fem eksplicitte temaer; mobil390/320px med touchmål.
+- Tegninger i en aktiveret logbogsskabelon kopieres til to selvstændige indlæg uden delte drawing-ID'er.
+
+Rapport, screenshots og de tre faktiske eksporter gemmes i `.tools/drawing-browser-qa/`.
+`DRAWING_QA_OUTPUT` kan vælge en anden lokal rapportmappe. Scriptet bygger eller starter
+ingen host og stopper kun sin egen Chromium-instans; launcheren ejer fixture-processerne.
+
+`node editor/tests/qa-drawing-concurrency.mjs` bruger samme fixture og egne nye
+testnoter til to rigtige SDK-klienter. Testen sammenligner native sceneindhold med
+den gemte scene efter samtidige ændringer, lagrækkefølge, lokal fortrydelse,
+flytning mod sletning og genforbindelse. Den kontrollerer også synlige deltagere
+og markører. Clipboard-aflæsning er afgrænset til browserkonteksten og ændrer ikke
+brugerens udklipsholder. Rapport gemmes i `.tools/drawing-concurrency-qa/`.

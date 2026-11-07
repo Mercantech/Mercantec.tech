@@ -20,5 +20,7 @@ public sealed class NotionPage
     public long? PublishedRevision { get; set; }
     public long PublicationVersion { get; set; }
     public string PublishedAssetIdsJson { get; set; } = "[]";
+    public string DrawingIdsJson { get; set; } = "[]";
+    public string PublishedDrawingsJson { get; set; } = "[]";
     public int SchemaVersion { get; set; } = 1;
 }

@@ -1,11 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { notebookStateProjection } from './notebook-documents.mjs';
+import { assertDrawingBytes, drawingStateProjection, MAX_DRAWING_BYTES } from './drawing-documents.mjs';
 
 export const MAX_DOCUMENT_BYTES = 16 * 1024 * 1024;
 // Match ASP.NET's default JWT clock skew so collaboration does not reject tokens
 // the API would still accept after a short client/server time drift.
 export const TOKEN_CLOCK_SKEW_MS = 5 * 60 * 1000;
-const DOCUMENT_NAME = /^(notion|notebook):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const DOCUMENT_NAME = /^(notion|notebook|drawing):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+const route = domain => domain === 'notebook' ? 'notebooks' : domain === 'drawing' ? 'drawings' : 'notion';
+const statePath = (domain, id) => `/api/internal/${route(domain)}/${domain === 'drawing' ? '' : 'documents/'}${id}/state`;
 
 export function resolveServiceSecret(serviceSecret, serviceSecretFile) {
   if (typeof serviceSecret === 'string' && serviceSecret.trim()) return serviceSecret.trim();
@@ -83,23 +86,25 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       const accessToken = typeof token === 'string' && token.startsWith('Bearer ') ? token.slice(7) : token;
       const expiresAt = tokenExpiresAt(accessToken);
       const canonicalName = `${domain}:${documentId}`;
-      const response = await request(`/api/${domain === 'notebook' ? 'notebooks' : 'notion'}/collaboration/authorize`, {
+      const response = await request(`/api/${route(domain)}/collaboration/authorize`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentName: canonicalName }),
       });
       if (!response.ok) throw new Error('Document access denied');
       const permission = await response.json().catch(() => null);
-      if (permission?.documentId?.toLowerCase() !== documentId || permission.canEdit !== true) {
+      if (permission?.documentId?.toLowerCase() !== documentId || (domain === 'drawing' ? permission.canRead !== true || typeof permission.canEdit !== 'boolean' : permission.canEdit !== true)) {
         throw new Error('Document access denied');
       }
-      return { documentId, expiresAt };
+      return { documentId, expiresAt, canRead: true, canEdit: permission.canEdit, accessVersion: permission.accessVersion };
     },
 
     async load(documentName) {
       const id = documentIdFromName(documentName);
       const domain = documentDomainFromName(documentName);
-      const response = await request(`/api/internal/${domain === 'notebook' ? 'notebooks' : 'notion'}/documents/${id}/state`, {
+      const drawing = domain === 'drawing';
+      const limit = drawing ? MAX_DRAWING_BYTES : MAX_DOCUMENT_BYTES;
+      const response = await request(statePath(domain, id), {
         headers: storageHeaders,
       });
       // Only an explicit empty-success response creates a blank Y.Doc. A missing
@@ -107,32 +112,52 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       if (response.status === 204) return null;
       if (!response.ok) throw new Error('Document state could not be loaded');
       const contentLength = Number(response.headers.get('content-length'));
-      if (contentLength > MAX_DOCUMENT_BYTES) throw new Error('Document exceeds the storage limit');
-      const state = new Uint8Array(await response.arrayBuffer());
-      if (state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
+      if (contentLength > limit) throw new Error('Document exceeds the storage limit');
+      let state;
+      if (drawing && response.body) {
+        const reader = response.body.getReader(), chunks = []; let size = 0;
+        try {
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > limit) { await reader.cancel(); throw new Error('Document exceeds the storage limit'); }
+            chunks.push(value);
+          }
+          state = new Uint8Array(Buffer.concat(chunks));
+        } finally { reader.releaseLock(); }
+      } else state = new Uint8Array(await response.arrayBuffer());
+      if (state.length === 0 || state.length > limit) {
         throw new Error('Invalid document state');
       }
+      if (drawing) drawingStateProjection(state);
       return state;
     },
 
     async store(documentName, state, fingerprint) {
       const id = documentIdFromName(documentName);
-      const notebook = documentDomainFromName(documentName) === 'notebook';
+      const domain = documentDomainFromName(documentName), drawing = domain === 'drawing';
       if (!(state instanceof Uint8Array) || state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
         throw new Error('Document exceeds the storage limit');
       }
+      if (drawing) assertDrawingBytes(state);
       if (typeof fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(fingerprint)) {
         throw new Error('A canonical document fingerprint is required');
       }
-      const projection = notebook ? notebookStateProjection(state) : null;
-      if (projection && projection.fingerprint !== fingerprint) throw new Error('Notebook fingerprint mismatch');
-      const response = await request(`/api/internal/${notebook ? 'notebooks' : 'notion'}/documents/${id}/state`, {
+      const projected = drawing ? drawingStateProjection(state) : notebookStateProjection(state);
+      const projection = domain === 'notion' ? { stateBase64: projected.stateBase64, fingerprint: projected.fingerprint, drawingIds: projected.drawingIds, drawingBlocks: projected.drawingBlocks } : projected;
+      if (projection.fingerprint !== fingerprint) throw new Error(`${drawing ? 'Drawing' : domain === 'notebook' ? 'Notebook' : 'Document'} fingerprint mismatch`);
+      const response = await request(statePath(domain, id), {
         method: 'PUT',
-        headers: { ...storageHeaders, 'Content-Type': notebook ? 'application/json' : 'application/octet-stream', 'X-Notion-State-Fingerprint': fingerprint },
-        body: notebook ? JSON.stringify(projection) : state,
+        headers: { ...storageHeaders, 'Content-Type': 'application/json', 'X-Notion-State-Fingerprint': fingerprint },
+        body: JSON.stringify(projection),
       });
       if (!response.ok) throw new Error('Document state could not be saved');
       const result = await response.json().catch(() => null);
+      if (drawing) {
+        if (!Number.isSafeInteger(result?.revision) || result.revision < 0 || result.fingerprint !== fingerprint || typeof result.savedAtUtc !== 'string') throw new Error('Drawing storage acknowledgement is invalid');
+        return { savedAtUtc: result.savedAtUtc, revision: result.revision, fingerprint: result.fingerprint, accessVersion: result.accessVersion };
+      }
       return typeof result?.savedAtUtc === 'string' ? result.savedAtUtc : new Date().toISOString();
     },
   };

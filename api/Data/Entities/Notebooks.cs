@@ -36,6 +36,7 @@ public sealed class NotebookDocument
     public string? Fingerprint { get; set; }
     public string SearchText { get; set; } = "";
     public string AssetIdsJson { get; set; } = "[]";
+    public string DrawingIdsJson { get; set; } = "[]";
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 }
@@ -82,6 +83,7 @@ public sealed class NotebookTemplateVersion
     public string Cadence { get; set; } = "daily";
     public byte[] State { get; set; } = [];
     public string AssetIdsJson { get; set; } = "[]";
+    public string DrawingsJson { get; set; } = "[]";
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
 

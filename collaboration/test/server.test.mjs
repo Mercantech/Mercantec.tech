@@ -25,24 +25,26 @@ const waitFor = async (check, message = 'condition', timeout = 5000) => {
 };
 
 async function fixture(t, { reauthorizeMs = 15000 } = {}) {
-  const state = { binary: null, fingerprint: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null };
+  const state = { binary: null, fingerprint: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null, revision: 0 };
   const grants = new Map();
+  const readOnlyTokens = new Set();
   const http = createServer(async (request, response) => {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
     const body = Buffer.concat(chunks);
-    if (request.url === '/api/notion/collaboration/authorize' || request.url === '/api/notebooks/collaboration/authorize') {
+    if (['/api/notion/collaboration/authorize', '/api/notebooks/collaboration/authorize', '/api/drawings/collaboration/authorize'].includes(request.url)) {
       state.authorizations++;
       const accessToken = request.headers.authorization?.replace(/^Bearer /, '');
       const requested = JSON.parse(body.toString()).documentName;
       if (!grants.get(accessToken)?.has(requested)) { response.writeHead(403).end(); return; }
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ documentId: requested.slice(requested.indexOf(':') + 1), canEdit: true }));
+      response.end(JSON.stringify({ documentId: requested.slice(requested.indexOf(':') + 1), canRead: true, canEdit: !readOnlyTokens.has(accessToken), accessVersion: 1 }));
       return;
     }
     if (request.headers['x-notion-service-key'] !== secret) { response.writeHead(401).end(); return; }
     const notebook = request.url === `/api/internal/notebooks/documents/${id}/state`;
-    if (!notebook && request.url !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
+    const drawing = request.url === `/api/internal/drawings/${id}/state`;
+    if (!notebook && !drawing && request.url !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
     if (request.method === 'GET') {
       state.loads++;
       if (state.failLoad) { response.writeHead(503).end(); return; }
@@ -50,20 +52,21 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
       response.end(state.binary);
     } else if (request.method === 'PUT') {
       state.storeAttempts++;
-      const projection = notebook ? JSON.parse(body.toString()) : null;
-      const binary = notebook ? Buffer.from(projection.stateBase64, 'base64') : body;
-      const fingerprint = notebook ? projection.fingerprint : request.headers['x-notion-state-fingerprint'];
+      const projection = JSON.parse(body.toString());
+      const binary = Buffer.from(projection.stateBase64, 'base64');
+      const fingerprint = projection.fingerprint;
       if (fingerprint !== fingerprintHash(binary, Y.encodeStateVectorFromUpdate(binary))) {
         response.writeHead(400).end(); return;
       }
       if (state.saveGate) await state.saveGate;
       if (state.failStore) { response.writeHead(503).end(); return; }
       state.binary = binary;
-      if (notebook) state.projection = projection;
+      state.projection = projection;
+      if (state.fingerprint !== fingerprint) state.revision++;
       state.fingerprint = fingerprint;
       state.saves++;
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ savedAtUtc: new Date().toISOString() }));
+      response.end(JSON.stringify({ savedAtUtc: new Date().toISOString(), ...(drawing ? { revision: state.revision, fingerprint } : {}) }));
     } else response.writeHead(405).end();
   });
   http.listen(0, '127.0.0.1');
@@ -89,7 +92,7 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     await new Promise(resolve => http.close(resolve));
   });
 
-  const connect = (accessToken, name = documentName, schemaVersion = '6') => {
+  const connect = (accessToken, name = documentName, schemaVersion = '7') => {
     const doc = new Y.Doc();
     const messages = [];
     let denied = false;
@@ -114,7 +117,7 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     websocket.connect().catch(() => {});
     return result;
   };
-  return { state, grants, connect, start, get server() { return server; } };
+  return { state, grants, readOnlyTokens, connect, start, get server() { return server; } };
 }
 
 test('two real providers merge concurrent edits, acknowledge durable storage and reload binary after restart', async t => {
@@ -206,7 +209,7 @@ test('missing or incompatible editor schemas are rejected before authorization a
   const f = await fixture(t);
   const accessToken = token('teacher');
   f.grants.set(accessToken, new Set([documentName]));
-  for (const version of [null, '1', '2', '3', '4', '5', '999']) {
+  for (const version of [null, '1', '2', '3', '4', '5', '6', '999']) {
     const editor = f.connect(accessToken, documentName, version);
     await waitFor(() => editor.denied, 'incompatible editor rejected');
     assert.match(editor.denialReason, /editor_version_mismatch/);
@@ -375,4 +378,78 @@ test('health endpoint works and unapproved browser origins cannot upgrade', asyn
   const [error] = await once(ws, 'error');
   assert.match(error.message, /403/);
   ws.terminate();
+});
+
+test('drawing providers merge whole elements, persist canonical scenes with revisions and allow read-only awareness', async t => {
+  const f = await fixture(t), name = `drawing:${id}`;
+  const ownerToken = token('drawing-owner'), peerToken = token('drawing-peer'), readerToken = token('drawing-reader');
+  for (const value of [ownerToken, peerToken, readerToken]) f.grants.set(value, new Set([name]));
+  f.readOnlyTokens.add(readerToken);
+  const owner = f.connect(ownerToken, name), peer = f.connect(peerToken, name), reader = f.connect(readerToken, name);
+  await waitFor(() => owner.provider.isSynced && peer.provider.isSynced && reader.provider.isSynced, 'drawing peers and reader synced');
+  owner.doc.getMap('elements').set('rectangle', { id: 'rectangle', type: 'rectangle', index: 'a0' });
+  peer.doc.getMap('elements').set('ellipse', { id: 'ellipse', type: 'ellipse', index: 'a1' });
+  await waitFor(() => reader.doc.getMap('elements').size === 2 && owner.doc.getMap('elements').size === 2, 'merged whole drawing elements');
+  await waitFor(() => owner.messages.some(message => message.type === 'persisted' && message.revision > 0), 'revision-bearing drawing acknowledgement');
+  const scene = JSON.parse(f.state.projection.sceneJson);
+  assert.deepEqual(scene.elements.map(element => element.id), ['rectangle', 'ellipse']);
+  reader.provider.awareness.setLocalStateField('user', { name: 'Reader' });
+  await waitFor(() => [...owner.provider.awareness.getStates().values()].some(value => value.user?.name === 'Reader'), 'read-only reader presence');
+  reader.doc.getMap('elements').set('forbidden', { id: 'forbidden', type: 'rectangle' });
+  await new Promise(resolve => setTimeout(resolve, 100));
+  assert.equal(owner.doc.getMap('elements').has('forbidden'), false);
+  assert.equal(f.server.hocuspocus.documents.get(name).getMap('elements').has('forbidden'), false);
+  assert.equal(reader.messages.find(message => message.type === 'permissions')?.canEdit, false);
+});
+
+test('drawing permissions downgrade, upgrade and invalidate on a live connection without granting read-only writes', async t => {
+  const f = await fixture(t, { reauthorizeMs: 60 }), name = `drawing:${id}`, accessToken = token('drawing-grants');
+  f.grants.set(accessToken, new Set([name])); f.readOnlyTokens.add(accessToken);
+  const client = f.connect(accessToken, name);
+  await waitFor(() => client.provider.isSynced, 'drawing reader connected');
+  f.readOnlyTokens.delete(accessToken);
+  await waitFor(() => client.messages.some(message => message.type === 'permissions' && message.canEdit === true), 'read grant promoted to edit');
+  client.doc.getMap('elements').set('allowed', { id: 'allowed', type: 'rectangle' });
+  await waitFor(() => f.state.saves > 0, 'new write grant saved');
+  f.readOnlyTokens.add(accessToken);
+  const response = await fetch(`http://127.0.0.1:${f.server.address.port}/internal/drawing/invalidate`, { method: 'POST', headers: { 'X-Notion-Service-Key': secret }, body: JSON.stringify({ drawingId: id }) });
+  assert.equal(response.status, 200);
+  const live = f.server.hocuspocus.documents.get(name);
+  assert.equal([...live.connections.keys()][0].readOnly, true);
+  client.doc.getMap('elements').set('revoked', { id: 'revoked', type: 'ellipse' });
+  await new Promise(resolve => setTimeout(resolve, 100));
+  assert.equal(live.getMap('elements').has('revoked'), false);
+  f.grants.delete(accessToken);
+  await waitFor(() => !f.server.hocuspocus.documents.get(name)?.getConnectionsCount(), 'revoked read access closes drawing socket');
+});
+
+test('drawing state limit rejects a cumulative oversized update before apply, broadcast or persistence', async t => {
+  const f = await fixture(t), name = `drawing:${id}`, accessToken = token('drawing-limits');
+  f.grants.set(accessToken, new Set([name]));
+  const sender = f.connect(accessToken, name), observer = f.connect(accessToken, name);
+  await waitFor(() => sender.provider.isSynced && observer.provider.isSynced, 'drawing peers synced');
+  sender.doc.getMap('elements').set('first', { id: 'first', type: 'text', text: 'a'.repeat(650000) });
+  await waitFor(() => observer.doc.getMap('elements').has('first') && f.state.saves > 0, 'valid large element durably saved');
+  sender.doc.getMap('elements').set('second', { id: 'second', type: 'text', text: 'b'.repeat(650000) });
+  await waitFor(() => f.server.hocuspocus.documents.get(name)?.getConnectionsCount() === 1, 'oversized cumulative update disconnected');
+  assert.equal(observer.doc.getMap('elements').has('second'), false);
+  assert.equal(f.server.hocuspocus.documents.get(name).getMap('elements').has('second'), false);
+  assert.equal(JSON.parse(f.state.projection.sceneJson).elements.some(element => element.id === 'second'), false);
+});
+
+test('drawing checkpoint flushes the current scene and returns its persisted fingerprint and revision', async t => {
+  const f = await fixture(t), name = `drawing:${id}`, accessToken = token('drawing-checkpoint');
+  f.grants.set(accessToken, new Set([name]));
+  const client = f.connect(accessToken, name);
+  await waitFor(() => client.provider.isSynced, 'drawing writer synced');
+  client.doc.getMap('elements').set('a', { id: 'a', type: 'rectangle' });
+  await waitFor(() => f.server.hocuspocus.documents.get(name).getMap('elements').has('a'), 'server has latest scene');
+  const url = `http://127.0.0.1:${f.server.address.port}/internal/drawing/checkpoint`;
+  assert.equal((await fetch(url, { method: 'POST', body: '{}' })).status, 401);
+  const response = await fetch(url, { method: 'POST', headers: { 'X-Notion-Service-Key': secret }, body: JSON.stringify({ drawingIds: [id] }) });
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.drawings[0].fingerprint, fingerprintHash(Y.encodeStateAsUpdate(client.doc), Y.encodeStateVector(client.doc)));
+  assert.equal(result.drawings[0].revision, f.state.revision);
+  assert.equal(JSON.parse(f.state.projection.sceneJson).elements[0].id, 'a');
 });

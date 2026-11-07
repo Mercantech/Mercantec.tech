@@ -105,7 +105,7 @@ public partial class Index
         canEdit = IsEditing, members = _current.Members, polls = _current.Polls,
         pages = _current.Pages ?? [], groups = _groups, publishedStateBase64 = _current.PublishedStateBase64,
         publishedAtUtc = _current.PublishedAtUtc, updatedAtUtc = _current.UpdatedAtUtc,
-        userName = Auth.DisplayName ?? "Bruger"
+        userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject, drawings = _current.Drawings
     };
     private void AccountChanged() => _ = InvokeAsync(SyncAccount);
     private async Task SyncAccount()
@@ -165,7 +165,7 @@ public partial class Index
     private async Task<bool> CanLeave()
     {
         if (!await SaveTitle()) return false;
-        if (!_mounted || _module is null || !IsEditing) return true;
+        if (!_mounted || _module is null) return true;
         if (!await _module.InvokeAsync<bool>("hasUnsavedChanges", _editorElement)) return true;
         _error = "Vent på, at ændringer og uploads er gemt i skyen. Hold siden åben, hvis forbindelsen er afbrudt.";
         return false;
@@ -240,7 +240,7 @@ public partial class Index
             var id = _current.PageId;
             var data = await _module.InvokeAsync<PublicationData>("getPublicationData", _editorElement);
             var context = await Client.Context(id, ct);
-            await Client.Publish(id, context.DraftRevision, data.ExpectedFingerprint, data.AssetIds, ct);
+            await Client.Publish(id, context.DraftRevision, data.ExpectedFingerprint, data.AssetIds, ct, data.Drawings);
             await UpdateContext(ct);
             _notice = "Siden er udgivet.";
         });
@@ -301,5 +301,5 @@ public partial class Index
         try { await Unmount(); if (_module is not null) await _module.DisposeAsync(); } catch (JSDisconnectedException) { }
         _callbacks?.Dispose(); _life.Dispose();
     }
-    private sealed record PublicationData(string ExpectedFingerprint, Guid[] AssetIds);
+    private sealed record PublicationData(string ExpectedFingerprint, Guid[] AssetIds, DrawingPublicationRequest[]? Drawings = null);
 }

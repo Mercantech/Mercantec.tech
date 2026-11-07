@@ -17,9 +17,9 @@ function decode(encoded) {
 
 /** Only integrated, live XML children are visited. Deleted CRDT history is never searchable. */
 export function projectNotebookDocument(doc) {
-  const text = [], links = new Set(), assets = new Set();
+  const text = [], links = new Set(), assets = new Set(), drawings = new Set(), drawingBlocks = {};
   let visited = 0;
-  const visit = (node, depth = 0) => {
+  const visit = (node, depth = 0, blockId) => {
     if (++visited > 250000 || depth > 256) throw new Error('Notebook document is too complex');
     if (node instanceof Y.XmlText) {
       text.push(node.toDelta().map(item => typeof item.insert === 'string' ? item.insert : '').join(''));
@@ -27,19 +27,28 @@ export function projectNotebookDocument(doc) {
     }
     if (node instanceof Y.XmlElement) {
       const attrs = node.getAttributes();
+      if (node.nodeName === 'blockContainer' && typeof attrs.id === 'string') blockId = attrs.id;
       if (node.nodeName === 'pageLink' || node.nodeName === 'pageMention') {
         if (typeof attrs.pageId === 'string' && guid.test(attrs.pageId)) links.add(attrs.pageId.toLowerCase());
       }
       if (node.nodeName === 'pageMedia' && typeof attrs.assetId === 'string' && guid.test(attrs.assetId)) assets.add(attrs.assetId.toLowerCase());
+      if (node.nodeName === 'drawing' && typeof attrs.drawingId === 'string' && guid.test(attrs.drawingId)) {
+        const id = attrs.drawingId.toLowerCase();
+        drawings.add(id);
+        if (blockId) {
+          if (drawingBlocks[id] && drawingBlocks[id] !== blockId) throw new Error('A drawing cannot belong to multiple blocks');
+          drawingBlocks[id] = blockId;
+        }
+      }
       if (node.nodeName === 'mermaidDiagram' && typeof attrs.source === 'string') text.push(attrs.source);
     }
     if (node instanceof Y.XmlElement || node instanceof Y.XmlFragment) {
-      for (const child of node.toArray()) visit(child, depth + 1);
+      for (const child of node.toArray()) visit(child, depth + 1, blockId);
       if (node instanceof Y.XmlElement && !['pageMention', 'studentMention', 'customEmoji'].includes(node.nodeName)) text.push('\n');
     }
   };
   visit(doc.getXmlFragment('document-store'));
-  return { plainText: text.join('').replace(/\n{3,}/g, '\n\n').trim(), linkIds: [...links].sort(), assetIds: [...assets].sort() };
+  return { plainText: text.join('').replace(/\n{3,}/g, '\n\n').trim(), linkIds: [...links].sort(), assetIds: [...assets].sort(), drawingIds: [...drawings].sort(), drawingBlocks: Object.fromEntries(Object.entries(drawingBlocks).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
 }
 
 export function notebookStateProjection(state) {
@@ -72,12 +81,18 @@ export function defaultNotebookTemplate() {
 }
 
 /** Fresh CRDT identities, fresh block IDs and page-local asset grants for an independent student copy. */
-export function cloneNotebookDocument({ stateBase64, pageId, assetMap = {}, defaultTemplate = false } = {}) {
-  if (typeof pageId !== 'string' || !guid.test(pageId) || !assetMap || typeof assetMap !== 'object' || Array.isArray(assetMap)) throw new Error('Invalid notebook clone request');
+export function cloneNotebookDocument({ stateBase64, pageId, assetMap = {}, drawingMap = {}, defaultTemplate = false } = {}) {
+  drawingMap ??= {};
+  if (typeof pageId !== 'string' || !guid.test(pageId) || !assetMap || typeof assetMap !== 'object' || Array.isArray(assetMap) || !drawingMap || typeof drawingMap !== 'object' || Array.isArray(drawingMap)) throw new Error('Invalid notebook clone request');
   const mappings = new Map();
   for (const [from, to] of Object.entries(assetMap)) {
     if (!guid.test(from) || typeof to !== 'string' || !guid.test(to)) throw new Error('Invalid notebook asset mapping');
     mappings.set(from.toLowerCase(), to.toLowerCase());
+  }
+  const drawingMappings = new Map();
+  for (const [from, to] of Object.entries(drawingMap)) {
+    if (!guid.test(from) || typeof to !== 'string' || !guid.test(to) || from.toLowerCase() === to.toLowerCase()) throw new Error('Invalid notebook drawing mapping');
+    drawingMappings.set(from.toLowerCase(), to.toLowerCase());
   }
   const source = defaultTemplate ? defaultNotebookTemplate() : stateBase64 ? decode(stateBase64) : new Y.Doc();
   const target = new Y.Doc();
@@ -99,6 +114,13 @@ export function cloneNotebookDocument({ stateBase64, pageId, assetMap = {}, defa
           attrs.assetId = newId;
         }
         attrs.pageId = pageId.toLowerCase();
+      }
+      if (node.nodeName === 'drawing') {
+        if (attrs.drawingId) {
+          const newId = drawingMappings.get(String(attrs.drawingId).toLowerCase());
+          if (!newId) throw new Error('Missing notebook drawing mapping');
+          attrs.drawingId = newId;
+        }
       }
       for (const [key, value] of Object.entries(attrs)) result.setAttribute(key, value);
       result.insert(0, node.toArray().map(child => copy(child, depth + 1)));

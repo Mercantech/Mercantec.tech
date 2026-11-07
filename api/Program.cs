@@ -22,6 +22,8 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<Mercantec.Tech.Api.Notebooks.NotebookAccess>();
+builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingAccess>();
+builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingService>();
 builder.Services.AddSingleton<Mercantec.Tech.Api.Notebooks.NotebookServiceKey>();
 builder.Services.AddHttpClient<Mercantec.Tech.Api.Notebooks.NotebookEngineClient>(client => client.Timeout = TimeSpan.FromSeconds(30));
 

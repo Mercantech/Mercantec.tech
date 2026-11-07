@@ -104,7 +104,7 @@ public partial class Index
         pageId = _current.DocumentId, holdId = _current.HoldId?.ToString() ?? "", title = _current.Title,
         canEdit = Editing, members = Array.Empty<object>(), polls = Array.Empty<object>(), groups = Array.Empty<object>(),
         pages = _current.Pages, publishedStateBase64 = _current.StateBase64, stateBase64 = _current.StateBase64,
-        revision = _current.Revision, updatedAtUtc = _current.UpdatedAtUtc, userName = Auth.DisplayName ?? "Bruger"
+        revision = _current.Revision, updatedAtUtc = _current.UpdatedAtUtc, userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject
     };
     private void AccountChanged() => _ = InvokeAsync(SyncAccount);
     private async Task SyncAccount()
@@ -281,7 +281,7 @@ public partial class Index
         {
             var publication = await _editor.InvokeAsync<PublicationData>("getPublicationData", _editorElement);
             var fresh = await Client.TemplateContext(id, ct);
-            var updated = await Client.Activate(id, new(fresh.Revision, publication.ExpectedFingerprint), ct);
+            var updated = await Client.Activate(id, new(fresh.Revision, publication.ExpectedFingerprint, publication.Drawings), ct);
             _templates = _templates.Select(t => t.Id == id ? updated : t).ToArray();
             _notice = "Skabelonen er aktiv. Nye logbogsindlæg bruger denne version.";
         });
@@ -304,7 +304,7 @@ public partial class Index
     private async Task<bool> CanLeave(bool metadata = true)
     {
         if (metadata && MetadataDirty) { _error = "Gem eller annullér ændringerne i sidens oplysninger, før du går videre."; return false; }
-        if (_mounted && Editing && _editor is not null && await _editor.InvokeAsync<bool>("hasUnsavedChanges", _editorElement))
+        if (_mounted && _editor is not null && await _editor.InvokeAsync<bool>("hasUnsavedChanges", _editorElement))
         { _error = "Vent på, at indhold og uploads er gemt i skyen. Hold fanen åben, hvis forbindelsen er afbrudt."; return false; }
         return true;
     }
@@ -416,5 +416,5 @@ public partial class Index
         try { if (_lifecycle is not null) { await _lifecycle.InvokeVoidAsync("unwatch"); await _lifecycle.DisposeAsync(); } await Unmount(); if (_editor is not null) await _editor.DisposeAsync(); } catch (JSDisconnectedException) { }
         _callbacks?.Dispose(); _requests?.Dispose(); _life.Dispose();
     }
-    private sealed record PublicationData(string ExpectedFingerprint, Guid[] AssetIds);
+    private sealed record PublicationData(string ExpectedFingerprint, Guid[] AssetIds, DrawingPublicationRequest[]? Drawings = null);
 }

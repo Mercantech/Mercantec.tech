@@ -8,6 +8,8 @@ using System.Text.Json;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Drawings;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Learning;
 using Mercantec.Tech.Api.Notebooks;
 using Mercantec.Tech.Api.Storage;
@@ -31,6 +33,8 @@ await keepAlive.OpenAsync();
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddScoped<NotebookAccess>();
 builder.Services.AddScoped<CourseAccess>();
+builder.Services.AddScoped<DrawingAccess>();
+builder.Services.AddScoped<DrawingService>();
 builder.Services.AddScoped<FileAuthorization>();
 builder.Services.AddSingleton<NotebookServiceKey>();
 builder.Services.AddHttpClient<NotebookEngineClient>(client => client.Timeout = TimeSpan.FromSeconds(30));
@@ -76,6 +80,25 @@ using (var scope = app.Services.CreateScope())
     foreach (var key in new[] { "pupil", "peer" })
         db.Memberships.Add(new Membership { Id = Guid.NewGuid(), Hold = hold, UserSub = QaIdentities.All[key].Sub,
             DisplayName = QaIdentities.All[key].Name, CreatedAtUtc = now });
+    // Use the real embedded standard graphics and real emoji/content controllers; no AI provider is registered.
+    foreach (var key in typeof(StandardEmojiAssets).Assembly.GetManifestResourceNames().Where(StandardEmojiAssets.IsStandard).Order())
+    {
+        await using var image = StandardEmojiAssets.Open(key)!;
+        var metadata = StandardEmojiMetadata.Find(key);
+        db.CustomEmojis.Add(new CustomEmoji { Id = Guid.NewGuid(), Name = "qa-" + Path.GetFileNameWithoutExtension(key), Key = key,
+            ContentType = "image/png", SizeBytes = image.Length, AltText = "QA standardemoji " + (metadata?.Keywords.FirstOrDefault() ?? "emoji"),
+            Category = metadata?.Category ?? "custom", KeywordsJson = JsonSerializer.Serialize(metadata?.Keywords ?? []),
+            CreatedBySub = QaIdentities.All["teacher"].Sub, CreatedAtUtc = now, UpdatedAtUtc = now });
+    }
+    await using var customSource = StandardEmojiAssets.Open("standard-emojis/1f680.png")!;
+    using var customImage = new MemoryStream();
+    await customSource.CopyToAsync(customImage);
+    var customBytes = customImage.ToArray();
+    const string customKey = "qa-emojis/custom-sticker.png";
+    await scope.ServiceProvider.GetRequiredService<IObjectStorage>().PutAsync(customKey, new MemoryStream(customBytes), "image/png");
+    db.CustomEmojis.Add(new CustomEmoji { Id = Guid.NewGuid(), Name = "qa-custom-sticker", Key = customKey,
+        ContentType = "image/png", SizeBytes = customBytes.Length, AltText = "Raket som QA-klistermærke", Category = "custom", KeywordsJson = "[\"QA\",\"sticker\",\"raket\"]",
+        CreatedBySub = QaIdentities.All["teacher"].Sub, CreatedAtUtc = now, UpdatedAtUtc = now });
     await db.SaveChangesAsync();
 }
 await app.RunAsync();

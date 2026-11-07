@@ -1987,6 +1987,64 @@ namespace Mercantec.Tech.Api.Data.Migrations
                 {
                     b.Navigation("Resources");
                 });
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotionPage", b =>
+            {
+                b.Property<string>("DrawingIdsJson").IsRequired().HasColumnType("text");
+                b.Property<string>("PublishedDrawingsJson").IsRequired().HasColumnType("text");
+            });
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookDocument", b => b.Property<string>("DrawingIdsJson").IsRequired().HasColumnType("text"));
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.NotebookTemplateVersion", b => b.Property<string>("DrawingsJson").IsRequired().HasColumnType("text"));
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Drawing", b =>
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<Guid?>("NotionPageId").HasColumnType("uuid"); b.Property<Guid?>("NotebookDocumentId").HasColumnType("uuid");
+                b.Property<string>("BlockId").IsRequired().HasMaxLength(128).HasColumnType("character varying(128)");
+                b.Property<string>("Mode").IsRequired().HasMaxLength(16).HasColumnType("character varying(16)");
+                b.Property<byte[]>("YjsState").HasColumnType("bytea"); b.Property<string>("SceneJson").IsRequired().HasColumnType("text");
+                b.Property<string>("Fingerprint").HasMaxLength(64).HasColumnType("character varying(64)");
+                b.Property<string>("AssetIdsJson").IsRequired().HasColumnType("text");
+                b.Property<long>("Revision").IsConcurrencyToken().HasColumnType("bigint"); b.Property<long>("AccessVersion").IsConcurrencyToken().HasColumnType("bigint");
+                b.Property<Guid?>("PreviewLightAssetId").HasColumnType("uuid"); b.Property<Guid?>("PreviewDarkAssetId").HasColumnType("uuid");
+                b.Property<string>("PreviewFingerprint").HasMaxLength(64).HasColumnType("character varying(64)"); b.Property<long?>("PreviewRevision").HasColumnType("bigint");
+                b.Property<Guid>("CreatedBySub").HasColumnType("uuid"); b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone"); b.Property<DateTimeOffset>("UpdatedAtUtc").HasColumnType("timestamp with time zone");
+                b.HasKey("Id");
+                b.HasIndex("NotionPageId", "BlockId").IsUnique().HasFilter("\"NotionPageId\" IS NOT NULL");
+                b.HasIndex("NotebookDocumentId", "BlockId").IsUnique().HasFilter("\"NotebookDocumentId\" IS NOT NULL");
+                b.ToTable("drawings", t => t.HasCheckConstraint("CK_drawings_parent", "(\"NotionPageId\" IS NOT NULL AND \"NotebookDocumentId\" IS NULL) OR (\"NotionPageId\" IS NULL AND \"NotebookDocumentId\" IS NOT NULL)"));
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.NotionPage", null).WithMany().HasForeignKey("NotionPageId").OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.NotebookDocument", null).WithMany().HasForeignKey("NotebookDocumentId").OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.DrawingGrant", b =>
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("DrawingId").HasColumnType("uuid");
+                b.Property<Guid?>("UserSub").HasColumnType("uuid"); b.Property<Guid?>("HoldId").HasColumnType("uuid");
+                b.Property<string>("DisplayName").IsRequired().HasMaxLength(200).HasColumnType("character varying(200)"); b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                b.HasKey("Id"); b.HasIndex("DrawingId", "UserSub").IsUnique().HasFilter("\"UserSub\" IS NOT NULL"); b.HasIndex("DrawingId", "HoldId").IsUnique().HasFilter("\"HoldId\" IS NOT NULL"); b.HasIndex("HoldId");
+                b.ToTable("drawing_grants", t => t.HasCheckConstraint("CK_drawing_grants_principal", "(\"UserSub\" IS NOT NULL AND \"HoldId\" IS NULL) OR (\"UserSub\" IS NULL AND \"HoldId\" IS NOT NULL)"));
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.Drawing", null).WithMany().HasForeignKey("DrawingId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null).WithMany().HasForeignKey("HoldId").OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.DrawingAsset", b =>
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("DrawingId").HasColumnType("uuid");
+                b.Property<string>("Key").IsRequired().HasMaxLength(512).HasColumnType("character varying(512)");
+                b.Property<string>("OriginalName").IsRequired().HasMaxLength(240).HasColumnType("character varying(240)");
+                b.Property<string>("ContentType").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)"); b.Property<string>("Kind").IsRequired().HasMaxLength(24).HasColumnType("character varying(24)");
+                b.Property<long>("SizeBytes").HasColumnType("bigint"); b.Property<Guid>("UploadedBySub").HasColumnType("uuid"); b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                b.HasKey("Id"); b.HasIndex("DrawingId"); b.ToTable("drawing_assets");
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.Drawing", null).WithMany().HasForeignKey("DrawingId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+            });
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.DrawingSnapshot", b =>
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid"); b.Property<Guid>("DrawingId").HasColumnType("uuid");
+                b.Property<long>("Revision").HasColumnType("bigint"); b.Property<string>("Fingerprint").IsRequired().HasMaxLength(64).HasColumnType("character varying(64)");
+                b.Property<byte[]>("YjsState").IsRequired().HasColumnType("bytea"); b.Property<string>("SceneJson").IsRequired().HasColumnType("text"); b.Property<string>("AssetIdsJson").IsRequired().HasColumnType("text");
+                b.Property<Guid>("PreviewLightAssetId").HasColumnType("uuid"); b.Property<Guid>("PreviewDarkAssetId").HasColumnType("uuid"); b.Property<DateTimeOffset>("CreatedAtUtc").HasColumnType("timestamp with time zone");
+                b.HasKey("Id"); b.HasIndex("DrawingId", "Revision").IsUnique(); b.HasIndex("PreviewLightAssetId"); b.HasIndex("PreviewDarkAssetId"); b.ToTable("drawing_snapshots");
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.Drawing", null).WithMany().HasForeignKey("DrawingId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.DrawingAsset", null).WithMany().HasForeignKey("PreviewLightAssetId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("Mercantec.Tech.Api.Data.Entities.DrawingAsset", null).WithMany().HasForeignKey("PreviewDarkAssetId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            });
 #pragma warning restore 612, 618
         }
     }
