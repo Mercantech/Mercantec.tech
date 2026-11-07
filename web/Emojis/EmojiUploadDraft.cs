@@ -19,7 +19,7 @@ public static partial class EmojiUploadDraft
             if (CharUnicodeInfo.GetUnicodeCategory(character) == UnicodeCategory.NonSpacingMark) continue;
             if (character == 'æ') stem.Append("ae");
             else if (character == 'ø') stem.Append('o');
-            else if (character is >= 'a' and <= 'z' or >= '0' and <= '9') stem.Append(character);
+            else if (character is >= 'a' and <= 'z' or >= '0' and <= '9' or '-') stem.Append(character);
             else if (stem.Length > 0 && stem[^1] != '_') stem.Append('_');
         }
         var name = stem.ToString().Trim('_');
@@ -48,6 +48,6 @@ public static partial class EmojiUploadDraft
         .Split([',', ';', '\n'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
         .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
-    [GeneratedRegex("^[a-z0-9_]{2,32}$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex("^[a-z0-9_-]{2,32}$", RegexOptions.CultureInvariant)]
     private static partial Regex ValidName();
 }

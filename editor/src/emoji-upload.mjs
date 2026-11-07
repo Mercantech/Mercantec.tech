@@ -43,7 +43,7 @@ export function mergeEmojiAnalysis(draft, analysis, editedFields) {
 export function suggestEmojiName(fileName, existingNames = []) {
   const leaf = String(fileName ?? '').replace(/\\/g, '/').split('/').pop() ?? '';
   const stem = leaf.replace(/\.[^.]*$/, '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
-    .replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    .replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/[^a-z0-9-]+/g, '_').replace(/^_+|_+$/g, '')
     .slice(0, 32).replace(/_+$/g, '');
   const base = stem.length >= 2 ? stem : 'emoji';
   const names = new Set(Array.from(existingNames, value => String(value).toLowerCase()));
@@ -57,7 +57,7 @@ export function suggestEmojiName(fileName, existingNames = []) {
 
 export function normalizeEmojiName(name) {
   const normalized = String(name ?? '').trim().replace(/^:+|:+$/g, '').toLowerCase();
-  return /^[a-z0-9_]{2,32}$/.test(normalized) ? normalized : null;
+  return /^[a-z0-9_-]{2,32}$/.test(normalized) ? normalized : null;
 }
 
 export function validateEmojiFile(file) {
@@ -69,7 +69,7 @@ export function validateEmojiFile(file) {
 
 function errorMessage(status, code, fallback = 'Emojien kunne ikke gemmes. Prøv igen.') {
   const messages = {
-    invalid_name: 'Navnet skal være 2–32 tegn: små bogstaver, tal og _.',
+    invalid_name: 'Navnet skal være 2–32 tegn: små bogstaver, tal, _ og -.',
     name_taken: 'Navnet er allerede brugt. Vælg et andet.',
     unsupported_file_type: 'Brug et PNG-, JPEG-, GIF- eller WebP-billede.',
     invalid_file_signature: 'Filen matcher ikke billedtypen.',

@@ -67,6 +67,20 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task HyphenatedNamesAreNormalizedAndKeepExistingUniquenessRules()
+    {
+        var controller = As(_teacher, teacher: true);
+        var created = Read(await controller.Upload(Png("Vatson-Vinker.png"), ":Vatson-Vinker:", default));
+        Assert.Equal("vatson-vinker", created.Name);
+        Assert.Equal("name_taken", Error(await controller.Upload(Png("another.png"), "VATSON-VINKER", default)));
+        Assert.Equal("thumbs_up", EmojiName.Normalize(":THUMBS_UP:"));
+        Assert.Null(EmojiName.Normalize("vatson/ugyldig"));
+        Assert.Null(EmojiName.Normalize("vatson-" + new string('a', 26)));
+        var renamed = Read(await controller.Rename(created.Id, new("Vatson-Tommel-Op"), default));
+        Assert.Equal("vatson-tommel-op", renamed.Name);
+    }
+
+    [Fact]
     public async Task ContentRequiresLoginOrAMatchingTicket()
     {
         var created = Read(await As(_teacher, teacher: true).Upload(Png("lup.png"), "lup", default));

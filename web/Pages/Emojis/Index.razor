@@ -40,7 +40,7 @@ else
             <label class="field">Kort navn
                 <input value="@_name" @oninput="EditName" maxlength="32" required placeholder="lup" autocomplete="off" />
             </label>
-            <p class="emoji-hint">2–32 tegn: bogstaver, tal og _. I teksten bliver det <kbd>:navn:</kbd>.</p>
+            <p class="emoji-hint">2–32 tegn: bogstaver, tal, _ og -. I teksten bliver det <kbd>:navn:</kbd>.</p>
             <label class="field">Billede
                 <InputFile @key="_fileKey" OnChange="ChooseFile" accept="image/png,image/jpeg,image/gif,image/webp" />
             </label>

@@ -26,6 +26,17 @@ public sealed class EmojiTextPartsTests
     }
 
     [Fact]
+    public void HyphenatedAndUnderscoredShortcodesWorkTogetherAndUnknownNamesStayText()
+    {
+        var vatson = Lup with { Name = "vatson-vinker" };
+        var legacy = Lup with { Id = Guid.NewGuid(), Name = "thumbs_up" };
+        var parts = EmojiTextParts.Split("Hej :Vatson-Vinker: :thumbs_up: :vatson-mangler:", [vatson, legacy]);
+        Assert.Equal(new[] { vatson, legacy }, parts.Where(part => part.Emoji is not null).Select(part => part.Emoji));
+        Assert.Equal(" :vatson-mangler:", parts[^1].Text);
+        Assert.Equal(":vatson-vinker:", EmojiInsert.Append("", vatson.Name, 100));
+    }
+
+    [Fact]
     public void AppendStopsAtTheLengthLimit()
     {
         Assert.Equal(":lup:", EmojiInsert.Append("  ", "lup", 20));

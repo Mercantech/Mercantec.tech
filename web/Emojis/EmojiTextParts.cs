@@ -6,7 +6,7 @@ public readonly record struct EmojiTextPart(string Text, CustomEmojiItem? Emoji)
 
 public static partial class EmojiTextParts
 {
-    [GeneratedRegex(@"(?<![\p{L}\p{N}_]):([a-zA-Z0-9_]{2,32}):", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}_]):([a-zA-Z0-9_-]{2,32}):", RegexOptions.CultureInvariant)]
     private static partial Regex Shortcode();
 
     public static IReadOnlyList<EmojiTextPart> Split(string? text, IEnumerable<CustomEmojiItem> emojis)

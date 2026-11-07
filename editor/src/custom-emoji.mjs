@@ -68,7 +68,7 @@ function expandParts(parts, byName) {
 }
 
 function splitPlain(text, styles, byName) {
-  const re = /:([a-z0-9_]{2,32}):/gi;
+  const re = /:([a-z0-9_-]{2,32}):/gi;
   let last = 0;
   let changed = false;
   const pieces = [];

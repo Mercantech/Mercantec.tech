@@ -35,7 +35,7 @@
                         <span>Emoji-navn</span>
                         <input class="emoji-picker-upload-name" value="@_uploadName" @oninput="EditUploadName" aria-label="Emoji-navn" maxlength="32" autocomplete="off" spellcheck="false" disabled="@_uploadBusy" aria-describedby="@(_panelId + "-upload-hint")" />
                     </label>
-                    <p class="emoji-picker-upload-hint" id="@(_panelId + "-upload-hint")">2–32 tegn: bogstaver, tal og _. Bliver til <strong>:@NormalizedUploadName:</strong></p>
+                    <p class="emoji-picker-upload-hint" id="@(_panelId + "-upload-hint")">2–32 tegn: bogstaver, tal, _ og -. Bliver til <strong>:@NormalizedUploadName:</strong></p>
                     <label class="emoji-picker-upload-label"><span>ALT-tekst</span><input class="emoji-picker-upload-name" value="@_uploadAltText" @oninput="EditUploadAltText" aria-label="ALT-tekst" maxlength="240" disabled="@_uploadBusy" /></label>
                     <label class="emoji-picker-upload-label"><span>Kategori</span><select class="emoji-picker-upload-name" value="@_uploadCategory" @onchange="EditUploadCategory" aria-label="Kategori" disabled="@_uploadBusy">
                         @foreach (var category in EmojiPickerCatalog.Categories.Where(item => item.Id != "all"))

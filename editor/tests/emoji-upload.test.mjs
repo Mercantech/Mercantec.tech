@@ -13,6 +13,12 @@ test('filename defaults become short names and retain user-overridable names', (
   assert.equal(suggestEmojiName(long + '.png'), long);
   assert.equal(suggestEmojiName(long + '.png', [long]), 'a'.repeat(30) + '_2');
   assert.equal(normalizeEmojiName(' :Min_Emoji: '), 'min_emoji');
+  assert.equal(normalizeEmojiName(' :Vatson-Vinker: '), 'vatson-vinker');
+  assert.equal(suggestEmojiName('Vatson-Vinker.png'), 'vatson-vinker');
+  assert.equal(suggestEmojiName('Vatson-Vinker.png', ['VATSON-VINKER']), 'vatson-vinker_2');
+  assert.equal(suggestEmojiName('Vatson-Faar en idé.png'), 'vatson-faar_en_ide');
+  assert.equal(normalizeEmojiName('vatson-' + 'a'.repeat(26)), null);
+  assert.equal(normalizeEmojiName('vatson/vinker'), null);
   assert.equal(normalizeEmojiName('navn med mellemrum'), null);
   assert.equal(normalizeEmojiName('x'), null);
 });

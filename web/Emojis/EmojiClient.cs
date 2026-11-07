@@ -85,7 +85,7 @@ public sealed class EmojiClient(HttpClient http)
         response.Dispose();
         throw new EmojiException(code switch
         {
-            "invalid_name" => "Navnet skal være 2–32 tegn: små bogstaver, tal og _.",
+            "invalid_name" => "Navnet skal være 2–32 tegn: små bogstaver, tal, _ og -.",
             "invalid_alt_text" => "ALT-teksten må højst være 240 tegn.",
             "invalid_category" => "Vælg en kategori fra listen.",
             "invalid_keywords" => "Brug højst 12 søgeord på hver højst 32 tegn.",

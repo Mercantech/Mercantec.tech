@@ -58,3 +58,18 @@ test('unknown names, inline code and untouched content stay as they are', () => 
   const same = [{ type: 'text', text: 'ingen kolon', styles: {} }];
   assert.equal(expandEmojiShortcodes(same, [lup]).content, same);
 });
+
+test('hyphenated and legacy underscored shortcodes expand without changing unknown names', () => {
+  const vatson = { id: 'vatson', name: 'vatson-vinker' };
+  const legacy = { id: 'thumb', name: 'thumbs_up' };
+  const result = expandEmojiShortcodes([{ type: 'text', text: ':Vatson-Vinker: :thumbs_up: :vatson-mangler:', styles: {} }], [vatson, legacy]);
+  assert.equal(result.changed, true);
+  assert.deepEqual(result.content, [
+    { type: 'customEmoji', props: { emojiId: vatson.id, name: vatson.name } },
+    { type: 'text', text: ' ', styles: {} },
+    { type: 'customEmoji', props: { emojiId: legacy.id, name: legacy.name } },
+    { type: 'text', text: ' :vatson-mangler:', styles: {} },
+  ]);
+  const unknown = [{ type: 'text', text: ':vatson-mangler:', styles: {} }];
+  assert.equal(expandEmojiShortcodes(unknown, [vatson]).content, unknown);
+});

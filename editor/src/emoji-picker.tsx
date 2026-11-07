@@ -114,7 +114,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
   const saveUpload = async () => {
     if (!file || !onUpload || upload.current || analysis.current) return;
     const normalized = normalizeEmojiName(draft.name);
-    if (!normalized) { setError('Navnet skal være 2–32 tegn: små bogstaver, tal og _.'); nameInput.current?.focus(); return; }
+    if (!normalized) { setError('Navnet skal være 2–32 tegn: små bogstaver, tal, _ og -.'); nameInput.current?.focus(); return; }
     if (metadataError) { setError(metadataError); return; }
     const controller = new AbortController();
     upload.current = controller;
@@ -189,7 +189,7 @@ export function EmojiPicker({ id, emojis, onPick, onClose, onUpload, onAnalyze }
       {analyzing && <div className="notion-emoji-analysis-status"><p role="status">AI analyserer billedet…</p><button type="button" onClick={() => stopAnalysis()}>Stop analyse</button></div>}
       {analysisNotice && <p className="notion-emoji-analysis-notice" role="status">{analysisNotice}</p>}
       <label className="notion-emoji-upload-name">Emoji-navn<input ref={nameInput} value={draft.name} onChange={event => editDraft('name', event.target.value)} maxLength={32} autoComplete="off" spellCheck={false} disabled={busy} aria-invalid={!normalizeEmojiName(draft.name)} aria-describedby={`${id}-upload-hint`} /></label>
-      <p id={`${id}-upload-hint`}>Brug 2–32 tegn: a-z, 0-9 og _. AI-forslag kan rettes inden gemning.</p>
+      <p id={`${id}-upload-hint`}>Brug 2–32 tegn: a-z, 0-9, _ og -. Navnet kan rettes inden gemning.</p>
       <p className="notion-emoji-upload-shortcode">:{normalizeEmojiName(draft.name) ?? draft.name}:</p>
       <label className="notion-emoji-upload-name">ALT-tekst<textarea rows={2} value={draft.altText} onChange={event => editDraft('altText', event.target.value)} maxLength={240} disabled={busy} placeholder="Beskriv kort, hvad emojien viser" /></label>
       <label className="notion-emoji-upload-name">Kategori<select value={draft.category} onChange={event => editDraft('category', event.target.value)} disabled={busy}>{emojiCategories.filter(item => item.id !== 'all').map(item => <option key={item.id} value={item.id}>{item.id === 'custom' ? 'Uden kategori' : item.label}</option>)}</select></label>
