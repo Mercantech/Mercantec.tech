@@ -24,6 +24,10 @@ function isRouletteRuntimeAsset(url) {
     );
 }
 
+function isAuthRuntimeAsset(url) {
+    return url.origin === baseUrl.origin && url.pathname === '/js/auth-storage.js';
+}
+
 async function onInstall(event) {
     console.info('Service worker: Install', cacheName);
     // Activate updated SW immediately so routes like /lectio appear without hard-reset.
@@ -37,9 +41,12 @@ async function onInstall(event) {
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
         // Image editing is optional. Never download its model/WASM on every visit.
         .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/image-tools/'))
-        // The roulette module and voice manifest must follow the deployed app,
-        // rather than race a previous worker's unversioned startup cache.
-        .filter(asset => !isRouletteRuntimeAsset(new URL(asset.url, baseUrl)));
+        // Runtime modules must follow the deployed app rather than race a
+        // previous worker's unversioned startup cache.
+        .filter(asset => {
+            const url = new URL(asset.url, baseUrl);
+            return !isRouletteRuntimeAsset(url) && !isAuthRuntimeAsset(url);
+        });
     const cache = await caches.open(cacheName);
     await Promise.all(assets.map(async (asset) => {
         try {
@@ -65,7 +72,7 @@ async function onActivate(event) {
 async function onFetch(event) {
     const url = new URL(event.request.url);
 
-    if (event.request.method === 'GET' && isRouletteRuntimeAsset(url)) {
+    if (event.request.method === 'GET' && (isRouletteRuntimeAsset(url) || isAuthRuntimeAsset(url))) {
         let cache;
         try { cache = await caches.open(cacheName); } catch { }
         try {
