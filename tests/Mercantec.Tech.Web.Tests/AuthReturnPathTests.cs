@@ -58,6 +58,8 @@ public sealed class AuthReturnPathTests
     [InlineData("/%6cogin")]
     [InlineData("/auth/%63allback")]
     [InlineData("/notebook/%2e%2e/login")]
+    [InlineData("/x%3Fq/../login")]
+    [InlineData("/x%23fragment/../auth/callback")]
     public void Authentication_routes_cannot_be_return_destinations(string path)
     {
         Assert.Null(AuthReturnPath.Normalize(path));

@@ -10,6 +10,7 @@ public static class AuthReturnPath
 
         var end = path.IndexOfAny(['?', '#']);
         var route = end < 0 ? path : path[..end];
+        if (!IsLocalDestination(route)) return null;
         // Decode before validation so encoded separators and dot segments cannot hide
         // a different destination or send the browser back into the login flow.
         for (var i = 0; i < 8; i++)
@@ -22,12 +23,17 @@ public static class AuthReturnPath
             if (i == 7) return null;
         }
 
+        return IsLocalDestination(route) ? path : null;
+    }
+
+    private static bool IsLocalDestination(string route)
+    {
         if (!Uri.TryCreate(new Uri("https://lup.invalid/"), route, out var destination)
-            || destination.Host != "lup.invalid") return null;
+            || destination.Host != "lup.invalid") return false;
         var canonical = destination.AbsolutePath.TrimEnd('/');
         if (canonical.Equals("/login", StringComparison.OrdinalIgnoreCase)
-            || canonical.Equals("/auth/callback", StringComparison.OrdinalIgnoreCase)) return null;
-        return path;
+            || canonical.Equals("/auth/callback", StringComparison.OrdinalIgnoreCase)) return false;
+        return true;
     }
 
     public static string LoginUrl(string? path) => Normalize(path) is { } target
