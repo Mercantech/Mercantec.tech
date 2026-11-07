@@ -121,7 +121,7 @@ function MermaidPreview({ source, showSourceOnError }: { source: string; showSou
 
   return <>
     <span ref={probe} className="notion-visually-hidden" aria-hidden="true" />
-    <div className="notion-mermaid-host" role="region" tabIndex={0} aria-label="Mermaid-diagram" aria-busy={rendering}>
+    <div className="notion-mermaid-host" role="region" aria-label="Mermaid-diagram" aria-busy={rendering}>
       {svgMarkup && <div className="notion-mermaid-svg" role="img" aria-label="Diagram" dangerouslySetInnerHTML={{ __html: svgMarkup }} />}
       {rendering && !svgMarkup && <p className="notion-block-hint" role="status">Tegner diagrammet…</p>}
     </div>

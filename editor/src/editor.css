@@ -193,10 +193,10 @@
   min-width: 0;
   margin: 6px 0;
   padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--notion-rule);
-  border-radius: 9px;
-  background: var(--notion-paper);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--notion-ink);
 }
 .notion-blocknote-host[data-notion-theme="dark"] .notion-mermaid-block {
@@ -207,15 +207,15 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  padding: 5px 8px;
-  border-bottom: 1px solid var(--notion-rule);
-  background: var(--notion-paper);
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
   font: 600 .8125rem/1.25 "DM Sans", system-ui, sans-serif;
 }
 .notion-mermaid-language {
   min-width: 0;
   margin-inline-end: auto;
-  padding-inline: 6px;
+  padding-inline: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,8 +258,7 @@
   color: var(--notion-blue);
 }
 .notion-mermaid-toolbar button:focus-visible,
-.notion-mermaid-editor textarea:focus-visible,
-.notion-mermaid-host:focus-visible {
+.notion-mermaid-editor textarea:focus-visible {
   outline: 2px solid var(--notion-blue);
   outline-offset: 1px;
 }
@@ -313,18 +312,17 @@
   text-align: start;
 }
 .notion-mermaid-host {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
   min-height: 0;
-  max-height: min(65svh, 42rem);
-  padding: 16px;
-  overflow: auto;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-}
-.notion-mermaid-host:focus-visible {
-  outline-offset: -2px;
+  max-height: none;
+  padding: 4px 0;
+  overflow: visible;
 }
 .notion-mermaid-svg {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -332,8 +330,9 @@
 .notion-mermaid-svg svg {
   display: block;
   width: auto;
-  max-width: none;
+  max-width: 100%;
   height: auto;
+  max-height: none;
   margin-inline: auto;
 }
 .notion-mermaid-hint,

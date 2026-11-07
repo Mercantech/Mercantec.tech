@@ -11,7 +11,7 @@ En komponent skal kunne bruges af underviseren i kladden og forstås af eleven p
 - Vis avancerede valg efter en brugerhandling. Knapper med ikoner skal have et tydeligt navn for skærmlæsere og en forklarende titel.
 - Hold UI-tekster til handlinger, indhold, status og fejl. Undgå slogans, gentagne genvejsguides og forklaringer på implementationen. Længere vejledning hører til i dokumentationen.
 - Brug samme sprog og knaptekster på tværs af blokke, eksempelvis **Kode**, **Diagram** og **Kopiér**.
-- Indholdet skal passe i editorens kolonne ved 320 px og 390 px. Brede kodeeksempler og diagrammer får et lokalt rulleområde.
+- Indholdet skal passe i editorens kolonne ved 320 px og 390 px. Brede kodeeksempler får et lokalt rulleområde. Mermaid tilpasses bredden og vises i fuld højde uden intern scroll eller en indrammet flade.
 - Layoutet skal bevare sin placering, når en knap viser feedback, et diagram opdateres eller en menu åbnes.
 
 ## 2. Temaer og tilgængelighed
@@ -119,7 +119,7 @@ Kopiér afsnittet nedenfor og erstat felterne i kantede parenteser.
 ## Verifikation
 
 - [ ] Alle fem eksplicitte temaer samt System i lys og mørk.
-- [ ] Desktop, 320 px og 390 px med lokalt scroll ved bredt indhold.
+- [ ] Desktop, 320 px og 390 px med lokalt scroll ved bred kode og hele Mermaid-diagrammet synligt uden intern scroll.
 - [ ] Tastatur, touch, fokusmarkering og oplæste labels.
 - [ ] Kontrast for indhold, kontroller, status og fejl.
 - [ ] Indhold og markering bevares ved tema- og størrelsesskift.

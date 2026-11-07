@@ -194,7 +194,7 @@ function repairInlineNodeContrast(svg: Element, palette: MermaidPalette) {
   }
 }
 
-/** Keep native SVG dimensions readable inside the component's local scroll area. */
+/** Preserve native SVG dimensions and aspect ratio so responsive CSS can fit the full diagram. */
 export function prepareMermaidSvg(markup: string, palette: MermaidPalette): string {
   const document = new DOMParser().parseFromString(markup, 'image/svg+xml');
   const svg = document.documentElement;
