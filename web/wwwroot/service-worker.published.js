@@ -16,6 +16,13 @@ const base = "/";
 const baseUrl = new URL(base, self.origin);
 const manifestUrlList = self.assetsManifest.assets.map(asset => new URL(asset.url, baseUrl).href);
 
+function isRouletteRuntimeAsset(url) {
+    return url.origin === baseUrl.origin && (
+        url.pathname === '/js/group-roulette-show.js'
+        || url.pathname === '/audio/roulette/announcer-v1/manifest.json'
+    );
+}
+
 async function onInstall(event) {
     console.info('Service worker: Install', cacheName);
     // Activate updated SW immediately so routes like /lectio appear without hard-reset.
@@ -26,7 +33,10 @@ async function onInstall(event) {
     // må ikke afvise hele installationen.
     const assets = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
-        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)));
+        .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
+        // The roulette module and voice manifest must follow the deployed app,
+        // rather than race a previous worker's unversioned startup cache.
+        .filter(asset => !isRouletteRuntimeAsset(new URL(asset.url, baseUrl)));
     const cache = await caches.open(cacheName);
     await Promise.all(assets.map(async (asset) => {
         try {
@@ -51,6 +61,26 @@ async function onActivate(event) {
 
 async function onFetch(event) {
     const url = new URL(event.request.url);
+
+    if (event.request.method === 'GET' && isRouletteRuntimeAsset(url)) {
+        let cache;
+        try { cache = await caches.open(cacheName); } catch { }
+        try {
+            const response = await fetch(new Request(event.request, { cache: 'no-cache' }));
+            if (response.ok && cache) {
+                try { await cache.put(event.request, response.clone()); } catch { }
+            }
+            return response;
+        } catch {
+            // Preserve the complete versioned URL: an older module or voice
+            // manifest is not a compatible fallback for a new app version.
+            try {
+                const cached = await cache?.match(event.request);
+                if (cached) return cached;
+            } catch { }
+            return new Response('', { status: 504, statusText: 'offline' });
+        }
+    }
 
     // Never cache API calls — always hit the network (nginx → api).
     if (url.pathname.startsWith('/api/')) {

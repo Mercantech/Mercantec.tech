@@ -7,6 +7,9 @@ public static class RouletteNameCatalog
 {
     public const string AssetRoot = "/audio/roulette/announcer-v1";
     public const string ManifestPath = AssetRoot + "/manifest.json";
+    public const string RuntimeVersion = "announcer-v1-2";
+    public const string ScriptPath = "/js/group-roulette-show.js?v=" + RuntimeVersion;
+    public const string ManifestUrl = ManifestPath + "?v=" + RuntimeVersion;
     private static readonly (IReadOnlyList<string> Starts, IReadOnlyList<string> Ends) Words = ReadWords();
     public static IReadOnlyList<string> Starts => Words.Starts;
     public static IReadOnlyList<string> Ends => Words.Ends;

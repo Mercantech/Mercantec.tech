@@ -9,7 +9,7 @@ public sealed class RouletteSpeechClient(HttpClient http, NavigationManager navi
 {
     public async Task<RouletteSpeechStatus> Status(CancellationToken ct)
     {
-        var manifestUri = new Uri(new Uri(navigation.BaseUri), RouletteNameCatalog.ManifestPath);
+        var manifestUri = new Uri(new Uri(navigation.BaseUri), RouletteNameCatalog.ManifestUrl);
         using var response = await http.GetAsync(manifestUri, ct);
         if (!response.IsSuccessStatusCode)
             return Unavailable();

@@ -17,6 +17,23 @@ namespace Mercantec.Tech.Web.Tests;
 public sealed class RouletteIntegrationTests
 {
     [Fact]
+    public async Task The_runtime_module_uses_a_versioned_URL_to_bypass_previously_cached_speech_code()
+    {
+        using var api = new RouletteApi { SpeechAvailable = true };
+        var module = new ControlledModule();
+        using var context = await CreateContext(api, module);
+        var page = context.Render<Roulette>(p => p.Add(x => x.HoldId, api.HoldId));
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.Single(module.ImportedScripts);
+            Assert.False(page.Find("option[value='rost']").HasAttribute("disabled"));
+        });
+
+        Assert.Equal("/js/group-roulette-show.js?v=announcer-v1-2", Assert.Single(module.ImportedScripts));
+    }
+
+    [Fact]
     public async Task Renaming_the_second_round_in_the_overview_sends_its_entered_set_name_when_saving()
     {
         using var api = new RouletteApi { MemberCount = 3 };
@@ -276,6 +293,7 @@ public sealed class RouletteIntegrationTests
         private readonly ConcurrentQueue<TaskCompletionSource<bool>> _speech = new();
         private readonly SemaphoreSlim _spinStarted = new(0), _speechStarted = new(0);
         public ConcurrentQueue<JsCall> Calls { get; } = new();
+        public ConcurrentQueue<string> ImportedScripts { get; } = new();
         public int SpinCount => Calls.Count(c => c.Identifier == "spin");
         public int BrowserSpeechCount => Calls.Count(c => c.Identifier == "playBrowserSpeech");
         public int LocalSpeechCount => Calls.Count(c => c.Identifier == "playSpeechSegments");
@@ -353,9 +371,12 @@ public sealed class RouletteIntegrationTests
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
 
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
-            identifier == "import" ? ValueTask.FromResult((TValue)(object)module)
-                : browser.InvokeAsync<TValue>(identifier, cancellationToken, args);
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+        {
+            if (identifier != "import") return browser.InvokeAsync<TValue>(identifier, cancellationToken, args);
+            module.ImportedScripts.Enqueue(Assert.IsType<string>(args![0]));
+            return ValueTask.FromResult((TValue)(object)module);
+        }
     }
 
     private sealed class RouletteApi : HttpMessageHandler

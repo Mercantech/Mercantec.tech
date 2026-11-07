@@ -86,7 +86,7 @@ public partial class Roulette
         {
             try
             {
-                _module = await Js.InvokeAsync<IJSObjectReference>("import", "/js/group-roulette-show.js");
+                _module = await Js.InvokeAsync<IJSObjectReference>("import", RouletteNameCatalog.ScriptPath);
                 _callbacks = DotNetObjectReference.Create(this);
                 await _module.InvokeVoidAsync("initialize", _root, _callbacks, new { sound = _sound, volume = AudioVolume });
                 var capabilities = await _module.InvokeAsync<EffectCapabilities?>("capabilities", _root);

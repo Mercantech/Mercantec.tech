@@ -25,7 +25,7 @@ public sealed class RouletteSpeechClientTests
 
         var request = Assert.Single(handler.Requests);
         Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.Equal("https://platform.test" + RouletteNameCatalog.ManifestPath, request.Uri.ToString());
+        Assert.Equal("https://platform.test" + RouletteNameCatalog.ManifestPath + "?v=announcer-v1-2", request.Uri.ToString());
     }
 
     [Fact]
