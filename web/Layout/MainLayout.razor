@@ -49,7 +49,11 @@
                             <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
                             <NavLink href="/characters">Karakterer</NavLink>
                             <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
-                            @if (IsTeacher) { <NavLink href="/teacher/tools">Underviserværktøjer</NavLink> }
+                            @if (IsTeacher)
+                            {
+                                <NavLink href="/teacher/updates">Nyt i LUP</NavLink>
+                                <NavLink href="/teacher/tools">Underviserværktøjer</NavLink>
+                            }
                             <button type="button" class="secondary" @onclick="Logout">Log ud</button>
                         </div>
                     </details>

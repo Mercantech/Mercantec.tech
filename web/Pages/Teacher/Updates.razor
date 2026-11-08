@@ -1,0 +1,88 @@
+@page "/teacher/updates"
+@using Mercantec.Tech.Contracts
+
+<PageTitle>Nyt i LUP</PageTitle>
+
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <header class="page-title"><div><h1>Nyt i LUP</h1><p>Log ind som underviser for at se opdateringerne.</p></div></header>
+    <a class="action" href="@Auth.LoginPath()">Log ind</a>
+}
+else if (!CanRead)
+{
+    <header class="page-title"><div><h1>Nyt i LUP</h1><p>Denne side er kun for undervisere.</p></div></header>
+    <a class="secondary" href="@Redirect.PostLoginPath()">Til dit overblik</a>
+}
+else
+{
+    <div class="updates-page">
+        <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/teacher">Overblik</a><span aria-hidden="true">›</span><span aria-current="page">Nyt i LUP</span></nav>
+        <header class="updates-heading">
+            <h1>Nyt i LUP</h1>
+            <p>Små og store forbedringer, vist tæt på. De nyeste står øverst.</p>
+        </header>
+
+        @if (_loading)
+        {
+            <p class="updates-message" role="status">Henter opdateringer og billeder…</p>
+        }
+        else if (_error is not null)
+        {
+            <div class="updates-message" role="alert"><p>@_error</p><button type="button" class="secondary" @onclick="Load">Prøv igen</button></div>
+        }
+        else if (_entries.Length == 0)
+        {
+            <p class="updates-message">Her kommer de næste opdateringer.</p>
+        }
+        else
+        {
+            <div class="updates-feed">
+                @foreach (var entry in _entries)
+                {
+                    <article class="update-entry" aria-labelledby="@($"update-{entry.Id}")" @key="entry.Id">
+                        <div class="update-copy">
+                            <time datetime="@entry.Date.ToString("yyyy-MM-dd")">@entry.Date.ToString("d. MMMM yyyy", Danish)</time>
+                            <h2 id="@($"update-{entry.Id}")">@entry.Title</h2>
+                            <p>@entry.Description</p>
+                        </div>
+                        <div class="update-pictures @(entry.Before is not null ? "is-comparison" : null)">
+                            @if (entry.Before is not null) { @Picture(entry.Before, "Før", entry.Title) }
+                            @Picture(entry.After, entry.Before is not null ? "Efter" : "Nærbillede", entry.Title)
+                        </div>
+                    </article>
+                }
+            </div>
+            <p class="updates-note">Billederne viser ændringerne på det tidspunkt, de blev lavet. Eksemplerne indeholder testdata.</p>
+        }
+    </div>
+
+    @if (_zoom is not null)
+    {
+        <dialog class="update-zoom" @ref="_dialog" aria-labelledby="update-zoom-title" @onclose="ClearZoom">
+            <div class="update-zoom-heading"><h2 id="update-zoom-title">@_zoomTitle</h2><button type="button" class="secondary" @onclick="CloseZoom" autofocus>Luk billede</button></div>
+            <img src="@_images[_zoom.Id]" alt="@_zoom.Alt" />
+            <p>@_zoom.Alt</p>
+        </dialog>
+    }
+}
+
+@code {
+    private RenderFragment Picture(UpdateImage image, string label, string title) => @<figure class="update-figure">
+        <figcaption>@label</figcaption>
+        @if (_images.TryGetValue(image.Id, out var source))
+        {
+            <button type="button" class="update-image-button" @onclick="() => Zoom(image, title, label)" aria-label="@($"Forstør billede: {title} · {label}")">
+                <img src="@source" alt="@image.Alt" loading="lazy" decoding="async" />
+                <span class="update-enlarge"><UiIcon Name="search" /> Forstør</span>
+            </button>
+        }
+        else
+        {
+            <div class="update-image-error"><p>Billedet kunne ikke hentes.</p><button type="button" class="secondary" disabled="@_retrying.Contains(image.Id)" @onclick="() => RetryImage(image.Id)">@(_retrying.Contains(image.Id) ? "Henter…" : "Prøv igen")</button></div>
+        }
+    </figure>;
+}

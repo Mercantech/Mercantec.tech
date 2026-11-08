@@ -1,0 +1,202 @@
+{
+  "notification-dropdown": {
+    "source": "output/lup-notification-dropdown.png",
+    "crop": [
+      770,
+      4,
+      1215,
+      470
+    ],
+    "size": [
+      445,
+      466
+    ],
+    "bytes": 18268
+  },
+  "library": {
+    "source": "output/lup-library-status.png",
+    "crop": [
+      18,
+      85,
+      1247,
+      953
+    ],
+    "size": [
+      1229,
+      868
+    ],
+    "bytes": 89720
+  },
+  "hold-navigation": {
+    "source": "output/lup-navigation.png",
+    "crop": [
+      21,
+      116,
+      1243,
+      479
+    ],
+    "size": [
+      1222,
+      363
+    ],
+    "bytes": 21876
+  },
+  "published-pages": {
+    "source": "design/notion-published-links-groups.jpg",
+    "crop": [
+      108,
+      25,
+      1157,
+      772
+    ],
+    "size": [
+      1049,
+      747
+    ],
+    "bytes": 28808
+  },
+  "poll-studio": {
+    "source": "design/social-qa/poll-studio.png",
+    "crop": [
+      540,
+      230,
+      1243,
+      775
+    ],
+    "size": [
+      703,
+      545
+    ],
+    "bytes": 20198
+  },
+  "gift-before": {
+    "source": "design/blazor-qa/gift-desktop.png",
+    "crop": [
+      397,
+      178,
+      1042,
+      821
+    ],
+    "size": [
+      645,
+      643
+    ],
+    "bytes": 14872
+  },
+  "gift-after": {
+    "source": "design/social-qa/gift-ceremony.png",
+    "crop": [
+      176,
+      34,
+      1074,
+      677
+    ],
+    "size": [
+      898,
+      643
+    ],
+    "bytes": 22642
+  },
+  "newyear": {
+    "source": "design/newyear-coding-boosts-live-lup-dk.jpg",
+    "crop": [
+      14,
+      145,
+      1251,
+      641
+    ],
+    "size": [
+      1237,
+      496
+    ],
+    "bytes": 22566
+  },
+  "student-before": {
+    "source": "design/blazor-qa/home-light.png",
+    "crop": [
+      19,
+      445,
+      1163,
+      747
+    ],
+    "size": [
+      1144,
+      302
+    ],
+    "bytes": 10388
+  },
+  "student-after": {
+    "source": "design/student-home-qa/student-restored.png",
+    "crop": [
+      19,
+      448,
+      967,
+      1018
+    ],
+    "size": [
+      948,
+      570
+    ],
+    "bytes": 18228
+  },
+  "avatar": {
+    "source": "design/blazor-qa/avatar-light.png",
+    "crop": [
+      440,
+      175,
+      1415,
+      630
+    ],
+    "size": [
+      975,
+      455
+    ],
+    "bytes": 12390
+  },
+  "apartment": {
+    "source": "design/blazor-qa/apartment-light.png",
+    "crop": [
+      25,
+      83,
+      1159,
+      1073
+    ],
+    "size": [
+      1134,
+      990
+    ],
+    "bytes": 14332
+  },
+  "characters": {
+    "source": "tmp/platform-updates-capture/raymond-animations.png",
+    "crop": null,
+    "size": [
+      1100,
+      702
+    ],
+    "bytes": 88346
+  },
+  "notebook": {
+    "source": "tmp/platform-updates-capture/notebook-journal.png",
+    "crop": null,
+    "size": [
+      1100,
+      277
+    ],
+    "bytes": 13022
+  },
+  "roulette": {
+    "source": "tmp/platform-updates-capture/roulette.png",
+    "crop": [
+      0,
+      0,
+      885,
+      650
+    ],
+    "size": [
+      885,
+      650
+    ],
+    "bytes": 34654
+  }
+}
