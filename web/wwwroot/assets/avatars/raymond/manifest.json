@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "raymond",
+  "name": "Raymond",
+  "characterProfile": "/characters/raymond",
+  "face": "/images/characters/raymond/neutral.webp",
+  "frameSize": {
+    "width": 256,
+    "height": 256
+  },
+  "columns": 4,
+  "rows": 1,
+  "frames": 4,
+  "pivot": {
+    "x": 128,
+    "y": 232
+  },
+  "transparent": true,
+  "characterOnly": true,
+  "animations": [
+    {
+      "id": "idle",
+      "file": "sprites/idle.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1200
+    },
+    {
+      "id": "walk",
+      "file": "sprites/walk.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1000
+    },
+    {
+      "id": "run",
+      "file": "sprites/run.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 800
+    },
+    {
+      "id": "jump",
+      "file": "sprites/jump.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1000
+    },
+    {
+      "id": "wave",
+      "file": "sprites/wave.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1200
+    },
+    {
+      "id": "celebrate",
+      "file": "sprites/celebrate.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1200
+    },
+    {
+      "id": "think",
+      "file": "sprites/think.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1200
+    },
+    {
+      "id": "talk",
+      "file": "sprites/talk.png",
+      "frames": 4,
+      "loop": true,
+      "durationMs": 1200
+    }
+  ],
+  "reactions": [
+    {
+      "id": "happy",
+      "file": "/images/characters/raymond/reactions/success.png"
+    },
+    {
+      "id": "laugh",
+      "file": "/images/characters/raymond/reactions/laughing.png?v=097b5eeb"
+    },
+    {
+      "id": "think",
+      "file": "/images/characters/raymond/reactions/thinking.png"
+    },
+    {
+      "id": "celebrate",
+      "file": "/images/characters/raymond/reactions/celebration.png"
+    }
+  ],
+  "notes": "Empty-handed character frames. Items, projectiles and effects are separate entities. Unsupported animation names use idle."
+}

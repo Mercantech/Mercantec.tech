@@ -22,14 +22,16 @@ public static class AvatarEconomy
 {
     public const string StarterId = "starter";
     public const string Bip01Id = "bip01";
+    public const string RaymondId = "raymond";
     public const int InitialGold = 320;
     public const int InitialLevel = 7;
 
     public static IReadOnlyList<AvatarUnlockDefinition> Avatars { get; } =
         Array.AsReadOnly<AvatarUnlockDefinition>(
         [
-            new(StarterId, "Din første avatar", 1, 0),
-            new(Bip01Id, "BIP-01", 2, 150)
+            new(StarterId, "Din første avatar", 1, 0, LegacyImportEligible: true),
+            new(Bip01Id, "BIP-01", 2, 150, LegacyImportEligible: true),
+            new(RaymondId, "Raymond", 3, 150)
         ]);
 
     public static IReadOnlyList<AvatarShopItemDefinition> Furniture { get; } =
@@ -59,7 +61,9 @@ public static class AvatarEconomy
         Furniture.FirstOrDefault(item => item.Id == id);
 }
 
-public sealed record AvatarUnlockDefinition(string Id, string Name, int Level, int Cost);
+// Only avatars that existed before account-backed ownership can be migrated
+// from browser data. New catalog entries must be purchased on the server.
+public sealed record AvatarUnlockDefinition(string Id, string Name, int Level, int Cost, bool LegacyImportEligible = false);
 
 public sealed record AvatarShopItemDefinition(
     string Id,

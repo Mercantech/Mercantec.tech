@@ -196,6 +196,66 @@ public sealed class AvatarProfileTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task RaymondAndRobotRemainOwnedAcrossConnectionsAndAccountSwitches()
+    {
+        await using (var firstDevice = OpenDatabase())
+        {
+            var controller = As(firstDevice, Alice);
+            Failure(await controller.Select(new(AvatarEconomy.RaymondId), default), 409, "avatar_not_owned");
+            Success(await controller.Unlock(AvatarEconomy.Bip01Id, default));
+            var raymond = Success(await controller.Unlock(AvatarEconomy.RaymondId, default));
+            Assert.Equal(AvatarEconomy.RaymondId, raymond.SelectedAvatarId);
+            Assert.Equal(20, raymond.Gold);
+            Assert.Equal(["bip01", "raymond", "starter"], raymond.OwnedAvatarIds);
+            var retry = Success(await controller.Unlock(AvatarEconomy.RaymondId, default));
+            Assert.Equal(20, retry.Gold);
+            Assert.Equal(raymond.Revision, retry.Revision);
+        }
+
+        await using (var secondDevice = OpenDatabase())
+        {
+            var alice = As(secondDevice, Alice);
+            Assert.Equal(AvatarEconomy.RaymondId, Success(await alice.Get(default)).SelectedAvatarId);
+            Success(await alice.Select(new(AvatarEconomy.Bip01Id), default));
+            var bob = As(secondDevice, Bob);
+            Failure(await bob.Select(new(AvatarEconomy.RaymondId), default), 409, "avatar_not_owned");
+            var separate = Success(await bob.Get(default));
+            Assert.Equal(320, separate.Gold);
+            Assert.Equal(["starter"], separate.OwnedAvatarIds);
+        }
+
+        await using var thirdDevice = OpenDatabase();
+        var restored = Success(await As(thirdDevice, Alice).Get(default));
+        Assert.Equal(AvatarEconomy.Bip01Id, restored.SelectedAvatarId);
+        Assert.Equal(20, restored.Gold);
+        Assert.Contains(AvatarEconomy.RaymondId, restored.OwnedAvatarIds);
+        Assert.Single(await thirdDevice.AvatarOwnerships.Where(x => x.UserSub == Alice && x.AvatarId == AvatarEconomy.RaymondId).ToListAsync());
+    }
+
+    [Fact]
+    public async Task RaymondRequiresTheDatabaseLevelBeforePayment()
+    {
+        await using var db = OpenDatabase();
+        var controller = As(db, Alice);
+        Success(await controller.Get(default));
+        var stored = await db.AvatarProfiles.SingleAsync();
+        stored.Level = 2;
+        await db.SaveChangesAsync();
+
+        Failure(await controller.Unlock(AvatarEconomy.RaymondId, default), 409, "level_required");
+        var locked = Success(await controller.Get(default));
+        Assert.Equal(320, locked.Gold);
+        Assert.DoesNotContain(AvatarEconomy.RaymondId, locked.OwnedAvatarIds);
+
+        stored = await db.AvatarProfiles.SingleAsync();
+        stored.Level = 3;
+        await db.SaveChangesAsync();
+        var unlocked = Success(await controller.Unlock(AvatarEconomy.RaymondId, default));
+        Assert.Equal(170, unlocked.Gold);
+        Assert.Equal(AvatarEconomy.RaymondId, unlocked.SelectedAvatarId);
+    }
+
+    [Fact]
     public async Task UnlockRetryCannotChargeAgainOrDuplicateOwnership()
     {
         await using var firstRequest = OpenDatabase();
@@ -288,6 +348,25 @@ public sealed class AvatarProfileTests : IAsyncLifetime
         var persisted = Success(await As(anotherDevice, Alice).Get(default));
         Assert.Equal("bip01", persisted.SelectedAvatarId);
         Assert.Equal(expectedGold, persisted.Gold);
+    }
+
+    [Theory]
+    [InlineData(false, 320)]
+    [InlineData(true, 170)]
+    public async Task LegacyBrowserDataCannotGrantNewRaymondAvatar(bool importRobot, int expectedBalance)
+    {
+        await using var db = OpenDatabase();
+        var controller = As(db, Alice);
+        string[] requested = importRobot ? ["starter", "bip01", "raymond"] : ["starter", "raymond"];
+        var imported = Success(await controller.ImportLegacy(new(requested, AvatarEconomy.RaymondId, 320), default));
+        Assert.DoesNotContain(AvatarEconomy.RaymondId, imported.OwnedAvatarIds);
+        Assert.Equal(AvatarEconomy.StarterId, imported.SelectedAvatarId);
+        Assert.Equal(expectedBalance, imported.Gold);
+        Assert.Equal(importRobot, imported.OwnedAvatarIds.Contains(AvatarEconomy.Bip01Id));
+
+        var paid = Success(await controller.Unlock(AvatarEconomy.RaymondId, default));
+        Assert.Equal(expectedBalance - 150, paid.Gold);
+        Assert.Equal(AvatarEconomy.RaymondId, paid.SelectedAvatarId);
     }
 
     [Fact]

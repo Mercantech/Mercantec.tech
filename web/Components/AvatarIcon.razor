@@ -3,9 +3,9 @@
 @implements IDisposable
 
 <span class="avatar-face-icon" style="@($"--avatar-icon-size:{Math.Clamp(Size, 16, 256)}px")" data-avatar-icon="@CurrentId" aria-hidden="@(Decorative ? "true" : null)">
-    @if (CurrentId == AvatarCatalog.Bip01Id)
+    @if (CurrentDefinition.FaceImage is not null)
     {
-        <img src="@ImageSource" width="@Size" height="@Size" alt="@(Decorative ? "" : $"BIP-01{ExpressionLabel}")" decoding="async" />
+        <img src="@ImageSource" width="@Size" height="@Size" alt="@(Decorative ? "" : $"{CurrentDefinition.Name}{ExpressionLabel}")" decoding="async" />
     }
     else
     {
@@ -18,9 +18,11 @@
     [Parameter] public string? Expression { get; set; }
     [Parameter] public int Size { get; set; } = 40;
     [Parameter] public bool Decorative { get; set; }
-    private string CurrentId => AvatarId ?? (World.AvatarProfileReady ? World.SelectedAvatarId : AvatarCatalog.StarterId);
-    private string ImageSource => Expression is "happy" or "wink" or "think" or "celebrate" ? $"/assets/avatars/bip-01/emoji-{Expression}.png" : "/assets/avatars/bip-01/face.png";
-    private string ExpressionLabel => Expression switch { "happy" => ", glad", "wink" => ", blink", "think" => ", tænksom", "celebrate" => ", jubel", _ => "" };
+    private AvatarDefinition CurrentDefinition => AvatarCatalog.Find(AvatarId ?? (World.AvatarProfileReady ? World.SelectedAvatarId : AvatarCatalog.StarterId)) ?? AvatarCatalog.All[0];
+    private string CurrentId => CurrentDefinition.Id;
+    private AvatarEmoji? CurrentExpression => CurrentDefinition.Emojis.FirstOrDefault(emoji => emoji.Id == Expression);
+    private string? ImageSource => CurrentExpression?.Image ?? CurrentDefinition.FaceImage;
+    private string ExpressionLabel => CurrentExpression is { } expression ? $", {expression.Label.ToLowerInvariant()}" : "";
     protected override void OnInitialized() => World.Changed += OnChanged;
     private void OnChanged() => InvokeAsync(StateHasChanged);
     public void Dispose() => World.Changed -= OnChanged;

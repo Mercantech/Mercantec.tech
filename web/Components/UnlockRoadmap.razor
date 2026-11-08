@@ -8,18 +8,20 @@
 }
 else
 {
-    var robot = AvatarCatalog.Find(AvatarCatalog.Bip01Id)!;
-    <section class="panel" style="margin-bottom:18px">
-        <div class="row">
-            <span class="mark" aria-hidden="true"><UiIcon Name="chip" /></span>
-            <div>
-                <h2>@robot.Name <span class="pill">@(World.OwnsAvatar(robot.Id) ? "I din samling" : "Avatar")</span></h2>
-                <p>@robot.Description</p>
-                <p class="tiny muted">Level @robot.Level · @robot.Cost guld · @World.AvatarRequirementText(robot.Id)</p>
+    @foreach (var avatar in AvatarCatalog.All.Where(avatar => avatar.Cost > 0))
+    {
+        <section class="panel" style="margin-bottom:18px">
+            <div class="row">
+                <AvatarIcon AvatarId="@avatar.Id" Size="48" Decorative="true" />
+                <div>
+                    <h2>@avatar.Name <span class="pill">@(World.OwnsAvatar(avatar.Id) ? "I din samling" : "Avatar")</span></h2>
+                    <p>@avatar.Description</p>
+                    <p class="tiny muted">Level @avatar.Level · @avatar.Cost guld · @World.AvatarRequirementText(avatar.Id)</p>
+                </div>
+                <a class="secondary" href="/profile/character">Se avatarsamlingen</a>
             </div>
-            <a class="secondary" href="/profile/character">Se avatarsamlingen</a>
-        </div>
-    </section>
+        </section>
+    }
     <div class="v4-shop-summary">
         <div>
             <strong>Level @World.CurrentLevel</strong>

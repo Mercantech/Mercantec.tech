@@ -44,6 +44,37 @@ public class AvatarWorldTests
     }
 
     [Fact]
+    public async Task Raymond_and_robot_stay_in_the_collection_when_selecting_on_another_computer()
+    {
+        var api = new AvatarServer();
+        var world = new DemoWorld(new AvatarStorage(), api);
+        await world.BindAvatarProfileAsync("student-a");
+        Assert.False(await world.SelectAvatarAsync(AvatarEconomy.RaymondId));
+        Assert.True(await world.TryUnlockAvatarAsync(AvatarEconomy.Bip01Id));
+        Assert.True(await world.TryUnlockAvatarAsync(AvatarEconomy.RaymondId));
+        Assert.Equal(20, world.Gold);
+        Assert.Equal(AvatarEconomy.RaymondId, world.SelectedAvatarId);
+        Assert.Equal(3, world.OwnedAvatarIds.Count);
+
+        var anotherComputer = new DemoWorld(new AvatarStorage(), api);
+        await anotherComputer.BindAvatarProfileAsync("student-a");
+        Assert.Equal(AvatarEconomy.RaymondId, anotherComputer.SelectedAvatarId);
+        Assert.True(anotherComputer.OwnsAvatar(AvatarEconomy.Bip01Id));
+        Assert.True(await anotherComputer.SelectAvatarAsync(AvatarEconomy.Bip01Id));
+
+        await world.ReloadAvatarProfileAsync();
+        Assert.Equal(AvatarEconomy.Bip01Id, world.SelectedAvatarId);
+        Assert.True(world.OwnsAvatar(AvatarEconomy.RaymondId));
+        Assert.Equal(20, world.Gold);
+
+        api.Subject = "student-b";
+        await anotherComputer.BindAvatarProfileAsync("student-b");
+        Assert.False(anotherComputer.OwnsAvatar(AvatarEconomy.RaymondId));
+        Assert.False(await anotherComputer.SelectAvatarAsync(AvatarEconomy.RaymondId));
+        Assert.Equal(320, anotherComputer.Gold);
+    }
+
+    [Fact]
     public async Task Failed_purchase_does_not_spend_gold_or_claim_ownership_and_retry_fetches_the_server()
     {
         var api = new AvatarServer();
@@ -375,7 +406,8 @@ public class AvatarWorldTests
             if (MutationFailure is not null) throw MutationFailure;
             var subject = Subject;
             var current = Current;
-            var profile = PendingUnlock is not null ? await PendingUnlock.Task : current with { SelectedAvatarId = avatarId, OwnedAvatarIds = ["starter", avatarId], Gold = current.Gold - 150, CanImportLegacy = false, Revision = current.Revision + 1 };
+            var avatar = AvatarEconomy.FindAvatar(avatarId)!;
+            var profile = PendingUnlock is not null ? await PendingUnlock.Task : current with { SelectedAvatarId = avatarId, OwnedAvatarIds = current.OwnedAvatarIds.Append(avatarId).Distinct(StringComparer.Ordinal).ToArray(), Gold = current.Gold - avatar.Cost, CanImportLegacy = false, Revision = current.Revision + 1 };
             return Profiles[subject] = profile;
         }
 

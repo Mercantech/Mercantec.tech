@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 function dependency(name){try{return require(name);}catch{return require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules',name));}}
 const {chromium}=dependency('playwright');
 const base=process.env.LUP_QA_URL||'http://localhost:3000';
-const output=path.resolve(__dirname,'../../design/robot-avatar-platform');
+const output=process.env.LUP_QA_OUTPUT?path.resolve(process.env.LUP_QA_OUTPUT):path.resolve(__dirname,'../../design/robot-avatar-platform');
 const results=[];results.push=(...values)=>{console.log(...values);return Array.prototype.push.apply(results,values);};const errors=[],failedAssets=[];let browser,page;
 (async()=>{
   console.log("Starting isolated avatar UI QA");
@@ -16,6 +16,8 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   const first='11111111-1111-1111-1111-111111111111';
   const second='22222222-2222-2222-2222-222222222222';
   const legacy='33333333-3333-3333-3333-333333333333';
+  const raymondAccount='44444444-4444-4444-4444-444444444444';
+  const avatarCatalog={starter:{level:1,cost:0},bip01:{level:2,cost:150},raymond:{level:3,cost:150}};
   const clone=value=>JSON.parse(JSON.stringify(value));
   const profileFor=subject=>{
     if(!profiles.has(subject))profiles.set(subject,{selectedAvatarId:'starter',ownedAvatarIds:['starter'],gold:320,level:7,ownedItemIds:['desk','bed','chair','plant','board'],canImportLegacy:true,revision:0});
@@ -38,13 +40,22 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
         if(req.method()!=='GET'&&rejectMutation){rejectMutation=false;return reply(503,{detail:'Gemning mislykkedes. Prøv igen.'});}
         const state=profileFor(account);let changed=false;
         const body=req.postDataJSON();
-        if(url.pathname.endsWith('/unlock')){
-          if(!state.ownedAvatarIds.includes('bip01')){if(state.gold<150)return reply(409,{code:'insufficient_gold',detail:'Ikke nok guld'});state.gold-=150;state.ownedAvatarIds.push('bip01');state.selectedAvatarId='bip01';changed=true;}
+        const unlockMatch=url.pathname.match(/\/me\/avatars\/([^/]+)\/unlock$/);
+        if(unlockMatch){
+          const id=decodeURIComponent(unlockMatch[1]),avatar=Object.hasOwn(avatarCatalog,id)?avatarCatalog[id]:null;
+          if(!avatar)return reply(404,{code:'avatar_not_found',detail:'Avataren findes ikke'});
+          if(!state.ownedAvatarIds.includes(id)){
+            if(state.level<avatar.level)return reply(409,{code:'level_required',detail:'Levelkravet er ikke opfyldt'});
+            if(state.gold<avatar.cost)return reply(409,{code:'insufficient_gold',detail:'Ikke nok guld'});
+            state.gold-=avatar.cost;state.ownedAvatarIds.push(id);state.selectedAvatarId=id;changed=true;
+          }
         }else if(url.pathname.endsWith('/selection')){
+          if(!Object.hasOwn(avatarCatalog,body.avatarId))return reply(404,{code:'avatar_not_found',detail:'Avataren findes ikke'});
           if(!state.ownedAvatarIds.includes(body.avatarId))return reply(409,{code:'avatar_not_owned',detail:'Lås op først'});
           state.selectedAvatarId=body.avatarId;changed=true;
         }else if(url.pathname.endsWith('/import')){
           if(!state.canImportLegacy)return reply(409,{code:'legacy_import_closed',detail:'Allerede overført'});
+          // Raymond and future additions cannot be claimed through old browser data.
           state.ownedAvatarIds=['starter',...(body.ownedAvatarIds.includes('bip01')?['bip01']:[])];
           state.selectedAvatarId=state.ownedAvatarIds.includes(body.selectedAvatarId)?body.selectedAvatarId:'starter';
           state.gold=Math.max(0,Math.min(body.gold,state.ownedAvatarIds.includes('bip01')?170:320));changed=true;
@@ -72,23 +83,26 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
     },{subject,oldProfile});
     return context;
   }
+  const observePage=p=>{
+    p.on('console',m=>{if(m.type()==='error')console.error('Browser console',m.text());});
+    p.on('pageerror',e=>{console.error('Page error',e.message);errors.push(e.message);});
+    p.on('response',r=>{if((r.url().includes('/assets/avatars/')||r.url().includes('/images/characters/raymond/'))&&r.status()>=400)failedAssets.push({url:r.url(),status:r.status()});});
+    return p;
+  };
   const context=await device(first);
   console.log("Browser context ready");
-  page=await context.newPage();page.setDefaultTimeout(45000);
-  page.on('console',m=>{if(m.type()==='error')console.error('Browser console',m.text());});
-  page.on('pageerror',e=>{console.error('Page error',e.message);errors.push(e.message);});
-  page.on('response',r=>{if(r.url().includes('/assets/avatars/')&&r.status()>=400)failedAssets.push({url:r.url(),status:r.status()});});
+  page=observePage(await context.newPage());page.setDefaultTimeout(90000);
   const visit=async route=>{console.log('Visiting',route);await page.goto(base+route,{waitUntil:'domcontentloaded'});};
   const ready=()=>page.getByTestId('selected-avatar-name').waitFor({state:'visible',timeout:90000});
   await visit('/profile/character');await ready();
   assert.equal(await page.locator('.avatar-mystery').count(),12);
-  assert.equal(await page.locator('.avatar-collectible').count(),2);
+  assert.equal(await page.locator('.avatar-collectible').count(),3);
   assert.equal(await page.locator('.v2-swatch,.v4-wardrobe').count(),0);
   assert.equal(await page.getByTestId('selected-avatar-name').textContent(),'Din første avatar');
   assert.equal(await page.getByTestId('avatar-gold').textContent(),'320');
   assert.equal(await page.getByTestId('unlock-robot').isEnabled(),true);
   assert.equal(await page.evaluate(()=>window.__avatarAudio.length),0);
-  results.push('Collection replaces customization with two figures and 12 noninteractive coming-soon slots.');
+  results.push('Collection replaces customization with three figures and 12 noninteractive coming-soon slots.');
   await page.getByTestId('unlock-robot').click();
   await page.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]').textContent==='BIP-01');
   assert.equal(await page.getByTestId('avatar-gold').textContent(),'170');
@@ -135,7 +149,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   await visit('/apartment');await page.locator('.v2-home-sprite [data-avatar="bip01"]').waitFor();
   await visit('/profile');await page.locator('.panel [data-avatar-icon="bip01"]').waitFor();
   results.push('Selected body follows the player in Rune Run and apartment; profile uses the matching face icon.');
-  const secondDevice=await device(first),otherPage=await secondDevice.newPage();otherPage.setDefaultTimeout(90000);
+  const secondDevice=await device(first),otherPage=observePage(await secondDevice.newPage());otherPage.setDefaultTimeout(90000);
   await otherPage.goto(base+'/profile/character');await otherPage.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await otherPage.getByTestId('selected-avatar-name').textContent(),'BIP-01');
   assert.equal(await otherPage.getByTestId('avatar-gold').textContent(),'170');
@@ -152,7 +166,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   await page.locator('[data-avatar-id="bip01"]').getByRole('button',{name:'Brug avatar',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]').textContent==='BIP-01');
   results.push('Two isolated device contexts share server ownership and selection; failed saves leave selection unchanged and retry recovers.');
-  const unrelated=await device(second),unrelatedPage=await unrelated.newPage();unrelatedPage.setDefaultTimeout(90000);
+  const unrelated=await device(second),unrelatedPage=observePage(await unrelated.newPage());unrelatedPage.setDefaultTimeout(90000);
   rejectLoad=true;await unrelatedPage.goto(base+'/profile/character');await unrelatedPage.getByRole('alert').waitFor();
   assert.equal(await unrelatedPage.getByTestId('selected-avatar-name').count(),0);
   rejectLoad=false;await unrelatedPage.getByRole('button',{name:'Prøv igen',exact:true}).click();
@@ -160,12 +174,13 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   assert.equal(await unrelatedPage.getByTestId('selected-avatar-name').textContent(),'Din første avatar');
   assert.equal(await unrelatedPage.getByTestId('avatar-gold').textContent(),'320');
   results.push('Another account has separate ownership and wallet; initial API outage offers retry without local fallback.');
-  const oldDevice=await device(legacy,{ownedAvatarIds:['starter','bip01'],selectedAvatarId:'bip01'}),oldPage=await oldDevice.newPage();oldPage.setDefaultTimeout(90000);
+  const oldDevice=await device(legacy,{ownedAvatarIds:['starter','bip01','raymond'],selectedAvatarId:'bip01'}),oldPage=observePage(await oldDevice.newPage());oldPage.setDefaultTimeout(90000);
   await oldPage.goto(base+'/profile/character');
   await oldPage.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent==='BIP-01');
   assert.equal(await oldPage.getByTestId('avatar-gold').textContent(),'80');
   await oldPage.waitForFunction(()=>!Object.keys(localStorage).some(k=>k.startsWith('lup-avatar-profile-v1:')));
   assert.equal(calls.filter(c=>c.account===legacy&&c.path.endsWith('/import')).length,1);
+  assert.equal(profileFor(legacy).ownedAvatarIds.includes('raymond'),false);
   await oldPage.reload();await oldPage.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await oldPage.getByTestId('selected-avatar-name').textContent(),'BIP-01');
   assert.equal(calls.filter(c=>c.account===legacy&&c.path.endsWith('/import')).length,1);
@@ -180,8 +195,83 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   await otherPage.reload();await otherPage.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await otherPage.getByTestId('avatar-gold').textContent(),'90');
   results.push('Avatar and furniture purchases use the same server wallet across devices.');
-  await Promise.all([secondDevice.close(),unrelated.close(),oldDevice.close()]);
+  await Promise.all([context.close(),secondDevice.close(),unrelated.close(),oldDevice.close()]);
+
+  const raymondDevice=await device(raymondAccount),raymondPage=observePage(await raymondDevice.newPage());
+  page=raymondPage;raymondPage.setDefaultTimeout(90000);
+  await raymondPage.goto(base+'/profile/character',{waitUntil:'domcontentloaded'});
+  await raymondPage.getByTestId('selected-avatar-name').waitFor();
+  await raymondPage.getByRole('button',{name:'Se Raymond',exact:true}).click();
+  await raymondPage.locator('.avatar-preview [data-avatar="raymond"]').waitFor();
+  assert.equal(await raymondPage.locator('#avatar-preview-title').textContent(),'Raymond');
+  assert.match(await raymondPage.locator('.avatar-included').textContent(),/8 bevægelser/);
+  assert.match(await raymondPage.locator('.avatar-included').textContent(),/5 replikker/);
+  assert.match(await raymondPage.locator('.avatar-included').textContent(),/4 emojis/);
+  assert.equal(await raymondPage.getByRole('button',{name:'Hør replikken',exact:false}).count(),0);
+  assert.equal(await raymondPage.locator('.avatar-character-link').getAttribute('href'),'/characters/raymond');
+  const raymondPreview=raymondPage.locator('.avatar-preview .avatar-raymond');
+  const spriteStyle=await raymondPreview.evaluate(el=>{const s=getComputedStyle(el);return{timing:s.animationTimingFunction,size:s.backgroundSize,image:s.backgroundImage};});
+  assert.match(spriteStyle.timing,/^steps\(4(?:,\s*end)?\)$/);
+  assert.equal(spriteStyle.size,'400% 100%');
+  assert.ok(spriteStyle.image.includes('/assets/avatars/raymond/sprites/idle.png'));
+  const raymondMoves=[['idle','Stå klar'],['walk','Gå'],['run','Løb'],['jump','Hop'],['wave','Vink'],['celebrate','Jubel'],['think','Tænk'],['talk','Tal']];
+  const spriteDimensions=await raymondPage.evaluate(async animations=>Promise.all(animations.map(animation=>new Promise((resolve,reject)=>{
+    const image=new Image();image.onload=()=>resolve({animation,width:image.naturalWidth,height:image.naturalHeight});image.onerror=()=>reject(new Error('Missing Raymond sprite: '+animation));image.src='/assets/avatars/raymond/sprites/'+animation+'.png';
+  }))),raymondMoves.map(([id])=>id));
+  for(const sprite of spriteDimensions){assert.equal(sprite.width,1024,sprite.animation+' width');assert.equal(sprite.height,256,sprite.animation+' height');}
+  for(const [animation,label] of raymondMoves){
+    await raymondPage.getByRole('button',{name:label,exact:true}).click();
+    await raymondPage.waitForFunction(id=>document.querySelector('.avatar-preview [data-avatar="raymond"]')?.dataset.animation===id,animation);
+  }
+  const raymondReactions=['/images/characters/raymond/reactions/success.png','/images/characters/raymond/reactions/laughing.png?v=097b5eeb','/images/characters/raymond/reactions/thinking.png','/images/characters/raymond/reactions/celebration.png'];
+  assert.deepEqual(await raymondPage.locator('.avatar-emoji-row a').evaluateAll(links=>links.map(link=>link.getAttribute('href'))),raymondReactions);
+  for(const img of await raymondPage.locator('.avatar-emoji-row img').all())assert.equal(await img.evaluate(async el=>{await el.decode();return el.naturalWidth>0;}),true);
+  assert.equal(await raymondPage.locator('.avatar-icon-download').getAttribute('href'),'/images/characters/raymond/neutral.webp');
+  const raymondPhrases=new Set();
+  for(let i=0;i<5;i++){
+    const phrase=await raymondPage.locator('.avatar-phrases blockquote').textContent();raymondPhrases.add(phrase);
+    await raymondPage.getByRole('button',{name:'Næste replik',exact:true}).click();
+    await raymondPage.waitForFunction(previous=>document.querySelector('.avatar-phrases blockquote')?.textContent!==previous,phrase);
+  }
+  assert.equal(raymondPhrases.size,5);
+  await raymondPage.getByTestId('unlock-raymond').click();
+  await raymondPage.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent==='Raymond');
+  assert.equal(await raymondPage.getByTestId('avatar-gold').textContent(),'170');
+  assert.equal(profileFor(raymondAccount).selectedAvatarId,'raymond');
+  assert.ok(profileFor(raymondAccount).ownedAvatarIds.includes('raymond'));
+  assert.equal(await raymondPage.locator('.lup-account>summary [data-avatar-icon="raymond"] img').getAttribute('src'),'/images/characters/raymond/neutral.webp');
+  assert.equal(await raymondPage.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('lup-avatar-profile-v1:'))),false);
+  results.push('Raymond has eight four-frame sheets, five distinct text phrases, canonical head/reactions and a paid server-backed unlock.');
+
+  const raymondSecondDevice=await device(raymondAccount),raymondOther=observePage(await raymondSecondDevice.newPage());raymondOther.setDefaultTimeout(90000);
+  await raymondOther.goto(base+'/profile/character',{waitUntil:'domcontentloaded'});await raymondOther.getByTestId('selected-avatar-name').waitFor();
+  assert.equal(await raymondOther.getByTestId('selected-avatar-name').textContent(),'Raymond');
+  assert.equal(await raymondOther.getByTestId('avatar-gold').textContent(),'170');
+  await raymondOther.locator('[data-avatar-id="starter"]').getByRole('button',{name:'Brug avatar',exact:true}).click();
+  await raymondOther.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent==='Din første avatar');
+  await raymondPage.reload();await raymondPage.getByTestId('selected-avatar-name').waitFor();
+  assert.equal(await raymondPage.getByTestId('selected-avatar-name').textContent(),'Din første avatar');
+  assert.equal(await raymondPage.getByTestId('unlock-raymond').count(),0);
+  await raymondPage.locator('[data-avatar-id="raymond"]').getByRole('button',{name:'Brug avatar',exact:true}).click();
+  await raymondPage.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent==='Raymond');
+  await raymondOther.reload();await raymondOther.getByTestId('selected-avatar-name').waitFor();
+  assert.equal(await raymondOther.getByTestId('selected-avatar-name').textContent(),'Raymond');
+  assert.equal(await raymondOther.getByTestId('avatar-gold').textContent(),'170');
+  await raymondPage.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await raymondPage.locator('.avatar-preview .avatar-raymond').evaluate(el=>getComputedStyle(el).animationName),'none');
+  await raymondPage.screenshot({path:path.join(output,'raymond-desktop.png'),fullPage:true});
+  await raymondPage.setViewportSize({width:390,height:844});
+  assert.ok(await raymondPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Raymond collection has horizontal mobile overflow');
+  await raymondPage.screenshot({path:path.join(output,'raymond-mobile.png'),fullPage:true});
+  await raymondPage.setViewportSize({width:1440,height:1000});
+  for(const [route,selector] of [['/profile','.panel [data-avatar-icon="raymond"]'],['/apartment','.v2-home-sprite [data-avatar="raymond"]'],['/games/avatar-demo','.v2-gamegrid [data-avatar="raymond"]']]){
+    await raymondPage.goto(base+route,{waitUntil:'domcontentloaded'});await raymondPage.locator(selector).waitFor();
+  }
+  await raymondPage.getByRole('button',{name:'Højre',exact:true}).click();
+  assert.equal(await raymondPage.locator('.v2-gamegrid [data-avatar="raymond"]').count(),1);
+  results.push('Raymond selection follows two isolated devices and appears in the header, profile, apartment and Rune Run; mobile and reduced motion pass.');
+  await Promise.all([raymondDevice.close(),raymondSecondDevice.close()]);
   assert.deepEqual(failedAssets,[]);assert.deepEqual(errors,[]);
   const report={passed:true,results,browserErrors:errors,failedAssets,scope:'Isolated UI wiring test with shared API double across device contexts. Actual relational persistence and concurrency verified separately by AvatarProfileTests; no real accounts or external requests.'};
   await fs.writeFile(path.join(output,'qa-report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
-})().catch(async error=>{console.error(error);if(page){console.error((await page.locator('body').innerText()).slice(-6000));await page.screenshot({path:path.join(output,'avatar-qa-failure.png'),fullPage:true}).catch(()=>{});}await fs.mkdir(output,{recursive:true});await fs.writeFile(path.join(output,'qa-report.json'),JSON.stringify({passed:false,results,browserErrors:errors,failedAssets,error:error.stack},null,2));process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();});
+})().catch(async error=>{console.error(error);if(page&&!page.isClosed()){console.error((await page.locator('body').innerText()).slice(-6000));await page.screenshot({path:path.join(output,'avatar-qa-failure.png'),fullPage:true}).catch(()=>{});}await fs.mkdir(output,{recursive:true});await fs.writeFile(path.join(output,'qa-report.json'),JSON.stringify({passed:false,results,browserErrors:errors,failedAssets,error:error.stack},null,2));process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();});

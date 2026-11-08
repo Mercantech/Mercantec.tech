@@ -71,7 +71,8 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
 
             var requested = request.OwnedAvatarIds.ToHashSet(StringComparer.Ordinal);
             var avatars = AvatarEconomy.Avatars
-                .Where(avatar => avatar.Id == AvatarEconomy.StarterId || requested.Contains(avatar.Id) && profile.Level >= avatar.Level)
+                .Where(avatar => avatar.LegacyImportEligible
+                    && (avatar.Id == AvatarEconomy.StarterId || requested.Contains(avatar.Id) && profile.Level >= avatar.Level))
                 .ToArray();
             var maximumBalance = Math.Max(0, AvatarEconomy.InitialGold - avatars.Sum(avatar => avatar.Cost));
             profile.Gold = Math.Clamp(request.Gold, 0, Math.Min(profile.Gold, maximumBalance));

@@ -2,9 +2,9 @@
 @inject DemoWorld World
 @implements IDisposable
 
-@if (CurrentId == AvatarCatalog.Bip01Id)
+@if (CurrentDefinition.SpriteAssetRoot is not null)
 {
-    <span class="avatar-robot @(Mini ? "mini" : null)" data-avatar="bip01" data-animation="@SafeAnimation" style="@RobotStyle" aria-hidden="true"></span>
+    <span class="avatar-sheet @(CurrentDefinition.SpriteRows == 1 ? "avatar-raymond" : "avatar-robot") @(Mini ? "mini" : null)" data-avatar="@CurrentDefinition.Id" data-animation="@SafeAnimation" style="@SpriteStyle" aria-hidden="true"></span>
 }
 else
 {
@@ -20,11 +20,12 @@ else
     [Parameter] public int Size { get; set; } = 136;
     [Parameter] public string? AvatarId { get; set; }
     [Parameter] public string Animation { get; set; } = "idle";
-    private static readonly HashSet<string> Animations = ["idle", "blink", "wave", "think", "talk", "point", "celebrate", "encourage", "surprised", "unlock", "walk", "run", "jump", "land", "sit", "sleep", "pickup", "interact", "hit", "knockout", "respawn", "ability_1_pulse", "ability_2_magnet", "ability_3_shield", "ability_4_dash", "ability_5_repair", "ultimate_charge", "ultimate_release"];
-    private string CurrentId => AvatarId ?? (World.AvatarProfileReady ? World.SelectedAvatarId : AvatarCatalog.StarterId);
-    private string SafeAnimation => Animations.Contains(Animation) ? Animation : "idle";
-    private string Duration => SafeAnimation.StartsWith("ability_", StringComparison.Ordinal) ? "1s" : SafeAnimation switch { "sleep" => "1.333s", "think" or "idle" => "1s", "run" => ".667s", "ultimate_charge" or "ultimate_release" => "1.6s", _ => ".8s" };
-    private string RobotStyle => $"--avatar-size:{Math.Clamp(Size, 24, 512)}px;--avatar-cycle:{Duration};background-image:url('/assets/avatars/bip-01/sprites/{SafeAnimation}.png')";
+    private AvatarDefinition CurrentDefinition => AvatarCatalog.Find(AvatarId ?? (World.AvatarProfileReady ? World.SelectedAvatarId : AvatarCatalog.StarterId)) ?? AvatarCatalog.All[0];
+    private string SafeAnimation => CurrentDefinition.Animations.Contains(Animation) ? Animation : "idle";
+    private string Duration => CurrentDefinition.SpriteRows == 1
+        ? SafeAnimation switch { "run" => ".8s", "walk" or "jump" => "1s", _ => "1.2s" }
+        : SafeAnimation.StartsWith("ability_", StringComparison.Ordinal) ? "1s" : SafeAnimation switch { "sleep" => "1.333s", "think" or "idle" => "1s", "run" => ".667s", "ultimate_charge" or "ultimate_release" => "1.6s", _ => ".8s" };
+    private string SpriteStyle => $"--avatar-size:{Math.Clamp(Size, 24, 512)}px;--avatar-cycle:{Duration};background-image:url('{CurrentDefinition.SpriteAssetRoot}/sprites/{SafeAnimation}.png')";
     private string LegacyStyle => $"--skin:{World.Skin};--outfit:{World.OutfitColor};--hair:{World.Hair}" + (Mini ? "" : $";transform:scale({(Size / 136d).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)})");
 
     protected override void OnInitialized() => World.Changed += OnChanged;

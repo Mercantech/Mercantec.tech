@@ -25,18 +25,23 @@ else
     </section>
     <div class="avatar-collection-layout">
         <section class="avatar-preview" aria-labelledby="avatar-preview-title">
-            <div class="avatar-preview-top"><span>Forhåndsvisning</span><span class="avatar-edition">@(PreviewDefinition.Id == AvatarCatalog.Bip01Id ? "Den første robot" : "Din startfigur")</span></div>
+            <div class="avatar-preview-top"><span>Forhåndsvisning</span><span class="avatar-edition">@PreviewDefinition.Edition</span></div>
             <div class="avatar-preview-canvas" role="img" aria-label="@($"{PreviewDefinition.Name} – forhåndsvisning")"><AvatarSprite AvatarId="@_previewId" Animation="@_animation" Size="248" /></div>
             <h2 id="avatar-preview-title">@PreviewDefinition.Name</h2>
             <p>@PreviewDefinition.Description</p>
-            @if (PreviewDefinition.Id == AvatarCatalog.Bip01Id)
+            @if (PreviewDefinition.Animations.Count > 0)
             {
-                <div class="avatar-move-buttons" aria-label="Prøv robotbevægelser">
-                    <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animation == "idle")" @onclick="ShowIdle">Stå klar</button>
-                    <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animation == "wave")" @onclick="ShowWave">Vink</button>
-                    <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animation == "celebrate")" @onclick="ShowCelebration">Jubel</button>
+                <div class="avatar-move-buttons" aria-label="@($"Prøv bevægelser med {PreviewDefinition.Name}")">
+                    @foreach (var move in PreviewMoves.Where(move => PreviewDefinition.Animations.Contains(move.Id)))
+                    {
+                        <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animation == move.Id)" @onclick="() => _animation = move.Id">@move.Label</button>
+                    }
                 </div>
-                <div class="avatar-included"><span>28 bevægelser</span><span>5 replikker</span><span>4 emojis</span></div>
+                <div class="avatar-included"><span>@PreviewDefinition.Animations.Count bevægelser</span><span>@PreviewDefinition.Catchphrases.Count replikker</span><span>@PreviewDefinition.Emojis.Count emojis</span></div>
+            }
+            @if (PreviewDefinition.CharacterProfilePath is not null)
+            {
+                <a class="avatar-character-link" href="@PreviewDefinition.CharacterProfilePath">Lær @PreviewDefinition.Name at kende <span aria-hidden="true">↗</span></a>
             }
             <a class="avatar-game-link" href="/games/avatar-demo">Prøv din valgte avatar i Rune Run <span aria-hidden="true">↗</span></a>
         </section>
@@ -64,7 +69,7 @@ else
                             else
                             {
                                 <span class="avatar-requirement"><UiIcon Name="lock" /> Level @avatar.Level · @avatar.Cost guld</span>
-                                <button type="button" class="action" disabled="@(World.AvatarBusy || !World.CanUnlockAvatar(avatar.Id))" data-testid="unlock-robot" @onclick="() => Unlock(avatar.Id)">@(World.AvatarBusy ? "Gemmer…" : World.CanUnlockAvatar(avatar.Id) ? $"Lås op · {avatar.Cost} guld" : World.AvatarRequirementText(avatar.Id))</button>
+                                <button type="button" class="action" disabled="@(World.AvatarBusy || !World.CanUnlockAvatar(avatar.Id))" data-testid="@(avatar.Id == AvatarCatalog.Bip01Id ? "unlock-robot" : $"unlock-{avatar.Id}")" @onclick="() => Unlock(avatar.Id)">@(World.AvatarBusy ? "Gemmer…" : World.CanUnlockAvatar(avatar.Id) ? $"Lås op · {avatar.Cost} guld" : World.AvatarRequirementText(avatar.Id))</button>
                             }
                         </div>
                     </article>
@@ -75,23 +80,23 @@ else
                 <div class="avatar-notice" role="alert"><p>@World.AvatarProfileError</p><button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Hent samlingen igen</button></div>
             }
             @if (World.NoticeArea == "avatar" && World.Notice is not null) { <p class="avatar-notice" role="status" aria-live="polite">@World.Notice</p> }
-            @if (PreviewDefinition.Id == AvatarCatalog.Bip01Id)
+            @if (PreviewDefinition.FaceImage is not null)
             {
                 <section class="avatar-expressions" aria-labelledby="avatar-expressions-title">
-                    <div><h3 id="avatar-expressions-title">Et ansigt til hver anledning</h3><p>Et profilikon og fire små robotreaktioner følger med BIP-01.</p></div>
+                    <div><h3 id="avatar-expressions-title">Et ansigt til hver anledning</h3><p>Et profilikon og @PreviewDefinition.Emojis.Count små reaktioner følger med @PreviewDefinition.Name.</p></div>
                     <div class="avatar-emoji-row">
-                        <AvatarIcon AvatarId="@AvatarCatalog.Bip01Id" Size="56" />
-                        @foreach (var emoji in Emojis)
+                        <AvatarIcon AvatarId="@PreviewDefinition.Id" Size="56" />
+                        @foreach (var emoji in PreviewDefinition.Emojis)
                         {
-                            <a href="@($"{AssetRoot}/emoji-{emoji.Id}.png")" download="@($"bip01-{emoji.Id}.png")" title="@($"Hent emoji: {emoji.Label}")" aria-label="@($"Hent emoji: {emoji.Label}")"><AvatarIcon AvatarId="@AvatarCatalog.Bip01Id" Expression="@emoji.Id" Size="56" Decorative="true" /></a>
+                            <a href="@emoji.Image" download="@($"{PreviewDefinition.Id}-{emoji.Id}.{emoji.Extension}")" title="@($"Hent emoji: {emoji.Label}")" aria-label="@($"Hent emoji: {emoji.Label}")"><AvatarIcon AvatarId="@PreviewDefinition.Id" Expression="@emoji.Id" Size="56" Decorative="true" /></a>
                         }
                     </div>
-                    <a class="avatar-icon-download" href="@($"{AssetRoot}/face.png")" download="bip01-avatar.png">Hent ansigtsikon · PNG</a>
+                    <a class="avatar-icon-download" href="@PreviewDefinition.FaceImage" download="@($"{PreviewDefinition.Id}-avatar.{PreviewDefinition.FaceExtension}")">Hent ansigtsikon · @PreviewDefinition.FaceExtension.ToUpperInvariant()</a>
                 </section>
                 <section class="avatar-phrases" aria-labelledby="avatar-phrases-title">
-                    <h3 id="avatar-phrases-title">Robotten har noget at sige</h3>
+                    <h3 id="avatar-phrases-title">@PreviewDefinition.Name har noget at sige</h3>
                     <blockquote>“@PreviewDefinition.Catchphrases[_phraseIndex].Text”</blockquote>
-                    <div class="avatar-phrase-actions"><button type="button" class="secondary" @onclick="NextPhrase">Næste replik</button><button type="button" class="secondary" @onclick="PlayPhrase">♫ Hør replikken</button></div>
+                    <div class="avatar-phrase-actions"><button type="button" class="secondary" @onclick="NextPhrase">Næste replik</button>@if (PreviewDefinition.AudioFiles.Count == PreviewDefinition.Catchphrases.Count) { <button type="button" class="secondary" @onclick="PlayPhrase">♫ Hør replikken</button> }</div>
                     @if (_audioNotice is not null) { <p class="avatar-audio-notice" role="status">@_audioNotice</p> }
                 </section>
             }
@@ -109,9 +114,7 @@ else
 }
 
 @code {
-    private const string AssetRoot = "/assets/avatars/bip-01";
-    private static readonly (string Id, string Label)[] Emojis = [("happy", "Glad"), ("wink", "Blink"), ("think", "Tænksom"), ("celebrate", "Jubel")];
-    private static readonly string[] AudioFiles = ["phrase_1_welcome.wav", "phrase_2_start.wav", "phrase_3_success.wav", "phrase_4_retry.wav", "phrase_5_milestone.wav"];
+    private static readonly (string Id, string Label)[] PreviewMoves = [("idle", "Stå klar"), ("wave", "Vink"), ("celebrate", "Jubel"), ("walk", "Gå"), ("run", "Løb"), ("jump", "Hop"), ("think", "Tænk"), ("talk", "Tal")];
     private string _previewId = AvatarCatalog.Bip01Id;
     private string _animation = "idle";
     private int _phraseIndex;
@@ -120,13 +123,11 @@ else
     private void Preview(string id) { if (AvatarCatalog.Find(id) is not null) { _previewId = id; _animation = "idle"; _phraseIndex = 0; _audioNotice = null; } }
     private async Task Choose(string id) { if (await World.SelectAvatarAsync(id)) Preview(id); }
     private async Task Unlock(string id) { if (await World.TryUnlockAvatarAsync(id)) { Preview(id); _animation = "celebrate"; _phraseIndex = 4; } }
-    private void ShowIdle() => _animation = "idle";
-    private void ShowWave() => _animation = "wave";
-    private void ShowCelebration() => _animation = "celebrate";
     private void NextPhrase() { _phraseIndex = (_phraseIndex + 1) % PreviewDefinition.Catchphrases.Count; _audioNotice = null; }
     private async Task PlayPhrase()
     {
-        try { _audioNotice = await Js.InvokeAsync<bool>("lupAvatars.play", $"{AssetRoot}/audio/{AudioFiles[_phraseIndex]}") ? null : "Lyden kunne ikke afspilles. Prøv igen."; }
+        if (PreviewDefinition.AudioFiles.Count != PreviewDefinition.Catchphrases.Count || PreviewDefinition.SpriteAssetRoot is null) return;
+        try { _audioNotice = await Js.InvokeAsync<bool>("lupAvatars.play", $"{PreviewDefinition.SpriteAssetRoot}/audio/{PreviewDefinition.AudioFiles[_phraseIndex]}") ? null : "Lyden kunne ikke afspilles. Prøv igen."; }
         catch (JSException) { _audioNotice = "Lyden kunne ikke afspilles. Teksten er stadig her."; }
     }
     protected override async Task OnInitializedAsync()

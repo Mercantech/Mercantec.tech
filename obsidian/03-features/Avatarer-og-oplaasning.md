@@ -6,7 +6,8 @@ hud, hår og tøj er erstattet af hele figurer, som låses op og vælges.
 ## Figurer
 
 - `starter`: gratis startfigur.
-- `bip01`:BIP-01, level 2 og 150 guld. Oplåsning vælger robotten med det samme.
+- `bip01`: BIP-01, level 2 og 150 guld.
+- `raymond`: Raymond / Professor Codd, level 3 og 150 guld. Oplåsning vælger figuren med det samme.
 - Tolv felter med spørgsmålstegn viser kommende figurer. De er information,
   ikke købsknapper eller katalog-id'er, der kan låses op.
 
@@ -50,7 +51,7 @@ Netværksfejl vises med genforsøg; der er ingen lokal skrivefallback.
 `lup-avatar-profile-v1:user:{subject}`-poster. Nye avatarvalg gemmes aldrig
 via localStorage. Når en ny databaseprofil stadig tillader overførsel og den
 aktuelle konto har en gammel browserpost, sender klienten den til import-API'et.
-Kun kendte figurer med opfyldte levelkrav accepteres, og valg skal være ejet.
+Kun de oprindelige browserfigurer (`starter`, `bip01`) med opfyldte levelkrav accepteres, og valg skal være ejet. Raymond og fremtidige avatarer kan ikke erhverves gennem legacyimport.
 Guld kan højst svare til startsaldoen minus importerede avatarers pris og kan
 ikke hæve en eksisterende saldo. Efter import eller første vellykkede køb/valg
 lukkes importmuligheden. Browserposten fjernes efter bekræftet servertilstand.
@@ -118,3 +119,9 @@ bruges. Testen dækker valg på tværs af enheder, fejl og genforsøg, migration
 fælles saldo, ikoner, emojis, lyd, profil/lejlighed/spil, tema og mobilvisning.
 Den erstatter ikke databaseintegrationstestene. Rapport og screenshots gemmes
 uden for repoet i `design/robot-avatar-platform/`.
+
+## Raymond
+
+Raymond genbruger den kanoniske elefantprofessors ansigtsikon og fire reaktioner fra karakterbiblioteket. Hans otte nye full-body-animationer er karakterark med tomme hænder: idle, walk, run, jump, wave, celebrate, think og talk. Hvert ark har fire 256 × 256-frames i én række (1024 × 256 px). Figurens metadata styrer arkformat, reaktioner, downloadformat og valgfrie lydfiler; robotten beholder sit 4 × 2-format. Ukendte animationer bruger idle, og reduceret bevægelse viser én frame.
+
+De fem Raymond-replikker er tekstlige. Profil, header, lejlighed og prøvespil bruger samme valgte id fra databasen. Der tilføjes ingen ny schema-migrering; den eksisterende ejerskabstabel understøtter nye figur-id'er. Se [grafik og promptspecifikation](../../assets/avatars/raymond/README.md) og runtime-manifestet i `web/wwwroot/assets/avatars/raymond/manifest.json`.
