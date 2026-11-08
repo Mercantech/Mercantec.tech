@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Emojis;
@@ -6,6 +7,7 @@ using Mercantec.Tech.Web.Notion;
 using Mercantec.Tech.Web.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace Mercantec.Tech.Web.Pages.Notion;
@@ -29,9 +31,13 @@ public partial class Index
     private CancellationTokenSource? _navigationRequests;
     private IJSObjectReference? _module;
     private Task<IJSObjectReference>? _moduleTask;
+    private IJSObjectReference? _sidebarModule;
+    private Task<IJSObjectReference>? _sidebarModuleTask;
     private DotNetObjectReference<Index>? _callbacks;
     private ElementReference _editorElement;
     private ElementReference _mountedElement;
+    private ElementReference _workspaceElement;
+    private ElementReference _sidebarMountedElement;
     private NotionHold[] _holds = [];
     private NotionPageSummary[] _pages = [];
     private NotionGroupView[] _groups = [];
@@ -52,6 +58,14 @@ public partial class Index
     private PageRow? _activeRow;
     private HashSet<Guid> _collections = [];
     private Dictionary<Guid, Guid?> _parents = [];
+    private Dictionary<Guid, NotionPageSummary> _pagesById = [];
+    private HashSet<Guid> _pagesWithChildren = [];
+    private readonly HashSet<Guid> _expandedPages = [];
+    private Guid? _sidebarScope, _revealedPage;
+    private bool _revealedWithMetadata, _sidebarPublishedOnly;
+    private string _pageSearch = "";
+    private int _totalPages, _listVersion, _sidebarInteractions;
+    private bool _sidebarOpen = true, _sidebarMobile, _sidebarReady, _sidebarStarting, _sidebarNeedsSync;
     private string? _account, _loadedRoute, _error, _notice;
     private string _title = "", _newTitle = "", _status = "connecting", _statusDetail = "";
     private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups;
@@ -94,6 +108,21 @@ public partial class Index
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) await SyncAccount();
+        if (_disposed) return;
+        if (!CanUse || (!_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty))
+        { await UnmountSidebar(); return; }
+        var sidebarSetup = InitializeSidebar();
+        if (_needsMount && _current is not null && CanUse && !_disposed) await MountEditor();
+        await sidebarSetup;
+        if (_sidebarNeedsSync && _sidebarModule is not null && !_disposed)
+        {
+            _sidebarNeedsSync = false;
+            try { await _sidebarModule.InvokeVoidAsync("setOpen", _sidebarMountedElement, _sidebarOpen); }
+            catch (JSException) { /* The visible toggle still works without browser enhancements. */ }
+        }
+    }
+    private async Task MountEditor()
+    {
         if (!_needsMount || _current is null || !CanUse || _disposed) return;
         _needsMount = false;
         var generation = _generation;
@@ -124,6 +153,74 @@ public partial class Index
         }
         if (!_disposed) await InvokeAsync(StateHasChanged);
     }
+    private async Task InitializeSidebar()
+    {
+        if (_sidebarStarting || string.IsNullOrEmpty(_workspaceElement.Id) || _sidebarReady && _sidebarMountedElement.Id == _workspaceElement.Id) return;
+        _sidebarStarting = true;
+        var interactions = _sidebarInteractions;
+        var element = _workspaceElement;
+        try
+        {
+            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=20261108").AsTask();
+            var module = await _sidebarModuleTask;
+            if (_disposed) return;
+            if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
+                await _sidebarModule.InvokeVoidAsync("destroy", _sidebarMountedElement);
+            _sidebarModule = module;
+            _sidebarMountedElement = element;
+            _callbacks ??= DotNetObjectReference.Create(this);
+            var state = await module.InvokeAsync<SidebarPreferences?>("mount", element, _callbacks);
+            if (_disposed) return;
+            if (state is not null)
+            {
+                _sidebarMobile = state.Mobile;
+                if (interactions == _sidebarInteractions) _sidebarOpen = !state.Mobile && state.DesktopOpen;
+            }
+            _sidebarNeedsSync = true;
+        }
+        catch (JSException) { /* Storage restrictions must not prevent using the menu. */ }
+        finally
+        {
+            if (!_disposed) { _sidebarReady = true; _sidebarStarting = false; await InvokeAsync(StateHasChanged); }
+        }
+    }
+    private void SetSidebarOpen(bool open)
+    {
+        ++_sidebarInteractions;
+        if (_sidebarOpen == open) return;
+        _sidebarOpen = open; _sidebarNeedsSync = true;
+    }
+    private void ToggleSidebar() => SetSidebarOpen(!_sidebarOpen);
+    private async Task UnmountSidebar()
+    {
+        if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
+        {
+            try { await _sidebarModule.InvokeVoidAsync("destroy", _sidebarMountedElement); }
+            catch (JSException) { }
+        }
+        _sidebarMountedElement = default; _sidebarReady = false;
+    }
+    [JSInvokable] public Task CloseNotionSidebar() => InvokeAsync(() => { if (!_disposed) { SetSidebarOpen(false); StateHasChanged(); } });
+    [JSInvokable] public Task OnNotionSidebarViewport(bool mobile, bool desktopOpen) => InvokeAsync(() =>
+    {
+        if (_disposed) return;
+        _sidebarMobile = mobile; ++_sidebarInteractions;
+        _sidebarOpen = !mobile && desktopOpen; _sidebarNeedsSync = true;
+        StateHasChanged();
+    });
+    private void SearchPages(ChangeEventArgs args) { _pageSearch = args.Value?.ToString() ?? ""; ++_listVersion; RebuildPageRows(); }
+    private void ClearPageSearch() { _pageSearch = ""; ++_listVersion; RebuildPageRows(); }
+    private void SearchKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape") return;
+        if (_pageSearch.Length > 0) ClearPageSearch(); else SetSidebarOpen(false);
+    }
+    private void ToggleBranch(Guid id)
+    {
+        if (!_expandedPages.Remove(id)) _expandedPages.Add(id);
+        RebuildPageRows();
+    }
+    private string? ParentTitle(NotionPageSummary page) => page.ParentPageId is Guid parent && _pagesById.TryGetValue(parent, out var value) ? value.Title : null;
     private object EditorContext() => new
     {
         pageId = _current!.PageId, holdId = _current.HoldId, collectionId = _current.CollectionId, title = _current.Title,
@@ -140,6 +237,7 @@ public partial class Index
         var account = $"{Auth.Subject}:{ViewAs.IsActive}";
         if (_account == account) return;
         _account = account;
+        _expandedPages.Clear(); _pageSearch = ""; _sidebarScope = null; _revealedPage = null;
         _holds = []; _pages = []; _groups = []; _showGroups = false; _holdsLoaded = false; _pagesHold = null;
         if (CanUse) await Load();
         else { ++_generation; _requests?.Cancel(); await Unmount(); _current = null; _loading = false; }
@@ -163,6 +261,7 @@ public partial class Index
                 var context = await FetchContext(id, ct);
                 if (!IsCurrent(generation, ct) || account != _account) return;
                 _holdId = context.HoldId ?? Guid.Empty;
+                ResetSidebarScope(context.CollectionId);
                 if (_pagesHold != (context.CollectionId ?? _holdId) || _pagesPublishedOnly != ForceReadOnly) { _pages = []; _pagesHold = null; }
                 SelectContext(context);
             }
@@ -178,6 +277,7 @@ public partial class Index
                 }
                 if (_holdId != Guid.Empty)
                 {
+                    ResetSidebarScope();
                     var pages = await Client.Pages(_holdId, ct, ForceReadOnly);
                     if (!IsCurrent(generation, ct)) return;
                     SetPages(pages);
@@ -202,6 +302,12 @@ public partial class Index
         }
     }
     private bool IsCurrent(int generation, CancellationToken ct) => !_disposed && !ct.IsCancellationRequested && generation == _generation;
+    private void ResetSidebarScope(Guid? collectionId = null)
+    {
+        var scopeId = collectionId ?? _holdId;
+        if (_sidebarScope == scopeId && _sidebarPublishedOnly == ForceReadOnly) return;
+        _sidebarScope = scopeId; _sidebarPublishedOnly = ForceReadOnly; _expandedPages.Clear(); _pageSearch = ""; _revealedPage = null; _revealedWithMetadata = false;
+    }
     private Task<NotionPageContext> FetchContext(Guid id, CancellationToken ct) => ForceReadOnly ? Client.PublishedContext(id, ct, false) : Client.Context(id, ct, false);
     private void SelectContext(NotionPageContext context)
     {
@@ -231,7 +337,7 @@ public partial class Index
             finally { if (IsCurrent(generation, ct)) await InvokeAsync(StateHasChanged); }
         }
         var parts = new List<Task>();
-        if (!_holdsLoaded || refresh) parts.Add(LoadPart(async () =>
+        if (holdId != Guid.Empty && (!_holdsLoaded || refresh)) parts.Add(LoadPart(async () =>
         {
             var holds = await Client.Holds(ct);
             if (IsCurrent(generation, ct)) { _holds = holds; _holdsLoaded = true; }
@@ -316,14 +422,32 @@ public partial class Index
     private async Task BeforeNavigation(LocationChangingContext context) { if (!await CanLeave()) context.PreventNavigation(); }
     private async Task ChangeHold(ChangeEventArgs args)
     {
-        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId && await CanLeave()) Nav.NavigateTo(WorkspaceNavigation.Editor(id, publishedOnly: ForceReadOnly));
+        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId && await CanLeave())
+        {
+            if (_sidebarMobile) SetSidebarOpen(false);
+            Nav.NavigateTo(WorkspaceNavigation.Editor(id, publishedOnly: ForceReadOnly));
+        }
     }
-    private async Task OpenPage(Guid id) { if (_current?.PageId != id && await CanLeave()) Nav.NavigateTo(PageHref(id)); }
-    private void BeginCreate(bool child) { if (!Authoring) return; _newParent = child ? _current?.PageId : null; _newTitle = ""; _creating = true; }
+    private async Task OpenPage(Guid id)
+    {
+        if (_current?.PageId == id) { if (_sidebarMobile) SetSidebarOpen(false); return; }
+        if (!await CanLeave()) return;
+        var href = PageHref(id);
+        if (_sidebarMobile) SetSidebarOpen(false);
+        Nav.NavigateTo(href);
+    }
+    private void BeginCreate(bool child) { if (!Authoring) return; SetSidebarOpen(true); _newParent = child ? _current?.PageId : null; _newTitle = ""; _creating = true; }
     private async Task CreatePage()
     {
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
-        await Work(async ct => { var page = await Client.Create(_current?.HoldId, _newTitle.Trim(), _newParent, ct, _current?.CollectionId); _creating = false; _pagesHold = null; Nav.NavigateTo(PageHref(page.Id)); });
+        await Work(async ct =>
+        {
+            var holdId = _current is null ? WorkspaceNavigation.NonEmpty(_holdId) : _current.HoldId;
+            var page = await Client.Create(holdId, _newTitle.Trim(), _newParent, ct, _current?.CollectionId);
+            _creating = false; _pagesHold = null;
+            if (_sidebarMobile) SetSidebarOpen(false);
+            Nav.NavigateTo(PageHref(page.Id));
+        });
     }
     private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
     private async Task RenamePage() => await SaveTitle();
@@ -426,7 +550,7 @@ public partial class Index
     [JSInvokable] public Task OnNotionStatus(string status, string detail) => InvokeAsync(() => { if (_disposed) return; _status = status; _statusDetail = detail; StateHasChanged(); });
     [JSInvokable] public Task OnNotionCreateGroup(string membershipIdsJson) => InvokeAsync(async () =>
     {
-        if (!IsEditing || _disposed) return;
+        if (!IsEditing || _disposed || _holdId == Guid.Empty) return;
         var generation = _generation;
         if (!await EnsureNotionResources() || generation != _generation) return;
         var ids = JsonSerializer.Deserialize<Guid[]>(membershipIdsJson) ?? [];
@@ -438,29 +562,44 @@ public partial class Index
     {
         var pages = VisiblePages.OrderBy(p => p.Title).ToArray();
         if (_current is not null && !pages.Any(p => p.Id == _current.PageId))
-            pages = [new(_current.PageId, _holdId, _current.Title, null, _current.UpdatedAtUtc, _current.PublishedAtUtc), .. pages];
+            pages = [new(_current.PageId, _current.HoldId, _current.Title, null, _current.UpdatedAtUtc, _current.PublishedAtUtc, CollectionId: _current.CollectionId), .. pages];
         _parents = pages.ToDictionary(p => p.Id, p => p.ParentPageId);
+        _pagesById = pages.ToDictionary(p => p.Id);
         var children = pages.ToLookup(p => p.ParentPageId ?? Guid.Empty);
+        _pagesWithChildren = pages.Where(p => children.Contains(p.Id)).Select(p => p.Id).ToHashSet();
         _collections = pages.Where(p => p.ParentPageId is null || !_parents.ContainsKey(p.ParentPageId.Value) || children.Contains(p.Id)).Select(p => p.Id).ToHashSet();
+        if (_current is not null && (_revealedPage != _current.PageId || !_revealedWithMetadata))
+        {
+            var seen = new HashSet<Guid>();
+            var child = _current.PageId;
+            while (seen.Add(child) && _parents.TryGetValue(child, out var parent) && parent is Guid id)
+            { _expandedPages.Add(id); child = id; }
+            _revealedPage = _current.PageId; _revealedWithMetadata = _pages.Any(p => p.Id == _current.PageId);
+        }
         var visited = new HashSet<Guid>();
         var rows = new List<PageRow>(pages.Length);
+        var matches = new List<PageRow>();
+        var query = _pageSearch.Trim();
         // Iterative traversal also handles deep trees, orphaned pages and cycles.
         void Walk(NotionPageSummary root)
         {
-            var pending = new Stack<(NotionPageSummary Page, int Depth)>();
-            pending.Push((root, 0));
+            var pending = new Stack<(NotionPageSummary Page, int Depth, bool Visible)>();
+            pending.Push((root, 0, true));
             while (pending.TryPop(out var entry))
             {
                 if (!visited.Add(entry.Page.Id)) continue;
-                rows.Add(new(entry.Page, Math.Min(entry.Depth, 4)));
-                foreach (var child in children[entry.Page.Id].Reverse()) pending.Push((child, entry.Depth + 1));
+                if (entry.Visible) rows.Add(new(entry.Page, Math.Min(entry.Depth, 4)));
+                if (query.Length > 0 && CultureInfo.GetCultureInfo("da-DK").CompareInfo.IndexOf(entry.Page.Title, query, CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) >= 0)
+                    matches.Add(new(entry.Page, 0));
+                foreach (var child in children[entry.Page.Id].Reverse()) pending.Push((child, entry.Depth + 1, entry.Visible && _expandedPages.Contains(entry.Page.Id)));
             }
         }
         foreach (var root in pages.Where(p => p.ParentPageId is null || !_parents.ContainsKey(p.ParentPageId.Value))) Walk(root);
         foreach (var orphan in pages) if (!visited.Contains(orphan.Id)) Walk(orphan);
-        _pageRows = rows;
-        _activeRow = rows.FirstOrDefault(p => p.Page.Id == _current?.PageId);
-        _virtualRows = rows.Where(p => p.Page.Id != _current?.PageId).ToList();
+        _totalPages = pages.Length;
+        _pageRows = query.Length > 0 ? matches : rows;
+        _activeRow = _pageRows.FirstOrDefault(p => p.Page.Id == _current?.PageId);
+        _virtualRows = _pageRows.Where(p => p.Page.Id != _current?.PageId).ToList();
     }
     private sealed record PageRow(NotionPageSummary Page, int Depth);
     private static bool IsExpected(Exception ex) => ex is NotionException or HttpRequestException or OperationCanceledException or JSException or JsonException;
@@ -482,7 +621,14 @@ public partial class Index
             else if (_module is not null) await _module.DisposeAsync();
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException) { }
+        try
+        {
+            await UnmountSidebar();
+            if (_sidebarModuleTask is not null) await (await _sidebarModuleTask).DisposeAsync();
+        }
+        catch (JSException) { }
         _callbacks?.Dispose(); _life.Dispose();
     }
     private sealed record PublicationData(string ExpectedFingerprint, Guid[] AssetIds, DrawingPublicationRequest[]? Drawings = null);
+    private sealed record SidebarPreferences(bool Mobile, bool DesktopOpen);
 }

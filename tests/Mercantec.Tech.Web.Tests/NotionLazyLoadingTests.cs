@@ -180,7 +180,7 @@ public sealed class NotionLazyLoadingTests
 
         page.WaitForAssertion(() => Assert.Contains(editor.ContextUpdates, update => update.Pages == 1_002), Timeout);
         Assert.InRange(page.FindAll(".notion-page-row").Count, 1, 80);
-        var current = Assert.Single(page.FindAll(".notion-sidebar > .notion-page-row .notion-page.is-current"));
+        var current = Assert.Single(page.FindAll(".notion-current-page .notion-page.is-current"));
         Assert.Equal("page", current.GetAttribute("aria-current"));
         Assert.Contains("Første side", current.TextContent);
         Assert.Single(api.Requests, r => r.Path.EndsWith("/context", StringComparison.Ordinal));
@@ -264,13 +264,16 @@ public sealed class NotionLazyLoadingTests
     private sealed class LazyJavascript(IJSRuntime original, LazyApi api) : IJSRuntime
     {
         public EditorModule Editor { get; } = new(api);
+        private NoopSidebarModule Sidebar { get; } = new();
         public TaskCompletionSource<bool>? ImportGate { get; set; }
         public TaskCompletionSource<bool> ImportStarted { get; } = Gate();
         public int Imports;
         public ValueTask<TValue> InvokeAsync<TValue>(string id, object?[]? args)
             => InvokeAsync<TValue>(id, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args)
-            => id == "import" ? new(Import<TValue>(ct)) : original.InvokeAsync<TValue>(id, ct, args);
+            => id != "import" ? original.InvokeAsync<TValue>(id, ct, args)
+                : args?.FirstOrDefault()?.ToString()?.Contains("notion-editor", StringComparison.Ordinal) == true
+                    ? new(Import<TValue>(ct)) : ValueTask.FromResult((TValue)(object)Sidebar);
         private async Task<TValue> Import<TValue>(CancellationToken ct)
         {
             Interlocked.Increment(ref Imports);
@@ -278,6 +281,13 @@ public sealed class NotionLazyLoadingTests
             if (ImportGate is not null) await ImportGate.Task.WaitAsync(ct);
             return (TValue)(object)Editor;
         }
+    }
+
+    private sealed class NoopSidebarModule : IJSObjectReference
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string id, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+        public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
     private sealed class EditorModule(LazyApi api) : IJSObjectReference

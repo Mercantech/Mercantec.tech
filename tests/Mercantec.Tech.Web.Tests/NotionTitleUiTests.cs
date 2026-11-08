@@ -141,10 +141,19 @@ public sealed class NotionTitleUiTests
     private sealed class TitleJavascript(IJSRuntime original) : IJSRuntime
     {
         public EditorModule Editor { get; } = new();
+        private NoopSidebarModule Sidebar { get; } = new();
         public ValueTask<TValue> InvokeAsync<TValue>(string id, object?[]? args)
             => InvokeAsync<TValue>(id, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args)
-            => id == "import" ? ValueTask.FromResult((TValue)(object)Editor) : original.InvokeAsync<TValue>(id, ct, args);
+            => id == "import" ? ValueTask.FromResult((TValue)(object)(args?.FirstOrDefault()?.ToString()?.Contains("notion-editor", StringComparison.Ordinal) == true
+                ? (IJSObjectReference)Editor : Sidebar)) : original.InvokeAsync<TValue>(id, ct, args);
+    }
+
+    private sealed class NoopSidebarModule : IJSObjectReference
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string id, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+        public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args) => ValueTask.FromResult(default(TValue)!);
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 
     private sealed class EditorModule : IJSObjectReference

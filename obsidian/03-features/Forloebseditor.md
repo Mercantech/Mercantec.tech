@@ -47,6 +47,10 @@ Sidelinks og elevrelationer bruger stabile ID'er. Elevfelter bruger MembershipId
 
 ## Indlæsning ved behov
 
+Sidemenuen kan skjules og åbnes med **Sider**. Browseren husker valget på computer; på mobil starter menuen lukket og åbner som et panel. Escape og klik uden for panelet lukker det, og fokus vender tilbage til knappen. Søgning bruger de allerede hentede sidetitler, også i sammenfoldede grene. Escape rydder først en søgning; tryk igen for at lukke menuen.
+
+Den aktive sides overordnede sider åbnes automatisk. Andre grene kan foldes ud efter behov. Undervisere har **Ny side**; en underside oprettes fra sidens **Mere**-menu. Holdoversigt, grupper og graf er samlet under **Holdværktøjer**. Skjul/vis, søgning og foldning genstarter ikke dokumentet eller ændrer dets indhold.
+
 Et direkte sidelink henter først den valgte sides lette kontekst og åbner editoren. Holdvælger, sidetitler og brødkrummer hentes bagefter, uafhængigt af hinanden. Disse opslag læser ingen andre siders dokumenttilstande. Kladden henter heller ikke sin udgivne snapshot. Sideskift afbryder tidligere forespørgsler; sene svar kan ikke erstatte den aktive side.
 
 Store sidelister virtualiseres, så kun synlige rækker bliver oprettet. Den aktive side er altid tilgængelig øverst. Elev-, gruppe- og afstemningsdata hentes samlet første gang en relevant blok, omtale eller AI-funktion bruger dem. Valgfrie opslag kan prøves igen uden at genstarte dokumentet.

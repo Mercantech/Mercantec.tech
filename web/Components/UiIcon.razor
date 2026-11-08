@@ -3,6 +3,11 @@
     [Parameter] public string Name { get; set; } = "book";
     private string Path => Name switch
     {
+        "panel" => "M3 3h18v18H3zM9 3v18m5-12-3 3 3 3",
+        "chevron" => "m9 5 7 7-7 7",
+        "close" => "m6 6 12 12M6 18 18 6",
+        "more" => "M5 11h.01v2H5zm7 0h.01v2H12zm7 0h.01v2H19z",
+        "file" => "M14 2H4v20h16V8l-6-6Zm0 0v6h6M8 13h8m-8 4h5",
         "search" => "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
         "people" => "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M16 3a4 4 0 0 1 0 7.75M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
         "folder" => "M3 7V4h6l2 3h10v13H3V7Zm0 4h18",
