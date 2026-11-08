@@ -1,6 +1,8 @@
 @page "/characters/{Slug}"
 @using Mercantec.Tech.Web.Characters
 @inject AuthService Auth
+@inject NavigationManager Nav
+@inject IJSRuntime Js
 
 @if (_character is not { } character)
 {
@@ -16,6 +18,7 @@ else
     <PageTitle>@character.Name · Karakterer · LUP</PageTitle>
     <div class="characters character-detail character-@character.Slug" @key="character.Slug">
         <nav class="character-breadcrumbs" aria-label="Brødkrumme">
+            <a href="/library?category=characters">Bibliotek</a><span aria-hidden="true">/</span>
             <a href="/characters">Karakterer</a><span aria-hidden="true">/</span><span aria-current="page">@character.Name</span>
         </nav>
         <section class="character-hero" aria-labelledby="character-name">
@@ -121,6 +124,7 @@ else
     [Parameter] public string? Slug { get; set; }
     private CharacterProfile? _character;
     private int _appearanceIndex;
+    private string? _handledLocation, _pendingSection;
     private CharacterAppearance? SelectedAppearance => _character?.Appearances.ElementAtOrDefault(_appearanceIndex);
 
     protected override void OnParametersSet()
@@ -128,5 +132,18 @@ else
         var next = CharacterCatalog.Find(Slug);
         if (_character?.Slug != next?.Slug) _appearanceIndex = 0;
         _character = next;
+        if (_handledLocation != Nav.Uri)
+        {
+            _handledLocation = Nav.Uri;
+            var fragment = new Uri(Nav.Uri).Fragment;
+            _pendingSection = next?.Materials.FirstOrDefault(material => "#" + material.SectionId == fragment)?.SectionId;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_pendingSection is not { } section) return;
+        _pendingSection = null;
+        await Js.InvokeVoidAsync("lupCharacterUi.scrollToSection", section);
     }
 }

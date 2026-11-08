@@ -39,7 +39,22 @@
                     {
                         var hits = VisibleHits.Where(hit => CategoryFor(hit) == category.Id).ToArray();
                         if (hits.Length == 0) { continue; }
-                        <section aria-labelledby="@("library-results-" + category.Id)"><h3 id="@("library-results-" + category.Id)">@category.Name <span>@hits.Length</span></h3><ul>@foreach (var hit in hits) { <li><a href="@hit.Href"><span><strong>@hit.Title</strong><small>@hit.Description</small></span><span class="library-chevron" aria-hidden="true">›</span></a></li> }</ul></section>
+                        <section aria-labelledby="@("library-results-" + category.Id)">
+                            <h3 id="@("library-results-" + category.Id)">@category.Name <span>@hits.Length</span></h3>
+                            <ul>
+                                @foreach (var hit in hits)
+                                {
+                                    var character = hit.Kind == "Karakter" ? CharacterCatalog.All.FirstOrDefault(item => item.Path == hit.Href) : null;
+                                    <li><a class="@(character is not null ? "library-search-character" : null)" href="@hit.Href">
+                                        @if (character?.Appearances.FirstOrDefault() is { } portrait)
+                                        {
+                                            <img src="@portrait.Image" alt="" width="56" height="56" loading="lazy" decoding="async" />
+                                        }
+                                        <span><strong>@hit.Title</strong><small>@hit.Description</small></span><span class="library-chevron" aria-hidden="true">›</span>
+                                    </a></li>
+                                }
+                            </ul>
+                        </section>
                     }
                 </div>
             }
@@ -97,11 +112,11 @@
         }
         else if (_category == "characters")
         {
-            <div class="library-section-heading"><div><h2>Mød karaktererne</h2><p>Undervisere og hjælpere med hver deres fag, personlighed og historie.</p></div><a href="/characters">Alle karakterer</a></div>
-            <div class="library-subject-grid">
+            <div class="library-section-heading"><div><h2>Mød karaktererne</h2><p>Find din underviser eller hjælper. Åbn profilen, eller gå direkte til karakterens billeder, emojis og animationer.</p></div><a href="/characters">Alle karakterer</a></div>
+            <div class="character-grid library-characters">
                 @foreach (var character in CharacterCatalog.All)
                 {
-                    <article class="library-subject"><header><span class="library-subject-icon"><UiIcon Name="people" /></span><div><h3><a href="@character.Path">@character.Name</a></h3><p>@character.Role</p></div></header><p>@character.Summary</p><a class="library-subject-open" href="@character.Path">Mød @character.Name</a></article>
+                    <CharacterCard Character="@character" HeadingLevel="3" @key="character.Slug" />
                 }
             </div>
         }

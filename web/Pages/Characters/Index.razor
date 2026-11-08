@@ -7,27 +7,13 @@
         <p class="characters-eyebrow">LUPs univers</p>
         <h1>Mød karaktererne</h1>
         <p>Fra Game Design og SQL til Sikkerhed og test. Mød karaktererne, der hjælper dig gennem undervisningen, og lær deres forskellige roller at kende.</p>
+        <a class="characters-library-link" href="/library?category=characters">Karakterer i biblioteket <span aria-hidden="true">→</span></a>
     </header>
 
     <div class="character-grid">
         @foreach (var character in CharacterCatalog.All)
         {
-            <a class="character-card character-@character.Slug" href="@character.Path">
-                <div class="character-art">
-                    @if (character.Appearances.FirstOrDefault() is { } portrait)
-                    {
-                        <img src="@portrait.Image" alt="@portrait.Alt" width="320" height="320" />
-                    }
-                    @if (character.ComingSoon) { <span class="character-status">På vej</span> }
-                </div>
-                <div class="character-card-copy">
-                    <p class="character-home">@character.Home</p>
-                    <h2>@character.Name</h2>
-                    <p class="character-role">@character.Role</p>
-                    <p class="character-summary">@character.Summary</p>
-                    <span class="character-read-more">Mød @character.Name <span aria-hidden="true">↗</span></span>
-                </div>
-            </a>
+            <CharacterCard Character="@character" />
         }
     </div>
 

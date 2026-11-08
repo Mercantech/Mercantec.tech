@@ -191,6 +191,19 @@ window.lupGiftUi = {
     }
 };
 
+window.lupCharacterUi = {
+    async scrollToSection(id) {
+        // Wait for route rendering and FocusOnNavigate before moving to the gallery.
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        if (window.location.hash !== "#" + id) return;
+        const heading = document.getElementById(id);
+        if (!heading) return;
+        heading.setAttribute("tabindex", "-1");
+        heading.scrollIntoView({ block: "start", behavior: "instant" });
+        heading.focus({ preventScroll: true });
+    }
+};
+
 /** Kopiér tekst til udklipsholder — bruges af kursus-kodeblokke. */
 window.courseCode = {
     async copy(text) {

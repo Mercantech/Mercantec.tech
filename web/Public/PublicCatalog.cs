@@ -60,11 +60,20 @@ public static class PublicCatalog
             .Concat(Subjects.SelectMany(s => Lessons(s).Select(l => new PublicSearchHit("Emne", l.Name, l.Lead, s.Path + "/" + l.Id))))
             .Concat(Projects.Select(p => new PublicSearchHit("Projekt · DEMO", p.Name, p.Description, p.Path)))
             .Concat(Badges.Select(b => new PublicSearchHit("Badgekrav", b.Name, b.Description, "/badges/" + b.Id)))
-            .Concat(CharacterCatalog.All.Select(c => new PublicSearchHit("Karakter", c.Name, c.Role + " · " + c.Summary, c.Path)));
+            .Concat(CharacterCatalog.All.Select(c => new PublicSearchHit("Karakter", c.Name, c.Role + " · " + c.Summary, c.Path)
+            {
+                SearchTerms = CharacterSearchTerms(c)
+            }));
         var words = (query ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return words.Length == 0 ? hits.Take(12) : hits.Where(h => words.All(w =>
-            (h.Title + " " + h.Description + " " + h.Kind).Contains(w, StringComparison.OrdinalIgnoreCase)));
+            (h.Title + " " + h.Description + " " + h.Kind + " " + h.SearchTerms).Contains(w, StringComparison.OrdinalIgnoreCase)));
     }
+
+    private static string CharacterSearchTerms(CharacterProfile character) => string.Join(" ",
+        character.Tags.Concat(character.Materials.Select(group => group.Label))
+            .Concat(character.Reactions.Concat(character.Scenes).Concat(character.Illustrations)
+                .Select(image => image.Title + " " + image.Alt))
+            .Concat(character.Animations.Select(animation => animation.Title + " " + animation.Topic + " " + animation.Alt)));
 }
 
 public sealed record PublicCourse(string Slug, string Name, string Subject, string Icon, string Cover)
@@ -84,4 +93,7 @@ public sealed record PublicProject(string Id, string Name, string Category, stri
     public bool IsDemo => true;
 }
 public sealed record PublicBadge(string Id, string Name, string Topic, string Description, string Icon, bool Special);
-public sealed record PublicSearchHit(string Kind, string Title, string Description, string Href);
+public sealed record PublicSearchHit(string Kind, string Title, string Description, string Href)
+{
+    public string SearchTerms { get; init; } = "";
+}

@@ -125,8 +125,23 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
     public string? ReactionsDescription { get; init; }
     public IReadOnlyList<CharacterIllustration> Scenes { get; init; } = [];
     public IReadOnlyList<CharacterAnimation> Animations { get; init; } = [];
+    public IEnumerable<CharacterMaterialGroup> Materials
+    {
+        get
+        {
+            if (Reactions.FirstOrDefault() is { } reaction)
+                yield return new("emojis", Reactions.Count, "character-reactions-title", reaction.Image, reaction.Alt);
+            if (Scenes.FirstOrDefault() is { } scene)
+                yield return new("miljøer", Scenes.Count, "character-scenes-title", scene.Image, scene.Alt);
+            if (Illustrations.FirstOrDefault() is { } illustration)
+                yield return new("illustrationer", Illustrations.Count, "character-gallery-title", illustration.Image, illustration.Alt);
+            if (Animations.FirstOrDefault() is { } animation)
+                yield return new("GIF-animationer", Animations.Count, "character-animations-title", animation.Poster, animation.Alt);
+        }
+    }
 }
 
+public sealed record CharacterMaterialGroup(string Label, int Count, string SectionId, string Preview, string Alt);
 public sealed record CharacterAppearance(string Name, string Image, string Alt);
 public sealed record CharacterFeature(string Title, string Description);
 public sealed record CharacterLink(string Label, string Href, bool External, bool RequiresLogin);

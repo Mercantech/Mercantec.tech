@@ -1,0 +1,44 @@
+@using Mercantec.Tech.Web.Characters
+
+<article class="character-card character-@Character.Slug">
+    <a class="character-card-profile" href="@Character.Path">
+        <div class="character-art">
+            @if (Character.Appearances.FirstOrDefault() is { } portrait)
+            {
+                <img src="@portrait.Image" alt="@portrait.Alt" width="320" height="320" loading="lazy" decoding="async" />
+            }
+            @if (Character.ComingSoon) { <span class="character-status">På vej</span> }
+        </div>
+        <div class="character-card-copy">
+            <p class="character-home">@Character.Home</p>
+            @if (HeadingLevel == 3)
+            {
+                <h3>@Character.Name</h3>
+            }
+            else
+            {
+                <h2>@Character.Name</h2>
+            }
+            <p class="character-role">@Character.Role</p>
+            <p class="character-summary">@Character.Summary</p>
+            <span class="character-read-more">Mød @Character.Name <span aria-hidden="true">↗</span></span>
+        </div>
+    </a>
+    @if (Character.Materials.ToArray() is { Length: > 0 } materials)
+    {
+        <nav class="character-card-materials" aria-label="@($"Billeder og animationer med {Character.Name}")">
+            @foreach (var material in materials)
+            {
+                <a href="@($"{Character.Path}#{material.SectionId}")" aria-label="@($"{material.Count} {material.Label} med {Character.Name}")">
+                    <img src="@material.Preview" alt="@material.Alt" width="40" height="40" loading="lazy" decoding="async" />
+                    <span>@material.Count @material.Label</span>
+                </a>
+            }
+        </nav>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public CharacterProfile Character { get; set; } = default!;
+    [Parameter] public int HeadingLevel { get; set; } = 2;
+}

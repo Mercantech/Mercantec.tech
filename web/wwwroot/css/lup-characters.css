@@ -2,7 +2,8 @@
 .lup .characters-intro { max-width:690px; margin-bottom:32px; }
 .lup .characters-eyebrow { color:var(--muted); font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; margin-bottom:12px; }
 .lup .characters h1 { font-size:clamp(32px,4.5vw,48px); line-height:1.1; letter-spacing:-1.6px; }
-.lup .characters-intro>p:last-child { color:var(--muted); font-size:15px; line-height:1.8; margin-top:16px; }
+.lup .characters-intro>p:not(.characters-eyebrow) { color:var(--muted); font-size:15px; line-height:1.8; margin-top:16px; }
+.lup .characters-library-link { display:inline-flex; align-items:center; gap:8px; margin-top:14px; font-size:12px; }
 .lup .character-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
 .lup .character-lupp { --character-accent:#9368d7; }
 .lup .character-vatson { --character-accent:#c4934f; }
@@ -11,6 +12,10 @@
 .lup .character-fox { --character-accent:#b44d42; }
 .lup .character-card { display:flex; flex-direction:column; min-width:0; border:1px solid var(--rule); background:var(--paper); border-radius:16px; overflow:hidden; color:var(--ink); transition:border-color .15s,box-shadow .15s; }
 .lup .character-card:hover { text-decoration:none; border-color:var(--character-accent); box-shadow:0 5px 20px #0000000a; }
+.lup .character-card:focus-within { border-color:var(--character-accent); }
+.lup .character-card-profile { display:flex; flex-direction:column; flex:1; min-width:0; color:inherit; }
+.lup .character-card-profile:hover { text-decoration:none; }
+.lup .character-card-profile:focus-visible { outline-offset:-4px; border-radius:15px; }
 .lup .character-art { position:relative; display:grid; place-items:center; background:color-mix(in srgb,var(--character-accent) 12%,var(--paper)); overflow:hidden; }
 .lup .character-card .character-art { height:245px; margin:10px 10px 0; border-radius:10px; }
 .lup .character-art>img { display:block; max-width:100%; width:100%; height:100%; object-fit:contain; padding:18px; }
@@ -18,14 +23,20 @@
 .lup .character-status { position:absolute; top:14px; left:14px; padding:4px 10px; border:1px solid color-mix(in srgb,var(--character-accent) 35%,var(--rule)); background:var(--paper); border-radius:20px; font-size:10px; color:var(--ink); }
 .lup .character-card-copy { display:flex; flex-direction:column; flex:1; padding:24px; }
 .lup .character-home { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px; }
-.lup .character-card h2 { font-size:27px; letter-spacing:-.7px; line-height:1.25; }
+.lup .character-card :is(h2,h3) { font-size:27px; letter-spacing:-.7px; line-height:1.25; }
 .lup .character-role { font-size:12px; font-weight:600; margin-top:5px; }
 .lup .character-summary { color:var(--muted); font-size:13px; line-height:1.75; margin-top:14px; }
 .lup .character-read-more { color:var(--blue); display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; font-weight:600; margin-top:auto; padding-top:24px; }
 .lup .character-read-more>span { font-size:19px; }
+.lup .character-card-materials { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:14px 20px 18px; border-top:1px solid var(--rule); }
+.lup .character-card-materials>a { display:flex; align-items:center; gap:8px; min-width:0; color:var(--blue); font-size:11px; line-height:1.45; }
+.lup .character-card-materials img { display:block; flex-shrink:0; width:40px; height:40px; object-fit:contain; padding:3px; border-radius:6px; background:color-mix(in srgb,var(--character-accent) 8%,var(--paper)); }
+.lup .character-card-materials span { min-width:0; overflow-wrap:anywhere; }
+.lup .character-card-materials>a:focus-visible { outline-offset:3px; border-radius:4px; }
 .lup .characters-footnote { color:var(--muted); font-size:12px; margin-top:24px; }
 .lup .character-breadcrumbs { display:flex; flex-wrap:wrap; gap:10px; color:var(--muted); font-size:12px; margin-bottom:28px; }
 .lup .character-breadcrumbs>a { color:var(--muted); }
+.lup :is(#character-reactions-title,#character-scenes-title,#character-gallery-title,#character-animations-title) { scroll-margin-top:90px; }
 .lup .character-hero { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); align-items:center; gap:48px; }
 .lup .character-hero>* { min-width:0; }
 .lup .character-main-art { aspect-ratio:1; border:1px solid var(--rule); border-radius:18px; }
@@ -108,7 +119,7 @@
     .lup .character-card .character-art { height:190px; }
     .lup .character-card .character-art>img { height:190px; width:190px; padding:10px; }
     .lup .character-card-copy { padding:18px; }
-    .lup .character-card h2 { font-size:24px; }
+    .lup .character-card :is(h2,h3) { font-size:24px; }
     .lup .character-hero { gap:26px; }
     .lup .character-reactions .character-artwork-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
     .lup .character-reactions-large .character-artwork-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
