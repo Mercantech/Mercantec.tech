@@ -12,21 +12,14 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>@(_holdId == Guid.Empty ? "Teori" : "Holdets indhold")</span></nav><h1>@(_holdId == Guid.Empty ? "Teorinotesbog" : "Holdets indhold")</h1></div></header>
-    @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
-    @if (_notice is not null) { <p class="notion-notice" role="status">@_notice</p> }
-    @if (_resourcesError is not null) { <div class="notion-error" role="alert">@_resourcesError <button class="secondary" @onclick="async () => await EnsureNotionResources()">Hent holddata igen</button></div> }
     @if (!_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty)
     {
-        <section class="panel notion-welcome"><h2>Du er ikke tilknyttet et hold endnu</h2><p>Når du bliver tilføjet til et hold, vises dets udgivne indhold her.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
+        @PageFeedback
+        <section class="panel notion-welcome"><h1>Du er ikke tilknyttet et hold endnu</h1><p>Når du bliver tilføjet til et hold, vises dets udgivne indhold her.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
     }
     else
     {
-        @if (_showGroups && CanManageHold && _holdId != Guid.Empty)
-        {
-            <section class="panel notion-group-panel"><div class="notion-actions"><button class="secondary" @onclick="() => _showGroups = false">Luk gruppeværktøj</button><a href="@WorkspaceHref("groups")" class="secondary">Åbn holdets grupper</a></div><HoldGroups @key="(_holdId, _groupPanelGeneration)" HoldId="_holdId" WorkspaceId="@(_returnContext?.WorkspaceId ?? Guid.Empty)" CourseId="_returnContext?.CourseId" InitialSelection="_groupSelection" OnSaved="RefreshContext" /></section>
-        }
-        <div @ref="_workspaceElement" class="notion-workspace @(_sidebarOpen ? "sidebar-open" : null) @(_workspaceFocused ? "notion-focus-mode" : null)" data-sidebar-ready="@_sidebarReady.ToString().ToLowerInvariant()" data-focus-mode="@_workspaceFocused.ToString().ToLowerInvariant()">
+        <div @ref="_workspaceElement" class="notion-workspace @(_sidebarOpen ? "sidebar-open" : null) @(_workspaceFocused ? "notion-focus-mode" : null)" data-edge-to-edge="true" data-sidebar-ready="@_sidebarReady.ToString().ToLowerInvariant()" data-focus-mode="@_workspaceFocused.ToString().ToLowerInvariant()">
             @if (_sidebarOpen) { <button id="notion-sidebar-backdrop" class="notion-sidebar-backdrop" type="button" tabindex="-1" aria-label="Luk sidemenu" @onclick="() => SetSidebarOpen(false)"></button> }
             <aside id="notion-sidebar" class="notion-sidebar" tabindex="-1" hidden="@(!_sidebarOpen)" role="@(_sidebarMobile && _sidebarOpen ? "dialog" : null)" aria-modal="@(_sidebarMobile && _sidebarOpen ? "true" : null)" aria-label="Notesbogens sider">
                 <div class="notion-sidebar-heading"><div><span class="notion-sidebar-eyebrow">@(_holdId == Guid.Empty ? "Teori" : "Undervisning")</span><h2>Sider</h2></div><button type="button" class="notion-icon-button notion-sidebar-close" aria-label="Skjul sidemenu" title="Skjul sidemenu" @onclick="() => SetSidebarOpen(false)"><UiIcon Name="panel" /></button></div>
@@ -57,12 +50,18 @@ else
             </aside>
             <section class="notion-document" aria-label="@(IsEditing ? "Dokumenteditor" : "Udgivet dokument")">
                 <div class="notion-document-toolbar">
+                    <header class="page-title notion-ide-heading"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>@(_holdId == Guid.Empty ? "Teori" : "Holdets indhold")</span></nav><h1>@(_holdId == Guid.Empty ? "Teorinotesbog" : "Holdets indhold")</h1></div></header>
                     <div class="notion-document-location"><button type="button" class="notion-sidebar-toggle" aria-controls="notion-sidebar" aria-expanded="@(_sidebarOpen && !_workspaceFocused ? "true" : "false")" aria-label="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" title="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" @onclick="ToggleSidebar"><UiIcon Name="panel" /><span>Sider</span></button><button type="button" class="notion-focus-toggle" disabled="@(!_sidebarReady || _sidebarModule is null)" aria-pressed="@_workspaceFocused.ToString().ToLowerInvariant()" title="@(_workspaceFocused ? "Gendan sidekolonnerne" : "Skjul sidekolonnerne og fokusér på dokumentet")" @onclick="ToggleWorkspaceFocus"><UiIcon Name="screen" /><span>@(_workspaceFocused ? "Afslut fokus" : "Fokus")</span></button>@if (_current is not null) { @if (IsEditing) { <span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>@StatusLabel</span> } else { <span class="notion-save-status saved">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM"))</span> } }</div>
                     @if (_current is not null)
                     {
                         <div class="notion-actions"><button type="button" class="secondary" disabled="@(!_mounted)" @onclick="PresentPage"><UiIcon Name="screen" />Præsenter</button><details class="notion-document-more"><summary aria-label="Flere sidehandlinger"><UiIcon Name="more" /><span>Mere</span></summary><div class="notion-document-menu"><button type="button" @onclick="CopyLink"><UiIcon Name="external" />Kopiér link</button><a href="@GraphHref(_current.CollectionId ?? CollectionRoot(_current.PageId))"><UiIcon Name="chart" />Graf for kollektionen</a>@if (IsEditing) { <button type="button" disabled="@_busy" @onclick="() => BeginCreate(true)"><UiIcon Name="plus" />Ny underside</button><button type="button" disabled="@_busy" @onclick="RefreshContext"><UiIcon Name="loop" />@(_holdId == Guid.Empty ? "Opdatér sideoversigt" : "Opdatér holddata")</button> } else { <button type="button" disabled="@_busy" @onclick="Retry"><UiIcon Name="loop" />Opdatér siden</button>@if (CanManageHold) { <a href="@PageHref(_current.PageId, false)"><UiIcon Name="code" />Til kladden</a> } }</div></details></div>
                     }
                 </div>
+                @PageFeedback
+                @if (_showGroups && CanManageHold && _holdId != Guid.Empty)
+                {
+                    <section class="panel notion-group-panel"><div class="notion-actions"><button class="secondary" @onclick="() => _showGroups = false">Luk gruppeværktøj</button><a href="@WorkspaceHref("groups")" class="secondary">Åbn holdets grupper</a></div><HoldGroups @key="(_holdId, _groupPanelGeneration)" HoldId="_holdId" WorkspaceId="@(_returnContext?.WorkspaceId ?? Guid.Empty)" CourseId="_returnContext?.CourseId" InitialSelection="_groupSelection" OnSaved="RefreshContext" /></section>
+                }
                 @if (_loading) { <p class="notion-document-loading" role="status">Henter siden…</p> }
                 else if (_current is null)
                 {
@@ -86,6 +85,12 @@ else
 }
 
 @code {
+    private RenderFragment PageFeedback => @<text>
+        @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
+        @if (_notice is not null) { <p class="notion-notice" role="status">@_notice</p> }
+        @if (_resourcesError is not null) { <div class="notion-error" role="alert">@_resourcesError <button class="secondary" @onclick="async () => await EnsureNotionResources()">Hent holddata igen</button></div> }
+    </text>;
+
     private RenderFragment PageRowContent(PageRow item) => @<div @key="item.Page.Id" class="notion-page-row" style="--page-depth:@item.Depth">
         @if (_pagesWithChildren.Contains(item.Page.Id) && _pageSearch.Trim().Length == 0) { <button type="button" class="notion-branch-toggle @(_expandedPages.Contains(item.Page.Id) ? "is-expanded" : null)" aria-expanded="@(_expandedPages.Contains(item.Page.Id) ? "true" : "false")" aria-label="@($"Fold {item.Page.Title} {(_expandedPages.Contains(item.Page.Id) ? "sammen" : "ud")}")" @onclick="() => ToggleBranch(item.Page.Id)"><UiIcon Name="chevron" /></button> } else { <span class="notion-branch-spacer" aria-hidden="true"></span> }
         <button type="button" class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" title="@item.Page.Title" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><UiIcon Name="@(_pagesWithChildren.Contains(item.Page.Id) ? "folder" : "file")" /><span class="notion-page-label"><EmojiText Text="@item.Page.Title" />@if (_pageSearch.Trim().Length > 0 && ParentTitle(item.Page) is string parent) { <small class="notion-page-parent">@parent</small> }</span>@if (Authoring && (item.Page.PublishedAtUtc is null || item.Page.HasUnpublishedChanges)) { <span class="notion-draft-dot" title="@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")"><span class="notion-visually-hidden">@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")</span></span> }</button>

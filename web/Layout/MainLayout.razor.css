@@ -1,4 +1,11 @@
 main { flex:1; }
+.lup.notion-ide-shell{height:100dvh;min-height:0}
+.lup.notion-ide-shell .app{height:100%;min-height:0;border-radius:0;overflow:hidden}
+.lup.notion-ide-shell .body{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;width:100%;max-width:none;margin:0;padding:0;overflow:auto}
+.lup.notion-ide-shell .lup-header{position:sticky;top:0;z-index:40;flex:none}
+.lup.notion-ide-shell .lup-header:has(details[open]){z-index:100}
+.lup.notion-ide-shell .footer{display:none}
+@media print{.lup.notion-ide-shell,.lup.notion-ide-shell .app{height:auto;overflow:visible}.lup.notion-ide-shell .body{display:block;overflow:visible}.lup.notion-ide-shell .lup-header{position:static}}
 .lup-header.public-header { background:#172941; border-bottom:1px solid #30425c; padding-left:max(27px,calc((100% - 1320px) / 2)); padding-right:max(27px,calc((100% - 1320px) / 2)); }
 .lup-header.public-header .brand { color:#f2f6ff; font-size:29px; }
 .lup-header.public-header .mainnav { background:transparent; border:0; }

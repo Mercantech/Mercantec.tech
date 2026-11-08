@@ -68,7 +68,7 @@ public partial class Index
     private bool _sidebarOpen = true, _sidebarMobile, _sidebarReady, _sidebarStarting, _sidebarNeedsSync, _workspaceFocused;
     private string? _account, _loadedRoute, _error, _notice;
     private string _title = "", _newTitle = "", _status = "connecting", _statusDetail = "";
-    private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups;
+    private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups, _scrollCenterToTop;
     private bool _savingTitle;
     private Task<bool>? _titleSaveTask;
     private bool CanUse => Auth.IsAuthenticated;
@@ -120,6 +120,12 @@ public partial class Index
             try { await _sidebarModule.InvokeVoidAsync("setOpen", _sidebarMountedElement, _sidebarOpen); }
             catch (JSException) { /* The visible toggle still works without browser enhancements. */ }
         }
+        if (_scrollCenterToTop && _sidebarModule is not null && !_disposed)
+        {
+            _scrollCenterToTop = false;
+            try { await _sidebarModule.InvokeVoidAsync("scrollCenterTop", _sidebarMountedElement); }
+            catch (JSException) { /* The center remains scrollable without the enhanced shortcut. */ }
+        }
     }
     private async Task MountEditor()
     {
@@ -161,7 +167,7 @@ public partial class Index
         var element = _workspaceElement;
         try
         {
-            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=ide-columns-20261108").AsTask();
+            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=ide-edge-20261108").AsTask();
             var module = await _sidebarModuleTask;
             if (_disposed) return;
             if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
@@ -270,7 +276,7 @@ public partial class Index
         await Unmount();
         if (!IsCurrent(generation, ct)) return;
         _loadedRoute = RouteKey; _loading = true; _error = null; _notice = null; _current = null; _returnContext = null;
-        _groups = []; _resourcesLoaded = false; _resourcesTask = null; _navigationLoading = false; _navigationError = null; _resourcesError = null; _showGroups = false;
+        _groups = []; _resourcesLoaded = false; _resourcesTask = null; _navigationLoading = false; _navigationError = null; _resourcesError = null; _showGroups = false; _scrollCenterToTop = false;
         try
         {
             if (PageId is Guid id)
@@ -572,8 +578,7 @@ public partial class Index
         if (!await EnsureNotionResources() || generation != _generation) return;
         var ids = JsonSerializer.Deserialize<Guid[]>(membershipIdsJson) ?? [];
         _groupSelection = ids.Where(id => _current!.Members.Any(m => m.Id == id)).Distinct().ToArray();
-        _groupPanelGeneration++; _showGroups = true; StateHasChanged();
-        try { await Js.InvokeVoidAsync("window.scrollTo", 0, 0); } catch (JSException) { }
+        _groupPanelGeneration++; _showGroups = true; _scrollCenterToTop = true; StateHasChanged();
     });
     private void RebuildPageRows()
     {

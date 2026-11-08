@@ -14,6 +14,7 @@ import { NativeAiReview, nativeAiReviewExtension } from '../src/ai-native-review
 import { NativeAiPanel } from '../src/ai-native-panel';
 import { canonicalAiJson, findAiBlockNodes } from '../src/ai-review-core.mjs';
 import type { AiBlock, AiHunk, AiNativeTarget, AiRun } from '../src/ai-native-types';
+import layoutCss from '../../web/Layout/MainLayout.razor.css?raw';
 import workspaceCss from '../../web/Pages/Notion/Index.razor.css?raw';
 import * as sidebar from '../../web/wwwroot/js/notion-sidebar.js';
 
@@ -84,7 +85,7 @@ function App() {
     } };
     const preference = sidebar.mount(workspace, callbacks);
     sidebar.setOpen(workspace, !preference.mobile && preference.desktopOpen);
-    (window as any).nativeIdeQa = { setFocus: (value: boolean) => sidebar.setFocus(workspace, value), revealAi: () => workspace.dispatchEvent(new CustomEvent('notion-layout-reveal', { detail: { panel: 'ai' } })) };
+    (window as any).nativeIdeQa = { setFocus: (value: boolean) => sidebar.setFocus(workspace, value), revealAi: () => workspace.dispatchEvent(new CustomEvent('notion-layout-reveal', { detail: { panel: 'ai' } })), scrollCenterTop: () => sidebar.scrollCenterTop(workspace) };
     setSidebarMobile(preference.mobile); setSidebarOpen(!preference.mobile && preference.desktopOpen);
     const focusChanged = (event: Event) => setFocused(Boolean((event as CustomEvent).detail?.focused));
     workspace.addEventListener('notion-layout-focus', focusChanged);
@@ -180,11 +181,13 @@ function App() {
     void reset().then(() => propose()).then(() => setReady(true));
   }, [editor, review, ydoc]);
   return <>
+    <style>{layoutCss}</style>
     <style>{workspaceCss}</style>
-    <style>{`.qa-app-header{position:fixed;inset:0 0 auto;height:64px;box-sizing:border-box;display:flex;align-items:center;gap:24px;padding:0 24px;background:var(--paper,#fff);color:var(--ink,#17243b);border-bottom:1px solid var(--rule,#dfe7f2);z-index:20}.qa-app-header strong{font-size:17px}.qa-app-header span{font-size:12px;color:var(--muted,#63728b)}.qa-shell{padding:84px 20px 20px;min-width:0;box-sizing:border-box}.qa-app-header,.qa-shell{font-family:'DM Sans',Arial,sans-serif}.qa-shell button{font-family:inherit;cursor:pointer}.qa-shell .notion-sidebar-create,.qa-shell .notion-sidebar-toggle,.qa-shell .notion-focus-toggle{min-height:40px}.qa-shell .notion-sidebar-create{width:100%}.qa-shell .notion-page-list{list-style:none;padding:0;margin:0;display:grid;gap:8px;align-content:start}.qa-shell .notion-page-list button{border:0;background:none;color:var(--ink,#17243b);text-align:left;padding:8px;font-size:13px}.qa-shell .notion-page-list [aria-current]{color:var(--blue,#2452e8);font-weight:600}.qa-shell .notion-document-toolbar{background:var(--paper,#fff)}.qa-shell .notion-blocknote-host{border:0;border-radius:0}.qa-shell .notion-document-location{display:flex;gap:8px;align-items:center}.qa-shell .notion-focus-toggle{border:1px solid var(--rule,#dfe7f2);background:var(--paper,#fff);color:var(--ink,#17243b);padding:6px 12px;border-radius:7px}.qa-shell .notion-focus-toggle[aria-pressed=true]{background:var(--tint,#eaf0ff);color:var(--blue,#2452e8)}@media(max-width:760px){.qa-app-header{height:56px;padding-inline:16px}.qa-shell{padding:68px 8px 8px}}`}</style>
-    <header className="qa-app-header lup-header"><strong>Dokumenter</strong><span>Fælles teori · Databaser</span></header>
-    <main className="qa-shell">
-      <div ref={setWorkspace} className={'notion-workspace' + (sidebarOpen ? ' sidebar-open' : '') + (focused ? ' notion-focus-mode' : '')} data-sidebar-ready="true" data-focus-mode={String(focused)}>
+    <style>{`.qa-app-header strong{font-size:17px}.qa-app-header span{font-size:12px;color:var(--muted,#63728b)}.qa-shell button{font-family:inherit;cursor:pointer}.qa-shell .notion-sidebar-create,.qa-shell .notion-sidebar-toggle,.qa-shell .notion-focus-toggle{min-height:40px}.qa-shell .notion-sidebar-create{width:100%}.qa-shell .notion-page-list{list-style:none;padding:0;margin:0;display:grid;gap:8px;align-content:start}.qa-shell .notion-page-list button{border:0;background:none;color:var(--ink,#17243b);text-align:left;padding:8px;font-size:13px}.qa-shell .notion-page-list [aria-current]{color:var(--blue,#2452e8);font-weight:600}.qa-shell .notion-document-toolbar{background:var(--paper,#fff)}.qa-shell .notion-blocknote-host{border:0;border-radius:0}.qa-shell .notion-document-location{display:flex;gap:8px;align-items:center}.qa-shell .notion-focus-toggle{border:1px solid var(--rule,#dfe7f2);background:var(--paper,#fff);color:var(--ink,#17243b);padding:6px 12px;border-radius:7px}.qa-shell .notion-focus-toggle[aria-pressed=true]{background:var(--tint,#eaf0ff);color:var(--blue,#2452e8)}`}</style>
+    <div className="lup notion-ide-shell"><div className="app">
+    <header className="qa-app-header lup-header member-header"><strong>Dokumenter</strong><span>Fælles teori · Databaser</span></header>
+    <main className="body qa-shell" id="main-content">
+      <div ref={setWorkspace} className={'notion-workspace' + (sidebarOpen ? ' sidebar-open' : '') + (focused ? ' notion-focus-mode' : '')} data-sidebar-ready="true" data-focus-mode={String(focused)} data-edge-to-edge="true">
         {sidebarOpen && sidebarMobile && <button id="notion-sidebar-backdrop" className="notion-sidebar-backdrop" type="button" tabIndex={-1} aria-label="Luk sidemenu" onClick={() => setSidebarOpen(false)} />}
         <aside id="notion-sidebar" className="notion-sidebar" hidden={!sidebarOpen} role={sidebarOpen && sidebarMobile ? 'dialog' : undefined} aria-modal={sidebarOpen && sidebarMobile ? true : undefined} aria-label="Sideoversigt" tabIndex={-1}>
           <div className="notion-sidebar-heading"><div><span className="notion-sidebar-eyebrow">Teori</span><h2>Sider</h2></div><button type="button" className="notion-icon-button notion-sidebar-close" aria-label="Skjul sidemenu" onClick={() => setSidebarOpen(false)}>×</button></div>
@@ -196,12 +199,14 @@ function App() {
           <div className="notion-sidebar-resize" role="separator" aria-label="Sideoversigtens bredde" aria-orientation="vertical" tabIndex={0} />
         </aside>
         <article className="notion-document" aria-label="Dokumenteditor">
-          <div className="notion-document-toolbar"><div className="notion-document-location"><button type="button" className="notion-sidebar-toggle" aria-expanded={sidebarOpen && !focused} aria-controls="notion-sidebar" aria-label={sidebarOpen && !focused ? 'Skjul sidemenu' : 'Vis sidemenu'} onClick={() => { if (focused && workspace) sidebar.setFocus(workspace, false); setSidebarOpen(focused || !sidebarOpen); }}>Sider</button><button type="button" className="notion-focus-toggle" aria-pressed={focused} aria-label={focused ? 'Afslut fokus' : 'Fokus på dokumentet'} onClick={() => workspace && sidebar.toggleFocus(workspace)}>{focused ? 'Afslut fokus' : 'Fokus'}</button><span>Forbundet</span></div></div>
+          <div className="notion-document-toolbar"><header className="page-title notion-ide-heading"><div><nav className="breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="/notion">Undervisning</a><span>›</span><span>Teori</span></nav><h1>Teorinotesbog</h1></div></header><div className="notion-document-location"><button type="button" className="notion-sidebar-toggle" aria-expanded={sidebarOpen && !focused} aria-controls="notion-sidebar" aria-label={sidebarOpen && !focused ? 'Skjul sidemenu' : 'Vis sidemenu'} onClick={() => { if (focused && workspace) sidebar.setFocus(workspace, false); setSidebarOpen(focused || !sidebarOpen); }}>Sider</button><button type="button" className="notion-focus-toggle" aria-pressed={focused} aria-label={focused ? 'Afslut fokus' : 'Fokus på dokumentet'} onClick={() => workspace && sidebar.toggleFocus(workspace)}>{focused ? 'Afslut fokus' : 'Fokus'}</button><span>Forbundet</span></div></div>
           <div className="notion-blocknote-host" data-notion-theme={theme}><div className="native-ai-workspace" data-ai-open={open && !focused}><div className="native-ai-document"><div className="native-ai-taskbar"><button ref={launcher} type="button" onClick={() => { if (open && !focused) closePanel(); else { setTarget(review.capture()); revealPanel(); } }} aria-expanded={open && !focused} aria-controls="qa-ai-drawer">AI</button></div><BlockNoteView editor={editor} editable theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} emojiPicker={false} /></div>{ready && workspace && <NativeAiPanel key={revision} panelId="qa-ai-drawer" layoutRoot={workspace} review={review} pageId={pageId} pageTitle="Normalisering af databaser" enabled open={open && !focused} target={target} onClose={closePanel} onReveal={revealPanel} onCapture={() => setTarget(review.capture())} getToken={async () => 'fixture-only'} />}</div></div>
         </article>
         <div className="notion-ai-slot" />
       </div>
     </main>
+    <footer className="footer">LUP · Fælles undervisningsplatform</footer>
+    </div></div>
   </>;
 }
 document.body.style.cssText = 'margin:0;padding:0;background:var(--bg,#f4f6fa);font-family:Arial,sans-serif';

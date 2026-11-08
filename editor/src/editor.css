@@ -12,6 +12,8 @@
 .native-ai-panel{position:fixed;z-index:70;inset:var(--native-ai-top,64px) 0 0 auto;display:flex;flex-direction:column;box-sizing:border-box;width:min(var(--native-ai-width,400px),max(320px,calc(100vw - 300px)));max-width:100vw;min-width:0;height:var(--native-ai-height,calc(100dvh - var(--native-ai-top,64px)));margin:0;border:0;border-left:1px solid var(--notion-rule);border-radius:0;background:var(--notion-paper);color:var(--notion-ink);font:13px/1.5 'DM Sans',sans-serif;box-shadow:-12px 0 40px color-mix(in srgb,var(--notion-ink) 10%,transparent);animation:native-ai-drawer-in 160ms ease-out}
 .native-ai-panel[data-resizing=true]{animation:none;user-select:none}
 .native-ai-panel[data-layout=columns]{position:relative;z-index:auto;inset:auto;width:100%;max-width:100%;height:100%;min-height:0;border-left:1px solid var(--notion-rule);border-radius:0 12px 12px 0;box-shadow:none;animation:none}
+.notion-workspace[data-edge-to-edge=true] .native-ai-panel[data-layout=columns]{border-radius:0}
+.notion-workspace[data-edge-to-edge=true] .bn-editor{padding:20px 32px 56px}
 .native-ai-panel[data-layout=columns] .native-ai-panel-body{padding-block:0}
 .native-ai-panel[data-layout=columns] .native-ai-panel-body::before,.native-ai-panel[data-layout=columns] .native-ai-panel-body::after{content:'';display:block;height:16px}
 .native-ai-panel[data-layout=columns] .native-ai-resize{left:-6px;width:12px}

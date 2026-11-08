@@ -26,7 +26,8 @@ function updateLayout(state) {
     handle?.setAttribute('aria-valuetext', Math.round(state.width) + ' pixels');
     const viewport = window.visualViewport;
     const height = viewport?.height || window.innerHeight || 800;
-    const available = Math.max(160, height - Math.max(0, bounds.top - (viewport?.offsetTop || 0)) - 16);
+    const bottomGap = root.dataset?.edgeToEdge === 'true' ? 0 : 16;
+    const available = Math.max(160, height - Math.max(0, bounds.top - (viewport?.offsetTop || 0)) - bottomGap);
     setStyle(root, '--notion-workspace-height', Math.round(available) + 'px');
     const center = root.querySelector('.notion-document')?.getBoundingClientRect?.();
     if (root.dataset && center) {
@@ -263,6 +264,12 @@ export function setFocus(root, focused) {
 }
 
 export function toggleFocus(root) { return setFocus(root, !workspaces.get(root)?.focused); }
+
+export function scrollCenterTop(root) {
+    const center = root?.querySelector?.('.notion-document');
+    if (typeof center?.scrollTo === 'function') center.scrollTo({ top: 0, behavior: 'auto' });
+    else if (center) center.scrollTop = 0;
+}
 
 export function setOpen(root, open) {
     const state = workspaces.get(root);

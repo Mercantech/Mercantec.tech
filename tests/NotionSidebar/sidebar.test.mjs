@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-async function fixture({ mobile = false, stored = null, storedWidth = null, rootWidth = 1280, clientWidth = rootWidth, aiWidth = 0, storageBlocked = false, inert = false, overflow = '' } = {}) {
+async function fixture({ mobile = false, stored = null, storedWidth = null, rootWidth = 1280, clientWidth = rootWidth, aiWidth = 0, edgeToEdge = false, storageBlocked = false, inert = false, overflow = '' } = {}) {
     const oldWindow = globalThis.window, oldDocument = globalThis.document;
     const calls = [], storage = new Map(stored === null ? [] : [['lup.notion.sidebar.collapsed', stored]]);
     const listeners = new Map(), mediaListeners = new Set();
@@ -65,7 +65,7 @@ async function fixture({ mobile = false, stored = null, storedWidth = null, root
     more.open = false; menu.menu = true; action.action = true;
     more.parent = background; summary.parent = more; menu.parent = more; action.parent = menu;
     more.querySelector = selector => selector === 'summary' ? summary : null;
-    const root = { clientWidth, dataset: { focusMode: 'false' }, style: { getPropertyValue: key => rootStyles.get(key) || '', setProperty: (key, value) => rootStyles.set(key, value) },
+    const root = { clientWidth, dataset: { focusMode: 'false', edgeToEdge: String(edgeToEdge) }, style: { getPropertyValue: key => rootStyles.get(key) || '', setProperty: (key, value) => rootStyles.set(key, value) },
         classList: { toggle: (key, active) => active ? classes.add(key) : classes.delete(key) },
         addEventListener: (name, callback) => rootListeners.set(name, callback), removeEventListener: (name, callback) => { if (rootListeners.get(name) === callback) rootListeners.delete(name); },
         dispatchEvent: event => { events.push(event); rootListeners.get(event.type)?.(event); },
@@ -332,5 +332,34 @@ test('focus releases mobile modal effects and restores them without touching des
         assert.equal(f.background.inert, true);
         assert.equal(f.styles.get('overflow')[0], 'hidden');
         assert.equal(f.storage.size, 0);
+    } finally { f.cleanup(); }
+});
+
+test('edge-to-edge workspaces use the full remaining viewport and follow the visible keyboard area', async () => {
+    const f = await fixture({ edgeToEdge: true });
+    try {
+        f.mount();
+        assert.equal(f.rootStyles.get('--notion-workspace-height'), '740px');
+        globalThis.window.visualViewport = { height: 500, offsetTop: 20, addEventListener() {}, removeEventListener() {} };
+        f.module.setOpen(f.root, true);
+        assert.equal(f.rootStyles.get('--notion-workspace-height'), '360px');
+        assert.equal(f.root.dataset.centerNarrow, 'false');
+    } finally { f.cleanup(); }
+});
+
+test('opening center tools scrolls only the document and keeps column preferences and focus intact', async () => {
+    const f = await fixture({ edgeToEdge: true });
+    try {
+        f.mount(); f.module.setOpen(f.root, true);
+        const preferences = [...f.storage], widths = [...f.rootStyles];
+        f.search.focus();
+        f.background.scrollTop = 480;
+        f.background.scrollTo = options => { f.background.scrollTop = options.top; };
+        globalThis.window.scrollTo = () => { throw new Error('The page must not scroll when center tools open.'); };
+        f.module.scrollCenterTop(f.root);
+        assert.equal(f.background.scrollTop, 0);
+        assert.equal(f.document.activeElement, f.search);
+        assert.deepEqual([...f.storage], preferences);
+        assert.deepEqual([...f.rootStyles], widths);
     } finally { f.cleanup(); }
 });

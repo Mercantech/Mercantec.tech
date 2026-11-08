@@ -26,6 +26,9 @@ public sealed class NotionSidebarTests
         using var context = await CreateContext(api, javascript);
         var page = Render(context, api, javascript);
         var requests = api.Requests.Count;
+        Assert.Equal("true", page.Find(".notion-workspace").GetAttribute("data-edge-to-edge"));
+        Assert.Single(page.FindAll(".notion-document-toolbar .notion-ide-heading h1"));
+        Assert.Empty(page.FindAll(".notion-workspace > .page-title"));
 
         page.Find(".notion-sidebar-toggle").Click();
         Assert.Equal("false", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
@@ -341,6 +344,38 @@ public sealed class NotionSidebarTests
         return page;
     }
 
+    [Fact]
+    public async Task Group_tools_and_feedback_stay_in_the_center_without_remounting_the_document()
+    {
+        using var api = new SidebarApi();
+        var javascript = new SidebarJavascript();
+        using var context = await CreateContext(api, javascript);
+        context.ComponentFactories.AddStub<Mercantec.Tech.Web.Components.HoldGroups>();
+        var page = Render(context, api, javascript);
+        var initialRequests = api.Requests.Count;
+        var copy = () => page.FindAll(".notion-document-menu button").Single(button => button.TextContent == "Kopiér link").Click();
+
+        copy();
+        Assert.Contains("Linket er kopieret", page.Find(".notion-document .notion-notice").TextContent);
+        javascript.RejectClipboard = true;
+        copy();
+        Assert.Contains("Linket kunne ikke kopieres", page.Find(".notion-document .notion-error").TextContent);
+        Assert.Equal(initialRequests, api.Requests.Count);
+
+        await page.InvokeAsync(() => page.Instance.OnNotionCreateGroup("[]"));
+        page.WaitForAssertion(() => Assert.Single(page.FindAll(".notion-document > .notion-group-panel")));
+        page.WaitForAssertion(() => Assert.Contains("scrollCenterTop", javascript.Sidebar.Calls));
+        Assert.Empty(page.FindAll(".notion-workspace > .notion-group-panel, .notion-workspace > .notion-error, .notion-workspace > .notion-notice"));
+        Assert.DoesNotContain("window.scrollTo", javascript.Calls);
+        Assert.Equal(1, javascript.Editor.Mounts);
+        Assert.Equal(0, javascript.Editor.Destroys);
+        Assert.Equal("Relationer og nøgler", page.Find("#notion-title").GetAttribute("value"));
+
+        page.FindAll(".notion-group-panel button").Single(button => button.TextContent == "Luk gruppeværktøj").Click();
+        Assert.Empty(page.FindAll(".notion-group-panel"));
+        Assert.Equal(1, javascript.Editor.Mounts);
+    }
+
     private static AngleSharp.Dom.IElement[] PageLinks(IRenderedComponent<NotionPage> page)
         => page.FindAll(".notion-page-list .notion-page").ToArray();
 
@@ -359,6 +394,7 @@ public sealed class NotionSidebarTests
         public EditorModule Editor { get; } = new();
         public SidebarModule Sidebar { get; } = new();
         public ConcurrentQueue<string> Calls { get; } = new();
+        public bool RejectClipboard { get; set; }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string id, object?[]? args)
             => InvokeAsync<TValue>(id, CancellationToken.None, args);
@@ -366,6 +402,7 @@ public sealed class NotionSidebarTests
         public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args)
         {
             Calls.Enqueue(id);
+            if (id == "navigator.clipboard.writeText" && RejectClipboard) throw new JSException("Clipboard access was denied.");
             if (id == "import")
                 return ValueTask.FromResult((TValue)(object)(args?.FirstOrDefault()?.ToString()?.Contains("notion-editor", StringComparison.Ordinal) == true
                     ? (IJSObjectReference)Editor : Sidebar));
