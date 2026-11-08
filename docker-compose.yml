@@ -123,6 +123,14 @@ services:
       # OpenAI — nøgle kun via Dokploy/env, aldrig i git
       OpenAI__ApiKey: ${OPENAI_API_KEY:-}
       OpenAI__Model: ${OPENAI_MODEL:-gpt-6-luna}
+      OpenAI__EditorModel: ${OPENAI_EDITOR_MODEL:-gpt-6.1-sol}
+      OpenAI__EditorReasoningEffort: ${OPENAI_EDITOR_REASONING_EFFORT:-high}
+      OpenAI__EditorResponseTokens: ${OPENAI_EDITOR_RESPONSE_TOKENS:-32768}
+      OpenAI__EditorRunTokens: ${OPENAI_EDITOR_RUN_TOKENS:-131072}
+      OpenAI__EditorRunMinutes: ${OPENAI_EDITOR_RUN_MINUTES:-10}
+      OpenAI__EditorMaxBatches: ${OPENAI_EDITOR_MAX_BATCHES:-128}
+      OpenAI__EditorWorkerConcurrency: ${OPENAI_EDITOR_WORKER_CONCURRENCY:-2}
+      OpenAI__EditorRetentionDays: ${OPENAI_EDITOR_RETENTION_DAYS:-30}
     depends_on:
       notion-init:
         condition: service_healthy

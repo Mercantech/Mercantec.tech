@@ -57,7 +57,7 @@ test('rewrite replaces the block; generate keeps existing text and fills an empt
   assert.equal(blockTextPreview('en '.repeat(80), 20).endsWith('…'), true);
 });
 
-test('drag handle menu opens the existing AI helper on the block', () => {
+test('drag handle, slash and selection open native review without loading hold catalogs', () => {
   const turnInto = readFileSync(join(root, 'src/turn-into.tsx'), 'utf8');
   const helper = readFileSync(join(root, 'src/ai-helper.tsx'), 'utf8');
   const editor = readFileSync(join(root, 'src/editor.tsx'), 'utf8');
@@ -73,6 +73,12 @@ test('drag handle menu opens the existing AI helper on the block', () => {
   assert.match(helper, /selectionTextForAi/);
   assert.match(helper, /anchoredApplyMode/);
   assert.match(editor, /OpenAiOnBlockProvider/);
-  assert.match(editor, /captureAiTarget/);
-  assert.match(editor, /anchorText=\{aiAnchor\?\.text \?\? null\}/);
+  assert.match(editor, /nativeAiReviewExtension\(aiReview\)/);
+  assert.match(editor, /aiReview\.capture\(blockId\)/);
+  assert.match(editor, /<NativeAiPanel/);
+  assert.match(editor, /native-ai-selection-button/);
+  const opening = editor.slice(editor.indexOf('const openAi='), editor.indexOf('const placeEmoji='));
+  assert.doesNotMatch(opening, /ensureEditorResources/);
+  assert.doesNotMatch(editor, /<AiHelperPanel/);
+  assert.match(editor, /target=\{aiAnchor\}/);
 });

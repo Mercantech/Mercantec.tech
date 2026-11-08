@@ -481,6 +481,334 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("drawing_snapshots", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiFileText", b =>
+                {
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("FileId");
+
+                    b.HasIndex("State", "UpdatedAtUtc");
+
+                    b.ToTable("editor_ai_file_texts", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AdjustHunkIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("AttemptBatchCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("AttemptStartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("AttemptTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BatchCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ClientRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContextCursorBlockId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CoverageJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExcludedSourceIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Instruction")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("LeaseExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LeaseId")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OwnerRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("OwnerSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Progress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("SourcesJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("TargetJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("PageId");
+
+                    b.HasIndex("OwnerSub", "ClientRequestId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerSub", "PageId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" IN ('queued','gathering','generating')");
+
+                    b.HasIndex("Status", "CreatedAtUtc");
+
+                    b.HasIndex("OwnerSub", "PageId", "CreatedAtUtc");
+
+                    b.ToTable("editor_ai_runs", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRunEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DataJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RunId", "Id");
+
+                    b.ToTable("editor_ai_run_events", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRunHunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AfterJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BaseFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("BeforeJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Signature")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SourceIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TargetBlockIdsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TargetJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RunId", "Order");
+
+                    b.ToTable("editor_ai_run_hunks", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiTextChunk", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CollectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Href")
+                        .IsRequired()
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<int>("Ordinal")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceId")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldId");
+
+                    b.HasIndex("EntityId", "Fingerprint");
+
+                    b.HasIndex("Kind", "SourceId", "Ordinal")
+                        .IsUnique();
+
+                    b.ToTable("editor_ai_text_chunks", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EntityReferenceLink", b =>
                 {
                     b.Property<string>("SourceKind")
@@ -2069,6 +2397,46 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiFileText", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.FileAsset", "File")
+                        .WithOne()
+                        .HasForeignKey("Mercantec.Tech.Api.Data.Entities.EditorAiFileText", "FileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("File");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRun", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.NotionPage", null)
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRunEvent", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.EditorAiRun", null)
+                        .WithMany()
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRunHunk", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.EditorAiRun", "Run")
+                        .WithMany("Hunks")
+                        .HasForeignKey("RunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Run");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.FileAsset", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
@@ -2522,6 +2890,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Avatars");
 
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRun", b =>
+                {
+                    b.Navigation("Hunks");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>

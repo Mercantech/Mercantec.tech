@@ -73,6 +73,40 @@ export function notebookStateProjection(state, domain = 'notebook') {
   } finally { doc.destroy(); }
 }
 
+/** Internal AI projection: only live Notion blocks, never CRDT tombstones or private side maps. */
+export function projectNotionContext({ stateBase64 } = {}) {
+  const doc = decode(stateBase64);
+  try {
+    const projection = projectNotebookDocument(doc, 'notion');
+    const blocks = [];
+    let visited = 0, heading = null;
+    const ownText = (node, depth = 0) => {
+      if (++visited > 250000 || depth > 256) throw new Error('Notion document is too complex');
+      if (node instanceof Y.XmlText) return node.toDelta().map(part => typeof part.insert === 'string' ? part.insert : '').join('');
+      if (!(node instanceof Y.XmlElement) || node.nodeName === 'blockGroup' || node.nodeName === 'blockContainer') return '';
+      if (node.nodeName === 'mermaidDiagram') return String(node.getAttribute('source') || '');
+      const text = node.toArray().map(child => ownText(child, depth + 1)).join(node.nodeName === 'tableRow' ? '\t' : '');
+      return node.nodeName === 'tableRow' ? text + '\n' : text;
+    };
+    const visit = (node, depth = 0) => {
+      if (++visited > 250000 || depth > 256) throw new Error('Notion document is too complex');
+      if (!(node instanceof Y.XmlElement || node instanceof Y.XmlFragment)) return;
+      if (node instanceof Y.XmlElement && node.nodeName === 'blockContainer') {
+        const content = node.toArray().find(child => child instanceof Y.XmlElement && child.nodeName !== 'blockGroup');
+        const id = node.getAttribute('id');
+        if (content && typeof id === 'string' && id) {
+          const text = ownText(content).trim();
+          if (content.nodeName === 'heading') heading = text || heading;
+          blocks.push({ id, type: content.nodeName, text, heading });
+        }
+      }
+      for (const child of node.toArray()) visit(child, depth + 1);
+    };
+    visit(doc.getXmlFragment('document-store'));
+    return { plainText: projection.plainText, references: projection.references, blocks };
+  } finally { doc.destroy(); }
+}
+
 function appendDefaultBlock(group, type, content = '', level) {
   const container = new Y.XmlElement('blockContainer');
   container.setAttribute('id', randomUUID());

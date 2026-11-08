@@ -25,7 +25,7 @@ ENTRYPOINT ["dotnet", "Mercantec.Tech.Api.dll"]
 FROM base AS preview-tools
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libreoffice-writer libreoffice-calc libreoffice-impress ffmpeg fonts-liberation fonts-dejavu-core \
+    libreoffice-writer libreoffice-calc libreoffice-impress ffmpeg poppler-utils fonts-liberation fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /spool && chown $APP_UID /spool
 

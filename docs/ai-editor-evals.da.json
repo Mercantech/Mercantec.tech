@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "language": "da",
+  "review": "Bedøm faglig korrekthed, kildebrug og instruktionsefterlevelse hver for sig fra 0–2. Alle skal være 2 før release. Kontrollér også forslagene i editoren før godkendelse.",
+  "cases": [
+    {
+      "id": "oop-28-maalpinde",
+      "instruction": "Saml alle 28 målpinde i én toggle med underoverskrifter H1 og H2. Bevar deres numre og fulde ordlyd.",
+      "fixture": "Aktiv side med 28 nummererede målpinde: 1–14 under H1, 15–28 under H2. Hvert punkt har en unik kontroltekst MÅL-01 til MÅL-28.",
+      "must": ["Alle 28 unikke kontroltekster findes præcis én gang", "H1/H2-inddelingen bevares", "Ingen forkortelse til de første syv børn", "Ingen dokumentændring før godkendelse"]
+    },
+    {
+      "id": "csharp-interface",
+      "instruction": "Forklar interface og arv for en H1-elev. Indsæt et kort C#-eksempel og to øvelser ved de relevante afsnit.",
+      "fixture": "To eksisterende afsnit: Interfaces og Arv. Ét medie og ét Mermaid-diagram mellem afsnittene.",
+      "must": ["C#-syntaksen kompilerer", "Interface adskilles korrekt fra implementation og klassearv", "Ændringer ved begge relevante afsnit", "Medie og diagram bevares med samme id"]
+    },
+    {
+      "id": "kilde-prioritet",
+      "instruction": "Lav en introduktion til JOIN med udgangspunkt i vores opgave. Brug den linkede SQL-side som kilde.",
+      "fixture": "Aktiv opgave nævner Kunder og Ordrer. Linket side beskriver INNER og LEFT JOIN. En irrelevant Python-side ligger i samme samling.",
+      "must": ["Kunder/Ordrer fra live-snapshot bruges", "INNER og LEFT forklares korrekt", "Kildehenvisning til den linkede side", "Ingen Python-afledning eller opdigtede kilder"]
+    },
+    {
+      "id": "usaved-selection",
+      "instruction": "Ret kun sproget i markeringen. Bevar alle referencer og den faglige betydning.",
+      "fixture": "Markering fra midten af et fedt afsnit til midten af et andet afsnit, med en sidereference mellem dem. Tilføj en endnu ikke gemt sætning før start.",
+      "must": ["Live-snapshot inkluderer den nye sætning", "Præfiks og suffiks uden for markeringen er identiske inklusive formatering", "Referencen bevares", "Én accept er én fortrydelseshandling"]
+    },
+    {
+      "id": "store-tabeller-og-kode",
+      "instruction": "Lav en tabel med alle 30 emner og deres seks felter. Tilføj den komplette kode nedenunder uden forkortelser.",
+      "fixture": "30 unikke emner med seks felter og 120 linjer C#-kode; samlet over 8.000 tegn.",
+      "must": ["30 datarækker og seks kolonner er bevaret", "Sidste emne og sidste kodelinje findes", "Ingen tavs afkortning", "Størrelsesgrænser vises som fejl eller fortsættelse"]
+    },
+    {
+      "id": "materialer-og-aerlighed",
+      "instruction": "Sammenfat materialerne, og skriv tydeligt hvilke du har kunnet læse.",
+      "fixture": "Tekst-PDF, DOCX, C#-fil, skannet PDF uden tekstlag samt billede og video. Ét dokument er utilgængeligt for brugeren.",
+      "must": ["Tekst-PDF, DOCX og C# bruges med kilder", "Skanning, billede og video hævdes ikke læst", "Utilgængeligt dokument og dets titel afsløres ikke", "Ingen automatisk brug af elevnoter eller afleveringer"]
+    },
+    {
+      "id": "juster-konflikt",
+      "instruction": "Gør forklaringerne kortere, og tilføj et eksempel ved hvert afsnit.",
+      "fixture": "Godkend første af tre forslag. Redigér målteksten i det andet. Justér kun det tredje til et C#-eksempel.",
+      "must": ["Godkendt tekst bliver stående", "Ændret mål bliver konflikt", "Godkend alle ændrer intet ved konflikt", "Justér opdaterer kun valgte ventende forslag", "Genindlæsning giver ingen dobbeltindsættelse"]
+    },
+    {
+      "id": "lang-opgave",
+      "instruction": "Skriv et komplet undervisningsforløb med 45 hovedafsnit. Hvert afsnit skal have forklaring, øvelse og opsamling.",
+      "fixture": "Tom teoriside uden hold. Brug et lavt konfigureret run-budget i QA for at udløse budgetpause.",
+      "must": ["Mere end 40 hovedblokke understøttes", "Færdige forslag overlever stop/genstart", "Automatisk fortsættelse ved blokgrænser", "Fortsæt vises ved samlet budgetpause", "Lukning af panelet stopper ikke opgaven"]
+    }
+  ]
+}

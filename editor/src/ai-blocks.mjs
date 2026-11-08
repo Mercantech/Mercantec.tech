@@ -1,4 +1,4 @@
-const contentless = new Set(['mermaidDiagram', 'pageLink', 'divider', 'slideBreak']);
+const contentless = new Set(['mermaidDiagram', 'pageLink', 'entityLink', 'divider', 'slideBreak']);
 
 /** Map a sanitized AI block to the PartialBlock shape BlockNote insertBlocks accepts. */
 export function toEditorBlock(block) {

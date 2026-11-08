@@ -17,8 +17,10 @@ import { createMermaidDiagram, DEFAULT_MERMAID_SOURCE } from './mermaid-block';
 import { createCallout } from './callout-block';
 import { createNotionCodeBlock, syntaxHighlighter } from './code-block';
 import { NotionBlockTypeSelect, NotionDragHandleMenu } from './turn-into';
-import { AiHelperPanel, OpenAiOnBlockProvider } from './ai-helper';
-import { captureAiTarget, type AiTarget } from './ai-conversation';
+import { OpenAiOnBlockProvider } from './ai-helper';
+import { NativeAiReview, nativeAiReviewExtension } from './ai-native-review';
+import { NativeAiPanel } from './ai-native-panel';
+import type { AiNativeTarget } from './ai-native-types';
 import { formatUploadSize, uploadNotionAsset, uploadNotebookAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
@@ -359,8 +361,9 @@ function openPresentation(session: Session) {
 }
 
 function ConnectedEditor({session}:{session:Session}) {
+  const aiReview=useMemo(()=>new NativeAiReview(session.doc),[session]);
   const editor=useCreateBlockNote(withCollaboration({
-    schema, dictionary:danish, extensions:[syntaxHighlighter],
+    schema, dictionary:danish, extensions:[syntaxHighlighter,nativeAiReviewExtension(aiReview)],
     collaboration:{fragment:session.doc.getXmlFragment('document-store'),provider:{awareness:session.provider?.awareness ?? undefined},user:{name:session.context.userName || 'Underviser',color:'#2452e8'},showCursorLabels:'activity'},
   }),[session]);
   session.editor=editor;
@@ -423,19 +426,11 @@ function ConnectedEditor({session}:{session:Session}) {
     setEmojiOpen(true);
   };
   const [aiOpen,setAiOpen]=useState(false);
-  const [aiAnchor,setAiAnchor]=useState<AiTarget|null>(null);
+  const [aiAnchor,setAiAnchor]=useState<AiNativeTarget|null>(null);
   const openAi=(blockId?:string)=>{
     if(!canEdit(session) || notebook)return;
-    const snapshot=captureAiTarget(editor,blockId);
-    if(blockId && !snapshot)return;
-    setAiAnchor(snapshot);
-    setAiOpen(true);
-    void ensureEditorResources(session).catch(error=>setEmojiInsertError(error.message));
-  };
-  const onAiOpenChange=(open:boolean)=>{
-    if(open && (!aiAnchor || !editor.getBlock(aiAnchor.id)))setAiAnchor(captureAiTarget(editor));
-    setAiOpen(open);
-    if(open)void ensureEditorResources(session).catch(error=>setEmojiInsertError(error.message));
+    try { setAiAnchor(aiReview.capture(blockId)); setAiOpen(true); }
+    catch(error) { setEmojiInsertError(error instanceof Error?error.message:'Vælg et sted i dokumentet først.'); }
   };
   const placeEmoji=(item:CustomEmojiRecord)=>{
     if(!canEdit(session))return;
@@ -546,32 +541,18 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
     {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
     {title:'Præsenter',subtext:'Vis dokumentet som slides',aliases:['præsenter','præsentation','slides','presentation'],group:'Visning',onItemClick:()=>openPresentation(session)},
-  ].filter(item=>(!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','Emoji','AI','Præsenter'].includes(item.title)) && (session.context.holdId || !['Gemt gruppe','Elever fra holdet','Afstemning','AI'].includes(item.title)));
+  ].filter(item=>(!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','Emoji','AI','Præsenter'].includes(item.title)) && (session.context.holdId || !['Gemt gruppe','Elever fra holdet','Afstemning'].includes(item.title)));
   return <OpenAiOnBlockProvider openOnBlock={notebook?null:openAi}>
     {!session.readOnly && !notebook && enabled && createEmoji && <input ref={colonFileInput} className="notion-emoji-file notion-emoji-colon-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede fra kolonmenu" onChange={chooseColonFile} tabIndex={-1} />}
     {emojiInsertError && <p className="notion-editor-persistence-error" role="alert">{emojiInsertError}</p>}
     {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} initialFile={emojiUploadFile} />}
-    {!session.readOnly && !notebook && (
-      <AiHelperPanel
-        editor={editor}
-        enabled={enabled && session.context.resourcesLoaded!==false}
-        pageTitle={session.context.title}
-        holdId={session.context.holdId || ''}
-        pages={session.context.pages}
-        members={session.context.members}
-        getToken={()=>validToken(session)}
-        open={aiOpen}
-        onOpenChange={onAiOpenChange}
-        anchorBlockId={aiAnchor?.id ?? null}
-        anchorText={aiAnchor?.text ?? null}
-        target={aiAnchor}
-        onCaptureContext={()=>setAiAnchor(captureAiTarget(editor))}
-      />
-    )}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
+    <div className="native-ai-workspace" data-ai-open={!session.readOnly && !notebook && aiOpen}>
+    <div className="native-ai-document">
+    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button type="button" aria-expanded={aiOpen} disabled={!enabled} onClick={()=>{if(aiOpen)setAiOpen(false);else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiOpen?'Skjul skrivepartner':'Skrivepartner'}</span></button></div>}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false} emojiPicker={false}>
       {!session.readOnly && <>
-        <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}</FormattingToolbar>} />
+        <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}{!notebook && <button type="button" className="native-ai-selection-button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled}>✦ AI</button>}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
         <SuggestionMenuController triggerCharacter="@" getItems={async (query):Promise<{title:string;subtext:string;group:string;onItemClick:()=>void}[]>=>{
@@ -592,6 +573,9 @@ function ConnectedEditor({session}:{session:Session}) {
         }} />}
       </>}
     </BlockNoteView>
+    </div>
+    {!session.readOnly && !notebook && <NativeAiPanel review={aiReview} pageId={session.context.pageId} pageTitle={session.context.title} enabled={enabled} open={aiOpen} target={aiAnchor} onClose={()=>setAiOpen(false)} onReveal={()=>setAiOpen(true)} onCapture={()=>openAi()} getToken={()=>validToken(session)} />}
+    </div>
   </OpenAiOnBlockProvider>;
 }
 function SlideContent({blocks,theme}:{blocks:ReturnType<typeof splitSlides>[number];theme:'light'|'dark'}) {

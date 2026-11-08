@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as Y from 'yjs';
-import { cloneNotebookDocument, defaultNotebookTemplate, notebookStateProjection, projectNotebookDocument } from '../src/notebook-documents.mjs';
+import { cloneNotebookDocument, defaultNotebookTemplate, notebookStateProjection, projectNotebookDocument, projectNotionContext } from '../src/notebook-documents.mjs';
 
 const id = '11111111-2222-4333-8444-555555555555';
 const targetId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
@@ -16,6 +16,32 @@ const element = (name, attrs, children = []) => {
   node.insert(0, children);
   return node;
 };
+
+test('AI projection preserves block boundaries, heading context and code without reading deleted history or side maps', () => {
+  const doc = new Y.Doc({ gc: false });
+  const nested = element('blockContainer', { id: 'nested' }, [element('codeBlock', { language: 'csharp' }, [new Y.XmlText('var x = 42;')])]);
+  const group = element('blockGroup', {}, [
+    element('blockContainer', { id: 'title' }, [element('heading', { level: 2 }, [new Y.XmlText('Relationer')])]),
+    element('blockContainer', { id: 'parent' }, [element('paragraph', {}, [new Y.XmlText('Vigtig tekst')]), element('blockGroup', {}, [nested])]),
+    element('blockContainer', { id: 'diagram' }, [element('mermaidDiagram', { source: 'graph TD\n A-->B' })]),
+    element('blockContainer', { id: 'link' }, [element('pageLink', { pageId: id })]),
+    element('blockContainer', { id: 'deleted' }, [element('paragraph', {}, [new Y.XmlText('SLETTET HEMMELIGHED')])]),
+  ]);
+  doc.getXmlFragment('document-store').insert(0, [group]);
+  doc.getMap('ai-review-receipts').set('private', 'PRIVAT KLADDE');
+  group.delete(4, 1);
+  const projection = projectNotionContext({ stateBase64: encode(doc) });
+  assert.deepEqual(projection.blocks.map(b => [b.id, b.type, b.text, b.heading]), [
+    ['title', 'heading', 'Relationer', 'Relationer'], ['parent', 'paragraph', 'Vigtig tekst', 'Relationer'],
+    ['nested', 'codeBlock', 'var x = 42;', 'Relationer'], ['diagram', 'mermaidDiagram', 'graph TD\n A-->B', 'Relationer'],
+    ['link', 'pageLink', '', 'Relationer'],
+  ]);
+  assert.deepEqual(projection.references, [{ kind: 'notion-page', id }]);
+  assert.doesNotMatch(JSON.stringify(projection), /SLETTET|HEMMELIGHED|PRIVAT/);
+  assert.match(projection.plainText, /var x = 42/);
+  assert.throws(() => projectNotionContext({ stateBase64: '%%%!' }), /Invalid notebook state/);
+  doc.destroy();
+});
 
 test('notebook projection searches live content and references, excluding deleted history', () => {
   const doc = new Y.Doc({ gc: false });

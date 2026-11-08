@@ -4,7 +4,7 @@ import { Server, IncomingMessage, MessageType } from '@hocuspocus/server';
 import * as Y from 'yjs';
 import { createApiClient, documentDomainFromName, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
 import { fingerprintHash } from './fingerprint.mjs';
-import { cloneNotebookDocument } from './notebook-documents.mjs';
+import { cloneNotebookDocument, projectNotionContext } from './notebook-documents.mjs';
 import { cloneDrawingDocument, drawingStateProjection, validateDrawingUpdate, MAX_DRAWING_BYTES } from './drawing-documents.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
@@ -104,7 +104,7 @@ export function createCollaborationServer({
     },
 
     async onRequest({ request, response }) {
-      if (request.method === 'POST' && ['/internal/notebook/clone', '/internal/drawing/clone', '/internal/drawing/checkpoint', '/internal/drawing/invalidate'].includes(request.url)) {
+      if (request.method === 'POST' && ['/internal/notebook/clone', '/internal/notion/project', '/internal/drawing/clone', '/internal/drawing/checkpoint', '/internal/drawing/invalidate'].includes(request.url)) {
         const supplied = request.headers['x-notion-service-key'];
         const authorized = typeof supplied === 'string' && supplied.length <= 1024 && cloneSecret.length >= 32
           && timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(cloneSecret).digest());
@@ -123,6 +123,7 @@ export function createCollaborationServer({
           const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
           let result;
           if (request.url === '/internal/notebook/clone') result = cloneNotebookDocument(body);
+          else if (request.url === '/internal/notion/project') result = projectNotionContext(body);
           else if (request.url === '/internal/drawing/clone') result = cloneDrawingDocument(body);
           else if (request.url === '/internal/drawing/checkpoint') {
             if (!Array.isArray(body?.drawingIds) || body.drawingIds.length > 500) throw new Error('Invalid drawing IDs');
@@ -160,7 +161,7 @@ export function createCollaborationServer({
           response.end(JSON.stringify(result));
         } catch {
           response.writeHead(400, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-          response.end(JSON.stringify({ error: 'invalid_clone_request' }));
+          response.end(JSON.stringify({ error: request.url === '/internal/notion/project' ? 'invalid_projection_request' : 'invalid_clone_request' }));
         }
         throw null;
       }

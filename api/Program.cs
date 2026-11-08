@@ -3,6 +3,7 @@ using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Integrations.Azure;
 using Mercantec.Tech.Api.Integrations.Lectio;
 using Mercantec.Tech.Api.Integrations.OpenAI;
+using Mercantec.Tech.Api.Ai.EditorRuns;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -48,7 +49,10 @@ builder.Services.AddSingleton<Mercantec.Tech.Api.Speech.IRouletteSpeechGenerator
 builder.Services.AddSingleton<Mercantec.Tech.Api.Speech.RouletteSpeechService>();
 builder.Services.AddHostedService<NotionUploadCleanup>();
 if (builder.Configuration.GetValue<bool>("PreviewWorker:Enabled"))
+{
     builder.Services.AddHostedService<PreviewWorker>();
+    builder.Services.AddHostedService<EditorAiFileTextWorker>();
+}
 
 builder.Services.Configure<LectioOptions>(builder.Configuration.GetSection(LectioOptions.SectionName));
 builder.Services.AddHttpClient<LectioCollectorClient>((sp, client) =>
@@ -84,6 +88,22 @@ builder.Services.AddHttpClient("openai", (sp, client) =>
 });
 builder.Services.AddSingleton<OpenAiEditorClient>();
 builder.Services.AddSingleton<OpenAiEmojiAnalysisClient>();
+builder.Services.AddHttpClient("openai-editor", (sp, client) =>
+{
+    var opts = sp.GetRequiredService<IOptions<OpenAiOptions>>().Value;
+    client.BaseAddress = new Uri(string.IsNullOrWhiteSpace(opts.BaseUrl) ? "https://api.openai.com/v1/" : opts.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = Timeout.InfiniteTimeSpan;
+});
+builder.Services.AddScoped<EditorAiRunStore>();
+builder.Services.AddSingleton<EditorAiResponseStream>();
+builder.Services.AddScoped<NotionAiProjectionClient>();
+builder.Services.AddScoped<EditorAiContextIndexer>();
+builder.Services.AddScoped<IEditorAiContextService, EditorAiContextService>();
+if (!builder.Configuration.GetValue<bool>("PreviewWorker:Only"))
+{
+    builder.Services.AddHostedService<EditorAiRunWorker>();
+    builder.Services.AddHostedService<EditorAiContextIndexWorker>();
+}
 builder.Services.AddScoped<MembershipClaimService>();
 
 builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));
@@ -124,6 +144,13 @@ if (string.IsNullOrWhiteSpace(openAi["ApiKey"]))
     builder.Configuration["OpenAI:ApiKey"] = builder.Configuration["OPENAI_API_KEY"];
 if (string.IsNullOrWhiteSpace(openAi["Model"]) && !string.IsNullOrWhiteSpace(builder.Configuration["OPENAI_MODEL"]))
     builder.Configuration["OpenAI:Model"] = builder.Configuration["OPENAI_MODEL"];
+foreach (var (property, variable) in new[] {
+    ("EditorModel", "OPENAI_EDITOR_MODEL"), ("EditorReasoningEffort", "OPENAI_EDITOR_REASONING_EFFORT"),
+    ("EditorResponseTokens", "OPENAI_EDITOR_RESPONSE_TOKENS"), ("EditorRunTokens", "OPENAI_EDITOR_RUN_TOKENS"),
+    ("EditorRunMinutes", "OPENAI_EDITOR_RUN_MINUTES"), ("EditorMaxBatches", "OPENAI_EDITOR_MAX_BATCHES"),
+    ("EditorRetentionDays", "OPENAI_EDITOR_RETENTION_DAYS"), ("EditorWorkerConcurrency", "OPENAI_EDITOR_WORKER_CONCURRENCY") })
+    if (string.IsNullOrWhiteSpace(openAi[property]) && !string.IsNullOrWhiteSpace(builder.Configuration[variable]))
+        builder.Configuration["OpenAI:" + property] = builder.Configuration[variable];
 
 var authIssuer = builder.Configuration["AUTH_ISSUER"]
     ?? "https://auth.mercantec.tech";
@@ -198,7 +225,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 var editorAiOptions = app.Services.GetRequiredService<IOptions<OpenAiOptions>>().Value;
-var editorAiModel = string.IsNullOrWhiteSpace(editorAiOptions.Model) ? "gpt-6-luna" : editorAiOptions.Model.Trim();
+var editorAiModel = string.IsNullOrWhiteSpace(editorAiOptions.EditorModel) ? "gpt-6.1-sol" : editorAiOptions.EditorModel.Trim();
 var editorAiModelLabel = editorAiModel.Length <= 80 && editorAiModel.StartsWith("gpt-", StringComparison.Ordinal)
     && editorAiModel.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.')
         ? editorAiModel : "custom";

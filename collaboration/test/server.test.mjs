@@ -120,6 +120,28 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
   return { state, grants, readOnlyTokens, connect, start, get server() { return server; } };
 }
 
+test('internal AI projection requires service authentication, rejects browser origins and malformed states', async t => {
+  const f = await fixture(t);
+  const url = `http://127.0.0.1:${f.server.address.port}/internal/notion/project`;
+  const doc = new Y.Doc();
+  const group = new Y.XmlElement('blockGroup'), container = new Y.XmlElement('blockContainer'), paragraph = new Y.XmlElement('paragraph');
+  container.setAttribute('id', 'test-block'); paragraph.insert(0, [new Y.XmlText('Intern læsekontekst')]);
+  container.insert(0, [paragraph]); group.insert(0, [container]); doc.getXmlFragment('document-store').insert(0, [group]);
+  const body = JSON.stringify({ stateBase64: Buffer.from(Y.encodeStateAsUpdate(doc)).toString('base64') });
+  const send = (headers, payload = body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: payload });
+  assert.equal((await send({})).status, 401);
+  assert.equal((await send({ 'X-Notion-Service-Key': 'wrong-key' })).status, 401);
+  assert.equal((await send({ 'X-Notion-Service-Key': secret, Origin: 'https://mercantec.tech' })).status, 401);
+  const accepted = await send({ 'X-Notion-Service-Key': secret });
+  assert.equal(accepted.status, 200);
+  assert.equal(accepted.headers.get('cache-control'), 'no-store');
+  const projection = await accepted.json();
+  assert.equal(projection.plainText, 'Intern læsekontekst');
+  assert.deepEqual(projection.blocks, [{ id: 'test-block', type: 'paragraph', text: 'Intern læsekontekst', heading: null }]);
+  assert.equal((await send({ 'X-Notion-Service-Key': secret }, '{"stateBase64":"bad!"}')).status, 400);
+  doc.destroy();
+});
+
 test('two real providers merge concurrent edits, acknowledge durable storage and reload binary after restart', async t => {
   const f = await fixture(t);
   const aToken = token('teacher-a'); const bToken = token('teacher-b');

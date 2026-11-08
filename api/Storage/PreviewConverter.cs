@@ -20,9 +20,11 @@ public sealed class PreviewConverter(IConfiguration configuration, ILogger<Previ
                 {
                     if (File.Exists(marker)) File.Delete(marker);
                     await using (var claim = new FileStream(marker, FileMode.CreateNew, FileAccess.Write, FileShare.None)) { }
-                    var input = Directory.EnumerateFiles(directory, "input.*").Where(PreviewWorker.CanConvert).Single();
-                    if (!PreviewWorker.CanConvert(input)) throw new IOException("Unsupported conversion input");
-                    await ConvertAsync(input, directory, ct);
+                    var extractText = File.Exists(Path.Combine(directory, "extract-text"));
+                    var input = Directory.EnumerateFiles(directory, "input.*").Where(path => CanProcess(path, extractText)).Single();
+                    if (!CanProcess(input, extractText)) throw new IOException("Unsupported conversion input");
+                    if (extractText) await ExtractTextAsync(input, directory, ct);
+                    else await ConvertAsync(input, directory, ct);
                     await File.WriteAllTextAsync(Path.Combine(directory, "done"), "", ct);
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
@@ -35,6 +37,26 @@ public sealed class PreviewConverter(IConfiguration configuration, ILogger<Previ
             }
             await Task.Delay(TimeSpan.FromSeconds(2), ct);
         }
+    }
+
+    public static bool CanProcess(string input, bool extractText) => extractText
+        ? new[] { ".pdf", ".doc", ".docx", ".odt", ".rtf" }.Contains(Path.GetExtension(input).ToLowerInvariant())
+        : PreviewWorker.CanConvert(input);
+
+    private static async Task ExtractTextAsync(string input, string directory, CancellationToken ct)
+    {
+        if (!CanProcess(input, true)) throw new IOException("Unsupported text extraction input");
+        var pdf = input;
+        if (!Path.GetExtension(input).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            await ConvertAsync(input, directory, ct);
+            pdf = Path.Combine(directory, "input.pdf");
+        }
+        if (!File.Exists(pdf)) throw new IOException("Document converter produced no PDF");
+        // Poppler reads a local PDF in the same networkless, credential-free conversion container.
+        // Keep form-feed page delimiters so source excerpts can cite their original PDF page.
+        await RunAsync("pdftotext", ["-enc", "UTF-8", "-layout", pdf, Path.Combine(directory, "text.txt")],
+            directory, TimeSpan.FromMinutes(1), ct);
     }
 
     private static async Task ConvertAsync(string input, string directory, CancellationToken ct)
