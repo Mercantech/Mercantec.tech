@@ -1,0 +1,18 @@
+{
+  "mode": "built-in image_gen",
+  "intent": "identity-preserving refinement",
+  "reference": "selected-reference.png",
+  "file": "01-klassisk-violinbygger-detailed.png",
+  "prompt": "IDENTITY-PRESERVING ILLUSTRATION EDIT. Refine the provided SELECTED chameleon drawing into a more detailed, polished master character illustration. This is the exact adopted design. Keep his recognizably SAME face, large warm brown turret eyes, gentle closed smile, green skin with soft yellow-green cheek/belly tones and orange-edged crest, head-to-body proportions, two arms, two legs, single naturally curled tail, rolled-sleeve cream linen shirt, rich brown leather apron, brown trousers, pose and overall silhouette. Do not redesign him or make him elderly, stern, thin or rounder.\n\nThe character is a warm, competent violin maker trained in Italy who privately plays banjo, and a future Machine Learning teacher. Express patient precise craftsmanship with subtle surface details, no computer or AI visual motifs. He holds the SAME unfinished VIOLIN and TWO-TINED U-shaped metal tuning fork in the SAME hands. No banjo or extra held props.\n\nAdd rich but tasteful fine painted detail:\n- varied fine scales that follow the curves of his face, eyelids, hands, crest and tail; subtle color variation, natural tiny highlights, gently translucent warm crest edges;\n- deeper warm amber/brown iris detail and delicate catchlights, preserving the same kindly expression and eye shape;\n- softly textured woven linen with believable seams, button stitching, folds and rolled cuffs;\n- hand-stitched leather apron edges and pockets, layered soft patina, gentle working creases, tiny wear marks and lightly aged brass hardware; avoid fake text or stamped labels;\n- finished painted wood texture on the unfinished violin: pale spruce-like grain following the soundboard, clean carved edges, precise purfling lines, elegant f-holes and refined neck/scroll carving. It remains visibly unfinished and unvarnished, without strings/bridge/fingerboard being accidentally merged into the wood. Clear recognizable violin proportions with waist and bouts, not a guitar. Clean metal highlights on the simple two-tine tuning fork.\n- subtle cloth and skin shading and a delicate soft ground shadow.\n\nStyle: preserve the original warm, softly hand-painted storybook/editorial character family. Fine brush texture and dimensional illustration, not a photograph or glossy plastic/CGI toy. The increased detail should enhance the character's charm and clarity rather than become visual noise or harsh sharpening.\n\nFraming: ONE full standing figure on an opaque pale cream background, square PNG at high native detail. Keep the entire crest, feet, curled tail and both props safely inside all image edges, with a little more breathing room than the source (roughly 7-10 percent above and below). Plain cream space, no scenery, no border. NO text, numbers, logo or watermark anywhere. Do not change the costume, the face or the green/brown/cream palette.\n",
+  "source": "C:/Users/Private/.codex/generated_images/01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17/exec-d00c0e52-b8b8-433c-befe-2588c118fa2d.png",
+  "width": 1254,
+  "height": 1254,
+  "sha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936",
+  "qa": [
+    "Selected face, green/orange palette, costume and pose preserved",
+    "Fine scales, amber eyes, linen weave, leather stitching and patina, brass and violin grain refined",
+    "One curled tail, two arms and two legs; full crest, feet and props visible",
+    "Recognizable unfinished violin and two-tine tuning fork",
+    "Opaque cream background; no text; native output copied without image processing"
+  ]
+}

@@ -1,0 +1,480 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "assets/characters/chameleon/reference.png",
+  "status": "complete",
+  "entries": [
+    {
+      "id": "01-data-til-model",
+      "title": "Fra data til model",
+      "image": "/images/characters/chameleon/infographics/01-data-til-model.png",
+      "alt": "Kamæleonen forklarer fra data til model med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Data bliver til en model gennem træning; nye input bruges bagefter til forudsigelser.",
+      "explanation": [
+        "Beskriv først den opgave, modellen skal hjælpe med.",
+        "Træning tilpasser modellens parametre til træningsdata.",
+        "Forudsigelser på nye data skal vurderes særskilt."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Estimatorer, features og mål",
+          "href": "https://scikit-learn.org/stable/getting_started.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"FRA DATA TIL MODEL\". A clear two-row pipeline, character at left pointing: top row small labeled data cards \"Træningsdata\" → simple model symbol \"Træning\" → \"Model\". Bottom row separately \"Nye data\" → same model symbol \"Model\" → one result card \"Forudsigelse\". Visually distinguish learning phase from prediction phase. Do not show model retraining automatically when receiving a new input. Only these short Danish text labels.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-bdb25906-525f-4dd9-a13a-bcf17ec8da94.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Correct short Danish labels and coherent diagram; selected identity preserved; complete artwork within canvas."
+      }
+    },
+    {
+      "id": "02-features-og-labels",
+      "title": "Features og labels",
+      "image": "/images/characters/chameleon/infographics/02-features-og-labels.png",
+      "alt": "Kamæleonen forklarer features og labels med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Features beskriver inputtet. En label er det kendte mål i supervised learning.",
+      "explanation": [
+        "Hver række er et eksempel; features er dets målbare egenskaber.",
+        "Labels bruges som kendte svar ved supervised træning.",
+        "Modellen skal kunne bruge de samme input-egenskaber ved forudsigelse."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Estimatorer, features og mål",
+          "href": "https://scikit-learn.org/stable/getting_started.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"FEATURES OG LABELS\". Teacher holds a little sample card depicting an apple. Main area shows three simple illustrated training cards, each with size/shape icons under a blue bracket labeled \"Features\", and a separate green name tag under an orange bracket labeled \"Label\". Label examples only \"Æble\" and \"Pære\"; keep feature symbols as simple size and outline icons, no long descriptions. Tiny footer \"Input → Kendt svar\". Do not imply a label is an input feature.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-886ac919-22ed-4714-b57c-55a5f7e4f0dd.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Correct short Danish labels and coherent diagram; selected identity preserved; complete artwork within canvas."
+      }
+    },
+    {
+      "id": "03-train-validation-test",
+      "title": "Train, validation og test",
+      "image": "/images/characters/chameleon/infographics/03-train-validation-test.png",
+      "alt": "Kamæleonen forklarer train, validation og test med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Hold træning, modelvalg og endelig evaluering adskilt.",
+      "explanation": [
+        "Træningsdata bruges til at tilpasse modellen.",
+        "Valideringsdata eller cross-validation støtter modelvalg.",
+        "Et urørt testsæt bruges til den afsluttende vurdering, ikke finjustering."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Cross-validation",
+          "href": "https://scikit-learn.org/stable/modules/cross_validation.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"DEL DATA FØRST\". Three clearly separated trays with different colored sample cards: \"Træning\" with sublabel \"Lær\"; \"Validering\" with sublabel \"Vælg\"; \"Test\" with sublabel \"Vurdér\". Chameleon places a lid on the test tray while tuning using only the validation tray. No arrow from test data back to training or model choice. Simple short footer \"Test er ikke til finjustering\". No percentage split claims.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-c89b15ef-0c8a-4d36-937d-7cb265a5592a.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Final version reviewed: coherent two-arm character; correct text and diagram."
+      },
+      "edits": [
+        {
+          "prompt": "Edit this Danish teaching infographic with the absolute minimum change: correct ONLY the chameleon's arms. He must have exactly TWO arms and TWO hands attached naturally to his two shoulders. Keep him standing on the left. One arm points modestly toward the training and validation trays; the other hand rests naturally on his apron. REMOVE the tuning fork and remove the EXTRA long arm/DETACHED hand that reaches over to the far-right Test tray lid. The Test tray lid is now closed and unsupported by any hand. Preserve the exact SAME friendly green/orange chameleon identity, leather apron, cream shirt, painted finish, entire diagram and ALL correct Danish wording and three tray labels. Especially preserve: DEL DATA FØRST; Træning/Lær; Validering/Vælg; Test/Vurdér; Tuning above validation; Test er ikke til finjustering. No additional arrows to Test. Full landscape1536x1024 composition, no other edits.",
+          "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-c89b15ef-0c8a-4d36-937d-7cb265a5592a.png",
+          "reference": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-df3d2209-e1cc-4378-a2cf-c1f39d3a9ca5.png"
+        }
+      ]
+    },
+    {
+      "id": "04-klassifikation",
+      "title": "Klassifikation",
+      "image": "/images/characters/chameleon/infographics/04-klassifikation.png",
+      "alt": "Kamæleonen forklarer klassifikation med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "En klassifikationsmodel vælger mellem kendte kategorier.",
+      "explanation": [
+        "Træningseksempler har en kategori som mål.",
+        "Forudsigelsen er en klasse eller scores for klasser.",
+        "Fejl skal undersøges på nye eksempler."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Supervised learning",
+          "href": "https://scikit-learn.org/stable/supervised_learning.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"KLASSIFIKATION\". Chameleon teaches with apple and pear training cards on the left labeled \"Kendte kategorier\". Center a simple modest model symbol. Right a new pear card goes through the model into a pear tray labeled \"Pære\"; separate empty apple tray labeled \"Æble\". Clear diagram, not a magical all-knowing robot. Footer \"Hvilken kategori?\"",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-cfc45649-3083-4e59-be51-5246571d347d.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Correct Danish heading, coherent task diagram, full character and retained adopted identity."
+      }
+    },
+    {
+      "id": "05-regression",
+      "title": "Regression",
+      "image": "/images/characters/chameleon/infographics/05-regression.png",
+      "alt": "Kamæleonen forklarer regression med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Regression forudsiger en numerisk værdi frem for en kategori.",
+      "explanation": [
+        "Målet kan være et tal som vægt eller energiforbrug.",
+        "Sammenlign forudsigelser med observerede værdier.",
+        "En statistisk sammenhæng er ikke i sig selv en årsagsforklaring."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Lineære modeller",
+          "href": "https://scikit-learn.org/stable/modules/linear_model.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"REGRESSION\". Chameleon holds calipers beside a simple scatter plot of wooden blank sizes and weights: x-axis \"Størrelse\", y-axis \"Vægt\". A modest straight fitted line runs through a slightly noisy increasing cloud of dots; a new input marked by a dashed vertical guide produces one numerical target icon. Label beside it \"Et tal\". No invented exact numerical dataset, no claim of causality, no class bins.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-b5b047af-ed8e-415b-9431-574a02d99fe3.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Correct Danish heading, coherent task diagram, full character and retained adopted identity."
+      }
+    },
+    {
+      "id": "06-klynger",
+      "title": "Klynger uden labels",
+      "image": "/images/characters/chameleon/infographics/06-klynger.png",
+      "alt": "Kamæleonen forklarer klynger uden labels med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Clustering grupperer eksempler efter en valgt lighed.",
+      "explanation": [
+        "Algoritmen arbejder uden kendte klasse-labels.",
+        "Afstandsmål og skalering påvirker grupperne.",
+        "En fundet klynge er ikke automatisk en virkelig kategori."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Clustering",
+          "href": "https://scikit-learn.org/stable/modules/clustering.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"KLYNGER UDEN LABELS\". Chameleon studies an uncluttered two-dimensional point cloud forming three spatially separated groups. Left small panel all dots neutral same color labeled \"Uden labels\". Arrow to right panel SAME dots with three soft ring outlines and three group colors labeled \"Fundet lighed\". Do not call clusters true categories. No class name tags, no fruit labels, only these three short text elements.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-9f4d063f-6dcd-48d6-b43e-91bc3391ca9a.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels and main learning relationship reviewed; coherent adopted character."
+      }
+    },
+    {
+      "id": "07-traening-og-fejl",
+      "title": "Træning og fejl",
+      "image": "/images/characters/chameleon/infographics/07-traening-og-fejl.png",
+      "alt": "Kamæleonen forklarer træning og fejl med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "En tabsfunktion måler fejl, som en læringsalgoritme forsøger at reducere.",
+      "explanation": [
+        "Træning justerer modellens parametre.",
+        "Tabsfunktionen afhænger af opgaven.",
+        "Lav træningsfejl alene viser ikke, at modellen virker på nye data."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Stochastic Gradient Descent",
+          "href": "https://scikit-learn.org/stable/modules/sgd.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"TRÆNING OG FEJL\". Patient craftsman chameleon turning a small tuning peg as metaphor for adjusting parameters, beside a clean loss-vs-step chart with a generally descending smooth curve (small fluctuations fine). Axis labels \"Træningstrin\" and \"Fejl\". Three small step labels at bottom \"Forudsig\" → \"Mål fejl\" → \"Justér\". Footer short \"Tjek også nye data\". Do not depict validation or test data directly optimizing model parameters.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-eb0e30ef-1f78-4e66-9ec4-67a3c255b33c.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels and main learning relationship reviewed; coherent adopted character."
+      }
+    },
+    {
+      "id": "08-overfitting",
+      "title": "Overfitting",
+      "image": "/images/characters/chameleon/infographics/08-overfitting.png",
+      "alt": "Kamæleonen forklarer overfitting med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "En meget fleksibel model kan lære støj og svigte på nye eksempler.",
+      "explanation": [
+        "Perfekt tilpasning til træningsdata er ikke målet i sig selv.",
+        "En for kompleks model kan følge tilfældige udsving.",
+        "Vurdér kompleksiteten med validering."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Underfitting og overfitting",
+          "href": "https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"OVERFITTING\". Two equally sized simple plots of the SAME moderately noisy curved point pattern. Left \"Passende\" has a smooth simple curve through the general pattern. Right \"For meget\" has a wildly wiggling curve passing through every training dot. A few orange held-out cross markers visibly far from the wiggly curve. Chameleon looks thoughtfully at the difference, not scared. Footer \"Lær mønstre, ikke støj\". Clean visual, no equations, do not imply every training improvement is bad.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-1ecce951-e5b9-47c9-88f0-83fe4826f526.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels and main learning relationship reviewed; coherent adopted character."
+      }
+    },
+    {
+      "id": "09-generalisering",
+      "title": "Generalisering",
+      "image": "/images/characters/chameleon/infographics/09-generalisering.png",
+      "alt": "Kamæleonen forklarer generalisering med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "En brugbar model skal klare relevante eksempler, den ikke blev trænet på.",
+      "explanation": [
+        "Adskil eksempler brugt til læring fra evaluering.",
+        "Nye data skal repræsentere den relevante brugssituation.",
+        "Usikkerhed og fejl findes også efter en god test."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Cross-validation",
+          "href": "https://scikit-learn.org/stable/modules/cross_validation.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"GENERALISERING\". Friendly chameleon opens a clean small gate from a tray labeled \"Træning\" of known fruit cards to a separate tray labeled \"Nye eksempler\" with similar but differently sized/oriented fruit illustrations. A modest model stamp classifies only a few new cards, with one amber question card to show uncertainty. No physical blending of the trays. Footer \"Virker det også på nyt?\"",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-6dda8b5c-f4c2-42b6-873d-7b8a2c710597.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Short Danish labels reviewed. Matrix11 axes and values8,2,1,9 correct; no text gibberish."
+      }
+    },
+    {
+      "id": "10-metrikker",
+      "title": "Metrikker der passer til opgaven",
+      "image": "/images/characters/chameleon/infographics/10-metrikker.png",
+      "alt": "Kamæleonen forklarer metrikker der passer til opgaven med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Vælg mål efter fejltyperne og den praktiske opgave.",
+      "explanation": [
+        "Accuracy er andelen af rigtige klassifikationer.",
+        "Precision ser på de forudsagte positive; recall på de faktiske positive.",
+        "Se flere relevante mål og sammenlign med en simpel baseline.",
+        "Prikfelterne er skematiske illustrationer og udgør ikke ét fælles datasæt; brug confusion matrix til konkrete beregninger."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Evaluering og metrikker",
+          "href": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"VÆLG DEN RIGTIGE METRIK\". Chameleon examines three compact cards, all equally prominent. Card1 \"Accuracy\" with subtitle \"Alle rigtige\". Card2 \"Precision\" with subtitle \"Forudsagte positive\". Card3 \"Recall\" with subtitle \"Faktiske positive\". Simple matching visual subsets of colored dots per card; no numerical percentages or confusing equations. Bottom note EXACT \"Accuracy kan skjule fejl\". Do not imply one metric is universally best.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-830682f2-c1b2-4062-a557-20507fc32338.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Short Danish labels reviewed. Matrix11 axes and values8,2,1,9 correct; no text gibberish."
+      }
+    },
+    {
+      "id": "11-confusion-matrix",
+      "title": "Confusion matrix",
+      "image": "/images/characters/chameleon/infographics/11-confusion-matrix.png",
+      "alt": "Kamæleonen forklarer confusion matrix med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "En confusion matrix viser, hvilke klasser modellen forveksler.",
+      "explanation": [
+        "Rækkerne viser her den faktiske klasse.",
+        "Kolonnerne viser modellens forudsagte klasse.",
+        "De to diagonalfelter er korrekte; de øvrige felter er forskellige fejltyper."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Confusion matrix",
+          "href": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"HVILKE FEJL LAVER MODELLEN?\". Clear central two-by-two matrix. Above columns outer header \"Forudsagt\"; column labels from left to right \"Ja\" and \"Nej\". Left of rows outer header \"Faktisk\"; row labels top to bottom \"Ja\" and \"Nej\". Exact cell values: upper-left 8, upper-right 2, lower-left 1, lower-right 9. Green diagonal cells 8 and9; muted amber off-diagonal cells2 and1. Friendly teacher chameleon at right points to one off-diagonal amber cell. Footer \"Se fejltyperne\". Keep all labels crisp, no swapped axis conventions, no extra formulas.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-09edc113-b988-49c8-bb5e-96ec0effac5a.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Short Danish labels reviewed. Matrix11 axes and values8,2,1,9 correct; no text gibberish."
+      }
+    },
+    {
+      "id": "12-data-laekage",
+      "title": "Data-lækage",
+      "image": "/images/characters/chameleon/infographics/12-data-laekage.png",
+      "alt": "Kamæleonen forklarer data-lækage med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Information fra evalueringen må ikke snige sig ind i træningen.",
+      "explanation": [
+        "Del data, før du lærer forbehandlingens parametre.",
+        "Fit eksempelvis skalering på træningsdelen alene.",
+        "Brug den lærte transformation på validering og test uden at fitte igen."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Data leakage",
+          "href": "https://scikit-learn.org/stable/common_pitfalls.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"UNDGÅ DATA-LÆKAGE\". Chameleon guards two clearly separated zones. Left \"Træning\" zone contains a small scaler/settings dial and trainingcards. Right \"Test\" zone contains sealed held-out cards. A dotted arrow attempting to travel from Test into the training settings is visibly blocked by a simple stop gate. A separate correct forward arrow from the learned settings to a transformation of test data is labeled \"Kun transform\". Short footer \"Lær forbehandling på træningsdata\". Do not imply test data should get no preprocessing.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-07673779-c854-4082-b57a-04d649c70785.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels, leakage arrow direction, group review, feature-chart caution checked; adopted character coherent."
+      }
+    },
+    {
+      "id": "13-skaeve-data",
+      "title": "Skæve data og blinde vinkler",
+      "image": "/images/characters/chameleon/infographics/13-skaeve-data.png",
+      "alt": "Kamæleonen forklarer skæve data og blinde vinkler med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Undersøg, hvem og hvad datasættet repræsenterer.",
+      "explanation": [
+        "Manglende grupper kan give blinde vinkler.",
+        "Se fejl og relevante mål for forskellige grupper.",
+        "En balanceret klassefordeling garanterer ikke fairness."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "NIST · AI Risk Management Framework",
+          "href": "https://www.nist.gov/itl/ai-risk-management-framework"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"HVEM MANGLER I DATA?\". Chameleon holds a magnifying glass over three simple sample trays: one overflowing with orange circles, one half-full of teal squares, one with very few purple triangles. A second clear small panel shows separate error-review cards for each group. Short labels only \"Repræsentation\" and \"Fejl pr. gruppe\". Footer \"Balance er ikke hele svaret\". Avoid demographics stereotypes, scales promising perfect fairness, or blanket equal proportions requirements.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-57dd82ca-4b67-4c12-b23f-2c11f5944c08.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels, leakage arrow direction, group review, feature-chart caution checked; adopted character coherent."
+      }
+    },
+    {
+      "id": "14-forklarlighed",
+      "title": "Forklarlighed",
+      "image": "/images/characters/chameleon/infographics/14-forklarlighed.png",
+      "alt": "Kamæleonen forklarer forklarlighed med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Undersøg, hvilke input modellen bruger, uden at forveksle det med årsager.",
+      "explanation": [
+        "Feature-importance beskriver modellens afhængighed af input.",
+        "Resultater afhænger af model, data og målemetode.",
+        "En forklaring på en model er ikke et bevis på en årsagssammenhæng."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "scikit-learn · Permutation importance",
+          "href": "https://scikit-learn.org/stable/modules/permutation_importance.html"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"HVAD BRUGER MODELLEN?\". Chameleon points at a simple three-bar feature-importance chart with icon labels: ruler \"Længde\", small weight \"Vægt\", outline shape \"Form\". Unequal modest bars labeled together \"Vigtigt for modellen\". At bottom an unmistakable short caution EXACT \"Sammenhæng er ikke årsag\". Warm friendly explanatory illustration, no code, no claim that feature importance proves causality.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-bf7bfb4c-b7c8-4a2b-b947-60ca1572cf6e.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Danish labels, leakage arrow direction, group review, feature-chart caution checked; adopted character coherent."
+      }
+    },
+    {
+      "id": "15-drift",
+      "title": "Når data ændrer sig",
+      "image": "/images/characters/chameleon/infographics/15-drift.png",
+      "alt": "Kamæleonen forklarer når data ændrer sig med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Data og fejlmønstre kan ændre sig efter modellen er taget i brug.",
+      "explanation": [
+        "Sammenlign nye input med den relevante reference.",
+        "Overvåg både datakvalitet og faktisk modeladfærd.",
+        "Beslut og evaluér ændringer; nye data træner ikke automatisk modellen."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "NIST · Måling og løbende overvågning",
+          "href": "https://airc.nist.gov/airmf-resources/playbook/measure/"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"NÅR DATA ÆNDRER SIG\". Two clean distribution plots with same axes and scale, labeled \"Før\" and \"Nu\": earlier distribution centered left, newer distribution shifted right. Chameleon checks a small monitoring notebook, with an amber bell between plots and a separate unchanged model symbol. Short lower chain \"Overvåg\" → \"Undersøg\" → \"Vurdér ændring\". Do not draw automatic-retraining arrow, no changing skin colors as biological explanation.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-18c4c4eb-29f3-4709-9518-49f5b9fd8d0d.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Final version reviewed: coherent two-arm character; correct text and diagram."
+      }
+    },
+    {
+      "id": "16-ansvarlig-ml",
+      "title": "Ansvarlig Machine Learning",
+      "image": "/images/characters/chameleon/infographics/16-ansvarlig-ml.png",
+      "alt": "Kamæleonen forklarer ansvarlig machine learning med et enkelt diagram.",
+      "width": 1536,
+      "height": 1024,
+      "stage": "ML",
+      "objectives": [],
+      "summary": "Vurder modellens formål, begrænsninger og konsekvenser sammen med kvaliteten.",
+      "explanation": [
+        "Brug relevante data og beskyt følsomme oplysninger.",
+        "Dokumentér kendte fejl, antagelser og ansvar.",
+        "Lad mennesker vurdere konsekvenser og følge op i brug."
+      ],
+      "example": "",
+      "sources": [
+        {
+          "label": "NIST · AI Risk Management Framework",
+          "href": "https://www.nist.gov/itl/ai-risk-management-framework"
+        }
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE polished original Danish teaching infographic, LANDSCAPE 3:2 canvas at 1536 by 1024 native pixels, not square. Use attached chameleon as EXACT CHARACTER IDENTITY and illustration-style reference, not as a scene to copy. Same friendly green chameleon with orange-edged crest, large warm brown turret eyes, tiny fine scales, one curled tail, rolled cream linen shirt and brown leather workshop apron. Same warm hand-painted picture-book finish as reference. No elephant or generic reptile redesign. Keep teacher small-to-medium, about25-30percent of canvas, and let the actual teaching diagram occupy most of the page. Soft opaque cream paper background, muted teal/ochre/rust accents, excellent whitespace, crisp large legible hand-lettered Danish headings. Diagram lines may be precise but should harmonize with painterly style. All elements comfortably within margins. Render only requested short labels, with correct Danish æ ø å. No long prose, decorative gibberish, equations unless explicitly asked, watermarks, logos or course-number labels. Maintain coherent hands, eyes, tail and props; violin is not required in lessons. This is a teaching image whose text and relationships must be accurate. Specific content:\nHeading EXACT \"ANSVARLIG MACHINE LEARNING\". Calm competent chameleon teacher beside four equally weighted illustrated cards: shield \"Privatliv\", balance \"Skævheder\", open notebook \"Dokumentation\", person/checklist \"Menneskeligt ansvar\". Include small loop connecting monitoring notebook to review, not automatic model decisions. Footer \"Kvalitet + omtanke\". No legal certification, seals, brands, or claims the model is risk-free.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-4fcf22ee-84a5-4fe1-a5d7-b34ad4a8544e.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Final version reviewed: coherent two-arm character; correct text and diagram."
+      }
+    }
+  ]
+}

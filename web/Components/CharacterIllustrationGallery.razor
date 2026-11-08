@@ -13,10 +13,10 @@
             <div class="character-illustration-tools">
                 <label for="character-illustration-search">Find en infografik</label>
                 <div class="character-illustration-search">
-                    <input id="character-illustration-search" type="search" value="@_query" @oninput="Search" placeholder="Emne, fx JOIN, normalisering eller ORM" aria-controls="character-illustration-items" />
+                    <input id="character-illustration-search" type="search" value="@_query" @oninput="Search" placeholder="@SearchPlaceholder" aria-controls="character-illustration-items" />
                     <button type="button" @onclick="ResetFilters">Vis alle</button>
                 </div>
-                <div class="character-illustration-stages" role="group" aria-label="Hovedforløb">
+                <div class="character-illustration-stages" role="group" aria-label="@(Items.Any(item => item.Objectives.Count > 0) ? "Hovedforløb" : "Emnegruppe")">
                     <button type="button" aria-pressed="@(_stage.Length == 0 ? "true" : "false")" @onclick="() => _stage = string.Empty">Alle</button>
                     @foreach (var stage in Stages)
                     {
@@ -40,7 +40,7 @@
                         </div>
                         @if (item.Stage is not null)
                         {
-                            <p class="character-illustration-objectives">@item.Stage · Målpind @string.Join(", ", item.Objectives)</p>
+                            <p class="character-illustration-objectives">@item.Stage@if (item.Objectives.Count > 0) { <text> · Målpind @string.Join(", ", item.Objectives)</text> }</p>
                         }
                         @if (!string.IsNullOrWhiteSpace(item.Summary))
                         {
@@ -79,6 +79,7 @@
     [Parameter] public IReadOnlyList<CharacterIllustration> Items { get; set; } = [];
     private string _query = "", _stage = "";
     private string? _previousSlug;
+    private string SearchPlaceholder => CharacterSlug == "chameleon" ? "Emne, fx overfitting, features eller datadrift" : "Emne, fx JOIN, normalisering eller ORM";
     private string[] Stages => Items.Select(item => item.Stage).OfType<string>().Distinct().Order().ToArray();
     private IReadOnlyList<CharacterIllustration> VisibleItems => Items.Where(item =>
         (_stage.Length == 0 || item.Stage == _stage) && MatchesQuery(item)).ToArray();

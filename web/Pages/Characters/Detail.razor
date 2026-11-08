@@ -76,7 +76,7 @@ else
             }
         </div>
 
-        <CharacterAnimationGallery CharacterSlug="@character.Slug" CharacterName="@character.Name" Items="@character.Animations" />
+        <CharacterAnimationGallery CharacterSlug="@character.Slug" CharacterName="@character.Name" Subject="@character.AnimationSubject" Items="@character.Animations" />
 
         <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-reactions-title"
                                  Title="@($"{character.Name}s emojis og reaktioner")"
@@ -85,7 +85,7 @@ else
 
         <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-scenes-title"
                                  Title="@($"{character.Name} i nye miljøer")"
-                                 Description="Fra en stille læsestund til et mysterium om en tabt række. Små fortællinger med professoren, som du kan åbne eller hente."
+                                 Description="@character.ScenesDescription"
                                  Items="@character.Scenes" />
 
         <CharacterIllustrationGallery CharacterSlug="@character.Slug" CharacterName="@character.Name"

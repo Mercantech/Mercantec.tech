@@ -1,0 +1,705 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "referenceImages": [
+    "assets/characters/chameleon/reference.png"
+  ],
+  "entries": [
+    {
+      "id": "wave",
+      "title": "Vinker",
+      "action": "a friendly welcoming wave with one raised open green hand, gentle smile",
+      "alt": "Kamæleonen smiler og vinker velkommen.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a friendly welcoming wave with one raised open green hand, gentle smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-96e7a12c-0c52-4a46-9ab3-845167c48df2.png",
+      "image": "/images/characters/chameleon/reactions/wave.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          116,
+          57,
+          1186,
+          1209
+        ],
+        "sha256": "acc19581c66d967250f55c1d2da6e91080952247a5f6761ef6eeeab111628bd8",
+        "bytes": 2048789,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "thinking",
+      "title": "Tænker",
+      "action": "a thoughtful glance slightly upward, one fingertip resting lightly beneath his chin",
+      "alt": "Kamæleonen tænker efter med en finger under hagen.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a thoughtful glance slightly upward, one fingertip resting lightly beneath his chin.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-777eacff-6ddc-4708-b32c-41f380322616.png",
+      "image": "/images/characters/chameleon/reactions/thinking.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          171,
+          40,
+          1110,
+          1215
+        ],
+        "sha256": "87572642bb541d2405a6607402a40fc9f2c2efadd30de3f6269c2048ee70686a",
+        "bytes": 1985187,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "confused",
+      "title": "Forvirret",
+      "action": "a softly puzzled expression, slightly asymmetrical raised eyelids, one palm open as if asking for clarification",
+      "alt": "Kamæleonen ser venligt forvirret ud og vender en håndflade op.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a softly puzzled expression, slightly asymmetrical raised eyelids, one palm open as if asking for clarification.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-39145048-cb8c-4a4e-a338-8494e821ac6a.png",
+      "image": "/images/characters/chameleon/reactions/confused.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          99,
+          34,
+          1193,
+          1233
+        ],
+        "sha256": "f444ea20eebf98284df8fa72a10565724fd2e57429be106b623fd31d32072b94",
+        "bytes": 2060944,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "curious",
+      "title": "Nysgerrig",
+      "action": "a curious attentive forward tilt of the head and bright wide eyes, no handheld prop",
+      "alt": "Kamæleonen læner hovedet nysgerrigt frem og undersøger noget nyt.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a curious attentive forward tilt of the head and bright wide eyes, no handheld prop.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-6c900633-fbfe-410e-acdd-9291bf6dab39.png",
+      "image": "/images/characters/chameleon/reactions/curious.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          107,
+          50,
+          1132,
+          1214
+        ],
+        "sha256": "f35da84ca991393adc131a4bef2ed41f66dc8a4c9f5ef042d88f8e4278737ce5",
+        "bytes": 1994232,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "idea",
+      "title": "En idé",
+      "action": "a bright inspired smile with one index finger raised in a small eureka gesture, no light bulb needed",
+      "alt": "Kamæleonen får en idé og løfter en finger.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a bright inspired smile with one index finger raised in a small eureka gesture, no light bulb needed.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-65fb6c92-6475-47e1-b8f4-8ae18e85ba06.png",
+      "image": "/images/characters/chameleon/reactions/idea.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          121,
+          30,
+          1130,
+          1237
+        ],
+        "sha256": "fabd40c5e94511ec40b02595a0b7c7b96577b8151c5d83e07e0542c68cf7d521",
+        "bytes": 2230386,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "help",
+      "title": "Klar til at hjælpe",
+      "action": "an encouraging open-hand offering gesture toward the viewer and a patient warm smile",
+      "alt": "Kamæleonen tilbyder roligt en hjælpende hånd.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: an encouraging open-hand offering gesture toward the viewer and a patient warm smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-dcb30130-f4cd-4f37-9eb8-785d5c631985.png",
+      "image": "/images/characters/chameleon/reactions/help.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          131,
+          30,
+          1154,
+          1224
+        ],
+        "sha256": "ad0114db7e5264d88e832f09146d8006fadbcc393d7a147fd49ba3115b9575bf",
+        "bytes": 2009848,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "applause",
+      "title": "Klapsalver",
+      "action": "two anatomically coherent hands together clapping at chest level, proud friendly smile",
+      "alt": "Kamæleonen klapper anerkendende i hænderne.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: two anatomically coherent hands together clapping at chest level, proud friendly smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-1760bc0e-aaea-4969-a10b-194a62742a56.png",
+      "image": "/images/characters/chameleon/reactions/applause.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          226,
+          52,
+          1073,
+          1216
+        ],
+        "sha256": "ab5e263d3c08b110bfddae8c27b1b3945f10420941f2b3c00db75ab295a36dd1",
+        "bytes": 1859229,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "laughing",
+      "title": "Griner",
+      "action": "a natural warm chuckle, smiling eyes and a gently slightly open smile, one hand lightly against chest; NO huge mouth, no tongue sticking out, no grotesque teeth",
+      "alt": "Kamæleonen griner varmt med glade øjne og en hånd ved brystet.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and upper bust only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a natural warm chuckle, smiling eyes and a gently slightly open smile, one hand lightly against chest; NO huge mouth, no tongue sticking out, no grotesque teeth.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-0308f026-4d02-449b-b776-f5f64a69013b.png",
+      "image": "/images/characters/chameleon/reactions/laughing.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          155,
+          43,
+          1088,
+          1222
+        ],
+        "sha256": "669da510eabfd2ae3bd4f42efc7619559903a434f680e2709071c98cee48cc5c",
+        "bytes": 1917743,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "wink",
+      "title": "Blinker",
+      "action": "a playful wink in one turret eye, the other warm eye open, gentle tilted smile",
+      "alt": "Kamæleonen blinker legende med det ene øje.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a playful wink in one turret eye, the other warm eye open, gentle tilted smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-1bed765c-3ec5-49f9-b2b7-30d33854ce26.png",
+      "image": "/images/characters/chameleon/reactions/wink.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          116,
+          40,
+          1126,
+          1230
+        ],
+        "sha256": "1fda382741cd4a59d9a7af5e05cf8872b4b0408dd00fc6e2a615b8794b890bf6",
+        "bytes": 2057625,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "relieved",
+      "title": "Lettet",
+      "action": "a relaxed relieved exhale, gently lowered shoulders and soft nearly closed eyelids, small smile",
+      "alt": "Kamæleonen ånder lettet ud med et roligt smil.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a relaxed relieved exhale, gently lowered shoulders and soft nearly closed eyelids, small smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-522d2132-2942-499b-bcf9-655b27c94c0a.png",
+      "image": "/images/characters/chameleon/reactions/relieved.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          165,
+          39,
+          1147,
+          1219
+        ],
+        "sha256": "2aff08eb0b920c529e618c14b3c45ce8195510867802ff3c40357dd268d30cc7",
+        "bytes": 2021232,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "proud",
+      "title": "Stolt",
+      "action": "quiet pride, chest a little lifted, hands resting lightly on apron straps, satisfied closed smile",
+      "alt": "Kamæleonen holder i forklædets stropper og ser stille stolt ud.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: quiet pride, chest a little lifted, hands resting lightly on apron straps, satisfied closed smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-992dd66a-927f-49ef-a634-799369cf63b9.png",
+      "image": "/images/characters/chameleon/reactions/proud.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          114,
+          25,
+          1139,
+          1236
+        ],
+        "sha256": "c504553f220e1a6ec85e6ae543f3e479186db64408dcd02e41dbb28171c2bf58",
+        "bytes": 1999529,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "determined",
+      "title": "Beslutsom",
+      "action": "a kindly determined expression, one small fist raised near the chest, calm resolve without anger",
+      "alt": "Kamæleonen ser beslutsom ud og er klar til et nyt forsøg.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a kindly determined expression, one small fist raised near the chest, calm resolve without anger.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-5c0cfd3a-376c-4628-ae13-3d88aa6c2149.png",
+      "image": "/images/characters/chameleon/reactions/determined.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          129,
+          26,
+          1163,
+          1235
+        ],
+        "sha256": "5dac067b7cbba7b88dfdf2799195f9ca6584ce2122f26c4704412b9b115c3276",
+        "bytes": 2226235,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "listening",
+      "title": "Lytter",
+      "action": "attentive friendly slight head tilt, one small hand cupped near side of head in listening gesture without inventing external ears",
+      "alt": "Kamæleonen lytter opmærksomt med hovedet lidt på skrå.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: attentive friendly slight head tilt, one small hand cupped near side of head in listening gesture without inventing external ears.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-aa1a7abd-a997-4137-813f-4c085e3904a2.png",
+      "image": "/images/characters/chameleon/reactions/listening.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          83,
+          16,
+          1162,
+          1235
+        ],
+        "sha256": "b7b9a724c49d4ee05b2317ce7686cd5d314fc5d22f5835481a54e1c7958dbf32",
+        "bytes": 2327210,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "good-morning",
+      "title": "Godmorgen",
+      "action": "a gentle morning stretch with a modest friendly sleepy smile, both arms contained inside the frame",
+      "alt": "Kamæleonen strækker sig og smiler godmorgen.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a gentle morning stretch with a modest friendly sleepy smile, both arms contained inside the frame.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-2ef96810-39a3-43b6-a83e-0f8e09a9a632.png",
+      "image": "/images/characters/chameleon/reactions/good-morning.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          46,
+          59,
+          1183,
+          1202
+        ],
+        "sha256": "3b8da03145f8fe4a91965e8ee0c93263fca31fdecc23e694b686201c087f10b5",
+        "bytes": 2140872,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "coffee",
+      "title": "Kaffepause",
+      "action": "holding a small terracotta mug of coffee with a delicate wisp of steam at chest level, relaxed smile",
+      "alt": "Kamæleonen holder en varm kop kaffe og tager en pause.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: holding a small terracotta mug of coffee with a delicate wisp of steam at chest level, relaxed smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-b4ab0b64-476d-4a14-a896-2a53bb30f8ef.png",
+      "image": "/images/characters/chameleon/reactions/coffee.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          182,
+          31,
+          1090,
+          1232
+        ],
+        "sha256": "53f9a1e9d40a4f201c9db0088177bbb9978b458959250881ddb8a25967e481c4",
+        "bytes": 1925561,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "celebration",
+      "title": "Fejrer",
+      "action": "a happy little celebration with both hands raised beside his face, a few tiny colorful confetti shapes contained near him, no text",
+      "alt": "Kamæleonen fejrer en god milepæl med hænderne løftet.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: a happy little celebration with both hands raised beside his face, a few tiny colorful confetti shapes contained near him, no text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-3927e028-0462-4260-bf4a-00a19ec53831.png",
+      "image": "/images/characters/chameleon/reactions/celebration.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          50,
+          48,
+          1200,
+          1232
+        ],
+        "sha256": "150bc5241fd2a329d046498d816b99bb1c6cb128833470a2bdee89b6bf0b3e59",
+        "bytes": 2390975,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "grateful",
+      "title": "Tak",
+      "action": "hands gently together over chest and a sincere appreciative smile, slightly bowed head",
+      "alt": "Kamæleonen siger tak med hænderne ved brystet.",
+      "prompt": "Use case: illustration-story. Create ONE original square transparent PNG reaction emoji of the EXACT adopted male CHAMELEON from the attached image, which is an IDENTITY AND STYLE reference, not the full-body layout to reproduce. Preserve his warm large brown turret eyes, friendly rounded reptilian face, small gentle smile, green and yellow-green fine scales, orange-edged green crest, cream linen shirt with rolled sleeves, brown leather craftsman's apron and softly painted storybook finish. Do NOT redesign him into another lizard, change his eye color, make him photorealistic or a glossy toy. Head and shoulders only, face large and readable at small emoji size; fully contain head crest, hands and any small prop with 10% transparent breathing room on all sides. At most two anatomically coherent green hands. Genuinely transparent background and alpha, no cream/white background, no shadow plate, no scene, no circular badge, no border, no lettering, punctuation, numbers, logo, watermark or captions. He is a friendly competent adult violin maker and Machine Learning teacher. No violin or tuning fork unless explicitly requested. Maintain a warm expressive personality, subtle fine scales, leather stitching and linen texture without clutter. Primary requested expression and gesture: hands gently together over chest and a sincere appreciative smile, slightly bowed head.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-ded45da8-d3cd-48e9-bc7f-ca882a4be7ef.png",
+      "image": "/images/characters/chameleon/reactions/grateful.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          174,
+          51,
+          1080,
+          1219
+        ],
+        "sha256": "5113f96886fe94a622fe2f40f0dc5a4cd714ab4aecffee97952510fcf05c7c98",
+        "bytes": 1861656,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "goodbye",
+      "title": "Vi ses",
+      "action": "a warm farewell wave with a slight body turn and tilted head, distinct from front-facing welcoming wave, soft smile",
+      "alt": "Kamæleonen vender sig lidt og vinker farvel.",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: a warm farewell wave with a slight body turn and tilted head, distinct from front-facing welcoming wave, soft smile.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d9d25c6f-6097-4fcf-bfe7-ac4872af1900.png",
+      "image": "/images/characters/chameleon/reactions/goodbye.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          137,
+          40,
+          1176,
+          1222
+        ],
+        "sha256": "945e106c6853601bb9d799e9a1a4a274c54c8a44fc1f87b51cf3250d8bce5530",
+        "bytes": 1955843,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "focused",
+      "title": "Koncentreret",
+      "action": "An attentive concentrated look with his hands resting low on his apron and his eyes slightly narrowed in thought, no prop",
+      "alt": "Kamæleonen koncentrerer sig med hænderne hvilende på forklædet.",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: An attentive concentrated look with his hands resting low on his apron and his eyes slightly narrowed in thought, no prop.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-5461dcbd-070f-4b59-afbe-40d005c67655.png",
+      "image": "/images/characters/chameleon/reactions/focused.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          168,
+          44,
+          1085,
+          1225
+        ],
+        "sha256": "7172442c94cc983c80012259b6e207f9f73b761a78bfdc025af25eaff63a6164",
+        "bytes": 1887626,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "patient",
+      "title": "Tålmodig",
+      "alt": "Kamæleonen smiler tålmodigt og giver plads til at tænke.",
+      "action": "A gently patient closed smile, relaxed posture, both hands lightly folded low in front of his apron, kind attentive eyes",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: A gently patient closed smile, relaxed posture, both hands lightly folded low in front of his apron, kind attentive eyes.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d26d5c06-4f76-4f46-8911-00e1fb3e94dc.png",
+      "image": "/images/characters/chameleon/reactions/patient.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          257,
+          42,
+          996,
+          1213
+        ],
+        "sha256": "fab106670be6a842a571099892278e09aa8b13eef937257c7b5ff8f24a5d32e9",
+        "bytes": 1580827,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "surprised",
+      "title": "Overrasket",
+      "alt": "Kamæleonen spærrer øjnene op i venlig overraskelse.",
+      "action": "A friendly surprised expression with wide round turret eyes, lifted eyelids and a small O-shaped mouth, hands low and relaxed",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: A friendly surprised expression with wide round turret eyes, lifted eyelids and a small O-shaped mouth, hands low and relaxed.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d9e9a646-0cf2-4bbd-9b7e-081a064de6a9.png",
+      "image": "/images/characters/chameleon/reactions/surprised.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          158,
+          19,
+          1081,
+          1234
+        ],
+        "sha256": "36c9989ada6bade06c57b192cf14d50028903a1a59d5f13ff44b6762e87fbd6a",
+        "bytes": 1911968,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "ready",
+      "title": "Klar til arbejdet",
+      "alt": "Kamæleonen retter på et oprullet ærme og er klar til arbejdet.",
+      "action": "An upbeat ready-to-work smile, carefully adjusting the rolled cuff on one cream linen sleeve with the other hand",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: An upbeat ready-to-work smile, carefully adjusting the rolled cuff on one cream linen sleeve with the other hand.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-a58cae0f-b0af-4316-9fb2-0bad9143692d.png",
+      "image": "/images/characters/chameleon/reactions/ready.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          181,
+          32,
+          1120,
+          1235
+        ],
+        "sha256": "688eb19e263e01e8557d9550835cb20c2db079c720f615c1c53d7a30e21a5544",
+        "bytes": 2012021,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "concerned",
+      "title": "Noget driller",
+      "alt": "Kamæleonen ser mildt bekymret ud og tænker over, hvad der driller.",
+      "action": "A mild concerned thoughtful expression with slightly furrowed eyelids and a small closed mouth, both hands resting quietly low on his brown apron, never angry",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: A mild concerned thoughtful expression with slightly furrowed eyelids and a small closed mouth, both hands resting quietly low on his brown apron, never angry.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d4d32698-7cfc-4d80-a6e3-d52a10ee9399.png",
+      "image": "/images/characters/chameleon/reactions/concerned.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          212,
+          38,
+          1043,
+          1229
+        ],
+        "sha256": "408a0d16ee044f4ea306667377156bcaf513c048da3b23f5513df71062c541c4",
+        "bytes": 1740092,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    },
+    {
+      "id": "humming",
+      "title": "Nynner",
+      "alt": "Kamæleonen nynner roligt med lukkede øjne og en hånd på hjertet.",
+      "action": "Quietly humming a favorite tune with gently closed eyelids, a soft contented smile and one green hand resting over the chest; three tiny warm golden musical-note shapes near the side of his head, contained inside the transparent margins",
+      "prompt": "Create one square transparent PNG emoji illustration of the same friendly green chameleon character in this identity reference image. Preserve the warm brown turret eyes, rounded kindly face, fine green scales, orange-tipped green crest, cream linen rolled-sleeve shirt and brown stitched leather apron. Warm hand-painted storybook illustration, detailed yet clear at small size. Show his complete head and shoulders with any hands fully inside the image and clear transparent margins. No background, scene, text, number, logo or border. Only one chameleon, at most two hands. Requested reaction: Quietly humming a favorite tune with gently closed eyelids, a soft contented smile and one green hand resting over the chest; three tiny warm golden musical-note shapes near the side of his head, contained inside the transparent margins.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-9246e96d-dd2f-4dc5-b39c-080828a7096a.png",
+      "image": "/images/characters/chameleon/reactions/humming.png",
+      "width": 1254,
+      "height": 1254,
+      "visuallyReviewed": true,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          200,
+          63,
+          1094,
+          1219
+        ],
+        "sha256": "fcf92b61a5d48c8eb941c3069750e29718e008a7994dd2a8469f12502a325203",
+        "bytes": 1767927,
+        "visuallyReviewed": true,
+        "nativeSourcePreserved": true
+      }
+    }
+  ]
+}

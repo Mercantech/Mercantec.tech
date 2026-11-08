@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "id": "test-data",
+      "title": "Nye testdata",
+      "image": "/images/characters/chameleon/reactions/test-data.png",
+      "alt": "Kamæleonen undersøger et nyt testkort, der holdes adskilt fra træningskortene.",
+      "prompt": "Use case: illustration-story. Create ONE original square PNG reaction emoji of the EXACT adopted friendly male chameleon in the reference image. The reference is an IDENTITY and painted STYLE reference, not a pose to reproduce. Preserve the same green finely scaled skin, orange-edged head crest, large warm brown turret eyes, gentle intelligent face, cream rolled-sleeve linen shirt and rich brown stitched leather work apron. Warm detailed hand-painted storybook illustration, soft shading, charming adult craftsman, not glossy plastic or photorealistic. Head and upper bust only, with expressive face and the gesture/prop entirely inside the canvas; generous transparent margin around every outer contour. Natural chameleon hands, maximum TWO arms and TWO hands. Small props should be easy to read at emoji scale. No background, no cream rectangle, no shadow plate, no border, no text, letters, numerals, logos or watermark. Genuinely transparent alpha background. Do not render any numbered card, written label, equations or code. The chameleon is a patient Machine Learning teacher, trained in Italian violin making and privately a banjo player. Keep his adopted costume and likeness. Specific emoji action: He curiously inspects a fresh blue blank data card held apart from a small stack of green cards in his other hand, eyebrows raised in discovery.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-19fd5364-2cf8-4d74-a971-0ce24db2153b.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Coherent chameleon likeness, two hands, readable prop and clear complete silhouette. No text."
+      }
+    },
+    {
+      "id": "validation",
+      "title": "Validerer",
+      "image": "/images/characters/chameleon/reactions/validation.png",
+      "alt": "Kamæleonen kontrollerer et datakort med en lup og nikker tilfreds.",
+      "prompt": "Use case: illustration-story. Create ONE original square PNG reaction emoji of the EXACT adopted friendly male chameleon in the reference image. The reference is an IDENTITY and painted STYLE reference, not a pose to reproduce. Preserve the same green finely scaled skin, orange-edged head crest, large warm brown turret eyes, gentle intelligent face, cream rolled-sleeve linen shirt and rich brown stitched leather work apron. Warm detailed hand-painted storybook illustration, soft shading, charming adult craftsman, not glossy plastic or photorealistic. Head and upper bust only, with expressive face and the gesture/prop entirely inside the canvas; generous transparent margin around every outer contour. Natural chameleon hands, maximum TWO arms and TWO hands. Small props should be easy to read at emoji scale. No background, no cream rectangle, no shadow plate, no border, no text, letters, numerals, logos or watermark. Genuinely transparent alpha background. Do not render any numbered card, written label, equations or code. The chameleon is a patient Machine Learning teacher, trained in Italian violin making and privately a banjo player. Keep his adopted costume and likeness. Specific emoji action: He checks a simple data card through a small round magnifying glass and gives an approving gentle nod; a small clean green check symbol appears on the card, no letters.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-4e6c0440-9fd3-4c58-83c4-715d3a28b334.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Coherent chameleon likeness, two hands, readable prop and clear complete silhouette. No text."
+      }
+    }
+  ]
+}

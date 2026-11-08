@@ -1,0 +1,26 @@
+[
+  {
+    "id": "learn-pattern",
+    "width": 512,
+    "height": 512,
+    "frames": 15,
+    "duration": 3.75,
+    "bytes": 752285
+  },
+  {
+    "id": "improve-model",
+    "width": 512,
+    "height": 512,
+    "frames": 15,
+    "duration": 3.75,
+    "bytes": 838266
+  },
+  {
+    "id": "detect-drift",
+    "width": 512,
+    "height": 512,
+    "frames": 15,
+    "duration": 3.75,
+    "bytes": 850289
+  }
+]

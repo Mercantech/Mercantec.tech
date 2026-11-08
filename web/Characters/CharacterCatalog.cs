@@ -89,6 +89,46 @@ public static class CharacterCatalog
                 new("Mysteriet om den tabte række", "/images/characters/raymond/scenes/detective-study.png", "Raymond undersøger et ufarligt SQL-mysterium med lup, sagsmappe og et opslag med spor.", 1536, 1024)
             ]
         },
+        new("chameleon", "Kamæleonen", "Ekspert og underviser i Machine Learning", "Machine Learning · Data og modeller", false,
+            "Den grønne violinbygger, der lærer dig at finde mønstre, afprøve modeller og stille gode spørgsmål til data.",
+            "Kamæleonen er LUPs ekspert i Machine Learning. Han forklarer data, træning og forudsigelser med små, konkrete eksempler og hjælper dig med at undersøge, om en model også virker på nye data. Han er violinbygger oplært i Italien, men spiller selv banjo. I værkstedet og undervisningen arbejder han på samme måde: observer, justér lidt, afprøv, og lyt efter det, der stadig skurrer.",
+            ["Machine Learning", "Nysgerrig håndværker", "Violinbygger · Banjo"],
+            [new("Violinbygger", "/images/characters/chameleon/portrait.webp", "Kamæleonen med grønne skæl, orange kam, brunt læderforklæde, ufærdig violin og stemmegaffel"),
+             new("Underviser", "/images/characters/chameleon/teacher.webp", "Kamæleonen underviser med enkle eksempelkort og et diagram"),
+             new("Banjo", "/images/characters/chameleon/banjo.webp", "Kamæleonen med sin banjo og sit velkendte læderforklæde"),
+             new("På feltarbejde", "/images/characters/chameleon/fieldwork.webp", "Kamæleonen undersøger sine omgivelser med en feltnotesbog")],
+            [new("Hvorfor en kamæleon?", "Tilpasning er hans metafor for at være nysgerrig på nye data. En trænet model ændrer sig dog ikke automatisk, når den ser et nyt eksempel. Han undersøger først data og kvalitet og beslutter derefter, om der er brug for ændringer eller ny træning."),
+             new("Lær mønstret, ikke facitlisten", "Hans motto er: En god model tilpasser sig. En dårlig model husker bare træningsdata. Han bruger det til at forklare generalisering og overfitting: En model skal vurderes på eksempler, der ikke blev brugt til at træne eller vælge den."),
+             new("Italiensk håndværk, bluegrass i pausen", "Han lærte at bygge violiner i Italien og kan bruge en eftermiddag på en enkelt trækurve. Når limen tørrer, finder han banjoen frem. Han samler på stemmegafler, nynner bluegrass og kalder en god forklaring for noget, der klinger rigtigt."),
+             new("Rolig, præcis og villig til at ombestemme sig", "Han spørger gerne: Hvad så modellen, og hvad har vi endnu ikke vist den? Fejl er spor, der skal undersøges. Han hjælper med klassifikation, regression, klynger, datalækage, metrikker, skævheder og ansvarlig brug af modeller.")],
+            [new("Se billeder og materialer i biblioteket", "/library?category=characters", false, false),
+             new("Mød Raymond og databaserne", "/characters/raymond", false, false)])
+        {
+            Illustrations = InfographicsFor("chameleon"),
+            IllustrationsLabel = "infografikker",
+            IllustrationsDescription = "16 infografikker om Machine Learning: fra data, features og træning til generalisering, evaluering, datadrift og ansvarlig brug. Søg efter et emne, læs forklaringen med faglige kilder, eller hent den originale PNG.",
+            AnimationSubject = "Machine Learning",
+            Animations =
+            [
+                new("learn-pattern", "Find mønstret", "Klassifikation · Nye eksempler", "Kamæleonen grupperer eksempler og prøver derefter et nyt blad. Modellen skal kunne bruge et mønster på nye data.",
+                    "/images/characters/chameleon/animations/learn-pattern.gif", "/images/characters/chameleon/animations/learn-pattern.png", "Kamæleonen sorterer bladkort efter form og undersøger et nyt eksempel.", 512, 512),
+                new("improve-model", "Små skridt mod en bedre model", "Træning · Fejl og justering", "Kamæleonen justerer en model og sammenligner dens forudsigelser med eksemplerne. En pæn kurve alene viser ikke, om modellen virker på nye data.",
+                    "/images/characters/chameleon/animations/improve-model.gif", "/images/characters/chameleon/animations/improve-model.png", "Kamæleonen peger på en linje, som justeres tættere på fire datapunkter.", 512, 512),
+                new("detect-drift", "Når nye data ændrer sig", "Datadrift · Undersøg før du retter", "Nye data kan se anderledes ud end træningsdata. Undersøg ændringen og mål kvaliteten, før du beslutter, om modellen skal trænes igen.",
+                    "/images/characters/chameleon/animations/detect-drift.gif", "/images/characters/chameleon/animations/detect-drift.png", "Kamæleonen opdager orange datapunkter uden for en kendt grøn gruppe og undersøger dem.", 512, 512)
+            ],
+            Reactions = ReactionsFor("chameleon"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "48 transparente emojis og reaktioner med Kamæleonen: varme hverdagsudtryk, opmuntring, Machine Learning og små glimt fra violin- og banjoværkstedet. Søg efter et motiv, åbn originalen, eller hent en PNG.",
+            ScenesDescription = "Kom med i det italienske violinværksted, til banjo i aftensolen, på datajagt i drivhuset og ind i undervisningsstudiet. Åbn billederne i stor størrelse, eller hent dem som PNG.",
+            Scenes =
+            [
+                new("Violinbyggerens værksted", "/images/characters/chameleon/scenes/workshop.png", "Kamæleonen bygger en violin i et varmt italiensk håndværkerværksted.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/workshop.webp" },
+                new("Banjo i aftensolen", "/images/characters/chameleon/scenes/banjo-evening.png", "Kamæleonen spiller banjo i en rolig stund ved solnedgang.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/banjo-evening.webp" },
+                new("Data i drivhuset", "/images/characters/chameleon/scenes/data-garden.png", "Kamæleonen undersøger planter og eksempler med sin notesbog i et lyst drivhus.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/data-garden.webp" },
+                new("Læringsværkstedet", "/images/characters/chameleon/scenes/teaching-studio.png", "Kamæleonen forklarer grupper og mønstre med enkle farvede datapunkter i et lyst undervisningsstudie.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/teaching-studio.webp" }
+            ]
+        },
         new("beaver", "Bæver", "Underviser i Sikkerhed og test · Blå team", "Sikkerhed og test", false,
             "Den rolige systembygger på blåt team: sikker kode, adgangskontrol, logs og tests, der holder løsningen robust.",
             "Bæver underviser i Sikkerhed og test fra det blå teams perspektiv. Med tablet og logbog undersøger Bæver, hvordan vi beskytter systemet, opdager fejl og gør rettelser holdbare. Arbejdet er roligt, grundigt og praktisk: forstå problemet, styrk løsningen, og skriv en test, der passer på den fremover.",
@@ -127,7 +167,7 @@ public static class CharacterCatalog
             Preview = asset.Preview
         }).ToArray();
 
-    private static CharacterIllustration[] InfographicsFor(string slug) => CharacterInfographicCatalog.All
+    private static CharacterIllustration[] InfographicsFor(string slug) => CharacterInfographicCatalog.All.Concat(ChameleonInfographicCatalog.All)
         .Where(asset => asset.CharacterSlug == slug)
         .Select(asset => new CharacterIllustration(asset.Title, asset.Image, asset.Alt, asset.Width, asset.Height)
         {
@@ -153,7 +193,9 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
     public bool LargeReactionPreviews { get; init; }
     public string? ReactionsDescription { get; init; }
     public IReadOnlyList<CharacterIllustration> Scenes { get; init; } = [];
+    public string ScenesDescription { get; init; } = "Små fortællinger med karakteren. Åbn et billede i fuld størrelse, eller hent en PNG.";
     public IReadOnlyList<CharacterAnimation> Animations { get; init; } = [];
+    public string AnimationSubject { get; init; } = "databaser";
     public IEnumerable<CharacterMaterialGroup> Materials
     {
         get
@@ -161,7 +203,7 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
             if (Reactions.FirstOrDefault() is { } reaction)
                 yield return new("emojis", Reactions.Count, "character-reactions-title", reaction.Preview, reaction.Alt);
             if (Scenes.FirstOrDefault() is { } scene)
-                yield return new("miljøer", Scenes.Count, "character-scenes-title", scene.Image, scene.Alt);
+                yield return new("miljøer", Scenes.Count, "character-scenes-title", scene.Preview, scene.Alt);
             if (Illustrations.FirstOrDefault() is { } illustration)
                 yield return new(IllustrationsLabel, Illustrations.Count, "character-gallery-title", illustration.Preview, illustration.Alt);
             if (Animations.FirstOrDefault() is { } animation)

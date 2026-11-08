@@ -1,0 +1,20 @@
+{
+  "generator": "builtin-imagegen",
+  "reason": "Native non-square output; preserved as concept, replaced with distinct processing motif",
+  "entries": [
+    {
+      "id": "uncertainty",
+      "title": "Usikker på svaret",
+      "image": "/images/characters/chameleon/reactions/uncertainty.png",
+      "alt": "Kamæleonen overvejer to mulige veje og viser, at svaret er usikkert.",
+      "prompt": "Create one original transparent PNG emoji illustration of the exact friendly green chameleon in this identity reference. Keep his warm brown eyes, orange-edged crest, cream rolled-sleeve shirt and brown stitched leather apron. A warm, detailed painted storybook character, head and shoulders with two hands, fully contained with generous transparent margins. No writing, numerals, letters, logos, scenery or frame. He thoughtfully considers a small clearly Y-shaped wooden path model in one hand, with two equally sized branching choices. His other hand rests lightly under his chin. Eyes glance between the two branches, with a thoughtful gentle half-smile and raised brows: he is honestly uncertain which route is best. No arrows, writing or punctuation.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-20a76fd6-e57e-4882-802a-a46c70b49527.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Adopted chameleon likeness and costume preserved; coherent two-hand gesture and readable distinctive props; complete silhouette and no lettering."
+      }
+    }
+  ]
+}
