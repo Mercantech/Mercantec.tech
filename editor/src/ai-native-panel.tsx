@@ -1,18 +1,22 @@
 import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { createNativeAiApi } from './ai-native-api';
 import { NativeAiReview } from './ai-native-review';
 import { aiNativeError } from './ai-native-errors';
 import { aiRunWorking, type AiNativeTarget, type AiRun, type AiRunSummary } from './ai-native-types';
 
-type Props = { review: NativeAiReview; pageId: string; pageTitle: string; enabled: boolean; open: boolean; panelId?: string; target: AiNativeTarget | null; onClose: () => void; onReveal: () => void; onCapture: () => void; getToken: () => Promise<string> };
+type Props = { review: NativeAiReview; pageId: string; pageTitle: string; enabled: boolean; open: boolean; panelId?: string; layoutRoot?: HTMLElement | null; target: AiNativeTarget | null; onClose: () => void; onReveal: () => void; onCapture: () => void; getToken: () => Promise<string> };
 const statusLabel: Record<string, string> = { queued: 'I kø', gathering: 'Læser relevante kilder', generating: 'Skriver forslag', ready: 'Klar til gennemgang', needs_continuation: 'Klar til at fortsætte', cancelled: 'Stoppet', failed: 'Opgaven blev afbrudt' };
-const drawerWidthKey = 'lup.ai.drawer.width.v1';
+const drawerWidthKey = 'lup.ai.column.width.v1';
+const defaultWidth = 380;
+const minimumWidth = 280;
+const layoutOwners = new WeakMap<HTMLElement, symbol>();
 const storedDrawerWidth = () => {
-  try { const value = JSON.parse(window.localStorage.getItem(drawerWidthKey) || '400'); return typeof value === 'number' && Number.isFinite(value) ? Math.max(320, Math.min(900, value)) : 400; }
-  catch { return 400; }
+  try { const value = JSON.parse(window.localStorage.getItem(drawerWidthKey) || String(defaultWidth)); return typeof value === 'number' && Number.isFinite(value) ? Math.max(minimumWidth, Math.min(720, value)) : defaultWidth; }
+  catch { return defaultWidth; }
 };
 
-export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelId: suppliedPanelId, target, onClose, onReveal, onCapture, getToken }: Props) {
+export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelId: suppliedPanelId, layoutRoot = null, target, onClose, onReveal, onCapture, getToken }: Props) {
   useSyncExternalStore(review.subscribe, review.snapshot);
   const tokenRef = useRef(getToken); tokenRef.current = getToken;
   const api = useMemo(() => createNativeAiApi(() => tokenRef.current()), []);
@@ -37,26 +41,63 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelI
   const generatedPanelId = useId();
   const panelId = suppliedPanelId || generatedPanelId;
   const [preferredWidth, setPreferredWidth] = useState(storedDrawerWidth);
-  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [geometry, setGeometry] = useState(() => ({ viewportWidth: window.innerWidth, workspaceWidth: layoutRoot?.clientWidth || window.innerWidth, sidebarWidth: 0 }));
   const [viewport, setViewport] = useState(() => ({ top: 0, height: window.innerHeight }));
   const [resizing, setResizing] = useState(false);
   const drag = useRef<{ pointerId: number; startX: number; startWidth: number; handle: HTMLElement } | null>(null);
-  const maxWidth = Math.max(320, Math.min(900, viewportWidth - 300));
+  const viewportWidth = geometry.viewportWidth;
+  const portalSlot = layoutRoot?.querySelector<HTMLElement>('.notion-ai-slot');
+  const columns = Boolean(portalSlot) && viewportWidth > 760;
+  const maxWidth = Math.max(minimumWidth, Math.min(720, columns ? geometry.workspaceWidth - geometry.sidebarWidth - 360 : viewportWidth - 300));
   const width = Math.min(preferredWidth, maxWidth);
-  const expanded = width > Math.min(400, maxWidth) + 1;
+  const expanded = width > Math.min(defaultWidth, maxWidth) + 1;
+  const layoutOwner = useRef(Symbol('native-ai-layout'));
   const releaseResize = () => {
     const current = drag.current; drag.current = null;
     if (current?.handle.hasPointerCapture(current.pointerId)) current.handle.releasePointerCapture(current.pointerId);
   };
   const finishResize = () => { releaseResize(); setResizing(false); };
-  useEffect(() => {
-    const resize = () => { releaseResize(); setResizing(false); setViewportWidth(window.innerWidth); };
+  useLayoutEffect(() => {
+    let frame = 0;
+    const sidebar = layoutRoot?.querySelector<HTMLElement>('#notion-sidebar');
+    const measure = () => {
+      frame = 0;
+      const sidebarWidth = sidebar && getComputedStyle(sidebar).position !== 'fixed' ? sidebar.getBoundingClientRect().width : 0;
+      const next = { viewportWidth: window.innerWidth, workspaceWidth: layoutRoot?.clientWidth || window.innerWidth, sidebarWidth };
+      setGeometry(current => current.viewportWidth === next.viewportWidth && current.workspaceWidth === next.workspaceWidth && current.sidebarWidth === next.sidebarWidth ? current : next);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    const resize = () => { releaseResize(); setResizing(false); schedule(); };
+    measure();
+    const observer = new ResizeObserver(schedule);
+    if (layoutRoot) observer.observe(layoutRoot);
+    if (sidebar) observer.observe(sidebar);
+    const mutations = new MutationObserver(schedule);
+    if (layoutRoot) mutations.observe(layoutRoot, { attributes: true, attributeFilter: ['class', 'style', 'data-focus-mode'] });
     window.addEventListener('resize', resize);
-    return () => { window.removeEventListener('resize', resize); releaseResize(); };
-  }, []);
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); mutations.disconnect(); window.removeEventListener('resize', resize); releaseResize(); };
+  }, [layoutRoot]);
+  useLayoutEffect(() => {
+    if (!layoutRoot) return;
+    const owner = layoutOwner.current;
+    layoutOwners.set(layoutRoot, owner);
+    return () => {
+      if (layoutOwners.get(layoutRoot) !== owner) return;
+      layoutOwners.delete(layoutRoot);
+      delete layoutRoot.dataset.aiOpen;
+      layoutRoot.style.removeProperty('--notion-ai-width');
+    };
+  }, [layoutRoot]);
+  useLayoutEffect(() => {
+    if (!layoutRoot || layoutOwners.get(layoutRoot) !== layoutOwner.current) return;
+    const value = width + 'px';
+    if (layoutRoot.style.getPropertyValue('--notion-ai-width') !== value) layoutRoot.style.setProperty('--notion-ai-width', value);
+    const state = String(open);
+    if (layoutRoot.dataset.aiOpen !== state) layoutRoot.dataset.aiOpen = state;
+  }, [layoutRoot, open, width]);
   useEffect(() => { if (!open) finishResize(); }, [open]);
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!open || columns) return;
     let frame = 0;
     const header = document.querySelector<HTMLElement>('.lup-header');
     const measure = () => {
@@ -74,16 +115,16 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelI
     window.addEventListener('scroll', schedule, { passive: true }); window.addEventListener('resize', schedule);
     window.visualViewport?.addEventListener('resize', schedule); window.visualViewport?.addEventListener('scroll', schedule);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.visualViewport?.removeEventListener('resize', schedule); window.visualViewport?.removeEventListener('scroll', schedule); };
-  }, [open]);
+  }, [open, columns]);
   useEffect(() => {
     const timer = window.setTimeout(() => { try { window.localStorage.setItem(drawerWidthKey, JSON.stringify(preferredWidth)); } catch { /* The drawer also works without persistent storage. */ } }, 180);
     return () => window.clearTimeout(timer);
   }, [preferredWidth]);
   const resizeKey = (event: React.KeyboardEvent<HTMLElement>) => {
     const step = event.shiftKey ? 40 : 20;
-    const next = event.key === 'Home' ? 320 : event.key === 'End' ? maxWidth : event.key === 'ArrowLeft' ? width + step : event.key === 'ArrowRight' ? width - step : null;
+    const next = event.key === 'Home' ? minimumWidth : event.key === 'End' ? maxWidth : event.key === 'ArrowLeft' ? width + step : event.key === 'ArrowRight' ? width - step : null;
     if (next === null) return;
-    event.preventDefault(); event.stopPropagation(); setPreferredWidth(Math.max(320, Math.min(maxWidth, next)));
+    event.preventDefault(); event.stopPropagation(); setPreferredWidth(Math.max(minimumWidth, Math.min(maxWidth, next)));
   };
   const consume = (value: AiRun) => {
     if (!mounted.current || value.pageId.toLowerCase() !== pageId.toLowerCase()) return;
@@ -214,12 +255,12 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelI
   const newTask = () => { setRun(null); runRef.current = null; review.setRun(null); setAdjustId(null); onCapture(); textarea.current?.focus(); };
   const showProposal = (id: string) => {
     const proposal = [...document.querySelectorAll<HTMLElement>('[data-ai-hunk]')].find(element => element.dataset.aiHunk === id);
-    onClose();
+    if (!columns) onClose();
     requestAnimationFrame(() => proposal?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
   };
   const scopeLabel = scope === 'selection' ? 'Markeret tekst' : scope === 'page' ? 'Aktiv side' : 'Ved dit afsnit';
   if (!open) return null;
-  return <aside id={panelId} className="native-ai-panel" role={viewportWidth <= 760 ? 'dialog' : undefined} aria-modal={viewportWidth <= 760 ? true : undefined} aria-label="AI-skrivepartner" data-expanded={expanded} data-resizing={resizing} style={{ '--native-ai-width': width + 'px', '--native-ai-top': viewport.top + 'px', '--native-ai-height': viewport.height + 'px' } as React.CSSProperties} onKeyDown={event => {
+  const panel = <aside id={panelId} className="native-ai-panel" role={viewportWidth <= 760 ? 'dialog' : undefined} aria-modal={viewportWidth <= 760 ? true : undefined} aria-label="AI-skrivepartner" data-layout={columns ? 'columns' : 'drawer'} data-expanded={expanded} data-resizing={resizing} style={{ '--native-ai-width': width + 'px', '--native-ai-top': viewport.top + 'px', '--native-ai-height': viewport.height + 'px' } as React.CSSProperties} onKeyDown={event => {
     if (event.key === 'Tab' && viewportWidth <= 760) {
       const controls = [...event.currentTarget.querySelectorAll<HTMLElement>('button,input,textarea,select,a[href],summary,[tabindex]')].filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && element.getClientRects().length);
       const first = controls[0], last = controls.at(-1);
@@ -232,11 +273,11 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelI
     event.preventDefault(); event.stopPropagation();
     if (drag.current) { setPreferredWidth(drag.current.startWidth); finishResize(); } else onClose();
   }}>
-    <div className="native-ai-resize" role="separator" aria-label="AI-panelets bredde" aria-orientation="vertical" aria-controls={panelId} aria-valuemin={320} aria-valuemax={maxWidth} aria-valuenow={Math.round(width)} aria-valuetext={Math.round(width) + ' pixels'} tabIndex={0} onKeyDown={resizeKey}
+    <div className="native-ai-resize" role="separator" aria-label="AI-panelets bredde" aria-orientation="vertical" aria-controls={panelId} aria-valuemin={minimumWidth} aria-valuemax={maxWidth} aria-valuenow={Math.round(width)} aria-valuetext={Math.round(width) + ' pixels'} tabIndex={0} onKeyDown={resizeKey}
       onPointerDown={event => { if (event.button !== 0 || viewportWidth <= 760) return; event.preventDefault(); event.currentTarget.focus(); drag.current = { pointerId: event.pointerId, startX: event.clientX, startWidth: width, handle: event.currentTarget }; event.currentTarget.setPointerCapture(event.pointerId); setResizing(true); }}
-      onPointerMove={event => { const current = drag.current; if (current?.pointerId === event.pointerId) setPreferredWidth(Math.max(320, Math.min(maxWidth, current.startWidth + current.startX - event.clientX))); }}
+      onPointerMove={event => { const current = drag.current; if (current?.pointerId === event.pointerId) setPreferredWidth(Math.max(minimumWidth, Math.min(maxWidth, current.startWidth + current.startX - event.clientX))); }}
       onPointerUp={finishResize} onPointerCancel={() => { if (drag.current) setPreferredWidth(drag.current.startWidth); finishResize(); }} onLostPointerCapture={() => { drag.current = null; setResizing(false); }} />
-    <header><div><strong id={panelId + '-title'}>AI</strong><small title={pageTitle}>{pageTitle}</small></div><div className="native-ai-header-actions"><button type="button" className="native-ai-icon native-ai-expand" onClick={() => setPreferredWidth(expanded ? 400 : maxWidth)} aria-label={expanded ? 'Gør AI-panelet smallere' : 'Udvid AI-panelet'} title={expanded ? 'Gør AI-panelet smallere' : 'Giv AI mere plads'} aria-pressed={expanded}><span aria-hidden="true">{expanded ? '↙' : '↗'}</span></button><button type="button" className="native-ai-icon" onClick={onClose} aria-label="Skjul AI-panelet" title="Skjul AI-panelet (Esc)">×</button></div></header>
+    <header><div><strong id={panelId + '-title'}>AI</strong><small title={pageTitle}>{pageTitle}</small></div><div className="native-ai-header-actions"><button type="button" className="native-ai-icon native-ai-expand" disabled={!expanded && maxWidth <= width + 1} onClick={() => setPreferredWidth(expanded ? defaultWidth : maxWidth)} aria-label={expanded ? 'Gør AI-panelet smallere' : 'Udvid AI-panelet'} title={expanded ? 'Gør AI-panelet smallere' : 'Giv AI mere plads'} aria-pressed={expanded}><span aria-hidden="true">{expanded ? '↙' : '↗'}</span></button><button type="button" className="native-ai-icon" onClick={onClose} aria-label="Skjul AI-panelet" title="Skjul AI-panelet (Esc)">×</button></div></header>
     <div className="native-ai-panel-body">
       {loading && <p role="status">Henter dine private kladder…</p>}
       {!run && <div className="native-ai-intro"><strong>Hvad skal vi arbejde med?</strong><p>Beskriv det her. Forslagene vises direkte i teksten, hvor du kan godkende dem.</p><div className="native-ai-starters">{['Gør teksten tydeligere', 'Skriv videre', 'Lav et overblik'].map(prompt => <button type="button" key={prompt} disabled={!enabled} onClick={() => { setInstruction(prompt); setMode(prompt === 'Gør teksten tydeligere' ? 'rewrite' : 'generate'); textarea.current?.focus(); }}>{prompt}</button>)}</div></div>}
@@ -262,4 +303,5 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelI
       <div className="native-ai-compose-foot"><small className="native-ai-composer-context">Privat kladde · Ctrl/⌘ + Enter</small><button type="submit" disabled={!enabled || !instruction.trim() || busy || aiRunWorking(run)}>{busy ? 'Starter…' : adjustId ? 'Justér forslag' : 'Lav forslag'}</button></div>
     </form>
   </aside>;
+  return portalSlot ? createPortal(panel, portalSlot) : panel;
 }

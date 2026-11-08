@@ -65,7 +65,7 @@ public partial class Index
     private bool _revealedWithMetadata, _sidebarPublishedOnly;
     private string _pageSearch = "";
     private int _totalPages, _listVersion, _sidebarInteractions;
-    private bool _sidebarOpen = true, _sidebarMobile, _sidebarReady, _sidebarStarting, _sidebarNeedsSync;
+    private bool _sidebarOpen = true, _sidebarMobile, _sidebarReady, _sidebarStarting, _sidebarNeedsSync, _workspaceFocused;
     private string? _account, _loadedRoute, _error, _notice;
     private string _title = "", _newTitle = "", _status = "connecting", _statusDetail = "";
     private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups;
@@ -161,7 +161,7 @@ public partial class Index
         var element = _workspaceElement;
         try
         {
-            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=20261108").AsTask();
+            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=ide-columns-20261108").AsTask();
             var module = await _sidebarModuleTask;
             if (_disposed) return;
             if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
@@ -187,10 +187,22 @@ public partial class Index
     private void SetSidebarOpen(bool open)
     {
         ++_sidebarInteractions;
+        if (open && _workspaceFocused) { _workspaceFocused = false; _ = SyncWorkspaceFocus(); }
         if (_sidebarOpen == open) return;
         _sidebarOpen = open; _sidebarNeedsSync = true;
     }
-    private void ToggleSidebar() => SetSidebarOpen(!_sidebarOpen);
+    private void ToggleSidebar() => SetSidebarOpen(_workspaceFocused || !_sidebarOpen);
+    private async Task ToggleWorkspaceFocus()
+    {
+        _workspaceFocused = !_workspaceFocused;
+        await SyncWorkspaceFocus();
+    }
+    private async Task SyncWorkspaceFocus()
+    {
+        if (_sidebarModule is null || _disposed) return;
+        try { await _sidebarModule.InvokeVoidAsync("setFocus", _sidebarMountedElement, _workspaceFocused); }
+        catch (JSException) { /* The document remains available without enhanced layout controls. */ }
+    }
     private async Task UnmountSidebar()
     {
         if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
@@ -201,6 +213,11 @@ public partial class Index
         _sidebarMountedElement = default; _sidebarReady = false;
     }
     [JSInvokable] public Task CloseNotionSidebar() => InvokeAsync(() => { if (!_disposed) { SetSidebarOpen(false); StateHasChanged(); } });
+    [JSInvokable] public Task OnNotionFocusMode(bool focused) => InvokeAsync(() =>
+    {
+        if (_disposed || _workspaceFocused == focused) return;
+        _workspaceFocused = focused; StateHasChanged();
+    });
     [JSInvokable] public Task OnNotionSidebarViewport(bool mobile, bool desktopOpen) => InvokeAsync(() =>
     {
         if (_disposed) return;

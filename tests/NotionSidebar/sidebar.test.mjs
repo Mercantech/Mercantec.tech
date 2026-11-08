@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-async function fixture({ mobile = false, stored = null, storageBlocked = false, inert = false, overflow = '' } = {}) {
+async function fixture({ mobile = false, stored = null, storedWidth = null, rootWidth = 1280, clientWidth = rootWidth, aiWidth = 0, storageBlocked = false, inert = false, overflow = '' } = {}) {
     const oldWindow = globalThis.window, oldDocument = globalThis.document;
     const calls = [], storage = new Map(stored === null ? [] : [['lup.notion.sidebar.collapsed', stored]]);
     const listeners = new Map(), mediaListeners = new Set();
+    const rootListeners = new Map(), rootStyles = new Map(), classes = new Set(), events = [];
+    if (storedWidth !== null) storage.set('lup.notion.sidebar.width.v1', storedWidth);
     const styles = new Map(overflow ? [['overflow', [overflow, 'important']]] : []);
     const document = {
         activeElement: null,
@@ -36,6 +38,7 @@ async function fixture({ mobile = false, stored = null, storageBlocked = false, 
                     if (selector === '[hidden]' && target.hasAttribute('hidden')) return target;
                     if (selector === 'button,a' && target.action) return target;
                     if (selector === '.notion-document-menu' && target.menu) return target;
+                    if (selector === '.notion-sidebar-resize' && target.resize) return target;
                     if (selector.startsWith('[role=') && target.hasAttribute('role') && target.getAttribute('role') === 'dialog') return target;
                 }
                 return null;
@@ -43,6 +46,14 @@ async function fixture({ mobile = false, stored = null, storageBlocked = false, 
         };
     }
     const panel = node('notion-sidebar'), background = node('document'), toggle = node('toggle');
+    const handle = node('resize'), slot = node('ai-slot');
+    handle.resize = true; handle.parent = panel;
+    let captured = null;
+    handle.setPointerCapture = id => { captured = id; };
+    handle.hasPointerCapture = id => captured === id;
+    handle.releasePointerCapture = () => { captured = null; };
+    slot.getBoundingClientRect = () => ({ width: aiWidth });
+    background.getBoundingClientRect = () => ({ width: clientWidth - Number.parseFloat(rootStyles.get('--notion-sidebar-width') || '268') - aiWidth });
     panel.setAttribute('role', 'dialog');
     background.inert = inert;
     if (inert) background.setAttribute('inert', 'existing');
@@ -54,10 +65,16 @@ async function fixture({ mobile = false, stored = null, storageBlocked = false, 
     more.open = false; menu.menu = true; action.action = true;
     more.parent = background; summary.parent = more; menu.parent = more; action.parent = menu;
     more.querySelector = selector => selector === 'summary' ? summary : null;
-    const root = { contains: target => [panel, background, toggle].some(node => node.contains(target)), querySelector: selector => ({
+    const root = { clientWidth, dataset: { focusMode: 'false' }, style: { getPropertyValue: key => rootStyles.get(key) || '', setProperty: (key, value) => rootStyles.set(key, value) },
+        classList: { toggle: (key, active) => active ? classes.add(key) : classes.delete(key) },
+        addEventListener: (name, callback) => rootListeners.set(name, callback), removeEventListener: (name, callback) => { if (rootListeners.get(name) === callback) rootListeners.delete(name); },
+        dispatchEvent: event => { events.push(event); rootListeners.get(event.type)?.(event); },
+        getBoundingClientRect: () => ({ width: rootWidth, top: 160 }),
+        contains: target => [panel, background, toggle].some(node => node.contains(target)), querySelector: selector => ({
         '#notion-sidebar': panel, '#notion-page-search': search,
         '.notion-document': background, '.notion-sidebar-toggle': toggle,
         '.notion-document-more[open]': more.open ? more : null,
+        '.notion-sidebar-resize': handle, '.notion-ai-slot': slot,
     })[selector] ?? null };
     const media = {
         matches: mobile,
@@ -65,7 +82,8 @@ async function fixture({ mobile = false, stored = null, storageBlocked = false, 
         removeEventListener: (name, callback) => mediaListeners.delete(callback),
     };
     const window = {
-        matchMedia: query => { assert.equal(query, '(max-width: 760px)'); return media; },
+        innerWidth: rootWidth, innerHeight: 900,
+        matchMedia: query => { assert.equal(query, '(max-width: 1000px)'); return media; },
         localStorage: {
             getItem: key => { if (storageBlocked) throw new Error('blocked'); return storage.get(key) ?? null; },
             setItem: (key, value) => { if (storageBlocked) throw new Error('blocked'); storage.set(key, value); },
@@ -82,9 +100,10 @@ async function fixture({ mobile = false, stored = null, storageBlocked = false, 
         return event;
     }
     return {
-        module, root, panel, background, toggle, search, first, last, more, summary, menu, action, document, styles, storage, calls, mediaListeners, listeners, key, makeNode: node,
+        module, root, panel, background, toggle, search, first, last, more, summary, menu, action, document, styles, storage, calls, mediaListeners, listeners, rootListeners, rootStyles, classes, events, handle, key, makeNode: node,
         mount: () => module.mount(root, callbacks),
         click: target => listeners.get('click')?.({ target }),
+        pointer(type, x, options = {}) { const event = { type, target: handle, button: 0, pointerId: 1, clientX: x, preventDefault() {}, ...options }; (type === 'pointerdown' ? rootListeners : listeners).get(type)?.(event); },
         resize(next) { media.matches = next; for (const callback of mediaListeners) callback(); },
         cleanup() { module.destroy(root); globalThis.window = oldWindow; globalThis.document = oldDocument; },
     };
@@ -196,7 +215,7 @@ test('destroy and remount remove old handlers and restore inert and scrolling', 
         f.module.setOpen(f.root, true);
         assert.equal(f.styles.size, 0);
         f.mount(); f.mount();
-        assert.equal(f.listeners.size, 2);
+        assert.equal(f.listeners.size, 5);
         assert.equal(f.mediaListeners.size, 1);
     } finally { f.cleanup(); }
 });
@@ -254,5 +273,64 @@ test('mobile Tab trapping includes a closed details summary and skips its hidden
         link.focus();
         assert.equal(f.key('Tab', link).defaultPrevented, true);
         assert.equal(f.document.activeElement, f.first, 'opening details includes its now visible final action');
+    } finally { f.cleanup(); }
+});
+
+test('focus hides side columns without overwriting open preferences and reveal restores their previous state', async () => {
+    const f = await fixture();
+    try {
+        f.mount(); f.module.setOpen(f.root, true);
+        const preferences = [...f.storage];
+        assert.equal(f.module.toggleFocus(f.root), true);
+        assert.equal(f.root.dataset.focusMode, 'true');
+        assert.equal(f.classes.has('notion-focus-mode'), true);
+        assert.deepEqual([...f.storage], preferences);
+        assert.deepEqual(f.calls.at(-1), ['OnNotionFocusMode', true]);
+        assert.equal(f.events.at(-1).detail.focused, true);
+        f.root.dispatchEvent(new CustomEvent('notion-layout-reveal', { detail: { panel: 'ai' } }));
+        assert.equal(f.root.dataset.focusMode, 'false');
+        assert.deepEqual([...f.storage], preferences);
+        assert.deepEqual(f.calls.at(-1), ['OnNotionFocusMode', false]);
+        assert.equal(f.module.toggleFocus(f.root), true);
+        assert.equal(f.module.toggleFocus(f.root), false);
+    } finally { f.cleanup(); }
+});
+
+test('sidebar sizing respects the adjacent AI column, supports keyboard and pointer and stores only a bounded width', async () => {
+    const f = await fixture({ rootWidth: 1102, clientWidth: 1100, aiWidth: 360, storedWidth: '9999' });
+    try {
+        f.mount(); f.module.setOpen(f.root, true);
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '380px', 'borders must not consume the document minimum or make the columns drift');
+        assert.equal(f.handle.getAttribute('aria-valuemax'), '380');
+        assert.equal(f.root.dataset.centerNarrow, 'true');
+        assert.equal(f.rootStyles.get('--notion-workspace-height'), '724px');
+        f.key('Home', f.handle);
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '180px');
+        f.key('ArrowRight', f.handle, { shiftKey: true });
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '220px');
+        f.pointer('pointerdown', 220); f.pointer('pointermove', 300); f.pointer('pointerup', 300);
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '300px');
+        assert.equal(f.storage.get('lup.notion.sidebar.width.v1'), '300');
+        f.pointer('pointerdown', 300); f.pointer('pointermove', 9999); f.key('Escape', f.handle);
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '300px', 'Escape cancels the active drag');
+        f.pointer('pointerdown', 300); f.pointer('pointermove', 9999); f.pointer('pointercancel', 9999);
+        assert.equal(f.rootStyles.get('--notion-sidebar-width'), '300px', 'pointer cancellation restores the previous width');
+        f.key('End', f.handle);
+        assert.equal(f.storage.get('lup.notion.sidebar.width.v1'), '380');
+    } finally { f.cleanup(); }
+});
+
+test('focus releases mobile modal effects and restores them without touching desktop storage', async () => {
+    const f = await fixture({ mobile: true });
+    try {
+        f.mount(); f.module.setOpen(f.root, true);
+        assert.equal(f.background.inert, true);
+        f.module.setFocus(f.root, true);
+        assert.equal(f.background.inert, false);
+        assert.equal(f.styles.size, 0);
+        f.module.setFocus(f.root, false);
+        assert.equal(f.background.inert, true);
+        assert.equal(f.styles.get('overflow')[0], 'hidden');
+        assert.equal(f.storage.size, 0);
     } finally { f.cleanup(); }
 });

@@ -304,7 +304,7 @@ const schema = BlockNoteSchema.create({
 type Editor = BlockNoteEditor<typeof schema.blockSchema, typeof schema.inlineContentSchema, typeof schema.styleSchema>;
 
 interface Session {
-  root: Root; context: EditorContext; callbacks?: DotnetCallbacks; doc: Y.Doc; provider?: HocuspocusProvider;
+  root: Root; element: HTMLElement; context: EditorContext; callbacks?: DotnetCallbacks; doc: Y.Doc; provider?: HocuspocusProvider;
   editor?: Editor; ready: boolean; inSync: boolean; connected: boolean; dirty: boolean; generation: number;
   destroyed: boolean; status: Status; detail: string; presenting: boolean; slides: ReturnType<typeof splitSlides>;
   readOnly:boolean; accessToken:string; pendingUploads:number; drawingDirty?:boolean;
@@ -427,11 +427,26 @@ function ConnectedEditor({session}:{session:Session}) {
   };
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<AiNativeTarget|null>(null);
+  const aiLayoutRoot=useMemo(()=>session.element.closest<HTMLElement>('.notion-workspace'),[session]);
+  const [layoutFocused,setLayoutFocused]=useState(()=>aiLayoutRoot?.dataset.focusMode==='true');
+  useEffect(()=>{
+    if(!aiLayoutRoot)return;
+    const focusChanged=(event:Event)=>{
+      const focused=(event as CustomEvent<{focused?:unknown}>).detail?.focused;
+      setLayoutFocused(typeof focused==='boolean'?focused:aiLayoutRoot.dataset.focusMode==='true');
+    };
+    setLayoutFocused(aiLayoutRoot.dataset.focusMode==='true');
+    aiLayoutRoot.addEventListener('notion-layout-focus',focusChanged);
+    return()=>aiLayoutRoot.removeEventListener('notion-layout-focus',focusChanged);
+  },[aiLayoutRoot]);
+  const aiVisible=aiOpen&&!layoutFocused;
   const aiPanelId=useId();
   const aiLauncher=useRef<HTMLButtonElement>(null);
   const aiReturnFocus=useRef<HTMLElement|null>(null);
   const revealAi=()=>{
-    if(!aiOpen && document.activeElement instanceof HTMLElement && document.activeElement!==document.body)aiReturnFocus.current=document.activeElement;
+    if(!aiVisible && document.activeElement instanceof HTMLElement && document.activeElement!==document.body)aiReturnFocus.current=document.activeElement;
+    aiLayoutRoot?.dispatchEvent(new CustomEvent('notion-layout-reveal',{detail:{panel:'ai'}}));
+    setLayoutFocused(false);
     setAiOpen(true);
   };
   const closeAi=()=>{
@@ -564,9 +579,9 @@ function ConnectedEditor({session}:{session:Session}) {
     {emojiInsertError && <p className="notion-editor-persistence-error" role="alert">{emojiInsertError}</p>}
     {!session.readOnly && !notebook && emojiOpen && <EmojiPicker id={emojiPanelId} emojis={emojis} onPick={placeEmoji} onClose={closeEmoji} onUpload={enabled ? createEmoji : undefined} onAnalyze={enabled ? analyzeEmoji : undefined} initialFile={emojiUploadFile} />}
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
-    <div className="native-ai-workspace" data-ai-open={!session.readOnly && !notebook && aiOpen}>
+    <div className="native-ai-workspace" data-ai-open={!session.readOnly && !notebook && aiVisible}>
     <div className="native-ai-document">
-    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button ref={aiLauncher} type="button" aria-expanded={aiOpen} aria-controls={aiPanelId} aria-label={aiOpen?'Skjul AI-panelet':'Åbn AI-panelet'} disabled={!enabled} onClick={()=>{if(aiOpen)closeAi();else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiOpen?'Skjul':'Skrivepartner'}</span></button></div>}
+    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button ref={aiLauncher} type="button" aria-expanded={aiVisible} aria-controls={aiPanelId} aria-label={aiVisible?'Skjul AI-panelet':'Åbn AI-panelet'} disabled={!enabled} onClick={()=>{if(aiVisible)closeAi();else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiVisible?'Skjul':'Skrivepartner'}</span></button></div>}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false} emojiPicker={false}>
       {!session.readOnly && <>
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}{!notebook && <button type="button" className="native-ai-selection-button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled}>✦ AI</button>}</FormattingToolbar>} />
@@ -591,7 +606,7 @@ function ConnectedEditor({session}:{session:Session}) {
       </>}
     </BlockNoteView>
     </div>
-    {!session.readOnly && !notebook && <NativeAiPanel review={aiReview} pageId={session.context.pageId} pageTitle={session.context.title} panelId={aiPanelId} enabled={enabled} open={aiOpen} target={aiAnchor} onClose={closeAi} onReveal={revealAi} onCapture={()=>openAi()} getToken={()=>validToken(session)} />}
+    {!session.readOnly && !notebook && <NativeAiPanel review={aiReview} pageId={session.context.pageId} pageTitle={session.context.title} panelId={aiPanelId} layoutRoot={aiLayoutRoot} enabled={enabled} open={aiVisible} target={aiAnchor} onClose={closeAi} onReveal={revealAi} onCapture={()=>openAi()} getToken={()=>validToken(session)} />}
     </div>
   </OpenAiOnBlockProvider>;
 }
@@ -672,7 +687,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
   destroy(element);
   if(!context.canEdit)return mountReadOnly(element,context,accessToken,dotnetCallbacks);
   if(!context.pageId || !accessToken) throw new Error('Dokument og login er påkrævet.');
-  const session:Session={root:createRoot(element),context,callbacks:dotnetCallbacks,doc:new Y.Doc(),ready:false,inSync:false,connected:false,dirty:false,generation:0,destroyed:false,readOnly:false,accessToken,pendingUploads:0,status:'connecting',detail:'Forbinder til dokumentet…',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
+  const session:Session={root:createRoot(element),element,context,callbacks:dotnetCallbacks,doc:new Y.Doc(),ready:false,inSync:false,connected:false,dirty:false,generation:0,destroyed:false,readOnly:false,accessToken,pendingUploads:0,status:'connecting',detail:'Forbinder til dokumentet…',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
   const onBeforeUnload=(event:BeforeUnloadEvent)=>{if(session.dirty || session.pendingUploads>0 || session.drawingDirty){event.preventDefault();event.returnValue='';}};
@@ -711,7 +726,7 @@ export async function mountReadOnly(element:HTMLElement,context:EditorContext,ac
   const doc=new Y.Doc();
   try {Y.applyUpdate(doc,Uint8Array.from(atob(snapshot),value=>value.charCodeAt(0)));}
   catch {doc.destroy();throw new Error('Den udgivne side kunne ikke åbnes.');}
-  const session:Session={root:createRoot(element),context:{...context,canEdit:false},callbacks:dotnetCallbacks,doc,ready:true,inSync:true,connected:false,dirty:false,generation:0,destroyed:false,readOnly:true,accessToken,pendingUploads:0,status:'synced',detail:'Udgivet undervisningsindhold',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
+  const session:Session={root:createRoot(element),element,context:{...context,canEdit:false},callbacks:dotnetCallbacks,doc,ready:true,inSync:true,connected:false,dirty:false,generation:0,destroyed:false,readOnly:true,accessToken,pendingUploads:0,status:'synced',detail:'Udgivet undervisningsindhold',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
   const removeThemeListener=observeTheme(session);

@@ -44,6 +44,40 @@ public sealed class NotionSidebarTests
     }
 
     [Fact]
+    public async Task Focus_temporarily_hides_the_side_columns_without_reloading_or_remounting_the_document()
+    {
+        using var api = new SidebarApi();
+        var javascript = new SidebarJavascript();
+        using var context = await CreateContext(api, javascript);
+        var page = Render(context, api, javascript);
+        var requests = api.Requests.Count;
+        var workspace = page.Find(".notion-workspace");
+
+        page.Find(".notion-focus-toggle").Click();
+        Assert.Equal("true", page.Find(".notion-focus-toggle").GetAttribute("aria-pressed"));
+        Assert.Contains("notion-focus-mode", workspace.ClassList);
+        Assert.Contains("sidebar-open", workspace.ClassList);
+        Assert.Equal("false", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
+        Assert.Equal("Afslut fokus", page.Find(".notion-focus-toggle").TextContent.Trim());
+
+        page.Find(".notion-focus-toggle").Click();
+        Assert.Equal("false", page.Find(".notion-focus-toggle").GetAttribute("aria-pressed"));
+        Assert.DoesNotContain("notion-focus-mode", workspace.ClassList);
+        Assert.Equal("true", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
+        Assert.Single(page.FindAll(".notion-ai-slot"));
+        Assert.Contains("setFocus", javascript.Sidebar.Calls);
+
+        await page.InvokeAsync(() => page.Instance.OnNotionFocusMode(true));
+        Assert.Contains("notion-focus-mode", workspace.ClassList);
+        page.Find(".notion-sidebar-toggle").Click();
+        Assert.DoesNotContain("notion-focus-mode", workspace.ClassList);
+        Assert.Equal("true", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
+        Assert.Equal(requests, api.Requests.Count);
+        Assert.Equal(1, javascript.Editor.Mounts);
+        Assert.Equal(0, javascript.Editor.Destroys);
+    }
+
+    [Fact]
     public async Task Search_finds_children_in_closed_folders_without_fetching_or_remounting()
     {
         using var api = new SidebarApi();
@@ -211,6 +245,7 @@ public sealed class NotionSidebarTests
             await javascript.Sidebar.MountStarted.Task.WaitAsync(Timeout);
             Assert.Equal(1, javascript.Editor.Mounts);
             Assert.Equal("Relationer og nøgler", page.Find("#notion-title").GetAttribute("value"));
+            Assert.True(page.Find(".notion-focus-toggle").HasAttribute("disabled"));
 
             // The user can close and reopen before browser preferences arrive.
             page.Find(".notion-sidebar-toggle").Click();
@@ -223,6 +258,7 @@ public sealed class NotionSidebarTests
             Assert.Equal("true", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
             Assert.Equal(1, javascript.Editor.Mounts);
             Assert.Equal(0, javascript.Editor.Destroys);
+            Assert.False(page.Find(".notion-focus-toggle").HasAttribute("disabled"));
 
             await page.InvokeAsync(() => page.Instance.CloseNotionSidebar());
             Assert.Equal("false", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
