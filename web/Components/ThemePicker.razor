@@ -1,0 +1,28 @@
+@using Mercantec.Tech.Web.Theming
+<details class="theme-picker">
+    <summary class="theme-trigger" aria-label="@($"Skift tema, aktuelt {Current.Name}")" aria-controls="@PanelId" title="@($"Aktuelt tema: {Current.Name}")"><UiIcon Name="@Current.Icon" /><span>Tema</span><span class="theme-chevron" aria-hidden="true"></span></summary>
+    <section id="@PanelId" class="theme-menu" aria-label="Vælg tema">
+        <h2>Vælg tema</h2>
+        <p class="theme-intro">Dit valg gemmes i denne browser.</p>
+        <div class="theme-options">
+            @foreach (var theme in ThemeCatalog.All)
+            {
+                var selected = Value == theme.Id;
+                <button type="button" class="theme-option" aria-label="@theme.Name" aria-pressed="@(selected ? "true" : "false")" aria-describedby="@($"{Id}-{theme.Id}-description")" @onclick="() => Select(theme.Id)">
+                    <span class="theme-option-icon"><UiIcon Name="@theme.Icon" /></span>
+                    <span class="theme-option-copy"><strong>@theme.Name</strong><small id="@($"{Id}-{theme.Id}-description")">@theme.Description</small></span>
+                    <span class="theme-option-check" aria-hidden="true">@if (selected) { <UiIcon Name="check" /> }</span>
+                </button>
+            }
+        </div>
+        <p class="theme-current" role="status">@Current.Name er valgt</p>
+    </section>
+</details>
+@code {
+    [Parameter] public string Id { get; set; } = "lup-theme-picker";
+    [Parameter] public string Value { get; set; } = "light";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    private string PanelId => Id + "-panel";
+    private ThemeDefinition Current => ThemeCatalog.Find(Value);
+    private Task Select(string id) => ThemeCatalog.All.Any(theme => theme.Id == id) ? ValueChanged.InvokeAsync(id) : Task.CompletedTask;
+}

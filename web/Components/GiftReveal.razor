@@ -1,5 +1,10 @@
 <section class="gift-theatre @(Revealed ? "is-revealed" : "") @(_motionAllowed ? "motion-allowed" : "")" aria-label="Din gave" @key="_replay">
-    <div class="gift-dedication"><span>@(Preview ? "Din pakke, før du sender den" : "En gave fra " + Sender)</span><h3>@(Revealed ? "Den var til dig." : "Nogen har tænkt på dig.")</h3></div>
+    <div class="gift-dedication"><span>@(Preview ? "Din pakke, før du sender den" : "En gave fra " + Sender)</span><h3 id="@HeadingId" tabindex="@(HeadingId is not null ? "-1" : null)">@(Preview ? string.IsNullOrWhiteSpace(Recipient) ? "Sådan ser din gave ud" : "Til " + Recipient : Revealed ? "Den var til dig." : "Nogen har tænkt på dig.")</h3></div>
+    @if (Preview)
+    {
+        <p class="gift-preview-description">@Title <span aria-hidden="true">·</span> @WrappingName</p>
+        <p class="gift-preview-note">Dette er kun en forhåndsvisning. Gaven bliver ikke sendt herfra.</p>
+    }
     <div class="gift-magic-stage @(Revealed ? "is-open" : "") @(_animate ? "just-opened" : "")" @key="_replay">
         <span class="gift-orbit orbit-one" aria-hidden="true"></span><span class="gift-orbit orbit-two" aria-hidden="true"></span><span class="gift-halo" aria-hidden="true"></span>
         <span class="gift-star star-one" aria-hidden="true">✦</span><span class="gift-star star-two" aria-hidden="true">✧</span><span class="gift-star star-three" aria-hidden="true">✦</span>
@@ -11,9 +16,12 @@
     {
         <div class="gift-message-paper @(_animate ? "just-opened" : "")" role="status"><span class="gift-letter-seal"><UiIcon Name="@Icon" /></span><h3>@Title</h3><p>@(string.IsNullOrWhiteSpace(Message) ? "En lille hilsen og et ønske om en dejlig dag." : Message)</p><span class="gift-signature">Fra @Sender<span aria-hidden="true">♡</span></span></div>
     }
-    <div class="gift-reveal-actions"><button type="button" class="gift-secondary" @onclick="OnBack">Tilbage til gaver</button>@if (Revealed) { <button type="button" class="gift-replay" @onclick="Replay" title="Afspil gaveanimationen. Dette valg gælder også ved reduceret bevægelse."><UiIcon Name="loop" />Afspil åbningen</button> }</div>
+    <div class="gift-reveal-actions"><button type="button" class="gift-secondary" disabled="@Busy" @onclick="Back">@BackLabel</button>@if (Revealed) { <button type="button" class="gift-replay" disabled="@Busy" @onclick="Replay" title="Afspil gaveanimationen. Dette valg gælder også ved reduceret bevægelse."><UiIcon Name="loop" />Afspil åbningen</button> }</div>
 </section>
 @code {
+    [Parameter] public string? Recipient { get; set; }
+    [Parameter] public string? HeadingId { get; set; }
+    [Parameter] public string BackLabel { get; set; } = "Tilbage til gaver";
     [Parameter] public string Sender { get; set; } = "En fra LUP";
     [Parameter] public string Title { get; set; } = "En lille julehilsen";
     [Parameter] public string Message { get; set; } = "";
@@ -28,6 +36,8 @@
     private int _replay;
     private bool _animate, _motionAllowed;
     private static readonly string[] Confetti = ["#f5d38c", "#d66479", "#8dc5a4", "#f9f0cf"];
-    private async Task Open() { _animate = true; await OnOpen.InvokeAsync(); }
-    private void Replay() { _motionAllowed = _animate = true; _replay++; }
+    private async Task Open() { if (Busy || Revealed || !CanOpen) return; _animate = true; await OnOpen.InvokeAsync(); }
+    private string WrappingName => Wrapping switch { "pine" => "Grøn gave", "gold" => "Gylden gave", _ => "Rød gave" };
+    private Task Back() => !Busy ? OnBack.InvokeAsync() : Task.CompletedTask;
+    private void Replay() { if (Busy) return; _motionAllowed = _animate = true; _replay++; }
 }

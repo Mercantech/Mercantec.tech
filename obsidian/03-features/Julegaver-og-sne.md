@@ -65,3 +65,11 @@ Produktionsdeployment følger [[Dokploy-drift]]. Begge tjenester skal opdateres;
 Kaspers tomme liste på mercantec.tech hang sammen med elevrollen og holdfiltreringen. Adgangen til registrerede undervisere er derfor udvidet til alle indloggede elever; andre elever er fortsat filtreret efter faktiske hold. Modtagervælgeren forklarer adgangen, har en Opdatér-knap og opdaterer listen hvert 20. sekund, mens Send en gave er åben. En gemt søgning nulstilles, når vinduet åbnes. Auth-roller ændres ikke af gavefunktionen. Hvis Kasper skal oprette afstemninger, skal den korrekte underviserrolle tildeles i Mercantec Auth.
 
 Åbning har fået sin egen scene med papirfolder, bånd, løftet låg, lys, konfetti og et personligt kort. På stor skærm står pakke og hilsen ved siden af hinanden; på mobil under hinanden. Afspil åbningen genafspiller kun animationen og sender ikke API-kald eller belønninger igen. Almindelig åbning respekterer reduceret bevægelse; knappen Afspil åbningen er et aktivt valg af animation også under den præference.
+
+## Tydelige valg og gaveoverblik · 8. november 2026
+
+Modtager, gavetype og indpakning har nu tydelige valgte tilstande. Gave- og indpakningskort viser både flueben og **Valgt**, og indpakningerne har navne. Den valgte modtager bliver stående over søgeresultaterne, også når søgningen ændres. Før afsendelse vises et samlet overblik med modtager, gave, indpakning og hilsen. Forhåndsvisningen viser modtageren og forklarer, at der ikke sendes noget fra visningen.
+
+Valg og faner låses under afsendelse. Ved fejl bevares valgene, og afsendelse bruger fortsat samme forsøgs-ID ved genprøvning. Bekræftelser og fejl vises øverst og får fokus; fokus flyttes også korrekt mellem redigering og forhåndsvisning. Indlæsning og forbindelsesfejl adskilles fra en tom indbakke.
+
+Komponeringen ligger i `GiftComposer.razor`; samlet gavestil ligger i `css/lup-gifts.css`. Komponenttests bruger syntetiske modtagere og tester valgte tilstande, overblik, søgning og låsning under afsendelse uden at sende gaver til rigtige personer.

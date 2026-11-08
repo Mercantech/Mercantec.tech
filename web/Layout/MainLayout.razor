@@ -36,6 +36,7 @@
                     </nav>
                 </details>
                 <div class="lup-tools">
+                    <ThemePicker Value="@_theme" ValueChanged="SetTheme" />
                     <a class="lup-search-link" href="/search" aria-label="Søg"><UiIcon Name="search" /><span>Søg</span></a>
                     <NotificationBell />
                     <details class="lup-account v3-navgroup">
@@ -70,7 +71,8 @@
                 </nav>
                 <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/library">Bibliotek</a><a href="/explore/projects">Projekter</a><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
-                    <details class="lup-account v3-navgroup"><summary aria-label="Vælg udseende"><UiIcon Name="@ThemeCatalog.Find(_theme).Icon" /></summary><div class="v3-menu"><label class="field">Udseende<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></div></details><button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
+                    <ThemePicker Value="@_theme" ValueChanged="SetTheme" />
+                    <button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
                 </div>
             }
         </header>
@@ -143,7 +145,7 @@
         catch (JSException) { return; }
         StateHasChanged();
     }
-    private async Task SetTheme(ChangeEventArgs e) { _theme = e.Value?.ToString() ?? "light"; await Js.InvokeVoidAsync("lupTheme.set", _theme); }
+    private async Task SetTheme(string theme) { _theme = theme; await Js.InvokeVoidAsync("lupTheme.set", _theme); }
     private async Task StartLogin()
     {
         if (!Auth.IsInitialized || Auth.IsAuthenticated || _loginBusy) return;

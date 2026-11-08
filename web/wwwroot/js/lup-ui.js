@@ -2,7 +2,6 @@
     const themes = new Set(["system", "light", "dark", "christmas", "newyear", "hacker"]);
     const read = (key, fallback = null) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
     const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* Themes also work without storage. */ } };
-    const signedIn = () => { try { return !!sessionStorage.getItem("mt_access_token"); } catch { return false; } };
     const normalize = value => themes.has(value) ? value : "light";
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -96,7 +95,6 @@
     window.lupTheme = {
         get() {
             const stored = read("lup-theme");
-            if (!signedIn() && (!stored || stored === "system")) return "light";
             return normalize(stored ?? "light");
         },
         resolved(theme) {
@@ -181,7 +179,16 @@ window.lupDemo = {
 
 window.lupGiftUi = {
     open(id) { const dialog = document.getElementById(id); if (dialog && !dialog.open) dialog.showModal(); },
-    close(id) { const dialog = document.getElementById(id); if (dialog?.open) dialog.close(); }
+    close(id) { const dialog = document.getElementById(id); if (dialog?.open) dialog.close(); },
+    focus(id, selector) {
+        const dialog = document.getElementById(id);
+        if (!dialog?.open) return;
+        const target = dialog.querySelector(selector);
+        if (!target) return;
+        if (selector === "#gift-feedback" || selector === "#gift-error") dialog.scrollTop = 0;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ block: "nearest", behavior: "auto" });
+    }
 };
 
 /** Kopiér tekst til udklipsholder — bruges af kursus-kodeblokke. */

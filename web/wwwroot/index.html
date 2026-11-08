@@ -9,12 +9,8 @@
         (() => {
             const themes = new Set(["system", "light", "dark", "christmas", "newyear", "hacker"]);
             let stored = null;
-            let authed = false;
             try { stored = localStorage.getItem("lup-theme"); } catch { /* Tomt lager starter lyst. */ }
-            try { authed = !!sessionStorage.getItem("mt_access_token"); } catch { /* Ingen session er logget ud. */ }
-            let theme = "light";
-            if (authed) theme = themes.has(stored) ? stored : "light";
-            else if (stored && stored !== "system" && themes.has(stored)) theme = stored;
+            const theme = themes.has(stored) ? stored : "light";
             const dark = theme === "dark" || theme === "christmas" || theme === "newyear" || theme === "hacker"
                 || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
             document.documentElement.dataset.theme = theme;
@@ -30,11 +26,12 @@
     <link rel="stylesheet" href="css/app.css?v=2" />
     <link rel="stylesheet" href="lup/lup.css?v=8" />
     <link rel="stylesheet" href="css/lup-refinements.css?v=12" />
-    <link rel="stylesheet" href="css/lup-themes.css?v=10" />
+    <link rel="stylesheet" href="css/lup-themes.css?v=11" />
     <link rel="stylesheet" href="css/lup-newyear.css?v=3" />
     <link rel="stylesheet" href="css/lup-newyear-theme.css?v=2" />
     <link rel="stylesheet" href="css/lup-social.css?v=9" />
     <link rel="stylesheet" href="css/lup-characters.css?v=4" />
+    <link rel="stylesheet" href="css/lup-gifts.css?v=1" />
     <style>
         img.lc-mark {
             width: 18px;
@@ -48,7 +45,7 @@
         }
     </style>
     <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="Mercantec.Tech.Web.styles.css?v=roulette-themes-v2" rel="stylesheet" />
+    <link href="Mercantec.Tech.Web.styles.css?v=gift-theme-20261108" rel="stylesheet" />
     <link href="manifest.webmanifest" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
@@ -70,7 +67,7 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="lup/vendor/lucide.min.js"></script>
-    <script src="js/lup-ui.js?v=12"></script>
+    <script src="js/lup-ui.js?v=gift-theme-20261108"></script>
     <script src="js/lup-newyear.js?v=3"></script>
     <script src="js/course-mermaid.js?v=1"></script>
     <script>

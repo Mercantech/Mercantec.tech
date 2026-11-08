@@ -20,3 +20,16 @@ main { flex:1; }
 .lup-header.member-header .member-nav ::deep a { white-space:nowrap; }
 .lup-header.member-header .lup-account .v3-menu { min-width:215px; }
 @media(max-width:900px) { .lup-header.member-header .member-nav { display:none; } .lup-header.member-header .lup-mobile-nav { display:block; } }
+
+@media(max-width:480px) {
+    .lup-header.public-header,.lup-header.member-header { padding-left:12px; padding-right:12px; gap:10px; }
+    .lup-header .lup-tools { gap:6px; }
+    .lup-header .brand { font-size:25px; }
+    .lup-header .lup-search-link { min-width:28px; justify-content:center; }
+    .lup-header .lup-search-link span { display:none; }
+    .lup-header .lup-search-link ::deep .ui-icon { display:block; }
+}
+
+/* Open header menus stay above the fixed seasonal controls. */
+.lup:has(.theme-picker[open]) { z-index:46; }
+.lup-header:has(details[open]) { z-index:50; }

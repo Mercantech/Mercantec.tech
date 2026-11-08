@@ -112,3 +112,19 @@ test('New Year selection survives reload before login and uses the dark palette'
     assert.equal(reloaded.document.documentElement.dataset.bsTheme, 'dark');
     assert.equal(reloaded.pending.size, 0);
 });
+
+test('Explicit System theme survives a guest reload and resolves the device palette before first paint', () => {
+    const app = scene(false);
+    app.theme.set('system');
+    const reloaded = scene(false, Object.fromEntries(app.storage));
+    assert.equal(reloaded.theme.get(), 'system');
+    reloaded.theme.apply(reloaded.theme.get());
+    assert.equal(reloaded.document.documentElement.dataset.theme, 'system');
+    const boot = fs.readFileSync(path.join(__dirname, '../web/wwwroot/index.html'), 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
+    const root = { dataset: {} };
+    vm.runInNewContext(boot, { document: { documentElement: root },
+        localStorage: { getItem: () => 'system' },
+        matchMedia: () => ({ matches: true }) });
+    assert.equal(root.dataset.theme, 'system');
+    assert.equal(root.dataset.bsTheme, 'dark');
+});

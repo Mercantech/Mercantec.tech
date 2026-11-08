@@ -1,0 +1,146 @@
+<div class="gift-composer" aria-busy="@(Busy ? "true" : "false")">
+    <h3 id="gift-compose-title" tabindex="-1">Gør gaven til din egen</h3>
+    <p class="gift-compose-intro">Vælg en modtager, en lille gave og en indpakning. Det er gratis at sende en hilsen.</p>
+
+    <fieldset disabled="@Busy">
+        <legend>Hvem skal have en gave?</legend>
+        <p class="gift-scope">@ScopeDescription</p>
+        <div class="gift-recipient-tools">
+            <label class="gift-search-label" for="gift-recipient-search">Find modtager</label>
+            <button type="button" class="gift-refresh" disabled="@(Busy || Loading)" @onclick="Reload">@(Loading ? "Opdaterer…" : "Opdatér modtagere")</button>
+        </div>
+        <input id="gift-recipient-search" class="gift-input" type="search" value="@_search" @oninput="SearchChanged" disabled="@Busy" placeholder="Søg efter et navn" />
+
+        <div class="gift-recipient-selection" role="status" aria-live="polite">
+            @if (SelectedRecipient is { } chosenRecipient)
+            {
+                <span class="gift-selection-check" aria-hidden="true">✓</span>
+                <span>Valgt modtager<strong>@chosenRecipient.DisplayName</strong></span>
+                <button type="button" class="gift-clear-recipient" disabled="@Busy" @onclick="ClearRecipient" aria-label="Ryd valg af modtager">Ryd valg</button>
+            }
+            else
+            {
+                <span>Vælg en modtager fra listen nedenfor.</span>
+            }
+        </div>
+        @if (Loading)
+        {
+            <p class="gift-muted" role="status">Henter modtagere…</p>
+        }
+        <div class="gift-recipients">
+            @foreach (var person in FilteredRecipients)
+            {
+                var recipientChosen = RecipientId == person.UserSub;
+                <label class="gift-recipient @(recipientChosen ? "is-selected" : "")">
+                    <input type="radio" name="gift-recipient" value="@person.UserSub" checked="@recipientChosen" disabled="@Busy" @onchange="() => SelectRecipient(person.UserSub)" />
+                    <span class="gift-initials" aria-hidden="true">@Initials(person.DisplayName)</span>
+                    <span class="gift-recipient-name"><strong>@person.DisplayName</strong><small>@(person.IsTeacher ? "Underviser" : "Elev")</small></span>
+                    @if (recipientChosen) { <span class="gift-recipient-chosen">Valgt</span> }
+                </label>
+            }
+        </div>
+        @if (!Loading && !HasError && Recipients.Count == 0)
+        {
+            <p class="gift-muted">Ingen modtagere endnu. Undervisere og personer fra dit hold vises, når de har besøgt LUP med deres konto.</p>
+        }
+        else if (!Loading && !HasError && Recipients.Count > 0 && !FilteredRecipients.Any())
+        {
+            <p class="gift-muted">Ingen navne matcher din søgning. Prøv et andet navn.</p>
+        }
+    </fieldset>
+
+    <fieldset disabled="@Busy">
+        <legend>Hvad vil du give?</legend>
+        <div class="gift-kinds">
+            @foreach (var kind in Kinds)
+            {
+                var kindChosen = Kind == kind.Id;
+                <button type="button" class="gift-kind" aria-pressed="@(kindChosen ? "true" : "false")" disabled="@Busy" @onclick="() => SelectKind(kind.Id)">
+                    <UiIcon Name="@kind.Icon" /><span class="gift-choice-name">@kind.Title</span>
+                    <span class="gift-choice-state"><span class="gift-choice-check" aria-hidden="true">@(kindChosen ? "✓" : "")</span>@(kindChosen ? "Valgt" : "Vælg")</span>
+                </button>
+            }
+        </div>
+    </fieldset>
+
+    <label class="gift-label" for="gift-message">Din hilsen <span class="gift-optional">(valgfri)</span></label>
+    <textarea id="gift-message" class="gift-input" maxlength="240" value="@Message" @oninput="ChangeMessage" disabled="@Busy" aria-describedby="gift-message-count" placeholder="Skriv en lille hilsen til modtageren…"></textarea>
+    <p id="gift-message-count" class="gift-message-count">@Message.Length / 240 tegn</p>
+
+    <fieldset disabled="@Busy">
+        <legend>Vælg indpakning</legend>
+        <div class="gift-wraps">
+            @foreach (var wrap in Wraps)
+            {
+                var wrapChosen = Wrapping == wrap.Id;
+                <button type="button" class="gift-wrap-option" aria-pressed="@(wrapChosen ? "true" : "false")" disabled="@Busy" @onclick="() => SelectWrapping(wrap.Id)">
+                    <span class="gift-wrap-swatch @wrap.Id" aria-hidden="true"></span>
+                    <span class="gift-choice-name">@wrap.Name</span>
+                    <span class="gift-choice-state"><span class="gift-choice-check" aria-hidden="true">@(wrapChosen ? "✓" : "")</span>@(wrapChosen ? "Valgt" : "Vælg")</span>
+                </button>
+            }
+        </div>
+    </fieldset>
+
+    <section class="gift-review" aria-labelledby="gift-review-title">
+        <h4 id="gift-review-title">Din gave, klar til afsendelse</h4>
+        <dl>
+            <div><dt>Til</dt><dd>@(SelectedRecipient?.DisplayName ?? "Vælg en modtager")</dd></div>
+            <div><dt>Gave</dt><dd>@SelectedKind.Title</dd></div>
+            <div><dt>Indpakning</dt><dd>@SelectedWrapping.Name</dd></div>
+        </dl>
+        <p class="gift-review-message-label">Din hilsen</p>
+        <blockquote>@(string.IsNullOrWhiteSpace(Message) ? DefaultMessage : Message)</blockquote>
+        @if (string.IsNullOrWhiteSpace(Message)) { <p class="gift-review-default">Denne hilsen følger med, når du ikke skriver din egen.</p> }
+    </section>
+    <div class="gift-actions">
+        <button type="button" class="gift-primary" disabled="@(!CanSend)" @onclick="Send">@(Busy ? "Sender…" : SelectedRecipient is { } recipientForSend ? "Send til " + recipientForSend.DisplayName : "Vælg en modtager for at sende")</button>
+        <button type="button" class="gift-secondary" disabled="@Busy" @onclick="Preview">Se pakken før du sender</button>
+    </div>
+    @if (Busy) { <p class="gift-send-hint" role="status">Gaven sendes. Vent et øjeblik…</p> }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<GiftRecipient> Recipients { get; set; } = [];
+    [Parameter] public Guid? RecipientId { get; set; }
+    [Parameter] public EventCallback<Guid?> RecipientIdChanged { get; set; }
+    [Parameter] public string Kind { get; set; } = "cheer";
+    [Parameter] public EventCallback<string> KindChanged { get; set; }
+    [Parameter] public string Wrapping { get; set; } = "berry";
+    [Parameter] public EventCallback<string> WrappingChanged { get; set; }
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public EventCallback<string> MessageChanged { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public bool HasError { get; set; }
+    [Parameter] public string ScopeDescription { get; set; } = "Vælg en person fra listen.";
+    [Parameter] public EventCallback OnReload { get; set; }
+    [Parameter] public EventCallback OnPreview { get; set; }
+    [Parameter] public EventCallback OnSend { get; set; }
+
+    private string _search = "";
+    private const string DefaultMessage = "En lille hilsen og et ønske om en dejlig dag.";
+    private static readonly (string Id, string Title, string Icon)[] Kinds = [("cheer", "En pose juleglæde", "tree"), ("thanks", "Tak for hjælpen", "heart"), ("warmth", "Lidt ekstra varme", "star")];
+    private static readonly (string Id, string Name)[] Wraps = [("berry", "Rød gave"), ("pine", "Grøn gave"), ("gold", "Gylden gave")];
+    private GiftRecipient? SelectedRecipient => Recipients.FirstOrDefault(person => person.UserSub == RecipientId);
+    private IEnumerable<GiftRecipient> FilteredRecipients => Recipients.Where(person => person.DisplayName.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+    private (string Id, string Title, string Icon) SelectedKind => Kinds.FirstOrDefault(kind => kind.Id == Kind, Kinds[0]);
+    private (string Id, string Name) SelectedWrapping => Wraps.FirstOrDefault(wrap => wrap.Id == Wrapping, Wraps[0]);
+    private bool CanSend => !Busy && !Loading && !HasError && SelectedRecipient is not null;
+
+    private void SearchChanged(ChangeEventArgs e) { if (!Busy) _search = e.Value?.ToString() ?? ""; }
+    private Task SelectRecipient(Guid id) => !Busy && Recipients.Any(person => person.UserSub == id) ? RecipientIdChanged.InvokeAsync(id) : Task.CompletedTask;
+    private Task ClearRecipient() => !Busy ? RecipientIdChanged.InvokeAsync(null) : Task.CompletedTask;
+    private Task SelectKind(string id) => !Busy && Kinds.Any(kind => kind.Id == id) ? KindChanged.InvokeAsync(id) : Task.CompletedTask;
+    private Task SelectWrapping(string id) => !Busy && Wraps.Any(wrap => wrap.Id == id) ? WrappingChanged.InvokeAsync(id) : Task.CompletedTask;
+    private Task ChangeMessage(ChangeEventArgs e)
+    {
+        if (Busy) return Task.CompletedTask;
+        var text = e.Value?.ToString() ?? "";
+        return MessageChanged.InvokeAsync(text[..Math.Min(240, text.Length)]);
+    }
+    private Task Reload() => !Busy && !Loading ? OnReload.InvokeAsync() : Task.CompletedTask;
+    private Task Preview() => !Busy ? OnPreview.InvokeAsync() : Task.CompletedTask;
+    private Task Send() => CanSend ? OnSend.InvokeAsync() : Task.CompletedTask;
+    private static string Initials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0])));
+}
