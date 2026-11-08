@@ -107,6 +107,90 @@ public sealed class ReferencesTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ConnectionsSearchExcludesPeopleAndPollsBeforeCountingWithoutChangingMentionSearchOrResolution()
+    {
+        var poll = new PollRound { Id = Guid.NewGuid(), HoldId = hold, Question = "Anna afstemning", State = "open" };
+        db.PollRounds.Add(poll);
+        var content = Page("Anna dokument", null);
+        var hiddenNotebook = new Notebook { Id = Guid.NewGuid(), OwnerSub = outsider };
+        db.NotebookDocuments.Add(new() { Id = Guid.NewGuid(), Notebook = hiddenNotebook, Title = "Anna privat note" });
+        await db.SaveChangesAsync();
+        var person = Ref("person", student);
+        var member = Ref("member", await db.Memberships.Select(m => m.Id).SingleAsync());
+        var ordinary = await service.SearchAsync(User(student), "Anna", null, null, 0, 100, false, default);
+        Assert.Contains(ordinary.Items, r => r.Reference == person);
+        Assert.Contains(ordinary.Items, r => r.Reference == Ref("poll", poll.Id));
+
+        var graphSearch = await service.SearchAsync(User(student), "Anna", null, null, 0, 1, false, default, contentOnly: true);
+        Assert.Equal(2, graphSearch.Total); // The page and its canonical collection remain distinct content references.
+        Assert.Equal(content.Id.ToString("D"), Assert.Single(graphSearch.Items).Reference.Id);
+        Assert.Empty((await service.SearchAsync(User(student), "Anna", null, null, 2, 1, false, default, contentOnly: true)).Items);
+        Assert.Empty((await service.SearchAsync(new(), "Anna", null, null, 0, 100, false, default, contentOnly: true)).Items);
+        Assert.Equal(3, (await service.ResolveAsync(User(student), [person, member, Ref("poll", poll.Id)], null, false, default)).Length);
+
+        var controller = new Mercantec.Tech.Api.Controllers.ReferencesController(db)
+        {
+            ControllerContext = new() { HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext { User = User(student) } }
+        };
+        var response = Assert.IsType<Microsoft.AspNetCore.Mvc.OkObjectResult>(await controller.Search(default, q: "Anna", contentOnly: true));
+        var controllerSearch = Assert.IsType<ReferenceSearchResult>(response.Value);
+        Assert.Equal(2, controllerSearch.Total);
+        Assert.Equal(new[] { Ref("notion-page", content.Id), Ref("collection", content.Id) }.ToHashSet(), controllerSearch.Items.Select(r => r.Reference).ToHashSet());
+    }
+
+    [Fact]
+    public async Task ConnectionsGraphRemovesPeoplePollsAndTheirEdgesBeforePaginationAndKeepsContentAccessPolicies()
+    {
+        var member = Ref("member", await db.Memberships.Select(m => m.Id).SingleAsync());
+        var poll = new PollRound { Id = Guid.NewGuid(), HoldId = hold, Question = "Anna afstemning", State = "open" };
+        db.PollRounds.Add(poll);
+        var hidden = new NotebookDocument { Id = Guid.NewGuid(), Notebook = new() { Id = Guid.NewGuid(), OwnerSub = outsider }, Title = "Skjult elevnote" };
+        db.NotebookDocuments.Add(hidden);
+        var source = Ref("notion-page", page.Id);
+        var person = Ref("person", student);
+        foreach (var target in new[] { person, member, Ref("poll", poll.Id), Ref("notebook-page", noteId), Ref("notebook-page", hidden.Id) })
+            db.EntityReferenceLinks.Add(new() { SourceKind = source.Kind, SourceId = source.Id, TargetKind = target.Kind, TargetId = target.Id, Visibility = "published" });
+        await db.SaveChangesAsync();
+
+        foreach (var principal in new[] { User(student), User(teacher, true) })
+        {
+            var expected = await service.SearchAsync(principal, "", null, null, 0, 1000, false, default, contentOnly: true);
+            var graph = await service.GraphAsync(principal, new(Limit: 400), default);
+            Assert.Equal(expected.Total, graph.Total);
+            Assert.Equal(graph.Total, graph.Nodes.Length);
+            Assert.DoesNotContain(graph.Nodes, n => n.Entity.Reference.Kind is "person" or "member" or "poll");
+            Assert.DoesNotContain(graph.Edges, e => new[] { person.Key, member.Key, Ref("poll", poll.Id).Key }.Any(key => e.FromKey == key || e.ToKey == key));
+            foreach (var offset in new[] { 0, 3 })
+            {
+                var slice = await service.GraphAsync(principal, new(Offset: offset, Limit: 3), default);
+                Assert.Equal(graph.Total, slice.Total);
+                Assert.Equal(graph.Nodes.Skip(offset).Take(3).Select(n => n.Key), slice.Nodes.Select(n => n.Key));
+                Assert.Equal(offset + slice.Nodes.Length < graph.Total, slice.HasMore);
+            }
+        }
+        var studentGraph = await service.GraphAsync(User(student), new(Focus: source), default);
+        Assert.Contains(studentGraph.Edges, e => e.FromKey == source.Key && e.ToKey == Ref("notebook-page", noteId).Key);
+        Assert.DoesNotContain(studentGraph.Nodes, n => n.Entity.Reference == Ref("notebook-page", hidden.Id));
+        Assert.Contains(await service.BacklinksAsync(User(student), person, false, default), r => r.Reference == source);
+        Assert.Empty((await service.GraphAsync(new(), new(), default)).Nodes);
+    }
+
+    [Theory]
+    [InlineData("person")]
+    [InlineData("member")]
+    [InlineData("poll")]
+    public async Task ConnectionsFocusCannotReintroduceHiddenTypes(string kind)
+    {
+        var poll = new PollRound { Id = Guid.NewGuid(), HoldId = hold, Question = "Spørgsmål", State = "open" };
+        db.PollRounds.Add(poll); await db.SaveChangesAsync();
+        var id = kind switch { "person" => student, "member" => await db.Memberships.Select(m => m.Id).SingleAsync(), _ => poll.Id };
+        var reference = Ref(kind, id);
+        Assert.Single(await service.ResolveAsync(User(student), [reference], null, false, default));
+        var graph = await service.GraphAsync(User(student), new(Focus: reference, ScopeKind: "hold", ScopeId: hold.ToString("D"), Offset: 1, Limit: 1), default);
+        Assert.Empty(graph.Nodes); Assert.Empty(graph.Edges); Assert.Equal(0, graph.Total); Assert.False(graph.HasMore);
+    }
+
+    [Fact]
     public async Task CrossDomainEdgesAndBacklinksDisappearWhenSourceShareIsRevoked()
     {
         await service.BaselineNotionAsync(page.Id, default);

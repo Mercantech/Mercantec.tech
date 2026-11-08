@@ -1,1 +1,66 @@
-.reference-toolbar{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:16px}.reference-toolbar label{display:grid;gap:6px}.reference-toolbar input[type=search]{min-width:min(320px,75vw)}.reference-toolbar label:has(input[type=checkbox]){display:flex;align-items:center;min-height:44px}.notion-graph-stage{height:min(65vh,650px);min-height:320px;position:relative;border:1px solid var(--rule,#ddd);border-radius:16px;overflow:hidden;background:var(--paper,#fff)}.reference-canvas{height:100%;width:100%}.reference-zoom{position:absolute;bottom:14px;right:14px;display:flex;gap:6px}.reference-results{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}.reference-results button{display:grid;text-align:left;width:100%;gap:6px}.reference-count,.reference-list small{opacity:.7}.reference-list ul{padding:0;list-style:none;display:grid;gap:12px}.reference-list li{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.reference-selected{margin:16px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center}.reference-selected h3,.reference-selected p{width:100%;margin:0}.reference-list{margin-top:20px}.reference-list summary{min-height:44px;cursor:pointer}
+.reference-graph{--graph-surface:color-mix(in srgb,var(--paper,#fff) 78%,var(--bg,#f3f6fb));--graph-node:color-mix(in srgb,var(--muted,#63728b) 65%,var(--blue,#2452e8));--graph-edge:color-mix(in srgb,var(--muted,#63728b) 62%,var(--rule,#dfe7f2));--graph-active:var(--blue,#2452e8);--graph-label:var(--ink,#17243b);min-width:0}
+.reference-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
+.reference-toolbar label{display:grid;gap:6px;min-width:0}
+.reference-search{flex:1;min-width:min(320px,100%)!important}
+.reference-search input{width:100%;min-width:0;min-height:44px}
+.reference-type{width:180px}
+.reference-type select{min-height:44px;max-width:100%}
+.reference-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.reference-toolbar button{min-height:44px;white-space:normal}
+.reference-toolbar button[aria-expanded=true]{background:var(--tint,#eaf0ff);border-color:var(--blue,#2452e8)}
+.reference-status{color:var(--muted,#63728b);margin:8px 0}
+.reference-workspace{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:16px;min-width:0}
+.reference-workspace[data-settings-open=true]{grid-template-columns:270px minmax(0,1fr)}
+.reference-main{min-width:0}
+.reference-settings{position:sticky;top:90px;max-height:calc(100dvh - 114px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;min-width:0;padding:16px;border:1px solid var(--rule,#dfe7f2);border-radius:12px;background:var(--paper,#fff);color:var(--ink,#17243b)}
+.reference-settings[hidden]{display:none!important}
+.reference-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.reference-settings-heading h2{margin:0;font-size:17px}
+.reference-close{font-size:22px;min-width:44px;min-height:44px;padding:3px!important}
+.reference-settings fieldset{min-width:0;border:0;padding:12px 0;margin:0;border-top:1px solid var(--rule,#dfe7f2)}
+.reference-settings legend{font-size:12px;font-weight:700;color:var(--ink,#17243b);padding:0 4px 0 0}
+.reference-range{display:grid;gap:0;margin:6px 0 8px;font-size:12px}
+.reference-range>span{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.reference-range output{font-size:11px;color:var(--muted,#63728b);font-variant-numeric:tabular-nums;white-space:nowrap}
+.reference-range input{width:100%;min-width:0;min-height:44px;accent-color:var(--blue,#2452e8);cursor:pointer;margin:0}
+.reference-range input:disabled{opacity:.45;cursor:default}
+.reference-check{display:flex;align-items:center;gap:9px;min-height:44px;font-size:12px;cursor:pointer}
+.reference-check input{width:17px;height:17px;accent-color:var(--blue,#2452e8);flex:none;margin:0}
+.reference-weight{display:grid;gap:6px;font-size:12px}
+.reference-weight select{min-width:0;min-height:44px;width:100%;border:1px solid var(--rule,#dfe7f2);border-radius:6px;background:var(--paper,#fff);color:var(--ink,#17243b);font:inherit;padding:6px 8px}
+.reference-help{color:var(--muted,#63728b);font-size:12px;line-height:1.55;margin:8px 0 0}
+.reference-physics{border-top:1px solid var(--rule,#dfe7f2);border-bottom:1px solid var(--rule,#dfe7f2);margin-bottom:12px}
+.reference-physics summary{font-size:12px;font-weight:650;min-height:44px;display:flex;align-items:center;cursor:pointer;gap:8px}
+.reference-physics summary::before{content:'›';font-size:18px}
+.reference-physics[open] summary::before{transform:rotate(90deg)}
+.reference-reset{width:100%;min-height:44px}
+.notion-graph-stage{height:clamp(360px,67vh,760px);min-height:320px;position:relative;border:1px solid var(--rule,#dfe7f2);border-radius:14px;overflow:hidden;background:var(--paper,#fff)}
+.reference-canvas{height:100%;width:100%;min-width:0}
+.reference-zoom{position:absolute;bottom:14px;right:14px;display:flex;gap:6px}
+.reference-zoom button{min-width:44px;min-height:44px;background:var(--paper,#fff)}
+.reference-caption{display:flex;align-items:baseline;justify-content:space-between;gap:8px 20px;flex-wrap:wrap;margin:10px 0 14px}
+.reference-count{color:var(--muted,#63728b);font-size:12px;margin:0;font-variant-numeric:tabular-nums}
+.reference-caption .reference-help{margin:0}
+.reference-results{list-style:none;padding:0;margin:0 0 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:8px}
+.reference-results button{display:grid;text-align:left;width:100%;gap:5px;min-height:64px;white-space:normal;overflow-wrap:anywhere}
+.reference-results small,.reference-list small{color:var(--muted,#63728b);font-size:12px;line-height:1.5}
+.reference-selected{margin:16px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-left:3px solid var(--blue,#2452e8);padding:16px!important}
+.reference-selected>div:first-child{flex:1;min-width:min(220px,100%)}
+.reference-selected h3{margin:0 0 4px;font-size:16px;overflow-wrap:anywhere}
+.reference-selected p{margin:0;color:var(--muted,#63728b);font-size:12px}
+.reference-selected-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.reference-selected-actions button,.reference-selected-actions a{min-height:44px;display:inline-flex;align-items:center}
+.reference-list{margin-top:20px;border-top:1px solid var(--rule,#dfe7f2);padding-top:4px}
+.reference-list summary{min-height:44px;cursor:pointer;font-size:13px;font-weight:600}
+.reference-list ul{padding:0;list-style:none;display:grid;gap:10px}
+.reference-list li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0;padding:8px 0;border-bottom:1px solid var(--rule,#dfe7f2)}
+.reference-list li>div{flex:1;min-width:min(200px,100%);display:grid;gap:3px;overflow-wrap:anywhere}
+.reference-list a{overflow-wrap:anywhere}
+.reference-list button{min-height:44px}
+.reference-empty{padding:40px 24px;border:1px dashed var(--rule,#dfe7f2);border-radius:14px;background:var(--paper,#fff);text-align:center}
+.reference-empty h2{font-size:19px;margin:0 0 8px}
+.reference-empty p{font-size:14px;line-height:1.6;max-width:540px;margin:0 auto;color:var(--muted,#63728b)}
+.reference-graph :is(button,input,select,summary,a):focus-visible{outline:2px solid var(--blue,#2452e8);outline-offset:3px}
+@media(max-width:900px){.reference-workspace[data-settings-open=true]{grid-template-columns:230px minmax(0,1fr)}.reference-settings{padding:12px}.reference-caption .reference-help{max-width:320px}}
+@media(max-width:700px){.reference-workspace[data-settings-open=true]{grid-template-columns:minmax(0,1fr)}.reference-settings{position:static;max-height:none}.reference-type{flex:1;min-width:120px}.reference-toolbar-actions{width:100%}.reference-toolbar-actions>button{flex:1}.reference-search{flex-basis:100%}.notion-graph-stage{height:56dvh;min-height:340px}.reference-caption{display:block}.reference-caption .reference-help{margin-top:6px;max-width:none}.reference-selected-actions{width:100%}.reference-selected-actions>*{flex:1;justify-content:center;white-space:normal;text-align:center}}
+@media(prefers-reduced-motion:reduce){.reference-graph *{scroll-behavior:auto}}

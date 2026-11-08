@@ -125,9 +125,10 @@ public sealed partial class ReferenceService
 
     public async Task<EntityGraph> GraphAsync(ClaimsPrincipal user, ReferenceGraphRequest request, CancellationToken ct)
     {
-        var catalog = await CatalogAsync(user, request.PublishedOnly, ct);
-        var edges = await VisibleEdgesAsync(user, catalog, request.PublishedOnly, ct);
         var focus = Normalize(request.Focus);
+        if (request.Focus is not null && (focus is null || !IsGraphContent(focus.Kind))) return new([], [], 0, false);
+        var catalog = await CatalogAsync(user, request.PublishedOnly, ct, contentOnly: true);
+        var edges = await VisibleEdgesAsync(user, catalog, request.PublishedOnly, ct);
         var selected = new HashSet<string>(StringComparer.Ordinal);
         if (focus is not null)
         {

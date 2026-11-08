@@ -25,6 +25,9 @@ public sealed partial class ReferenceService(AppDbContext db)
         "teaching-course", "quest", "material", "poll", "person", "member", "group", "event", "submission", "file",
         "notion-asset", "notebook-asset", "drawing", "learning-plan", "subject", "lesson", "project", "badge", "character"];
 
+    // Connections describe teaching content. People and polls remain available to mentions and their own views.
+    private static bool IsGraphContent(string kind) => kind is not ("person" or "member" or "poll");
+
     public static EntityReference? Normalize(EntityReference? reference)
     {
         if (reference is null || !Kinds.Contains(reference.Kind) || reference.Id is not { Length: > 0 and <= 300 }
@@ -36,25 +39,29 @@ public sealed partial class ReferenceService(AppDbContext db)
     }
 
     public async Task<ReferenceSearchResult> SearchAsync(ClaimsPrincipal user, string? q, EntityReference? source,
-        Guid? preferredHold, int offset, int limit, bool publishedOnly, CancellationToken ct)
+        Guid? preferredHold, int offset, int limit, bool publishedOnly, CancellationToken ct, bool contentOnly = false)
     {
-        var catalog = await CatalogAsync(user, publishedOnly, ct, search: q);
+        var catalog = await CatalogAsync(user, publishedOnly, ct, search: q, contentOnly: contentOnly);
         var current = source is null ? null : catalog.FirstOrDefault(r => r.Reference == Normalize(source));
         var activeHold = current?.HoldId ?? preferredHold;
-        var memberIds = catalog.Where(r => r.Reference.Kind == "member").Select(r => Guid.Parse(r.Reference.Id)).ToArray();
-        var memberships = await db.Memberships.AsNoTracking().Where(m => memberIds.Contains(m.Id) && m.UserSub != null)
-            .Select(m => new { m.Id, m.UserSub, m.HoldId, m.DisplayName, HoldName = m.Hold.Name }).ToArrayAsync(ct);
-        var knownPeople = catalog.Where(r => r.Reference.Kind == "person").Select(r => Guid.Parse(r.Reference.Id)).ToHashSet();
-        var mergedMembers = memberships.Where(m => knownPeople.Contains(m.UserSub!.Value)).ToArray();
-        var duplicateKeys = mergedMembers.Select(m => Ref("member", m.Id).Key).ToHashSet();
-        var aliases = mergedMembers.GroupBy(m => m.UserSub!.Value).ToDictionary(g => Ref("person", g.Key).Key,
-            g => string.Join(" ", g.Select(m => m.DisplayName + " " + m.HoldName)));
-        catalog = catalog.Where(r => !duplicateKeys.Contains(r.Reference.Key)).Select(r =>
+        var aliases = new Dictionary<string, string>();
+        if (!contentOnly)
         {
-            if (r.Reference.Kind != "person" || activeHold is not Guid hold) return r;
-            var local = mergedMembers.FirstOrDefault(m => m.UserSub == Guid.Parse(r.Reference.Id) && m.HoldId == hold);
-            return local is null ? r : r with { HoldId = hold, ContextLabel = local.HoldName + " · " + r.ContextLabel };
-        }).ToList();
+            var memberIds = catalog.Where(r => r.Reference.Kind == "member").Select(r => Guid.Parse(r.Reference.Id)).ToArray();
+            var memberships = await db.Memberships.AsNoTracking().Where(m => memberIds.Contains(m.Id) && m.UserSub != null)
+                .Select(m => new { m.Id, m.UserSub, m.HoldId, m.DisplayName, HoldName = m.Hold.Name }).ToArrayAsync(ct);
+            var knownPeople = catalog.Where(r => r.Reference.Kind == "person").Select(r => Guid.Parse(r.Reference.Id)).ToHashSet();
+            var mergedMembers = memberships.Where(m => knownPeople.Contains(m.UserSub!.Value)).ToArray();
+            var duplicateKeys = mergedMembers.Select(m => Ref("member", m.Id).Key).ToHashSet();
+            aliases = mergedMembers.GroupBy(m => m.UserSub!.Value).ToDictionary(g => Ref("person", g.Key).Key,
+                g => string.Join(" ", g.Select(m => m.DisplayName + " " + m.HoldName)));
+            catalog = catalog.Where(r => !duplicateKeys.Contains(r.Reference.Key)).Select(r =>
+            {
+                if (r.Reference.Kind != "person" || activeHold is not Guid hold) return r;
+                var local = mergedMembers.FirstOrDefault(m => m.UserSub == Guid.Parse(r.Reference.Id) && m.HoldId == hold);
+                return local is null ? r : r with { HoldId = hold, ContextLabel = local.HoldName + " · " + r.ContextLabel };
+            }).ToList();
+        }
         var words = (q ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var matches = catalog.Where(r => words.All(word => (r.Title + " " + r.ContextLabel + " " + aliases.GetValueOrDefault(r.Reference.Key, ""))
                 .Contains(word, StringComparison.CurrentCultureIgnoreCase)))
@@ -131,7 +138,7 @@ public sealed partial class ReferenceService(AppDbContext db)
     }
 
     private async Task<List<ResolvedReference>> CatalogAsync(ClaimsPrincipal user, bool publishedOnly, CancellationToken ct,
-        HashSet<EntityReference>? wanted = null, string? search = null)
+        HashSet<EntityReference>? wanted = null, string? search = null, bool contentOnly = false)
     {
         if (UserClaims.GetSub(user) is not Guid sub) return [];
         var result = new List<ResolvedReference>();
@@ -206,7 +213,10 @@ public sealed partial class ReferenceService(AppDbContext db)
         var readableNoteIds = notes.Select(d => d.Id).ToArray();
         foreach (var d in notes) Add("notebook-page", d.Id, d.Title, $"/notebook/{d.Id:D}", d.HoldId,
             d.NotebookId, d.OwnerSub == sub, "Personlige noter");
-        var profiles = await Only(db.NotebookProfiles.AsNoTracking(), "person", p => p.Sub, notes.Select(d => d.OwnerSub).ToArray()).ToArrayAsync(ct);
+        var ownerIds = notes.Select(d => d.OwnerSub).Distinct().ToArray();
+        var profileQuery = Only(db.NotebookProfiles.AsNoTracking(), "person", p => p.Sub, ownerIds);
+        if (contentOnly) profileQuery = profileQuery.Where(p => ownerIds.Contains(p.Sub));
+        var profiles = await profileQuery.ToArrayAsync(ct);
         var profileNames = profiles.ToDictionary(p => p.Sub, p => p.DisplayName);
         var readableNotebooks = Only(db.Notebooks.AsNoTracking().Where(n => n.OwnerSub == sub || UserClaims.IsTeacher(user)
             || db.NotebookShares.Any(s => s.NotebookId == n.Id && s.RecipientSub == sub && s.PageId == null)), "notebook", n => n.Id);
@@ -216,9 +226,11 @@ public sealed partial class ReferenceService(AppDbContext db)
             Add("notebook", nb.Id, owner == sub ? "Min notesbog" : profileNames.GetValueOrDefault(owner, "LUP-bruger") + "s notesbog",
                 owner == sub ? "/notebook" : $"/notebook?owner={nb.Id:D}", collection: nb.Id, context: "Personlig notesbog");
         }
+        if (!contentOnly)
         foreach (var p in profiles.Where(p => wanted is null || wanted.Contains(Ref("person", p.Sub)))) Add("person", p.Sub, p.DisplayName, $"/people/{p.Sub:D}",
             context: p.IsTeacher ? "Underviser · LUP-bruger" : "LUP-bruger");
 
+        if (!contentOnly)
         foreach (var m in await Only(db.Memberships.AsNoTracking().Where(m => holdIds.Contains(m.HoldId)), "member", m => m.Id)
             .Select(m => new { m.Id, m.HoldId, m.DisplayName }).ToArrayAsync(ct))
             Add("member", m.Id, m.DisplayName ?? "Elev", $"/notion/holds/{m.HoldId:D}/students/{m.Id:D}", m.HoldId);
@@ -241,6 +253,7 @@ public sealed partial class ReferenceService(AppDbContext db)
         foreach (var m in await Only(db.CourseMaterials.AsNoTracking().Where(m => holdIds.Contains(m.HoldId)
             && (manageable.Contains(m.HoldId) || m.Published)), "material", m => m.Id).Select(m => new { m.Id, m.HoldId, m.Title }).ToArrayAsync(ct))
             Add("material", m.Id, m.Title, $"/holds/{m.HoldId:D}?view=materials&material={m.Id:D}", m.HoldId);
+        if (!contentOnly)
         foreach (var p in await Only(db.PollRounds.AsNoTracking().Where(p => holdIds.Contains(p.HoldId)
             && (manageable.Contains(p.HoldId) || p.State != "draft")), "poll", p => p.Id)
             .Select(p => new { p.Id, p.HoldId, p.Question }).ToArrayAsync(ct))
@@ -304,7 +317,7 @@ public sealed partial class ReferenceService(AppDbContext db)
         }
         await AddSubmissionsAsync(result, user, quests.Select(q => q.Id).ToArray(), manageable, wanted is null ? null : Ids("submission"), ct);
         AddPublic(result);
-        return result.Where(r => wanted is null || wanted.Contains(r.Reference)).DistinctBy(r => r.Reference).ToList();
+        return result.Where(r => (!contentOnly || IsGraphContent(r.Reference.Kind)) && (wanted is null || wanted.Contains(r.Reference))).DistinctBy(r => r.Reference).ToList();
     }
 
     private static bool DrawingManifestContains(string json, Guid id)

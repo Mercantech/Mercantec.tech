@@ -35,6 +35,7 @@ public sealed class ReferenceGraphUiTests
         page.Find(".reference-toolbar input[type=search]").Input("Anden note");
         page.WaitForAssertion(() => Assert.Single(api.SearchQueries), TimeSpan.FromSeconds(5));
         Assert.Contains("publishedOnly=true", api.SearchQueries[0], StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("contentOnly=true", api.SearchQueries[0], StringComparison.OrdinalIgnoreCase);
         page.WaitForAssertion(() => Assert.Single(page.FindAll(".reference-results button")));
         page.Find(".reference-results button").Click();
         page.WaitForAssertion(() => Assert.Equal(2, api.GraphRequests.Count));
@@ -61,11 +62,202 @@ public sealed class ReferenceGraphUiTests
         Assert.Equal(api.Collection.ToString(), api.GraphRequests[1].ScopeId);
     }
 
+    [Fact]
+    public async Task Graph_search_list_type_filter_and_callbacks_never_expose_people_or_polls_from_an_old_response()
+    {
+        using var api = new GraphApi { IncludeExcluded = true };
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original); services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var page = context.Render<ReferenceGraphView>();
+        page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
+        var payload = javascript!.Module.Payload!.Value;
+        Assert.Equal(2, payload.GetProperty("nodes").GetArrayLength());
+        Assert.Single(payload.GetProperty("edges").EnumerateArray());
+        Assert.DoesNotContain("Skjult elev", page.Markup);
+        Assert.DoesNotContain("Skjult person", page.Markup);
+        Assert.DoesNotContain("Skjult afstemning", page.Markup);
+        Assert.DoesNotContain(page.FindAll(".reference-type option"), option => option.GetAttribute("value") is "person" or "member" or "poll");
+        var navigation = context.Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
+        var before = navigation.Uri;
+        await page.InvokeAsync(() => page.Instance.OnGraphOpen(api.Person.Reference.Key));
+        await page.InvokeAsync(() => page.Instance.OnGraphMenu(api.Person.Reference.Key, 1, 1));
+        Assert.Equal(before, navigation.Uri);
+        Assert.Empty(page.FindAll(".reference-selected"));
+        page.Find(".reference-toolbar input[type=search]").Input("Skjult");
+        page.WaitForAssertion(() => Assert.Single(api.SearchQueries));
+        page.WaitForAssertion(() => Assert.Single(page.FindAll(".reference-results button")));
+        Assert.DoesNotContain("Skjult elev", page.Markup);
+        Assert.DoesNotContain("Skjult person", page.Markup);
+        Assert.DoesNotContain("Skjult afstemning", page.Markup);
+    }
+
+    [Fact]
+    public async Task Display_preferences_restore_and_changes_configure_without_reloading_topology_or_sending_page_data()
+    {
+        using var culture = new CultureScope("da-DK");
+        using var api = new GraphApi();
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original);
+            javascript.Module.StoredSettings = """{"nodeSize":2,"labelSize":1.4,"labelWeight":700,"linkThickness":1.8,"showLabels":false,"activeId":"person:private","query":"private search"}""";
+            services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var page = context.Render<ReferenceGraphView>();
+        page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
+        Assert.Equal(2, javascript!.Module.Payload!.Value.GetProperty("options").GetProperty("nodeSize").GetDouble());
+        Assert.Equal("1.4", page.Find("input[aria-label='Tekststørrelse']").GetAttribute("value"));
+        Assert.Equal("700", page.Find(".reference-weight select").GetAttribute("value"));
+        Assert.True(page.Find(".reference-settings").HasAttribute("hidden"));
+        page.Find("button[aria-controls]").Click();
+        Assert.False(page.Find(".reference-settings").HasAttribute("hidden"));
+        var mounts = javascript.Module.Mounts; var updates = javascript.Module.Updates;
+        page.Find("input[aria-label='Tekststørrelse']").Input("1.7");
+        page.WaitForAssertion(() => Assert.Equal(1.7, javascript.Module.Options!.Value.GetProperty("labelSize").GetDouble()));
+        await javascript.Module.SavedReady.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.Equal(1.7, javascript.Module.Saved!.Value.GetProperty("labelSize").GetDouble());
+        Assert.False(javascript.Module.Saved.Value.TryGetProperty("activeId", out _));
+        Assert.False(javascript.Module.Saved.Value.TryGetProperty("query", out _));
+        Assert.Equal(mounts, javascript.Module.Mounts); Assert.Equal(updates, javascript.Module.Updates);
+        Assert.Single(api.GraphRequests);
+        page.Find(".reference-reset").Click();
+        page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.Options!.Value.GetProperty("labelSize").GetDouble()));
+        Assert.Equal(1, javascript.Module.Resets);
+        Assert.Single(api.GraphRequests);
+    }
+
+    [Fact]
+    public async Task Keyboard_list_can_highlight_and_clear_a_node_without_fetching_a_new_graph()
+    {
+        using var api = new GraphApi();
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original); services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var page = context.Render<ReferenceGraphView>();
+        page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
+        page.FindAll(".reference-list li").Single(li => li.QuerySelector("a")?.TextContent == api.Note.Title).QuerySelector("button")!.Click();
+        page.WaitForAssertion(() => Assert.Equal(api.Note.Title, page.Find(".reference-selected h3").TextContent));
+        Assert.Equal(api.Note.Reference.Key, javascript!.Module.Focuses.Last());
+        page.WaitForAssertion(() => Assert.Equal(api.Note.Reference.Key, javascript.Module.Options!.Value.GetProperty("activeId").GetString()));
+        Assert.Single(api.GraphRequests);
+        page.FindAll(".reference-selected button").Single(button => button.TextContent == "Fjern markering").Click();
+        Assert.Empty(page.FindAll(".reference-selected"));
+        Assert.Equal("", javascript.Module.Focuses.Last());
+        Assert.Single(api.GraphRequests);
+    }
+
+    [Fact]
+    public async Task Every_range_preserves_fractional_values_with_Danish_number_formatting()
+    {
+        using var culture = new CultureScope("da-DK");
+        using var api = new GraphApi();
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original); services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var page = context.Render<ReferenceGraphView>();
+        page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
+        var ranges = new[] { ("Punktstørrelse", "nodeSize"), ("Tekststørrelse", "labelSize"), ("Forbindelsernes tykkelse", "linkThickness"),
+            ("Titler fra zoom", "labelThreshold"), ("Spredning", "repelForce"), ("Samling i midten", "centerForce"),
+            ("Forbindelsernes længde", "linkDistance"), ("Forbindelsernes styrke", "linkForce") };
+        foreach (var (label, property) in ranges)
+        {
+            page.Find($"input[aria-label='{label}']").Input("1.5");
+            page.WaitForAssertion(() => Assert.Equal(1.5, javascript!.Module.Options!.Value.GetProperty(property).GetDouble()));
+        }
+        Assert.Single(api.GraphRequests);
+    }
+
+    [Fact]
+    public async Task Changing_scope_cancels_old_search_and_clears_its_query_and_results()
+    {
+        using var api = new GraphApi { SearchGate = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original); services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var page = context.Render<ReferenceGraphView>(parameters => parameters.Add(x => x.ScopeKind, "collection").Add(x => x.ScopeId, "old-scope"));
+        try
+        {
+            page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
+            var pendingSearch = page.Find("input[type=search]").InputAsync(new Microsoft.AspNetCore.Components.ChangeEventArgs { Value = "old query" });
+            await api.SearchStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            page.Render(parameters => parameters.Add(x => x.ScopeKind, "collection").Add(x => x.ScopeId, "new-scope"));
+            api.SearchGate.TrySetResult();
+            await pendingSearch;
+            page.WaitForAssertion(() => Assert.Equal("new-scope", api.GraphRequests.Last().ScopeId));
+            Assert.Equal("", page.Find("input[type=search]").GetAttribute("value"));
+            Assert.Empty(page.FindAll(".reference-results"));
+            Assert.DoesNotContain("Søger i indhold", page.Markup);
+        }
+        finally { api.SearchGate.TrySetResult(); }
+    }
+
+    [Fact]
+    public async Task Scope_changes_wait_for_pending_mount_and_destroy_before_mounting_the_latest_host()
+    {
+        using var api = new GraphApi();
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original);
+            javascript.Module.MountGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            javascript.Module.DestroyGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            services.AddSingleton<IJSRuntime>(javascript);
+        });
+        var module = javascript!.Module;
+        var page = context.Render<ReferenceGraphView>(parameters => parameters.Add(x => x.ScopeKind, "collection").Add(x => x.ScopeId, "first"));
+        try
+        {
+            await module.MountStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            page.Render(parameters => parameters.Add(x => x.ScopeKind, "collection").Add(x => x.ScopeId, "second"));
+            Assert.Single(api.GraphRequests);
+            module.MountGate!.TrySetResult();
+            await module.DestroyStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            page.Render(parameters => parameters.Add(x => x.ScopeKind, "collection").Add(x => x.ScopeId, "latest"));
+            Assert.Single(api.GraphRequests);
+            module.DestroyGate!.TrySetResult();
+            page.WaitForAssertion(() => Assert.Equal("latest", api.GraphRequests.Last().ScopeId));
+            page.WaitForAssertion(() => Assert.Equal(2, module.Mounts));
+            Assert.Equal(new[] { "first", "latest" }, api.GraphRequests.Select(request => request.ScopeId));
+            Assert.Equal(1, module.Destroys);
+            Assert.Equal(new[] { "mount", "destroy", "mount" }, module.Lifecycle);
+        }
+        finally { module.MountGate!.TrySetResult(); module.DestroyGate!.TrySetResult(); }
+    }
+
+    private sealed class CultureScope : IDisposable
+    {
+        private readonly System.Globalization.CultureInfo previous = System.Globalization.CultureInfo.CurrentCulture;
+        private readonly System.Globalization.CultureInfo previousUi = System.Globalization.CultureInfo.CurrentUICulture;
+        public CultureScope(string name) => System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(name);
+        public void Dispose() { System.Globalization.CultureInfo.CurrentCulture = previous; System.Globalization.CultureInfo.CurrentUICulture = previousUi; }
+    }
+
     private sealed class GraphApi : HttpMessageHandler
     {
         public Guid Collection { get; } = Guid.NewGuid();
         public bool More;
+        public bool IncludeExcluded;
+        public TaskCompletionSource? SearchGate;
+        public TaskCompletionSource SearchStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public ResolvedReference Note { get; } = new(new("notebook-page", Guid.NewGuid().ToString()), "Anden note", "/notebook/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", "En delt notesbog");
+        public ResolvedReference Person { get; } = new(new("person", Guid.NewGuid().ToString()), "Skjult person", "/people/person", "Elev");
+        public ResolvedReference Member { get; } = new(new("member", Guid.NewGuid().ToString()), "Skjult elev", "/people/member", "Elev");
+        public ResolvedReference Poll { get; } = new(new("poll", Guid.NewGuid().ToString()), "Skjult afstemning", "/polls/poll", "Afstemning");
         public List<ReferenceGraphRequest> GraphRequests { get; } = [];
         public List<string> SearchQueries { get; } = [];
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -75,9 +267,21 @@ public sealed class ReferenceGraphUiTests
             {
                 var input = (await request.Content!.ReadFromJsonAsync<ReferenceGraphRequest>(cancellationToken))!; GraphRequests.Add(input);
                 var source = new ResolvedReference(new("notion-page", Collection.ToString()), "Fælles teori", "/notion/" + Collection, "Teori", CollectionId: Collection);
-                return Json(new EntityGraph([new(source.Reference.Key, source), new(Note.Reference.Key, Note)], [new(source.Reference.Key, Note.Reference.Key)], More ? 800 : 2, More && input.Offset == 0));
+                ReferenceGraphNode[] nodes = [new(source.Reference.Key, source), new(Note.Reference.Key, Note)];
+                ReferenceGraphEdge[] edges = [new(source.Reference.Key, Note.Reference.Key)];
+                if (IncludeExcluded)
+                {
+                    nodes = nodes.Concat(new[] { Person, Member, Poll }.Select(reference => new ReferenceGraphNode(reference.Reference.Key, reference))).ToArray();
+                    edges = edges.Concat(new[] { Person, Member, Poll }.Select(reference => new ReferenceGraphEdge(source.Reference.Key, reference.Reference.Key))).ToArray();
+                }
+                return Json(new EntityGraph(nodes, edges, More ? 800 : nodes.Length, More && input.Offset == 0));
             }
-            if (path == "/api/references/search") { SearchQueries.Add(request.RequestUri.Query); return Json(new ReferenceSearchResult([Note], 1)); }
+            if (path == "/api/references/search")
+            {
+                SearchQueries.Add(request.RequestUri.Query); SearchStarted.TrySetResult();
+                if (SearchGate is not null) await SearchGate.Task;
+                return Json(new ReferenceSearchResult(IncludeExcluded ? [Note, Person, Member, Poll] : [Note], IncludeExcluded ? 4 : 1));
+            }
             return new(HttpStatusCode.NotFound);
         }
         private static HttpResponseMessage Json(object value) => new(HttpStatusCode.OK) { Content = JsonContent.Create(value) };
@@ -91,11 +295,28 @@ public sealed class ReferenceGraphUiTests
     private sealed class GraphModule : IJSObjectReference
     {
         public JsonElement? Payload;
+        public JsonElement? Options;
+        public JsonElement? Saved;
+        public TaskCompletionSource<JsonElement> SavedReady { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public string? StoredSettings;
+        public int Mounts, Updates, Resets, Destroys;
+        public TaskCompletionSource? MountGate, DestroyGate;
+        public TaskCompletionSource MountStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource DestroyStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public List<string> Lifecycle { get; } = [];
+        public List<string> Focuses { get; } = [];
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+        public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
-            if (identifier is "mount" or "update") Payload = JsonSerializer.SerializeToElement(args![identifier == "mount" ? 2 : 1]);
-            return ValueTask.FromResult(default(TValue)!);
+            if (identifier == "readSettings") return StoredSettings is null ? default(TValue)! : JsonSerializer.Deserialize<TValue>(StoredSettings, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+            if (identifier is "mount" or "update") { Payload = JsonSerializer.SerializeToElement(args![identifier == "mount" ? 2 : 1]); if (identifier == "mount") Mounts++; else Updates++; Options = Payload.Value.GetProperty("options"); }
+            if (identifier == "mount") { Lifecycle.Add("mount"); MountStarted.TrySetResult(); if (MountGate is not null) await MountGate.Task; }
+            if (identifier == "destroy") { Destroys++; Lifecycle.Add("destroy"); DestroyStarted.TrySetResult(); if (DestroyGate is not null) await DestroyGate.Task; }
+            if (identifier == "configure") Options = JsonSerializer.SerializeToElement(args![1]);
+            if (identifier == "saveSettings") { Saved = JsonSerializer.SerializeToElement(args![0], new JsonSerializerOptions(JsonSerializerDefaults.Web)); SavedReady.TrySetResult(Saved.Value); }
+            if (identifier == "resetSettings") Resets++;
+            if (identifier == "focus") Focuses.Add((string)args![1]!);
+            return default(TValue)!;
         }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

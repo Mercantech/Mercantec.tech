@@ -5,6 +5,10 @@ const defaults = {
     activeId: null,
     showLabels: true,
     showArrows: false,
+    labelSize: 1,
+    labelWeight: 500,
+    highlightConnections: true,
+    dimUnrelated: true,
     labelThreshold: 0.8,
     nodeSize: 1,
     linkThickness: 1,
@@ -15,9 +19,9 @@ const defaults = {
 };
 const minZoom = 0.03;
 const maxZoom = 7;
-const labelFont = '500 12px "DM Sans", system-ui, sans-serif';
-const titleFont = '650 13px "DM Sans", system-ui, sans-serif';
-const detailFont = '500 11px "DM Sans", system-ui, sans-serif';
+const fontFamily = '"DM Sans", system-ui, sans-serif';
+const settingsKey = "lup.connections.graph.v1";
+const visualOptions = Object.keys(defaults).filter(name => name !== "activeId");
 const fullCircle = 2 * Math.PI;
 
 export function mount(host, dotnet, payload) {
@@ -31,6 +35,23 @@ export function update(host, payload) {
 
 export function configure(host, options) {
     sessions.get(host)?.configure(options);
+}
+
+// Only visual preferences are persisted. References, selected nodes and graph data never enter storage.
+export function readSettings() {
+    try { return savedOptions(JSON.parse(window.localStorage.getItem(settingsKey) || "{}")); }
+    catch { return savedOptions({}); }
+}
+
+export function saveSettings(options) {
+    const value = savedOptions(options);
+    try { window.localStorage.setItem(settingsKey, JSON.stringify(value)); } catch { /* Private browsing may disable storage. */ }
+    return value;
+}
+
+export function resetSettings() {
+    try { window.localStorage.removeItem(settingsKey); } catch { /* Defaults work without storage. */ }
+    return savedOptions({});
 }
 
 export function focus(host, id) {
@@ -54,6 +75,7 @@ function create(host, dotnet, payload) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D is not available");
     canvas.setAttribute("aria-hidden", "true");
+    Object.assign(canvas.style, { width: "100%", height: "100%", display: "block", touchAction: "none" });
 
     const announcer = document.createElement("span");
     announcer.setAttribute("role", "status");
@@ -130,6 +152,9 @@ function create(host, dotnet, payload) {
     function configure(options) {
         const previous = settings;
         settings = graphOptions(previous, options);
+        if (settings.labelSize !== previous.labelSize || settings.labelWeight !== previous.labelWeight) {
+            for (const point of cache.values()) point.labelRect = null;
+        }
         if (forcesChanged(previous, settings)) {
             setRadii();
             applyForces();
@@ -291,6 +316,12 @@ function create(host, dotnet, payload) {
     }
 
     function focusNode(id) {
+        if (!id) {
+            pointer = hovered = emphasis = null;
+            emphasisOpacity = 0;
+            select(null);
+            return;
+        }
         const point = byId.get(id);
         if (!point) return;
         select(point);
@@ -377,7 +408,7 @@ function create(host, dotnet, payload) {
         }
 
         hovered = drag?.moved ? drag.node : pointer ? hit(pointer) : null;
-        const nextEmphasis = hovered ?? selected;
+        const nextEmphasis = settings.highlightConnections ? hovered ?? selected ?? byId.get(settings.activeId) : null;
         if (nextEmphasis) emphasis = nextEmphasis;
         const goal = nextEmphasis ? 1 : 0;
         emphasisOpacity = reducedMotion.matches ? goal
@@ -387,6 +418,7 @@ function create(host, dotnet, payload) {
         if (canvas.style.cursor !== cursor) canvas.style.cursor = cursor;
         paint();
 
+        if (pointer && !drag?.moved && hit(pointer) !== hovered) requestFrame();
         if (moving || transition || emphasisOpacity !== goal) requestFrame();
     }
 
@@ -403,6 +435,15 @@ function create(host, dotnet, payload) {
             best = point;
             bestDistance = distance;
         }
+        // A visible title is also a target, including after changing its size. Node circles keep priority.
+        if (!best && settings.showLabels) {
+            for (const point of labels) {
+                const rect = point.labelRect;
+                if (!point.visible || !rect || at.x < point.sx + rect.left || at.x > point.sx + rect.right ||
+                    at.y < point.sy + rect.top || at.y > point.sy + rect.bottom) continue;
+                return point;
+            }
+        }
         return best;
     }
 
@@ -410,13 +451,13 @@ function create(host, dotnet, payload) {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
         const lineWidth = clamp(camera.scale * 0.75, 0.45, 1.55) * settings.linkThickness;
-        drawLinks(links, palette.edge, lineWidth, 0.55 - emphasisOpacity * 0.44);
+        drawLinks(links, palette.edge, lineWidth, 0.55 - (settings.dimUnrelated ? emphasisOpacity * 0.44 : 0));
         if (emphasis) drawLinks(emphasis.links, palette.active, lineWidth + 0.75, emphasisOpacity * 0.83);
         for (const point of nodes) {
             if (!point.visible) continue;
             const active = point === hovered || point === selected || point.id === settings.activeId;
             const related = active || !emphasis || point === emphasis || emphasis.neighbors.has(point);
-            ctx.globalAlpha = related ? 1 : 1 - emphasisOpacity * 0.79;
+            ctx.globalAlpha = related || !settings.dimUnrelated ? 1 : 1 - emphasisOpacity * 0.79;
             ctx.fillStyle = active ? palette.active : point.color ?? palette.node;
             ctx.beginPath();
             ctx.arc(point.sx, point.sy, point.sr, 0, fullCircle);
@@ -473,30 +514,37 @@ function create(host, dotnet, payload) {
         const fade = clamp((camera.scale - settings.labelThreshold * 0.62) / (settings.labelThreshold * 0.48), 0, 1);
         const root = byId.get(settings.activeId);
         const occupied = [];
-        ctx.font = labelFont;
         ctx.fillStyle = palette.label;
         ctx.strokeStyle = palette.surface;
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 3.5 * settings.labelSize;
         ctx.lineJoin = "round";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        for (const point of [selected, root, ...labels]) {
+        for (const point of nodes) if (point !== hovered) point.labelRect = null;
+        const priority = new Set([selected, root, emphasis, ...(emphasis?.neighbors ?? []), ...labels]);
+        const fontSize = 12 * settings.labelSize;
+        for (const point of priority) {
             if (!point?.visible || point === hovered) continue;
             const active = point === selected || point === root;
             const neighbor = emphasis?.neighbors.has(point);
             if (!active && !settings.showLabels) continue;
-            const opacity = active ? 1 : neighbor ? Math.max(fade, emphasisOpacity * 0.9) : fade * (1 - emphasisOpacity * 0.86);
+            const opacity = active ? 1 : neighbor ? Math.max(fade, emphasisOpacity * 0.9)
+                : fade * (1 - (settings.dimUnrelated ? emphasisOpacity * 0.86 : 0));
             if (opacity < 0.035) continue;
 
-            point.label ??= shortenedTitle(ctx, point.title, 176);
+            const font = (active ? Math.max(650, settings.labelWeight) : settings.labelWeight) + " " + fontSize + "px " + fontFamily;
+            ctx.font = font;
+            if (point.label?.font !== font) point.label = { ...shortenedTitle(ctx, point.title, 176 * settings.labelSize), font };
             const x = point.sx;
-            const y = point.sy + point.sr + 11;
+            const y = point.sy + point.sr + 5 + fontSize / 2;
             const half = point.label.width / 2 + 4;
-            const rect = { left: x - half, right: x + half, top: y - 7, bottom: y + 7 };
+            const halfHeight = fontSize / 2 + 2;
+            const rect = { left: x - half, right: x + half, top: y - halfHeight, bottom: y + halfHeight };
             if (rect.right < 0 || rect.left > width || rect.top > height ||
                 occupied.some(other => rect.left < other.right && rect.right > other.left &&
                     rect.top < other.bottom && rect.bottom > other.top)) continue;
             occupied.push(rect);
+            point.labelRect = { left: -half, right: half, top: rect.top - point.sy, bottom: rect.bottom - point.sy };
             ctx.globalAlpha = opacity;
             ctx.strokeText(point.label.text, x, y);
             ctx.fillText(point.label.text, x, y);
@@ -506,7 +554,10 @@ function create(host, dotnet, payload) {
     function drawTooltip(point) {
         if (width < 64) return;
         const detail = point.inbound + " indgående · " + (point.links.length - point.inbound) + " udgående";
-        const maxText = Math.min(270, width - 42);
+        const maxText = Math.min(270 * settings.labelSize, width - 42);
+        const titleSize = 13 * settings.labelSize, detailSize = 11 * settings.labelSize, gap = 4 * settings.labelSize;
+        const titleFont = Math.max(650, settings.labelWeight) + " " + titleSize + "px " + fontFamily;
+        const detailFont = settings.labelWeight + " " + detailSize + "px " + fontFamily;
         ctx.font = titleFont;
         const title = shortenedTitle(ctx, point.title, maxText);
         ctx.font = detailFont;
@@ -514,10 +565,11 @@ function create(host, dotnet, payload) {
         let x = point.sx + point.sr + 12;
         if (x + boxWidth > width - 8) x = point.sx - point.sr - 12 - boxWidth;
         x = clamp(x, 8, width - boxWidth - 8);
-        const y = clamp(point.sy - 21, 8, Math.max(8, height - 51));
+        const boxHeight = 16 + titleSize + gap + detailSize;
+        const y = clamp(point.sy - boxHeight / 2, 8, Math.max(8, height - boxHeight - 8));
         ctx.globalAlpha = 1;
         ctx.beginPath();
-        ctx.roundRect(x, y, boxWidth, 43, 8);
+        ctx.roundRect(x, y, boxWidth, boxHeight, 8);
         ctx.fillStyle = palette.surface;
         ctx.fill();
         ctx.strokeStyle = palette.edge;
@@ -526,10 +578,10 @@ function create(host, dotnet, payload) {
         ctx.textAlign = "left";
         ctx.fillStyle = palette.label;
         ctx.font = titleFont;
-        ctx.fillText(title.text, x + 10, y + 14);
+        ctx.fillText(title.text, x + 10, y + 8 + titleSize * 0.55);
         ctx.font = detailFont;
         ctx.globalAlpha = 0.76;
-        ctx.fillText(detail, x + 10, y + 30, boxWidth - 20);
+        ctx.fillText(detail, x + 10, y + 8 + titleSize + gap + detailSize * 0.55, boxWidth - 20);
     }
 
     function openMenu(point, x, y) {
@@ -628,8 +680,13 @@ function create(host, dotnet, payload) {
             const opened = clicked ? drag.node : null;
             releaseNode();
             drag = null;
-            if (opened && byId.has(opened.id)) invoke(dotnet, "OnGraphOpen", opened.id);
-            else if (clicked) select(null);
+            if (opened && byId.has(opened.id)) {
+                select(opened);
+                openMenu(opened, event.clientX, event.clientY);
+            } else if (clicked) {
+                select(null);
+                openMenu(null, event.clientX, event.clientY);
+            }
         }
         const at = local(event);
         pointer = !cancelled && event.pointerType !== "touch" &&
@@ -638,6 +695,13 @@ function create(host, dotnet, payload) {
     }
 
     canvas.addEventListener("pointerup", event => finishPointer(event, false), { signal });
+    canvas.addEventListener("dblclick", event => {
+        if (event.button !== 0 || pointers.size || drag?.moved) return;
+        const point = hit(local(event));
+        if (!point) return;
+        event.preventDefault();
+        invoke(dotnet, "OnGraphOpen", point.id);
+    }, { signal });
     canvas.addEventListener("pointercancel", event => finishPointer(event, true), { signal });
     canvas.addEventListener("lostpointercapture", event => finishPointer(event, true), { signal });
     canvas.addEventListener("pointerleave", () => {
@@ -647,7 +711,9 @@ function create(host, dotnet, payload) {
     canvas.addEventListener("contextmenu", event => {
         event.preventDefault();
         if (event.pointerType === "touch" || drag?.menu) return;
-        openMenu(hit(local(event)), event.clientX, event.clientY);
+        const point = hit(local(event));
+        select(point);
+        openMenu(point, event.clientX, event.clientY);
     }, { signal });
     canvas.addEventListener("wheel", event => {
         if (!event.deltaY) return;
@@ -683,6 +749,8 @@ function create(host, dotnet, payload) {
                 const next = (index + (previous ? -1 : 1) + nodes.length) % nodes.length;
                 pointer = null;
                 focusNode(nodes[next].id);
+                const bounds = canvas.getBoundingClientRect();
+                openMenu(nodes[next], bounds.left + nodes[next].sx, bounds.top + nodes[next].sy);
                 break;
             }
             case "Enter":
@@ -699,6 +767,7 @@ function create(host, dotnet, payload) {
             case "Escape":
                 if (!selected) return;
                 select(null);
+                openMenu(null, 8, 8);
                 break;
             default: return;
         }
@@ -752,7 +821,14 @@ function create(host, dotnet, payload) {
 }
 
 function graphOptions(previous, options) {
-    const settings = { ...previous, ...options };
+    const settings = { ...previous };
+    if (options && typeof options === "object" && !Array.isArray(options))
+        for (const name of Object.keys(defaults)) if (Object.hasOwn(options, name)) settings[name] = options[name];
+    settings.activeId = typeof settings.activeId === "string" && settings.activeId.length > 0 && settings.activeId.length <= 512 ? settings.activeId : null;
+    for (const name of ["showLabels", "showArrows", "highlightConnections", "dimUnrelated"])
+        if (typeof settings[name] !== "boolean") settings[name] = defaults[name];
+    settings.labelSize = optionNumber(settings.labelSize, defaults.labelSize, 0.6, 2);
+    settings.labelWeight = optionNumber(settings.labelWeight, defaults.labelWeight, 400, 700);
     for (const name of ["nodeSize", "linkThickness", "linkDistance", "labelThreshold"]) {
         settings[name] = optionNumber(settings[name], defaults[name], 0.2, 3);
     }
@@ -760,6 +836,11 @@ function graphOptions(previous, options) {
         settings[name] = optionNumber(settings[name], defaults[name], 0, 3);
     }
     return settings;
+}
+
+function savedOptions(options) {
+    const value = graphOptions(defaults, options);
+    return Object.fromEntries(visualOptions.map(name => [name, value[name]]));
 }
 
 function forcesChanged(previous, settings) {
