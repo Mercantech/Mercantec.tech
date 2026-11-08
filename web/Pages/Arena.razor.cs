@@ -51,7 +51,7 @@ public partial class Arena
     private ArenaStage SelectedStage => ArenaCatalog.FindStage(_stageId);
     private string WinnerName => _result?.Fighters.FirstOrDefault(f => f.Id == _result.WinnerId)?.Name ?? "Ingen";
     private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", _ => "Energipuls & himmelspring" };
-    private static string FighterRole(string id) => id switch { "bip01" => "Hurtig", "raymond" => "Tung", _ => "Alsidig" };
+    private static string FighterRole(string id) => ArenaMoveSets.Find(id)?.Role ?? "Alsidig";
     private bool Owns(string id) => id == "starter" || World.OwnsAvatar(id);
 
     protected override void OnInitialized() { Auth.AuthStateChanged += AuthChanged; }
@@ -65,7 +65,7 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=3");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=4");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _reference = DotNetObjectReference.Create(this);
             _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });
@@ -109,7 +109,7 @@ public partial class Arena
     {
         if (_module is null || !_artReady || _practice || _room is not null) return;
         _error = null; _result = null; _screen = "battle"; _practicePaused = false; _practice = _playing = true; _phase = "countdown"; _playerId = "local";
-        _simulation = new ArenaSimulation(_stageId, _stocks, _minutes);
+        _simulation = new ArenaSimulation(_stageId, _stocks, _minutes, training: true);
         _simulation.AddFighter("local", Auth.DisplayName ?? "Dig", _selectedAvatarId, appearance: CurrentAppearance);
         _simulation.AddFighter("cpu", "Computer", _selectedAvatarId == "raymond" ? "bip01" : "raymond", true);
         _simulation.Start();

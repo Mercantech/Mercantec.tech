@@ -47,10 +47,19 @@ public sealed record ArenaFighterSnapshot(string Id, string Name, string AvatarI
     double X, double Y, double Vx, double Vy, int Facing, double Damage, int Stocks,
     string Action, int ActionFrame, double Shield, bool Invulnerable, bool Connected,
     bool IsBot, bool Grounded, int JumpsRemaining, double Charge, int KOs, int Falls,
-    long LastInputSequence, bool Shielding, bool Out, ArenaAppearance? Appearance = null);
+    long LastInputSequence, bool Shielding, bool Out, ArenaAppearance? Appearance = null,
+    ArenaCombatSnapshot? Combat = null);
+
+// Resources are 0..100. Every cooldown and channel duration is expressed in
+// seconds, independent of rendering/network frequency. Only the engine writes them.
+public sealed record ArenaCooldownSnapshot(double Pulse = 0, double Grab = 0, double Dash = 0,
+    double Recovery = 0, double Repair = 0, double Ultimate = 0);
+public sealed record ArenaCombatSnapshot(double Energy, double Ultimate, ArenaCooldownSnapshot Cooldowns,
+    double ChannelRemaining = 0, bool Armored = false, string? CapturedBy = null, string? ActiveAbility = null);
 
 public sealed record ArenaProjectileSnapshot(long Id, string OwnerId, double X, double Y,
-    double Vx, double Vy, double Radius, string Color);
+    double Vx, double Vy, double Radius, string Color, string Kind = "pulse", string? SourceAvatarId = null,
+    bool Reflected = false);
 public sealed record ArenaEvent(long Id, int Tick, string Type, double X, double Y,
     string? ActorId = null, string? TargetId = null, double Strength = 1);
 public sealed record ArenaState(int Tick, string Phase, double Countdown, double RemainingSeconds,

@@ -1,0 +1,17 @@
+@if (ArenaMoveSets.Find(AvatarId) is { } kit)
+{
+    <details class="arena-move-list" open="@Expanded">
+        <summary>Evner <span>@kit.Role</span></summary>
+        <p>@kit.Resource</p>
+        <dl>
+            @foreach (var move in kit.Moves)
+            {
+                <div><dt><kbd>@move.Key</kbd><strong>@move.Name</strong></dt><dd>@move.Effect</dd></div>
+            }
+        </dl>
+    </details>
+}
+@code {
+    [Parameter] public string AvatarId { get; set; } = "starter";
+    [Parameter] public bool Expanded { get; set; }
+}

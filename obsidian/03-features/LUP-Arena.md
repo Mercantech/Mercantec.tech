@@ -12,13 +12,23 @@ LUPs eget platformskampspil ligger på `/arena` (og `/games/arena`). Der er link
 
 Rettelse af kampeffekter: v2-effektatlasset havde halvtransparente matte felter og nabografik i flere celler. Arenaen bruger i stedet de originale, individuelt isolerede effekter og projektilark for BIP-01 og Raymond, eksporteret tabsfrit til `web/wwwroot/assets/arena/v3/effects/`. Alle 20 filer og 32 effektframes har alpha 0 langs en kant på otte pixels. De 17 relevante originale kampsheets pr. figur er koblet på igen, med otte frames pr. handling. Starterfigurens v2-art bevares. `arena-avatar-art.js` håndterer figurark; `arena-effect-art.js` håndterer karaktereffekter og ejerskab.
 
-Kampmotorens forskelle skal skelnes fra grafikpakkerne: BIP-01 er hurtigere og lettere; Raymonds projektil er større, langsommere og stærkere. Greb, skjold, dash, ned-special og opladede slag har fortsat en fælles grundmekanik. Originalpakkerne indeholder animationer og attachment-events, men ingen færdig spillogik for skade eller cooldown. Der er ikke indført nye, udokumenterede evneregler i denne grafikrettelse.
+BIP-01 og Raymond har hver deres serverberegnede kampsæt. De eksisterende spritesheets og effekter viser handlingerne; skade, kræfter, ressourcer og cooldowns beregnes i den fælles C#-motor.
+
+## Unikke evner
+
+BIP-01 er en hurtig tekniker med en energimåler. Pulsbolten flyver hurtigt; Magnetgreb trækker fjender ind og opsamler fjendtlige projektiler som energi. Bobleskjold reflekterer projektiler i de første seks frames. Raketryk er et kort, hurtigt angreb med beskyttet afsæt, og Rakethop giver et stejlt redningsløft. Reparationsfelt bruger energi på en kort, afbrydelig heling. Kerneoverload kræver fuld evnemåler, rammer omkring BIP og tømmer energien.
+
+Raymond er en tung kontrollør med større rækkevidde og langsommere, stærkere projektiler. Relationsgreb fastholder én modstander; retning og U/J kaster. Gentagne hop kan bryde grebet, og en tredje spillers træffer kan frigøre den fangede. Tryghedsskjold absorberer projektiler og lader evnemåleren. Elefantstorm varer længere og kan modstå én træffer med reduceret skade. Snabelløft er et tungere, bredt redningsangreb. Gendannelse bruger skjold på en langsommere, afbrydelig heling. Den store JOIN sender en komet, som trækker fjender sammen og eksploderer.
+
+Træffere lader de store evner; heling og passiv ventetid gør ikke. Evnerne har separate cooldowns. KO, udmeldelse og kampnulstilling frigør greb og rydder aktive evnetilstande. Genforbindelse nulstiller inputsekvensen uden at genopfylde ressourcer. Lokal træning starter med fuld evnemåler; onlinekampe starter tomme, og klienten kan ikke tilvælge træningsressourcer.
+
+Den valgte figurs taster og evner findes under Kæmpere og Indstillinger. Kampens HUD viser ressourcer, evnemåler, cooldowns, reparation og fastholdelse.
 
 Arenaen har et separat skærmfyldende spillayout med hovedvalg til online, træning, kæmpere og indstillinger. Styring ligger i indstillingerne. Lokal træning sættes på pause, når indstillingerne åbnes. Genererede rasterassets i `web/wwwroot/assets/arena/v2/` erstatter de proceduretegnede baggrunde, platforme, effekter og startfigurer.
 
 14 WebP-filer fylder cirka 7,7 MB: menubillede, tre banebaggrunde, platform- og effektatlas, fem fighteratlasser og tre portrætter. Figurarkene har 80 validerede frames med fast fodplacering. Startfiguren understøtter kort hår, langt hår og kasket; profilens farver anvendes som materialefarver. PNG-kilder og præcise image_gen-prompter ligger i `assets/arena/v2/` og hentes ikke af browseren.
 
-Fem nye menutests dækker navigation, låste figurer, login, lydvalg og manglende grafik. Alle 548 webtests består. Visuel browserkontrol af denne grafikrevision blev blokeret af computerbrugs-værktøjet; assetkontrol og direkte software-rendering bruges som supplerende QA.
+Menutests dækker navigation, låste figurer, login, lydvalg, manglende grafik, evneoversigt og lokal træning. Direkte software-rendering med de rigtige teksturer dækker kampens effekter og HUD; browserens fulde UI verificeres separat fra disse grafikkontroller.
 
 ## Spil
 
@@ -39,7 +49,7 @@ Træning er tilgængelig uden login og kører samme C#-motor i Blazor WASM. Inge
 | Skjold | L | LT/RT |
 | Undvig | Shift | LB |
 | Grib/kast | U | Y |
-| Oplad kraftslag | Hold I, slip I | Hold RB, slip RB |
+| Stor evne (BIP/Raymond) eller kraftslag (startfigur) | Hold I, slip I | Hold RB, slip RB |
 
 Touchknapper inkluderer retning, hop, angreb, special, skjold, undvigelse, greb og kraftslag. Lyd kan slås til; fuld skærm åbnes fra kampbanens værktøjslinje.
 
@@ -60,6 +70,7 @@ BIP-01 og Raymond bruger de eksisterende 4×2 spritesheets med otte frames pr. h
 ## Arkitektur
 
 - `shared/Arena.cs`: input, stadier, kosmetik og snapshots.
+- `shared/ArenaMoveSets.cs`: korte danske kontrol- og evnebeskrivelser til menuerne.
 - `api/Arena/ArenaSimulation.cs`: transportuafhængig simulation ved 60 faste trin i sekundet. Filen kompileres også direkte ind i webprojektet til lokal træning.
 - `api/Arena/ArenaRoomService.cs`: midlertidige rum, forbindelser, adgangsbilletter, 60 Hz kamp og 20 Hz snapshots.
 - `api/Controllers/ArenaController.cs`: eksisterende JWT-login, ejerskab og WebSocket-adgang.
@@ -97,12 +108,14 @@ Til produktion bruges den eksisterende Docker Compose/Dokploy-pipeline. API-star
 
 Der er ikke udført deployment fra denne chat: Dokploy-forbindelsen er ikke tilgængelig. `lup.dk`, `www.lup.dk` og `mercantec.tech` er allerede aliases til samme stack.
 
-## Verifikation den 8. november 2026
+## Verifikation den 9. november 2026
 
-- Samlet API-regression: 473 bestået, 0 fejl, 0 sprunget over.
-- Web-regression: 500 bestået, 0 fejl, 0 sprunget over.
-- Heraf 32 målrettede arena-tests: determinisme, inputvalidering, dobbelthop, solide/envejsplatforme, kantgreb, angreb, skjold, redning, KO, genopståen, vinder, sudden death, bots, revanche, genforbindelse, ejerskab og kosmetik.
-- Rigtig Kestrel med to uafhængige WebSocket-klienter kontrollerer kampstart, input, snapshots, profiludseende, genforbindelse og værtsskifte.
-- `dotnet publish web -c Release` gennemført.
-- Produktionspakken afprøvet i browseren: træning, bevægelse, hop/special, resultat, nulstilling, alle tre baner, lyd, fuld skærm og smalt mobilformat.
-- Live onlinekamp på selve lup.dk er ikke verificeret, fordi ændringen ikke er deployet.
+- Samlet API-regression: 586 bestået, 0 fejl, 0 sprunget over.
+- Web-regression: 562 bestået, 0 fejl, 0 sprunget over.
+- Heraf 59 arena-tests, inklusive 22 nye evnetests og fem nye netværkstests med en rigtig Kestrel-server og to uafhængige WebSocket-klienter.
+- Evnetests kontrollerer faktisk position, skade og projektiler: magnettræk, fastholdelse/kast, tre hop for at slippe fri, tredje spillers afbrydelse, refleksion, absorption, panserets første/anden træffer, energi, separate cooldowns, afbrudt heling, forskellige redningsbaner, områdeeksplosion, JOIN-træk/eksplosion, KO, kampnulstilling og determinisme.
+- Netværkstests sammenligner hele samme-tick-snapshots på begge klienter, afviser forfalsket kamp-/træningstilstand og forældede input og kontrollerer ressourcer ved genforbindelse.
+- 14 Node-tests af sprites, effekter, ejerskab, meter og HUD-tilstande består.
+- Native Canvas 2D-kontrol med 64 rigtige assets: 21 nye evnescener på tre baner, HUD med to/fire kæmpere og 72 tidligere sprites-/effektscener. Alle 32 effektframes har helt transparente kanter; alle tegningskoordinater er endelige tal.
+- API og web er bygget i Release. Produktionswebpakken er kontrolleret over HTTP for alle 75 arenaressourcer, de præcise testede JavaScript-moduler og evneoversigtens CSS.
+- Den nye revision er ikke browserafprøvet på selve lup.dk; netværks- og grafikkontrollerne er kørt lokalt.

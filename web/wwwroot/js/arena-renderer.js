@@ -1,4 +1,4 @@
-import { ArenaEffectArt, effectAvatarForEvent } from './arena-effect-art.js?v=1';
+import { ArenaEffectArt, combatPresentation, combatStatusFor, effectAvatarForEvent, projectileArtFor, repairReadinessFor } from './arena-effect-art.js?v=2';
 import { isOriginalAvatar, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=1';
 
 const WIDTH = 1280;
@@ -220,8 +220,33 @@ export class ArenaRenderer {
                 case 'dodge': case 'recovery':
                     this.effects.push({ ...effect, frames: [13], duration: .27, size: 100, grow: 1.6 });
                     break;
+                case 'magnet': case 'capture': case 'escape': case 'release':
+                    this.effects.push({ ...effect, frames: [0], effectId: 'magnet_field', duration: .35, size: event.type === 'magnet' ? 170 : 105, grow: 1.3 });
+                    break;
+                case 'absorb': case 'reflect':
+                    this.effects.push({ ...effect, frames: [0], effectId: event.type === 'reflect' ? 'shield' : 'unlock', duration: .24, size: 110, grow: 1.25 });
+                    break;
+                case 'armor':
+                    this.effects.push({ ...effect, frames: [0], effectId: 'shield', duration: .25, size: 110, grow: 1.15 });
+                    break;
+                case 'repair-start': case 'repair': case 'repair-cancel':
+                    this.effects.push({ ...effect, frames: [0], effectId: event.type === 'repair-cancel' ? 'impact' : 'repair_field', duration: .4, size: event.type === 'repair' ? 150 : 90, grow: 1.3 });
+                    break;
+                case 'ultimate-charge':
+                    this.effects.push({ ...effect, frames: [0], effectId: 'ultimate_charge', duration: .4, size: 140, grow: 1.1 });
+                    break;
+                case 'overload': case 'join-explode':
+                    this.effects.push({ ...effect, frames: [0], effectId: 'ultimate_release', duration: .58, size: event.type === 'overload' ? 340 : 300, grow: 1.35 });
+                    this.shake = Math.max(this.shake, this.reducedMotion ? 0 : 6);
+                    break;
+                case 'join':
+                    this.effects.push({ ...effect, frames: [0], effectId: 'ultimate_release', duration: .26, size: 145, grow: 1.2 });
+                    break;
+                // Pulls are continuous simulation events. The persistent field and
+                // tether show them without accumulating flashes on every tick.
             }
         }
+        if (this.effects.length > 160) this.effects.splice(0, this.effects.length - 160);
     }
 
     draw(now, deltaTime, state, previous, receivedAt, previousAt, playerId, practice) {
@@ -450,12 +475,17 @@ export class ArenaRenderer {
             const size = 82 + clamp(fighter.shield, 0, 100) * .25;
             this.effectTexture(context, frame, fighter.x, fighter.y - 41, size * 1.25, 0, .7, 'screen', 1, fighter.avatarId, 'shield');
         }
-        if (fighter.charge > 0) {
+        const combat = combatPresentation(fighter);
+        if (fighter.charge > 0 && !['overload-charge', 'join-charge'].includes(combat?.activeAbility)) {
             this.effectTexture(context, 14, fighter.x, fighter.y - 43, 110 + fighter.charge * 65, 0, .25 + fighter.charge * .5, 'screen', 1, fighter.avatarId, 'ultimate_charge');
         }
+        this.combatEffects(context, fighter, combat, now);
         const actionEffects = { ability_1_pulse: 'impact', ability_2_magnet: 'magnet_field', ability_4_dash: 'dash_trail', ability_5_repair: 'repair_field', ultimate_release: 'ultimate_release' };
         const attached = actionEffects[fighter.action];
-        if (attached && fighter.actionFrame >= 2 && fighter.actionFrame <= 5) {
+        // Combat snapshots provide the real lifetime for fields and channels.
+        // Animation-only previews retain the authored action highlights.
+        const persistent = combat && ['magnet_field', 'repair_field', 'ultimate_release'].includes(attached);
+        if (attached && !persistent && fighter.actionFrame >= 2 && fighter.actionFrame <= 5) {
             const radial = ['magnet_field', 'repair_field', 'ultimate_release'].includes(attached);
             this.effectTexture(context, 13, fighter.x + (radial ? 0 : fighter.facing * 32), fighter.y - (attached === 'repair_field' ? 18 : 43),
                 attached === 'ultimate_release' ? 185 : radial ? 125 : 95, radial ? 0 : fighter.facing < 0 ? Math.PI : 0, .8, 'screen', 1, fighter.avatarId, attached);
@@ -471,21 +501,57 @@ export class ArenaRenderer {
         }
     }
 
+    combatEffects(context, fighter, combat, now) {
+        if (!combat) return;
+        const pulse = this.reducedMotion ? 1 : .9 + Math.sin(now / 90) * .1;
+        const x = fighter.x, y = fighter.y - 43;
+        if (combat.activeAbility === 'magnet') {
+            this.effectArt.draw(context, 'bip01', 'magnet_field', 0, x + fighter.facing * 62, y, 270, 0, .7 * pulse, 'screen');
+        }
+        if (combat.channelRemaining > 0 && combat.activeAbility === 'repair') {
+            this.effectArt.draw(context, fighter.avatarId, 'repair_field', 0, x, fighter.y - 27, 165, 0, .75 * pulse, 'screen');
+        }
+        if (combat.armored) {
+            this.effectArt.draw(context, fighter.avatarId, 'shield', 0, x, y, 130, 0, .42 * pulse, 'screen');
+        }
+        if (combat.activeAbility === 'overload-charge' || combat.activeAbility === 'join-charge') {
+            this.effectArt.draw(context, fighter.avatarId, 'ultimate_charge', 0, x, y, 165, 0, .8 * pulse, 'screen');
+        }
+        if (combat.capturedBy) {
+            const captor = this.frameFighters.get(combat.capturedBy);
+            if (captor && !captor.out && captor.stocks > 0) {
+                const dx = x - captor.x, dy = y - (captor.y - 43);
+                const length = Math.hypot(dx, dy);
+                this.effectArt.draw(context, captor.avatarId, 'magnet_field', 0,
+                    (x + captor.x) / 2, (y + captor.y - 43) / 2,
+                    Math.max(110, length * 1.65), Math.atan2(dy, dx), .8 * pulse, 'screen', .32);
+                this.effectArt.draw(context, captor.avatarId, 'magnet_field', 0, x, y, 105, 0, .55 * pulse, 'screen');
+            }
+        }
+    }
+
     effectTexture(context, index, x, y, size, rotation = 0, alpha = 1, blend = 'source-over', heightScale = 1, avatarId = 'starter', effectId = null) {
         const id = effectId || (index < 4 ? 'impact' : index < 8 ? this.effectArt.projectileId(avatarId) : index < 12 ? 'shield' : index === 12 || index === 13 ? 'dash_trail' : index === 14 ? 'unlock' : 'ultimate_release');
         this.effectArt.draw(context, avatarId, id, index >= 4 && index < 8 ? index - 4 : 0, x, y, size, rotation, alpha, blend, heightScale);
     }
 
     projectile(context, projectile, now) {
-        const owner = this.frameFighters.get(projectile.ownerId);
-        const avatarId = owner?.avatarId || 'starter';
+        const art = projectileArtFor(projectile, this.frameFighters);
         const speed = Math.hypot(projectile.vx, projectile.vy);
         const angle = Math.atan2(projectile.vy, projectile.vx);
-        const frame = 4 + Math.floor(now * 12 / 1000) % 4;
+        const frame = Math.floor(now * 12 / 1000) % 4;
         const size = Math.max(45, (projectile.radius || 9) * 5);
-        this.effectTexture(context, frame, projectile.x - projectile.vx * .018,
-            projectile.y - projectile.vy * .018, size * 1.3, angle, .3, 'screen', 1, avatarId);
-        this.effectTexture(context, frame, projectile.x, projectile.y, size, speed ? angle : 0, 1, 'screen', 1, avatarId);
+        if (projectile.kind === 'join') {
+            this.effectArt.draw(context, 'raymond', 'magnet_field', 0, projectile.x, projectile.y, size * 2.4, 0, .3, 'screen');
+        }
+        this.effectArt.draw(context, art.avatarId, art.id, frame, projectile.x - projectile.vx * .018,
+            projectile.y - projectile.vy * .018, size * 1.3, angle, .3, 'screen');
+        this.effectArt.draw(context, art.avatarId, art.id, frame, projectile.x, projectile.y, size, speed ? angle : 0, 1, 'screen');
+        if (art.reflected) {
+            const owner = this.frameFighters.get(projectile.ownerId);
+            this.effectArt.draw(context, owner?.avatarId || 'bip01', 'shield', 0,
+                projectile.x, projectile.y, size * 1.15, 0, .4, 'screen');
+        }
     }
 
     drawEffects(context, deltaTime) {
@@ -497,7 +563,7 @@ export class ArenaRenderer {
             const size = effect.size * lerp(.7, effect.grow, progress);
             const opacity = Math.min(1, (1 - progress) * 2.4);
             this.effectTexture(context, index, effect.x, effect.y, size, effect.rotation,
-                opacity, effect.floor ? 'source-over' : 'screen', effect.floor ? .6 : 1, effectAvatarForEvent(effect, this.frameFighters));
+                opacity, effect.floor ? 'source-over' : 'screen', effect.floor ? .6 : 1, effectAvatarForEvent(effect, this.frameFighters), effect.effectId);
         }
     }
 
@@ -505,19 +571,20 @@ export class ArenaRenderer {
         const count = state.fighters.length;
         const width = Math.min(244, (WIDTH - 96 - 14 * (count - 1)) / Math.max(2, count));
         const start = (WIDTH - width * count - 14 * (count - 1)) / 2;
+        const height = state.fighters.some(fighter => combatPresentation(fighter)) ? 110 : 78;
         const seconds = Math.max(0, Math.ceil(state.remainingSeconds));
         const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
         panel(context, 572, 20, 136, 45, 7, '#071828cf', '#b3c8df33');
         label(context, clock, 640, 43, 28, '#f2f5f8', 700);
         for (let index = 0; index < count; index++) {
-            const fighter = state.fighters[index], x = start + index * (width + 14), y = HEIGHT - 98;
+            const fighter = state.fighters[index], x = start + index * (width + 14), y = HEIGHT - height - 20;
             const color = fighter.color || COLORS[index % COLORS.length];
             context.save();
             context.globalAlpha = fighter.out ? .38 : 1;
-            const fill = context.createLinearGradient(x, y, x, y + 78);
+            const fill = context.createLinearGradient(x, y, x, y + height);
             fill.addColorStop(0, '#142c43ee'); fill.addColorStop(1, '#071727f5');
-            panel(context, x, y, width, 78, 7, fill, '#c3d5e533');
-            panel(context, x, y + 74, width, 4, [0, 0, 5, 5], color);
+            panel(context, x, y, width, height, 7, fill, '#c3d5e533');
+            panel(context, x, y + height - 4, width, 4, [0, 0, 5, 5], color);
             const portrait = this.images.get('portrait-' + fighter.avatarId);
             if (fighter.avatarId === 'starter') {
                 const sheet = this.appearanceImage(fighter, playerId);
@@ -534,7 +601,33 @@ export class ArenaRenderer {
                 panel(context, x + 82, y + 65, width - 98, 3, 1, '#52677d');
                 panel(context, x + 82, y + 65, (width - 98) * fighter.shield / 100, 3, 1, color);
             }
+            this.combatHud(context, fighter, combatPresentation(fighter), x, y, width, fighter.id === playerId);
             context.restore();
+        }
+    }
+
+    combatHud(context, fighter, combat, x, y, width, own) {
+        if (!combat) return;
+        const energy = fighter.avatarId === 'bip01';
+        const resource = energy ? combat.energy : clamp(fighter.shield || 0, 0, 100);
+        const resourceColor = energy ? '#76e5f2' : '#b6c9e2';
+        label(context, (energy ? 'E ' : 'L ') + Math.round(resource), x + 14, y + 80, 10, resourceColor, 700, 'left');
+        panel(context, x + 14, y + 91, 53, 3, 1.5, '#35485c');
+        if (resource > 0) panel(context, x + 14, y + 91, 53 * resource / 100, 3, 1.5, resourceColor);
+        const ready = combat.ultimateReady && !fighter.out;
+        label(context, ready ? 'I KLAR' : 'I ' + Math.floor(combat.ultimate) + '%', x + 82, y + 88, 11, ready ? '#ffdb8b' : '#c9d6e4', 700, 'left');
+        panel(context, x + 82, y + 98, width - 98, 3, 1.5, '#35485c');
+        if (combat.ultimate > 0) panel(context, x + 82, y + 98, (width - 98) * combat.ultimate / 100, 3, 1.5, ready ? '#ffdb8b' : '#c1a5ff');
+        if (!own || fighter.out) return;
+        const seconds = value => value > 0 ? value.toFixed(1) + 's' : 'klar';
+        const grab = combat.cooldowns.grab > 0 ? seconds(combat.cooldowns.grab) : energy && resource < 18 ? '18E' : 'klar';
+        const repair = repairReadinessFor(fighter, combat);
+        label(context, 'U ' + grab + ' · ↓K ' + repair,
+            x + 82, y + 71, 10, '#b8cadb', 600, 'left');
+        const status = combatStatusFor(fighter, combat);
+        if (status) {
+            panel(context, x, y - 28, width, 23, 5, '#081b2ce8', (combat.capturedBy ? '#ffc766' : resourceColor) + '66');
+            label(context, status, x + width / 2, y - 16, 11, combat.capturedBy ? '#ffdb8b' : resourceColor, 700);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Net;
 using Bunit;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Components;
 using Mercantec.Tech.Web.Avatars;
 using Mercantec.Tech.Web.Demo;
 using Mercantec.Tech.Web.Pages;
@@ -103,6 +104,45 @@ public sealed class ArenaMenuTests
         Assert.Empty(api.Requests);
     }
 
+    [Fact]
+    public async Task Training_exposes_real_combat_resources_and_starts_the_CPU_with_a_ready_signature()
+    {
+        using var api = new NoNetworkApi();
+        var javascript = new MenuJavascript();
+        await using var context = await CreateContext(api, javascript);
+        var page = context.Render<Arena>();
+        await Button(page, "Træning").ClickAsync(new MouseEventArgs());
+        await Button(page, "Start").ClickAsync(new MouseEventArgs());
+        page.WaitForAssertion(() => Assert.NotNull(javascript.Module.LastState));
+        var state = javascript.Module.LastState!;
+        Assert.Equal("countdown", state.Phase);
+        var cpu = state.Fighters.Single(x => x.IsBot);
+        Assert.Equal(AvatarEconomy.RaymondId, cpu.AvatarId);
+        Assert.Equal(100, cpu.Combat!.Ultimate);
+        Assert.Equal(100, cpu.Combat.Energy);
+        Assert.Null(cpu.Combat.CapturedBy);
+        Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public void Fighter_help_changes_controls_and_resources_when_the_selected_fighter_changes()
+    {
+        using var context = new BunitContext();
+        var help = context.Render<ArenaMoveList>(p => p.Add(x => x.AvatarId, AvatarEconomy.Bip01Id).Add(x => x.Expanded, true));
+        Assert.True(help.Find("details").HasAttribute("open"));
+        Assert.Equal(8, help.FindAll("dl > div").Count);
+        Assert.Contains("Kerneoverload", help.Markup);
+        Assert.Contains("Magnetgreb", help.Markup);
+        Assert.Contains("Energi", help.Find("p").TextContent);
+        help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.RaymondId));
+        Assert.Contains("Relationsgreb", help.Markup);
+        Assert.Contains("Den store JOIN", help.Markup);
+        Assert.DoesNotContain("Kerneoverload", help.Markup);
+        Assert.Contains("Skjold", help.Find("p").TextContent);
+        help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.StarterId));
+        Assert.Empty(help.FindAll("details"));
+    }
+
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<Arena> page, string label)
         => page.FindAll("button").Single(x => x.TextContent.Trim().TrimStart('‹').Trim() == label);
 
@@ -133,10 +173,12 @@ public sealed class ArenaMenuTests
         public bool Ready { get; init; } = true;
         public int MountCount { get; private set; }
         public bool SoundEnabled { get; private set; }
+        public ArenaState? LastState { get; private set; }
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             if (identifier == "mount") { MountCount++; return ValueTask.FromResult((TValue)(object)Ready); }
+            if (identifier == "pushState") LastState = (ArenaState)args![0]!;
             if (identifier == "sound") SoundEnabled = (bool)args![0]!;
             return ValueTask.FromResult(default(TValue)!);
         }
