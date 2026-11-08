@@ -10,6 +10,10 @@ LUPs eget platformskampspil ligger på `/arena` (og `/games/arena`). Der er link
 
 ## Grafik og hovedmenu
 
+Rettelse af kampeffekter: v2-effektatlasset havde halvtransparente matte felter og nabografik i flere celler. Arenaen bruger i stedet de originale, individuelt isolerede effekter og projektilark for BIP-01 og Raymond, eksporteret tabsfrit til `web/wwwroot/assets/arena/v3/effects/`. Alle 20 filer og 32 effektframes har alpha 0 langs en kant på otte pixels. De 17 relevante originale kampsheets pr. figur er koblet på igen, med otte frames pr. handling. Starterfigurens v2-art bevares. `arena-avatar-art.js` håndterer figurark; `arena-effect-art.js` håndterer karaktereffekter og ejerskab.
+
+Kampmotorens forskelle skal skelnes fra grafikpakkerne: BIP-01 er hurtigere og lettere; Raymonds projektil er større, langsommere og stærkere. Greb, skjold, dash, ned-special og opladede slag har fortsat en fælles grundmekanik. Originalpakkerne indeholder animationer og attachment-events, men ingen færdig spillogik for skade eller cooldown. Der er ikke indført nye, udokumenterede evneregler i denne grafikrettelse.
+
 Arenaen har et separat skærmfyldende spillayout med hovedvalg til online, træning, kæmpere og indstillinger. Styring ligger i indstillingerne. Lokal træning sættes på pause, når indstillingerne åbnes. Genererede rasterassets i `web/wwwroot/assets/arena/v2/` erstatter de proceduretegnede baggrunde, platforme, effekter og startfigurer.
 
 14 WebP-filer fylder cirka 7,7 MB: menubillede, tre banebaggrunde, platform- og effektatlas, fem fighteratlasser og tre portrætter. Figurarkene har 80 validerede frames med fast fodplacering. Startfiguren understøtter kort hår, langt hår og kasket; profilens farver anvendes som materialefarver. PNG-kilder og præcise image_gen-prompter ligger i `assets/arena/v2/` og hentes ikke af browseren.

@@ -65,7 +65,7 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=2");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=3");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _reference = DotNetObjectReference.Create(this);
             _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });

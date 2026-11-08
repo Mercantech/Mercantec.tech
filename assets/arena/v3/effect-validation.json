@@ -1,0 +1,673 @@
+{
+  "validatedFiles": 20,
+  "validatedFrames": 32,
+  "guardPixels": 8,
+  "rectangularMatteFailures": 0,
+  "alphaPreserved": true,
+  "assets": [
+    {
+      "key": "bip01-shield",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.72758,
+          "visibleBounds": [
+            32,
+            42,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-magnet_field",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.74381,
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-dash_trail",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.90254,
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-repair_field",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.83403,
+          "visibleBounds": [
+            33,
+            42,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-ultimate_charge",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.82076,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-ultimate_release",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.64565,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-impact",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.86314,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-unlock",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.80981,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-pulse_cyan",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.92796,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        },
+        {
+          "frame": 1,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.92018,
+          "visibleBounds": [
+            39,
+            53,
+            451,
+            480
+          ]
+        },
+        {
+          "frame": 2,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.91396,
+          "visibleBounds": [
+            40,
+            56,
+            480,
+            480
+          ]
+        },
+        {
+          "frame": 3,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.92474,
+          "visibleBounds": [
+            32,
+            72,
+            461,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "bip01-pulse_amber",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.92599,
+          "visibleBounds": [
+            68,
+            32,
+            480,
+            460
+          ]
+        },
+        {
+          "frame": 1,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.9184,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            462
+          ]
+        },
+        {
+          "frame": 2,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.91269,
+          "visibleBounds": [
+            33,
+            32,
+            480,
+            479
+          ]
+        },
+        {
+          "frame": 3,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.92432,
+          "visibleBounds": [
+            32,
+            32,
+            478,
+            454
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-shield",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.6832,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-magnet_field",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.69176,
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-dash_trail",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.78054,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-repair_field",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.70179,
+          "visibleBounds": [
+            32,
+            41,
+            479,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-ultimate_charge",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.74171,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-ultimate_release",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.67274,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-impact",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.70989,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            464
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-unlock",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.69983,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-pulse_blue",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.63361,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        },
+        {
+          "frame": 1,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.60976,
+          "visibleBounds": [
+            32,
+            32,
+            479,
+            480
+          ]
+        },
+        {
+          "frame": 2,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.61891,
+          "visibleBounds": [
+            32,
+            42,
+            480,
+            480
+          ]
+        },
+        {
+          "frame": 3,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.61089,
+          "visibleBounds": [
+            32,
+            50,
+            479,
+            480
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    },
+    {
+      "key": "raymond-pulse_gold",
+      "frames": [
+        {
+          "frame": 0,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.81981,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        },
+        {
+          "frame": 1,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.78298,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ]
+        },
+        {
+          "frame": 2,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.7617,
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ]
+        },
+        {
+          "frame": 3,
+          "borderMaxAlpha": 0,
+          "cornersAlpha": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "transparentFraction": 0.79176,
+          "visibleBounds": [
+            32,
+            32,
+            470,
+            464
+          ]
+        }
+      ],
+      "alphaPreserved": true
+    }
+  ]
+}

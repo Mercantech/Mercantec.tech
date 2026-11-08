@@ -1,3 +1,6 @@
+import { ArenaEffectArt, effectAvatarForEvent } from './arena-effect-art.js?v=1';
+import { isOriginalAvatar, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=1';
+
 const WIDTH = 1280;
 const HEIGHT = 720;
 const ART_ROOT = '/assets/arena/v2/';
@@ -51,9 +54,12 @@ export class ArenaRenderer {
         this.images = new Map();
         this.imagePromises = new Map();
         this.failures = new Set();
+        this.effectArt = new ArenaEffectArt(this.loadImage.bind(this), this.images);
+        this.frameFighters = new Map();
         this.platformFrames = [];
         this.effectFrames = [];
         this.materialVariants = new Map();
+        this.originalAnimationTimelines = new Map();
         this.seenEvents = new Set();
         this.effects = [];
         this.previewPlayers = null;
@@ -73,19 +79,22 @@ export class ArenaRenderer {
     async loadArt() {
         const art = [
             ...STAGES.map(id => ['stage-' + id, 'stage-' + id + '.webp']),
-            ...AVATARS.map(id => ['fighter-' + id, 'fighters-' + id + '.webp']),
-            ...AVATARS.map(id => ['portrait-' + id, 'portrait-' + id + '.webp']),
+            ['fighter-starter', 'fighters-starter.webp'],
+            ['portrait-starter', 'portrait-starter.webp'],
             ['fighter-starter-long', 'fighters-starter-long.webp'],
             ['fighter-starter-cap', 'fighters-starter-cap.webp'],
-            ['platforms', 'platform-atlas.webp'],
-            ['effects', 'effects-atlas.webp']
+            ['platforms', 'platform-atlas.webp']
+
         ];
-        await Promise.all(art.map(([key, file]) => this.loadImage(key, ART_ROOT + file)));
+        await Promise.all([
+            this.effectArt.preload(),
+            ...art.map(([key, file]) => this.loadImage(key, ART_ROOT + file)),
+            ...originalAvatarAssets().map(([key, file]) => this.loadImage(key, file)),
+            ...AVATARS.filter(isOriginalAvatar).map(id => this.loadImage('portrait-' + id, originalAvatarFace(id)))
+        ]);
         if (this.disposed) return false;
         const platforms = this.images.get('platforms');
-        const effects = this.images.get('effects');
         if (loaded(platforms)) this.platformFrames = this.splitAndTrim(platforms, 1, 3, { alpha: 64, surfaceCoverage: .22 });
-        if (loaded(effects)) this.effectFrames = this.splitAndTrim(effects, 4, 4);
         this.loading = false;
         return this.ready;
     }
@@ -110,7 +119,13 @@ export class ArenaRenderer {
     }
 
     // Retained for callers that request a character image by avatar/action.
-    load(avatarId) { return this.images.get('fighter-' + avatarId) || null; }
+    load(avatarId, action = 'idle') {
+        if (!isOriginalAvatar(avatarId)) return this.images.get('fighter-' + avatarId) || null;
+        const key = originalAvatarKey(avatarId, action);
+        if (!this.images.has(key)) this.loadImage(key, originalAvatarSource(avatarId, action));
+        const image = this.images.get(key);
+        return loaded(image) ? image : this.images.get(originalAvatarKey(avatarId, 'idle')) || null;
+    }
 
     splitAndTrim(image, columns, rows, options = {}) {
         const canvas = document.createElement('canvas');
@@ -155,6 +170,7 @@ export class ArenaRenderer {
         this.effects.length = 0;
         this.shake = 0;
         this.currentTick = 0;
+        this.originalAnimationTimelines.clear();
         this.camera = { x: 640, y: 360, zoom: 1 };
     }
 
@@ -170,6 +186,7 @@ export class ArenaRenderer {
         this.images.clear();
         this.imagePromises.clear();
         this.materialVariants.clear();
+        this.originalAnimationTimelines.clear();
         this.effects.length = 0;
     }
 
@@ -181,7 +198,7 @@ export class ArenaRenderer {
             if (event.tick < this.currentTick - 90) continue;
             this.cue(event.type, event.strength);
             const strength = clamp(event.strength || 1, .5, 2);
-            const effect = { x: event.x, y: event.y, age: 0, rotation: 0, strength };
+            const effect = { x: event.x, y: event.y, age: 0, rotation: 0, strength, type: event.type, actorId: event.actorId, targetId: event.targetId };
             switch (event.type) {
                 case 'hit': case 'throw':
                     this.effects.push({ ...effect, frames: [0, 1, 2, 3], duration: .32, size: 90 * strength, grow: 1.5 });
@@ -235,6 +252,7 @@ export class ArenaRenderer {
                     y: own ? fighter.y + fighter.vy * lead : lerp(before.y, fighter.y, amount) };
             });
         }
+        this.frameFighters = new Map(fighters.map(fighter => [fighter.id, fighter]));
         if (state) {
             this.currentTick = state.tick;
             this.updateCamera(fighters, deltaTime);
@@ -366,7 +384,7 @@ export class ArenaRenderer {
     appearanceImage(fighter, playerId) {
         const appearance = fighter.appearance || (fighter.id === playerId || fighter.id === 'local' || fighter.id === 'preview1' ? this.options.appearance : null);
         const variant = fighter.avatarId === 'starter' && ['long', 'cap'].includes(appearance?.hairStyle) ? 'fighter-starter-' + appearance.hairStyle : null;
-        const source = variant ? this.images.get(variant) : this.load(fighter.avatarId);
+        const source = variant ? this.images.get(variant) : this.load(fighter.avatarId, fighter.action);
         if (fighter.avatarId !== 'starter' || !loaded(source)) return source;
         if (!appearance) return source;
         const skin = hexColor(appearance.skin, '#c98d69');
@@ -405,9 +423,10 @@ export class ArenaRenderer {
     fighter(context, fighter, now, playerId, phase) {
         const image = this.appearanceImage(fighter, playerId);
         if (!image || (!image.width && !image.naturalWidth)) return;
-        const frame = this.animationFrame(fighter, now);
+        const original = originalAvatarFrame(fighter, now, this.originalAnimationTimelines);
+        const frame = original ? original.frame : this.animationFrame(fighter, now);
         const sourceWidth = (image.naturalWidth || image.width) / 4;
-        const sourceHeight = (image.naturalHeight || image.height) / 4;
+        const sourceHeight = (image.naturalHeight || image.height) / (original ? original.rows : 4);
         const x = frame % 4 * sourceWidth, y = Math.floor(frame / 4) * sourceHeight;
         const width = fighter.avatarId === 'raymond' ? 125 : 118;
         const height = width * sourceHeight / sourceWidth;
@@ -424,19 +443,22 @@ export class ArenaRenderer {
         context.scale(fighter.facing || 1, 1);
         if (fighter.invulnerable) context.globalAlpha = .55 + Math.sin(now / 55) * .25;
         context.shadowColor = '#031125a0'; context.shadowBlur = 6;
-        context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .5, -height * .9, width, height);
+        context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .5, -height * (original ? original.originY : .9), width, height);
         context.restore();
         if (fighter.shielding) {
             const frame = 8 + Math.floor(now / 110) % 4;
             const size = 82 + clamp(fighter.shield, 0, 100) * .25;
-            this.effectTexture(context, frame, fighter.x, fighter.y - 41, size, 0, .7, 'screen');
+            this.effectTexture(context, frame, fighter.x, fighter.y - 41, size * 1.25, 0, .7, 'screen', 1, fighter.avatarId, 'shield');
         }
         if (fighter.charge > 0) {
-            this.effectTexture(context, 14, fighter.x, fighter.y - 43, 80 + fighter.charge * 45, 0, .25 + fighter.charge * .5, 'screen');
+            this.effectTexture(context, 14, fighter.x, fighter.y - 43, 110 + fighter.charge * 65, 0, .25 + fighter.charge * .5, 'screen', 1, fighter.avatarId, 'ultimate_charge');
         }
-        if (['ability_1_pulse', 'ability_2_magnet', 'ultimate_release'].includes(fighter.action) && fighter.actionFrame >= 2 && fighter.actionFrame <= 5) {
-            this.effectTexture(context, 13, fighter.x + fighter.facing * 34, fighter.y - 45,
-                fighter.action === 'ultimate_release' ? 130 : 80, fighter.facing < 0 ? Math.PI : 0, .82, 'screen');
+        const actionEffects = { ability_1_pulse: 'impact', ability_2_magnet: 'magnet_field', ability_4_dash: 'dash_trail', ability_5_repair: 'repair_field', ultimate_release: 'ultimate_release' };
+        const attached = actionEffects[fighter.action];
+        if (attached && fighter.actionFrame >= 2 && fighter.actionFrame <= 5) {
+            const radial = ['magnet_field', 'repair_field', 'ultimate_release'].includes(attached);
+            this.effectTexture(context, 13, fighter.x + (radial ? 0 : fighter.facing * 32), fighter.y - (attached === 'repair_field' ? 18 : 43),
+                attached === 'ultimate_release' ? 185 : radial ? 125 : 95, radial ? 0 : fighter.facing < 0 ? Math.PI : 0, .8, 'screen', 1, fighter.avatarId, attached);
         }
         if (fighter.name && (phase || this.previewPlayers)) {
             const name = (own ? 'Dig' : fighter.name).slice(0, 22);
@@ -449,27 +471,21 @@ export class ArenaRenderer {
         }
     }
 
-    effectTexture(context, index, x, y, size, rotation = 0, alpha = 1, blend = 'source-over', heightScale = 1) {
-        const atlas = this.images.get('effects'), frame = this.effectFrames[index];
-        if (!loaded(atlas) || !frame || alpha <= 0) return;
-        const aspect = frame.width / frame.height;
-        const width = aspect >= 1 ? size : size * aspect;
-        const height = (aspect >= 1 ? size / aspect : size) * heightScale;
-        context.save();
-        context.translate(x, y); context.rotate(rotation);
-        context.globalCompositeOperation = blend; context.globalAlpha = clamp(alpha, 0, 1);
-        context.drawImage(atlas, frame.x, frame.y, frame.width, frame.height, -width / 2, -height / 2, width, height);
-        context.restore();
+    effectTexture(context, index, x, y, size, rotation = 0, alpha = 1, blend = 'source-over', heightScale = 1, avatarId = 'starter', effectId = null) {
+        const id = effectId || (index < 4 ? 'impact' : index < 8 ? this.effectArt.projectileId(avatarId) : index < 12 ? 'shield' : index === 12 || index === 13 ? 'dash_trail' : index === 14 ? 'unlock' : 'ultimate_release');
+        this.effectArt.draw(context, avatarId, id, index >= 4 && index < 8 ? index - 4 : 0, x, y, size, rotation, alpha, blend, heightScale);
     }
 
     projectile(context, projectile, now) {
+        const owner = this.frameFighters.get(projectile.ownerId);
+        const avatarId = owner?.avatarId || 'starter';
         const speed = Math.hypot(projectile.vx, projectile.vy);
         const angle = Math.atan2(projectile.vy, projectile.vx);
-        const frame = 4 + Math.floor(now / 65) % 4;
+        const frame = 4 + Math.floor(now * 12 / 1000) % 4;
         const size = Math.max(45, (projectile.radius || 9) * 5);
         this.effectTexture(context, frame, projectile.x - projectile.vx * .018,
-            projectile.y - projectile.vy * .018, size * 1.3, angle, .3, 'screen');
-        this.effectTexture(context, frame, projectile.x, projectile.y, size, speed ? angle : 0, 1, 'screen');
+            projectile.y - projectile.vy * .018, size * 1.3, angle, .3, 'screen', 1, avatarId);
+        this.effectTexture(context, frame, projectile.x, projectile.y, size, speed ? angle : 0, 1, 'screen', 1, avatarId);
     }
 
     drawEffects(context, deltaTime) {
@@ -481,7 +497,7 @@ export class ArenaRenderer {
             const size = effect.size * lerp(.7, effect.grow, progress);
             const opacity = Math.min(1, (1 - progress) * 2.4);
             this.effectTexture(context, index, effect.x, effect.y, size, effect.rotation,
-                opacity, effect.floor ? 'source-over' : 'screen', effect.floor ? .6 : 1);
+                opacity, effect.floor ? 'source-over' : 'screen', effect.floor ? .6 : 1, effectAvatarForEvent(effect, this.frameFighters));
         }
     }
 

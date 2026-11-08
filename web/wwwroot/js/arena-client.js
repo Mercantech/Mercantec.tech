@@ -1,4 +1,4 @@
-import { ArenaRenderer } from './arena-renderer.js?v=2';
+import { ArenaRenderer } from './arena-renderer.js?v=3';
 let canvas, bridge, renderer, socket, animation, heartbeat, inputTimer, resizeObserver;
 let practice = false, intentionalClose = false, reconnecting = false, disposed = true, phase = '', playerId = '', sequence = 0;
 let latest, previous, receivedAt = 0, previousAt = 0, reconnectTimer, reconnectAttempt = 0;

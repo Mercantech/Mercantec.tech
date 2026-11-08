@@ -1,0 +1,1280 @@
+{
+  "version": 3,
+  "origin": "Original BIP-01 and Raymond avatar packages",
+  "export": "lossless WebP, original dimensions and alpha preserved",
+  "guardPixels": 8,
+  "assets": [
+    {
+      "key": "bip01-shield",
+      "avatarId": "bip01",
+      "id": "shield",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-shield.webp",
+      "source": "assets/arena/v3/source/bip01/effects/shield.png",
+      "originalSource": "design/robot-avatar-v3/effects/shield.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "371de5dc80cfacc68f7aae1ca48d4e852615f2436dd6ea99f9aa8156a29adf63",
+      "sha256": "8eb21c8fafbd0a3eebe1d4b0a8e8cd976baab83526f4b7156711357ad51b0b48",
+      "bytes": 104778,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            42,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.72758
+        }
+      ]
+    },
+    {
+      "key": "bip01-magnet_field",
+      "avatarId": "bip01",
+      "id": "magnet_field",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-magnet_field.webp",
+      "source": "assets/arena/v3/source/bip01/effects/magnet_field.png",
+      "originalSource": "design/robot-avatar-v3/effects/magnet_field.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "462f6b367dfba01239e78414ce2add1ff282ff24dd6165f1f8b4937af7fa5fca",
+      "sha256": "8a36dd5f1696b428f6fc78109478f60b132aac74eb62e8e3f17f0f338f912619",
+      "bytes": 114376,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.74381
+        }
+      ]
+    },
+    {
+      "key": "bip01-dash_trail",
+      "avatarId": "bip01",
+      "id": "dash_trail",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-dash_trail.webp",
+      "source": "assets/arena/v3/source/bip01/effects/dash_trail.png",
+      "originalSource": "design/robot-avatar-v3/effects/dash_trail.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "a2080c1a285fce6fcac8aa89f2f8ac59089fec3dfff1e8b4694893c0a075372b",
+      "sha256": "976f25a7d81b8f6da0ac37b5dfbae4689a82092cbb6e0461add13963ad7bbbae",
+      "bytes": 41300,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.90254
+        }
+      ]
+    },
+    {
+      "key": "bip01-repair_field",
+      "avatarId": "bip01",
+      "id": "repair_field",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-repair_field.webp",
+      "source": "assets/arena/v3/source/bip01/effects/repair_field.png",
+      "originalSource": "design/robot-avatar-v3/effects/repair_field.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "41f49e9c4d89451981a29288bedbe225b5a9fed7b477659499e305f621ca1dbd",
+      "sha256": "de3b7862931948162bc2b08059c66c9f642ca028269046a108a6d4e0fedc6802",
+      "bytes": 71644,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            254
+          ],
+          "visibleBounds": [
+            33,
+            42,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.83403
+        }
+      ]
+    },
+    {
+      "key": "bip01-ultimate_charge",
+      "avatarId": "bip01",
+      "id": "ultimate_charge",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-ultimate_charge.webp",
+      "source": "assets/arena/v3/source/bip01/effects/ultimate_charge.png",
+      "originalSource": "design/robot-avatar-v3/effects/ultimate_charge.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "eb5a7287bbfc5f16d392c6abcdb69ae80bc3751f42749400dd0ad7f17abe74ef",
+      "sha256": "6673add80794af2b3993433762754d6234fb275557f716466203d9003a4cfdab",
+      "bytes": 68828,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.82076
+        }
+      ]
+    },
+    {
+      "key": "bip01-ultimate_release",
+      "avatarId": "bip01",
+      "id": "ultimate_release",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-ultimate_release.webp",
+      "source": "assets/arena/v3/source/bip01/effects/ultimate_release.png",
+      "originalSource": "design/robot-avatar-v3/effects/ultimate_release.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "1bfc630bae3035daf4cf6f56e73b659c332e99c6362e28927fcacb5b9c1835ca",
+      "sha256": "f6f64ec120d29377bade892b3ec0e9c7fca2a5c1628c78c9da8430c578ffda51",
+      "bytes": 145826,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.64565
+        }
+      ]
+    },
+    {
+      "key": "bip01-impact",
+      "avatarId": "bip01",
+      "id": "impact",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-impact.webp",
+      "source": "assets/arena/v3/source/bip01/effects/impact.png",
+      "originalSource": "design/robot-avatar-v3/effects/impact.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "97bd92b3527e99e5cd3cd9429733f7a018a0470ecefbe2bf8cef2a6bcf8b982c",
+      "sha256": "94090606a0c0a00dc082baeae3be48b2eaea0bce12d2ca06c0dd4cb0c7c92c0b",
+      "bytes": 54354,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            254
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.86314
+        }
+      ]
+    },
+    {
+      "key": "bip01-unlock",
+      "avatarId": "bip01",
+      "id": "unlock",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/bip01-unlock.webp",
+      "source": "assets/arena/v3/source/bip01/effects/unlock.png",
+      "originalSource": "design/robot-avatar-v3/effects/unlock.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "9b3cceb7394cf8af20ce8e809252a2d13d8c0914936fcb8785e7f44e60f609d7",
+      "sha256": "621d4a10801792e873ff18ad125b72af65943754960dded3edf09e120d9d8e91",
+      "bytes": 75482,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.80981
+        }
+      ]
+    },
+    {
+      "key": "bip01-pulse_cyan",
+      "avatarId": "bip01",
+      "id": "pulse_cyan",
+      "role": "projectile",
+      "url": "/assets/arena/v3/effects/bip01-pulse_cyan.webp",
+      "source": "assets/arena/v3/source/bip01/projectiles/pulse_cyan.png",
+      "originalSource": "design/robot-avatar-v3/projectiles/pulse_cyan.png",
+      "width": 2048,
+      "height": 512,
+      "columns": 4,
+      "rows": 1,
+      "frameCount": 4,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 12,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 128,
+        "height": 128
+      },
+      "sourceSha256": "5081241745b388797bdcfb0168825fe733d946871b89d67cdb4d477f02c69625",
+      "sha256": "62d6fc8e867b959115d444b8fa5d6e098b761ab251ecd6e509124d89823dd3a7",
+      "bytes": 111614,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.92796
+        },
+        {
+          "index": 1,
+          "bounds": [
+            512,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            39,
+            53,
+            451,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.92018
+        },
+        {
+          "index": 2,
+          "bounds": [
+            1024,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            40,
+            56,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.91396
+        },
+        {
+          "index": 3,
+          "bounds": [
+            1536,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            32,
+            72,
+            461,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.92474
+        }
+      ]
+    },
+    {
+      "key": "bip01-pulse_amber",
+      "avatarId": "bip01",
+      "id": "pulse_amber",
+      "role": "projectile",
+      "url": "/assets/arena/v3/effects/bip01-pulse_amber.webp",
+      "source": "assets/arena/v3/source/bip01/projectiles/pulse_amber.png",
+      "originalSource": "design/robot-avatar-v3/projectiles/pulse_amber.png",
+      "width": 2048,
+      "height": 512,
+      "columns": 4,
+      "rows": 1,
+      "frameCount": 4,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 12,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 128,
+        "height": 128
+      },
+      "sourceSha256": "3236cb68005f199ece656f466018248b60d2163e3a4476c38373c1e33b2dac1a",
+      "sha256": "7f12d02d44b048cab24eaa7302d12f058764aab28b552d3779787f288feb78a2",
+      "bytes": 115764,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            68,
+            32,
+            480,
+            460
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.92599
+        },
+        {
+          "index": 1,
+          "bounds": [
+            512,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            462
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.9184
+        },
+        {
+          "index": 2,
+          "bounds": [
+            1024,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            33,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.91269
+        },
+        {
+          "index": 3,
+          "bounds": [
+            1536,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            255
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            478,
+            454
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.92432
+        }
+      ]
+    },
+    {
+      "key": "raymond-shield",
+      "avatarId": "raymond",
+      "id": "shield",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-shield.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/shield.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/shield.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "3f2f16f8a5def58097f43276b465dc860c6d2b9a19402b23bf59b9fff501ce1b",
+      "sha256": "03b6767594d2e2f82a50e57e762bb773dedd5b981630040962559db5bbd0bb44",
+      "bytes": 99764,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            252
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.6832
+        }
+      ]
+    },
+    {
+      "key": "raymond-magnet_field",
+      "avatarId": "raymond",
+      "id": "magnet_field",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-magnet_field.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/magnet_field.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/magnet_field.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "f1e6fc1e0461315a6f5464487659cfe30499f47b172470af8232a86696718712",
+      "sha256": "f4433001ed4f24e52730a17d38a5a4356b255d75da0b2fe58467dc85a501fae4",
+      "bytes": 101624,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            252
+          ],
+          "visibleBounds": [
+            32,
+            42,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.69176
+        }
+      ]
+    },
+    {
+      "key": "raymond-dash_trail",
+      "avatarId": "raymond",
+      "id": "dash_trail",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-dash_trail.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/dash_trail.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/dash_trail.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.9,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 384,
+        "height": 192
+      },
+      "sourceSha256": "04d767d956b07db945618541d505719ddac48e5e056190183c655433dcc260cb",
+      "sha256": "0328983e8bfc686f6d3015d416ea7c4903df069b14d237cf0fb05123cd00e35d",
+      "bytes": 63864,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.78054
+        }
+      ]
+    },
+    {
+      "key": "raymond-repair_field",
+      "avatarId": "raymond",
+      "id": "repair_field",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-repair_field.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/repair_field.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/repair_field.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.72
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 384
+      },
+      "sourceSha256": "167486748e303bd386d9ea9bbb97eeab0f05da6213bfa84e6af7f1a4a7dae9bc",
+      "sha256": "2d8efae653d7f00491b595deb40dec082d1d4866630295d0381866032c3f447b",
+      "bytes": 101140,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            251
+          ],
+          "visibleBounds": [
+            32,
+            41,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.70179
+        }
+      ]
+    },
+    {
+      "key": "raymond-ultimate_charge",
+      "avatarId": "raymond",
+      "id": "ultimate_charge",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-ultimate_charge.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/ultimate_charge.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/ultimate_charge.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "00ab52571965d107340f53b85a2b777732a19d435cac237367d63f9fbeed06c9",
+      "sha256": "44b443268d0964a9ba86843e44103d85cdf501d1f95f6b4aec0b29228079b45b",
+      "bytes": 85692,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.74171
+        }
+      ]
+    },
+    {
+      "key": "raymond-ultimate_release",
+      "avatarId": "raymond",
+      "id": "ultimate_release",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-ultimate_release.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/ultimate_release.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/ultimate_release.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "992da885dbd8cb4937ca4aa62b19d75fc024cc45c2ee78d4e1244a0a986a4eca",
+      "sha256": "2177850e63f8cf2f924829417d7fd38e7af68ae8fa946682142f03666dd023ab",
+      "bytes": 106784,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            252
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.67274
+        }
+      ]
+    },
+    {
+      "key": "raymond-impact",
+      "avatarId": "raymond",
+      "id": "impact",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-impact.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/impact.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/impact.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "3468df9f7ab17a30c7bad4dbf8aface1a12ed2a1f86675dfe868b183e1c57bdc",
+      "sha256": "37f3c58ed94bff6b60192a4911fd23e1336dfcac36a34af5fea07946f17d8800",
+      "bytes": 78290,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            464
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.70989
+        }
+      ]
+    },
+    {
+      "key": "raymond-unlock",
+      "avatarId": "raymond",
+      "id": "unlock",
+      "role": "effect",
+      "url": "/assets/arena/v3/effects/raymond-unlock.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/effects/unlock.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/effects/unlock.png",
+      "width": 512,
+      "height": 512,
+      "columns": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.7
+      },
+      "naturalSize": {
+        "width": 512,
+        "height": 512
+      },
+      "sourceSha256": "7cf66365f2d76689a49652037f78ba95dd1611dd63696d3d06908b9aa188ac68",
+      "sha256": "8d5647f805dec8ced66ed2c8e3c7ab9b5d3b746f5c0cd360cbe4f4fa29615767",
+      "bytes": 87358,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.69983
+        }
+      ]
+    },
+    {
+      "key": "raymond-pulse_blue",
+      "avatarId": "raymond",
+      "id": "pulse_blue",
+      "role": "projectile",
+      "url": "/assets/arena/v3/effects/raymond-pulse_blue.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/projectiles/pulse_blue.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/projectiles/pulse_blue.png",
+      "width": 2048,
+      "height": 512,
+      "columns": 4,
+      "rows": 1,
+      "frameCount": 4,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 12,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "sourceSha256": "11e9d8686e8e38bc3267ec441dd6e46b056a44b0c0689594a4737309aabaa6c8",
+      "sha256": "2165ece4a60cb6c2f1e20921ee0d8ed7edf784300baf13a90a1c9fbb09c117f2",
+      "bytes": 400772,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.63361
+        },
+        {
+          "index": 1,
+          "bounds": [
+            512,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.60976
+        },
+        {
+          "index": 2,
+          "bounds": [
+            1024,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            42,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.61891
+        },
+        {
+          "index": 3,
+          "bounds": [
+            1536,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            50,
+            479,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.61089
+        }
+      ]
+    },
+    {
+      "key": "raymond-pulse_gold",
+      "avatarId": "raymond",
+      "id": "pulse_gold",
+      "role": "projectile",
+      "url": "/assets/arena/v3/effects/raymond-pulse_gold.webp",
+      "source": "web/wwwroot/assets/avatars/raymond/projectiles/pulse_gold.png",
+      "originalSource": "web/wwwroot/assets/avatars/raymond/projectiles/pulse_gold.png",
+      "width": 2048,
+      "height": 512,
+      "columns": 4,
+      "rows": 1,
+      "frameCount": 4,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "fps": 12,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "sourceSha256": "b12d2b6d11dfd1dcac31789fd3af92c380e2fbe6b5a1a3ac35e3ddea5fc55602",
+      "sha256": "71ed51d5c099cdbf24fbc16dcdcec01a1ac60b5be06df7cb5d1413e2c1a97ce1",
+      "bytes": 281288,
+      "frames": [
+        {
+          "index": 0,
+          "bounds": [
+            0,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.81981
+        },
+        {
+          "index": 1,
+          "bounds": [
+            512,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            480
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.78298
+        },
+        {
+          "index": 2,
+          "bounds": [
+            1024,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            480,
+            479
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.7617
+        },
+        {
+          "index": 3,
+          "bounds": [
+            1536,
+            0,
+            512,
+            512
+          ],
+          "alphaRange": [
+            0,
+            253
+          ],
+          "visibleBounds": [
+            32,
+            32,
+            470,
+            464
+          ],
+          "guardBorderMaxAlpha": 0,
+          "transparentFraction": 0.79176
+        }
+      ]
+    }
+  ]
+}

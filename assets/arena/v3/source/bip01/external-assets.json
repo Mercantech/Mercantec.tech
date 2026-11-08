@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "frameSize": {
+    "width": 512,
+    "height": 512
+  },
+  "items": [
+    {
+      "id": "energy_cube",
+      "label": "Energikube",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/energy_cube.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "book",
+      "label": "Bog",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 512,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/book.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "key",
+      "label": "Nøgle",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 1024,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/key.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "gear",
+      "label": "Tandhjul",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 1536,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/gear.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "gem",
+      "label": "Ædelsten",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 0,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/gem.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "coin",
+      "label": "Mønt",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 512,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/coin.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "crate",
+      "label": "Kasse",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 1024,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/crate.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    },
+    {
+      "id": "scroll",
+      "label": "Skriftrulle",
+      "role": "item",
+      "sheet": "items/items.png",
+      "rect": {
+        "x": 1536,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "items/scroll.png",
+      "naturalSize": {
+        "width": 64,
+        "height": 64
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "gripOffset": {
+        "x": 0,
+        "y": -24,
+        "units": "frame-pixels"
+      }
+    }
+  ],
+  "projectiles": [
+    {
+      "id": "pulse_cyan",
+      "label": "Cyan puls",
+      "role": "projectile",
+      "sheet": "projectiles/projectiles.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 1024,
+          "y": 0,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 1536,
+          "y": 0,
+          "w": 512,
+          "h": 512
+        }
+      ],
+      "fps": 12,
+      "width": 128,
+      "height": 128,
+      "standalone": "projectiles/pulse_cyan.png",
+      "motionOwner": "game",
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "pulse_amber",
+      "label": "Ravfarvet puls",
+      "role": "projectile",
+      "sheet": "projectiles/projectiles.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 512,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 512,
+          "y": 512,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 1024,
+          "y": 512,
+          "w": 512,
+          "h": 512
+        },
+        {
+          "x": 1536,
+          "y": 512,
+          "w": 512,
+          "h": 512
+        }
+      ],
+      "fps": 12,
+      "width": 128,
+      "height": 128,
+      "standalone": "projectiles/pulse_amber.png",
+      "motionOwner": "game",
+      "lifetimeOwner": "game"
+    }
+  ],
+  "effects": [
+    {
+      "id": "shield",
+      "label": "Skjoldring",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/shield.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "magnet_field",
+      "label": "Magnetfelt",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 512,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/magnet_field.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "repair_field",
+      "label": "Reparationsfelt",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 1024,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/repair_field.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "dash_trail",
+      "label": "Rakethale",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 1536,
+        "y": 0,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/dash_trail.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "ultimate_charge",
+      "label": "Opladningskugle",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 0,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/ultimate_charge.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "ultimate_release",
+      "label": "Shockwave",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 512,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/ultimate_release.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "impact",
+      "label": "Træfglimt",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 1024,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/impact.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    },
+    {
+      "id": "unlock",
+      "label": "Oplåsningsring",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "rect": {
+        "x": 1536,
+        "y": 512,
+        "w": 512,
+        "h": 512
+      },
+      "standalone": "effects/unlock.png",
+      "frames": 1,
+      "lifetimeOwner": "game"
+    }
+  ],
+  "notes": "Independent example sprites. Game chooses identity, position, velocity, lifetime, collision and attachment transforms. No item/projectile is included in the character PNGs."
+}
