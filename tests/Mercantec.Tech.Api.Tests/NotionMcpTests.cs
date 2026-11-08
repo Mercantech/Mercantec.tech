@@ -61,6 +61,31 @@ public sealed class NotionMcpTests : IAsyncLifetime
         [Element(new { type = "replace_text", blockId = "b1", contentFingerprint = new string('b', 64), from = 0, to = 3, text })], "Gør forklaringen tydeligere");
 
     [Fact]
+    public async Task Empty_history_rest_endpoint_returns_an_empty_private_list_for_an_accessible_page()
+    {
+        var controller = new NotionMcpController(service)
+        { ControllerContext = new() { HttpContext = new DefaultHttpContext { User = User() } } };
+        var result = Assert.IsType<OkObjectResult>(await controller.List(page, default));
+        Assert.Empty(Assert.IsType<NotionMcpChangeSummary[]>(result.Value));
+        Assert.Empty(engine.Calls);
+    }
+
+    [Fact]
+    public void Production_postgres_history_query_translates_order_and_limit_without_loading_audit_bodies()
+    {
+        using var postgres = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=127.0.0.1;Database=not_connected;Username=not_connected;Password=not_connected").Options);
+        var postgresService = new NotionMcpService(postgres, new(postgres), new Clients(engine), config, new(config));
+        // Translation only: no PostgreSQL connection or credentials are used by ToQueryString.
+        var sql = postgresService.HistoryMetadataQuery(page, teacher).ToQueryString();
+        Assert.Contains("ORDER BY", sql);
+        Assert.Contains("LIMIT", sql);
+        Assert.DoesNotContain("BeforeJson", sql);
+        Assert.DoesNotContain("AfterJson", sql);
+        Assert.DoesNotContain("RequestJson", sql);
+    }
+
+    [Fact]
     public async Task Real_stateless_mcp_transport_lists_five_tools_enforces_roles_and_binds_the_live_user()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
@@ -71,11 +96,12 @@ public sealed class NotionMcpTests : IAsyncLifetime
         builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
         builder.Services.AddScoped<CourseAccess>();
         builder.Services.AddSingleton<NotebookServiceKey>();
+        builder.Services.AddControllers().AddApplicationPart(typeof(NotionMcpController).Assembly);
         builder.Services.AddNotionMcp();
         builder.Services.AddSingleton<IHttpClientFactory>(new Clients(engine));
         builder.Services.AddAuthentication("test").AddScheme<AuthenticationSchemeOptions, TestAuthentication>("test", _ => { });
         await using var app = builder.Build();
-        app.UseAuthentication(); app.UseAuthorization(); app.MapNotionMcp(); await app.StartAsync();
+        app.UseAuthentication(); app.UseAuthorization(); app.MapNotionMcp(); app.MapControllers(); await app.StartAsync();
         var url = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         using var http = new HttpClient();
         Assert.Equal(HttpStatusCode.Unauthorized, (await http.PostAsync(url + "/api/mcp", new StringContent("{}", Encoding.UTF8, "application/json"))).StatusCode);
@@ -122,6 +148,12 @@ public sealed class NotionMcpTests : IAsyncLifetime
         Assert.NotEqual(true, result.IsError);
         Assert.NotNull(result.StructuredContent);
         Assert.Equal("teacher", Assert.Single(engine.Calls).Body.GetProperty("accessToken").GetString());
+        http.DefaultRequestHeaders.Accept.Clear();
+        http.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+        using var historyResponse = await http.GetAsync(url + $"/api/notion/pages/{page}/codex-changes");
+        Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
+        Assert.Equal("[]", await historyResponse.Content.ReadAsStringAsync());
+        Assert.True(historyResponse.Headers.CacheControl?.NoStore);
         await app.StopAsync();
     }
 

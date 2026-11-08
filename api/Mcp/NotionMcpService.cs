@@ -92,13 +92,21 @@ public sealed class NotionMcpService(AppDbContext db, CourseAccess courses, IHtt
     public async Task<NotionMcpChangeSummary[]> ListAsync(Guid pageId, ClaimsPrincipal user, CancellationToken ct)
     {
         var sub = await AuthorizeAsync(pageId, user, ct);
-        var metadata = db.NotionMcpChanges.AsNoTracking().Where(c => c.PageId == pageId && c.OwnerSub == sub)
-            .Select(c => new NotionMcpChangeSummary(c.Id, c.PageId, c.Summary, c.Status, c.CreatedAtUtc,
-                c.AppliedAtUtc, c.UndoneAtUtc, c.UndoOf, c.Status == "applied" && c.UndoOf == null));
+        var metadata = HistoryMetadataQuery(pageId, sub);
         // SQLite test storage cannot order DateTimeOffset; production PostgreSQL limits before materialization.
         return db.Database.IsNpgsql()
-            ? await metadata.OrderByDescending(c => c.CreatedAtUtc).Take(100).ToArrayAsync(ct)
+            ? await metadata.ToArrayAsync(ct)
             : (await metadata.ToArrayAsync(ct)).OrderByDescending(c => c.CreatedAtUtc).Take(100).ToArray();
+    }
+
+    internal IQueryable<NotionMcpChangeSummary> HistoryMetadataQuery(Guid pageId, Guid ownerSub)
+    {
+        var rows = db.NotionMcpChanges.AsNoTracking().Where(c => c.PageId == pageId && c.OwnerSub == ownerSub);
+        // Order entity columns before constructing the DTO. EF cannot translate property access
+        // on a positional record constructor when OrderBy is applied after that projection.
+        if (db.Database.IsNpgsql()) rows = rows.OrderByDescending(c => c.CreatedAtUtc).ThenByDescending(c => c.Id).Take(100);
+        return rows.Select(c => new NotionMcpChangeSummary(c.Id, c.PageId, c.Summary, c.Status, c.CreatedAtUtc,
+            c.AppliedAtUtc, c.UndoneAtUtc, c.UndoOf, c.Status == "applied" && c.UndoOf == null));
     }
 
     public async Task<NotionMcpChangeView> GetAsync(Guid operationId, ClaimsPrincipal user, CancellationToken ct)
