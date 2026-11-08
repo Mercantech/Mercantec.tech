@@ -4,7 +4,7 @@
 
 @if (CurrentDefinition.SpriteAssetRoot is not null)
 {
-    <span class="avatar-sheet @(CurrentDefinition.SpriteRows == 1 ? "avatar-raymond" : "avatar-robot") @(Mini ? "mini" : null)" data-avatar="@CurrentDefinition.Id" data-animation="@SafeAnimation" style="@SpriteStyle" aria-hidden="true"></span>
+    <span @key="AnimationIdentity" class="avatar-sheet avatar-grid-4x2 @(Mini ? "mini" : null)" data-avatar="@CurrentDefinition.Id" data-animation="@SafeAnimation" data-frames="8" data-fps="@CurrentAction?.Fps" data-loop="@DemoWorld.Pressed(CurrentAction?.Loop == true)" style="@SpriteStyle" aria-hidden="true"></span>
 }
 else
 {
@@ -20,12 +20,14 @@ else
     [Parameter] public int Size { get; set; } = 136;
     [Parameter] public string? AvatarId { get; set; }
     [Parameter] public string Animation { get; set; } = "idle";
+    [Parameter] public int ReplayKey { get; set; }
+    [Parameter] public bool Paused { get; set; }
     private AvatarDefinition CurrentDefinition => AvatarCatalog.Find(AvatarId ?? (World.AvatarProfileReady ? World.SelectedAvatarId : AvatarCatalog.StarterId)) ?? AvatarCatalog.All[0];
     private string SafeAnimation => CurrentDefinition.Animations.Contains(Animation) ? Animation : "idle";
-    private string Duration => CurrentDefinition.SpriteRows == 1
-        ? SafeAnimation switch { "run" => ".8s", "walk" or "jump" => "1s", _ => "1.2s" }
-        : SafeAnimation.StartsWith("ability_", StringComparison.Ordinal) ? "1s" : SafeAnimation switch { "sleep" => "1.333s", "think" or "idle" => "1s", "run" => ".667s", "ultimate_charge" or "ultimate_release" => "1.6s", _ => ".8s" };
-    private string SpriteStyle => $"--avatar-size:{Math.Clamp(Size, 24, 512)}px;--avatar-cycle:{Duration};background-image:url('{CurrentDefinition.SpriteAssetRoot}/sprites/{SafeAnimation}.png')";
+    private AvatarAction? CurrentAction => CurrentDefinition.Actions.FirstOrDefault(action => action.Id == SafeAnimation);
+    private string AnimationIdentity => $"{CurrentDefinition.Id}:{SafeAnimation}:{ReplayKey}";
+    private string Duration => (CurrentAction?.DurationSeconds ?? 1).ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + "s";
+    private string SpriteStyle => $"--avatar-size:{Math.Clamp(Size, 24, 512)}px;--avatar-cycle:{Duration};--avatar-repeats:{(CurrentAction?.Loop == true ? "infinite" : "1")};animation-play-state:{(Paused ? "paused" : "running")};background-image:url('{CurrentDefinition.SpriteAssetRoot}/sprites/{SafeAnimation}.png')";
     private string LegacyStyle => $"--skin:{World.Skin};--outfit:{World.OutfitColor};--hair:{World.Hair}" + (Mini ? "" : $";transform:scale({(Size / 136d).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)})");
 
     protected override void OnInitialized() => World.Changed += OnChanged;

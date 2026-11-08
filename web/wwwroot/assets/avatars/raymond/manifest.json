@@ -1,97 +1,3183 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "id": "raymond",
   "name": "Raymond",
-  "characterProfile": "/characters/raymond",
-  "face": "/images/characters/raymond/neutral.webp",
-  "frameSize": {
-    "width": 256,
-    "height": 256
-  },
-  "columns": 4,
-  "rows": 1,
-  "frames": 4,
-  "pivot": {
-    "x": 128,
-    "y": 232
-  },
-  "transparent": true,
   "characterOnly": true,
-  "animations": [
-    {
-      "id": "idle",
-      "file": "sprites/idle.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1200
-    },
-    {
-      "id": "walk",
-      "file": "sprites/walk.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1000
-    },
-    {
-      "id": "run",
-      "file": "sprites/run.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 800
-    },
-    {
-      "id": "jump",
-      "file": "sprites/jump.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1000
-    },
-    {
-      "id": "wave",
-      "file": "sprites/wave.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1200
-    },
-    {
-      "id": "celebrate",
-      "file": "sprites/celebrate.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1200
-    },
-    {
-      "id": "think",
-      "file": "sprites/think.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1200
-    },
-    {
-      "id": "talk",
-      "file": "sprites/talk.png",
-      "frames": 4,
-      "loop": true,
-      "durationMs": 1200
-    }
-  ],
-  "reactions": [
+  "frameSize": 256,
+  "columns": 4,
+  "rows": 2,
+  "origin": {
+    "x": 128,
+    "y": 224
+  },
+  "face": "face.png",
+  "emojis": [
     {
       "id": "happy",
-      "file": "/images/characters/raymond/reactions/success.png"
+      "file": "emoji-happy.png"
     },
     {
       "id": "laugh",
-      "file": "/images/characters/raymond/reactions/laughing.png?v=097b5eeb"
+      "file": "emoji-laugh.png"
     },
     {
       "id": "think",
-      "file": "/images/characters/raymond/reactions/thinking.png"
+      "file": "emoji-think.png"
     },
     {
       "id": "celebrate",
-      "file": "/images/characters/raymond/reactions/celebration.png"
+      "file": "emoji-celebrate.png"
     }
   ],
-  "notes": "Empty-handed character frames. Items, projectiles and effects are separate entities. Unsupported animation names use idle."
+  "layerContract": "attachment-events.json",
+  "independentSprites": "external-assets.json",
+  "audio": "audio/audio-manifest.json",
+  "totals": {
+    "actions": 28,
+    "frames": 224,
+    "sfx": 28,
+    "spokenPhrases": 5,
+    "items": 8,
+    "projectileVariants": 2,
+    "projectileFrames": 8,
+    "effects": 8
+  },
+  "actions": [
+    {
+      "id": "idle",
+      "label": "Stå stille",
+      "category": "social",
+      "file": "sprites/idle.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "blink",
+      "label": "Blinke",
+      "category": "social",
+      "file": "sprites/blink.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.35,
+          "sound": "blink"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "wave",
+      "label": "Vinke",
+      "category": "social",
+      "file": "sprites/wave.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.12,
+          "sound": "wave"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "think",
+      "label": "Tænke",
+      "category": "social",
+      "file": "sprites/think.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.2,
+          "sound": "think"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "talk",
+      "label": "Tale",
+      "category": "social",
+      "file": "sprites/talk.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0,
+          "sound": "talk"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "point",
+      "label": "Pege",
+      "category": "social",
+      "file": "sprites/point.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.25,
+          "sound": "point"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "celebrate",
+      "label": "Juble",
+      "category": "social",
+      "file": "sprites/celebrate.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.12,
+          "sound": "celebrate"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "encourage",
+      "label": "Opmuntre",
+      "category": "social",
+      "file": "sprites/encourage.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.15,
+          "sound": "encourage"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "surprised",
+      "label": "Overrasket",
+      "category": "social",
+      "file": "sprites/surprised.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.15,
+          "sound": "surprised"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "unlock",
+      "label": "Låst op",
+      "category": "social",
+      "file": "sprites/unlock.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.05,
+          "sound": "unlock"
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "at": 0,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "unlock",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "walk",
+      "label": "Gå",
+      "category": "movement",
+      "file": "sprites/walk.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.125,
+          "sound": "walk"
+        },
+        {
+          "at": 0.625,
+          "sound": "walk"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "run",
+      "label": "Løbe",
+      "category": "movement",
+      "file": "sprites/run.png",
+      "frames": 8,
+      "fps": 12,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 83.33333333333333
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.125,
+          "sound": "run"
+        },
+        {
+          "at": 0.625,
+          "sound": "run"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "jump",
+      "label": "Hoppe",
+      "category": "movement",
+      "file": "sprites/jump.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.15,
+          "sound": "jump"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "land",
+      "label": "Lande",
+      "category": "movement",
+      "file": "sprites/land.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.15,
+          "sound": "land"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "sit",
+      "label": "Sætte sig",
+      "category": "movement",
+      "file": "sprites/sit.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "hold-last",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.25,
+          "sound": "sit"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "sleep",
+      "label": "Sove",
+      "category": "movement",
+      "file": "sprites/sleep.png",
+      "frames": 8,
+      "fps": 6,
+      "loop": true,
+      "endState": "self",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 166.66666666666666
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.2,
+          "sound": "sleep"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "pickup",
+      "label": "Samle op",
+      "category": "movement",
+      "file": "sprites/pickup.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.55,
+          "sound": "pickup"
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "attach_item",
+          "payload": {
+            "anchor": "right_hand",
+            "runtimeInputs": [
+              "itemId",
+              "itemTransform"
+            ],
+            "attachment": "follow_anchor",
+            "identityOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        },
+        "right_hand": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "linear",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 181,
+              "y": 144.5
+            },
+            {
+              "frame": 1,
+              "x": 180,
+              "y": 162.5
+            },
+            {
+              "frame": 2,
+              "x": 183.5,
+              "y": 186.5
+            },
+            {
+              "frame": 3,
+              "x": 181.5,
+              "y": 205
+            },
+            {
+              "frame": 4,
+              "x": 182,
+              "y": 187
+            },
+            {
+              "frame": 5,
+              "x": 174.5,
+              "y": 163.5
+            },
+            {
+              "frame": 6,
+              "x": 174,
+              "y": 144.5
+            },
+            {
+              "frame": 7,
+              "x": 176,
+              "y": 144
+            }
+          ],
+          "notes": "Measured on final normalized512master frames pickup0–7; item identity/size/gripoffset remain game inputs. Same hand throughout. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "interact",
+      "label": "Bruge genstand",
+      "category": "movement",
+      "file": "sprites/interact.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.5,
+          "sound": "interact"
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "activate_target",
+          "payload": {
+            "runtimeInputs": [
+              "targetEntityId"
+            ],
+            "identityOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "hit",
+      "label": "Ramt",
+      "category": "movement",
+      "file": "sprites/hit.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.05,
+          "sound": "hit"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "knockout",
+      "label": "Slået ud",
+      "category": "movement",
+      "file": "sprites/knockout.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "hold-last",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.1,
+          "sound": "knockout"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "respawn",
+      "label": "Genstarte",
+      "category": "movement",
+      "file": "sprites/respawn.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 100
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.15,
+          "sound": "respawn"
+        }
+      ],
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ability_1_pulse",
+      "label": "Snabelpuls",
+      "category": "abilities",
+      "file": "sprites/ability_1_pulse.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.5,
+          "sound": "ability_1_pulse"
+        }
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "spawn_projectile",
+          "payload": {
+            "anchor": "muzzle",
+            "runtimeInputs": [
+              "projectileId",
+              "aimDirection",
+              "projectileSpeed"
+            ],
+            "attachment": "spawn_once",
+            "identityOwner": "game",
+            "motionOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        },
+        "muzzle": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "none",
+          "samples": [
+            {
+              "frame": 4,
+              "x": 215.5,
+              "y": 74
+            }
+          ],
+          "notes": "Opening of Raymonds physical trunk at release frame4 in final512master; independent projectile then travels under game control. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ability_2_magnet",
+      "label": "Relationsgreb",
+      "category": "abilities",
+      "file": "sprites/ability_2_magnet.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.5,
+          "sound": "ability_2_magnet"
+        }
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 2,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "magnet_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ability_3_shield",
+      "label": "Tryghedsskjold",
+      "category": "abilities",
+      "file": "sprites/ability_3_shield.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.375,
+          "sound": "ability_3_shield"
+        }
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 3,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "shield",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ability_4_dash",
+      "label": "Elefantstorm",
+      "category": "abilities",
+      "file": "sprites/ability_4_dash.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.25,
+          "sound": "ability_4_dash"
+        }
+      ],
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 4,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "dash_trail",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ability_5_repair",
+      "label": "Gendannelse",
+      "category": "abilities",
+      "file": "sprites/ability_5_repair.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 125
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.375,
+          "sound": "ability_5_repair"
+        }
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 5,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "repair_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ultimate_charge",
+      "label": "Den store JOIN · oplad",
+      "category": "abilities",
+      "file": "sprites/ultimate_charge.png",
+      "frames": 8,
+      "fps": 5,
+      "loop": false,
+      "endState": "ultimate_release",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0,
+          "sound": "ultimate_charge",
+          "event": "ultimate-charge"
+        }
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "at": 0,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_charge",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    },
+    {
+      "id": "ultimate_release",
+      "label": "Den store JOIN · udløs",
+      "category": "abilities",
+      "file": "sprites/ultimate_release.png",
+      "frames": 8,
+      "fps": 5,
+      "loop": false,
+      "endState": "idle",
+      "origin": {
+        "x": 128,
+        "y": 224
+      },
+      "frameRects": [
+        {
+          "frame": 0,
+          "x": 0,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 1,
+          "x": 256,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 2,
+          "x": 512,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 3,
+          "x": 768,
+          "y": 0,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 4,
+          "x": 0,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 5,
+          "x": 256,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 6,
+          "x": 512,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        },
+        {
+          "frame": 7,
+          "x": 768,
+          "y": 256,
+          "w": 256,
+          "h": 256,
+          "durationMs": 200
+        }
+      ],
+      "soundEvents": [
+        {
+          "at": 0.25,
+          "sound": "ultimate_release"
+        }
+      ],
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": "ultimate",
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_release",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 128,
+              "y": 224
+            }
+          ],
+          "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are scaled0.5 from the512px masters."
+        }
+      }
+    }
+  ],
+  "canonicalFace": "/images/characters/raymond/neutral.webp"
 }

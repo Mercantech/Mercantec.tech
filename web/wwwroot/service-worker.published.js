@@ -28,6 +28,14 @@ function isAuthRuntimeAsset(url) {
     return url.origin === baseUrl.origin && url.pathname === '/js/auth-storage.js';
 }
 
+function isAvatarRuntimeAsset(url) {
+    return url.origin === baseUrl.origin && url.pathname.startsWith('/assets/avatars/');
+}
+
+function isAvatarRuntimeModule(url) {
+    return url.origin === baseUrl.origin && (url.pathname === '/js/lup-avatars.js' || url.pathname === '/js/avatar-layer-preview.js');
+}
+
 function isEditorRuntimeAsset(url) {
     return url.origin === baseUrl.origin && (
         url.pathname === '/notion-editor/editor.js'
@@ -51,11 +59,13 @@ async function onInstall(event) {
         // The editor is loaded on demand. Do not delay worker activation by
         // downloading its diagrams, drawing fonts and lazy chunks at every release.
         .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/notion-editor/'))
+        // Avatar sheets, audio and world sprites are optional; fetch them only when used.
+        .filter(asset => !isAvatarRuntimeAsset(new URL(asset.url, baseUrl)))
         // Runtime modules must follow the deployed app rather than race a
         // previous worker's unversioned startup cache.
         .filter(asset => {
             const url = new URL(asset.url, baseUrl);
-            return !isRouletteRuntimeAsset(url) && !isAuthRuntimeAsset(url);
+            return !isRouletteRuntimeAsset(url) && !isAuthRuntimeAsset(url) && !isAvatarRuntimeModule(url);
         });
     const cache = await caches.open(cacheName);
     await Promise.all(assets.map(async (asset) => {
@@ -82,7 +92,7 @@ async function onActivate(event) {
 async function onFetch(event) {
     const url = new URL(event.request.url);
 
-    if (event.request.method === 'GET' && (isRouletteRuntimeAsset(url) || isAuthRuntimeAsset(url) || isEditorRuntimeAsset(url))) {
+    if (event.request.method === 'GET' && (isRouletteRuntimeAsset(url) || isAuthRuntimeAsset(url) || isEditorRuntimeAsset(url) || isAvatarRuntimeModule(url))) {
         let cache;
         try { cache = await caches.open(cacheName); } catch { }
         try {
@@ -139,7 +149,7 @@ async function onFetch(event) {
     try {
         const response = await fetch(event.request);
         if (event.request.method === 'GET' && response.ok && url.origin === baseUrl.origin
-            && url.pathname.startsWith('/notion-editor/')) {
+            && (url.pathname.startsWith('/notion-editor/') || isAvatarRuntimeAsset(url))) {
             // Keep only editor chunks/fonts actually used, so an already opened
             // drawing can still load them offline without a full release precache.
             try {

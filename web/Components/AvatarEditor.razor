@@ -2,7 +2,7 @@
 @inject DemoWorld World
 @inject AuthService Auth
 @inject IJSRuntime Js
-@implements IDisposable
+@implements IAsyncDisposable
 
 @if (World.AvatarProfileError is not null && !World.AvatarProfileReady)
 {
@@ -26,18 +26,36 @@ else
     <div class="avatar-collection-layout">
         <section class="avatar-preview" aria-labelledby="avatar-preview-title">
             <div class="avatar-preview-top"><span>Forhåndsvisning</span><span class="avatar-edition">@PreviewDefinition.Edition</span></div>
-            <div class="avatar-preview-canvas" role="img" aria-label="@($"{PreviewDefinition.Name} – forhåndsvisning")"><AvatarSprite AvatarId="@_previewId" Animation="@_animation" Size="248" /></div>
+            <div class="avatar-preview-canvas" role="group" aria-label="@($"{PreviewDefinition.Name} – forhåndsvisning")"><AvatarLayerPreview @key="_previewId" AvatarId="@_previewId" Animation="@_animation" ReplayKey="@_replayKey" Paused="@_animationPaused" Size="248" /></div>
             <h2 id="avatar-preview-title">@PreviewDefinition.Name</h2>
             <p>@PreviewDefinition.Description</p>
             @if (PreviewDefinition.Animations.Count > 0)
             {
-                <div class="avatar-move-buttons" aria-label="@($"Prøv bevægelser med {PreviewDefinition.Name}")">
-                    @foreach (var move in PreviewMoves.Where(move => PreviewDefinition.Animations.Contains(move.Id)))
+                <div class="avatar-preview-playback" aria-label="Afspilning af animation">
+                    <button type="button" class="secondary" @onclick="ReplayAnimation">Afspil igen</button>
+                    <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animationPaused)" @onclick="() => _animationPaused = !_animationPaused">@(_animationPaused ? "Fortsæt animation" : "Pause animation")</button>
+                    <button type="button" class="secondary" data-testid="avatar-action-sound" @onclick="PlayActionSound">♫ Hør lyd</button>
+                </div>
+                <div class="avatar-animation-groups" aria-label="@($"Prøv alle bevægelser med {PreviewDefinition.Name}")">
+                    @foreach (var group in PreviewDefinition.Actions.GroupBy(action => action.Group))
                     {
-                        <button type="button" class="secondary" aria-pressed="@DemoWorld.Pressed(_animation == move.Id)" @onclick="() => _animation = move.Id">@move.Label</button>
+                        <fieldset class="avatar-action-group">
+                            <legend>@group.Key</legend>
+                            <div class="avatar-move-buttons">
+                                @foreach (var action in group)
+                                {
+                                    <button type="button" class="secondary" data-action-id="@action.Id" aria-pressed="@DemoWorld.Pressed(_animation == action.Id)" @onclick="() => SetAction(action)">@action.Label</button>
+                                }
+                            </div>
+                        </fieldset>
                     }
                 </div>
-                <div class="avatar-included"><span>@PreviewDefinition.Animations.Count bevægelser</span><span>@PreviewDefinition.Catchphrases.Count replikker</span><span>@PreviewDefinition.Emojis.Count emojis</span></div>
+                @if (PreviewAction is { } currentAction)
+                {
+                    <div class="avatar-action-description" role="status"><strong>@currentAction.Label</strong><p>@currentAction.Description</p></div>
+                }
+                @if (_actionAudioNotice is not null) { <p class="avatar-audio-notice" role="status">@_actionAudioNotice</p> }
+                <div class="avatar-included"><span>@PreviewDefinition.Animations.Count bevægelser</span><span>@PreviewDefinition.Actions.Count lydeffekter</span><span>@PreviewDefinition.AudioFiles.Count indtalte replikker</span><span>@PreviewDefinition.Emojis.Count emojis</span></div>
             }
             @if (PreviewDefinition.CharacterProfilePath is not null)
             {
@@ -114,21 +132,62 @@ else
 }
 
 @code {
-    private static readonly (string Id, string Label)[] PreviewMoves = [("idle", "Stå klar"), ("wave", "Vink"), ("celebrate", "Jubel"), ("walk", "Gå"), ("run", "Løb"), ("jump", "Hop"), ("think", "Tænk"), ("talk", "Tal")];
     private string _previewId = AvatarCatalog.Bip01Id;
     private string _animation = "idle";
+    private int _replayKey;
+    private bool _animationPaused;
+    private bool _disposed;
     private int _phraseIndex;
     private string? _audioNotice;
+    private string? _actionAudioNotice;
+    private int _audioVersion;
     private AvatarDefinition PreviewDefinition => AvatarCatalog.Find(_previewId) ?? AvatarCatalog.All[0];
-    private void Preview(string id) { if (AvatarCatalog.Find(id) is not null) { _previewId = id; _animation = "idle"; _phraseIndex = 0; _audioNotice = null; } }
-    private async Task Choose(string id) { if (await World.SelectAvatarAsync(id)) Preview(id); }
-    private async Task Unlock(string id) { if (await World.TryUnlockAvatarAsync(id)) { Preview(id); _animation = "celebrate"; _phraseIndex = 4; } }
-    private void NextPhrase() { _phraseIndex = (_phraseIndex + 1) % PreviewDefinition.Catchphrases.Count; _audioNotice = null; }
+    private AvatarAction? PreviewAction => PreviewDefinition.Actions.FirstOrDefault(action => action.Id == _animation);
+    private async Task Preview(string id)
+    {
+        if (AvatarCatalog.Find(id) is null) return;
+        _previewId = id; _animation = "idle"; _phraseIndex = 0; _audioNotice = null; _actionAudioNotice = null;
+        _replayKey++; _animationPaused = false;
+        await StopAudio();
+    }
+    private async Task Choose(string id) { if (await World.SelectAvatarAsync(id)) await Preview(id); }
+    private async Task Unlock(string id) { if (await World.TryUnlockAvatarAsync(id)) { await Preview(id); _animation = "celebrate"; _phraseIndex = 4; } }
+    private async Task SetAction(AvatarAction action)
+    {
+        _animation = action.Id; _replayKey++; _animationPaused = false; _actionAudioNotice = null;
+        await StopAudio();
+    }
+    private void ReplayAnimation() { _replayKey++; _animationPaused = false; }
+    private async Task NextPhrase() { _phraseIndex = (_phraseIndex + 1) % PreviewDefinition.Catchphrases.Count; _audioNotice = null; await StopAudio(); }
+    private async Task StopAudio()
+    {
+        _audioVersion++; _audioNotice = null; _actionAudioNotice = null;
+        try { await Js.InvokeVoidAsync("lupAvatars.stop"); }
+        catch (Exception error) when (error is JSException or OperationCanceledException or ObjectDisposedException) { /* Audio can be unavailable while the page is leaving. */ }
+    }
+    private async Task PlayActionSound()
+    {
+        if (PreviewAction is not { } action || PreviewDefinition.SpriteAssetRoot is null) return;
+        var version = ++_audioVersion;
+        try
+        {
+            var played = await Js.InvokeAsync<bool>("lupAvatars.play", $"{PreviewDefinition.SpriteAssetRoot}/audio/{action.SoundFile}");
+            if (!_disposed && version == _audioVersion) _actionAudioNotice = played ? null : "Lyden kunne ikke afspilles. Prøv igen.";
+        }
+        catch (Exception error) when (error is JSException or OperationCanceledException or ObjectDisposedException)
+        { if (!_disposed && version == _audioVersion) _actionAudioNotice = "Lyden kunne ikke afspilles. Prøv igen."; }
+    }
     private async Task PlayPhrase()
     {
         if (PreviewDefinition.AudioFiles.Count != PreviewDefinition.Catchphrases.Count || PreviewDefinition.SpriteAssetRoot is null) return;
-        try { _audioNotice = await Js.InvokeAsync<bool>("lupAvatars.play", $"{PreviewDefinition.SpriteAssetRoot}/audio/{PreviewDefinition.AudioFiles[_phraseIndex]}") ? null : "Lyden kunne ikke afspilles. Prøv igen."; }
-        catch (JSException) { _audioNotice = "Lyden kunne ikke afspilles. Teksten er stadig her."; }
+        var version = ++_audioVersion;
+        try
+        {
+            var played = await Js.InvokeAsync<bool>("lupAvatars.play", $"{PreviewDefinition.SpriteAssetRoot}/audio/{PreviewDefinition.AudioFiles[_phraseIndex]}");
+            if (!_disposed && version == _audioVersion) _audioNotice = played ? null : "Lyden kunne ikke afspilles. Prøv igen.";
+        }
+        catch (Exception error) when (error is JSException or OperationCanceledException or ObjectDisposedException)
+        { if (!_disposed && version == _audioVersion) _audioNotice = "Lyden kunne ikke afspilles. Teksten er stadig her."; }
     }
     protected override async Task OnInitializedAsync()
     {
@@ -136,6 +195,6 @@ else
         await World.EnsureAsync();
         await World.BindAvatarProfileAsync(Auth.Subject);
     }
-    private void OnChanged() => InvokeAsync(StateHasChanged);
-    public void Dispose() => World.Changed -= OnChanged;
+    private void OnChanged() { if (!_disposed) _ = InvokeAsync(StateHasChanged); }
+    public async ValueTask DisposeAsync() { _disposed = true; World.Changed -= OnChanged; await StopAudio(); }
 }

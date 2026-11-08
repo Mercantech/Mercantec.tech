@@ -1,28 +1,42 @@
-# Raymond som avatar
+# Raymond · komplet avatarpakke
 
-De to kildeark er genereret med den indbyggede ImageGen-funktion. Identitetsreferencerne er de uændrede eksisterende filer:
+Raymond har samme omfang og eksportformat som BIP-01: **28 handlinger, 224 tegnede frames, 28 lydeffekter og fem indtalte danske replikker**.
 
-- `web/wwwroot/images/characters/raymond/professor.webp`
-- `web/wwwroot/images/characters/raymond/neutral.webp`
+## Grafik og animation
 
-De eksisterende billeder blev visuelt gennemgået før genereringen. Raymonds blå hud, store ører, brune øjne, runde bronzebriller, blå hårtot, krøllede snabel, cremefarvede cardigan, blå skjorte, brune bukser og elefantfødder blev bevaret.
+Hver handling er tegnet som sit eget gennemsigtige ark med otte kronologiske fuldkropspositurer i 4 × 2. Der bruges ikke dublerede stillbilleder, CSS-vip af figuren eller interpolation til at fremstille manglende frames. Kilderne er visuelt gennemgået; uønsket baggrundståge blev fjernet med ImageGen før eksport.
 
-## Fælles promptspecifikation
+- Sociale: idle, blink, wave, think, talk, point, celebrate, encourage, surprised, unlock.
+- Bevægelse/handlinger: walk, run, jump, land, sit, sleep, pickup, interact, hit, knockout, respawn.
+- Evner: Snabelpuls, Relationsgreb, Tryghedsskjold, Elefantstorm, Gendannelse.
+- Ultimate: Den store JOIN, med separate charge- og release-sekvenser.
 
-Use case: identity-preserve. Asset type: production 2D animation sprite sheet. Input image 1 is the canonical full-body Raymond identity and clothing reference; input image 2 is the exact canonical face reference. Create the SAME Raymond Stonebraker Codd in a warm detailed hand-painted pencil/gouache storybook style. Preserve his friendly blue elephant identity, warm brown eyes, thin round bronze spectacles, blue swept hair tuft, broad ears, upward-curled trunk, cream knitted cardigan, muted blue buttoned shirt, brown belt and trousers, bare blue elephant feet. Exactly 16 complete full-body sprites in a uniform 4 columns by 4 rows grid, four chronological frames per action, one action per row. Same camera facing right in three-quarter view, same character scale and grounded baseline. Transparent background with actual alpha. Every figure fully contained inside its own cell, with transparent safety margin. No visible grid, text, numbers, labels, panels, floor, ground shadow, scenery, watermark or additional characters. Hands EMPTY: remove the book and pointer from the reference. No held objects, projectiles, effects, speed lines, particles or floating symbols; these must be separate game entities.
+Kanonisk ansigt og tøj kommer fra de eksisterende Raymond-billeder i `web/wwwroot/images/characters/raymond/`. De præcise prompter til den indbyggede ImageGen-funktion ligger i `prompts/characters/` og `prompts/externals/`. Originale og rensede billeder er bevaret i workspace-pakken med SHA256-proveniens. Der er ikke brugt en ekstern billed-API eller hemmelige nøgler.
 
-## Ark 1: bevægelse
+## Runtimefiler
 
-Four chronological frames per row. Row 1 idle loop with subtle breathing and ear movement, feet planted. Row 2 walking loop: contact right, passing, contact left, passing; alternate legs and opposing arms. Row 3 running loop with larger stride, opposing arms and legs and a modest forward lean. Row 4 jump sequence: crouch, takeoff, airborne with bent knees, landing crouch. Keep all jumps fully inside their cells. Requested square 1024 by 1024; the built-in result is 1254 by 1254 and is processed by its actual dimensions.
+`web/wwwroot/assets/avatars/raymond/` indeholder:
 
-## Ark 2: sociale udtryk
+- `sprites/`: 28 PNG-ark, hver 1024 × 512 med 256 × 256-frames.
+- `face.png` og fire `emoji-*.png`: ensartede transparente 512-px-PNG-eksporter af den kanoniske grafik. Det eksisterende neutrale384 px-ansigt opskaleres kun til et ensartet eksportformat; det får ikke påstået ny detaljegrad.
+- `audio/`: 28 særskilte SFX og fem rigtige danske tale-WAV-filer med manifest.
+- `items/`, `projectiles/`, `effects/`: uafhængige sprites. De otte generiske eksempelgenstande genbruges fra den fælles robotpakke. De to projektiltyper har fire frames hver; de otte blå/guld-effekter er tegnet særskilt til Raymond.
+- `manifest.json`, `attachment-events.json` og `external-assets.json`: formater, FPS, loop/sluttilstande, lyd-events og kalibrerede greb/startpunkter.
 
-Four chronological frames per row. Row 1 wave: neutral open empty hand, raise hand, wave left, wave right with a friendly encouraging smile. Row 2 celebrate: proud smile, hands near waist, both arms partially raised, arms up and beaming, arms lowering. Row 3 think: curious face, empty hand near chin, curled trunk and raised eyebrow, gentle nod. Row 4 talk: palm-up friendly start, small open mouth and gesture, smaller mouth with outward hand, relaxed listening. Natural facial anatomy, recognizable trunk and small coordinated gestures; not sixteen different character designs. Requested square 1024 by 1024; the built-in result is 1254 by 1254.
+Runtimekontraktens verdenskoordinater er256 px. Atlasrectangles beskriver de uafhængige512 px-teksturer og ændres ikke af verdensskalaen; `coordinateSystem` og `textureFrameSize` gør forskellen eksplicit. 512 px-masterpakken bruger tilsvarende512 px-verdenskoordinater. Hver kildesekvens har én fælles skalering og ét fælles origo for alle otte frames, så hop og fald bevares.
 
-## Runtimeformat og kvalitet
+Karakterarkene indeholder kun Raymond. Pickup tilkobler en valgfri genstand ved frame4 til en målt håndkurve. Snabelpuls spawner et selvstændigt projektil ved frame4, som derefter bevæger sig under sit eget verdensur, også efter figurens one-shot er slut. Effekter er separate layers med selvstændig levetid. Previewet kan pause, genafspille, skifte genstand/projektil og rydder alle entities ved figurskift, navigation og reduceret bevægelse.
 
-Hvert kildeark deles i 16 celler efter de faktiske billedmål. Hver celle skaleres til 232 × 232 og får 12 px transparent luft på alle sider; de fire frames pakkes i ét 1024 × 256-PNG pr. animation. Dette er filopdeling og skalering af de tegnede frames; der fremstilles ikke falske animationer ved at vippe et stillbillede.
+## Lyd
 
-De otte runtimeark ligger i `web/wwwroot/assets/avatars/raymond/sprites/`. Se `manifest.json` samme sted. Alle ark har alpha, fire 256 × 256-frames og transparente kanter; ingen frame rammer cellekanten. Originale ImageGen-resultater og pakke-/kontrolscript er bevaret i workspace-mappen `design/raymond-avatar/` uden for repositoryet. Kildearkene er også kontrolleret på en lys baggrund.
+Lydene er originale, varme og organiske med bløde, tunge trin, tøj/luft, træresonans og snabelhorn. Talen er renderet lokalt med dansk WinRT-stemme og mild stemme/EQ-behandling, uden robottens vocoder. Alle 33 WAV-filer er kontrolleret for duration, kanaler, PCM-format, RMS, peaks, klipning, stilhed og dubletter, og alle er afkodet/afspillet gennem Chrome. Værktøjet understøtter ikke audioinput til subjektiv lyttekontrol; dette er dokumenteret i lydrapporten, uden at foregive en sådan kontrol.
 
-Ansigtsikon og fire reaktioner genbruges direkte fra karakterbiblioteket, så Raymonds eksisterende profil og avatar har samme identitet. Replikkerne er tekstlige; der tilføjes ikke en robotstemme til Raymond.
+Browseren afspiller først lyd efter et eksplicit klik. Begge avatarers præcise33filnavne er allowlistet; fjernadresser, traversal, ukendte navne og ekstra queryparametre afvises. Stop, figurskift og navigation afbryder lyden uden sene falske fejlbeskeder. Genskabsscripts findes i `scripts/audio/`.
+
+## Komplet pakke og kontrol
+
+Workspace-pakken `design/raymond-avatar-v2/` indeholder også512 px-masterark (2048 × 1024),28 animeredeWebP'er, individuelle JSON-filer, kilder/prompter, en samlet browser-preview, lydprøve og valideringsrapporter. `design/raymond-avatar-v2.zip` er den komplette CRC-kontrollerede pakke og holdes uden for Git på grund af størrelsen.
+
+`validation.json` og `qa/preview-report.json` dokumenterer28/224 uden mangler, otte forskellige kilde-/runtime-/canvasframes pr. handling, transparente kanter,33 afkodbare lyde, kalibrerede hænder/snabel samt uafhængige genstande/projektiler. Platformens egne tests dækker fortsat databaseejerskab, level/guld, kontoskift og engangsmigrering. Raymond har samme id som før og kræver ingen ny oplåsning eller schema-migrering for eksisterende ejere.
+
+Store avatarark/lyde/effekter installeres ikke som en samlet PWA-download. De hentes og caches, når de faktisk bruges. Brugerens avatar-API-data caches fortsat aldrig af serviceworkeren.

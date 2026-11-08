@@ -122,6 +122,12 @@ uden for repoet i `design/robot-avatar-platform/`.
 
 ## Raymond
 
-Raymond genbruger den kanoniske elefantprofessors ansigtsikon og fire reaktioner fra karakterbiblioteket. Hans otte nye full-body-animationer er karakterark med tomme hænder: idle, walk, run, jump, wave, celebrate, think og talk. Hvert ark har fire 256 × 256-frames i én række (1024 × 256 px). Figurens metadata styrer arkformat, reaktioner, downloadformat og valgfrie lydfiler; robotten beholder sit 4 × 2-format. Ukendte animationer bruger idle, og reduceret bevægelse viser én frame.
+Raymond har nu samme komplette28-handlingspakke som robotten: otte fuldkropsframes pr. handling i4 × 2,28SFX og fem indtalte danske replikker. Masterark er2048 × 1024 med512px-frames; appen bruger1024 × 512 med256px-frames. Der er fem evner (Snabelpuls, Relationsgreb, Tryghedsskjold, Elefantstorm og Gendannelse) samt Den store JOIN med separat opladning og udløsning.
 
-De fem Raymond-replikker er tekstlige. Profil, header, lejlighed og prøvespil bruger samme valgte id fra databasen. Der tilføjes ingen ny schema-migrering; den eksisterende ejerskabstabel understøtter nye figur-id'er. Se [grafik og promptspecifikation](../../assets/avatars/raymond/README.md) og runtime-manifestet i `web/wwwroot/assets/avatars/raymond/manifest.json`.
+`AvatarCatalog.Actions` beskriver label, gruppe, FPS, loop, sluttilstand, lydfil og beskrivelse. `AvatarSprite` spiller de otte rigtige frames og holder one-shots på den sidste frame. Pauser og genafspil er eksplicitte, og reduceret bevægelse viser én stillestående frame. Alle28 bevægelser og lyde kan prøves i samlingen; lyd starter kun på brugerens klik.
+
+`AvatarLayerPreview` indlæser de kuraterede lokale lagkontrakter og synkroniserer med aktørens faktiske CSS-tid. Pickup kan vise bog eller mønt med samme figurark og en kalibreret håndkurve; Snabelpuls sender et separat projektil videre på eget verdensur efter figurens sidste frame. Lag kan slås fra, pauses og genafspilles; figurskift og navigation rydder billeder, timere og RAF. Dette er et asset-/lag-preview, ikke en ny skades- eller kampmotor.
+
+Ansigtsikon og fire reaktioner eksporteres som transparente512px-PNG fra den eksisterende karaktergrafik. Hele grafik- og lydleverancen, prompter og kontrolmetode er beskrevet i [grafikdokumentationen](../../assets/avatars/raymond/README.md). Den komplette lokale ZIP indeholder også højopløste masterark, kilder,28animeredeWebP'er, standalone-preview og audio-demo.
+
+Raymonds ejerskab, valg og pris er uændret (level3,150guld). Eksisterende ejere får den udvidede pakke uden en ny betaling. Ingen schema-migrering er nødvendig. Legacyimport kan fortsat kun tildele starter/BIP-01. Store offentlige avatarfiler hentes ved brug og kan derefter bruges offline fra assetcache; personlige API-profiler caches aldrig.

@@ -1,10 +1,8 @@
 .avatar-sheet{display:block;position:relative;width:var(--avatar-size,136px);height:var(--avatar-size,136px);flex:none;background-repeat:no-repeat;background-position:0 0}
-.avatar-robot{background-size:400% 200%;animation:bip01-frames var(--avatar-cycle,1s) steps(1,end) infinite}
-.avatar-raymond{background-size:400% 100%;animation:raymond-frames var(--avatar-cycle,1.2s) steps(4,end) infinite}
+.avatar-grid-4x2{background-size:400% 200%;animation:avatar-frames var(--avatar-cycle,1s) steps(1,end) var(--avatar-repeats,infinite) both}
 .avatar-sheet.mini{position:absolute;inset:0;width:100%;height:100%}
 .avatar-legacy-host{display:grid;place-items:center;position:relative;width:var(--avatar-size,136px);height:var(--avatar-size,136px);flex:none}
 .avatar-legacy-host.mini{position:absolute;inset:0;width:100%;height:100%}
 .avatar-legacy-host>.v2-sprite{display:block}
-@keyframes bip01-frames{0%,100%{background-position:0 0}12.5%{background-position:33.333333% 0}25%{background-position:66.666667% 0}37.5%{background-position:100% 0}50%{background-position:0 100%}62.5%{background-position:33.333333% 100%}75%{background-position:66.666667% 100%}87.5%{background-position:100% 100%}}
-@keyframes raymond-frames{from{background-position:0 0}to{background-position:133.333333% 0}}
+@keyframes avatar-frames{0%{background-position:0 0}12.5%{background-position:33.333333% 0}25%{background-position:66.666667% 0}37.5%{background-position:100% 0}50%{background-position:0 100%}62.5%{background-position:33.333333% 100%}75%{background-position:66.666667% 100%}87.5%,100%{background-position:100% 100%}}
 @media(prefers-reduced-motion:reduce){.avatar-sheet{animation:none;background-position:0 0}}

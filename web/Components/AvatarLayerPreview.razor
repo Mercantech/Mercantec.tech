@@ -1,0 +1,94 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@inject IJSRuntime Js
+@implements IAsyncDisposable
+
+@if (!Definition.SupportsWorldSprites)
+{
+    <AvatarSprite AvatarId="@AvatarId" Animation="@Animation" ReplayKey="@ReplayKey" Paused="@Paused" Size="@Size" />
+}
+else
+{
+    <div class="avatar-layer-preview" data-layer-preview="@Definition.Id" style="@($"--layer-size:{Math.Clamp(Size, 24, 512)}px")">
+        <div class="avatar-layer-stage" @ref="_stage" role="img" aria-label="@($"{Definition.Name} med valgte genstande og effekter")">
+            <AvatarSprite AvatarId="@Definition.Id" Animation="@Animation" ReplayKey="@ReplayKey" Paused="@Paused" Size="@Size" />
+            <div class="avatar-world-layer" data-avatar-world-overlay aria-hidden="true"></div>
+        </div>
+        <div class="avatar-layer-controls">
+            <label class="avatar-layer-toggle"><input type="checkbox" @bind="_enabled" /> Vis genstande og effekter</label>
+            <div class="avatar-layer-choices">
+                <label>Genstand<select @bind="_item" disabled="@(!_enabled)">
+                    @foreach (var item in Items) { <option value="@item.Id">@item.Label</option> }
+                </select></label>
+                <label>Projektil<select @bind="_projectile" disabled="@(!_enabled)"><option value="pulse_blue">Blå puls</option><option value="pulse_gold">Gylden puls</option></select></label>
+            </div>
+            <p>Prøv Saml op eller Snabelpuls. Afspil igen for at sende det valgte projektil afsted.</p>
+            @if (_error is not null) { <p class="avatar-layer-error" role="status">@_error</p> }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string? AvatarId { get; set; }
+    [Parameter] public string Animation { get; set; } = "idle";
+    [Parameter] public int ReplayKey { get; set; }
+    [Parameter] public bool Paused { get; set; }
+    [Parameter] public int Size { get; set; } = 136;
+    private static readonly (string Id, string Label)[] Items = [("energy_cube", "Energikube"), ("book", "Bog"), ("key", "Nøgle"), ("gear", "Tandhjul"), ("gem", "Ædelsten"), ("coin", "Mønt"), ("crate", "Kasse"), ("scroll", "Skriftrulle")];
+    private AvatarDefinition Definition => AvatarCatalog.Find(AvatarId ?? World.SelectedAvatarId) ?? AvatarCatalog.All[0];
+    private ElementReference _stage;
+    private IJSObjectReference? _module;
+    private readonly CancellationTokenSource _life = new();
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
+    private bool _enabled = true, _mounted, _binding, _queued, _disposed;
+    private string _item = "book", _projectile = "pulse_blue";
+    private string? _lastOptions, _error;
+    private string OptionsKey => $"{Definition.Id}:{Animation}:{ReplayKey}:{Paused}:{Size}:{_enabled}:{_item}:{_projectile}";
+    private object Options => new { instanceId = _instanceId, assetRoot = Definition.SpriteAssetRoot, avatarId = Definition.Id, action = Animation, replayKey = ReplayKey, paused = Paused, size = Math.Clamp(Size, 24, 512), enabled = _enabled, itemId = _item, projectileId = _projectile };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_disposed) return;
+        if (!Definition.SupportsWorldSprites)
+        {
+            if (_mounted && _module is not null) { await _module.InvokeVoidAsync("dispose", _instanceId); _mounted = false; _lastOptions = null; }
+            return;
+        }
+        if (OptionsKey == _lastOptions) return;
+        if (_binding) { _queued = true; return; }
+        _binding = true;
+        var optionsKey = OptionsKey;
+        try
+        {
+            _module ??= await Js.InvokeAsync<IJSObjectReference>("import", _life.Token, "./js/avatar-layer-preview.js?v=1");
+            if (_disposed) return;
+            if (!_mounted)
+            {
+                var ready = await _module.InvokeAsync<bool>("mount", _life.Token, _stage, Options);
+                _mounted = true;
+                if (!ready) { _error = "Genstandene og effekterne kunne ikke hentes. Figuren kan stadig vises."; await InvokeAsync(StateHasChanged); }
+            }
+            else await _module.InvokeVoidAsync("update", _life.Token, _stage, Options);
+            _lastOptions = optionsKey;
+        }
+        catch (Exception error) when (error is JSException or OperationCanceledException or ObjectDisposedException)
+        { if (!_disposed) { _error = "Genstandene og effekterne kunne ikke hentes. Figuren kan stadig vises."; _lastOptions = optionsKey; await InvokeAsync(StateHasChanged); } }
+        finally
+        {
+            _binding = false;
+            if (_queued && !_disposed) { _queued = false; await InvokeAsync(StateHasChanged); }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true; _life.Cancel();
+        if (_module is not null)
+        {
+            try { await _module.InvokeVoidAsync("dispose", _instanceId); await _module.DisposeAsync(); }
+            catch (Exception error) when (error is JSException or OperationCanceledException or ObjectDisposedException) { }
+        }
+        _life.Dispose();
+    }
+}

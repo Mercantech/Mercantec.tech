@@ -6,8 +6,52 @@ public static class AvatarCatalog
     public const string Bip01Id = "bip01";
     public const string RaymondId = "raymond";
 
-    private static readonly string[] RobotAnimations = ["idle", "blink", "wave", "think", "talk", "point", "celebrate", "encourage", "surprised", "unlock", "walk", "run", "jump", "land", "sit", "sleep", "pickup", "interact", "hit", "knockout", "respawn", "ability_1_pulse", "ability_2_magnet", "ability_3_shield", "ability_4_dash", "ability_5_repair", "ultimate_charge", "ultimate_release"];
-    private static readonly string[] RaymondAnimations = ["idle", "walk", "run", "jump", "wave", "celebrate", "think", "talk"];
+    private static readonly AvatarAction[] CommonActions =
+    [
+        new("idle", "Stå klar", "Sociale udtryk", "Et roligt øjeblik, klar til næste opgave.", 8, true),
+        new("blink", "Blink", "Sociale udtryk", "Et lille blink og tilbage til det venlige blik."),
+        new("wave", "Vink", "Sociale udtryk", "En venlig hilsen med hånden."),
+        new("think", "Tænk", "Sociale udtryk", "Tid til at overveje den næste idé.", 8, true),
+        new("talk", "Tal", "Sociale udtryk", "Figuren forklarer med ansigt og hænder.", 10, true),
+        new("point", "Peg", "Sociale udtryk", "Se her — en tydelig markering med hånden."),
+        new("celebrate", "Jubel", "Sociale udtryk", "En glad reaktion på et godt stykke arbejde."),
+        new("encourage", "Opmuntre", "Sociale udtryk", "En varm opmuntring til næste forsøg."),
+        new("surprised", "Overrasket", "Sociale udtryk", "Et overrasket blik, før figuren samler sig igen."),
+        new("unlock", "Låst op", "Sociale udtryk", "Figuren hilser på sin nye samling."),
+        new("walk", "Gå", "Bevægelse", "En sammenhængende gangcyklus.", 10, true),
+        new("run", "Løb", "Bevægelse", "En hurtigere cyklus med længere skridt.", 12, true),
+        new("jump", "Hop", "Bevægelse", "Afsæt, svæv og forberedelse til landing."),
+        new("land", "Land", "Bevægelse", "Figuren tager imod landingen og finder balancen."),
+        new("sit", "Sæt dig", "Bevægelse", "Figuren sætter sig og bliver siddende.", EndState: "hold-last"),
+        new("sleep", "Sov", "Bevægelse", "Rolig vejrtrækning under en lille pause.", 6, true),
+        new("pickup", "Saml op", "Handlinger", "Ræk ned, grib og ret dig op igen."),
+        new("interact", "Interagér", "Handlinger", "En generisk bevægelse til at undersøge eller bruge noget."),
+        new("hit", "Ramt", "Handlinger", "Figuren reagerer og genvinder balancen."),
+        new("knockout", "Slået ud", "Handlinger", "Figuren er midlertidigt ude af spil og bliver liggende.", EndState: "hold-last"),
+        new("respawn", "Tilbage igen", "Handlinger", "Figuren kommer tilbage og stiller sig klar."),
+        new("ability_1_pulse", "Pulsbolt", "Evner", "En kort, fokuseret affyringsbevægelse.", 8),
+        new("ability_2_magnet", "Magnetgreb", "Evner", "Figuren samler kræfterne foran sig.", 8),
+        new("ability_3_shield", "Bobleskjold", "Evner", "En rolig, beskyttende stilling.", 8),
+        new("ability_4_dash", "Raketryk", "Evner", "Et hurtigt fremadrettet afsæt.", 8),
+        new("ability_5_repair", "Reparationsfelt", "Evner", "Figuren samler kræfterne og kommer sig igen.", 8),
+        new("ultimate_charge", "Kerneoverload · opladning", "Evner", "Figurens store evne lades op.", 5, EndState: "ultimate_release"),
+        new("ultimate_release", "Kerneoverload · udløsning", "Evner", "Den samlede kraft slippes fri.", 5)
+    ];
+
+    private static readonly IReadOnlyList<AvatarAction> RobotActions = Array.AsReadOnly(CommonActions);
+    private static readonly IReadOnlyList<AvatarAction> RaymondActions = Array.AsReadOnly(CommonActions.Select(action => action.Id switch
+    {
+        "ability_1_pulse" => action with { Label = "Snabelpuls", Description = "Raymond læner sig frem og sender et kort, fokuseret pust." },
+        "ability_2_magnet" => action with { Label = "Relationsgreb", Description = "Han samler hænderne og fører forbindelserne mod et fælles punkt." },
+        "ability_3_shield" => action with { Label = "Tryghedsskjold", Description = "Raymond stiller sig roligt og beskytter området foran sig." },
+        "ability_4_dash" => action with { Label = "Elefantstorm", Description = "Et tungt, hurtigt afsæt med snablen og kroppen fremad." },
+        "ability_5_repair" => action with { Label = "Gendannelse", Description = "Han vender håndfladerne op og samler kræfterne igen." },
+        "ultimate_charge" => action with { Label = "Den store JOIN · opladning", Description = "Raymond samler al sin koncentration i én stor forbindelse." },
+        "ultimate_release" => action with { Label = "Den store JOIN · udløsning", Description = "Den store forbindelse åbner sig, og den samlede kraft slippes fri." },
+        _ => action
+    }).ToArray());
+    private static readonly IReadOnlyList<string> AnimationIds = Array.AsReadOnly(CommonActions.Select(action => action.Id).ToArray());
+    private static readonly IReadOnlyList<string> PhraseFiles = Array.AsReadOnly<string>(["phrase_1_welcome.wav", "phrase_2_start.wav", "phrase_3_success.wav", "phrase_4_retry.wav", "phrase_5_milestone.wav"]);
 
     public static IReadOnlyList<AvatarDefinition> All { get; } = Array.AsReadOnly<AvatarDefinition>(
     [
@@ -33,13 +77,14 @@ public static class AvatarCatalog
             Edition = "Den første robot",
             SpriteAssetRoot = "/assets/avatars/bip-01",
             FaceImage = "/assets/avatars/bip-01/face.png",
-            Animations = Array.AsReadOnly(RobotAnimations),
+            Animations = AnimationIds,
+            Actions = RobotActions,
             Emojis = Array.AsReadOnly<AvatarEmoji>([
                 new("happy", "Glad", "/assets/avatars/bip-01/emoji-happy.png"),
                 new("wink", "Blink", "/assets/avatars/bip-01/emoji-wink.png"),
                 new("think", "Tænksom", "/assets/avatars/bip-01/emoji-think.png"),
                 new("celebrate", "Jubel", "/assets/avatars/bip-01/emoji-celebrate.png")]),
-            AudioFiles = Array.AsReadOnly<string>(["phrase_1_welcome.wav", "phrase_2_start.wav", "phrase_3_success.wav", "phrase_4_retry.wav", "phrase_5_milestone.wav"])
+            AudioFiles = PhraseFiles
         },
         new(RaymondId, "Raymond", "Professor Codd tager med på eventyr. Den venlige elefantprofessor hjælper dig videre med ro, nysgerrighed og et glimt i øjet.", 3, 150,
             Array.AsReadOnly<AvatarCatchphrase>(
@@ -53,15 +98,17 @@ public static class AvatarCatalog
         {
             Edition = "Professor Codd",
             SpriteAssetRoot = "/assets/avatars/raymond",
-            SpriteRows = 1,
-            FaceImage = "/images/characters/raymond/neutral.webp",
-            Animations = Array.AsReadOnly(RaymondAnimations),
+            SupportsWorldSprites = true,
+            FaceImage = "/assets/avatars/raymond/face.png",
+            Animations = AnimationIds,
+            Actions = RaymondActions,
+            AudioFiles = PhraseFiles,
             CharacterProfilePath = "/characters/raymond",
             Emojis = Array.AsReadOnly<AvatarEmoji>([
-                new("happy", "Glad", "/images/characters/raymond/reactions/success.png"),
-                new("laugh", "Griner", "/images/characters/raymond/reactions/laughing.png?v=097b5eeb"),
-                new("think", "Tænksom", "/images/characters/raymond/reactions/thinking.png"),
-                new("celebrate", "Jubel", "/images/characters/raymond/reactions/celebration.png")])
+                new("happy", "Glad", "/assets/avatars/raymond/emoji-happy.png"),
+                new("laugh", "Griner", "/assets/avatars/raymond/emoji-laugh.png"),
+                new("think", "Tænksom", "/assets/avatars/raymond/emoji-think.png"),
+                new("celebrate", "Jubel", "/assets/avatars/raymond/emoji-celebrate.png")])
         }
     ]);
 
@@ -78,9 +125,11 @@ public sealed record AvatarDefinition(
 {
     public string Edition { get; init; } = "Din startfigur";
     public string? SpriteAssetRoot { get; init; }
+    public bool SupportsWorldSprites { get; init; }
     public int SpriteRows { get; init; } = 2;
     public string? FaceImage { get; init; }
     public IReadOnlyList<string> Animations { get; init; } = [];
+    public IReadOnlyList<AvatarAction> Actions { get; init; } = [];
     public IReadOnlyList<AvatarEmoji> Emojis { get; init; } = [];
     public IReadOnlyList<string> AudioFiles { get; init; } = [];
     public string? CharacterProfilePath { get; init; }
@@ -93,3 +142,11 @@ public sealed record AvatarEmoji(string Id, string Label, string Image)
 }
 
 public sealed record AvatarCatchphrase(string Id, string Context, string Text);
+
+public sealed record AvatarAction(string Id, string Label, string Group, string Description,
+    int Fps = 10, bool Loop = false, string EndState = "idle")
+{
+    public int Frames => 8;
+    public double DurationSeconds => (double)Frames / Fps;
+    public string SoundFile => Id + ".wav";
+}
