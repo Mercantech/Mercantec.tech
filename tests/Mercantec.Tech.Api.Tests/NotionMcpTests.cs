@@ -86,7 +86,7 @@ public sealed class NotionMcpTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Real_stateless_mcp_transport_lists_five_tools_enforces_roles_and_binds_the_live_user()
+    public async Task Real_stateless_mcp_transport_lists_six_tools_enforces_roles_and_binds_the_live_user()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = "Development" });
         builder.Logging.ClearProviders();
@@ -119,7 +119,7 @@ public sealed class NotionMcpTests : IAsyncLifetime
         });
         await using var client = await McpClient.CreateAsync(transport);
         var tools = await client.ListToolsAsync();
-        Assert.Equal(new[] { "apply_changes", "find_pages", "get_change", "read_page", "undo_change" }, tools.Select(t => t.Name).Order().ToArray());
+        Assert.Equal(new[] { "apply_changes", "create_page", "find_pages", "get_change", "read_page", "undo_change" }, tools.Select(t => t.Name).Order().ToArray());
         // MCP clients require object-valued top-level property schemas. JsonElement return
         // types otherwise export a boolean schema in properties.result, rejected by the TypeScript SDK.
         http.DefaultRequestHeaders.Authorization = new("Bearer", "teacher");
@@ -144,6 +144,9 @@ public sealed class NotionMcpTests : IAsyncLifetime
         Assert.Contains("replace_text", editSchema);
         Assert.Contains("contentFingerprint", editSchema);
         Assert.DoesNotContain("user", tools.Single(t => t.Name == "read_page").JsonSchema.ToString());
+        var creationSchema = tools.Single(t => t.Name == "create_page").JsonSchema;
+        Assert.Equal(new[] { "operationId", "parentPageId", "title" }, creationSchema.GetProperty("required").EnumerateArray().Select(p => p.GetString()).Order().ToArray());
+        Assert.DoesNotContain("initialContent", creationSchema.ToString());
         var result = await client.CallToolAsync("read_page", new Dictionary<string, object?> { ["page"] = page.ToString() });
         Assert.NotEqual(true, result.IsError);
         Assert.NotNull(result.StructuredContent);
@@ -154,6 +157,17 @@ public sealed class NotionMcpTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.OK, historyResponse.StatusCode);
         Assert.Equal("[]", await historyResponse.Content.ReadAsStringAsync());
         Assert.True(historyResponse.Headers.CacheControl?.NoStore);
+        var creationOperation = Guid.NewGuid();
+        var creation = await client.CallToolAsync("create_page", new Dictionary<string, object?>
+            { ["parentPageId"] = page.ToString(), ["title"] = "Ny underside", ["operationId"] = creationOperation.ToString() });
+        Assert.NotEqual(true, creation.IsError);
+        var creationBody = JsonSerializer.SerializeToElement(creation.StructuredContent);
+        Assert.Equal("created", creationBody.GetProperty("status").GetString());
+        Assert.Equal(page, creationBody.GetProperty("parentPageId").GetGuid());
+        var createdId = creationBody.GetProperty("pageId").GetGuid();
+        var creationReplay = await client.CallToolAsync("create_page", new Dictionary<string, object?>
+            { ["parentPageId"] = page.ToString(), ["title"] = "Ny underside", ["operationId"] = creationOperation.ToString() });
+        Assert.Equal(createdId, JsonSerializer.SerializeToElement(creationReplay.StructuredContent).GetProperty("pageId").GetGuid());
         await app.StopAsync();
     }
 
@@ -180,6 +194,68 @@ public sealed class NotionMcpTests : IAsyncLifetime
         Assert.Equal(1, result.GetProperty("total").GetInt32());
         Assert.Equal(page, result.GetProperty("items")[0].GetProperty("pageId").GetGuid());
         Assert.Null(result.GetProperty("nextOffset").GetString());
+    }
+
+    [Fact]
+    public async Task Creation_inherits_parent_collection_scope_and_is_an_empty_unpublished_draft()
+    {
+        var hold = new Hold { Id = Guid.NewGuid(), Name = "SQL", Forloeb = new() { Id = Guid.NewGuid(), Name = "Databaser", CreatedBySub = teacher } };
+        db.Hold.Add(hold);
+        var collection = new NotionCollection { Id = Guid.NewGuid(), HoldId = hold.Id, CreatedBySub = other, CreatedAtUtc = DateTimeOffset.UtcNow };
+        db.NotionCollections.Add(collection);
+        var parent = await db.NotionPages.SingleAsync(); parent.HoldId = hold.Id; parent.CollectionId = collection.Id;
+        await db.SaveChangesAsync();
+        var operation = Guid.NewGuid();
+        var result = await service.CreatePageAsync(User(), page, "  SQL joins  ", operation, default);
+        Assert.Equal(operation, result.OperationId); Assert.Equal("created", result.Status);
+        Assert.Equal(page, result.ParentPageId); Assert.Equal(hold.Id, result.HoldId); Assert.Equal(collection.Id, result.CollectionId);
+        var created = await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == result.PageId);
+        Assert.Equal("SQL joins", created.Title); Assert.Equal(teacher, created.CreatedBySub);
+        Assert.Null(created.YjsState); Assert.Null(created.PublishedState); Assert.Null(created.PublishedAtUtc);
+        Assert.Equal(0, created.DraftRevision); Assert.Equal($"/notion/{created.Id}", result.Href);
+        Assert.Single(await db.NotionMcpPageCreations.ToArrayAsync()); Assert.Empty(engine.Calls);
+        hold.Forloeb.CreatedBySub = other; await db.SaveChangesAsync();
+        Assert.Equal("page_not_found", (await Assert.ThrowsAsync<NotionMcpException>(() => service.CreatePageAsync(User(), page, "SQL joins", operation, default))).Code);
+        Assert.Equal(2, await db.NotionPages.CountAsync());
+    }
+
+    [Fact]
+    public async Task Creation_receipt_survives_restart_rejects_payload_or_owner_changes_and_never_resurrects_deleted_page()
+    {
+        var operation = Guid.NewGuid();
+        var first = await service.CreatePageAsync(User(), page, "Underside", operation, default);
+        await using var fresh = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        var restarted = new NotionMcpService(fresh, new(fresh), new Clients(engine), config, new(config));
+        Assert.Equal(first.PageId, (await restarted.CreatePageAsync(User(), page, "Underside", operation, default)).PageId);
+        Assert.Equal("operation_mismatch", (await Assert.ThrowsAsync<NotionMcpException>(() => restarted.CreatePageAsync(User(), page, "Anden titel", operation, default))).Code);
+        Assert.Equal("operation_mismatch", (await Assert.ThrowsAsync<NotionMcpException>(() => restarted.CreatePageAsync(User(other), page, "Underside", operation, default))).Code);
+        await fresh.NotionPages.Where(p => p.Id == first.PageId).ExecuteDeleteAsync();
+        Assert.Single(await fresh.NotionMcpPageCreations.ToListAsync());
+        Assert.Equal("page_deleted", (await Assert.ThrowsAsync<NotionMcpException>(() => restarted.CreatePageAsync(User(), page, "Underside", operation, default))).Code);
+        Assert.Equal(1, await fresh.NotionPages.CountAsync());
+    }
+
+    [Fact]
+    public async Task Creation_rejects_students_inaccessible_or_personal_parents_without_creating_a_receipt()
+    {
+        Assert.Equal("forbidden", (await Assert.ThrowsAsync<NotionMcpException>(() => service.CreatePageAsync(User(isTeacher: false), page, "Underside", Guid.NewGuid(), default))).Code);
+        var personal = new NotebookDocument { Id = Guid.NewGuid(), Notebook = new() { Id = Guid.NewGuid(), OwnerSub = teacher }, Title = "Privat" };
+        db.NotebookDocuments.Add(personal); await db.SaveChangesAsync();
+        Assert.Equal("page_not_found", (await Assert.ThrowsAsync<NotionMcpException>(() => service.CreatePageAsync(User(), personal.Id, "Underside", Guid.NewGuid(), default))).Code);
+        var hold = new Hold { Id = Guid.NewGuid(), Name = "Privat hold", Forloeb = new() { Id = Guid.NewGuid(), Name = "Privat", CreatedBySub = other } };
+        db.Hold.Add(hold); (await db.NotionPages.SingleAsync()).HoldId = hold.Id; await db.SaveChangesAsync();
+        Assert.Equal("page_not_found", (await Assert.ThrowsAsync<NotionMcpException>(() => service.CreatePageAsync(User(), page, "Underside", Guid.NewGuid(), default))).Code);
+        Assert.Empty(await db.NotionMcpPageCreations.ToListAsync()); Assert.Equal(1, await db.NotionPages.CountAsync());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("SQL\njoins")]
+    public async Task Creation_validates_title_before_any_write(string title)
+    {
+        Assert.Equal("invalid_title", (await Assert.ThrowsAsync<NotionMcpException>(() => service.CreatePageAsync(User(), page, title, Guid.NewGuid(), default))).Code);
+        Assert.Empty(await db.NotionMcpPageCreations.ToListAsync()); Assert.Equal(1, await db.NotionPages.CountAsync());
     }
 
     [Fact]

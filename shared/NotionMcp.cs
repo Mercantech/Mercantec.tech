@@ -13,3 +13,5 @@ public sealed record ApplyNotionMcpChanges(Guid PageId, Guid OperationId, JsonEl
 public sealed record PrepareNotionMcpChange(Guid OperationId, Guid OwnerSub, string RequestHash,
     JsonElement Before, JsonElement After, string? Summary = null, Guid? UndoOf = null);
 public sealed record StoreNotionMcpChange(Guid OperationId, Guid OwnerSub, string RequestHash);
+public sealed record NotionMcpCreatedPage(Guid OperationId, Guid PageId, string Title, Guid ParentPageId,
+    Guid? HoldId, Guid? CollectionId, string Href, string Status);

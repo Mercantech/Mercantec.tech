@@ -37,6 +37,80 @@ public sealed class NotionMcpService(AppDbContext db, CourseAccess courses, IHtt
         return sub;
     }
 
+    public async Task<NotionMcpCreatedPage> CreatePageAsync(ClaimsPrincipal user, Guid parentPageId,
+        string title, Guid operationId, CancellationToken ct)
+    {
+        var owner = RequireTeacher(user);
+        if (operationId == Guid.Empty || parentPageId == Guid.Empty) throw new NotionMcpException("invalid_creation");
+        if (string.IsNullOrWhiteSpace(title) || title.Length > 200 || title.Any(char.IsControl))
+            throw new NotionMcpException("invalid_title");
+        title = title.Trim();
+        await AuthorizeAsync(parentPageId, user, ct);
+        var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(
+            JsonSerializer.SerializeToElement(new { parentPageId, title }, Json)))));
+        var existing = await db.NotionMcpPageCreations.AsNoTracking().SingleOrDefaultAsync(c => c.Id == operationId, ct);
+        if (existing != null) return await CreatedPageReplayAsync(existing, parentPageId, hash, owner, user, ct);
+
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        NotionPage? created = null;
+        NotionMcpPageCreation? receipt = null;
+        try
+        {
+            // Recheck inside the write transaction; callers cannot supply another hold, collection or creator.
+            await AuthorizeAsync(parentPageId, user, ct);
+            var parent = await db.NotionPages.AsNoTracking().SingleOrDefaultAsync(p => p.Id == parentPageId, ct)
+                ?? throw new NotionMcpException("page_not_found", 404);
+            var holdId = parent.HoldId;
+            if (parent.CollectionId is Guid collectionId)
+            {
+                var collection = await db.NotionCollections.AsNoTracking().SingleOrDefaultAsync(c => c.Id == collectionId, ct);
+                if (collection == null || !await access.CanManageScopeAsync(collection.HoldId, user, ct))
+                    throw new NotionMcpException("page_not_found", 404);
+                if (holdId is Guid hold && hold != collection.HoldId) throw new NotionMcpException("invalid_collection", 409);
+                holdId = collection.HoldId;
+            }
+            var now = DateTimeOffset.UtcNow;
+            created = new() { Id = Guid.NewGuid(), Title = title, ParentPageId = parentPageId,
+                HoldId = holdId, CollectionId = parent.CollectionId, CreatedBySub = owner,
+                CreatedAtUtc = now, UpdatedAtUtc = now };
+            receipt = new() { Id = operationId, OwnerSub = owner, ParentPageId = parentPageId,
+                PageId = created.Id, RequestHash = hash, CreatedAtUtc = now };
+            db.NotionPages.Add(created);
+            db.NotionMcpPageCreations.Add(receipt);
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return CreatedPageView(receipt, created);
+        }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync(ct);
+            // A concurrent winner may have consumed the same operation ID. Our page INSERT rolled back too.
+            if (created != null) db.Entry(created).State = EntityState.Detached;
+            if (receipt != null) db.Entry(receipt).State = EntityState.Detached;
+            await AuthorizeAsync(parentPageId, user, ct);
+            existing = await db.NotionMcpPageCreations.AsNoTracking().SingleOrDefaultAsync(c => c.Id == operationId, ct);
+            if (existing != null) return await CreatedPageReplayAsync(existing, parentPageId, hash, owner, user, ct);
+            throw new NotionMcpException("creation_not_confirmed", 503,
+                "Sideoprettelsen er ikke bekræftet. Prøv igen med samme operations-id.");
+        }
+    }
+
+    private async Task<NotionMcpCreatedPage> CreatedPageReplayAsync(NotionMcpPageCreation receipt, Guid parentPageId,
+        string hash, Guid owner, ClaimsPrincipal user, CancellationToken ct)
+    {
+        if (receipt.OwnerSub != owner || receipt.ParentPageId != parentPageId || receipt.RequestHash != hash)
+            throw new NotionMcpException("operation_mismatch", 409);
+        var created = await db.NotionPages.AsNoTracking().SingleOrDefaultAsync(p => p.Id == receipt.PageId, ct)
+            ?? throw new NotionMcpException("page_deleted", 409,
+                "Siden fra denne operation findes ikke længere. Den bliver ikke oprettet igen ved et genforsøg.");
+        await AuthorizeAsync(created.Id, user, ct);
+        return CreatedPageView(receipt, created);
+    }
+
+    private static NotionMcpCreatedPage CreatedPageView(NotionMcpPageCreation receipt, NotionPage page)
+        => new(receipt.Id, page.Id, page.Title, receipt.ParentPageId, page.HoldId, page.CollectionId,
+            $"/notion/{page.Id}", "created");
+
     public async Task<object> FindAsync(ClaimsPrincipal user, string? query, Guid? holdId, Guid? collectionId,
         int offset, int limit, CancellationToken ct)
     {
