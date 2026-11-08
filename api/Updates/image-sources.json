@@ -698,5 +698,90 @@
     "captureDate": "2026-11-08",
     "sourceRevision": "74db49e",
     "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "editor-ai-native": {
+    "source": ".tools/updates-maintenance-20261108/screens/editor-ai-native.png",
+    "crop": [
+      60,
+      42,
+      1380,
+      756
+    ],
+    "size": [
+      1280,
+      692
+    ],
+    "bytes": 65398,
+    "sourceSha256": "ed24a2039118430e25310973cd6a28617dfe5943e0d5c907859784093cd9b695",
+    "capturedOn": "2026-11-08",
+    "note": "Isoleret QA-fixture med den faktiske editor, fiktivt AI-forslag og ingen ekstern AI-forespørgsel."
+  },
+  "page-sidebar": {
+    "source": ".tools/updates-maintenance-20261108/screens/page-sidebar.png",
+    "crop": [
+      27,
+      184,
+      1412,
+      918
+    ],
+    "size": [
+      1280,
+      678
+    ],
+    "bytes": 25448,
+    "sourceSha256": "be9ab39b7c4e6cab30c2fc1d9d53feb5dba5b9cce4def6087241527ff376e244",
+    "capturedOn": "2026-11-08",
+    "note": "Tidligere reel browser-QA af den integrerede sidemenu med fiktive sider og hold."
+  },
+  "lupp-emojis": {
+    "source": ".tools/updates-maintenance-20261108/screens/lupp-emojis.jpg",
+    "crop": [
+      80,
+      105,
+      1172,
+      712
+    ],
+    "size": [
+      1092,
+      607
+    ],
+    "bytes": 42064,
+    "sourceSha256": "61a82b90c7b007b06429c91d9923ebbeec4ce7229ac982d7feb3bac81153db58",
+    "capturedOn": "2026-11-08",
+    "note": "Den offentlige LUPP-profil med 48 emojis; optaget efter deployment af 3fc1fab."
+  },
+  "character-library-emojis": {
+    "source": ".tools/updates-maintenance-20261108/screens/character-library-emojis.jpg",
+    "crop": [
+      20,
+      90,
+      1245,
+      1602
+    ],
+    "size": [
+      1225,
+      1512
+    ],
+    "bytes": 100584,
+    "sourceSha256": "8da9837ccd9d348a1aa222677d933cc0f9c49cfd43ae675e37b55095b279a0eb",
+    "capturedOn": "2026-11-08",
+    "note": "Offentligt karakterbibliotek på lup.dk; alle fem portrætter og gallerihenvisninger indlæst før optagelse."
+  },
+  "notebook-connections": {
+    "source": ".tools/updates-maintenance-20261108/screens/notebook-connections.jpg",
+    "crop": [
+      20,
+      85,
+      1259,
+      620
+    ],
+    "size": [
+      1239,
+      535
+    ],
+    "bytes": 25842,
+    "sourceSha256": "b22bbf406b76133701fa8dca621dd7d1bf3e3f7e6ea39504a1b56f6206fb1291",
+    "capturedOn": "2026-11-08",
+    "note": "Den faktiske Blazor-app fra ec330aa med fiktiv underviser, hold, teorinotesbog og personlige noter i isoleret loopback-fixture. Ingen produktionsdata."
   }
 }

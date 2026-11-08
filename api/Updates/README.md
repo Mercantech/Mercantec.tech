@@ -12,9 +12,9 @@ Undervisernes billedbaserede ændringsoversigt ligger på `/teacher/updates`. In
 
 ## Dækning og billedgrundlag
 
-Oversigten indeholder 49 opslag efter en gennemgang af hele historikken fra 22. oktober til 8. november 2026: 205 commits frem til `d1fe6ea`. Beslægtede ændringer er samlet, så interne rettelser og gentagne merges ikke fylder med dubletter. Den indlejrede, private `coverage.json` dokumenterer koblingen fra commits til opslag og begrundelser for udeladelser. Automatiske test kontrollerer katalogets og gennemgangens indbyrdes konsistens.
+Oversigten indeholder 54 opslag efter en gennemgang af hele historikken fra 22. oktober til 8. november 2026: 215 commits frem til `ec330aa`. Beslægtede ændringer er samlet, så interne rettelser og gentagne merges ikke fylder med dubletter. Den indlejrede, private `coverage.json` dokumenterer koblingen fra commits til opslag og begrundelser for udeladelser. Automatiske test kontrollerer katalogets og gennemgangens indbyrdes konsistens.
 
-`image-sources.json` dokumenterer originalernes relative placering i det lokale arbejdsområde, beskæringer og billedstørrelser. De færdige billeder leveres i `Images/`; originalerne er ikke en build-afhængighed. Skærmbilleder kan være nyere end den ændring, de illustrerer. De nye optagelser viser den faktiske app med fiktive konti, dokumenter og API-fixtures; ekstern trafik var blokeret. Editorbilleder bruger den faktiske udgivne editor med lokal testkontekst og uden AI-kald. Historiske før/efter-par bruges kun, når begge billeder findes.
+`image-sources.json` dokumenterer originalernes relative placering i det lokale arbejdsområde, beskæringer og billedstørrelser. De færdige billeder leveres i `Images/`; originalerne er ikke en build-afhængighed. Skærmbilleder kan være nyere end den ændring, de illustrerer. De tidligere fixture-optagelser viser den faktiske app med fiktive konti, dokumenter og API-fixtures med ekstern trafik blokeret. Editorbilleder bruger den faktiske editor med lokal testkontekst og uden AI-kald. Historiske før/efter-par bruges kun, når begge billeder findes.
 
 - `notification-dropdown`, `library`, `hold-navigation`: tidligere skærmbilleder i arbejdsområdets `output/lup-*.png`.
 - `characters`, `notebook`, `roulette`: nye optagelser af den faktiske app fra `origin/main` ved `0f706f7`, med isolerede fiktive konti og API-fixtures. Ekstern trafik var blokeret.
@@ -28,7 +28,7 @@ Oversigten vedligeholdes som en del af koden. Den publicerer ikke automatisk nye
 
 ## Ophav
 
-Alle 49 opslag har en byline med de væsentlige implementeringsbidrag til den
+Alle 54 opslag har en byline med de væsentlige implementeringsbidrag til den
 beskrevne feature. `MAGS`/`MAGS-GH` og dokumenterede menneskelige Mathias-trailere
 henføres til **Mathias**; `KasperHBC` henføres til **Kasper**. En AI-forfatter
 henføres kun til et menneske, når Git-historikken dokumenterer det. Små
@@ -44,3 +44,13 @@ uden at samme funktion gentages som et nyt kort for hver rettelse.
 Opslaget om hurtigere editorindlæsning genbruger det eksisterende editorbillede.
 Ændringen beskrives i teksten; der fremstilles ikke et visuelt før/efter-par
 eller en måling af indlæsningstid.
+
+## Seneste gennemgang den 8. november 2026
+
+Fem nye opslag dækker private AI-forslag i editoren, LUPPs 48 emojis, karakterbibliotekets gallerier, den skjulbare sidemenu og forbindelser mellem notesbøger. Alle fem er udviklet af Mathias. AI-opslaget samler også faglig kildeudvælgelse og korrekt nummerering i forhåndsvisningen; AI-adgang skal fortsat være konfigureret.
+
+De fem billeder er faktiske skærmbilleder: AI-opslaget bruger den isolerede editor-fixture fra `ec330aa`, og sidemenuen bruger den tidligere integrerede browserkontrol med fiktive SQL-sider. Notesbogsoversigten er optaget fra samme release med nye fiktive teori- og holdnotesbøger i hukommelsen. LUPP og karakterbiblioteket er optaget på de offentlige sider på lup.dk. Originaler, beskæringer og kildehashes er registreret i `image-sources.json`; de nye optimerede WebP-filer er indlejret privat i API'et.
+
+Kaspers komplette Raymond-avatarpakke er føjet til det eksisterende opslag om avatarsamlingen: 28 handlinger, 224 animationsbilleder og 33 lydklip, heraf fem danske replikker, samt forhåndsvisning med genstande og effekter. De oprindelige før/efter-billeder er bevaret og viser kontosamlingen, ikke hele den nye pakke. Opslaget om Nyt i LUP krediterer nu også Mathias for bylines og vedligeholdelse; dets historiske billede viser første udgave.
+
+Gennemgangen til `ec330aa` bevarer alle tidligere opslag og commit-koblinger. De ti nyere commits har hver en forklaring og en kobling til et opslag; `coverage.json` dokumenterer konkrete bidrag fra Mathias og Kasper.

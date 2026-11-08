@@ -2,13 +2,181 @@
   "schemaVersion": 1,
   "reviewedOn": "2026-11-08",
   "repository": "Mercantech/Mercantec.tech",
-  "baselineCommit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
+  "baselineCommit": "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f",
   "fullHistory": true,
   "firstHistoryDate": "2026-10-22",
-  "totalCommits": 205,
-  "catalogEntries": 49,
+  "totalCommits": 215,
+  "catalogEntries": 54,
   "scope": "All user-facing changes through the reviewed baseline, grouped by related feature. Internal-only changes and duplicate merges carry explicit exclusion reasons. Screenshots use isolated test data.",
   "entries": [
+    {
+      "id": "editor-ai-native",
+      "date": "2026-11-08",
+      "commits": [
+        "15c318ed2a7fbd559b7a4704e36558eee13ea33c",
+        "83fa0fdcadd4afd137938df8cf3d0ac56c60256d",
+        "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f"
+      ],
+      "changes": [
+        "Private forslag vises ved teksten og bliver først en del af dokumentet efter Godkend.",
+        "Underviseren kan godkende, afvise eller justere forslag; ændret måltekst udløser en synlig konflikt.",
+        "Relevante faglige kilder udvælges efter sidens aktuelle emne.",
+        "Arbejdet fortsætter ved sideskift, og lange opgaver kan fortsættes.",
+        "Nummererede lister bevarer korrekt nummerering i forhåndsvisningen."
+      ],
+      "evidence": [
+        "docs/ai-editor.md",
+        "editor/src/ai-native-panel.tsx",
+        "editor/src/ai-native-review.ts",
+        "api/Ai/Context/EditorAiRelevance.cs",
+        "api/Ai/EditorRuns/EditorAiRunWorker.cs"
+      ],
+      "caveats": [
+        "Kræver konfigureret AI-adgang. Skærmbilledet viser den faktiske editor med testindhold; det dokumenterer brugerfladen og er ikke en kvalitetsmåling af AI-svar."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "15c318ed2a7fbd559b7a4704e36558eee13ea33c",
+            "83fa0fdcadd4afd137938df8cf3d0ac56c60256d",
+            "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lupp-emojis",
+      "date": "2026-11-08",
+      "commits": [
+        "3fc1fab0b6b99faf6bb5cf6d9bf6149c64ef8078"
+      ],
+      "changes": [
+        "48 originale LUPP-emojis med reaktioner, undervisning og Game Design-motiver.",
+        "Profil, bibliotek og editor deler de samme stabile emoji-navne og lette forhåndsvisninger.",
+        "Transparente PNG-originaler kan hentes, og LUPPs ni eksisterende undervisningsillustrationer bevares."
+      ],
+      "evidence": [
+        "web/Characters/CharacterCatalog.cs",
+        "shared/CharacterEmojiCatalog.cs",
+        "api/Emojis/CharacterEmojiPolicy.cs",
+        "assets/characters/REACTIONS.md"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "3fc1fab0b6b99faf6bb5cf6d9bf6149c64ef8078"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "character-library-emojis",
+      "date": "2026-11-08",
+      "commits": [
+        "5c10b0e3fcec45942d4b571e42a998a526a5642e",
+        "3d7900f52e9cca25e79b1fb30247bf09290de937"
+      ],
+      "changes": [
+        "Bibliotekets karakterkort linker til profiler og relevante billedgallerier med antal materialer.",
+        "Søgning finder figurer og deres materialer på tværs af karakterbiblioteket.",
+        "Raymond har 48 emojis, og Bæver og Ræv har 12 hver, delt mellem profiler og editorens emojivælger.",
+        "Lette forhåndsvisninger bevarer PNG-originaler og eksisterende GIF-animationer."
+      ],
+      "evidence": [
+        "web/Components/CharacterCard.razor",
+        "web/Pages/Library.razor",
+        "web/Characters/CharacterCatalog.cs",
+        "shared/CharacterEmojiCatalog.cs",
+        "web/Components/CharacterArtworkGallery.razor"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "5c10b0e3fcec45942d4b571e42a998a526a5642e",
+            "3d7900f52e9cca25e79b1fb30247bf09290de937"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "page-sidebar",
+      "date": "2026-11-08",
+      "commits": [
+        "48b15b2c45a22a576fb2d9ae4ffffb395dce6dd9"
+      ],
+      "changes": [
+        "En skjulbar sidemenu samler sidesøgning, undersider og oprettelse af nye sider.",
+        "Søgning og foldning bevarer den aktive side og dokumentets indhold.",
+        "Mobilmenuen starter lukket, kan lukkes med Escape eller klik udenfor og returnerer fokus til Sider.",
+        "Browseren husker menuens tilstand på computer."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Index.razor",
+        "web/Pages/Notion/Index.razor.cs",
+        "web/wwwroot/js/notion-sidebar.js",
+        "obsidian/03-features/Forloebseditor.md"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "48b15b2c45a22a576fb2d9ae4ffffb395dce6dd9"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notebook-connections",
+      "date": "2026-11-08",
+      "commits": [
+        "c64257ab7e754b0ff7f0ea3afad20e6eb71dfe9c"
+      ],
+      "changes": [
+        "Notesbogsoversigten samler teori, holdsamlinger, egen notesbog og delte sider med en separat elevfane for undervisere.",
+        "Undervisere kan oprette og udgive selvstændige teorinotesbøger, som loggede ind kan læse uden holdmedlemskab.",
+        "Fælles søgning, mentions, links, backlinks og graf forbinder tilgængeligt indhold på tværs.",
+        "Eksisterende ejerskab og delinger for personlige notesbøger bevares; links giver ingen ekstra adgang."
+      ],
+      "evidence": [
+        "web/Pages/Notebook/Index.razor",
+        "api/Controllers/NotionCollectionsController.cs",
+        "api/References/ReferenceService.cs",
+        "editor/src/entity-references.mjs",
+        "obsidian/03-features/Forloebseditor.md"
+      ],
+      "caveats": [
+        "Kun tilgængeligt indhold indgår i søgning og forbindelser; et link deler ikke private sider."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "c64257ab7e754b0ff7f0ea3afad20e6eb71dfe9c"
+          ]
+        }
+      ]
+    },
     {
       "id": "editor-loading",
       "date": "2026-11-08",
@@ -1663,22 +1831,33 @@
       "date": "2026-11-08",
       "commits": [
         "ac4ea2eea36977a4a7a21304d7a82271be42acae",
-        "13dbc8ce80c4d9cf2d142c3255687289d48e15d1"
+        "13dbc8ce80c4d9cf2d142c3255687289d48e15d1",
+        "d15020d10e2ee5032ab941c6e995766507553d80"
       ],
       "changes": [
         "Privat visuel ændringsoversigt i underviserens menu.",
         "Kategori-/datooversigt med udklip, billedzoom og ægte før/efter-par.",
-        "API og billeder kræver underviseradgang."
+        "API og billeder kræver underviseradgang.",
+        "Dato og byline viser Mathias, Kasper eller begge efter dokumenterede bidrag; seneste features indgår i oversigten."
       ],
       "evidence": [
         "api/Updates/PlatformUpdatesCatalog.cs",
         "web/Pages/Teacher/Updates.razor"
       ],
-      "caveats": [],
+      "caveats": [
+        "Det historiske nærbillede viser første udgave af oversigten før tilføjelsen af bylines."
+      ],
       "authors": [
+        "Mathias",
         "Kasper"
       ],
       "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "d15020d10e2ee5032ab941c6e995766507553d80"
+          ]
+        },
         {
           "author": "Kasper",
           "commits": [
@@ -1693,7 +1872,8 @@
       "date": "2026-11-08",
       "commits": [
         "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7",
-        "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
+        "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
+        "97fbbb64170fd0615db1800056ccc7a2683a9508"
       ],
       "changes": [
         "Avatarsamlingen afløser garderoben med gratis startfigur, BIP-01 og felter til kommende figurer.",
@@ -1701,16 +1881,22 @@
         "Oplåsning og køb valideres på serveren uden dobbeltbetaling; kendte gamle kontospecifikke browserdata kan overføres én gang under afgrænsede betingelser.",
         "BIP-01 har animationer, lyd, fem danske replikker samt download af emojiansigter og profilbillede.",
         "Den valgte figur bruges i header, profil, elevside, lejlighed og Rune Run Mini.",
-        "Raymond kan låses op og vælges med animationer og database-replikker; ejerskab og valg gemmes på kontoen."
+        "Raymond kan låses op og vælges med animationer og database-replikker; ejerskab og valg gemmes på kontoen.",
+        "Raymonds komplette pakke har 28 handlinger med 224 særskilte animationsbilleder og 33 lydklip, heraf fem danske replikker.",
+        "Forhåndsvisningen kan pause og genafspille samt vise uafhængige genstande, projektiler og effekter."
       ],
       "evidence": [
         "obsidian/03-features/Avatarer-og-oplaasning.md",
         "api/Controllers/AvatarsController.cs",
         "web/Components/AvatarEditor.razor",
-        "shared/Avatars.cs"
+        "shared/Avatars.cs",
+        "assets/avatars/raymond/README.md",
+        "assets/avatars/raymond/AUDIO.md",
+        "web/Components/AvatarLayerPreview.razor"
       ],
       "caveats": [
-        "Level og XP er fortsat demoprogression. Rumplaceringer og legacy-tøjdata er stadig lokale; hele lejlighedssystemet er ikke flyttet til databasen. Kommende figurer er information, ikke købsmuligheder. Nye møbelkøb deler kontoens guldsaldo; møbler med uopfyldte server-badgekrav kan ikke købes."
+        "Level og XP er fortsat demoprogression. Rumplaceringer og legacy-tøjdata er stadig lokale; hele lejlighedssystemet er ikke flyttet til databasen. Kommende figurer er information, ikke købsmuligheder. Nye møbelkøb deler kontoens guldsaldo; møbler med uopfyldte server-badgekrav kan ikke købes.",
+        "Det eksisterende nærbillede viser kontosamlingen og testkontoens saldo, ikke hele Raymonds nye animations-, lyd- og effektpakke."
       ],
       "authors": [
         "Kasper"
@@ -1720,7 +1906,8 @@
           "author": "Kasper",
           "commits": [
             "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7",
-            "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
+            "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
+            "97fbbb64170fd0615db1800056ccc7a2683a9508"
           ]
         }
       ]
@@ -3799,14 +3986,114 @@
     {
       "commit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
       "date": "2026-11-08",
-      "subject": "TilfÃ¸j Raymond som oplÃ¥selig avatar",
+      "subject": "Tilføj Raymond som oplåselig avatar",
       "classification": "user_facing",
       "entryIds": [
         "avatar-collection"
       ],
       "reason": "Raymond kan låses op og vælges med animationer og database-replikker; ejerskab og valg gemmes på kontoen."
+    },
+    {
+      "commit": "d15020d10e2ee5032ab941c6e995766507553d80",
+      "date": "2026-11-08",
+      "subject": "Vis ophav og seneste features i Nyt i LUP",
+      "classification": "user_facing",
+      "entryIds": [
+        "visual-updates"
+      ],
+      "reason": "Nyhedsoversigten viser dokumenteret ophav og de seneste leverede features."
+    },
+    {
+      "commit": "5c10b0e3fcec45942d4b571e42a998a526a5642e",
+      "date": "2026-11-08",
+      "subject": "Forbind karakterbiblioteket med profiler og billedgallerier",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-library-emojis"
+      ],
+      "reason": "Bibliotekets karakterkort linker til profiler og relevante billedgallerier med antal materialer."
+    },
+    {
+      "commit": "c64257ab7e754b0ff7f0ea3afad20e6eb71dfe9c",
+      "date": "2026-11-08",
+      "subject": "Saml notesbøger og forbind indhold på tværs",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-connections"
+      ],
+      "reason": "Notesbogsoversigten samler teori, holdsamlinger, egen notesbog og delte sider med en separat elevfane for undervisere."
+    },
+    {
+      "commit": "48b15b2c45a22a576fb2d9ae4ffffb395dce6dd9",
+      "date": "2026-11-08",
+      "subject": "Giv siderne en enkel sidemenu med mere plads til indhold",
+      "classification": "user_facing",
+      "entryIds": [
+        "page-sidebar"
+      ],
+      "reason": "En skjulbar sidemenu samler sidesøgning, undersider og oprettelse af nye sider."
+    },
+    {
+      "commit": "97fbbb64170fd0615db1800056ccc7a2683a9508",
+      "date": "2026-11-08",
+      "subject": "Giv Raymond en komplet avatarpakke med 224 frames og 33 lyde",
+      "classification": "user_facing",
+      "entryIds": [
+        "avatar-collection"
+      ],
+      "reason": "Raymond får den komplette animations- og lydpakke samt forhåndsvisning med uafhængige genstande, projektiler og effekter."
+    },
+    {
+      "commit": "3d7900f52e9cca25e79b1fb30247bf09290de937",
+      "date": "2026-11-08",
+      "subject": "Giv karaktererne flere reaktioner i hele LUP",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-library-emojis"
+      ],
+      "reason": "Raymond udvides til 48 emojis, Bæver og Ræv får 12 hver, og reaktionerne deles mellem profiler, bibliotek og editor."
+    },
+    {
+      "commit": "15c318ed2a7fbd559b7a4704e36558eee13ea33c",
+      "date": "2026-11-08",
+      "subject": "Integrér sikre AI-forslag direkte i dokumenteditoren",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai-native"
+      ],
+      "reason": "Private forslag vises ved teksten og bliver først en del af dokumentet efter Godkend."
+    },
+    {
+      "commit": "3fc1fab0b6b99faf6bb5cf6d9bf6149c64ef8078",
+      "date": "2026-11-08",
+      "subject": "Giv LUPP 48 emojis til Game Design",
+      "classification": "user_facing",
+      "entryIds": [
+        "lupp-emojis"
+      ],
+      "reason": "48 originale LUPP-emojis med reaktioner, undervisning og Game Design-motiver."
+    },
+    {
+      "commit": "83fa0fdcadd4afd137938df8cf3d0ac56c60256d",
+      "date": "2026-11-08",
+      "subject": "Vælg AI-kilder efter sidens faglige emne",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai-native"
+      ],
+      "reason": "AI-kilder udvælges efter den aktive sides faglige emne."
+    },
+    {
+      "commit": "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f",
+      "date": "2026-11-08",
+      "subject": "Bevar korrekt nummerering i AI-forhåndsvisningen",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai-native"
+      ],
+      "reason": "Nummererede lister bevarer korrekt nummerering i AI-forhåndsvisningen."
     }
   ],
   "authorshipReviewedOn": "2026-11-08",
-  "authorshipBaselineCommit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
+  "authorshipBaselineCommit": "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f"
 }
