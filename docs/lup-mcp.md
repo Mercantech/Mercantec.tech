@@ -83,7 +83,11 @@ Fortrydelse findes også i LUP under **Mere → Codex-ændringer**. Det er en s�
 
 OAuth skal verificeres med den faktiske Codex-klient: præcis callback, S256, tokenudveksling, fornyelse med roteret refresh token og de eksisterende `iss`/`aud`-kontroller. En vellykket HTTP-discovery alene dokumenterer ikke hele login-flowet.
 
-Den installerede Codex CLI `0.162.1` er prøvet mod Mercantec Auths faktiske OIDC-discovery med en isoleret lokal MCP-discoveryfixture: forhåndsregistreret offentlig klient, PKCE S256 og fast callback-port accepteres. Dynamisk registrering eller ændringer af Auths globale sikkerhedsregler er derfor ikke en forudsætning for denne klient. Selve login- og refresh-prøven skal stadig gennemføres mod den udrullede LUP-MCP.
+Forbindelsen er afprøvet med Codex CLI `0.162.1`, en forhåndsregistreret offentlig klient, PKCE S256 og fast callback-port. Mercantec Auths eksisterende OIDC-discovery kan bruges; dynamisk registrering eller ændringer af Auths globale sikkerhedsregler er ikke en forudsætning for denne klient.
+
+Live-prøven den 8. november 2026 gennem `lup.dk` omfattede Codex-login, alle fem værktøjer med det officielle TypeScript-SDK, pagineret læsning, ændring, gentaget request og privat historik. En separat OAuth-session verificerede refreshrotation, brug af det nye token og afvisning af det gamle refresh token. Efter genstart af API og samarbejdsserver fandtes ændringen fortsat præcis én gang. Den åbne editor modtog ændringen straks, og både LUPs historikmenu og gentaget MCP-fortrydelse blev kontrolleret.
+
+En særskilt demoside blev også redigeret uden en åben editor, genåbnet og fortrudt. Begge midlertidige ændringer blev fortrudt. Den eksisterende demosides otte blokke blev kontrolleret med uændret XML; den oprindeligt helt tomme demoside endte med BlockNotes normale tomme tekstblok efter genåbning.
 
 MCP-svar må først angive en gemt ændring, når samarbejdsserveren har fået en holdbar databasekvittering. Ved afbrudt forbindelse genbruges operations-id'et. Historik skal kunne skelne en gemt ændring fra en afventende eller fejlet ændring.
 
