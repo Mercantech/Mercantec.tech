@@ -5,7 +5,9 @@
 .updates-feed { display:grid; gap:48px; }
 .update-entry { min-width:0; padding-bottom:42px; border-bottom:1px solid var(--rule); }
 .update-copy { max-width:72ch; margin-bottom:20px; }
-.update-copy time { display:block; color:var(--muted); font-size:12px; margin-bottom:9px; }
+.update-meta { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px; margin-bottom:9px; color:var(--muted); font-size:12px; line-height:1.5; }
+.update-copy time { font-size:12px; }
+.update-authors { font-size:12px; }
 .update-copy h2 { margin:0 0 9px; font-size:clamp(21px,2.8vw,28px); letter-spacing:-.55px; line-height:1.25; }
 .update-copy p { margin:0; color:var(--muted); line-height:1.75; font-size:14px; }
 .update-pictures { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }

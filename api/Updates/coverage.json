@@ -2,13 +2,45 @@
   "schemaVersion": 1,
   "reviewedOn": "2026-11-08",
   "repository": "Mercantech/Mercantec.tech",
-  "baselineCommit": "74db49e319aff1118d12e1a8fdacf5dbd0f75228",
+  "baselineCommit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
   "fullHistory": true,
   "firstHistoryDate": "2026-10-22",
-  "totalCommits": 201,
-  "catalogEntries": 48,
+  "totalCommits": 205,
+  "catalogEntries": 49,
   "scope": "All user-facing changes through the reviewed baseline, grouped by related feature. Internal-only changes and duplicate merges carry explicit exclusion reasons. Screenshots use isolated test data.",
   "entries": [
+    {
+      "id": "editor-loading",
+      "date": "2026-11-08",
+      "commits": [
+        "1bb65d5be3d9b37426682c2402724b526e13401b",
+        "1f6848d8a8f63cae0bdd18807634fbfbd51959b4"
+      ],
+      "changes": [
+        "Den valgte side prioriteres før resten af sidetræet.",
+        "Tegninger, Mermaid og emojiressourcer hentes efter behov."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Index.razor.cs",
+        "editor/src/editor-resources.mjs",
+        "web/Emojis/EmojiClient.cs"
+      ],
+      "caveats": [
+        "Genbruger det dokumenterede editor-blocks-skærmbillede som illustration af editoren; intet nyt visuelt før/efter-par eller benchmark påstås."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "1bb65d5be3d9b37426682c2402724b526e13401b",
+            "1f6848d8a8f63cae0bdd18807634fbfbd51959b4"
+          ]
+        }
+      ]
+    },
     {
       "id": "characters",
       "date": "2026-11-07",
@@ -22,7 +54,18 @@
       "evidence": [
         "web/Components/CharacterAnimationGallery.razor"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "82437e8c4de9ce9546d678e0d2e53b729d0182dc"
+          ]
+        }
+      ]
     },
     {
       "id": "notebook",
@@ -42,6 +85,17 @@
       ],
       "caveats": [
         "Ingen vedvarende offline-redigering. Deling giver læseadgang; alle undervisere kan læse og kommentere."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "1d662dd63056c2a616b246dd1004930ad50215ba"
+          ]
+        }
       ]
     },
     {
@@ -71,6 +125,19 @@
       ],
       "caveats": [
         "Ingen elevdata blev brugt i illustrationsbillederne. Lyd er frivillig og afhænger af tilgængelige lydklip."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925",
+            "1bfd322b0a171e2156dc1d5de351a19c20a753ce",
+            "43454a6df830e650e332d345975ce8c04c7b1fda"
+          ]
+        }
       ]
     },
     {
@@ -93,6 +160,19 @@
       ],
       "caveats": [
         "Personlige beskeder og læsekvitteringer blev tilføjet 8/11 og dækkes af action-center."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "e2feecdf62d34110c40f6aabd34fa2016c506c2e",
+            "6a4e334d702b0cb77008f0605c4de957a0999259",
+            "cf0d752c9a61df55280befe1473874d37937ab7e"
+          ]
+        }
       ]
     },
     {
@@ -120,6 +200,18 @@
       "caveats": [
         "Demo-/katalogindhold; ikke dokumentation for færdig serverbaseret social portfolio eller global adgangsfiltreret serversøgning.",
         "Biblioteket blev oprettet og udbygget 7/11. Projektkort, reaktioner og kommentarer er demo."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "70dfe621ed80b863c9bfe02de85cdb20e503eaf1",
+            "e2feecdf62d34110c40f6aabd34fa2016c506c2e"
+          ]
+        }
       ]
     },
     {
@@ -146,6 +238,18 @@
       ],
       "caveats": [
         "Navigationen blev leveret 7/11."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "f981d09ef4850e47250fc89bdbabf550503349f4",
+            "70dfe621ed80b863c9bfe02de85cdb20e503eaf1"
+          ]
+        }
       ]
     },
     {
@@ -169,7 +273,27 @@
         "obsidian/03-features/Forloebseditor.md",
         "api/Controllers/NotionController.cs"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "db80162abed73372cd0ade0db3b19c62d7c63f52"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "e044c4c9d55179d7aeb30fa9de03cf6b812b933b",
+            "25f12db77461a28f8cb09711cdd611015d87b026"
+          ]
+        }
+      ],
+      "authorshipNote": "Kasper implementerede publicering og den selvhostede editor. Mathias rettede JWT-validering og collaboration-auth paa tvaers af syv filer, saa gyldige sessioner kunne samarbejde."
     },
     {
       "id": "poll-studio",
@@ -187,7 +311,18 @@
         "obsidian/03-features/Afstemninger-og-stemning.md",
         "api/Controllers/PollsController.cs"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "fa3cb3c3e42929fecb7a4ddbbc143b9c8b40244a"
+          ]
+        }
+      ]
     },
     {
       "id": "gift-opening",
@@ -208,6 +343,18 @@
       ],
       "caveats": [
         "Gratis hilsner; gaver overfører ikke XP, guld eller inventar. Begge konti skal bruge samme API."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "de3f0d6bc9364ceef8491d2941381feaeffb55be",
+            "fa3cb3c3e42929fecb7a4ddbbc143b9c8b40244a"
+          ]
+        }
       ]
     },
     {
@@ -229,6 +376,19 @@
       ],
       "caveats": [
         "Spillet ændrer ikke platformens data eller belønninger."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "e4e49efe0c03a2a1beaf7c0c48914f11d9d412ae",
+            "59006d7f33f41bb49d9aef0322778c57712ad3db",
+            "38519aae9a32d1518697db27949d86a622592d50"
+          ]
+        }
       ]
     },
     {
@@ -252,7 +412,28 @@
       ],
       "caveats": [
         "XP, guld og badges følger fortsat demotilstand; Lectio/VUF bruger API."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "70743da2777b6d6bbcecb6085f5ae0a8ff70c231",
+            "5af82b1f780d1c7331f5ba8641b4b39967398120"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "1445b6cdf331b1d72c8a62089e9f8388b1f5988d",
+            "6e36c230c6a8deae9d94fe9be7284f1703f327fc"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias byggede elevtidslinje og VUF-overblik; hans Cursor Agent-commits indeholder eksplicit menneskelig Co-authored-by. Kasper byggede det kompakte elev-/Lectio-design og bevarede det sammen med den nye elevvisning i en merge med konkrete Dashboard-aendringer."
     },
     {
       "id": "avatar",
@@ -272,7 +453,27 @@
       ],
       "caveats": [
         "Historisk udgave fra 4/11 med lokale garderobevalg. Den blev 8/11 afløst af hele figurer og kontogemt avatarsamling, dækket af avatar-collection."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+            "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias introducerede AvatarStudio og det faelles demo-domaene. Kasper implementerede AvatarEditor med udseendevalg og browserlagring og samlede det med Mathias funktioner. Den senere kontogemte avatarsamling krediteres separat i avatar-collection."
     },
     {
       "id": "apartment",
@@ -292,7 +493,27 @@
       ],
       "caveats": [
         "Rumplaceringer er fortsat browserdata. Fra 8/11 gemmes nye møbelkøb på kontoen med samme saldo som avatarer."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+            "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias introducerede ApartmentStudio og demo-moeblerne. Kasper implementerede ApartmentView med 8x6-rum, placering, flytning, fjernelse og browserlagring. Kontogemte koeb og saldo er senere arbejde; placeringer beskrives fortsat som browsergemte."
     },
     {
       "id": "profile",
@@ -318,6 +539,19 @@
       ],
       "caveats": [
         "Adgang og konkrete redigeringsmuligheder følger de eksisterende Auth-rettigheder."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "dfaa976186ed8a20136190dc18b9bb9ec722016c",
+            "0f1f62199ffd321d4e331798c47d76da91eb6253",
+            "f324fb735843fa1f487ff2c47529024ca0e42b95"
+          ]
+        }
       ]
     },
     {
@@ -337,7 +571,19 @@
       ],
       "caveats": [
         "Sletteanmodning er en anmodning; den er ikke automatisk udført sletning."
-      ]
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "82b4dcd7741e30ecec8f657af57165b6f4b1c630"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias implementerede privatlivsside, rettighedsside, eksport og sletteanmodning i 82b4dcd. Kaspers senere eksportudvidelser for gaver, handlingskvitteringer og avatarsamling er integrationer til de respektive features og giver ikke faelles ejerskab af dette fundament."
     },
     {
       "id": "lectio-linking",
@@ -357,7 +603,20 @@
         "web/Pages/Lectio.razor",
         "obsidian/03-features/Hold-og-Lectio.md"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "b505477d3797a9f560ecce8c104839effc884996",
+            "7498344640a078ad4add0e4e92279e025fb342e0",
+            "3bef8c76fc729d3039991797e233b520c13e726b"
+          ]
+        }
+      ]
     },
     {
       "id": "lectio-overview",
@@ -394,7 +653,20 @@
         "api/Controllers/HoldsController.cs",
         "web/Pages/Lectio.razor"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "994de4e4cfc6b70b5f7b5ad86a7cdab9cf396c5a",
+            "3d612ca85802a169206a72adea30a19de25b7aae",
+            "db6f7e281d99feadaa4d0bfa0ab141a2c8acc2a2"
+          ]
+        }
+      ]
     },
     {
       "id": "reliable-app",
@@ -427,6 +699,18 @@
       "caveats": [
         "22/10 var kun repositoryets README, ikke den færdige platform.",
         "Dette betyder ikke vedvarende offline-redigering eller at alle serverdata er tilgængelige offline."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "41b90572e80ba76b31959dfc711d5f9b23e4bef0",
+            "0184bc23e1cc8e88164ab642f357e01e740bd39f"
+          ]
+        }
       ]
     },
     {
@@ -467,7 +751,28 @@
       "caveats": [
         "Designreference med lokale data; ikke en ekstra serverimplementering.",
         "Den historiske kalender og lokale markeringer var demo. Rigtige holdkalendere/quests kom senere; udført er ikke det samme som afleveret/godkendt."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "d9c0e319f70a29b7c906b89751d8c44b67f3e5e3",
+            "0e8ca604b18ea8b09a88aba013f8a70e0cbcd480"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "3609f6bf3d5b16de786fc29f2bd6e298965b34a9",
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias gjorde LUP til den faelles skal for demo- og livesider og flyttede undervisningsplaner og Lectio ind paa fladen. Kasper leverede designgrundlaget og den konkrete Blazor-genskabelse med nye komponenter, layout og temaer."
     },
     {
       "id": "themes",
@@ -488,7 +793,27 @@
       ],
       "caveats": [
         "Rainbow er udgået. Temaer giver ikke adgang til indhold."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "1968ae0ae5a4ee681c454e41dbf4108fa2f4474c"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+            "de3f0d6bc9364ceef8491d2941381feaeffb55be"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias implementerede tidlig tema-bootstrap foer app-rendering samt lys standard og haandtering af gemt temavalg. Kasper implementerede jul/hacker, tema-JavaScript og sne samt rettelsen for reduceret bevaegelse."
     },
     {
       "id": "shop",
@@ -510,7 +835,26 @@
       ],
       "caveats": [
         "Historisk demobutik fra 4/11. Fra 8/11 gemmes guldsaldo og nye møbelkøb på kontoen; tøj/garderobe er ikke længere et aktuelt brugerflow."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias introducerede ShopBoard og DemoWorld-kataloget. Kasper implementerede ShopGallery med fungerende kategorifiltre, varekort, priser, niveau-/badgekrav og links til inventar/garderobe. Den oprindelige demo havde endnu ikke rigtige koeb."
     },
     {
       "id": "progress",
@@ -531,7 +875,26 @@
       ],
       "caveats": [
         "Personlige XP, niveauer og optjening er fixturedata; offentlige kriterier er læseindhold."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias introducerede DemoWorld, BadgeWall og UnlockRoadmap. Kasper implementerede BadgeGallery med ejet/ikke-ejet-filtre, rangtrin og kriterielinks samt Universe-visning af XP, niveau, guld, progression og oplaasninger."
     },
     {
       "id": "rune-run",
@@ -549,7 +912,26 @@
       ],
       "caveats": [
         "Lokalt minispil med eksempel-highscores. Oprindeligt brugte det lokale garderobevalg; fra 8/11 viser det kontoens valgte figur."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "4c1cd58961341e4152d4619fb416b83c3e546b6a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias introducerede AvatarGame i demoen. Kasper implementerede AvatarGame-komponenten med 8x6-spillefelt, flyttelogik, piletaster og touch, tre runer som sejrskrav, nulstilling og faelles avatarudseende."
     },
     {
       "id": "login-return",
@@ -572,7 +954,20 @@
         "web/Auth/AuthService.cs",
         "web/Pages/Login.razor"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "fe3512880820555a75f714ed98c8675c6798b61f",
+            "aa650337a647577226cb7594d7a5099c89c2009d",
+            "74d2d231a266d578a54b92788a3b1e1f7c672450"
+          ]
+        }
+      ]
     },
     {
       "id": "view-as-student",
@@ -595,7 +990,27 @@
       ],
       "caveats": [
         "Preview ændrer ikke lærerens JWT eller reelle rolle og er ikke en adgang til elevens private gave-/notesbogsbeskeder."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "13ea1939aab98a70cd691fa3504c92f9575cbf78",
+            "98bc61a6a2b06be82034a783c121831fdfca70ef"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "6e36c230c6a8deae9d94fe9be7284f1703f327fc"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias implementerede underviser-preview og fuld elev-UI takeover. Kasper 6e36c23 er ikke en tom merge: remerge-diff viser konkrete Dashboard-aendringer, der integrerer elevdesignet med den nye elevvisning."
     },
     {
       "id": "course-catalog",
@@ -620,7 +1035,20 @@
         "web/wwwroot/content/courses/h2-teori.md",
         "web/wwwroot/js/course-mermaid.js"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "5213e8a35efbba4155b108ff83922eee2c68a916",
+            "fd19ca9a69ee21edd8704f36c080d1e101fbc606",
+            "076866ae8397fdf42490ea4a32b65d06eecf3835"
+          ]
+        }
+      ]
     },
     {
       "id": "course-h2",
@@ -637,7 +1065,19 @@
         "web/Pages/Courses/Template/Detail.razor",
         "web/wwwroot/content/courses/h2-teori.md"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "78ef1238305aba7fe8a655ccf28fe964eafb551f",
+            "562d0d9e4583ed8e0461b5e5da1e7b1e38768778"
+          ]
+        }
+      ]
     },
     {
       "id": "private-files",
@@ -666,7 +1106,27 @@
       "caveats": [
         "Filer kræver autorisation. Native programmer afvikles ikke; server-XP afventer separat model.",
         "Browseren skal blive på siden; almindelige elevafleveringer bruger fortsat deres eksisterende flow."
-      ]
+      ],
+      "authors": [
+        "Mathias",
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "65d16c051a3d7a1b9cd23fbf6468c6e217b0fabe"
+          ]
+        },
+        {
+          "author": "Kasper",
+          "commits": [
+            "1f48c1f617b057ab600809690da8b57085f7a15b",
+            "ae5e14da617b8b17fa19d0be2e9061c67d837f3a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias tilfoejede MinIO S3-storage til uploads; 65d16c0 har eksplicit menneskelig Co-authored-by. Kasper implementerede private filer, forhaandsvisning, gruppeafleveringer og store multipart-uploads."
     },
     {
       "id": "outlook-calendar",
@@ -686,6 +1146,19 @@
       ],
       "caveats": [
         "Kræver konfigureret Azure Graph og adgang til den pågældende postkasse."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "72e16cd4b5e0ae2bbcc0243c1951a22fcd44b8c3",
+            "661b837173d7058510f81b6aa214145bb7da10fe",
+            "1eb9bed8a1495e6235c67ad939492c72be59f732"
+          ]
+        }
       ]
     },
     {
@@ -707,7 +1180,20 @@
         "editor/src/mermaid-block.tsx",
         "editor/src/mermaid-utils.ts"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "1de5d31a7d96db31a15f63651ec0ae801bb8a990",
+            "d76d1022a90f5ab09f8cb2d1869d1bb9de5d6865",
+            "254c772f2d5aaa2f33289626d895dfe749e845cd"
+          ]
+        }
+      ]
     },
     {
       "id": "editor-code",
@@ -728,7 +1214,20 @@
         "editor/src/code-language-picker.ts",
         "editor/COMPONENT_TEMPLATE.md"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "15334674e403b1ad5df2f8f0b87be29463c5221f",
+            "773a7e97a627e98993274a692c70d2bb0d891e90",
+            "4254fbdc91c9da3ab5e17824b41be431dc9f318c"
+          ]
+        }
+      ]
     },
     {
       "id": "editor-blocks",
@@ -756,7 +1255,20 @@
         "web/Pages/Notion/Index.razor",
         "editor/src/editor.tsx"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "65e2e54a03525062b4e2cdae9101826196d7544f",
+            "44d36ebcf2414df8b45c403c626856c16e1a0801",
+            "e740826b40d0c10a7d91c539a05b0e521d2735e8"
+          ]
+        }
+      ]
     },
     {
       "id": "editor-ai",
@@ -782,7 +1294,21 @@
       ],
       "caveats": [
         "Kun undervisere under redigering; kræver serverkonfigureret OpenAI-adgang. Samtalen er ikke permanent lagret."
-      ]
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "6a31e53475860c85d5b4319118828a1f15b832b1",
+            "9abb2ef146b908b6f2a2da412174262a851e28c5",
+            "7045af70f7a509bc713d70535e337a9c63fa0e0a"
+          ]
+        }
+      ],
+      "authorshipNote": "Mathias implementerede AI-hjaelperen, den flydende skriveassistent og emoji-/uploadforstaaelse. Kaspers 9e1b385 aendrede en enkelt promptregel; det er ikke grundlag for faelles ejerskab af denne feature."
     },
     {
       "id": "page-graph",
@@ -802,7 +1328,20 @@
         "web/Pages/Notion/Graph.razor",
         "web/wwwroot/js/notion-graph.js"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "17dff84e4071fb7f270f51f2e0dd713b477ac59d",
+            "b15224d5daf2a381641704644df86107451798b2"
+          ]
+        }
+      ],
+      "authorshipNote": "Den foerste grafcommit 89b7fa5 har kun Cursor Agent som forfatter uden identificeret menneskelig coauthor. Krediteringen bygger derfor paa Mathias direkte implementeringer af holdgrafen og den interaktive graf."
     },
     {
       "id": "emojis",
@@ -836,6 +1375,19 @@
       ],
       "caveats": [
         "Kun undervisere administrerer emojis; øvrige brugere kan bruge kataloget. GIF-beskæring kan kræve stillbilledevalg, jf. udvidelsens aktuelle flow."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "8cca7d66e9764cfb5e189ffc56421a617a18a868",
+            "ed130d7b59877da9f9930d04aec97117f73115fd",
+            "763f636eba91cb9da8b35b85f3be6e74d0413bfd"
+          ]
+        }
       ]
     },
     {
@@ -854,7 +1406,18 @@
         "web/Components/HoldCourses.razor",
         "obsidian/03-features/Hold-dashboard.md"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925"
+          ]
+        }
+      ]
     },
     {
       "id": "submissions",
@@ -877,7 +1440,19 @@
         "web/Pages/Learning/Assignments.razor",
         "web/Components/HoldGroups.razor"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925",
+            "f28b9844b426118fbc87830acc1ed9424f105827"
+          ]
+        }
+      ]
     },
     {
       "id": "quests",
@@ -897,6 +1472,18 @@
       ],
       "caveats": [
         "Gentagelser er separate forekomster i højst 90 dage; der er fortsat ingen automatisk XP-økonomi."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "f981d09ef4850e47250fc89bdbabf550503349f4",
+            "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925"
+          ]
+        }
       ]
     },
     {
@@ -916,6 +1503,17 @@
       ],
       "caveats": [
         "Offentlige projektkort er tydeligt DEMO-indhold, ikke udgivne elevprojekter."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "74edd8ab1b18fe7f537088685822ab6bf02329ce"
+          ]
+        }
       ]
     },
     {
@@ -939,6 +1537,18 @@
       ],
       "caveats": [
         "Tegningsrettigheder følger den aktuelle sides adgang; et link giver ikke ekstra adgang."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "370ea06152e1b836a7e56ff2270a5f9bebdf634e",
+            "51362b1b9824ec7a892e909ba25698336d0bb898"
+          ]
+        }
       ]
     },
     {
@@ -963,6 +1573,19 @@
       ],
       "caveats": [
         "Adgang er begrænset til godkendte konti (standard Kasper/Mathias), og udvidelsen installeres upakket. GIF-animation bevares også ved beskæring; kun aktiv baggrundsfjernelse vælger PNG-stillbillede."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "b6e9228fa2a7f0abea0b4cd505331e573f235798",
+            "1e465e008ecafefa3c9d70ae90b9867a8b741153",
+            "0f706f7618a5206d2055292d5849b2d0622b8b76"
+          ]
+        }
       ]
     },
     {
@@ -985,7 +1608,20 @@
         "obsidian/03-features/Karaktersider.md",
         "web/Characters/CharacterCatalog.cs"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "7528e7454bc1ebd3b3ae33655ad4b57fc889a678",
+            "58a7758dbcc125eff475ae72144ef79c6f0f327e",
+            "eff651d812ef21a9671f656f8323de54678da5db"
+          ]
+        }
+      ]
     },
     {
       "id": "action-center",
@@ -1009,13 +1645,25 @@
       ],
       "caveats": [
         "Elevpreview åbner ikke private gaver på elevens vegne."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "0c109d219f6002bc9fb612854bbbda813afc536c"
+          ]
+        }
       ]
     },
     {
       "id": "visual-updates",
       "date": "2026-11-08",
       "commits": [
-        "ac4ea2eea36977a4a7a21304d7a82271be42acae"
+        "ac4ea2eea36977a4a7a21304d7a82271be42acae",
+        "13dbc8ce80c4d9cf2d142c3255687289d48e15d1"
       ],
       "changes": [
         "Privat visuel ændringsoversigt i underviserens menu.",
@@ -1026,20 +1674,34 @@
         "api/Updates/PlatformUpdatesCatalog.cs",
         "web/Pages/Teacher/Updates.razor"
       ],
-      "caveats": []
+      "caveats": [],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "ac4ea2eea36977a4a7a21304d7a82271be42acae",
+            "13dbc8ce80c4d9cf2d142c3255687289d48e15d1"
+          ]
+        }
+      ]
     },
     {
       "id": "avatar-collection",
       "date": "2026-11-08",
       "commits": [
-        "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7"
+        "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7",
+        "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
       ],
       "changes": [
         "Avatarsamlingen afløser garderoben med gratis startfigur, BIP-01 og felter til kommende figurer.",
         "Valgt avatar, ejede figurer, guldsaldo og nye møbelkøb gemmes på kontoen og hentes på en anden computer.",
         "Oplåsning og køb valideres på serveren uden dobbeltbetaling; kendte gamle kontospecifikke browserdata kan overføres én gang under afgrænsede betingelser.",
         "BIP-01 har animationer, lyd, fem danske replikker samt download af emojiansigter og profilbillede.",
-        "Den valgte figur bruges i header, profil, elevside, lejlighed og Rune Run Mini."
+        "Den valgte figur bruges i header, profil, elevside, lejlighed og Rune Run Mini.",
+        "Raymond kan låses op og vælges med animationer og database-replikker; ejerskab og valg gemmes på kontoen."
       ],
       "evidence": [
         "obsidian/03-features/Avatarer-og-oplaasning.md",
@@ -1049,6 +1711,18 @@
       ],
       "caveats": [
         "Level og XP er fortsat demoprogression. Rumplaceringer og legacy-tøjdata er stadig lokale; hele lejlighedssystemet er ikke flyttet til databasen. Kommende figurer er information, ikke købsmuligheder. Nye møbelkøb deler kontoens guldsaldo; møbler med uopfyldte server-badgekrav kan ikke købes."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7",
+            "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
+          ]
+        }
       ]
     },
     {
@@ -1070,6 +1744,17 @@
       ],
       "caveats": [
         "Gaver er fortsat gratis hilsner og overfører ikke XP, guld eller inventar."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "b8d165206a06d37d49e335179cfee8d48867e1a4"
+          ]
+        }
       ]
     },
     {
@@ -1090,6 +1775,17 @@
       ],
       "caveats": [
         "Temavalget er fortsat browserspecifikt, modsat den nye kontogemte avatarsamling."
+      ],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "b8d165206a06d37d49e335179cfee8d48867e1a4"
+          ]
+        }
       ]
     },
     {
@@ -1110,6 +1806,17 @@
       ],
       "caveats": [
         "Billederne er eksisterende Vatson-emojis, kopieret uændret til den offentlige profil; dette opretter ikke nye uploads i brugernes emojibibliotek."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "74db49e319aff1118d12e1a8fdacf5dbd0f75228"
+          ]
+        }
       ]
     }
   ],
@@ -3058,6 +3765,48 @@
         "vatson-emojis"
       ],
       "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "13dbc8ce80c4d9cf2d142c3255687289d48e15d1",
+      "date": "2026-11-08",
+      "subject": "Dæk hele LUP-historikken med 48 visuelle opdateringer",
+      "classification": "user_facing",
+      "entryIds": [
+        "visual-updates"
+      ],
+      "reason": "Reviewed GitHub update; grouped with the corresponding user-facing feature."
+    },
+    {
+      "commit": "1bb65d5be3d9b37426682c2402724b526e13401b",
+      "date": "2026-11-08",
+      "subject": "Prioritér den aktive side og hent øvrigt indhold ved behov",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-loading"
+      ],
+      "reason": "Reviewed GitHub update; grouped with the corresponding user-facing feature."
+    },
+    {
+      "commit": "1f6848d8a8f63cae0bdd18807634fbfbd51959b4",
+      "date": "2026-11-08",
+      "subject": "Bevar kompatible sidekontrakter ved lazyload",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-loading"
+      ],
+      "reason": "Kompatible og trådsikre sidekontrakter understøtter editorens indlæsning efter behov."
+    },
+    {
+      "commit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5",
+      "date": "2026-11-08",
+      "subject": "TilfÃ¸j Raymond som oplÃ¥selig avatar",
+      "classification": "user_facing",
+      "entryIds": [
+        "avatar-collection"
+      ],
+      "reason": "Raymond kan låses op og vælges med animationer og database-replikker; ejerskab og valg gemmes på kontoen."
     }
-  ]
+  ],
+  "authorshipReviewedOn": "2026-11-08",
+  "authorshipBaselineCommit": "d1fe6ea6fef6067f1a2ff5c45ce404e72e63bba5"
 }

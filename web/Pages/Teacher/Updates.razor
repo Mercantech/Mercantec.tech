@@ -45,7 +45,13 @@ else
                 {
                     <article class="update-entry" aria-labelledby="@($"update-{entry.Id}")" @key="entry.Id">
                         <div class="update-copy">
-                            <time datetime="@entry.Date.ToString("yyyy-MM-dd")">@entry.Date.ToString("d. MMMM yyyy", Danish)</time>
+                            <div class="update-meta">
+                                <time datetime="@entry.Date.ToString("yyyy-MM-dd")">@entry.Date.ToString("d. MMMM yyyy", Danish)</time>
+                                @if (entry.Authors.Count > 0)
+                                {
+                                    <span class="update-authors">Udviklet af @string.Join(" og ", entry.Authors)</span>
+                                }
+                            </div>
                             <h2 id="@($"update-{entry.Id}")">@entry.Title</h2>
                             <p>@entry.Description</p>
                         </div>

@@ -30,6 +30,8 @@ public sealed class PlatformUpdatesTests
         Assert.Equal(api.Newer.Title, entries[0].QuerySelector("h2")!.TextContent);
         Assert.Equal(api.Older.Title, entries[1].QuerySelector("h2")!.TextContent);
         Assert.Equal("2026-11-08", entries[0].QuerySelector("time")!.GetAttribute("datetime"));
+        Assert.Equal("Udviklet af Mathias og Kasper", entries[0].QuerySelector(".update-authors")!.TextContent);
+        Assert.Equal("Udviklet af Kasper", entries[1].QuerySelector(".update-authors")!.TextContent);
         Assert.Contains(api.Newer.Description, entries[0].TextContent);
         Assert.Equal(new[] { "Før", "Efter" }, entries[0].QuerySelectorAll("figcaption").Select(e => e.TextContent));
         Assert.Equal("Nærbillede", entries[1].QuerySelector("figcaption")!.TextContent);
@@ -174,10 +176,16 @@ public sealed class PlatformUpdatesTests
     private sealed class UpdatesApi : HttpMessageHandler
     {
         public PlatformUpdate Older { get; } = new("calendar", new(2026, 11, 7), "En tydeligere holdkalender",
-            "Holdets aftaler vises i en samlet uge.", new("calendar-after", "Holdkalender med ugens aftaler"));
+            "Holdets aftaler vises i en samlet uge.", new("calendar-after", "Holdkalender med ugens aftaler"))
+        {
+            Authors = ["Kasper"]
+        };
         public PlatformUpdate Newer { get; } = new("editor", new(2026, 11, 8), "Fast elevudgivelse i editoren",
             "Elever læser udgivelsen, mens underviseren arbejder videre i kladden.",
-            new("editor-after", "Den udgivne elevside"), new("editor-before", "Editoren før udgivelsesknappen"));
+            new("editor-after", "Den udgivne elevside"), new("editor-before", "Editoren før udgivelsesknappen"))
+        {
+            Authors = ["Mathias", "Kasper"]
+        };
         public ConcurrentQueue<string> Requests { get; } = [];
         public ConcurrentQueue<string> Unexpected { get; } = [];
         public bool FailList { get; set; }

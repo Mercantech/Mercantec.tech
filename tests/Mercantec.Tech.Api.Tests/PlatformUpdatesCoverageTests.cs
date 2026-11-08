@@ -38,6 +38,19 @@ public sealed class PlatformUpdatesCoverageTests
         {
             Assert.NotEmpty(entry.GetProperty("commits").EnumerateArray());
             Assert.NotEmpty(entry.GetProperty("changes").EnumerateArray());
+            var update = PlatformUpdatesCatalog.Entries.Single(update => update.Id == entry.GetProperty("id").GetString());
+            Assert.NotEmpty(update.Authors);
+            Assert.Equal(update.Authors.Count, update.Authors.Distinct().Count());
+            Assert.All(update.Authors, author => Assert.Contains(author, new[] { "Mathias", "Kasper" }));
+            Assert.Equal(update.Authors, entry.GetProperty("authors").EnumerateArray().Select(value => value.GetString()!).ToArray());
+            var evidence = entry.GetProperty("authorEvidence").EnumerateArray().ToArray();
+            Assert.Equal(update.Authors.Order(), evidence.Select(item => item.GetProperty("author").GetString()!).Order());
+            foreach (var contribution in evidence)
+            {
+                var references = contribution.GetProperty("commits").EnumerateArray().ToArray();
+                Assert.NotEmpty(references);
+                Assert.All(references, reference => Assert.Matches("^[0-9a-f]{40}$", reference.GetString()!));
+            }
         }
     }
 }
