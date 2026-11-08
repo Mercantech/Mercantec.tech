@@ -12,12 +12,15 @@ const require = createRequire(path.join(root, '.tools/character-previews/package
 const sharp = require('sharp');
 const catalog = JSON.parse(await fs.readFile(path.join(root, 'assets/characters/reactions-catalog.json'), 'utf8'));
 const reusePreviews = process.argv.includes('--reuse-previews');
-const previous = reusePreviews
+const addNew = process.argv.includes('--add-new');
+if (reusePreviews && addNew) throw new Error('Choose either --reuse-previews or --add-new.');
+const previous = reusePreviews || addNew
     ? JSON.parse(await fs.readFile(path.join(root, 'assets/characters/reactions-preview-report.json'), 'utf8')) : [];
+const previousByImage = new Map(previous.map(item => [item.image, item]));
 const lines = [];
 const report = [];
 for (const asset of catalog.entries) {
-    if (!/^\/images\/characters\/(raymond|beaver|fox)\/reactions\/[a-z0-9-]+\.png(?:\?v=[a-f0-9]+)?$/.test(asset.image))
+    if (!/^\/images\/characters\/(raymond|beaver|fox|lupp)\/reactions\/[a-z0-9-]+\.png(?:\?v=[a-f0-9]+)?$/.test(asset.image))
         throw new Error(`Unexpected image path: ${asset.image}`);
     const input = path.join(root, 'web/wwwroot', asset.image.split('?')[0]);
     const output = input.replace(/\.png$/, '.webp');
@@ -25,16 +28,17 @@ for (const asset of catalog.entries) {
     const metadata = await sharp(before).metadata();
     if (metadata.width !== asset.width || metadata.height !== asset.height || !metadata.hasAlpha)
         throw new Error(`Dimensions or alpha mismatch: ${asset.image}`);
-    if (!reusePreviews) {
+    const prior = previousByImage.get(asset.image);
+    const useExisting = reusePreviews || (addNew && prior !== undefined);
+    if (!useExisting) {
         await sharp(before).resize({ width: 512, height: 512, fit: 'inside', withoutEnlargement: true })
             .webp({ quality: 88, alphaQuality: 100, effort: 6 }).toFile(output);
     }
     const preview = await fs.readFile(output);
-    if (reusePreviews) {
-        const prior = previous.find(item => item.image === asset.image);
+    if (useExisting) {
         if (!prior || prior.originalSha256 !== createHash('sha256').update(before).digest('hex')
             || prior.previewSha256 !== createHash('sha256').update(preview).digest('hex'))
-            throw new Error(`Changed image; regenerate previews without --reuse-previews: ${asset.image}`);
+            throw new Error(`Changed or missing known image; regenerate without reuse flags: ${asset.image}`);
     }
     const after = await fs.readFile(input);
     if (!before.equals(after)) throw new Error(`Original PNG was modified: ${asset.image}`);

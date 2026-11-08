@@ -21,6 +21,9 @@ public static class CharacterCatalog
              new("Læs Game Design-lektionen", "https://mercantec.notion.site/Game-design-400dab5ca23780bbaa93fa9e9e9f2e6b?pvs=74", true, false),
              new("Åbn Notion-editoren", "/notion", false, true), new("Vælg nytårstema", "/settings", false, true)])
         {
+            Reactions = ReactionsFor("lupp"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "LUPPs reaktioner fra Game Design: fra den første spilidé og skitse til playtest, feedback og et nyt forsøg. Find et motiv, åbn originalen, eller hent den som transparent PNG.",
             Illustrations =
             [
                 new("Gameplay loop", "/images/characters/lupp/01-gameplay-loop.png", "LUPP viser et gameplay loop: se, handl, se resultatet og ret til.", 1536, 1024),

@@ -17,9 +17,13 @@ public static class CharacterEmojiPolicy
 
     public static EmojiResolvedMetadata Resolve(CharacterEmojiAsset emoji)
     {
-        var characterName = emoji.CharacterSlug switch { "beaver" => "bæver", "fox" => "ræv", _ => "raymond" };
-        var subject = emoji.CharacterSlug == "raymond" ? new[] { "SQL", "database" }
-            : new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" };
+        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", _ => "raymond" };
+        var subject = emoji.CharacterSlug switch
+        {
+            "lupp" => new[] { "Game Design", "spil", "gameplay" },
+            "raymond" => new[] { "SQL", "database" },
+            _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
+        };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
             .Concat(subject).Concat(emoji.Name.Split('_')));
         var reaction = emoji.Name[(emoji.CharacterSlug.Length + 1)..];
@@ -27,10 +31,16 @@ public static class CharacterEmojiPolicy
         {
             "wave" or "hello" or "thumbs_up" or "applause" => "gestures",
             "coffee" or "tea_time" or "good_morning" or "sleepy" or "goodbye" => "everyday",
+            "break" when emoji.CharacterSlug == "lupp" => "everyday",
             "help" or "listening" or "question" or "idea_notes" or "reading" => "learning",
+            "explaining" or "encouragement"
+                or "idea" or "sketch" or "game_loop" or "player" or "rules" or "balance" or "random" or "skill"
+                or "feedback" or "prototype" or "mini_gdd" or "playtest" or "level" or "checkpoint"
+                or "multiplayer" or "accessibility" when emoji.CharacterSlug == "lupp" => "learning",
             "safe_lock" or "check_logs" or "regression_test" or "debugging" or "testing" or "query_ready"
                 or "join" or "filter" or "sort" or "primary_key" or "foreign_key" or "normalize" or "transaction"
                 or "commit" or "rollback" or "backup" or "restore" or "performance" or "typing" => "technology",
+            "controller" or "input" or "bug" or "fix" when emoji.CharacterSlug == "lupp" => "technology",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

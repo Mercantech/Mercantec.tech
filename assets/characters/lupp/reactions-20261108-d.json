@@ -1,0 +1,127 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/lupp/lupp-game-design.png",
+  "entries": [
+    {
+      "id": "mini-gdd",
+      "title": "Mini-GDD",
+      "image": "/images/characters/lupp/reactions/mini-gdd.png",
+      "alt": "LUPP samler spilidéen i en lille notesbog og peger med sin gule blyant.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: attentive planning eyes, yellow signature pencil pointing to a tiny open design notebook with simple colored pictograms, no writing. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-66210dae-3916-4be2-b99a-1515ddbcfe12.png"
+    },
+    {
+      "id": "playtest",
+      "title": "Playtester",
+      "image": "/images/characters/lupp/reactions/playtest.png",
+      "alt": "LUPP undersøger et spil med nysgerrige øjne og en lille controller.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: curious focused eyes examining a tiny generic game controller while the signature pencil rests at his side. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-6b60c44d-7ae7-4bbf-a175-30b73c0d076b.png"
+    },
+    {
+      "id": "bug",
+      "title": "Fandt en fejl",
+      "image": "/images/characters/lupp/reactions/bug.png",
+      "alt": "LUPP opdager en lille grøn fejl med et mildt overrasket blik.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: mildly surprised wide eyes looking at a tiny friendly green bug symbol next to the yellow signature pencil, not frightened. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-43e095b2-df1d-4b06-ad5c-9170bb185191.png"
+    },
+    {
+      "id": "fix",
+      "title": "Løser fejlen",
+      "image": "/images/characters/lupp/reactions/fix.png",
+      "alt": "LUPP arbejder koncentreret på en rettelse med blyant og et lille værktøj.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: gently determined eyelids and eyes, a tiny blue spanner beside the yellow signature pencil and a small green check mark. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-747e5abf-7d0c-40fd-85e2-b9ada6a17770.png"
+    },
+    {
+      "id": "level",
+      "title": "Ny bane",
+      "image": "/images/characters/lupp/reactions/level.png",
+      "alt": "LUPP bygger en lille spilbane af tre platforme med sin gule blyant klar.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: excited creative eyes admiring three tiny platform tiles and a small flag as a simple game-level miniature, yellow signature pencil ready. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-574970e0-a338-455e-8f09-770391f9ca8a.png"
+    },
+    {
+      "id": "checkpoint",
+      "title": "Checkpoint",
+      "image": "/images/characters/lupp/reactions/checkpoint.png",
+      "alt": "LUPP fejrer et lille fremskridt ved en checkpoint-flagstang.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: relieved content eyes beside a tiny golden checkpoint flag, yellow signature pencil angled like a pointer. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-cc2328b5-2cfc-4ca8-8200-3d5632c356af.png"
+    },
+    {
+      "id": "victory",
+      "title": "Sejr",
+      "image": "/images/characters/lupp/reactions/victory.png",
+      "alt": "LUPP fejrer en sejr med glade øjne, en lille pokal og få konfettistykker.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: joyful sparkling crescent eyes, a tiny golden trophy and three small confetti pieces, yellow signature pencil alongside. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-d1073903-0b3e-4792-b181-1fac3de5108e.png"
+    },
+    {
+      "id": "game-over",
+      "title": "Vi prøver en gang til",
+      "image": "/images/characters/lupp/reactions/game-over.png",
+      "alt": "LUPP giver et opmuntrende blik og viser en lille pil til et nyt forsøg.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: reassuring slightly tilted pose and kind eyes, one small amber retry arrow beside the yellow signature pencil, gentle encouragement. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-768055b1-aede-4f53-b255-83d1b5b04789.png"
+    },
+    {
+      "id": "multiplayer",
+      "title": "Sammen om spillet",
+      "image": "/images/characters/lupp/reactions/multiplayer.png",
+      "alt": "LUPP inviterer til samarbejde med to små controllere og sin gule blyant.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: welcoming enthusiastic eyes, two tiny differently colored generic controllers as supporting props beside the signature pencil, no other characters. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-63991622-d616-4912-9ea5-bf91a81f0a79.png"
+    },
+    {
+      "id": "accessibility",
+      "title": "Plads til alle",
+      "image": "/images/characters/lupp/reactions/accessibility.png",
+      "alt": "LUPP viser en lille controller med store tydelige knapper og et imødekommende blik.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: warm welcoming eyes, tiny generic controller with large well-spaced buttons as an inclusive game-design cue, signature yellow pencil. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-bc6928b4-3b90-4639-9909-77b09cef1353.png"
+    },
+    {
+      "id": "break",
+      "title": "Pause",
+      "image": "/images/characters/lupp/reactions/break.png",
+      "alt": "LUPP holder en rolig pause med en lille grøn kop og blyanten ved siden af.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: relaxed half-closed content eyes, a tiny green mug with a small curl of steam, signature pencil resting nearby. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-8fbb28b6-4226-438a-b6b3-6ba3f240c6fa.png"
+    },
+    {
+      "id": "newyear",
+      "title": "Klar til nytår",
+      "image": "/images/characters/lupp/reactions/newyear.png",
+      "alt": "LUPP ser festligt op på små gyldne stjerner omkring sin gule blyant.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Make ONE original standalone LUPP reaction emoji, NOT a sheet. Input reference is the canonical identity and material reference. LUPP is the exact same friendly rounded PURPLE CLAY BLOCK with two enormous slightly asymmetric OFF-WHITE EYES and round BLACK PUPILS, subtle handmade clay texture and the signature YELLOW PENCIL with silver ferrule and pink eraser. Preserve the reference identity, purple palette, soft rounded square silhouette and warm tactile 3D clay finish. Reaction: playful celebratory eyes looking up at three tiny golden sparkles around the tip of the signature yellow pencil, no weapon or background. The block face remains dominant and readable at64px. Express the mood through eyes, eyelids, a slight clay brow and block tilt. No human nose, hair, fur, clothes, torso or legs; no large added mouth. Tiny matching rounded purple clay hands are allowed only if needed for the prop. Pencil remains recognizable; props are small and few. Entire figure and all props fit with generous transparent margins, square native high resolution, genuinely transparent alpha background. No text, labels, letters, logos, watermarks, frame, white/black/checkerboard backdrop, landscape, cast shadow on a ground plane, or additional characters. Not Raymond's painted elephant style.",
+      "sourceArtifact": "exec-052f0cf0-08ef-4296-a98b-c1bf310af88b.png"
+    }
+  ]
+}

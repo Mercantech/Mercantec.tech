@@ -67,7 +67,10 @@ public sealed class CharacterDetailTests
         Assert.Equal(2, page.FindAll(".character-artwork-gallery").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
-        Assert.Empty(page.FindAll(".character-artwork-gallery"));
+        Assert.Single(page.FindAll(".character-artwork-gallery"));
+        Assert.Empty(page.FindAll(".character-scenes, .character-animation-card"));
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/lupp/", image.GetAttribute("src")));
         Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
@@ -279,6 +282,53 @@ public sealed class CharacterDetailTests
         page.Render(parameters => parameters.Add(p => p.Slug, "fox"));
         Assert.Empty(page.FindAll(".character-gallery, .character-appearance-picker"));
         Assert.Equal("/images/characters/fox/portrait.png", page.Find(".character-main-art img").GetAttribute("src"));
+    }
+
+    [Fact]
+    public async Task Lupps48EmojisUseWebpPreviewsAndPngDownloadsWithoutChangingTheSelectedPortrait()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "lupp"));
+        page.FindAll(".character-appearance-picker button")[1].Click();
+
+        var reactions = CharacterCatalog.Find("lupp")!.Reactions;
+        Assert.Equal(48, reactions.Count);
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(48, page.FindAll(".character-reactions .character-artwork-download").Select(link => link.GetAttribute("href")).Distinct().Count());
+        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Contains("Game Design", page.Find(".character-reactions").TextContent);
+        Assert.Contains("character-reactions-large", page.Find(".character-reactions").ClassList);
+        foreach (var (figure, expected) in page.FindAll(".character-reactions figure").Zip(reactions))
+        {
+            var image = figure.QuerySelector("img")!;
+            var preview = figure.QuerySelector(".character-artwork-preview")!;
+            var download = figure.QuerySelector(".character-artwork-download")!;
+            Assert.Equal(expected.Preview, image.GetAttribute("src"));
+            Assert.Equal(expected.Alt, image.GetAttribute("alt"));
+            Assert.StartsWith("/images/characters/lupp/reactions/", expected.Image);
+            Assert.EndsWith(".webp", expected.Preview);
+            Assert.EndsWith(".png", expected.Image);
+            Assert.Equal(expected.Image, preview.GetAttribute("href"));
+            Assert.Equal(expected.Image, download.GetAttribute("href"));
+            Assert.Equal($"lupp-{Path.GetFileName(expected.Image)}", download.GetAttribute("download"));
+        }
+
+        page.Find(".character-reactions .character-artwork-search input").Input("Godmorgen");
+        Assert.Single(page.FindAll(".character-reactions figure"));
+        Assert.Contains("1 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
+        Assert.Equal("/images/characters/lupp/reactions/good-morning.png", page.Find(".character-reactions .character-artwork-download").GetAttribute("href"));
+        Assert.EndsWith("/lup-fireworks-player.png", page.Find(".character-main-art img").GetAttribute("src"));
+
+        page.Find(".character-reactions .character-artwork-search input").Input("ingen-match-her-987");
+        Assert.Empty(page.FindAll(".character-reactions figure"));
+        Assert.Contains("Ingen emojis", page.Find(".character-reactions .character-artwork-empty").TextContent);
+        page.Find(".character-reactions .character-artwork-search button").Click();
+
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Contains("48 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
+        Assert.EndsWith("/lup-fireworks-player.png", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
     }
 
     [Fact]

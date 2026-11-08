@@ -50,6 +50,7 @@ public sealed class LibraryCharactersTests
             ("raymond", "character-reactions-title", "48 emojis"),
             ("beaver", "character-reactions-title", "12 emojis"),
             ("fox", "character-reactions-title", "12 emojis"),
+            ("lupp", "character-reactions-title", "48 emojis"),
             ("raymond", "character-scenes-title", "4 miljøer"),
             ("raymond", "character-animations-title", "3 GIF-animationer"),
             ("lupp", "character-gallery-title", "9 illustrationer")
@@ -76,7 +77,7 @@ public sealed class LibraryCharactersTests
 
         page.Find("#library-search").Input("emojis");
         var results = page.FindAll(".library-search-character");
-        Assert.Equal(4, results.Count);
+        Assert.Equal(5, results.Count);
         Assert.All(results, result =>
         {
             var path = result.GetAttribute("href");
@@ -84,7 +85,7 @@ public sealed class LibraryCharactersTests
             Assert.Equal(character.Appearances[0].Image, result.QuerySelector("img")!.GetAttribute("src"));
         });
         page.FindAll(".library-categories button").Single(button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal)).Click();
-        Assert.Equal(4, page.FindAll(".library-search-character").Count);
+        Assert.Equal(5, page.FindAll(".library-search-character").Count);
         Assert.Contains("i Karakterer", page.Find(".library-section-heading [role='status']").TextContent);
 
         page.Find(".library-search button").Click();
@@ -101,6 +102,8 @@ public sealed class LibraryCharactersTests
     [InlineData("emojis", "/characters/raymond")]
     [InlineData("emojis", "/characters/beaver")]
     [InlineData("emojis", "/characters/fox")]
+    [InlineData("emojis", "/characters/lupp")]
+    [InlineData("LUPP playtest", "/characters/lupp")]
     [InlineData("GIF", "/characters/raymond")]
     [InlineData("illustrationer", "/characters/lupp")]
     [InlineData("Raymond kaffepause", "/characters/raymond")]
@@ -131,6 +134,7 @@ public sealed class LibraryCharactersTests
     [InlineData("vatson", "character-reactions-title")]
     [InlineData("beaver", "character-reactions-title")]
     [InlineData("fox", "character-reactions-title")]
+    [InlineData("lupp", "character-reactions-title")]
     [InlineData("lupp", "character-gallery-title")]
     public async Task Gallery_deep_links_scroll_after_render_without_repeating_on_profile_interactions(string slug, string section)
     {

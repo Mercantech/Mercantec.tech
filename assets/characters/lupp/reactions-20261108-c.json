@@ -1,0 +1,307 @@
+{
+  "generator": "builtin-imagegen",
+  "generatedOn": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/lupp/lupp-game-design.png",
+  "entries": [
+    {
+      "id": "idea",
+      "title": "Spilidé",
+      "image": "/images/characters/lupp/reactions/idea.png",
+      "alt": "LUPP får en spilidé og ser begejstret på en lille gylden pære ved sin blyant.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: an inspired aha look, pupils looking up toward ONE small glowing golden light bulb beside the pencil, eyelids bright and eager. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-3bb1a603-81e8-4272-bc6b-53ee01e6eff6.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4c92e7fd64b0f896a2674278cb3c244f04b8ea765c1d0701f06f96b46f7d58d6",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          84,
+          81,
+          1196,
+          1139
+        ],
+        "fullyTransparentFraction": 0.4724
+      }
+    },
+    {
+      "id": "sketch",
+      "title": "Skitserer",
+      "image": "/images/characters/lupp/reactions/sketch.png",
+      "alt": "LUPP skitserer en spilidé på et lille kort med sin gule blyant.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a focused creative look, pencil tip touching ONE small sketch card with a few simple colored geometric doodles, no writing. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-982174f9-886a-4a4f-9b7b-f60dafb48366.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c40d0bb2b2eaf4e3b920a6b43ec61c2fbf782d5c656ade80002cef0d4dad525b",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          111,
+          93,
+          1179,
+          1192
+        ],
+        "fullyTransparentFraction": 0.418
+      }
+    },
+    {
+      "id": "controller",
+      "title": "Styring",
+      "image": "/images/characters/lupp/reactions/controller.png",
+      "alt": "LUPP undersøger en lille generisk controller og tænker over spillets styring.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: an attentive curious sideways glance toward ONE small generic blue clay game controller with simple buttons, held low beside the signature pencil. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-f5f66f3a-1cd7-41d0-8c60-ebefe758ecc7.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8fa02d2688aaac3165a308a0fb42c9ee404e5887c77d4a8116a23608ae047010",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          94,
+          112,
+          1181,
+          1133
+        ],
+        "fullyTransparentFraction": 0.4385
+      }
+    },
+    {
+      "id": "game-loop",
+      "title": "Gameplay loop",
+      "image": "/images/characters/lupp/reactions/game-loop.png",
+      "alt": "LUPP følger en lille cirkelpil og viser spillets gentagne gameplay loop.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a delighted understanding look, one small turquoise circular loop arrow floating near the pencil, looking from the arrow back toward the viewer. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-d28f9d0e-066c-4cc3-b140-ea094792662c.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f7c7ea5b52ccb676544627202375862def7b00a65fd4b067a74cb8a2e7165c00",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          93,
+          119,
+          1182,
+          1102
+        ],
+        "fullyTransparentFraction": 0.4708
+      }
+    },
+    {
+      "id": "player",
+      "title": "Målgruppe",
+      "image": "/images/characters/lupp/reactions/player.png",
+      "alt": "LUPP betragter tre forskelligt formede spilbrikker og tænker over, hvem spillet er til.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a welcoming thoughtful look directed at ONE small set of three differently shaped colorful game tokens grouped together, no other characters. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-69854d99-e3b4-4c8d-8002-aca7381195f4.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fbc1463551056cb6650558102ae01025a836c5472df1a4f8df63d36e4f48021e",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          99,
+          119,
+          1173,
+          1171
+        ],
+        "fullyTransparentFraction": 0.4696
+      }
+    },
+    {
+      "id": "rules",
+      "title": "Spilleregler",
+      "image": "/images/characters/lupp/reactions/rules.png",
+      "alt": "LUPP undersøger et lille regelark med få enkle piktogrammer.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a calm explanatory expression, pencil pointing at ONE small cream rule card with three simple geometric pictograms, no readable writing. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-eb433ce6-6b41-4061-abdc-33faa0f52a28.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "80d46d0749b12686c04c52ddc7eec3e3b73fb1e36e16713227cef9c43d36b919",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          104,
+          135,
+          1184,
+          1141
+        ],
+        "fullyTransparentFraction": 0.4287
+      }
+    },
+    {
+      "id": "balance",
+      "title": "Balance",
+      "image": "/images/characters/lupp/reactions/balance.png",
+      "alt": "LUPP undersøger en lille vippe med to spilbrikker og tænker over spillets balance.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a careful evaluating expression, looking between two tokens balanced on ONE tiny toy balance seesaw beside the pencil. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-21a2f41b-f749-442c-b6ac-ef228e7d8924.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "885433cbe7ddeb6dfd2e3c3e7fa5b410facab2be76e7a3f1f9e3b62b86ceb549",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          110,
+          140,
+          1176,
+          1110
+        ],
+        "fullyTransparentFraction": 0.456
+      }
+    },
+    {
+      "id": "random",
+      "title": "Held",
+      "image": "/images/characters/lupp/reactions/random.png",
+      "alt": "LUPP ser spændt på en lille terning og undersøger held i spil.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a playful expectant expression with wide pupils following ONE small floating golden dice with simple dark pips near the pencil. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-ed898421-adec-484c-bc20-e435978e226a.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9b8de7bd75851a7f660dc187431c42c3f1aa8e83cccdbeb42ce1850016fccc0b",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          43,
+          106,
+          1185,
+          1137
+        ],
+        "fullyTransparentFraction": 0.4303
+      }
+    },
+    {
+      "id": "skill",
+      "title": "Færdigheder",
+      "image": "/images/characters/lupp/reactions/skill.png",
+      "alt": "LUPP koncentrerer sig om et lille præcisionsmål.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a determined concentrated expression, eyes focused on ONE small blue and gold target disk near the pencil, no weapon or arrow. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-682c6088-4448-4bdd-969c-33a98f428269.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c3401ec23ff55e33f1f4ffe6e29e8fedaccce56123a95acd29612890075a1433",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          52,
+          108,
+          1095,
+          1179
+        ],
+        "fullyTransparentFraction": 0.429
+      }
+    },
+    {
+      "id": "input",
+      "title": "Input",
+      "image": "/images/characters/lupp/reactions/input.png",
+      "alt": "LUPP trykker nysgerrigt på en lille blå knap og undersøger spillets input.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: an inquisitive active expression, one tiny rounded purple clay mitten pressing ONE small blue input button, pencil remains visible beside the body. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-e5166e8d-9bd3-4e5f-a7f4-1f731776a595.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "88c9f210dc0a4727e9839490a6ee87161a085817f88102904bb1399bf49195f2",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          84,
+          102,
+          1195,
+          1147
+        ],
+        "fullyTransparentFraction": 0.4015
+      }
+    },
+    {
+      "id": "feedback",
+      "title": "Feedback",
+      "image": "/images/characters/lupp/reactions/feedback.png",
+      "alt": "LUPP lægger mærke til et lille lydsymbol og undersøger feedback i spil.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a pleasantly attentive expression, pupils turned toward ONE small turquoise sound symbol with three curved sound waves, signature pencil held diagonally. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-92577fc1-0a0a-49b2-8fb6-9067097b355e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7cfb84fc820584e6ca55acfedb02ed5b353693d0501020bd7961238208dd255c",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          89,
+          111,
+          1176,
+          1136
+        ],
+        "fullyTransparentFraction": 0.4559
+      }
+    },
+    {
+      "id": "prototype",
+      "title": "Prototype",
+      "image": "/images/characters/lupp/reactions/prototype.png",
+      "alt": "LUPP viser en lille papmodel af en spilbane og er klar til at afprøve den.",
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji sticker of LUPP, the EXACT purple clay Game Design teacher in the reference. Specific reaction: a proud creative presentation expression, ONE tiny cardboard prototype of a simple platform-game level beside the pencil, just a few folded cardboard blocks, no text. Reference is identity and style, not a crop. Preserve the compact rounded purple cuboid clay body, two very large slightly asymmetric off-white googly eyes with black pupils, the same warm tactile 3D plasticine texture and proportions. Retain the signature yellow pencil with a silver ferrule and pink eraser. Express the reaction through pupils, eyelids, subtle purple clay brows and a gentle body tilt. No large added mouth, no human nose, no human body, no fur, hair or clothing. Tiny rounded purple clay mittens are allowed only to manipulate a small prop; no legs. At most one small Game Design prop besides the pencil, character remains dominant and readable at 64 pixels. Square native high resolution, centered complete silhouette and props, generous clear transparent padding on all four sides, no cropped corners, eyes or pencil. Genuine alpha transparency, no background, no ground plane, no scenery, no text, no labels, no logo, no watermark, no border, no sheet or collage.",
+      "sourceArtifact": "exec-446f2014-926a-4c58-b36f-eb5ac6ea6455.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2e54ec4652333cb01a67041421ac0e67ee84092be82e1b6972f4e593b54efa60",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          54,
+          53,
+          1219,
+          1151
+        ],
+        "fullyTransparentFraction": 0.378
+      }
+    }
+  ]
+}

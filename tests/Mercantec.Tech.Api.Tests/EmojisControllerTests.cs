@@ -213,7 +213,8 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     public async Task CharacterEmojisAreAvailableWithoutUploadsOrObjectStorage()
     {
         var items = ReadList(await As(_student, storage: new DisabledObjectStorage()).List(default));
-        Assert.Equal(72, items.Count);
+        Assert.Equal(120, items.Count);
+        Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "lupp"));
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "raymond"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "beaver"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "fox"));
@@ -239,8 +240,17 @@ public sealed class EmojisControllerTests : IAsyncLifetime
             Assert.Contains(item.Category, EmojiMetadataPolicy.Categories);
             Assert.Contains(asset.CharacterSlug, item.Keywords!);
             Assert.Equal(asset.Alt, item.AltText);
+            if (asset.CharacterSlug == "lupp")
+            {
+                Assert.StartsWith("LUPP", item.AltText);
+                Assert.Contains("game design", item.Keywords!);
+                Assert.Contains("spil", item.Keywords!);
+                Assert.Contains("gameplay", item.Keywords!);
+            }
             Assert.Equal(new DateTimeOffset(2026, 11, 8, 0, 0, 0, TimeSpan.Zero), item.UpdatedAtUtc);
         }
+        Assert.Equal("learning", items.Single(item => item.Name == "lupp_idea").Category);
+        Assert.Equal("smileys", items.Single(item => item.Name == "fox_idea").Category);
         Assert.Empty(await _db.CustomEmojis.ToListAsync());
         Assert.Empty(_storage.Objects);
     }
@@ -249,6 +259,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     [InlineData("raymond")]
     [InlineData("beaver")]
     [InlineData("fox")]
+    [InlineData("lupp")]
     public async Task BuiltInCharacterEmojisCannotBeRenamedOrDeleted(string character)
     {
         var asset = CharacterEmojiCatalog.All.First(item => item.CharacterSlug == character);

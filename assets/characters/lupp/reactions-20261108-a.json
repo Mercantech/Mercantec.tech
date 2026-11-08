@@ -1,0 +1,261 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "referenceImages": [
+    "web/wwwroot/images/characters/lupp/lupp-game-design.png"
+  ],
+  "entries": [
+    {
+      "id": "wave",
+      "title": "Vinker",
+      "image": "/images/characters/lupp/reactions/wave.png",
+      "alt": "LUPP vinker med en lille lilla lerhånd og et varmt, imødekommende blik.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: welcoming wave with one small rounded purple clay hand, bright alert eyes and a playful slight tilt. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-f1f3f886-7398-4b98-80dd-e746b8eeccfa.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        53,
+        184,
+        1186,
+        1110
+      ],
+      "sha256": "13d407d4d7bc5508e9d8e3995c1bfb37863422d45cda72b0db8371b62c8f25fa"
+    },
+    {
+      "id": "happy",
+      "title": "Glad",
+      "image": "/images/characters/lupp/reactions/happy.png",
+      "alt": "LUPP ser glad ud med bløde, smilende øjne og blyanten klar.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: clearly happy, gently curved smiling eyes with warm lifted eyelids, upright cheerful posture. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-3fd4241e-00b4-453c-9716-c40c274c5625.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        77,
+        163,
+        1142,
+        1109
+      ],
+      "sha256": "f4c74c311aa31e5ee23cda259a8511771854f908ed8d1e47979a9761e20e040a"
+    },
+    {
+      "id": "laughing",
+      "title": "Griner",
+      "image": "/images/characters/lupp/reactions/laughing.png",
+      "alt": "LUPP griner med sammenknebne glade øjne og en legende tilt.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: laughing expressed through joyful crescent-shaped eyes and a light playful tilted pose, no added mouth. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-51078013-88fb-4dc4-8d4c-76db2d324c26.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        120,
+        137,
+        1133,
+        1119
+      ],
+      "sha256": "47109645cf880e64912bd49338a9527a296e80f77dcad75b56fd18ea18f65bc8"
+    },
+    {
+      "id": "thinking",
+      "title": "Tænker",
+      "image": "/images/characters/lupp/reactions/thinking.png",
+      "alt": "LUPP kigger eftertænksomt opad med blyanten hvilende ved siden af.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: thoughtful, pupils looking upward to one side, one subtle purple clay eyebrow raised, pencil resting beside him. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-50e2b0fd-331b-45bf-873d-b14258bcb0de.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        132,
+        162,
+        1140,
+        1111
+      ],
+      "sha256": "65502fe0142679f22266b641a62ddffd41179dcd98ed6a7effbb99db3ffdb2f4"
+    },
+    {
+      "id": "curious",
+      "title": "Nysgerrig",
+      "image": "/images/characters/lupp/reactions/curious.png",
+      "alt": "LUPP læner sig nysgerrigt frem med store opmærksomme øjne.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: curious attentive gaze, huge eyes focused slightly forward and sideways, gentle forward lean and asymmetric clay brows. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-aaa74318-4cd2-4aaf-abee-0497bf948140.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        125,
+        131,
+        1158,
+        1120
+      ],
+      "sha256": "30cfe7d60d5946c0dd4a689ef7b5639884075c742e133354dedecc09c37859b1"
+    },
+    {
+      "id": "surprised",
+      "title": "Overrasket",
+      "image": "/images/characters/lupp/reactions/surprised.png",
+      "alt": "LUPP spærrer øjnene op i en venlig, overrasket reaktion.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: friendly surprise, eyes open extra wide with slightly small dark pupils, both subtle clay eyebrows raised, body lightly tilted backward. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-572e688f-23a5-4bde-8451-b0143048b52d.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        122,
+        133,
+        1151,
+        1110
+      ],
+      "sha256": "7657bf0510e64bc0332335855c539fb697ded384f0b85ddcfd958180c3966460"
+    },
+    {
+      "id": "confused",
+      "title": "Hvad skete der?",
+      "image": "/images/characters/lupp/reactions/confused.png",
+      "alt": "LUPP lægger sig lidt på skrå og undersøger situationen med et undrende blik.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: gently puzzled, one raised brow and one lowered brow, pupils looking in the same direction, a clear diagonal head/body tilt, still warm and friendly. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-2066ad7f-3c95-4393-b01e-6c8626de925b.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        134,
+        135,
+        1141,
+        1126
+      ],
+      "sha256": "b645794186aa7a0e8c52d5f72fc43b6205deab9f7ab4baac04d93a3ae8cc2013"
+    },
+    {
+      "id": "skeptical",
+      "title": "Er vi sikre?",
+      "image": "/images/characters/lupp/reactions/skeptical.png",
+      "alt": "LUPP løfter det ene lerbryn og ser venligt undersøgende ud.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: mild friendly questioning skepticism, one eyelid slightly lowered and the other eyebrow raised, pupils focused to the side. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-15559394-5d30-434d-98cc-f426497c6d0f.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        130,
+        143,
+        1146,
+        1092
+      ],
+      "sha256": "565e0a8167377948551069c9da3316f56dad9f8dab396f6d00e38cd4e91d333b"
+    },
+    {
+      "id": "relieved",
+      "title": "Lettet",
+      "image": "/images/characters/lupp/reactions/relieved.png",
+      "alt": "LUPP sænker øjenlågene lettet og hviler roligt med blyanten.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: obvious relief and relaxation, soft half-closed smiling eyes, body settled upright, pencil relaxed at the lower corner. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-2d5f071a-ac3b-425c-916b-d512c8e2d920.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        125,
+        148,
+        1151,
+        1114
+      ],
+      "sha256": "4167cc295ad3deef687a2a404a661612ac23184099410a072d8830a3bb752f15"
+    },
+    {
+      "id": "proud",
+      "title": "Stolt",
+      "image": "/images/characters/lupp/reactions/proud.png",
+      "alt": "LUPP står rankt med et stolt, tilfreds blik og blyanten ved siden af.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: quietly proud and satisfied, lifted poised body, confident softly smiling eyes and attentive dark pupils. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-cf509a5a-f1ea-4a49-8b57-1a3495e3eb38.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        117,
+        128,
+        1161,
+        1120
+      ],
+      "sha256": "5e6f1258c2250ccf5123114f451e2c6ccc38f0fbb0c68b35c436a4b500525349"
+    },
+    {
+      "id": "sleepy",
+      "title": "Søvnig",
+      "image": "/images/characters/lupp/reactions/sleepy.png",
+      "alt": "LUPP er søvnig med tunge øjenlåg og en let hældning mod blyanten.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: sleepy heavy eyelids, slightly drooping pupils, sleepy body tilt gently leaning toward the signature pencil, no text or sleep letters. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-45865a7c-e54a-4476-8fec-bd3e8a7b51bf.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        99,
+        140,
+        1169,
+        1124
+      ],
+      "sha256": "6402424a8d40a6958e551995ebb55c2746c4e467a7932fbd9b3517c700f500f5"
+    },
+    {
+      "id": "calm",
+      "title": "Rolig",
+      "image": "/images/characters/lupp/reactions/calm.png",
+      "alt": "LUPP slapper af med bløde lukkede øjne og en rolig, afbalanceret form.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: stylized-concept. Create ONE original standalone transparent emoji of LUPP, the exact purple Game Design character in the reference. Identity reference: warm tactile 3D plasticine/clay rendering, a compact rounded purple block with two very large slightly asymmetric cream-white googly eyes and dark round pupils; the yellow wooden pencil with silver ferrule and pink eraser is his signature and stays visible. Reaction: serene and calm, eyes gently closed into relaxed curved clay eyelids, balanced upright pose, quiet peaceful mood. Express emotion through eyes, eyelids, subtle purple clay eyebrows and body tilt. Preserve this character's simple shape; no human nose, hair, fur, clothes, human body, or large newly added mouth. A small rounded purple clay hand is allowed only where the gesture requires it. Not a painted elephant or flat vector. The purple character fills about 75 percent of the square canvas, with the complete pencil and any gesture wholly inside the frame and generous clear transparent margins on every side. Readable at 64 px. Genuinely transparent alpha background. No scene, floor, drop-shadow backdrop, checkerboard, text, labels, logos, frame or watermark. Soft warm studio lighting and fine clay texture consistent with the reference. No additional characters. Native high-resolution square PNG.",
+      "sourceArtifact": "exec-993de0fd-0cdb-4129-a0cd-d28044754376.png",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "visibleAlphaBoundingBox": [
+        138,
+        136,
+        1127,
+        1088
+      ],
+      "sha256": "1cda79de8f89a3726fb99fb8c46a37d3415f2b93b20776d261c76493f4622898"
+    }
+  ]
+}

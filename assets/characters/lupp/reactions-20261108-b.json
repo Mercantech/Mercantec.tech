@@ -1,0 +1,295 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/lupp/lupp-game-design.png",
+  "entries": [
+    {
+      "id": "hello",
+      "title": "Velkommen",
+      "alt": "LUPP byder velkommen med åbne lilla lerhænder, et opmærksomt blik og sin gule blyant.",
+      "image": "/images/characters/lupp/reactions/hello.png",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: warmly welcoming a learner, two small rounded purple clay hands open at either side, attentive soft eye contact and slight inviting body tilt. Keep the iconic yellow pencil diagonally at his side. The purple block face dominates and stays readable at64px. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around complete character and pencil, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-b13b5212-2ae4-4197-a3b6-1c105fd54820.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ee1a6322de364b7fa72429b283c752fad7e5135674dc894417c993292af7b1b7",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          37,
+          125,
+          1217,
+          1107
+        ]
+      }
+    },
+    {
+      "id": "good-morning",
+      "title": "Godmorgen",
+      "image": "/images/characters/lupp/reactions/good-morning.png",
+      "alt": "LUPP vågner med halvt åbne øjne, en lille sol ved blyanten og et søvnigt, venligt blik.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a friendly just-waking-up good morning reaction, mildly sleepy half-open eyes looking toward a tiny warm yellow sun symbol beside the pencil, gentle tilt. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-7787894b-8d88-458a-b51a-e176d0a0e45d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d84c32cd1c72f63b93250ecc72dc05a57dc6bca9770156cbbe4c2d09158a6d80",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          64,
+          150,
+          1196,
+          1104
+        ]
+      }
+    },
+    {
+      "id": "thumbs-up",
+      "title": "Det er godt",
+      "image": "/images/characters/lupp/reactions/thumbs-up.png",
+      "alt": "LUPP giver en tommel op med en lille lilla lerhånd og et tilfreds blik.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a reassuring approving reaction, confident pleased eyes and one small rounded purple clay hand giving a thumbs up beside the face. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-a3a211e0-c003-4da6-95de-4997a3060574.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "70c454fce5013db599b090213d667333a25848b8c3a1478e74fbc7bc85bfa386",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          56,
+          122,
+          1216,
+          1134
+        ]
+      }
+    },
+    {
+      "id": "applause",
+      "title": "Flot arbejde",
+      "image": "/images/characters/lupp/reactions/applause.png",
+      "alt": "LUPP klapper med små lilla lerhænder og ser begejstret på arbejdet.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: applauding a learner's work, two small purple clay hands clapping at the side, bright happy eyes and subtle small golden motion marks, no mouth. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-2acc0a42-8904-47ad-9373-3a72d6646bfb.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "518423371f72d17f6d2f724cdbf0c28c8b504476f8df204d933ee2c7ad3548a8",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          90,
+          115,
+          1212,
+          1131
+        ]
+      }
+    },
+    {
+      "id": "celebration",
+      "title": "Det lykkedes",
+      "image": "/images/characters/lupp/reactions/celebration.png",
+      "alt": "LUPP fejrer med glade øjne, et let hop og få små gyldne konfettistykker.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a successful celebration, excited wide happy eyes, buoyant tilted clay block pose with a few tiny golden confetti pieces around the pencil, no extra character or party backdrop. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-8c1f5673-920a-48fa-a18f-ed68259a0582.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e06e993dca3c908fc6e0b968479f30a6700606d28660c38ce9f62957a228546c",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          23,
+          62,
+          1226,
+          1123
+        ]
+      }
+    },
+    {
+      "id": "help",
+      "title": "Et lille hint",
+      "image": "/images/characters/lupp/reactions/help.png",
+      "alt": "LUPP peger med sin gule blyant og giver et opmuntrende lille hint.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: offering one gentle hint, pencil angled as a friendly teaching pointer, slightly raised subtle clay brow and warm encouraging eye contact. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-4b14f503-32fa-45db-832c-53dde2cea127.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f00c22652bd562f0f6337a9c301a8bba6a064861cce438df2f93ca39f15da6cf",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          99,
+          118,
+          1197,
+          1143
+        ]
+      }
+    },
+    {
+      "id": "question",
+      "title": "Et godt spørgsmål",
+      "image": "/images/characters/lupp/reactions/question.png",
+      "alt": "LUPP ser spørgende op med et lille ravgult spørgsmålstegn ved blyanten.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: an interested good-question reaction, one brow gently raised and eyes looking upward toward a tiny amber question-mark clay symbol beside the pencil. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-f16515a5-f93c-47e1-80c6-9188ace15a9b.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b7c05a9f0af2e9a0a317ae78366487a48cb7a5d56576fda9adaae5c7aecffd80",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          72,
+          105,
+          1186,
+          1131
+        ]
+      }
+    },
+    {
+      "id": "listening",
+      "title": "Jeg lytter",
+      "image": "/images/characters/lupp/reactions/listening.png",
+      "alt": "LUPP læner sig en smule frem og lytter med rolige, opmærksomme øjne.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: quiet attentive listening, lean forward slightly, wide soft focused eyes looking straight toward the learner, hands at rest and pencil tucked diagonally alongside the block, no extra prop. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-c6e64191-d17a-4e84-9888-ce5e53037958.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "597f3902deb5e7af83d82ef810d5696039732905597c4f775770fcc6b36e9ac9",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          114,
+          135,
+          1161,
+          1120
+        ]
+      }
+    },
+    {
+      "id": "explaining",
+      "title": "Lad os se",
+      "image": "/images/characters/lupp/reactions/explaining.png",
+      "alt": "LUPP forklarer med sin blyant og tre små enkle lerbrikker.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: calmly explaining an idea step by step, eyes following the yellow pencil tip toward three tiny simple colored clay tiles arranged neatly beside it. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-d03b220b-d8ec-4c51-9d38-559b299cb5ca.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "705e931ada82e90d2e6571c447a29e3808f5b5c3ad602d60e958e09faa1cbac9",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          93,
+          128,
+          1209,
+          1109
+        ]
+      }
+    },
+    {
+      "id": "encouragement",
+      "title": "Prøv igen",
+      "image": "/images/characters/lupp/reactions/encouragement.png",
+      "alt": "LUPP opmuntrer til et nyt forsøg med et venligt blik og en lille tilbagepil.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a patient reassuring try-again reaction, soft kind eyes and gentle tilt, one tiny warm amber retry arrow next to the pencil, never sad or angry. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-1e6f63b8-50be-455c-85b7-9bbd2557546e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3209b66c5c3eebda39a459b34b529574d37bc36b9c0379212af7f873098cd259",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          81,
+          108,
+          1175,
+          1128
+        ]
+      }
+    },
+    {
+      "id": "thank-you",
+      "title": "Tak",
+      "image": "/images/characters/lupp/reactions/thank-you.png",
+      "alt": "LUPP takker med bløde øjne, små samlede lerhænder og et lille gyldent hjerte.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a grateful thank-you reaction, soft happy eyes and small rounded purple clay hands gently together at one side, one tiny golden heart near the pencil. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-80ff32eb-e702-466c-88f5-56edf4941bcc.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "64fb3e8618c0dc8786130f4ac805754e1156754d331c7753f7fb89c64839a182",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          88,
+          117,
+          1199,
+          1135
+        ]
+      }
+    },
+    {
+      "id": "goodbye",
+      "title": "Vi ses",
+      "image": "/images/characters/lupp/reactions/goodbye.png",
+      "alt": "LUPP siger farvel med et lille vink og en afslappet blyant ved siden.",
+      "prompt": "Use case: stylized-concept. Generate ONE original standalone transparent emoji sticker of LUPP, exactly the purple clay character in the reference. Reference is identity and material/style reference: rounded violet clay cuboid, two very large slightly asymmetrical ivory-white googly eyes with black pupils, yellow pencil with wooden graphite tip, silver ferrule and pink eraser. Preserve purple color, softly tactile 3D clay texture and simple friendly proportions. Reaction: a relaxed friendly farewell, one small rounded purple clay hand waving to the side, gently tilted block with warm eye contact, pencil resting diagonally near the other side. Keep the iconic yellow pencil as a clear signature. The purple block face dominates and stays readable at64px; small purple clay hands only when the reaction needs them. NO human body, legs, clothing, hair, nose, fur, teeth or added large mouth. Emotion comes from eyes, eyelids, subtle clay brows and tilt. True alpha-transparent background; square native high resolution; generous clear margin around the complete character and props, no cropped parts. No text, labels, frame, logo, watermark, checkerboard, scenery, ground or extra characters.",
+      "sourceArtifact": "exec-a0b95914-f76e-45f1-811c-9973ed6b2796.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "062f3c6f0ae852ef6e635b1cf0ff05c4c33faed04124fd0249326e21163f7e20",
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBoundingBox": [
+          40,
+          154,
+          1204,
+          1095
+        ]
+      }
+    }
+  ]
+}
