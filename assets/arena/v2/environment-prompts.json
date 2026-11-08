@@ -1,0 +1,65 @@
+{
+  "generator": "built-in image_gen",
+  "assets": [
+    {
+      "id": "menu-keyart",
+      "file": "menu-keyart.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 376994,
+      "transparent": false,
+      "sha256": "a867c98f4cc860ce55e96991cdacf8f06237b405f38f31e1acb836c48ae7d666",
+      "prompt": "Use case: stylized-concept. Asset: final cinematic main-menu key art for original high-end stylized 3D platform fighter LUP Arena, landscape 16:9. The supplied images are identity references for BIP-01, a rounded ivory-and-orange friendly robot with black display face and two glowing turquoise eyes and an orange ball antenna; and Raymond, a blue elephant professor with round gold glasses, beige tailored jacket and a violet waistcoat. Preserve their identities and elevate them to beautifully detailed animated-film-quality 3D. Add the player's starter avatar: a friendly athletic young adult adventurer with warm tan skin, short brown hair, cobalt blue fitted bomber jacket, dark trousers and offwhite sneakers. All three stand in poised confident fighting stances on a richly detailed floating stone-and-brass rooftop terrace at sunset above a spectacular fantastical university city, distant skybridges and observatory spires, blue atmospheric clouds, warm amber rim light and drifting very fine dust. COMPOSITION: characters fill the RIGHT 60 percent, starter foreground at center-right, robot slightly behind to right, elephant far-right, all full bodies or knees-up with clean silhouettes and expressive appealing faces. LEFT 40 percent contains quiet deep midnight blue architectural shadow and atmospheric sky, specifically reserved for separately rendered menu buttons and title, no bright detail there. Far-right warm dramatic sunshine, lower right tangible polished stone. Camera heroic 35mm eye-level, shallow atmospheric depth but character faces razor sharp. Premium original stylized3D art direction, luxurious physically based fabric, porcelain and brass materials, high dynamic range, rendered final art. No letters, no title, no symbols, no UI, no gradients-as-placeholder, no copyright characters. Wide immersive painting, immaculate composition."
+    },
+    {
+      "id": "stage-rooftops",
+      "file": "stage-rooftops.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 354820,
+      "transparent": false,
+      "sha256": "58754e894c5fefb92ca5ed0f219b97ac1be729840e10a139fd5f236c58d6c924",
+      "prompt": "Use case: stylized-concept. Production art for an original premium console-quality stylized 3D platform fighting game LUP Arena. Sophisticated handcrafted environment, physically based tactile materials, bevelled architectural detail, strong silhouette hierarchy, atmospheric depth, cinematic global illumination and dramatic coherent warm amber versus cool midnight-blue lighting. Art only, absolutely no text, logos, interface, lettering, watermark, frame, characters or player markers unless explicitly requested. No flat vector shapes, no low-poly primitives, no blurry concept sketch. Asset: final wide 16:9 gameplay BACKDROP ONLY. Detailed university city rooftops at golden sunset, Gothic-modern stone academy towers with copper roofs and suspended glass skybridges, rooftop gardens, distant canal harbor reflecting warm sunlight, cobalt blue mountains and clouds, flying tiny leaves. Camera perfectly side-on flat horizon, distant architecture sets depth. Entire middle region x10%-90%, y15%-80% is unobstructed soft midtone airy space so separately composited fighters and collision platforms are readable. All buildings and bridges far distant. Architecture primarily lower third and lateral edges, sky in upper half. NO playable foreground platforms, no close rooftops, no UI, no characters. Highly finished premium stylized 3D game environment, crisp detailed materials and layered atmosphere. Rich blue/teal shadows with sunset amber highlights."
+    },
+    {
+      "id": "stage-workshop",
+      "file": "stage-workshop.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 389674,
+      "transparent": false,
+      "sha256": "2883197126201c6710c2edeab90f043dcc5fff3cf0716cea4b1c411a1da6c6aa",
+      "prompt": "Use case: stylized-concept. Production art for an original premium console-quality stylized 3D platform fighting game LUP Arena. Sophisticated handcrafted environment, physically based tactile materials, bevelled architectural detail, strong silhouette hierarchy, atmospheric depth, cinematic global illumination and dramatic coherent warm amber versus cool midnight-blue lighting. Art only, absolutely no text, logos, interface, lettering, watermark, frame, characters or player markers unless explicitly requested. No flat vector shapes, no low-poly primitives, no blurry concept sketch. Asset: final wide 16:9 gameplay BACKDROP ONLY for The Workshop. Interior of an extraordinary monumental academy machine workshop and observatory, brass astrolabes and massive suspended gears, blue cast-iron trusses, hydraulic cables, workbenches along far distant walls, hand-crafted instruments, tall arched windows pouring warm amber afternoon light across dusty air, amber furnace far side, cool blue floor shadows. Camera perfectly SIDE-ON horizontal view for platform combat. Middle x10%-90% y15%-80% is OPEN EMPTY usable space with softened distant background objects so separately composited fighters and platforms are readable. Machinery along outer edges and far background only. No close workbench top crossing image, no foreground collision surfaces, no UI, no characters. Highly polished tactile metal, wood, stone and fabric, intricate but clear readable hierarchy and cinematic warm/cool light."
+    },
+    {
+      "id": "stage-skyline",
+      "file": "stage-skyline.webp",
+      "width": 1672,
+      "height": 941,
+      "bytes": 262600,
+      "transparent": false,
+      "sha256": "6509c5dcad6b2705df12d88773daba0863ffc662ae4457dc730538c5ee7dcb3e",
+      "prompt": "Use case: stylized-concept. Production art for an original premium console-quality stylized 3D platform fighting game LUP Arena. Sophisticated handcrafted environment, physically based tactile materials, bevelled architectural detail, strong silhouette hierarchy, atmospheric depth, cinematic global illumination and dramatic coherent warm amber versus cool midnight-blue lighting. Art only, absolutely no text, logos, interface, lettering, watermark, frame, characters or player markers unless explicitly requested. No flat vector shapes, no low-poly primitives, no blurry concept sketch. Asset: final wide 16:9 gameplay BACKDROP ONLY for Sky Islands. Awe-inspiring floating academy garden ruins high above a sea of turquoise clouds, distant islands with ancient carved cream stone arches, hanging ivy and lush moss, faraway waterfalls dissolve into clouds, quiet floating crystals, subtle copper observatory dome at far right, luminous sunbeams through dramatic soft blue clouds. Camera perfectly SIDE-ON horizon. Central x10%-90% y15%-80% is EMPTY AIR and soft blue cloudy distance for separately composited battle platforms and fighters, foreground readable. All islands are tiny far away with atmospheric fade, architecture at far sides only. No close islands, no foreground platform or floor, no UI, no characters. High-end stylized 3D game environment, rich texture, cinematic sunlight and cool blue/teal shadows."
+    },
+    {
+      "id": "platform-atlas",
+      "file": "platform-atlas.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1191188,
+      "transparent": true,
+      "sha256": "83069aee46e93fca2a5f6d31f48e7e0c582c8cf52f7f665a0788351689166cbb",
+      "prompt": "Use case: stylized-concept. Production art for an original premium console-quality stylized 3D platform fighting game LUP Arena. Sophisticated handcrafted environment, physically based tactile materials, bevelled architectural detail, strong silhouette hierarchy, atmospheric depth, cinematic global illumination and dramatic coherent warm amber versus cool midnight-blue lighting. Art only, absolutely no text, logos, interface, lettering, watermark, frame, characters or player markers unless explicitly requested. No flat vector shapes, no low-poly primitives, no blurry concept sketch. Asset: production game PLATFORM SPRITE ATLAS on genuinely transparent background with alpha. SQUARE image, EXACTLY THREE EQUAL horizontal rows, one long horizontal side-view playable platform per row, aligned and centered with generous transparent gutters and NO overlap. Each sprite approximately 90% image width and 12% image height, perfectly level flat horizontal top, thick textured visible side and endcaps, small appealing underside details. Row1: luxurious cream carved academy stone rooftop with brass trim, inset dark blue tiles, copper brackets, ivy hanging ONLY below top. Row2: detailed dark-blue machined steel workshop beam with rich wood upper surface, brass bolts, vents, pistons underneath and warning-yellow tiny inset strips. Row3: floating ancient garden island cream carved stone top with green moss edge, rocky uneven tapered underside, hanging roots and small luminous turquoise crystals underneath. Exact side orthographic camera, NO perspective depth going backwards, no sloped tops. Strong clean silhouettes, premium stylized3D rendered textures, warm light aboveleft and cool shadow underneath. Endcaps continuous and middle segment tileable for 9slice runtime scaling. No extra objects or scene. No text, no grid lines, NO background including black or checkered, alpha transparent. All 3 strips wholly inside their row."
+    },
+    {
+      "id": "effects-atlas",
+      "file": "effects-atlas.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1620126,
+      "transparent": true,
+      "sha256": "aed9e2c984033a2f77fb896d46543dc7844f41639d2e7e6a14bcde5ce3b20551",
+      "prompt": "Use case: stylized-concept. Asset: premium VFX sprite atlas for a high-end stylized 3D original platform fighting game, square image, genuinely TRANSPARENT background with alpha. EXACT uniform4x4 grid of16 separate isolated game VFX tiles, no gridlines, generous equal gutters, all effects centered and contained inside cell, no overlapping. Row1 tiles1-4 are four successive bright impact burst frames, jagged golden-white slash star expanding with amber sparks and faint volumetric glow. Row2 tiles5-8 are four successive energetic turquoise plasma projectile frames, concentrated luminous blue-white core with short directional aqua trail facing RIGHT. Row3 tiles9-12 are four successive shimmering blue shield aura frames, ROUND translucent glassy spherical protection shell, fine electric arcs and specular crystalline highlights, clear center. Row4 tile13 energetic jump dust cloud, tile14 long horizontal gold-white attack slash facing RIGHT, tile15 large turquoise circular respawn aura with crystalline shards, tile16 dramatic magenta-gold knockout explosion. Rendered magical effects with layered highlights and painterly detail, premium game VFX, no characters, no objects, no lettering, NO background, no dark opaque square, no checkerboard, true alpha. The effects themselves are beautiful authored raster textures, not simple circles or rectangles."
+    }
+  ]
+}

@@ -8,6 +8,14 @@ tags: [games, avatars, multiplayer]
 
 LUPs eget platformskampspil ligger på `/arena` (og `/games/arena`). Der er links fra profil, kontomenu og spiloversigt. Spillet bruger den valgte profilavatar som udgangspunkt: startfiguren, BIP-01 eller Raymond. Kun kontoens oplåste avatarer kan vælges til onlinekampe.
 
+## Grafik og hovedmenu
+
+Arenaen har et separat skærmfyldende spillayout med hovedvalg til online, træning, kæmpere og indstillinger. Styring ligger i indstillingerne. Lokal træning sættes på pause, når indstillingerne åbnes. Genererede rasterassets i `web/wwwroot/assets/arena/v2/` erstatter de proceduretegnede baggrunde, platforme, effekter og startfigurer.
+
+14 WebP-filer fylder cirka 7,7 MB: menubillede, tre banebaggrunde, platform- og effektatlas, fem fighteratlasser og tre portrætter. Figurarkene har 80 validerede frames med fast fodplacering. Startfiguren understøtter kort hår, langt hår og kasket; profilens farver anvendes som materialefarver. PNG-kilder og præcise image_gen-prompter ligger i `assets/arena/v2/` og hentes ikke af browseren.
+
+Fem nye menutests dækker navigation, låste figurer, login, lydvalg og manglende grafik. Alle 548 webtests består. Visuel browserkontrol af denne grafikrevision blev blokeret af computerbrugs-værktøjet; assetkontrol og direkte software-rendering bruges som supplerende QA.
+
 ## Spil
 
 To til fire kæmpere konkurrerer om at blive på banen. Skadeprocenten øger tilbageskubbet; en tur uden for banens grænser koster et liv. Sidste overlevende vinder. Tidsgrænsen afgør ved liv/skade; en lige stilling går i sudden death. Kampen afsluttes med resultat og mulighed for revanche.

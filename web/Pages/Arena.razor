@@ -1,41 +1,106 @@
 @page "/arena"
 @page "/games/arena"
+@layout ArenaLayout
 @implements IAsyncDisposable
 
-<PageTitle>LUP Arena · Spil med din avatar</PageTitle>
-<div class="arena-page">
-    <header class="arena-heading">
-        <div><a href="/universe" class="arena-back">Mit univers / Arena</a><h1>LUP Arena<span class="arena-title-dot"></span></h1><p>Din avatar. Dine venner. Én kamp om at blive på banen.</p></div>
-        <button class="arena-button arena-quiet" @onclick="ToggleSound" aria-pressed="@_sound">@(_sound ? "Lyd til" : "Lyd fra")</button>
+<PageTitle>LUP Arena</PageTitle>
+<div class="arena-shell @(_screen == "main" ? "is-main" : "") @(IsBattle ? "is-battle" : "")" @onkeydown="MenuKey">
+    <div class="arena-keyart" aria-hidden="true"></div>
+    <header class="arena-topbar">
+        <a href="/universe" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
+        <div class="arena-top-actions">
+            @if (_room is not null) { <span class="arena-room-tag">@_room.Code</span> }
+            <button class="arena-icon-button" @onclick="ToggleSound" aria-label="@(_sound ? "Slå lyd fra" : "Slå lyd til")" aria-pressed="@(_sound ? "true" : "false")">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" />@if(_sound){<path d="M17 8c3 2 3 6 0 8M20 5c5 4 5 10 0 14" />}else{<path d="m17 9 5 6m0-6-5 6" />}</svg>
+            </button>
+            <button class="arena-account" @onclick="OpenFighters" disabled="@(_practice || _room is not null)"><img src="@Portrait(_selectedAvatarId)" alt="" /><span>@AccountName</span></button>
+        </div>
     </header>
     @if (_error is not null) { <div class="arena-notice" role="alert"><span>@_error</span><button @onclick="ClearError" aria-label="Luk besked">×</button></div> }
-    @if (_reconnecting) { <div class="arena-notice" role="status">Forbindelsen blev afbrudt. Forbinder igen…</div> }
-    <div class="arena-layout">
-        <section class="arena-play" aria-label="Kampbane">
-            <div class="arena-play-toolbar"><span class="arena-live"><i></i>@(_practice ? "Træning mod computeren" : _room is not null ? "Online · " + _room.Code : "Klar til kamp")</span><div class="arena-toolbar-actions"><span id="arena-ping" aria-live="off">@(_room is null ? "1–4 spillere" : "Forbinder…")</span><button class="arena-text-button" @onclick="Fullscreen">Fuld skærm</button></div></div>
-            <div class="arena-canvas-wrap">
-                <canvas @ref="_canvas" width="1280" height="720" tabindex="0" aria-label="LUP Arena. Brug A og D til at gå, mellemrum til hop, J til angreb og K til specialangreb."></canvas>
-                @if (!_playing && _room is null && !_practice) {
-                    <div class="arena-start-overlay"><span class="arena-stage-label">@SelectedStage.Name</span><h2>Tag kampen<br />med op på taget.</h2><p>Skub modstanderne ud. Gem et hop til vejen hjem.</p><button class="arena-button arena-primary" @onclick="StartPractice" disabled="@_busy">Prøv en kamp <span>↗</span></button><small>Spil med det samme mod computeren</small></div>
-                }
-                @if (_result is not null && _phase == "finished") {
-                    <div class="arena-result" role="status"><span>Kampen er afgjort</span><h2>@WinnerName vinder!</h2><p>@(_practice ? "Klar til endnu en runde?" : "God kamp. Tag en revanche med de samme spillere.")</p><div class="arena-scoreboard">@foreach(var fighter in _result.Fighters.OrderByDescending(x => x.Stocks).ThenByDescending(x => x.KOs)) { <div><strong style="color:@fighter.Color">@fighter.Name</strong><span>@fighter.KOs KO · @fighter.Falls fald</span></div> }</div><button class="arena-button arena-primary" @onclick="Rematch" disabled="@(_room is not null && !IsHost)">Revanche</button>@if (_room is not null && !IsHost) { <small>Værten kan starte revanche.</small> }</div>
-                }
+    @if (_reconnecting) { <div class="arena-reconnecting" role="status">Forbinder igen…</div> }
+
+    @if (_screen == "main")
+    {
+        <main class="arena-main-menu">
+            <h1 class="arena-wordmark"><span>LUP</span>ARENA</h1>
+            <nav class="arena-menu" aria-label="Spilmenu">
+                <button class="arena-menu-button arena-menu-primary" @onclick="OpenOnline"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="m6 6 16 16M22 6 6 22M6 6h6M6 6v6m16-6h-6m6 0v6M6 22h6m-6 0v-6m16 6h-6m6 0v-6" /></svg><span>Spil online</span></button>
+                <button class="arena-menu-button" @onclick="OpenSetup"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M4 21h20M8 21V9h12v12M11 9V5h6v4M11 14h6" /></svg><span>Træning</span></button>
+                <button class="arena-menu-button" @onclick="OpenFighters"><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="9" r="4"/><path d="M6 24v-4a8 8 0 0 1 16 0v4M9 24h10" /></svg><span>Kæmpere</span></button>
+                <button class="arena-menu-button" @onclick="ShowSettings"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M5 8h18M5 20h18M10 4v8M19 16v8" /></svg><span>Indstillinger</span></button>
+            </nav>
+        </main>
+    }
+
+    @if (_screen is "setup" or "fighters")
+    {
+        <main class="arena-screen arena-selection-screen">
+            <header class="arena-screen-header"><button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button><h1>@(_screen == "fighters" ? "Kæmpere" : "Træning")</h1><a href="/profile/character" class="arena-subtle-link">Min samling</a></header>
+            <div class="arena-selection-layout">
+                <section class="arena-roster" aria-label="Vælg kæmper">
+                    @foreach (var avatar in AvatarCatalog.All)
+                    {
+                        var owned = Owns(avatar.Id);
+                        <button class="arena-fighter @(_selectedAvatarId == avatar.Id ? "is-selected" : "")" disabled="@(!owned || _loading)" @onclick="() => SelectFighter(avatar.Id)" aria-pressed="@(_selectedAvatarId == avatar.Id ? "true" : "false")">
+                            <img src="@Portrait(avatar.Id)" alt="" /><span><strong>@FighterName(avatar.Id)</strong><small>@(owned ? FighterRole(avatar.Id) : "Låst")</small></span><span class="arena-choice-mark">@(_selectedAvatarId == avatar.Id ? "✓" : "")</span>
+                        </button>
+                    }
+                </section>
+                <section class="arena-fighter-showcase" aria-label="@FighterName(_selectedAvatarId)"><img src="@Portrait(_selectedAvatarId)" alt="@FighterName(_selectedAvatarId)" /><div><h2>@FighterName(_selectedAvatarId)</h2><p>@FighterSpecial</p></div></section>
             </div>
-            <div class="arena-controls-summary"><span><kbd>A</kbd><kbd>D</kbd> Bevæg</span><span><kbd>Space</kbd> Hop × 2</span><span><kbd>J</kbd> Slå</span><span><kbd>K</kbd> Special</span><span><kbd>L</kbd> Skjold</span><button @onclick="() => _showControls = !_showControls">@(_showControls ? "Skjul taster" : "Alle taster")</button></div>
-            <div class="arena-touch" aria-label="Touchkontroller"><div class="arena-touch-directions"><button data-arena-key="KeyW" aria-label="Op">▲</button><button data-arena-key="KeyA" aria-label="Gå til venstre">◀</button><button data-arena-key="KeyS" aria-label="Ned">▼</button><button data-arena-key="KeyD" aria-label="Gå til højre">▶</button></div><div class="arena-touch-actions"><button data-arena-key="KeyL">Skjold</button><button data-arena-key="ShiftLeft">Undvig</button><button data-arena-key="KeyU">Grib</button><button data-arena-key="KeyI">Kraftslag</button><button data-arena-key="KeyJ">Slå</button><button data-arena-key="KeyK">Special</button><button data-arena-key="Space">Hop</button></div></div>
-            @if (_showControls) { <div class="arena-controls-detail"><div><h3>Find din rytme</h3><p>Jo mere skade, jo længere flyver du. Du mister et liv uden for banen. Sidste spiller på banen vinder.</p></div><dl><div><dt>A / D eller ← / →</dt><dd>Bevæg dig og vælg angrebsretning</dd></div><div><dt>W / S eller ↑ / ↓</dt><dd>Retning · ned gennem små platforme</dd></div><div><dt>Space</dt><dd>Hop og dobbelthop</dd></div><div><dt>J / K</dt><dd>Angreb / special · kombiner med retning</dd></div><div><dt>Hold I, slip I</dt><dd>Oplad og udløs et kraftslag</dd></div><div><dt>L / Shift / U</dt><dd>Skjold / undvig / grib og kast</dd></div><div><dt>W + K i luften</dt><dd>Red dig tilbage med et opadgående specialangreb</dd></div><div><dt>Controller</dt><dd>Venstre pind · A hop · X angreb · B special · Y greb · RT skjold</dd></div></dl></div> }
-        </section>
-        <aside class="arena-sidebar">
-            @if (_room is null) {
-                <section class="arena-panel"><div class="arena-section-heading"><h2>Vælg din kæmper</h2><a href="/profile/character">Din samling</a></div><p class="arena-hint">Dine avatarer fra profilen er med.</p><div class="arena-fighters">@foreach (var avatar in AvatarCatalog.All) { var owned = Owns(avatar.Id); <button class="arena-fighter @(_selectedAvatarId == avatar.Id ? "is-selected" : "")" disabled="@(!owned || _busy || _practice)" @onclick="() => SelectFighter(avatar.Id)" aria-pressed="@(_selectedAvatarId == avatar.Id)"><span class="arena-fighter-portrait @avatar.Id">@if(avatar.FaceImage is not null) { <img src="@avatar.FaceImage" alt="" /> } else { <span>☺</span> }</span><span><strong>@(avatar.Id == "starter" ? "Din avatar" : avatar.Name)</strong><small>@(owned ? FighterRole(avatar.Id) : "Lås op i din profil")</small></span><span class="arena-fighter-check">@(owned ? _selectedAvatarId == avatar.Id ? "●" : "○" : "⌑")</span></button> }</div><div class="arena-fighter-description"><span class="arena-ability-icon">✦</span><div><strong>@FighterSpecial</strong><p>@FighterDescription</p></div></div></section>
-                <section class="arena-panel arena-online-panel"><h2>Venner på hver sin computer</h2><p>Opret et rum, og send koden til dem, du vil spille med.</p>@if (!Auth.IsAuthenticated) { <a class="arena-button arena-primary" href="@Auth.LoginPath()">Log ind for at spille online</a> } else { <button class="arena-button arena-primary" @onclick="CreateRoom" disabled="@(_busy || _practice)">@(_busy ? "Forbinder…" : "Opret et rum")<span>＋</span></button> }<div class="arena-join"><input aria-label="Rumkode" placeholder="Rumkode" maxlength="6" @bind="_joinCode" @bind:event="oninput" @onkeydown="JoinKey" disabled="@(_busy || _practice)" /><button class="arena-button arena-quiet" @onclick="JoinRoom" disabled="@(_busy || _practice || !Auth.IsAuthenticated || _joinCode.Trim().Length != 6)">Deltag</button></div><label class="arena-public-option"><input type="checkbox" @bind="_isPublic" disabled="@_practice" /> Vis mit rum på listen</label>@if (Auth.IsAuthenticated) { <button class="arena-text-button" @onclick="LoadRooms" disabled="@_busy">Find åbne rum</button> }@if (_roomsLoaded) { <div class="arena-public-rooms">@if (_rooms.Count == 0) { <p>Ingen åbne rum lige nu. Opret det første.</p> }@foreach(var room in _rooms) { <button @onclick="() => JoinPublicRoom(room.Code)"><strong>@room.Code</strong><span>@room.Players.Count / 4 spillere · Deltag</span></button> }</div> }</section>
-            } else {
-                <section class="arena-panel arena-room-panel"><div class="arena-section-heading"><h2>Dit kamprum</h2><span class="arena-room-status">@(_room.IsPublic ? "Åbent rum" : "Kun med kode")</span></div><button class="arena-room-code" @onclick="CopyInvite" title="Kopiér invitationslink"><span>@_room.Code</span><small>@(_copied ? "Link kopieret!" : "Kopiér invitation")</small></button><p class="arena-hint">Åbn invitationen på en anden computer, eller indtast rumkoden her i Arena.</p><div class="arena-player-list">@foreach(var player in _room.Players) { <div><span class="arena-player-number" style="--player-color:@player.Color">@(_room.Players.IndexOf(player)+1)</span><span><strong>@player.Name @(player.Id == _playerId ? "(dig)" : "")</strong><small>@(AvatarCatalog.Find(player.AvatarId)?.Name ?? "Avatar") @(player.IsBot ? "· Computer" : player.Id == _room.HostId ? "· Vært" : "")</small></span><span class="arena-ready-status">@(!player.Connected ? "Venter…" : player.Ready ? "Klar ✓" : "Vælger")</span></div> }@for(var i=_room.Players.Count;i<4;i++){<div class="arena-empty-player"><span class="arena-player-number">＋</span><span>Plads til en ven</span></div>}</div>@if (_phase == "lobby") { <button class="arena-button @(_ready ? "arena-quiet" : "arena-primary")" @onclick="ToggleReady">@(_ready ? "Klar ✓ · klik for at vente" : "Jeg er klar")</button>@if(IsHost) { <button class="arena-button arena-primary" @onclick="StartOnline" disabled="@(!_room.Players.All(p => p.Ready && p.Connected) || _room.Players.Count < 2)">Start kampen</button><button class="arena-text-button" @onclick="AddBot" disabled="@(_room.Players.Count >= 4)">Tilføj en computerspiller</button> }}<button class="arena-text-button arena-leave" @onclick="LeaveRoom">Forlad rummet</button></section>
+            @if (_screen == "setup")
+            {
+                <section class="arena-stage-picker" aria-label="Vælg bane"><div class="arena-stage-cards">@foreach(var stage in ArenaCatalog.Stages) { <button class="arena-stage-card @(_stageId == stage.Id ? "is-selected" : "")" @onclick="() => SelectStage(stage.Id)" aria-pressed="@(_stageId == stage.Id ? "true" : "false")"><img src="@StageArt(stage.Id)" alt="" /><span>@stage.Name</span><i>@(_stageId == stage.Id ? "✓" : "")</i></button> }</div></section>
+                <footer class="arena-screen-footer"><div class="arena-rules"><label>Liv <select @bind="_stocks"><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label><label>Tid <select @bind="_minutes"><option value="3">3 min.</option><option value="5">5 min.</option><option value="8">8 min.</option></select></label></div><button class="arena-action arena-action-gold" @onclick="StartTraining" disabled="@(_loading || !_artReady || _busy)">@(_loading ? "Indlæser…" : "Start")</button></footer>
             }
-            @if (_practice) { <section class="arena-panel"><h2>Øvelse gør mester</h2><p>Prøv angreb i luften og specialangreb med retning. W + K hjælper dig tilbage til banen.</p><button class="arena-button arena-quiet" @onclick="StopPractice">Afslut træning</button></section> }
-        </aside>
-    </div>
-    <section class="arena-stage-section"><div class="arena-section-heading"><div><h2>Find din hjemmebane</h2><p>Tre arenaer. Samme mål: bliv på banen.</p></div><div class="arena-rules"><label>Liv <select @bind="_stocks" @bind:after="ConfigureRoom" disabled="@SettingsDisabled"><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label><label>Tid <select @bind="_minutes" @bind:after="ConfigureRoom" disabled="@SettingsDisabled"><option value="3">3 min.</option><option value="5">5 min.</option><option value="8">8 min.</option></select></label></div></div><div class="arena-stages">@foreach(var stage in ArenaCatalog.Stages) { <button class="arena-stage-card @(_stageId == stage.Id ? "is-selected" : "")" @onclick="() => SelectStage(stage.Id)" disabled="@SettingsDisabled" aria-pressed="@(_stageId == stage.Id)"><span class="arena-stage-art @stage.Id"><span class="arena-mini-platform"></span><span class="arena-mini-platform"></span><span class="arena-mini-platform"></span><span class="arena-mini-platform"></span><i></i></span><span class="arena-stage-card-text"><strong>@stage.Name</strong><small>@stage.Description</small></span><span class="arena-stage-selected">@(_stageId == stage.Id ? "Valgt ✓" : "Vælg bane")</span></button> }</div></section>
-    <footer class="arena-footnote"><span>Bygget til LUPs egne avatarer</span><span>Tip: Høj skade betyder større tilbageskub. Et godt forsvar vinder kampe.</span></footer>
+            else { <footer class="arena-screen-footer"><span></span><button class="arena-action arena-action-gold" @onclick="Back">Vælg</button></footer> }
+        </main>
+    }
+
+    @if (_screen == "online")
+    {
+        <main class="arena-screen arena-online-screen">
+            <header class="arena-screen-header"><button class="arena-back" @onclick="Back" disabled="@(_room is not null)"><span>‹</span> Tilbage</button><h1>@(_room is null ? "Spil online" : "Kamprum")</h1>@if (_room is not null) { <button class="arena-subtle-link" @onclick="LeaveRoom">Forlad</button> }</header>
+            @if (_room is null)
+            {
+                <div class="arena-online-layout">
+                    <section class="arena-online-form">
+                        <button class="arena-selected-fighter" @onclick="OpenOnlineFighters"><img src="@Portrait(_selectedAvatarId)" alt="" /><span>@FighterName(_selectedAvatarId)</span><small>Skift</small></button>
+                        @if (!Auth.IsAuthenticated) { <a class="arena-action arena-action-gold" href="@Auth.LoginPath()">Log ind</a> }
+                        else
+                        {
+                            <button class="arena-action arena-action-gold" @onclick="CreateRoom" disabled="@(_busy || _loading || !_artReady)">@(_busy ? "Forbinder…" : "Opret rum")</button>
+                            <label class="arena-public-option"><input type="checkbox" @bind="_isPublic" /> Offentligt rum</label>
+                            <div class="arena-or"><span>eller</span></div>
+                            <div class="arena-join"><input aria-label="Rumkode" placeholder="Rumkode" maxlength="6" @bind="_joinCode" @bind:event="oninput" @onkeydown="JoinKey" disabled="@_busy" /><button class="arena-action" @onclick="JoinRoom" disabled="@(_busy || _loading || !_artReady || _joinCode.Trim().Length != 6)">Deltag</button></div>
+                            <button class="arena-subtle-link arena-refresh" @onclick="LoadRooms" disabled="@_busy">Åbne rum</button>
+                            @if (_roomsLoaded) { <div class="arena-public-rooms">@if (_rooms.Count == 0) { <p>Ingen åbne rum.</p> }@foreach(var room in _rooms) { <button @onclick="() => JoinPublicRoom(room.Code)"><strong>@room.Code</strong><span>@room.Players.Count / 4</span></button> }</div> }
+                        }
+                    </section>
+                    <section class="arena-online-stage" aria-label="Bane og regler"><div class="arena-stage-cards">@foreach(var stage in ArenaCatalog.Stages) { <button class="arena-stage-card @(_stageId == stage.Id ? "is-selected" : "")" @onclick="() => SelectStage(stage.Id)" aria-pressed="@(_stageId == stage.Id ? "true" : "false")"><img src="@StageArt(stage.Id)" alt="" /><span>@stage.Name</span><i>@(_stageId == stage.Id ? "✓" : "")</i></button> }</div><div class="arena-rules"><label>Liv <select @bind="_stocks"><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label><label>Tid <select @bind="_minutes"><option value="3">3 min.</option><option value="5">5 min.</option><option value="8">8 min.</option></select></label></div></section>
+                </div>
+            }
+            else
+            {
+                <div class="arena-lobby-heading"><button class="arena-room-code" @onclick="CopyInvite" title="Kopiér invitation"><strong>@_room.Code</strong><span>@(_copied ? "Kopieret" : "Invitér")</span></button><span>@(_room.IsPublic ? "Offentligt" : "Privat")</span></div>
+                <div class="arena-lobby-roster">@foreach(var player in _room.Players) { <article class="arena-lobby-player" style="--player-color:@player.Color"><img src="@Portrait(player.AvatarId)" alt="" /><div><h2>@player.Name</h2><p>@(player.IsBot ? "Computer" : player.Id == _room.HostId ? "Vært" : FighterName(player.AvatarId))</p></div><span class="arena-player-ready">@(!player.Connected ? "Forbinder…" : player.Ready ? "Klar" : "Venter")</span></article> }@for(var i=_room.Players.Count;i<4;i++){<div class="arena-lobby-empty"><span>+</span><p>Ledig plads</p></div>}</div>
+                <div class="arena-lobby-bottom"><div class="arena-lobby-stage"><img src="@StageArt(_stageId)" alt="" /><span>@SelectedStage.Name</span><span>@_stocks liv · @_minutes min.</span></div><div class="arena-lobby-buttons">@if (_phase == "lobby") { if(IsHost) { <button class="arena-action arena-action-subtle" @onclick="AddBot" disabled="@(_room.Players.Count >= 4)">Tilføj computer</button> }<button class="arena-action @(_ready ? "arena-action-subtle" : "")" @onclick="ToggleReady">@(_ready ? "Klar ✓" : "Gør klar")</button>@if(IsHost) { <button class="arena-action arena-action-gold" @onclick="StartOnline" disabled="@(!_room.Players.All(p => p.Ready && p.Connected) || _room.Players.Count < 2)">Start</button> } }</div></div>
+            }
+        </main>
+    }
+
+    @if (_screen == "settings")
+    {
+        <main class="arena-screen arena-settings-screen"><header class="arena-screen-header"><button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button><h1>Indstillinger</h1></header><div class="arena-settings-layout"><section class="arena-settings-options"><button @onclick="ToggleSound"><span>Lyd</span><strong>@(_sound ? "Til" : "Fra")</strong></button><button @onclick="Fullscreen"><span>Fuld skærm</span><strong>Åbn</strong></button>@if (_practice || _room is not null) { <button class="arena-exit-action" @onclick="ReturnMain"><span>Afslut kamp</span></button> }</section><section class="arena-controls-detail" aria-label="Styring"><h2>Styring</h2><dl><div><dt>A / D</dt><dd>Bevæg</dd></div><div><dt>W / S</dt><dd>Retning</dd></div><div><dt>Space</dt><dd>Hop / dobbelthop</dd></div><div><dt>J</dt><dd>Angreb</dd></div><div><dt>K</dt><dd>Special</dd></div><div><dt>W + K</dt><dd>Redningshop</dd></div><div><dt>Hold I</dt><dd>Kraftslag</dd></div><div><dt>L / Shift / U</dt><dd>Skjold / undvig / greb</dd></div></dl><h3>Controller</h3><p>A hop · X angreb · B special · Y greb<br />RT skjold · LB undvig · RB kraftslag</p></section></div></main>
+    }
+
+    <section class="arena-play @(IsBattle ? "is-visible" : "")" aria-label="Kampbane" aria-hidden="@(!IsBattle)">
+        <div class="arena-play-toolbar"><button @onclick="ShowSettings" class="arena-back">Menu</button><span>@(_practice ? "Træning" : _room?.Code ?? "Arena")</span><div><span id="arena-ping">@(_room is null ? "" : "Forbinder…")</span><button class="arena-icon-button" @onclick="Fullscreen" aria-label="Fuld skærm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"/></svg></button></div></div>
+        <div class="arena-canvas-wrap">
+            <canvas @ref="_canvas" width="1280" height="720" tabindex="0" aria-label="Kampbane. A og D bevæger, Space hopper, J angriber, K bruger special."></canvas>
+            @if (_result is not null && _phase == "finished") { <div class="arena-result" role="status"><span>Kamp slut</span><img src="@Portrait(_result.Fighters.FirstOrDefault(f=>f.Id==_result.WinnerId)?.AvatarId ?? "starter")" alt="" /><h2>@WinnerName</h2><div class="arena-scoreboard">@foreach(var fighter in _result.Fighters.OrderByDescending(x=>x.Stocks).ThenByDescending(x=>x.KOs)) { <div><strong style="color:@fighter.Color">@fighter.Name</strong><span>@fighter.KOs KO</span></div> }</div><div class="arena-result-actions"><button class="arena-action arena-action-gold" @onclick="Rematch" disabled="@(_room is not null && !IsHost)">Revanche</button><button class="arena-action arena-action-subtle" @onclick="ReturnMain">Menu</button></div></div> }
+        </div>
+        <div class="arena-battle-footer"><span><kbd>A D</kbd> Bevæg <kbd>Space</kbd> Hop <kbd>J</kbd> Angreb <kbd>K</kbd> Special</span><button @onclick="ShowSettings">Styring</button></div>
+        <div class="arena-touch" aria-label="Touchkontroller"><div class="arena-touch-directions"><button data-arena-key="KeyW" aria-label="Op">▲</button><button data-arena-key="KeyA" aria-label="Venstre">◀</button><button data-arena-key="KeyS" aria-label="Ned">▼</button><button data-arena-key="KeyD" aria-label="Højre">▶</button></div><div class="arena-touch-actions"><button data-arena-key="KeyL">Skjold</button><button data-arena-key="ShiftLeft">Undvig</button><button data-arena-key="KeyU">Greb</button><button data-arena-key="KeyI">Kraftslag</button><button data-arena-key="KeyJ">Slå</button><button data-arena-key="KeyK">Special</button><button data-arena-key="Space">Hop</button></div></div>
+    </section>
 </div>

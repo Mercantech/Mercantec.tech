@@ -1,66 +1,524 @@
-const W=1280,H=720,TAU=Math.PI*2;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const lerp=(a,b,t)=>a+(b-a)*t;
-const colors=['#ff647c','#64b5ff','#ffc766','#b297ff'];
-function rounded(c,x,y,w,h,r,fill,stroke){c.beginPath();c.roundRect(x,y,w,h,r);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.stroke();}}
-function ellipse(c,x,y,rx,ry,fill){c.beginPath();c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,TAU);c.fillStyle=fill;c.fill();}
-function text(c,value,x,y,size,color,weight=600,align='center'){c.font=weight+' '+size+'px "DM Sans", sans-serif';c.fillStyle=color;c.textAlign=align;c.textBaseline='middle';c.fillText(value,x,y);}
+const WIDTH = 1280;
+const HEIGHT = 720;
+const ART_ROOT = '/assets/arena/v2/';
+const COLORS = ['#ff647c', '#64b5ff', '#ffc766', '#b297ff'];
+const AVATARS = ['starter', 'bip01', 'raymond'];
+const STAGES = ['rooftops', 'workshop', 'skyline'];
+const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+const lerp = (a, b, amount) => a + (b - a) * amount;
+const loaded = image => Boolean(image?.complete && image.naturalWidth && !image.failed);
+
+function panel(context, x, y, width, height, radius, fill, stroke) {
+    context.beginPath();
+    context.roundRect(x, y, width, height, radius);
+    if (fill) { context.fillStyle = fill; context.fill(); }
+    if (stroke) { context.strokeStyle = stroke; context.stroke(); }
+}
+
+function label(context, value, x, y, size, color, weight = 600, align = 'center') {
+    context.font = weight + ' ' + size + 'px "Space Grotesk", "DM Sans", sans-serif';
+    context.fillStyle = color;
+    context.textAlign = align;
+    context.textBaseline = 'middle';
+    context.fillText(value, x, y);
+}
+
+function hexColor(value, fallback) {
+    return /^#[0-9a-f]{6}$/i.test(value || '') ? value : fallback;
+}
+
+function rgb(hex) {
+    return [1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16));
+}
+
+function hue(red, green, blue) {
+    const max = Math.max(red, green, blue), min = Math.min(red, green, blue), range = max - min;
+    if (!range) return 0;
+    const sector = max === red ? ((green - blue) / range) % 6 : max === green ? (blue - red) / range + 2 : (red - green) / range + 4;
+    return (sector * 60 + 360) % 360;
+}
+
+/** Raster-only stage and character presentation. Simulation coordinates never change here. */
 export class ArenaRenderer {
-    constructor(canvas,options,cue){this.canvas=canvas;this.c=canvas.getContext('2d',{alpha:false});this.options=options;this.cue=cue;this.stages=options.stages;this.images=new Map();this.particles=[];this.seenEvents=new Set();this.shake=0;this.stageId=this.stages[0].id;this.avatar=options.selectedAvatarId;this.camera={x:640,y:360,z:1};this.previewPlayers=null;this.reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;this.idle=0;this.load('bip01','idle');this.load('raymond','idle');for(const id of ['bip01','raymond'])for(const action of ['run','jump','hit','ability_1_pulse','ability_4_dash','celebrate'])this.load(id,action);}
-    dispose(){this.images.clear();this.particles.length=0;}
-    reset(){this.seenEvents.clear();this.particles.length=0;this.camera={x:640,y:360,z:1};}
-    preview(stage,id,players=null){this.stageId=stage;this.avatar=id;this.previewPlayers=players;this.reset();}
-    load(id,action){if(id==='starter')return null;const key=id+':'+action;if(this.images.has(key))return this.images.get(key);const image=new Image();image.src='/assets/avatars/'+(id==='bip01'?'bip-01':'raymond')+'/sprites/'+action+'.png';image.onerror=()=>{image.failed=true;};this.images.set(key,image);return image;}
-    events(events){for(const e of events){if(this.seenEvents.has(e.id))continue;this.seenEvents.add(e.id);if(this.seenEvents.size>600)this.seenEvents.delete(this.seenEvents.values().next().value);this.cue(e.type,e.strength);const count=e.type==='ko'?42:e.type==='hit'||e.type==='throw'?18:e.type==='respawn'?22:6;const color=e.type==='ko'?'#ffc5ad':e.type==='shield'||e.type==='parry'?'#a7ddff':e.type==='jump'?'#e6e4ff':'#ffe8a8';if(e.type==='hit'||e.type==='ko')this.shake=Math.max(this.shake,e.type==='ko'?10:3*e.strength);for(let i=0;i<count;i++){const a=i/count*TAU+e.id;const v=(e.type==='ko'?250:100)+(i*47%120);this.particles.push({x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-35,life:.35+(i%5)*.1,max:.75,color,size:e.type==='ko'?5:3,ring:e.type==='shield'||e.type==='jump'});}if(e.type==='win')this.winAt=performance.now();}}
-    draw(now,dt,state,previous,receivedAt,previousAt,playerId,practice){
-        const c=this.c; if(!c||!this.canvas.width)return;c.setTransform(this.canvas.width/W,0,0,this.canvas.height/H,0,0);c.imageSmoothingEnabled=true;
-        this.idle=now/1000;const stage=this.stages.find(s=>s.id===(state?.stageId||this.stageId))||this.stages[0];
-        this.background(c,stage,now/1000);
-        let fighters=state?.fighters||this.previewFighters(stage,now);
-        if(state&&previous&&state.tick>=previous.tick){const span=Math.max(1,receivedAt-previousAt),t=clamp((now-receivedAt)/span,0,1);fighters=fighters.map(f=>{const p=previous.fighters.find(p=>p.id===f.id);if(!p||Math.abs(p.x-f.x)>180||Math.abs(p.y-f.y)>200||p.stocks!==f.stocks)return f;const local=f.id===playerId;return {...f,x:local?f.x+f.vx*Math.min(.026,(now-receivedAt)/1000):lerp(p.x,f.x,t),y:local?f.y+f.vy*Math.min(.026,(now-receivedAt)/1000):lerp(p.y,f.y,t)};});}
-        if(state){const alive=fighters.filter(f=>!f.out&&f.stocks>0);let minX=250,maxX=1030,minY=80,maxY=650;for(const f of alive){minX=Math.min(minX,f.x-110);maxX=Math.max(maxX,f.x+110);minY=Math.min(minY,f.y-170);maxY=Math.max(maxY,f.y+130);}const targetZ=clamp(Math.min(W/(maxX-minX),H/(maxY-minY)),.65,1);this.camera.x=lerp(this.camera.x,clamp((minX+maxX)/2,420,860),dt*4);this.camera.y=lerp(this.camera.y,clamp((minY+maxY)/2,250,470),dt*4);this.camera.z=lerp(this.camera.z,targetZ,dt*4);}
-        c.save();c.translate(W/2,H/2);c.scale(this.camera.z,this.camera.z);c.translate(-this.camera.x,-this.camera.y);if(!this.reduced&&this.shake>.1)c.translate(Math.sin(now*.049)*this.shake,Math.cos(now*.057)*this.shake*.55);this.shake*=Math.pow(.03,dt);
-        this.platforms(c,stage,now/1000);
-        for(const projectile of state?.projectiles||[]){c.save();c.shadowColor=projectile.color;c.shadowBlur=25;c.strokeStyle=projectile.color;c.lineWidth=5;c.beginPath();c.moveTo(projectile.x-projectile.vx*.035,projectile.y-projectile.vy*.035);c.lineTo(projectile.x,projectile.y);c.stroke();ellipse(c,projectile.x,projectile.y,projectile.radius,projectile.radius,'#f5faff');c.restore();}
-        for(const f of fighters){if(f.out||f.stocks<=0)continue;this.fighter(c,f,now,playerId,state?.phase);}
-        this.particles=this.particles.filter(p=>p.life>0);for(const p of this.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=180*dt;c.globalAlpha=clamp(p.life/.4,0,1);if(p.ring){c.strokeStyle=p.color;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,p.size+(1-p.life/p.max)*7,0,TAU);c.stroke();}else{c.fillStyle=p.color;c.save();c.translate(p.x,p.y);c.rotate(p.life*5);c.fillRect(-p.size/2,-p.size/2,p.size,p.size*1.6);c.restore();}}c.globalAlpha=1;c.restore();
-        if(state){this.hud(c,state,playerId);if(state.phase==='countdown'){const n=Math.ceil(state.countdown);text(c,n>0?String(n):'KAMP!',640,260,104,'#fff',800);text(c,'Gør dig klar',640,340,19,'#e8e8ff',500);}if(state.suddenDeath&&state.phase!=='finished'){rounded(c,520,76,240,36,18,'#6d2d5ee0');text(c,'Sudden death · næste KO afgør det',640,94,13,'#ffdfdf');}}
-        else{const bottom=this.previewPlayers?'Vent på at alle er klar':'Hop ind. Find din rytme.';text(c,bottom,640,680,14,'#e5e4ff88',500);}
-        if(state&&now-receivedAt>2500&&state.phase==='playing'&&!practice){rounded(c,420,300,440,72,14,'#262c50ea');text(c,'Venter på forbindelse til kampen…',640,336,20,'#fff');}
+    constructor(canvas, options, cue) {
+        this.canvas = canvas;
+        this.context = canvas.getContext('2d', { alpha: false });
+        this.options = options;
+        this.cue = cue || (() => {});
+        this.stages = options.stages;
+        this.stageId = this.stages[0].id;
+        this.avatar = options.selectedAvatarId || 'starter';
+        this.images = new Map();
+        this.imagePromises = new Map();
+        this.failures = new Set();
+        this.platformFrames = [];
+        this.effectFrames = [];
+        this.materialVariants = new Map();
+        this.seenEvents = new Set();
+        this.effects = [];
+        this.previewPlayers = null;
+        this.camera = { x: 640, y: 360, zoom: 1 };
+        this.shake = 0;
+        this.currentTick = 0;
+        this.loading = true;
+        this.disposed = false;
+        this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.preloadPromise = this.loadArt();
     }
-    previewFighters(stage,now){const p=this.previewPlayers;const main=stage.platforms.filter(x=>!x.oneWay);return (p||[{id:'preview1',avatarId:this.avatar,name:'Din avatar',color:colors[0]},{id:'preview2',avatarId:this.avatar==='raymond'?'bip01':'raymond',name:'En ven',color:colors[1]}]).map((f,i)=>{const surface=main[Math.min(i%main.length,main.length-1)];const x=p?surface.x+surface.width*(.2+.6*i/Math.max(1,p.length-1)):main.length===1?(i===0?Math.min(surface.x+surface.width*.72,surface.x+surface.width-80):surface.x+surface.width*.94):surface.x+surface.width*.55;return {...f,x,y:surface.y,facing:i%2===0?1:-1,action:'idle',actionFrame:Math.floor(now/145)%8,stocks:3,damage:0,shield:100,grounded:true,invulnerable:false,shielding:false,out:false};});}
-    background(c,stage,time){
-        const workshop=stage.id==='workshop',sky=stage.id==='skyline';const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,workshop?'#293b53':sky?'#21465d':'#292c58');g.addColorStop(.57,workshop?'#987f89':sky?'#70a6b5':'#8c7099');g.addColorStop(1,workshop?'#deb49b':sky?'#c3d8d0':'#e0a49f');c.fillStyle=g;c.fillRect(0,0,W,H);
-        for(let i=0;i<38;i++){const x=(i*197+23)%W,y=(i*71+39)%330;ellipse(c,x,y,i%4===0?1.8:.9,i%4===0?1.8:.9,'#eef0ff66');}
-        const moonX=sky?1020:1040;ellipse(c,moonX,139,48,48,workshop?'#ffe2ba':sky?'#f6edcd':'#ffd8c3');ellipse(c,moonX,139,67,67,'#ffe0c00a');ellipse(c,moonX,139,86,86,'#ffe0c006');
-        for(let i=0;i<7;i++){const x=(i*241+time*(this.reduced?0:3))%1550-150,y=135+(i*79%230);c.globalAlpha=.12;c.fillStyle='#f3e3ed';c.beginPath();c.ellipse(x,y,90+i%3*24,8+i%2*5,0,0,TAU);c.fill();c.globalAlpha=1;}
-        this.city(c,550,'#665d83',24,13,0,workshop);this.city(c,620,'#474664',41,18,27,workshop);this.city(c,738,'#303452',65,12,13,workshop);
-        if(workshop){c.fillStyle='#232d43';c.fillRect(0,0,34,H);c.fillRect(W-34,0,34,H);c.fillRect(0,0,W,28);for(const x of [160,640,1120]){c.strokeStyle='#394154';c.lineWidth=5;c.beginPath();c.moveTo(x,0);c.lineTo(x,62);c.stroke();c.fillStyle='#e3c89d';c.beginPath();c.moveTo(x-40,77);c.lineTo(x-24,61);c.lineTo(x+24,61);c.lineTo(x+40,77);c.fill();const light=c.createLinearGradient(x,77,x,500);light.addColorStop(0,'#ffe6ac19');light.addColorStop(1,'#ffe6ac00');c.fillStyle=light;c.beginPath();c.moveTo(x-30,78);c.lineTo(x+30,78);c.lineTo(x+160,500);c.lineTo(x-160,500);c.fill();}}
-        if(sky){for(let i=0;i<5;i++){const x=i*300-30;c.globalAlpha=.13;ellipse(c,x,625+i%2*42,190,42,'#efffff');c.globalAlpha=1;}}
+
+    get ready() { return !this.loading && !this.failures.size; }
+    get assetsFailed() { return Array.from(this.failures); }
+    preload() { return this.preloadPromise; }
+
+    async loadArt() {
+        const art = [
+            ...STAGES.map(id => ['stage-' + id, 'stage-' + id + '.webp']),
+            ...AVATARS.map(id => ['fighter-' + id, 'fighters-' + id + '.webp']),
+            ...AVATARS.map(id => ['portrait-' + id, 'portrait-' + id + '.webp']),
+            ['fighter-starter-long', 'fighters-starter-long.webp'],
+            ['fighter-starter-cap', 'fighters-starter-cap.webp'],
+            ['platforms', 'platform-atlas.webp'],
+            ['effects', 'effects-atlas.webp']
+        ];
+        await Promise.all(art.map(([key, file]) => this.loadImage(key, ART_ROOT + file)));
+        if (this.disposed) return false;
+        const platforms = this.images.get('platforms');
+        const effects = this.images.get('effects');
+        if (loaded(platforms)) this.platformFrames = this.splitAndTrim(platforms, 1, 3, { alpha: 64, surfaceCoverage: .22 });
+        if (loaded(effects)) this.effectFrames = this.splitAndTrim(effects, 4, 4);
+        this.loading = false;
+        return this.ready;
     }
-    city(c,base,color,width,count,offset,workshop){for(let i=0;i<count;i++){const x=i*(W/count+8)-offset,h=60+((i*67+offset*3)%170),w=width+(i*29%36);c.fillStyle=color;c.fillRect(x,base-h,w,h+100);if(i%3===0)c.fillRect(x+8,base-h-17,w-16,18);if(i%5===0){c.fillRect(x+w/2,base-h-45,2,30);ellipse(c,x+w/2+1,base-h-45,2,2,'#f6c3b1');}for(let row=0;row<Math.floor(h/23)-1;row++)for(let col=0;col<Math.floor(w/17)-1;col++){if((i+row*7+col*3)%4===0)continue;c.fillStyle=(i+col+row)%3===0?'#f7c99f55':'#d9d7e814';c.fillRect(x+10+col*17,base-h+15+row*23,5,9);}}}
-    platforms(c,stage,time){for(let i=0;i<stage.platforms.length;i++){const p=stage.platforms[i],solid=!p.oneWay,workshop=stage.id==='workshop',sky=stage.id==='skyline';c.save();c.shadowColor='#20224055';c.shadowBlur=18;c.shadowOffsetY=12;if(solid){const g=c.createLinearGradient(0,p.y,0,p.y+p.height+50);g.addColorStop(0,workshop?'#796478':sky?'#627c91':'#6c6387');g.addColorStop(1,workshop?'#3f3c58':sky?'#304b67':'#373a5d');rounded(c,p.x,p.y,p.width,p.height+22,7,g);c.shadowBlur=0;c.shadowOffsetY=0;rounded(c,p.x-5,p.y-7,p.width+10,14,5,workshop?'#deb994':sky?'#b5d6cf':'#d9bad1');c.fillStyle=workshop?'#a78369':sky?'#7fb3ae':'#a788b0';c.fillRect(p.x+3,p.y+7,p.width-6,4);for(let x=p.x+24;x<p.x+p.width-18;x+=38){rounded(c,x,p.y+22,17,17,3,'#242f4c88');c.fillStyle='#d3c8dd33';c.fillRect(x+4,p.y+26,9,2);}if(!sky){c.strokeStyle='#2c345388';c.lineWidth=3;for(let x=p.x+25;x<p.x+p.width;x+=70){c.beginPath();c.moveTo(x,p.y+p.height+21);c.lineTo(x+25,p.y+p.height+43);c.stroke();}}}else{rounded(c,p.x,p.y,p.width,p.height,5,workshop?'#8f7773':sky?'#769caa':'#7d6d9c');c.shadowBlur=0;c.shadowOffsetY=0;rounded(c,p.x-3,p.y-3,p.width+6,7,3,workshop?'#efc496':sky?'#c8e9dc':'#e1c1db');c.fillStyle='#e3e3ff44';c.fillRect(p.x+12,p.y+9,p.width-24,2);}
-        if(solid&&stage.id==='rooftops'){this.plant(c,p.x+25,p.y-7,time);this.plant(c,p.x+p.width-28,p.y-7,time+.8);rounded(c,p.x+p.width/2-44,p.y+18,88,24,4,'#b9b5db');text(c,'LUP',p.x+p.width/2,p.y+30,16,'#3a3d63',800);}
-        c.restore();}}
-    plant(c,x,y,t){rounded(c,x-10,y-18,20,18,3,'#90758e');c.strokeStyle='#659d99';c.lineWidth=3;c.beginPath();c.moveTo(x,y-18);c.lineTo(x,y-49);c.stroke();for(let i=0;i<4;i++){c.save();c.translate(x,y-26-i*8);c.rotate((i%2===0?-1:1)*.8+Math.sin(t)*.04);ellipse(c,i%2===0?-8:8,-3,11,4,'#83b2a0');c.restore();}}
-    fighter(c,f,now,playerId,phase){
-        const x=f.x,y=f.y,local=f.id===playerId,air=!f.grounded;const color=f.color||colors[0];
-        if(f.invulnerable&&Math.floor(now/80)%2===0)c.globalAlpha=.5;
-        ellipse(c,x,y+3,32,7,'#111b3d35');
-        if(Math.hypot(f.vx||0,f.vy||0)>500){c.save();c.globalAlpha=.25;c.strokeStyle=color;c.lineWidth=4;c.beginPath();c.moveTo(x-f.vx*.04,y-38-f.vy*.04);c.lineTo(x,y-38);c.stroke();c.restore();}
-        c.save();c.translate(x,y);c.scale(f.facing||1,1);
-        const action=f.action||'idle',frame=action==='idle'?Math.floor(now/150)%8:clamp(f.actionFrame||0,0,7);const image=this.load(f.avatarId,action)||null;
-        if(image?.complete&&image.naturalWidth&&!image.failed){const size=f.avatarId==='raymond'?119:111;c.drawImage(image,(frame%4)*256,Math.floor(frame/4)*256,256,256,-size/2,-size*224/256,size,size);}else{const idle=this.load(f.avatarId,'idle');if(idle?.complete&&idle.naturalWidth&&!idle.failed)c.drawImage(idle,0,0,256,256,-55.5,-97.125,111,111);else this.starter(c,f,now,local);}
-        if(action==='ability_1_pulse'||action==='ultimate_release'||action==='ability_2_magnet'){c.strokeStyle=action==='ultimate_release'?'#ffe4aa':'#e6dbff';c.lineWidth=action==='ultimate_release'?8:5;c.globalAlpha=.7;const a=frame/8;c.beginPath();c.arc(18,-42,30+frame*2,-1.2+a,.5+a);c.stroke();c.globalAlpha=1;}
-        if(f.charge>0){c.strokeStyle='#ffe0a3';c.lineWidth=4;c.beginPath();c.arc(0,-40,52,-Math.PI/2,-Math.PI/2+TAU*f.charge);c.stroke();}
-        c.restore();c.globalAlpha=1;
-        if(f.shielding){c.save();c.globalAlpha=.16+.1*(f.shield/100);ellipse(c,x,y-37,35+f.shield*.2,38+f.shield*.2,color);c.globalAlpha=.8;c.strokeStyle=color;c.lineWidth=2;c.beginPath();c.ellipse(x,y-37,35+f.shield*.2,38+f.shield*.2,0,0,TAU);c.stroke();c.restore();}
-        const label=local?'▼ '+f.name:f.name;const width=Math.min(160,Math.max(48,label.length*6.3+20));rounded(c,x-width/2,y-131,width,23,7,'#262c50d9');text(c,label.length>22?label.slice(0,20)+'…':label,x,y-119,10,color,700);
-        if(phase==='playing'&&local){c.fillStyle=color;c.beginPath();c.moveTo(x-5,y-102);c.lineTo(x+5,y-102);c.lineTo(x,y-95);c.fill();}
-        if(!f.connected&&!f.isBot&&phase==='playing')text(c,'Forbindelse…',x,y-153,10,'#f8d5b9');
+
+    loadImage(key, source) {
+        if (this.imagePromises.has(key)) return this.imagePromises.get(key);
+        const image = new Image();
+        image.decoding = 'async';
+        this.images.set(key, image);
+        const promise = new Promise(resolve => {
+            image.onload = () => resolve(image);
+            image.onerror = () => {
+                image.failed = true;
+                this.failures.add(source);
+                console.warn('Arena artwork could not load:', source);
+                resolve(null);
+            };
+        });
+        this.imagePromises.set(key, promise);
+        image.src = source;
+        return promise;
     }
-    starter(c,f,now,isLocal=false){const local=isLocal||f.id==='local'||f.id==='preview1',a=f.appearance||(local?this.options.appearance:{} )||{};const skin=a.skin||'#c98d69',hair=a.hair||'#42302a',outfit=a.outfit||'#2452e8';const moving=f.action==='run'||f.action==='walk',bounce=moving?Math.sin(now/75)*3:Math.sin(now/450)*1.5,step=moving?Math.sin(now/75)*13:0;const attacking=['ability_1_pulse','ultimate_release','ability_2_magnet'].includes(f.action);c.save();c.translate(0,bounce);c.lineCap='round';c.strokeStyle='#303a66';c.lineWidth=13;for(const side of [-1,1]){c.beginPath();c.moveTo(side*10,-28);c.lineTo(side*13+step*side,-8);c.stroke();rounded(c,side*13-9+step*side,-9,20,10,5,'#f4e9df');}rounded(c,-21,-63,42,41,13,outfit);c.strokeStyle=skin;c.lineWidth=11;c.beginPath();c.moveTo(-18,-53);c.lineTo(-26-step*.4,-32);c.moveTo(18,-53);c.lineTo(attacking?51:26+step*.4,attacking?-52:-31);c.stroke();ellipse(c,0,-80,24,25,skin);ellipse(c,-22,-78,5,7,skin);ellipse(c,22,-78,5,7,skin);c.fillStyle=hair;c.beginPath();c.ellipse(0,-93,25,14,0,Math.PI,TAU);c.lineTo(24,-85);c.lineTo(15,-93);c.lineTo(-5,-89);c.lineTo(-24,-82);c.fill();if(a.hairStyle==='cap'){rounded(c,-24,-106,46,17,[12,12,1,1],'#f8c677');rounded(c,10,-94,24,5,2,'#e1aa59');}if(a.hairStyle==='long'){rounded(c,-26,-90,10,40,5,hair);rounded(c,16,-90,10,40,5,hair);}ellipse(c,9,-81,2.2,3,'#342b40');ellipse(c,-5,-81,2.2,3,'#342b40');c.strokeStyle='#7b463d';c.lineWidth=2;c.beginPath();c.arc(2,-74,7,.1,Math.PI-.2);c.stroke();rounded(c,-8,-56,16,5,2,'#ffffff55');c.restore();}
-    hud(c,state,playerId){const fighters=state.fighters,count=fighters.length,panelWidth=Math.min(258,(W-100)/Math.max(2,count)),gap=14,start=(W-(panelWidth*count+gap*(count-1)))/2;const time=Math.max(0,Math.ceil(state.remainingSeconds));rounded(c,560,21,160,43,22,'#202544cc');text(c,Math.floor(time/60)+':'+String(time%60).padStart(2,'0'),640,42,25,'#fff',700);
-        fighters.forEach((f,i)=>{const x=start+i*(panelWidth+gap),y=H-103,color=f.color||colors[i];c.globalAlpha=f.out?.4:1;rounded(c,x,y,panelWidth,83,12,'#1e264be8');rounded(c,x,y+78,panelWidth,5,[0,0,5,5],color);rounded(c,x+11,y+13,46,46,10,color+'33');const image=this.load(f.avatarId,'idle');if(image?.complete&&image.naturalWidth)c.drawImage(image,0,0,256,256,x+8,y+4,54,54);else{ellipse(c,x+34,y+32,16,17,'#c98d69');ellipse(c,x+39,y+29,1.5,2,'#342b40');ellipse(c,x+30,y+29,1.5,2,'#342b40');}const name=f.id===playerId?'Dig':f.name;text(c,name.length>15?name.slice(0,14)+'…':name,x+68,y+20,11,'#e5e8ff',600,'left');const damage=String(Math.round(f.damage))+'%';text(c,f.out?'Ude':damage,x+68,y+48,31,f.damage>=140?'#ff8495':f.damage>=80?'#ffc291':'#fff',800,'left');for(let s=0;s<f.stocks;s++)ellipse(c,x+20+s*11,y+67,3.5,3.5,color);if(f.shielding){rounded(c,x+68,y+68,panelWidth-83,3,2,'#525c78');rounded(c,x+68,y+68,(panelWidth-83)*f.shield/100,3,2,color);}c.globalAlpha=1;});
+
+    // Retained for callers that request a character image by avatar/action.
+    load(avatarId) { return this.images.get('fighter-' + avatarId) || null; }
+
+    splitAndTrim(image, columns, rows, options = {}) {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        context.drawImage(image, 0, 0);
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        const frameWidth = canvas.width / columns, frameHeight = canvas.height / rows;
+        const frames = [];
+        for (let row = 0; row < rows; row++) {
+            for (let column = 0; column < columns; column++) {
+                const left = Math.round(column * frameWidth), top = Math.round(row * frameHeight);
+                const right = Math.round((column + 1) * frameWidth), bottom = Math.round((row + 1) * frameHeight);
+                let minX = right, minY = bottom, maxX = left, maxY = top;
+                let scanTop = top;
+                const alpha = options.alpha || 12;
+                if (options.surfaceCoverage) {
+                    for (let y = top; y < bottom; y++) {
+                        let covered = 0;
+                        for (let x = left; x < right; x++) if (pixels[(y * canvas.width + x) * 4 + 3] >= alpha) covered++;
+                        if (covered >= frameWidth * options.surfaceCoverage) { scanTop = y; break; }
+                    }
+                }
+                for (let y = scanTop; y < bottom; y++) {
+                    for (let x = left; x < right; x++) {
+                        if (pixels[(y * canvas.width + x) * 4 + 3] < alpha) continue;
+                        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                    }
+                }
+                frames.push(maxX >= minX && maxY >= minY
+                    ? { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
+                    : { x: left, y: top, width: frameWidth, height: frameHeight });
+            }
+        }
+        return frames;
+    }
+
+    reset() {
+        this.seenEvents.clear();
+        this.effects.length = 0;
+        this.shake = 0;
+        this.currentTick = 0;
+        this.camera = { x: 640, y: 360, zoom: 1 };
+    }
+
+    preview(stageId, avatarId, players = null) {
+        this.stageId = stageId;
+        this.avatar = avatarId;
+        this.previewPlayers = players;
+        this.reset();
+    }
+
+    dispose() {
+        this.disposed = true;
+        this.images.clear();
+        this.imagePromises.clear();
+        this.materialVariants.clear();
+        this.effects.length = 0;
+    }
+
+    events(events) {
+        for (const event of events) {
+            if (this.seenEvents.has(event.id)) continue;
+            this.seenEvents.add(event.id);
+            if (this.seenEvents.size > 600) this.seenEvents.delete(this.seenEvents.values().next().value);
+            if (event.tick < this.currentTick - 90) continue;
+            this.cue(event.type, event.strength);
+            const strength = clamp(event.strength || 1, .5, 2);
+            const effect = { x: event.x, y: event.y, age: 0, rotation: 0, strength };
+            switch (event.type) {
+                case 'hit': case 'throw':
+                    this.effects.push({ ...effect, frames: [0, 1, 2, 3], duration: .32, size: 90 * strength, grow: 1.5 });
+                    this.shake = Math.max(this.shake, 2 + 2 * strength);
+                    break;
+                case 'ko':
+                    this.effects.push({ ...effect, frames: [15], duration: .9, size: 180, grow: 3 });
+                    this.shake = Math.max(this.shake, 9);
+                    break;
+                case 'shield': case 'parry': case 'break':
+                    this.effects.push({ ...effect, frames: event.type === 'break' ? [0, 1, 2, 3] : [8, 9, 10, 11], duration: .3, size: event.type === 'break' ? 180 : 105, grow: 1.35 });
+                    break;
+                case 'respawn': case 'ledge':
+                    this.effects.push({ ...effect, y: event.y - 35, frames: [14], duration: .7, size: 125, grow: 1.6 });
+                    break;
+                case 'jump': case 'land':
+                    this.effects.push({ ...effect, frames: [12], duration: .35, size: 70, grow: 1.5, floor: true });
+                    break;
+                case 'dodge': case 'recovery':
+                    this.effects.push({ ...effect, frames: [13], duration: .27, size: 100, grow: 1.6 });
+                    break;
+            }
+        }
+    }
+
+    draw(now, deltaTime, state, previous, receivedAt, previousAt, playerId, practice) {
+        const context = this.context;
+        if (this.disposed || !context || this.canvas.width < 2 || this.canvas.height < 2) return;
+        context.setTransform(this.canvas.width / WIDTH, 0, 0, this.canvas.height / HEIGHT, 0, 0);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.fillStyle = '#071322';
+        context.fillRect(0, 0, WIDTH, HEIGHT);
+        if (!this.ready) {
+            label(context, this.loading ? 'Indlæser' : 'Grafikken kunne ikke indlæses', 640, 360, 18, '#c6d3e4');
+            return;
+        }
+        const stage = this.stages.find(stage => stage.id === (state?.stageId || this.stageId)) || this.stages[0];
+        this.background(context, stage);
+        let fighters = state?.fighters || this.previewFighters(stage, now);
+        if (state && previous && state.tick >= previous.tick) {
+            const interval = Math.max(1, receivedAt - previousAt);
+            const amount = clamp((now - receivedAt) / interval, 0, 1);
+            fighters = fighters.map(fighter => {
+                const before = previous.fighters.find(item => item.id === fighter.id);
+                if (!before || Math.abs(before.x - fighter.x) > 180 || Math.abs(before.y - fighter.y) > 200 || before.stocks !== fighter.stocks) return fighter;
+                const own = fighter.id === playerId;
+                const lead = Math.min(.026, Math.max(0, now - receivedAt) / 1000);
+                return { ...fighter,
+                    x: own ? fighter.x + fighter.vx * lead : lerp(before.x, fighter.x, amount),
+                    y: own ? fighter.y + fighter.vy * lead : lerp(before.y, fighter.y, amount) };
+            });
+        }
+        if (state) {
+            this.currentTick = state.tick;
+            this.updateCamera(fighters, deltaTime);
+        }
+        context.save();
+        context.translate(WIDTH / 2, HEIGHT / 2);
+        context.scale(this.camera.zoom, this.camera.zoom);
+        context.translate(-this.camera.x, -this.camera.y);
+        if (!this.reducedMotion && this.shake > .1) {
+            context.translate(Math.sin(now * .049) * this.shake, Math.cos(now * .057) * this.shake * .55);
+        }
+        this.shake *= Math.pow(.03, deltaTime);
+        this.platforms(context, stage);
+        for (const projectile of state?.projectiles || []) this.projectile(context, projectile, now);
+        for (const fighter of fighters) {
+            if (fighter.out || fighter.stocks <= 0) continue;
+            this.fighter(context, fighter, now, playerId, state?.phase);
+        }
+        this.drawEffects(context, deltaTime);
+        context.restore();
+        if (!state) return;
+        this.hud(context, state, playerId);
+        if (state.phase === 'countdown') {
+            const number = Math.ceil(state.countdown);
+            context.save();
+            context.shadowColor = '#05101b'; context.shadowBlur = 26;
+            label(context, number > 0 ? String(number) : 'KAMP', 640, 285, 114, '#f4f6f8', 700);
+            context.restore();
+        }
+        if (state.suddenDeath && state.phase !== 'finished') {
+            panel(context, 535, 75, 210, 32, 5, '#351a31df', '#ffb6c366');
+            label(context, 'Sudden death', 640, 91, 14, '#ffe2e7');
+        }
+        if (state.phase === 'playing' && now - receivedAt > 2500 && !practice) {
+            panel(context, 460, 314, 360, 65, 10, '#081727ea', '#8da6c633');
+            label(context, 'Forbinder…', 640, 347, 21, '#e5edf5');
+        }
+    }
+
+    updateCamera(fighters, deltaTime) {
+        const active = fighters.filter(fighter => !fighter.out && fighter.stocks > 0);
+        let minX = 250, maxX = 1030, minY = 80, maxY = 650;
+        for (const fighter of active) {
+            minX = Math.min(minX, fighter.x - 110); maxX = Math.max(maxX, fighter.x + 110);
+            minY = Math.min(minY, fighter.y - 170); maxY = Math.max(maxY, fighter.y + 130);
+        }
+        const easing = 1 - Math.exp(-4 * deltaTime);
+        const zoom = clamp(Math.min(WIDTH / (maxX - minX), HEIGHT / (maxY - minY)), .65, 1);
+        this.camera.x = lerp(this.camera.x, clamp((minX + maxX) / 2, 420, 860), easing);
+        this.camera.y = lerp(this.camera.y, clamp((minY + maxY) / 2, 250, 470), easing);
+        this.camera.zoom = lerp(this.camera.zoom, zoom, easing);
+    }
+
+    background(context, stage) {
+        const image = this.images.get('stage-' + stage.id);
+        if (!loaded(image)) return;
+        // The environment stays behind the collision plane, with only a small camera parallax.
+        const scale = Math.max(WIDTH / image.naturalWidth, HEIGHT / image.naturalHeight) * 1.04;
+        const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
+        const x = (WIDTH - width) / 2 - (this.camera.x - 640) * .06;
+        const y = (HEIGHT - height) / 2 - (this.camera.y - 360) * .035;
+        context.drawImage(image, x, y, width, height);
+        context.fillStyle = '#06142635';
+        context.fillRect(0, 0, WIDTH, HEIGHT);
+        const shade = context.createLinearGradient(0, 0, 0, HEIGHT);
+        shade.addColorStop(0, '#0717293b'); shade.addColorStop(.5, '#07172900'); shade.addColorStop(1, '#07172970');
+        context.fillStyle = shade; context.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+
+    previewFighters(stage, now) {
+        const surfaces = stage.platforms.filter(platform => !platform.oneWay);
+        const players = this.previewPlayers || [
+            { id: 'preview1', avatarId: this.avatar, name: '', color: COLORS[0], appearance: this.options.appearance },
+            { id: 'preview2', avatarId: this.avatar === 'raymond' ? 'bip01' : 'raymond', name: '', color: COLORS[1] }
+        ];
+        return players.map((player, index) => {
+            const surface = surfaces[index % surfaces.length];
+            const proportion = surfaces.length === 1 ? .3 + .4 * index / Math.max(1, players.length - 1) : .5;
+            return { ...player, x: surface.x + surface.width * proportion, y: surface.y,
+                facing: index % 2 === 0 ? 1 : -1, action: 'idle', actionFrame: Math.floor(now / 150) % 8,
+                stocks: 3, damage: 0, shield: 100, grounded: true, invulnerable: false, shielding: false, out: false };
+        });
+    }
+
+    platforms(context, stage) {
+        const atlas = this.images.get('platforms');
+        const row = STAGES.indexOf(stage.id);
+        const frame = this.platformFrames[Math.max(0, row)];
+        if (!loaded(atlas) || !frame) return;
+        for (const platform of stage.platforms) {
+            const height = platform.oneWay ? 34 : 72;
+            const cap = Math.min(frame.width * .18, frame.height * .85);
+            const targetCap = Math.min(platform.width * .2, cap * height / frame.height);
+            const middleSource = frame.width - cap * 2;
+            const middleHeightScale = height / frame.height;
+            const naturalTileWidth = Math.max(30, middleSource * middleHeightScale);
+            const middleWidth = platform.width - targetCap * 2;
+            context.save();
+            context.shadowColor = '#020b16aa'; context.shadowBlur = 16; context.shadowOffsetY = 9;
+            context.drawImage(atlas, frame.x, frame.y, cap, frame.height,
+                platform.x, platform.y, targetCap, height);
+            context.shadowBlur = 0; context.shadowOffsetY = 0;
+            for (let offset = 0; offset < middleWidth; offset += naturalTileWidth) {
+                const tileWidth = Math.min(naturalTileWidth, middleWidth - offset);
+                context.drawImage(atlas, frame.x + cap, frame.y, middleSource * tileWidth / naturalTileWidth, frame.height,
+                    platform.x + targetCap + offset, platform.y, tileWidth, height);
+            }
+            context.drawImage(atlas, frame.x + frame.width - cap, frame.y, cap, frame.height,
+                platform.x + platform.width - targetCap, platform.y, targetCap, height);
+            context.restore();
+        }
+    }
+
+    animationFrame(fighter, now) {
+        const action = fighter.action || 'idle';
+        const phase = clamp(fighter.actionFrame || 0, 0, 7);
+        if (action === 'run' || action === 'walk') return 4 + Math.floor(now / 75) % 4;
+        if (action === 'idle' || action === 'think' || action === 'talk') return Math.floor(now / 180) % 4;
+        if (action === 'jump') return fighter.vy < -40 ? 8 : 9;
+        if (action === 'land') return 11;
+        if (action === 'hit' || action === 'knockout') return 14;
+        if (action === 'celebrate' || action === 'wave') return 15;
+        if (action === 'ultimate_charge') return 12;
+        if (action === 'ability_4_dash' || action === 'respawn') return 10;
+        if (action === 'ability_3_shield' || action === 'ability_5_repair' || action === 'interact') return 12;
+        return phase < 2 ? 12 : 13;
+    }
+
+    appearanceImage(fighter, playerId) {
+        const appearance = fighter.appearance || (fighter.id === playerId || fighter.id === 'local' || fighter.id === 'preview1' ? this.options.appearance : null);
+        const variant = fighter.avatarId === 'starter' && ['long', 'cap'].includes(appearance?.hairStyle) ? 'fighter-starter-' + appearance.hairStyle : null;
+        const source = variant ? this.images.get(variant) : this.load(fighter.avatarId);
+        if (fighter.avatarId !== 'starter' || !loaded(source)) return source;
+        if (!appearance) return source;
+        const skin = hexColor(appearance.skin, '#c98d69');
+        const hair = hexColor(appearance.hair, '#42302a');
+        const outfit = hexColor(appearance.outfit, '#2452e8');
+        if (skin.toLowerCase() === '#c98d69' && hair.toLowerCase() === '#42302a' && outfit.toLowerCase() === '#2452e8') return source;
+        const key = [skin, hair, outfit, appearance.hairStyle].join(':');
+        if (this.materialVariants.has(key)) return this.materialVariants.get(key);
+        const canvas = document.createElement('canvas');
+        canvas.width = source.naturalWidth; canvas.height = source.naturalHeight;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        context.drawImage(source, 0, 0);
+        const image = context.getImageData(0, 0, canvas.width, canvas.height);
+        const materials = { skin: { color: rgb(skin), light: .55 }, hair: { color: rgb(hair), light: .19 }, outfit: { color: rgb(outfit), light: .31 } };
+        for (let index = 0; index < image.data.length; index += 4) {
+            if (image.data[index + 3] < 12) continue;
+            const red = image.data[index] / 255, green = image.data[index + 1] / 255, blue = image.data[index + 2] / 255;
+            const value = Math.max(red, green, blue), min = Math.min(red, green, blue);
+            const saturation = value ? (value - min) / value : 0;
+            const colorHue = hue(red, green, blue);
+            let material;
+            if (colorHue >= 190 && colorHue <= 265 && saturation > .28) material = materials.outfit;
+            else if (colorHue >= 5 && colorHue <= 48 && saturation > .24 && value < .42) material = materials.hair;
+            else if (colorHue >= 6 && colorHue <= 44 && saturation > .22 && value >= .42 && value < .96) material = materials.skin;
+            if (!material) continue;
+            const luminance = .2126 * red + .7152 * green + .0722 * blue;
+            const shade = clamp(luminance / material.light, .22, 2.4);
+            for (let channel = 0; channel < 3; channel++) image.data[index + channel] = clamp(material.color[channel] * shade, 0, 255);
+        }
+        context.putImageData(image, 0, 0);
+        if (this.materialVariants.size >= 20) this.materialVariants.delete(this.materialVariants.keys().next().value);
+        this.materialVariants.set(key, canvas);
+        return canvas;
+    }
+
+    fighter(context, fighter, now, playerId, phase) {
+        const image = this.appearanceImage(fighter, playerId);
+        if (!image || (!image.width && !image.naturalWidth)) return;
+        const frame = this.animationFrame(fighter, now);
+        const sourceWidth = (image.naturalWidth || image.width) / 4;
+        const sourceHeight = (image.naturalHeight || image.height) / 4;
+        const x = frame % 4 * sourceWidth, y = Math.floor(frame / 4) * sourceHeight;
+        const width = fighter.avatarId === 'raymond' ? 125 : 118;
+        const height = width * sourceHeight / sourceWidth;
+        const color = fighter.color || COLORS[0];
+        const own = fighter.id === playerId;
+        context.save();
+        context.translate(fighter.x, fighter.y);
+        // A flattened copy of the generated sprite supplies its contact shadow.
+        if (fighter.grounded) {
+            context.save(); context.globalAlpha = .2; context.filter = 'brightness(0) blur(2px)';
+            context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .37, -2, width * .74, 9);
+            context.restore();
+        }
+        context.scale(fighter.facing || 1, 1);
+        if (fighter.invulnerable) context.globalAlpha = .55 + Math.sin(now / 55) * .25;
+        context.shadowColor = '#031125a0'; context.shadowBlur = 6;
+        context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .5, -height * .9, width, height);
+        context.restore();
+        if (fighter.shielding) {
+            const frame = 8 + Math.floor(now / 110) % 4;
+            const size = 82 + clamp(fighter.shield, 0, 100) * .25;
+            this.effectTexture(context, frame, fighter.x, fighter.y - 41, size, 0, .7, 'screen');
+        }
+        if (fighter.charge > 0) {
+            this.effectTexture(context, 14, fighter.x, fighter.y - 43, 80 + fighter.charge * 45, 0, .25 + fighter.charge * .5, 'screen');
+        }
+        if (['ability_1_pulse', 'ability_2_magnet', 'ultimate_release'].includes(fighter.action) && fighter.actionFrame >= 2 && fighter.actionFrame <= 5) {
+            this.effectTexture(context, 13, fighter.x + fighter.facing * 34, fighter.y - 45,
+                fighter.action === 'ultimate_release' ? 130 : 80, fighter.facing < 0 ? Math.PI : 0, .82, 'screen');
+        }
+        if (fighter.name && (phase || this.previewPlayers)) {
+            const name = (own ? 'Dig' : fighter.name).slice(0, 22);
+            const labelWidth = Math.max(46, Math.min(160, name.length * 6.3 + 20));
+            panel(context, fighter.x - labelWidth / 2, fighter.y - 137, labelWidth, 22, 5, '#061727cf', color + '60');
+            label(context, name, fighter.x, fighter.y - 126, 11, color, 700);
+        }
+        if (!fighter.connected && !fighter.isBot && phase === 'playing') {
+            label(context, 'Forbinder…', fighter.x, fighter.y - 153, 10, '#f2c6a6');
+        }
+    }
+
+    effectTexture(context, index, x, y, size, rotation = 0, alpha = 1, blend = 'source-over', heightScale = 1) {
+        const atlas = this.images.get('effects'), frame = this.effectFrames[index];
+        if (!loaded(atlas) || !frame || alpha <= 0) return;
+        const aspect = frame.width / frame.height;
+        const width = aspect >= 1 ? size : size * aspect;
+        const height = (aspect >= 1 ? size / aspect : size) * heightScale;
+        context.save();
+        context.translate(x, y); context.rotate(rotation);
+        context.globalCompositeOperation = blend; context.globalAlpha = clamp(alpha, 0, 1);
+        context.drawImage(atlas, frame.x, frame.y, frame.width, frame.height, -width / 2, -height / 2, width, height);
+        context.restore();
+    }
+
+    projectile(context, projectile, now) {
+        const speed = Math.hypot(projectile.vx, projectile.vy);
+        const angle = Math.atan2(projectile.vy, projectile.vx);
+        const frame = 4 + Math.floor(now / 65) % 4;
+        const size = Math.max(45, (projectile.radius || 9) * 5);
+        this.effectTexture(context, frame, projectile.x - projectile.vx * .018,
+            projectile.y - projectile.vy * .018, size * 1.3, angle, .3, 'screen');
+        this.effectTexture(context, frame, projectile.x, projectile.y, size, speed ? angle : 0, 1, 'screen');
+    }
+
+    drawEffects(context, deltaTime) {
+        this.effects = this.effects.filter(effect => effect.age < effect.duration);
+        for (const effect of this.effects) {
+            effect.age += deltaTime;
+            const progress = clamp(effect.age / effect.duration, 0, 1);
+            const index = effect.frames[Math.min(effect.frames.length - 1, Math.floor(progress * effect.frames.length))];
+            const size = effect.size * lerp(.7, effect.grow, progress);
+            const opacity = Math.min(1, (1 - progress) * 2.4);
+            this.effectTexture(context, index, effect.x, effect.y, size, effect.rotation,
+                opacity, effect.floor ? 'source-over' : 'screen', effect.floor ? .6 : 1);
+        }
+    }
+
+    hud(context, state, playerId) {
+        const count = state.fighters.length;
+        const width = Math.min(244, (WIDTH - 96 - 14 * (count - 1)) / Math.max(2, count));
+        const start = (WIDTH - width * count - 14 * (count - 1)) / 2;
+        const seconds = Math.max(0, Math.ceil(state.remainingSeconds));
+        const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+        panel(context, 572, 20, 136, 45, 7, '#071828cf', '#b3c8df33');
+        label(context, clock, 640, 43, 28, '#f2f5f8', 700);
+        for (let index = 0; index < count; index++) {
+            const fighter = state.fighters[index], x = start + index * (width + 14), y = HEIGHT - 98;
+            const color = fighter.color || COLORS[index % COLORS.length];
+            context.save();
+            context.globalAlpha = fighter.out ? .38 : 1;
+            const fill = context.createLinearGradient(x, y, x, y + 78);
+            fill.addColorStop(0, '#142c43ee'); fill.addColorStop(1, '#071727f5');
+            panel(context, x, y, width, 78, 7, fill, '#c3d5e533');
+            panel(context, x, y + 74, width, 4, [0, 0, 5, 5], color);
+            const portrait = this.images.get('portrait-' + fighter.avatarId);
+            if (fighter.avatarId === 'starter') {
+                const sheet = this.appearanceImage(fighter, playerId);
+                const frameWidth = (sheet.naturalWidth || sheet.width) / 4;
+                const frameHeight = (sheet.naturalHeight || sheet.height) / 4;
+                context.drawImage(sheet, frameWidth * .15, frameHeight * .03, frameWidth * .7, frameHeight * .7, x + 4, y - 11, 78, 78);
+            } else if (loaded(portrait)) context.drawImage(portrait, x + 4, y - 11, 78, 78);
+            const name = fighter.id === playerId ? 'Dig' : fighter.name;
+            label(context, name.length > 18 ? name.slice(0, 17) + '…' : name, x + 82, y + 16, 11, '#c9d6e4', 600, 'left');
+            const damageColor = fighter.damage >= 140 ? '#ff8797' : fighter.damage >= 80 ? '#ffc18b' : '#f5f7fa';
+            label(context, fighter.out ? 'Ude' : Math.round(fighter.damage) + '%', x + 80, y + 44, 32, damageColor, 700, 'left');
+            label(context, '× ' + fighter.stocks, x + 29, y + 64, 11, color, 700);
+            if (fighter.shielding) {
+                panel(context, x + 82, y + 65, width - 98, 3, 1, '#52677d');
+                panel(context, x + 82, y + 65, (width - 98) * fighter.shield / 100, 3, 1, color);
+            }
+            context.restore();
+        }
     }
 }

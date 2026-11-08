@@ -1,0 +1,182 @@
+{
+  "version": 2,
+  "tool": "built-in image_gen",
+  "columns": 4,
+  "rows": 4,
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "anchor": {
+    "x": 128,
+    "y": 230
+  },
+  "actions": {
+    "idle": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "blink": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "walk": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "run": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "jump": [
+      8,
+      9
+    ],
+    "land": [
+      11
+    ],
+    "hit": [
+      14
+    ],
+    "knockout": [
+      14
+    ],
+    "celebrate": [
+      15
+    ],
+    "respawn": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "interact": [
+      11
+    ],
+    "ability_1_pulse": [
+      12,
+      13
+    ],
+    "ability_2_magnet": [
+      12,
+      13
+    ],
+    "ability_3_shield": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "ability_4_dash": [
+      10
+    ],
+    "ability_5_repair": [
+      12,
+      13
+    ],
+    "ultimate_charge": [
+      12
+    ],
+    "ultimate_release": [
+      13
+    ]
+  },
+  "fighters": {
+    "starter": {
+      "atlas": "/assets/arena/v2/fighters-starter.webp",
+      "source": "assets/arena/v2/source/fighters-starter-source.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "scale": 0.6962457337883959,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "anchor": {
+        "x": 128,
+        "y": 230
+      },
+      "alpha": [
+        0,
+        255
+      ],
+      "fileBytes": 576228
+    },
+    "bip01": {
+      "atlas": "/assets/arena/v2/fighters-bip01.webp",
+      "source": "assets/arena/v2/source/fighters-bip01-source.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "scale": 0.7208480565371025,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "anchor": {
+        "x": 128,
+        "y": 230
+      },
+      "alpha": [
+        0,
+        255
+      ],
+      "fileBytes": 648942
+    },
+    "raymond": {
+      "atlas": "/assets/arena/v2/fighters-raymond.webp",
+      "source": "assets/arena/v2/source/fighters-raymond-source.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "scale": 0.7259786476868327,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "anchor": {
+        "x": 128,
+        "y": 230
+      },
+      "alpha": [
+        0,
+        255
+      ],
+      "fileBytes": 810130
+    },
+    "starter-long": {
+      "atlas": "/assets/arena/v2/fighters-starter-long.webp",
+      "source": "assets/arena/v2/source/fighters-starter-long-source.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "scale": 0.6915254237288135,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "anchor": {
+        "x": 128,
+        "y": 230
+      },
+      "alpha": [
+        0,
+        255
+      ],
+      "fileBytes": 562612
+    },
+    "starter-cap": {
+      "atlas": "/assets/arena/v2/fighters-starter-cap.webp",
+      "source": "assets/arena/v2/source/fighters-starter-cap-source.png",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "scale": 0.6962457337883959,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "anchor": {
+        "x": 128,
+        "y": 230
+      },
+      "alpha": [
+        0,
+        255
+      ],
+      "fileBytes": 548100
+    }
+  }
+}
