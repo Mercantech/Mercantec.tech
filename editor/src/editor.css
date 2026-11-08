@@ -204,6 +204,7 @@
 @media print{.notion-ai-assistant{display:none!important}}
 @keyframes notion-ai-breathe{50%{opacity:.35}}
 .notion-custom-emoji{width:1.15em;height:1.15em;object-fit:contain;vertical-align:-0.2em;display:inline-block}
+.notion-emoji-text{white-space:inherit;overflow-wrap:anywhere}
 .notion-drawing-portals{display:contents}
 .notion-drawing-block{width:100%;min-width:0;margin:8px 0;color:var(--notion-ink)}
 .notion-drawing-preview{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:64px;margin:0;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--notion-muted);font:inherit;cursor:pointer}
@@ -882,6 +883,11 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
 .notion-reference-picker li button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:9px;text-align:left;border:0;border-radius:7px;color:inherit;background:transparent;cursor:pointer}
 .notion-reference-picker li button:hover,.notion-reference-picker li button.is-selected{background:var(--bn-colors-hovered-background,#edf1ff)}
 .notion-reference-picker small,.notion-entity-link small{font-size:.78rem;opacity:.75}
+.notion-reference-suggestions{box-sizing:border-box;display:flex;flex-direction:column;gap:2px;width:360px;max-width:calc(100vw - 24px);max-height:300px;overflow:auto;padding:5px;border:1px solid var(--bn-colors-border,var(--notion-rule,#d9dce3));border-radius:8px;background:var(--bn-colors-menu-background,var(--notion-paper,#fff));color:var(--bn-colors-menu-text,var(--notion-ink,#20232c))}
+.notion-reference-suggestion{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:44px;padding:8px 10px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.notion-reference-suggestion:hover,.notion-reference-suggestion[aria-selected=true]{background:var(--bn-colors-hovered-background,var(--notion-tint,#edf1ff))}
+.notion-reference-suggestion small{font-size:.78rem;opacity:.75}
+.notion-reference-suggestions p{margin:5px;font-size:.85rem}
 .notion-reference-change{font:inherit;font-size:.8rem;padding:5px 9px;border:1px solid var(--bn-colors-border,#d9dce3);border-radius:7px;background:transparent;color:inherit;cursor:pointer;margin-top:6px}
 .notion-entity-link{display:flex;align-items:flex-start;flex-wrap:wrap;gap:6px;text-decoration:none}
 .notion-entity-link small{flex-basis:100%;padding-inline-start:22px}

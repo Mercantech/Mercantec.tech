@@ -59,10 +59,14 @@ else
                     {
                         @if (IsEditing)
                         {
+                            var titlePageId = _current.PageId;
                             <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault>
-                                <label class="notion-visually-hidden" for="notion-title">Sidens titel</label>
-                                <input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" />
-                                @if (_title.Contains(':')) { <span class="notion-title-preview" aria-label="Sådan vises titlen" title="@_title"><EmojiText Text="@_title" /></span> }
+                                <div class="notion-title-field">
+                                    <label class="notion-visually-hidden" for="notion-title">Sidens titel</label>
+                                    <input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" />
+                                    @if (_title.Contains(':')) { <span class="notion-title-preview" aria-label="Sådan vises titlen" title="@_title"><EmojiText Text="@_title" /></span> }
+                                </div>
+                                <EmojiPicker @key="titlePageId" Disabled="_busy" TriggerLabel="Tilføj emoji til sidens titel" OnPick="emoji => InsertTitleEmoji(titlePageId, emoji)" />
                             </form>
                         }
                         else { <div class="notion-toolbar-title notion-published-title"><EmojiText Text="@_current.Title" /></div> }
@@ -143,6 +147,6 @@ else
 
     private RenderFragment PageRowContent(PageRow item) => @<div @key="item.Page.Id" class="notion-page-row" style="--page-depth:@item.Depth">
         @if (_pagesWithChildren.Contains(item.Page.Id) && _pageSearch.Trim().Length == 0) { <button type="button" class="notion-branch-toggle @(_expandedPages.Contains(item.Page.Id) ? "is-expanded" : null)" aria-expanded="@(_expandedPages.Contains(item.Page.Id) ? "true" : "false")" aria-label="@($"Fold {item.Page.Title} {(_expandedPages.Contains(item.Page.Id) ? "sammen" : "ud")}")" @onclick="() => ToggleBranch(item.Page.Id)"><UiIcon Name="chevron" /></button> } else { <span class="notion-branch-spacer" aria-hidden="true"></span> }
-        <button type="button" class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" title="@item.Page.Title" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><UiIcon Name="@(_pagesWithChildren.Contains(item.Page.Id) ? "folder" : "file")" /><span class="notion-page-label"><EmojiText Text="@item.Page.Title" />@if (_pageSearch.Trim().Length > 0 && ParentTitle(item.Page) is string parent) { <small class="notion-page-parent">@parent</small> }</span>@if (Authoring && (item.Page.PublishedAtUtc is null || item.Page.HasUnpublishedChanges)) { <span class="notion-draft-dot" title="@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")"><span class="notion-visually-hidden">@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")</span></span> }</button>
+        <button type="button" class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" title="@item.Page.Title" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><UiIcon Name="@(_pagesWithChildren.Contains(item.Page.Id) ? "folder" : "file")" /><span class="notion-page-label"><EmojiText Text="@item.Page.Title" />@if (_pageSearch.Trim().Length > 0 && ParentTitle(item.Page) is string parent) { <small class="notion-page-parent"><EmojiText Text="@parent" /></small> }</span>@if (Authoring && (item.Page.PublishedAtUtc is null || item.Page.HasUnpublishedChanges)) { <span class="notion-draft-dot" title="@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")"><span class="notion-visually-hidden">@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")</span></span> }</button>
     </div>;
 }

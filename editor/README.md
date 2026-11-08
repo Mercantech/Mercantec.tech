@@ -118,6 +118,16 @@ Platformens standardemojis og egne billeder hentes fra `GET /api/emojis` med det
 
 Emoji-navne er 2–32 tegn med små bogstaver, tal, `_` og `-`. Bindestreger bevares fra filnavne, fx `Vatson-Vinker.png` → `vatson-vinker`, og både `:vatson-vinker:` og eksisterende koder som `:thumbs_up:` virker i editoren og platformens tekstvisninger.
 
+Sidetitler gemmes som tekst med Unicode-emojis og eventuelle `:navn:`-koder. Runtimevisningen
+tegner de kendte koder med det fælles emoji-katalog i mentions, sidereferencer, søgeforslag,
+AI-panelets titler og præsentationens overskrift. Ukendte eller utilgængelige koder vises
+ordret. Det er kun et label-preview: referencer beholder deres id, autoriserede titel og
+destination, og der indsættes ingen emoji-noder eller billedbilletter i dokumentet.
+
+Titel- og mentionvisningen kan kontrolleres lokalt med `npm exec vite -- --host 127.0.0.1 --port 5197`
+og `/notion-editor/tests/title-emoji-browser.html`. Den bruger kun fiktive referencer på loopback og
+afprøver katalogindlæsning, titelændringer og tastaturvalg fra `@`-menuen uden produktionsdata.
+
 Kolon-menuen (`:navn`) bruger en kompakt rude med seks kolonner og et rullende emoji-felt. **+** i menuens faste top åbner samme uploadflow som `/emoji`. Filvalget bevarer dokumentets markør og kolon-søgning; søgningen erstattes først, når en emoji indsættes. Annullering ændrer ikke teksten.
 
 Undervisere kan tilføje et billede med **+** direkte i vælgeren. Filvalget foreslår først et navn ud fra filnavnet og analyserer derefter billedet via `POST /api/emojis/analyze`. Analysen foreslår dansk ALT-tekst, kategori og danske/engelske søgeord. Filnavnet bevares som standardnavn, indtil brugeren selv retter det. Felterne kan rettes undervejs; et sent analysesvar overskriver aldrig brugerens rettelser. **Stop analyse** giver mulighed for at fortsætte manuelt. Analysen gemmer intet i biblioteket. Billedet og metadata gemmes først ved **Gem og brug**, som også indsætter det ved den eksisterende markør. **Annuller** bevarer dokumentet. PNG, JPEG, GIF og WebP understøttes op til 256 KB; GIF analyseres via første frame, mens den oprindelige fil gemmes uændret. Samme flow findes i `/emojis`, hvor metadata også kan redigeres senere. Egne emojis kan vises i deres relevante kategori og findes via ALT-tekst og søgeord.

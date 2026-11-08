@@ -475,6 +475,12 @@ public partial class Index
         });
     }
     private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
+    private async Task InsertTitleEmoji(Guid pageId, CustomEmojiItem emoji)
+    {
+        if (_disposed || !IsEditing || _current?.PageId != pageId) return;
+        _title = EmojiInsert.Append(_title, emoji.Name, 200);
+        await SaveTitle();
+    }
     private async Task RenamePage() => await SaveTitle();
     private async Task<bool> SaveTitle()
     {

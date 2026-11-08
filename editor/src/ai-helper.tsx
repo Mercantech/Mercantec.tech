@@ -10,6 +10,7 @@ import {
 } from './ai-block-text';
 import { toEditorBlock } from './ai-blocks.mjs';
 import { aiBlocksPreview, assertAiTargetCurrent, assistantHistoryText, boundedAiHistory, canReplaceAiSelection, captureAiTarget, type AiHistoryMessage, type AiTarget } from './ai-conversation';
+import { EmojiText } from './emoji-context';
 
 export type { AiAction };
 
@@ -436,7 +437,7 @@ export function AiHelperPanel({
     <section id={panelId} className="notion-ai-panel" hidden={!open} role="dialog" aria-label="AI-skriveassistent" aria-modal="false">
       <header className="notion-ai-panel-head">
         <span className="notion-ai-avatar"><img src={mascotUrl} alt="" draggable={false} /></span>
-        <div><strong>LUP-assistent</strong><small title={pageTitle}>{pageTitle || 'Dit dokument'}</small></div>
+        <div><strong>LUP-assistent</strong><small title={pageTitle}><EmojiText text={pageTitle || 'Dit dokument'} /></small></div>
         <button type="button" className="notion-ai-minimize" onClick={() => onOpenChange(false)} aria-label="Minimér AI-assistent" title="Minimér (Esc)">−</button>
       </header>
       <div className="notion-ai-context">

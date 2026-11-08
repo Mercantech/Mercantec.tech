@@ -19,6 +19,7 @@
     private string? _loadedFor;
     private bool _loaded;
     private bool _retried;
+    private int _loadVersion;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -37,15 +38,22 @@
 
     private async Task Load()
     {
+        var text = Text;
+        var version = ++_loadVersion;
+        _loaded = false;
+        IReadOnlyList<EmojiTextPart> parts = [new(text ?? "", null)];
+        _parts = parts;
         try
         {
-            _parts = Text?.Contains(':') == true ? EmojiTextParts.Split(Text, await Emojis.List()) : [new(Text ?? "", null)];
+            if (text?.Contains(':') == true) parts = EmojiTextParts.Split(text, await Emojis.List());
         }
         catch (EmojiException)
         {
-            _parts = [new(Text ?? "", null)];
+            // Keep the original title readable if the catalog cannot be loaded.
         }
-        _loadedFor = Text;
+        if (version != _loadVersion || text != Text) return;
+        _parts = parts;
+        _loadedFor = text;
         _loaded = true;
     }
 }
