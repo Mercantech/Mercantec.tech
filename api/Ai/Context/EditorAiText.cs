@@ -15,10 +15,29 @@ public static partial class EditorAiText
     public static string Fingerprint(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
     public static string FileFingerprint(Data.Entities.FileAsset file) => Fingerprint($"text-v1:{file.Id}:{file.Key}:{file.SizeBytes}:{file.CreatedAtUtc:O}");
 
-    public static string[] Words(string text) => WordPattern().Matches(text.ToLowerInvariant()).Select(x => x.Value)
-        .Where(x => x.Length > 2 && !StopWords.Contains(x)).Distinct().Take(20).ToArray();
-    private static readonly HashSet<string> StopWords = ["den", "det", "der", "som", "til", "med", "for", "fra", "the", "and", "eller", "skal", "kan", "har", "om", "lav", "skriv", "mere", "gør", "denne", "dette"];
-    [GeneratedRegex(@"[\p{L}\p{N}_+#.-]+")]
+    public static string[] Words(string text) => WordPattern().Matches(text.ToLowerInvariant()).Select(x => NormalizeWord(x.Value))
+        .Where(x => (x.Length > 2 || x is "c#" or "f#" or "c++") && !StopWords.Contains(x)).Distinct().Take(2048).ToArray();
+    private static string NormalizeWord(string word) => word switch
+    {
+        "csharp" => "c#", "fsharp" => "f#", ".net" or "net" or "asp.net" or "aspnet" => "dotnet",
+        "interfaces" or "interfacet" or "interfacets" => "interface",
+        "classes" or "klasser" or "klasse" => "class", "objekter" or "objekt" or "objects" => "object",
+        "polymorfi" => "polymorphism", "nedarvning" or "arv" => "inheritance",
+        "databaser" => "database", "funktioner" or "functions" => "function", "metoder" or "methods" => "method",
+        _ => word
+    };
+    private static readonly HashSet<string> StopWords = ["den", "det", "der", "som", "til", "med", "for", "fra", "the", "and", "eller", "skal", "kan", "har", "om", "lav", "skriv", "mere", "gør", "denne", "dette",
+        "erstat", "eksisterende", "afsnit", "afsnittet", "afsnittene", "kort", "kortere", "kortfattet", "faglig", "fagligt", "korrekt", "forklaring", "forklaringen", "forklar", "forklare", "forklarer",
+        "elever", "eleverne", "elev", "underviser", "undervisere", "undervisning", "lærer", "lærere", "h1", "h2", "h3", "h4", "h5", "h6", "grundforløb", "hovedforløb",
+        "tekst", "teksten", "tekster", "side", "siden", "dokument", "dokumentet", "indhold", "indholdet", "forslag", "forslaget", "overskrift", "overskrifter", "afsnits",
+        "brug", "bruge", "bruger", "behold", "bevar", "bevare", "tilføj", "tilføje", "omskriv", "ændr", "ændre", "ændringer", "opdater", "opdatere", "fortsæt", "vis", "vise", "beskriv", "beskrive",
+        "eksempel", "eksempler", "eksemplet", "lille", "lillebitte", "enkelt", "enkle", "enkel", "enklere", "simpel", "simpelt", "simple", "bedre", "tydelig", "tydeligt", "tydelige", "endnu", "meget",
+        "konkret", "konkrete", "relevant", "relevante", "rigtig", "rigtigt", "korrekte", "forståeligt", "forståelig", "overskuelig", "overskueligt", "begræns", "højst", "maks", "max", "mindst", "maksimalt",
+        "punkt", "punkter", "liste", "listen", "resten", "uden", "ikke", "aldrig", "altid", "både", "også", "igen", "bare", "gerne", "kun", "samt", "men", "når", "hvis", "hvad", "hvor", "hvordan", "hvorfor",
+        "jeg", "mig", "min", "mit", "mine", "din", "dine", "dit", "vores", "jeres", "deres", "sig", "sin", "sit", "sine", "dem", "man", "ved", "have", "være", "være", "bliver", "blevet", "mellem", "efter", "før", "over", "under",
+        "hele", "alle", "del", "dele", "delene", "derfor", "fordi", "sådan", "her", "herfra", "hertil", "svar", "svaret", "indledning", "introduktion", "opsummering", "forkort", "gennemgå", "gennemgang", "pædagogisk", "pædagogiske", "let", "lette", "lettere", "letforståelig", "læse", "læser", "læs", "læsning", "forstå", "forstår", "forståelse", "begreb", "begrebet",
+        "dansk", "danske", "engelsk", "engelske", "sprog", "sproget", "nuværende", "aktuelle", "demo", "testside", "skrivepartner", "notion", "editor", "native", "review", "qa", "write", "rewrite", "short", "shorter", "explain", "example", "existing", "please", "make", "using", "into", "with", "this", "that", "from", "your", "text", "document"];
+    [GeneratedRegex(@"[cf]#|c\+\+|\.?net\b|[\p{L}_][\p{L}\p{N}_]*(?:\.[\p{L}_][\p{L}\p{N}_]*)*")]
     private static partial Regex WordPattern();
 
     public static string Plain(JsonElement value)

@@ -25,17 +25,23 @@ public sealed class EditorAiContextService(AppDbContext db, EditorAiContextIndex
         var active = await db.NotionPages.AsNoTracking().Where(p => p.Id == pageId)
             .Select(p => new { p.HoldId, p.CollectionId, p.Title }).SingleAsync(ct);
         var snapshot = Snapshot(request.Document, request.Target, request.Scope == "page");
-        var words = EditorAiText.Words(request.Instruction + " " + active.Title + " " + snapshot.SearchText);
+        var focus = EditorAiRelevance.LiveFocus(request.Document, request.Target);
+        var relevance = new EditorAiRelevance(request.Instruction, active.Title, snapshot.SearchText, focus.Target, focus.Headings);
+        var words = relevance.SearchTerms;
         var linked = References(request.Document).ToHashSet();
         var excluded = (request.ExcludedSourceIds ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
         bool Excluded(string kind, string id) => excluded.Contains(kind + ":" + id) || excluded.Contains(id);
         var managed = courses.AccessibleHolds(user, true).Select(h => h.Id);
         // Metadata is permission-filtered before ordering. No client page/person catalogue is trusted.
-        var relatedIds = await pages.ReadablePages(user).AsNoTracking().Where(p => p.Id != pageId
-                && (p.HoldId == null || managed.Contains(p.HoldId.Value))
-                && (linked.Contains("notion-page:" + p.Id.ToString()) || linked.Contains("collection:" + p.Id.ToString())
-                    || active.CollectionId != null && p.CollectionId == active.CollectionId
-                    || words.Any(w => p.Title.ToLower().Contains(w))))
+        var relatedQuery = pages.ReadablePages(user).AsNoTracking().Where(p => p.Id != pageId
+                && (p.HoldId == null || managed.Contains(p.HoldId.Value)));
+        // EF cannot translate Any over an empty inline collection on either supported provider.
+        relatedQuery = words.Length > 0
+            ? relatedQuery.Where(p => linked.Contains("notion-page:" + p.Id.ToString()) || linked.Contains("collection:" + p.Id.ToString())
+                || active.CollectionId != null && p.CollectionId == active.CollectionId || words.Any(w => p.Title.ToLower().Contains(w)))
+            : relatedQuery.Where(p => linked.Contains("notion-page:" + p.Id.ToString()) || linked.Contains("collection:" + p.Id.ToString())
+                || active.CollectionId != null && p.CollectionId == active.CollectionId);
+        var relatedIds = await relatedQuery
             .OrderByDescending(p => linked.Contains("notion-page:" + p.Id.ToString()) || linked.Contains("collection:" + p.Id.ToString()))
             .ThenByDescending(p => active.CollectionId != null && p.CollectionId == active.CollectionId)
             .ThenByDescending(p => p.HoldId == active.HoldId).ThenBy(p => p.Id)
@@ -43,7 +49,7 @@ public sealed class EditorAiContextService(AppDbContext db, EditorAiContextIndex
         // Only a few selected saved bodies are decoded on a cold index. The background worker fills the rest.
         var failedPages = new List<EditorAiSource>();
         var selectedRelated = relatedIds.Where(p => !Excluded("notion-page", p.Id.ToString()))
-            .OrderByDescending(p => linked.Contains("notion-page:" + p.Id)).ThenByDescending(p => Score(p.Title, words)).Take(3).ToArray();
+            .OrderByDescending(p => relevance.MetadataScore(p.Title)).ThenByDescending(p => linked.Contains("notion-page:" + p.Id)).Take(3).ToArray();
         foreach (var page in selectedRelated)
             try { await indexer.IndexNotionAsync(page.Id, ct); }
             catch (Exception error) when (error is not OperationCanceledException)
@@ -66,8 +72,9 @@ public sealed class EditorAiContextService(AppDbContext db, EditorAiContextIndex
         var unread = new List<EditorAiSource>(failedPages);
         var indexedMaterialIds = new List<Guid>();
         var extractionDeadline = DateTimeOffset.UtcNow.AddSeconds(40);
-        foreach (var material in materials.Where(m => !Excluded("material", m.Id.ToString()))
-            .OrderByDescending(m => linked.Contains("material:" + m.Id)).ThenByDescending(m => Score(m.Title + " " + m.Description, words)).Take(4))
+        foreach (var material in materials.Where(m => !Excluded("material", m.Id.ToString())
+                && (linked.Contains("material:" + m.Id) || relevance.MetadataScore(m.Title + " " + m.Description) > 0))
+            .OrderByDescending(m => relevance.MetadataScore(m.Title + " " + m.Description)).ThenByDescending(m => linked.Contains("material:" + m.Id)).Take(4))
         {
             if (!await new FileAuthorization(db).CanReadAsync(material.FileAsset, user, ct)) continue;
             var extraction = await EnsureFileTextAsync(material.FileAsset, ct);
@@ -153,12 +160,12 @@ public sealed class EditorAiContextService(AppDbContext db, EditorAiContextIndex
             || c.Kind == "notion-page" && selectedPageIds.Contains(c.EntityId!.Value)
             || active.CollectionId != null && c.CollectionId == active.CollectionId).OrderBy(c => c.Ordinal).Take(64).ToArrayAsync(ct);
         candidates = candidates.Concat(preferred).DistinctBy(c => c.Id).ToArray();
-        var ranked = candidates.GroupBy(c => c.Kind + ":" + c.SourceId)
-            .Select(g => new { Key = g.Key, Items = g.OrderByDescending(c => Score(c.Text, words)).ThenBy(c => c.Ordinal).ToArray(),
-                Score = g.Max(c => Score(c.Text, words) + Score(c.Title, words) * 4) + (linked.Contains(g.Key) ? 100 : 0)
-                    + (g.First().Kind == "notion-page" ? 4 : 0)
-                    + (active.CollectionId != null && g.First().CollectionId == active.CollectionId ? 5 : 0) })
-            .Where(g => g.Score > 0).OrderByDescending(g => g.Score).Take(SourceLimit - lookupSources.Count).ToArray();
+        var ranked = candidates.Select(c => new { Chunk = c, Score = relevance.Score(c.Title, c.Text) }).Where(c => c.Score > 0)
+            .GroupBy(c => c.Chunk.Kind + ":" + c.Chunk.SourceId)
+            .Select(g => new { Key = g.Key, Items = g.OrderByDescending(c => c.Score).ThenBy(c => c.Chunk.Ordinal).Select(c => c.Chunk).ToArray(),
+                Score = g.Max(c => c.Score) + (linked.Contains(g.Key) ? 20 : 0)
+                    + (active.CollectionId != null && g.First().Chunk.CollectionId == active.CollectionId ? 5 : 0) })
+            .OrderByDescending(g => g.Score).Take(SourceLimit - lookupSources.Count).ToArray();
         var sources = new List<EditorAiSource>(); var externalText = new StringBuilder(); var externalTokens = EditorAiText.Tokens(lookupText.ToString()); var partialSources = false;
         foreach (var lookupSource in lookupSources)
             if (await CanReadSourceAsync(user, lookupSource, ct)) sources.Add(lookupSource);

@@ -71,6 +71,50 @@ public sealed class EditorAiContextTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Danish_interface_request_and_shorter_followup_use_CSharp_context_without_catalogue_noise()
+    {
+        var active = Page("Skrivepartner demo"); var theory = Page("C# interfaces");
+        theory.YjsState = Encoding.UTF8.GetBytes("text:C# interfaces beskriver en kontrakt. ILogger definerer Log, og ConsoleLogger implementerer ILogger.");
+        var arduino = Page("Arduino og sensorer"); var machine = Page("Machine learning med Python"); var core = Page("Core loop og Unity");
+        db.NotionPages.AddRange(active, theory, arduino, machine, core); await db.SaveChangesAsync();
+        var live = Document("C# interfaces", "Et interface er en kontrakt. public interface ILogger { void Log(string besked); } public class ConsoleLogger : ILogger { public void Log(string besked) { Console.WriteLine(besked); } }");
+        var service = Service();
+        var first = await service.BuildAsync(User(), active.Id, new(active.Id,
+            "Erstat det eksisterende afsnit med en kort, fagligt korrekt forklaring af interfaces til H1-elever. Behold et lille C#-eksempel med ILogger og ConsoleLogger, og ændr ikke resten af siden.",
+            "rewrite", "page", live), default);
+        Assert.Contains(first.Sources, s => s.SourceId == theory.Id.ToString());
+        Assert.DoesNotContain(first.Sources, s => s.Title.Contains("Arduino") || s.Title.Contains("Core loop") || s.Title.Contains("dashboard") || s.Title.Contains("Machine", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(first.Sources, s => s.SourceId.StartsWith("iot/") || s.SourceId.StartsWith("game-design/"));
+        var followup = await service.BuildAsync(User(), active.Id, new(active.Id,
+            "Gør forklaringen endnu kortere. Behold kun det vigtigste og et lille ILogger/ConsoleLogger-eksempel.", "rewrite", "page", live), default);
+        Assert.Contains(followup.Sources, s => s.SourceId == theory.Id.ToString());
+        Assert.DoesNotContain(followup.Sources, s => s.Title.Contains("Arduino") || s.Title.Contains("Core loop") || s.Title.Contains("dashboard") || s.Title.Contains("Machine", StringComparison.OrdinalIgnoreCase));
+        Assert.True(followup.Sources.Length < 8);
+    }
+
+    [Fact]
+    public async Task Generic_writing_request_can_return_zero_external_sources()
+    {
+        var active = Page("Skrivepartner demo"); db.NotionPages.Add(active); await db.SaveChangesAsync();
+        var result = await Service().BuildAsync(User(), active.Id, new(active.Id,
+            "Gør forklaringen kortere og fagligt korrekt. Brug et lille eksempel til eleverne.", "rewrite", "page", Document("Dette afsnit skal være kortere og lettere at læse.")), default);
+        Assert.Empty(result.Sources);
+    }
+
+    [Fact]
+    public void Domain_terms_keep_language_tokens_and_reject_instruction_only_overlap()
+    {
+        var words = EditorAiText.Words("Et kort C#-eksempel, F# og C++. Interfaces til H1-elever.");
+        Assert.Contains("c#", words); Assert.Contains("f#", words); Assert.Contains("c++", words); Assert.Contains("interface", words);
+        Assert.DoesNotContain("eksempel", words); Assert.DoesNotContain("elever", words);
+        var relevance = new EditorAiRelevance("Erstat afsnittet med en kort forklaring af interfaces", "Demo", "C# interface ILogger ConsoleLogger", "", "");
+        Assert.Equal(0, relevance.Score("Arduino", "Lav et kort eksempel med C++ og funktioner. Forklar input fra en sensor."));
+        Assert.Equal(0, relevance.Score("Machine learning", "Brug Python til et fagligt korrekt og lille eksempel."));
+        Assert.Equal(0, relevance.Score("Core loop", "Forklar regler og afprøv et kort eksempel med eleverne."));
+        Assert.True(relevance.Score("C# interfaces", "Et interface definerer en kontrakt.") > 0);
+    }
+
+    [Fact]
     public async Task Excluded_source_is_not_decoded_and_access_is_rechecked_on_resume()
     {
         var hold = await Hold(teacher); var active = Page("MQTT", hold: hold); var related = Page("MQTT", hold: hold);
@@ -284,12 +328,15 @@ public sealed class EditorAiContextTests : IAsyncLifetime
     private sealed class ProjectionHandler : HttpMessageHandler
     {
         public int Calls;
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             Calls++; Assert.Equal("/internal/notion/project", request.RequestUri!.AbsolutePath);
             Assert.True(request.Headers.Contains("X-Notion-Service-Key"));
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(
-                new { plainText = "MQTT broker fra den valgte kilde", blocks = new[] { new { id = "mq", type = "paragraph", text = "MQTT broker fra den valgte kilde", heading = "MQTT" } } }), Encoding.UTF8, "application/json") });
+            using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(ct));
+            var state = Encoding.UTF8.GetString(Convert.FromBase64String(body.RootElement.GetProperty("stateBase64").GetString()!));
+            var text = state.StartsWith("text:") ? state[5..] : "MQTT broker fra den valgte kilde";
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(JsonSerializer.Serialize(
+                new { plainText = text, blocks = new[] { new { id = "mq", type = "paragraph", text, heading = "MQTT" } } }), Encoding.UTF8, "application/json") };
         }
     }
     private sealed class TextStorage(Dictionary<string, byte[]> data) : IObjectStorage
