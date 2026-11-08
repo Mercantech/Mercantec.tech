@@ -42,7 +42,12 @@ public static class CharacterCatalog
              new("Fra viden til afprøvning", "Vatson viser vej mellem digitale værktøjer, undervisningsmaterialer og praktiske aktiviteter. I Virk som/lig hed hjælper han underviseren med at skabe fiktive virksomheder som ramme for elevernes faglige undersøgelser."),
              new("På besøg i LUP", "Her på LUP kan du møde Vatson som gæst og bruge hans emojis i tekst og callouts i editoren. Han kan vinke, få en idé og give en tommel op. Hans eget univers og værktøjer finder du hos VATek.")],
             [new("Besøg VATek.dk", "https://vatek.dk/", true, false),
-             new("Find materialer på Videnscenterportalen", "https://videnscenterportalen.dk/vat/", true, false)]),
+             new("Find materialer på Videnscenterportalen", "https://videnscenterportalen.dk/vat/", true, false)])
+        {
+            Reactions = VatsonEmojiCatalog.All,
+            LargeReactionPreviews = true,
+            ReactionsDescription = "Alle Vatsons emojis i stor visning – fra vinken og kaffepause til PLC, VR og værkstedsbesøg. Åbn en original i fuld størrelse, eller hent den som PNG."
+        },
         new("raymond", "Raymond", "Professor Codd · SQL-underviser", "SQL-H1", false,
             "Den blå elefantprofessor, der hjælper dig med SQL, relationer og databaser.",
             "Raymond hedder egentlig Raymond Stonebraker Codd, men du må gerne kalde ham Professor Codd. Han er den venlige SQL-underviser fra SQL-H1 og hjælper dig med at forstå databaser ét skridt ad gangen.",
@@ -116,6 +121,8 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
     public string Path => "/characters/" + Slug;
     public IReadOnlyList<CharacterIllustration> Illustrations { get; init; } = [];
     public IReadOnlyList<CharacterIllustration> Reactions { get; init; } = [];
+    public bool LargeReactionPreviews { get; init; }
+    public string? ReactionsDescription { get; init; }
     public IReadOnlyList<CharacterIllustration> Scenes { get; init; } = [];
     public IReadOnlyList<CharacterAnimation> Animations { get; init; } = [];
 }

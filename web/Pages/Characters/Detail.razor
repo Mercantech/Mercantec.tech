@@ -77,8 +77,8 @@ else
 
         <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-reactions-title"
                                  Title="@($"{character.Name}s emojis og reaktioner")"
-                                 Description="Små udtryk til både de gode idéer og den kode, der driller. Alle reaktioner har transparent baggrund. Åbn dem i fuld størrelse, eller hent en PNG."
-                                 Items="@character.Reactions" Compact="true" />
+                                 Description="@(character.ReactionsDescription ?? "Små udtryk til både de gode idéer og den kode, der driller. Alle reaktioner har transparent baggrund. Åbn dem i fuld størrelse, eller hent en PNG.")"
+                                 Items="@character.Reactions" Compact="true" LargePreviews="@character.LargeReactionPreviews" Searchable="@(character.Reactions.Count > 24)" />
 
         <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-scenes-title"
                                  Title="@($"{character.Name} i nye miljøer")"

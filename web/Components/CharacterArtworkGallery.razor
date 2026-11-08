@@ -2,15 +2,27 @@
 
 @if (Items.Count > 0)
 {
-    <section class="character-artwork-gallery @(Compact ? "character-reactions" : "character-scenes")" aria-labelledby="@HeadingId">
+    var visibleItems = VisibleItems;
+    <section class="character-artwork-gallery @(Compact ? "character-reactions" : "character-scenes") @(LargePreviews ? "character-reactions-large" : null)" aria-labelledby="@HeadingId">
         <header>
             <h2 id="@HeadingId">@Title</h2>
             <p>@Description</p>
         </header>
-        <div class="character-artwork-grid">
-            @foreach (var item in Items)
+        @if (Searchable)
+        {
+            <div class="character-artwork-tools">
+                <label for="@($"{HeadingId}-search")">Find en emoji</label>
+                <div class="character-artwork-search">
+                    <input id="@($"{HeadingId}-search")" type="search" value="@_query" @oninput="Search" placeholder="Navn eller motiv, fx kaffe" aria-controls="@($"{HeadingId}-items")" />
+                    <button type="button" @onclick="() => _query = string.Empty">Vis alle</button>
+                </div>
+                <p class="character-artwork-count" role="status">Viser @visibleItems.Count af @Items.Count emojis</p>
+            </div>
+        }
+        <div class="character-artwork-grid" id="@($"{HeadingId}-items")">
+            @foreach (var item in visibleItems)
             {
-                <figure>
+                <figure @key="item.Image">
                     <a class="character-artwork-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
                         <img src="@item.Image" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
                     </a>
@@ -21,6 +33,10 @@
                 </figure>
             }
         </div>
+        @if (visibleItems.Count == 0)
+        {
+            <p class="character-artwork-empty" role="status">Ingen emojis matcher din søgning. Prøv et andet ord, eller vælg Vis alle.</p>
+        }
     </section>
 }
 
@@ -30,5 +46,22 @@
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter] public string Description { get; set; } = "";
     [Parameter] public bool Compact { get; set; }
+    [Parameter] public bool LargePreviews { get; set; }
+    [Parameter] public bool Searchable { get; set; }
     [Parameter] public IReadOnlyList<CharacterIllustration> Items { get; set; } = [];
+    private string _query = "";
+    private string? _previousSlug;
+    private IReadOnlyList<CharacterIllustration> VisibleItems => !Searchable || string.IsNullOrWhiteSpace(_query)
+        ? Items
+        : Items.Where(item => item.Title.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+            || item.Alt.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+            || System.IO.Path.GetFileName(item.Image).Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override void OnParametersSet()
+    {
+        if (_previousSlug != CharacterSlug) _query = "";
+        _previousSlug = CharacterSlug;
+    }
+
+    private void Search(ChangeEventArgs args) => _query = args.Value?.ToString() ?? "";
 }

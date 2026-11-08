@@ -66,12 +66,78 @@ public sealed class CharacterDetailTests
         Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
-        Assert.Empty(page.FindAll(".character-artwork-gallery, .character-gallery"));
+        Assert.Empty(page.FindAll(".character-scenes, .character-gallery"));
+        Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
+        Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/vatson/", image.GetAttribute("src")));
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
         Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
         Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
         Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
+    }
+
+    [Fact]
+    public async Task VatsonsLargeGalleryContainsAllExistingEmojisWithPublicOriginalDownloads()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "vatson"));
+
+        Assert.Single(page.FindAll(".character-reactions-large"));
+        Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
+        Assert.Contains("63 af 63", page.Find(".character-artwork-count").TextContent);
+        Assert.All(page.FindAll(".character-reactions figure"), figure =>
+        {
+            var image = figure.QuerySelector("img")!;
+            var preview = figure.QuerySelector(".character-artwork-preview")!;
+            var download = figure.QuerySelector(".character-artwork-download")!;
+            var source = image.GetAttribute("src")!;
+            Assert.StartsWith("/images/characters/vatson/emojis/", source);
+            Assert.EndsWith(".png", source);
+            Assert.DoesNotContain("ticket", source, StringComparison.OrdinalIgnoreCase);
+            Assert.False(string.IsNullOrWhiteSpace(image.GetAttribute("alt")));
+            Assert.Equal(source, preview.GetAttribute("href"));
+            Assert.Equal("_blank", preview.GetAttribute("target"));
+            Assert.Contains("noopener", preview.GetAttribute("rel"));
+            Assert.Equal(source, download.GetAttribute("href"));
+            Assert.Equal($"vatson-{Path.GetFileName(source)}", download.GetAttribute("download"));
+        });
+        Assert.Equal(63, page.FindAll(".character-reactions img").Select(image => image.GetAttribute("src")).Distinct().Count());
+        Assert.Contains(page.FindAll(".character-links a"), link => link.GetAttribute("href") == "https://vatek.dk/");
+        Assert.Contains(page.FindAll(".character-links a"), link => link.GetAttribute("href") == "https://videnscenterportalen.dk/vat/");
+    }
+
+    [Fact]
+    public async Task VatsonsEmojiSearchFiltersByMotifAndCanBeClearedOrResetByProfileNavigation()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "vatson"));
+
+        page.Find(".character-artwork-search input").Input("kaffe");
+        Assert.Single(page.FindAll(".character-reactions figure"));
+        Assert.EndsWith("/kaffe.png", page.Find(".character-reactions img").GetAttribute("src"));
+        Assert.Contains("1 af 63", page.Find(".character-artwork-count").TextContent);
+
+        page.Find(".character-artwork-search input").Input("PLC");
+        Assert.Equal(2, page.FindAll(".character-reactions figure").Count);
+
+        page.Find(".character-artwork-search input").Input("findes-ikke-her");
+        Assert.Empty(page.FindAll(".character-reactions figure"));
+        Assert.Contains("Ingen emojis matcher", page.Find(".character-artwork-empty").TextContent);
+
+        page.Find(".character-artwork-search button").Click();
+        Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
+        Assert.Empty(page.FindAll(".character-artwork-empty"));
+        page.Find(".character-artwork-search input").Input("kaffe");
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
+        Assert.Empty(page.FindAll(".character-artwork-search, .character-reactions-large"));
+        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
+        Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal("", page.Find(".character-artwork-search input").GetAttribute("value"));
     }
 
     [Fact]

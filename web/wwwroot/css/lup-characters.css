@@ -70,6 +70,17 @@
 .lup .character-reactions figcaption { display:flex; flex-direction:column; gap:4px; font-size:11px; }
 .lup .character-artwork-gallery figcaption>span { color:var(--ink); }
 .lup .character-artwork-download { font-size:11px; display:inline-flex; align-items:center; gap:6px; padding:3px 0; }
+.lup .character-reactions-large .character-artwork-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:26px 22px; }
+.lup .character-reactions-large .character-artwork-preview img { padding:20px; }
+.lup .character-reactions-large figcaption { flex-direction:row; font-size:13px; padding-top:12px; }
+.lup .character-reactions-large .character-artwork-download { min-height:36px; font-size:12px; }
+.lup .character-artwork-tools { display:flex; flex-direction:column; gap:9px; max-width:480px; margin-top:20px; }
+.lup .character-artwork-tools label { font-size:12px; font-weight:600; }
+.lup .character-artwork-search { display:flex; gap:8px; }
+.lup .character-artwork-search input { flex:1; min-width:0; min-height:42px; border:1px solid var(--rule); border-radius:8px; padding:10px 12px; background:var(--paper); color:var(--ink); font-size:13px; }
+.lup .character-artwork-search button { min-height:42px; border:1px solid var(--rule); border-radius:8px; padding:10px 12px; background:var(--paper); color:var(--ink); font-size:12px; white-space:nowrap; cursor:pointer; }
+.lup .character-artwork-count { color:var(--muted); font-size:12px; }
+.lup .character-artwork-empty { color:var(--muted); font-size:13px; line-height:1.8; margin-top:22px; }
 .lup .character-animations { border-top:1px solid var(--rule); padding-top:30px; margin-top:32px; }
 .lup .character-animations h2 { font-size:24px; letter-spacing:-.5px; }
 .lup .character-animations header>p { color:var(--muted); font-size:13px; line-height:1.75; margin-top:9px; max-width:75ch; }
@@ -100,6 +111,7 @@
     .lup .character-card h2 { font-size:24px; }
     .lup .character-hero { gap:26px; }
     .lup .character-reactions .character-artwork-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .lup .character-reactions-large .character-artwork-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .lup .character-animation-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media(max-width:620px) {
@@ -115,6 +127,7 @@
     .lup .character-features { grid-template-columns:1fr; gap:24px; margin-top:30px; }
     .lup .character-gallery-grid { grid-template-columns:1fr; gap:20px; }
     .lup .character-reactions .character-artwork-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px 10px; }
+    .lup .character-reactions-large .character-artwork-grid { grid-template-columns:1fr; gap:24px; }
     .lup .character-scenes .character-artwork-grid { grid-template-columns:1fr; gap:20px; }
     .lup .character-animation-grid { grid-template-columns:1fr; gap:20px; }
     .lup .character-other-profiles { gap:16px; }
