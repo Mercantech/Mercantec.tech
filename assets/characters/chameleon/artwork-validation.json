@@ -1,0 +1,209 @@
+[
+  {
+    "id": "01-data-til-model",
+    "image": "/images/characters/chameleon/infographics/01-data-til-model.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "5e55bde86efa2faa60bc5d9e98de83dcbeb0c7b041a843bd8aa978bb17dca65f",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "02-features-og-labels",
+    "image": "/images/characters/chameleon/infographics/02-features-og-labels.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "222c8636e5d0ad5173af2a36c36dca74db0a8a469ec9af4c425915fc6fb9edf2",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "03-train-validation-test",
+    "image": "/images/characters/chameleon/infographics/03-train-validation-test.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "297db8d5359fc33a0c633f3700b005a49157483d64aaf8569b75803d1cd6e3ed",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "04-klassifikation",
+    "image": "/images/characters/chameleon/infographics/04-klassifikation.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "11e96ac9aa1a2a08258e77f7b60f4045a35837ee03033e0ae2ecd680fe1c1eec",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "05-regression",
+    "image": "/images/characters/chameleon/infographics/05-regression.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "ff07d3f1d83c7f6080ec526a36339a5c7b6a9d4147158ea94ac45ff7231cc632",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "06-klynger",
+    "image": "/images/characters/chameleon/infographics/06-klynger.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "c797400c69bc75355f13b55aa5ab3f233f97e8ac86ba3de651566a7dd67f7172",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "07-traening-og-fejl",
+    "image": "/images/characters/chameleon/infographics/07-traening-og-fejl.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "f3bbb866750b9f1e96ce8d65855740cf3cf8c43242266951b04b54dd2d47d79f",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "08-overfitting",
+    "image": "/images/characters/chameleon/infographics/08-overfitting.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "d29e433e3ff64c18e227988f8d80fe1f156e3236ec0e5770a538af33f4561f79",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "09-generalisering",
+    "image": "/images/characters/chameleon/infographics/09-generalisering.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "dfb003f44112d4ec17460944f14fdc6fd4fa186a6fe6078a1d2f91fb5eb15351",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "10-metrikker",
+    "image": "/images/characters/chameleon/infographics/10-metrikker.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "6157fa71868e6961f6f0d1a5c03bca22030192506195ec4ebb69b2625847ffe5",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "11-confusion-matrix",
+    "image": "/images/characters/chameleon/infographics/11-confusion-matrix.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "f9bde9c0a5113d1c7320b7ca51655fc46192c7cb1d22142914ae1fe053014b12",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "12-data-laekage",
+    "image": "/images/characters/chameleon/infographics/12-data-laekage.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "af167d4e93ec9e884bec726efdf221fd8650e76e7125cbbc2da1fb52395bea32",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "13-skaeve-data",
+    "image": "/images/characters/chameleon/infographics/13-skaeve-data.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "e48f0e5bc525858e2d0c12cffc8cf462143eab2063c408e9c7a3fed2bf34132f",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "14-forklarlighed",
+    "image": "/images/characters/chameleon/infographics/14-forklarlighed.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "f26b06f6c70b39f3990ad94cb4e05587c52179b7b1e4360656a9100e1a79a0f0",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "15-drift",
+    "image": "/images/characters/chameleon/infographics/15-drift.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "0f5ed03bfd5910ff2fab89c047c508aaf12599ea85288b71919e9ba82d23a3cd",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "16-ansvarlig-ml",
+    "image": "/images/characters/chameleon/infographics/16-ansvarlig-ml.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "d7dfc5aa1a4fcc62b14519b3ef2650c3845ea915c378a911bb08ff47a68eebf8",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "teacher",
+    "image": "/images/characters/chameleon/teacher.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "d741967326307251857df0bd8226ab9cc74be8849da27051cef25e706a3db304",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "banjo",
+    "image": "/images/characters/chameleon/banjo.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "fieldwork",
+    "image": "/images/characters/chameleon/fieldwork.png",
+    "width": 1254,
+    "height": 1254,
+    "sha256": "8227f5609050a2c1176f6719226c96b60fc592a37b0a9b7e117404a9cb851e85",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "workshop",
+    "image": "/images/characters/chameleon/scenes/workshop.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "8e2fd28a5b9903225783f5ae2872ea86ca151ec3552ca840bad568537d06121b",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "banjo-evening",
+    "image": "/images/characters/chameleon/scenes/banjo-evening.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "3ef009e5d7e2e92070834b1007f266776a115864f9191a882e719f2495c1ed52",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "data-garden",
+    "image": "/images/characters/chameleon/scenes/data-garden.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "3d3be7aea2fafab13ecd83e44103542a45d45ddee23748a646e2e6cae63b4b95",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  },
+  {
+    "id": "teaching-studio",
+    "image": "/images/characters/chameleon/scenes/teaching-studio.png",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "19969ee28b4e0d6dcf9f195c643206356416dd74a6efbdf447e2cff4ff190de6",
+    "sourceMatches": true,
+    "visuallyReviewed": true
+  }
+]

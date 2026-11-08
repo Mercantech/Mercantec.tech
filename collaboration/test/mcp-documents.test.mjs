@@ -107,15 +107,53 @@ test('updating and undoing a parent preserve child CRDT identities and delayed c
 const randomOperationId = () => '77777777-2222-4333-8444-555555555555';
 
 test('unknown block types and rich atoms cannot be silently deleted, replaced or newly introduced', () => {
-  const doc = document([block('a', 'paragraph', [txt('A'), el('customEmoji', [], { emojiId: pageId })]), block('opaque', 'futureWidget', [], { arbitrary: ['retained'] })]);
+  const doc = document([block('a', 'paragraph', [txt('A'), el('entityMention', [], { kind: 'notion-page', id: pageId })]), block('opaque', 'futureWidget', [], { arbitrary: ['retained'] })]);
   const before = snapshot(doc);
   for (const change of [
     { type: 'delete_block', blockId: 'opaque', fingerprint: find(doc, 'opaque').fingerprint },
     { type: 'update_block', blockId: 'opaque', fingerprint: find(doc, 'opaque').fingerprint, block: { type: 'paragraph', content: 'lost' } },
     { type: 'update_block', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: { type: 'paragraph', content: 'lost emoji' } },
-    { type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: block('new', 'paragraph', [el('customEmoji', [], { emojiId: pageId })]) },
+    { type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: block('new', 'paragraph', [el('entityMention', [], { kind: 'notion-page', id: pageId })]) },
   ]) assert.throws(() => prepareMcpApply(doc, request([change])), /beskyttet|bevares|medier|referencer|widget/i);
   assert.deepEqual(snapshot(doc), before); doc.destroy();
+});
+
+test('known inline Raymond emojis and hard breaks can be inserted and updated without losing rich text, references or media, and undo restores them', () => {
+  const reference = el('entityMention', [], { kind: 'notion-page', id: pageId });
+  const original = block('a', 'paragraph', [txt('SQL ', { bold: {} }), reference, txt(' beskytter data.', { italic: {} })]);
+  const media = block('media', 'pageMedia', [], { assetId: pageId, kind: 'image' });
+  const doc = document([original, media]), root = doc.getXmlFragment('document-store').get(0), mediaNode = root.get(1);
+  const emoji = el('customEmoji', [], { emojiId: actorSub, name: 'raymond_applause' });
+  const updated = block('a', 'paragraph', [txt('SQL ', { bold: {} }), emoji, txt(' '), reference, el('hardBreak'), txt('beskytter data.', { italic: {} })]);
+  const req = request([{ type: 'update_block', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: updated }]);
+  const { plan } = apply(doc, req);
+  assert.deepEqual(find(doc, 'a').block, updated); assert.equal(root.get(1), mediaNode); assert.deepEqual(find(doc, 'media').block, media);
+  assert.equal(find(doc, 'a').text, 'SQL \uFFFC \uFFFC\uFFFCbeskytter data.');
+  const undoReq = { ...request([]), operationId: '99999999-2222-4333-8444-555555555555', originalChange: { before: plan.before, after: plan.after } };
+  const undo = prepareMcpUndo(doc, undoReq); applyPreparedMcpPlan(doc, undo, makeMcpReceipt(secret, undoReq, undo));
+  assert.deepEqual(find(doc, 'a').block, original); assert.equal(root.get(1), mediaNode);
+  const insertion = block('emoji-block', 'paragraph', [emoji, el('hardBreak'), txt('Godt arbejde!', { bold: {} })]);
+  apply(doc, request([{ type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: insertion }]));
+  assert.deepEqual(find(doc, 'emoji-block').block, insertion); assert.deepEqual(find(doc, 'media').block, media); doc.destroy();
+});
+
+test('inline emoji schema rejects invalid IDs, names, extra props, child content, block placements and code atoms before mutation', () => {
+  const doc = document([block('a', 'paragraph', [txt('Bevar')])]), before = Y.encodeStateAsUpdate(doc);
+  const emoji = { emojiId: actorSub, name: 'raymond_applause' };
+  const invalid = [
+    el('customEmoji', [], { ...emoji, emojiId: 'not-a-uuid' }), el('customEmoji', [], { ...emoji, emojiId: 123 }), el('customEmoji', [], { ...emoji, emojiId: '00000000-0000-0000-0000-000000000000' }),
+    el('customEmoji', [], { emojiId: actorSub }), el('customEmoji', [], { ...emoji, name: '' }),
+    el('customEmoji', [], { ...emoji, name: 'x'.repeat(101) }), el('customEmoji', [], { ...emoji, name: 'raymond/../image' }),
+    el('customEmoji', [], { ...emoji, name: 123 }), el('customEmoji', [], { ...emoji, href: 'https://example.com' }),
+    el('customEmoji', [txt('hidden')], emoji), el('hardBreak', [], { hidden: true }), el('hardBreak', [txt('hidden')]),
+  ];
+  for (const atom of invalid) assert.throws(() => prepareMcpApply(doc, request([{ type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: block('bad', 'paragraph', [atom]) }])));
+  for (const atom of [el('customEmoji', [], emoji), el('hardBreak')]) {
+    assert.throws(() => prepareMcpApply(doc, request([{ type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: block('bad-code', 'codeBlock', [atom]) }])));
+    assert.throws(() => prepareMcpApply(doc, request([{ type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: el('blockContainer', [atom], { id: 'bad-root' }) }])));
+    assert.throws(() => prepareMcpApply(doc, request([{ type: 'insert_after', blockId: 'a', fingerprint: find(doc, 'a').fingerprint, block: block('bad-mermaid', 'mermaidDiagram', [atom], { source: 'flowchart LR;A-->B' }) }])));
+  }
+  assert.deepEqual(Y.encodeStateAsUpdate(doc), before); doc.destroy();
 });
 
 test('large structured updates retain tables, long code and Mermaid, and repeated sibling inserts keep order', () => {

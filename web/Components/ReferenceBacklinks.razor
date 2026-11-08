@@ -2,7 +2,7 @@
 @inject HttpClient Http
 @inject AuthService Auth
 @implements IDisposable
-<section class="panel" aria-label="Tilbagelinks"><h3>Sider, der linker hertil</h3>@if (_error) { <p>Tilbagelinks kunne ikke hentes.</p><button class="secondary" @onclick="Load">Prøv igen</button> } else if (_items.Length == 0) { <p>Ingen tilgængelige sider linker hertil endnu.</p> } else { <nav aria-label="Tilbagelinks">@foreach (var item in _items) { <p><a href="@item.Href">@item.Title</a> <small>@item.ContextLabel</small></p> }</nav> }</section>
+<section class="panel" aria-label="Tilbagelinks"><h3>Sider, der linker hertil</h3>@if (_error) { <p>Tilbagelinks kunne ikke hentes.</p><button class="secondary" @onclick="Load">Prøv igen</button> } else if (_items.Length == 0) { <p>Ingen tilgængelige sider linker hertil endnu.</p> } else { <nav aria-label="Tilbagelinks">@foreach (var item in _items) { <p><a href="@item.Href"><EmojiText Text="@item.Title" /></a> <small>@item.ContextLabel</small></p> }</nav> }</section>
 @code {
     [Parameter, EditorRequired] public string Kind { get; set; } = "";
     [Parameter, EditorRequired] public string Id { get; set; } = "";

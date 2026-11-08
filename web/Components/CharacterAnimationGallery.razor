@@ -4,8 +4,8 @@
 {
     <section class="character-animations" aria-labelledby="character-animations-title">
         <header>
-            <h2 id="character-animations-title">@CharacterName arbejder med databaser</h2>
-            <p>Små animerede scener med professoren. Tryk på Afspil, eller hent en GIF til dine egne materialer.</p>
+            <h2 id="character-animations-title">@CharacterName arbejder med @Subject</h2>
+            <p>Små animerede scener. Tryk på Afspil, eller hent en GIF til dine egne materialer.</p>
         </header>
         <div class="character-animation-grid">
             @foreach (var item in Items)
@@ -37,6 +37,7 @@
 @code {
     [Parameter, EditorRequired] public string CharacterSlug { get; set; } = "";
     [Parameter, EditorRequired] public string CharacterName { get; set; } = "";
+    [Parameter] public string Subject { get; set; } = "databaser";
     [Parameter] public IReadOnlyList<CharacterAnimation> Items { get; set; } = [];
     private readonly HashSet<string> _playing = [];
     private string? _previousSlug;

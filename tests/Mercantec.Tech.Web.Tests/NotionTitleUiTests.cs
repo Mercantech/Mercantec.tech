@@ -20,6 +20,34 @@ public sealed class NotionTitleUiTests
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
     [Fact]
+    public async Task Picking_a_title_emoji_saves_its_shortcode_and_renders_it_in_toolbar_and_sidebar()
+    {
+        var raymond = new CustomEmojiItem(Guid.NewGuid(), "raymond_applause", "image/png", 12,
+            DateTimeOffset.UtcNow, "/api/emojis/raymond", AltText: "Raymond klapper");
+        using var api = new TitleApi { Title = "SQL 🐘", Emojis = [raymond] };
+        using var context = await CreateContext(api);
+        var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
+        var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
+        page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
+        Assert.Equal(0, api.EmojiRequests);
+
+        await Button(page, "Tilføj emoji til sidens titel").ClickAsync(new MouseEventArgs());
+        page.WaitForAssertion(() => Assert.Single(page.FindAll("[role=option][aria-label=':raymond_applause:']")), Timeout);
+        await page.Find("[role=option][aria-label=':raymond_applause:']").ClickAsync(new MouseEventArgs());
+
+        page.WaitForAssertion(() => Assert.Equal("SQL 🐘 :raymond_applause:", api.Title), Timeout);
+        Assert.Equal(raymond.ContentUrl, page.Find(".notion-title-preview img").GetAttribute("src"));
+        Assert.Equal(raymond.ContentUrl, page.Find(".notion-page.is-current img").GetAttribute("src"));
+        Assert.Contains("SQL 🐘", page.Find(".notion-title-preview").TextContent);
+        Assert.DoesNotContain(":raymond_applause:", page.Find(".notion-page.is-current").TextContent);
+        Assert.Equal("SQL 🐘 :raymond_applause:", page.Find("#notion-title").GetAttribute("value"));
+        Assert.Equal(1, api.EmojiRequests);
+        Assert.Equal(1, javascript.Editor.Mounts);
+        Assert.Equal(0, javascript.Editor.Destroys);
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
     public async Task Toolbar_groups_title_publication_focus_and_the_persistent_AI_host_without_remounting()
     {
         using var api = new TitleApi();
@@ -238,7 +266,9 @@ public sealed class NotionTitleUiTests
     {
         public Guid PageId { get; } = Guid.NewGuid();
         private Guid HoldId { get; } = Guid.NewGuid();
-        public string Title { get; private set; } = "Starttitel";
+        public string Title { get; set; } = "Starttitel";
+        public CustomEmojiItem[] Emojis { get; init; } = [];
+        public int EmojiRequests { get; private set; }
         public bool CanEdit { get; init; } = true;
         public DateTimeOffset? PublishedAt { get; set; }
         public bool FailRenames { get; set; }
@@ -271,9 +301,9 @@ public sealed class NotionTitleUiTests
             }
             if (request.Method == HttpMethod.Get)
             {
+                if (path == "/api/emojis") { EmojiRequests++; return Json(Emojis); }
                 object? body = path switch
                 {
-                    "/api/emojis" => Array.Empty<CustomEmojiItem>(),
                     "/api/notion/holds" => new[] { new NotionHold(HoldId, "Testhold", true) },
                     "/api/references/backlinks" => Array.Empty<ResolvedReference>(),
                     "/api/notion/pages" => new[] { Summary },

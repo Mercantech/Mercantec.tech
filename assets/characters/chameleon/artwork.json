@@ -1,0 +1,113 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "assets/characters/chameleon/reference.png",
+  "status": "complete",
+  "entries": [
+    {
+      "id": "teacher",
+      "title": "Machine Learning-underviseren",
+      "kind": "portrait",
+      "image": "/images/characters/chameleon/teacher.png",
+      "alt": "Kamæleonen står med eksempel-kort og en lille tavle med farvede datapunkter.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nSQUARE full-body portrait on plain pale cream background, generous margins all four sides. He stands with a small board resting on a little easel beside him showing a few unlabeled teal and orange sample dots separated by a simple curved boundary. He holds two small sample cards in one hand and gestures open-handed to the board with the other. TWO hands, no violin or tuning fork in this teacher portrait. Entire crest, curled tail and both feet fully visible. No text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-667815fc-406c-429a-9c78-df8d2ef6375e.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Same adopted face and clothing; coherent two-arm hands/props, curled tail and feet; full square composition without text."
+      }
+    },
+    {
+      "id": "banjo",
+      "title": "Banjoen frem",
+      "kind": "portrait",
+      "image": "/images/characters/chameleon/banjo.png",
+      "alt": "Kamæleonen spiller banjo i sit velkendte arbejdstøj.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nSQUARE full-body portrait on plain pale cream background, generous margins all four sides. The same character stands relaxed, playing a coherent five-string BANJO: round white drumhead with brown wooden rim, long straight dark fretted neck, sensible headstock and tiny fifth-string tuning peg partway along neck. One hand frets neck and other gently picks strings over the round head, natural fingers and two arms only. Woven shoulder strap. Same clothes as reference. No violin/tuning fork, no stool or scene. Entire crest, curled tail and feet fully visible. No text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ec850daa-1778-4f5b-b23e-6dfb557262ee.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Same adopted face and clothing; coherent two-arm hands/props, curled tail and feet; full square composition without text."
+      }
+    },
+    {
+      "id": "fieldwork",
+      "title": "På feltarbejde",
+      "kind": "portrait",
+      "image": "/images/characters/chameleon/fieldwork.png",
+      "alt": "Kamæleonen undersøger et blad og noterer sine observationer i en lille notesbog.",
+      "width": 1254,
+      "height": 1254,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nSQUARE full-body portrait on plain pale cream background, generous margins all four sides. Curious character doing fieldwork: holds an open unlettered pocket notebook with small simple leaf silhouettes and colored dot marks in his left hand, right hand holds a pencil poised over it. A small leaf rests gently clipped to notebook edge. Same cream rolled shirt and leather apron, no explorer costume or hat, no extra hands. Single curled tail, both feet visible; no scenery. No text anywhere.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ec6dbfbc-2793-4fa7-8971-c393b85edec5.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Same adopted face and clothing; coherent two-arm hands/props, curled tail and feet; full square composition without text."
+      }
+    },
+    {
+      "id": "workshop",
+      "title": "Violinbyggerens værksted",
+      "kind": "scene",
+      "image": "/images/characters/chameleon/scenes/workshop.png",
+      "alt": "Kamæleonen arbejder omhyggeligt på en ufærdig violin i et varmt italiensk værksted.",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nLANDSCAPE3:2 at1536x1024. A warm sunlit traditional Italian violin maker's workshop, stone walls, arched window looking toward tiled rooftops, hanging wooden violin molds and gouges, small curls of wood on the bench, no readable shop signs. The adopted chameleon patiently carves a pale unfinished VIOLIN soundboard at a wooden workbench. Two natural hands: one steadies the violin plate safely and one uses a tiny carving gouge away from the fingers. Coherent violin waist and f-hole shapes. Warm cream shirt/leather apron, curled tail visible beside bench. Charming craft detail, calm believable work, no modern computers. No text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-f678ee08-2dd6-4f86-8d00-6b5a1932a5a3.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Coherent violin carving / banjo playing, two natural hands, adopted character face and costume, warm detailed landscape, no text."
+      }
+    },
+    {
+      "id": "banjo-evening",
+      "title": "Bluegrass ved solnedgang",
+      "kind": "scene",
+      "image": "/images/characters/chameleon/scenes/banjo-evening.png",
+      "alt": "Kamæleonen spiller banjo på en hyggelig veranda i aftenlys.",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nLANDSCAPE3:2 at1536x1024. A cozy wooden veranda at dusk, amber lantern, potted plants and soft purple distant hills, a quiet cup on a side table. Same chameleon in cream shirt and leather apron sits naturally on a simple wooden chair playing a coherent five-string BANJO. Round white drumhead/brown rim, straight dark fretted neck and correct banjo silhouette, one hand fretting and one picking, two arms only, no extra hands. Curled tail relaxed beside chair, warm friendly expression caught in the music. Bluegrass personality blended with Italian-trained craftsman. No musical staff or floating text, no letters.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ba0f287f-e235-4e27-a5ea-339e37b69d0e.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Coherent violin carving / banjo playing, two natural hands, adopted character face and costume, warm detailed landscape, no text."
+      }
+    },
+    {
+      "id": "data-garden",
+      "title": "Data i drivhuset",
+      "kind": "scene",
+      "image": "/images/characters/chameleon/scenes/data-garden.png",
+      "alt": "Kamæleonen undersøger planter og sammenligner observationer i et lyst drivhus.",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nLANDSCAPE3:2 at1536x1024. Bright intimate greenhouse with leaves, terracotta pots, soft morning sun and wooden planting table. Adopted chameleon, same clothing and face, carefully observes two differently shaped leaves on the table beside a small open notebook with just simple drawn silhouettes and colored dots, no writing. One hand holds a pencil and one gently turns a leaf sample, only two hands. Patient observation, curiosity and respect for differences; no magical data scanning, no screens, no unrelated characters. Tail naturally curled, plants framing but never obscuring his face. Warm painterly green/ochre palette. No text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-e0748c3a-4317-4e38-9ca8-99f471b0fc48.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Adopted character, coherent leaf study / grouped-points lesson, two natural hands, warm detailed landscape; no text."
+      }
+    },
+    {
+      "id": "teaching-studio",
+      "title": "Det lille læringsatelier",
+      "kind": "scene",
+      "image": "/images/characters/chameleon/scenes/teaching-studio.png",
+      "alt": "Kamæleonen forklarer grupper af datapunkter i et lyst læringsatelier.",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Use case: illustration-story. Generate ONE original polished warm painted character illustration. Attached image is the adopted chameleon's exact IDENTITY AND STYLE REFERENCE. Preserve his friendly green/yellow-green scales, orange-edged dorsal crest, large warm brown turret eyes, gentle smile, recognizable head proportions, cream linen shirt with rolled sleeves, rich brown stitched leather apron with brass hardware, brown work trousers, and one long naturally curled tail. He is a patient violin maker trained in Italy who plays banjo and now teaches Machine Learning. Same charming hand-painted picture-book family and refined surface detail; not photorealistic or glossy CGI. Coherent two arms, two hands, two legs; no duplicate limbs or detached fingers. Good framing, all important content safely inside canvas. Opaque background, soft warm lighting. NO words, letters, numbers, logos, signatures or watermark. Specific image:\nLANDSCAPE3:2 at1536x1024. A sunlit, welcoming teaching atelier with light timber shelves, a simple standing chalkboard and carefully arranged wooden sample trays. The adopted chameleon teacher smiles and explains a very clean diagram of three separated groups of colored points on the chalkboard, no words/numbers. One hand holds a slim wooden pointer and the other presents two plain sample cards. Warm cream shirt, brown apron, full curled tail visible; board diagram occupies clear space to side. Craft workshop character meets patient ML teacher, detailed brush texture, no computers or generic neon AI imagery. No extra people, no text.",
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-4ac45367-be78-4515-b09d-2ce539c9b32e.png",
+      "qa": {
+        "visuallyReviewed": true,
+        "notes": "Adopted character, coherent leaf study / grouped-points lesson, two natural hands, warm detailed landscape; no text."
+      }
+    }
+  ]
+}

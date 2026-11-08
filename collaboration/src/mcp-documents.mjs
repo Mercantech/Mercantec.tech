@@ -7,6 +7,7 @@ const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const TEXT_TYPES = new Set(['paragraph', 'heading', 'bulletListItem', 'numberedListItem', 'checkListItem', 'toggleListItem', 'quote', 'codeBlock', 'callout', 'learningGoal']);
 const CONTENT_TYPES = new Set([...TEXT_TYPES, 'table', 'mermaidDiagram']);
 const STRUCTURAL = new Set(['blockContainer', 'blockGroup', 'tableRow', 'tableCell', 'tableHeader', 'tableParagraph']);
+const INLINE_TYPES = new Set(['customEmoji', 'hardBreak']);
 const MARKS = new Set(['bold', 'italic', 'underline', 'strike', 'code', 'link', 'textColor', 'backgroundColor']);
 const COMMON_ATTRIBUTES = new Set(['backgroundColor', 'textColor', 'textAlignment']);
 const NODE_ATTRIBUTES = {
@@ -14,6 +15,7 @@ const NODE_ATTRIBUTES = {
   toggleListItem: ['isToggleable'], codeBlock: ['language'], callout: ['schemaVersion', 'tone', 'emojiId', 'emojiName'],
   mermaidDiagram: ['schemaVersion', 'source'], learningGoal: ['schemaVersion'], tableRow: [],
   tableCell: ['colspan', 'rowspan', 'colwidth'], tableHeader: ['colspan', 'rowspan', 'colwidth'], tableParagraph: [],
+  customEmoji: ['emojiId', 'name'], hardBreak: [],
 };
 const MAX_NODES = 250000, MAX_DEPTH = 128, MAX_BYTES = 12 * 1024 * 1024;
 export const MAX_MCP_READ_BYTES = 256 * 1024;
@@ -121,7 +123,7 @@ export function readMcpPage(doc, { pageId, cursor = null, limit = 50 } = {}) {
 function protectedParts(node, result = []) {
   if (node.kind === 'text') {
     for (const part of node.delta) for (const [key, value] of Object.entries(part.attributes || {})) if (!MARKS.has(key)) result.push(canonicalMcpJson({ mark: key, value }));
-  } else if (!CONTENT_TYPES.has(node.name) && !STRUCTURAL.has(node.name)) result.push(canonicalMcpJson(node));
+  } else if (!CONTENT_TYPES.has(node.name) && !STRUCTURAL.has(node.name) && !INLINE_TYPES.has(node.name)) result.push(canonicalMcpJson(node));
   else {
     for (const [key, value] of Object.entries(node.attributes)) if (!COMMON_ATTRIBUTES.has(key) && !(NODE_ATTRIBUTES[node.name] || []).includes(key)) result.push(canonicalMcpJson({ attribute: key, value, node: node.name }));
     for (const child of node.children) protectedParts(child, result);
@@ -132,8 +134,8 @@ function protectedParts(node, result = []) {
 function validateXmlSchema(node, original = null) {
   // Unknown inline widgets can only be carried through byte-for-byte; Codex cannot create them or delete them implicitly.
   if (canonicalMcpJson(protectedParts(node)) !== canonicalMcpJson(original ? protectedParts(original) : [])) fail('protected_content', 'Medier, referencer og ukendte noder skal bevares uændret.');
-  const known = value => value.kind === 'element' && (CONTENT_TYPES.has(value.name) || STRUCTURAL.has(value.name));
-  const visit = value => {
+  const known = value => value.kind === 'element' && (CONTENT_TYPES.has(value.name) || STRUCTURAL.has(value.name) || INLINE_TYPES.has(value.name));
+  const visit = (value, parent = null) => {
     if (value.kind === 'text') {
       for (const part of value.delta) {
         if (typeof part.insert !== 'string') fail('invalid_block', 'Tekst skal være en streng.');
@@ -147,6 +149,17 @@ function validateXmlSchema(node, original = null) {
       return;
     }
     if (!known(value)) return;
+    if (INLINE_TYPES.has(value.name)) {
+      if (!(TEXT_TYPES.has(parent) && parent !== 'codeBlock' || parent === 'tableParagraph') || value.children.length) fail('invalid_inline_node', 'Emoji og linjeskift må kun stå som tomme inline-noder i tekstindhold.');
+      const keys = Object.keys(value.attributes);
+      if (value.name === 'hardBreak') {
+        if (keys.length) fail('invalid_inline_node', 'Et linjeskift må ikke have attributter.');
+      } else if (keys.length !== 2 || !keys.includes('emojiId') || !keys.includes('name') || !ID.test(value.attributes.emojiId || '') || value.attributes.emojiId === '00000000-0000-0000-0000-000000000000'
+        || typeof value.attributes.name !== 'string' || !/^[\p{L}\p{N}][\p{L}\p{N}_-]{0,99}$/u.test(value.attributes.name)) {
+        fail('invalid_inline_node', 'En emoji kræver et gyldigt emojiId og et sikkert navn uden ekstra attributter.');
+      }
+      return;
+    }
     for (const key of ['backgroundColor', 'textColor']) if (value.attributes[key] !== undefined && typeof value.attributes[key] !== 'string') fail('invalid_formatting', 'Blokfarver skal være strenge.');
     if (value.attributes.textAlignment !== undefined && !['left', 'center', 'right', 'justify'].includes(value.attributes.textAlignment)) fail('invalid_formatting', 'Ugyldig tekstjustering.');
     for (const key of ['checked', 'isToggleable']) if (value.attributes[key] !== undefined && typeof value.attributes[key] !== 'boolean') fail('invalid_block', 'Ugyldig boolean-prop.');
@@ -185,11 +198,11 @@ function validateXmlSchema(node, original = null) {
       if (widths !== undefined && widths !== null && (!Array.isArray(widths) || widths.length !== (value.attributes.colspan ?? 1) || widths.some(width => !Number.isInteger(width) || width < 1 || width > 100000))) fail('invalid_table', 'Ugyldige kolonnebredder.');
     } else if (value.name === 'mermaidDiagram') {
       if (value.children.length || typeof value.attributes.source !== 'string') fail('invalid_block', 'Mermaid skal ligge i source-attributten.');
-    } else if (value.children.some(child => child.kind === 'element' && known(child))) fail('invalid_block', 'Tekstblokke må kun have inlineindhold.');
+    } else if (value.children.some(child => child.kind === 'element' && known(child) && !INLINE_TYPES.has(child.name))) fail('invalid_block', 'Tekstblokke må kun have inlineindhold.');
     if (value.name === 'heading' && value.attributes.level !== undefined && ![1, 2, 3, 4, 5, 6].includes(value.attributes.level)) fail('invalid_block', 'Overskriftsniveau skal være 1–6.');
     if (value.name === 'codeBlock' && value.children.some(child => child.kind !== 'text' || child.delta.some(part => Object.keys(part.attributes || {}).some(mark => MARKS.has(mark))))) fail('invalid_code_block', 'Kodeblokke skal indeholde ren tekst uden formateringsmarkeringer.');
     if (value.name === 'callout' && value.attributes.tone !== undefined && !['info', 'tip', 'warning', 'important'].includes(value.attributes.tone)) fail('invalid_block', 'Ugyldig callout-tone.');
-    for (const child of value.children) visit(child);
+    for (const child of value.children) visit(child, value.name);
   };
   visit(node);
 }

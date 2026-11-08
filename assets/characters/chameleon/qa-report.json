@@ -1,0 +1,6021 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-08T21:17:24.098Z",
+  "complete": true,
+  "expectedCounts": {
+    "emojis": 48,
+    "infographics": 16,
+    "scenes": 4,
+    "portraits": 4
+  },
+  "counts": {
+    "emojis": 48,
+    "infographics": 16,
+    "scenes": 4,
+    "portraits": 4
+  },
+  "validCounts": {
+    "emojis": 48,
+    "infographics": 16,
+    "scenes": 4,
+    "portraits": 4
+  },
+  "sourcePolicy": "Authoritative delivered manifests only; exact native-source SHA-256 equality. Generated originals are never modified.",
+  "transparencyPolicy": "RGBA, alpha includes 0 and 255, nonempty silhouette. Exact alpha>0 bounds are reported. Visible silhouette uses explicit alpha>4/255 threshold and must have free edges. Native fringe at alpha<=4/255 and visible margins below 2% are warnings; no pixels are modified.",
+  "manifests": [
+    {
+      "file": "assets/characters/chameleon/reactions-a.json",
+      "found": true,
+      "generator": "builtin-imagegen",
+      "status": null,
+      "entries": 24
+    },
+    {
+      "file": "assets/characters/chameleon/reactions-b.json",
+      "found": true,
+      "generator": "builtin-imagegen",
+      "status": null,
+      "entries": 24
+    },
+    {
+      "file": "assets/characters/chameleon/ml-infographics.json",
+      "found": true,
+      "generator": "builtin-imagegen",
+      "status": "complete",
+      "entries": 16
+    },
+    {
+      "file": "assets/characters/chameleon/artwork.json",
+      "found": true,
+      "generator": "builtin-imagegen",
+      "status": "complete",
+      "entries": 7
+    },
+    {
+      "file": "assets/characters/chameleon/portrait-provenance.json",
+      "found": true,
+      "generator": "built-in image_gen",
+      "status": null,
+      "entries": null
+    },
+    {
+      "file": "assets/characters/chameleon/preview-report.json",
+      "found": true,
+      "generator": null,
+      "status": null,
+      "entries": null
+    },
+    {
+      "file": "assets/characters/reactions-preview-report.json",
+      "found": true,
+      "generator": null,
+      "status": null,
+      "entries": null
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "/images/characters/chameleon/reactions/wave.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/thinking.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/confused.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/confused.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/curious.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/idea.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/idea.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/help.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/applause.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/laughing.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/wink.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/wink.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/relieved.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/proud.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/proud.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/determined.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/determined.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/listening.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/listening.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/good-morning.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/coffee.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/coffee.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/celebration.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/celebration.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/grateful.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/goodbye.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/patient.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/surprised.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/surprised.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/ready.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/ready.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/concerned.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/concerned.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/humming.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/accuracy.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/banjo.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/banjo.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/baseline.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/baseline.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/bias.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/classify.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/classify.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/clustering.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/clustering.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/data-cleaning.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/explainability.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/features.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/features.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/generalization.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/gradient.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/labels.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/labels.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/loss.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/missing-data.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/overfitting.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/predict.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/privacy.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/privacy.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/processing.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/retrain.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/test-data.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/tuning.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/tuning.png: Visible silhouette margin is less than two percent on at least one edge",
+    "/images/characters/chameleon/reactions/validation.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+    "/images/characters/chameleon/reactions/violin.png: Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+  ],
+  "entries": [
+    {
+      "id": "wave",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/wave.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2048789,
+        "sha256": "acc19581c66d967250f55c1d2da6e91080952247a5f6761ef6eeeab111628bd8"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-96e7a12c-0c52-4a46-9ab3-845167c48df2.png",
+      "sourceSha256": "acc19581c66d967250f55c1d2da6e91080952247a5f6761ef6eeeab111628bd8",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 760915,
+        "opaquePixels": 589,
+        "transparentFraction": 0.4838837887817994,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1220
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 20,
+          "bottom": 34
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 115,
+          "top": 55,
+          "rightExclusive": 1189,
+          "bottomExclusive": 1212
+        },
+        "visibleMargins": {
+          "left": 115,
+          "top": 55,
+          "right": 65,
+          "bottom": 42
+        },
+        "minimumVisibleMargin": 42,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/wave.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 82750,
+        "sha256": "b8bc7107c15d22439358dcbedf01da0e23189889c6c48c3b9c16156d8d96d530",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 126769,
+          "opaquePixels": 1379,
+          "transparentFraction": 0.4835853576660156,
+          "bounds": {
+            "left": 0,
+            "top": 20,
+            "rightExclusive": 503,
+            "bottomExclusive": 497
+          },
+          "margins": {
+            "left": 0,
+            "top": 20,
+            "right": 9,
+            "bottom": 15
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 47,
+            "top": 23,
+            "rightExclusive": 485,
+            "bottomExclusive": 494
+          },
+          "visibleMargins": {
+            "left": 47,
+            "top": 23,
+            "right": 27,
+            "bottom": 18
+          },
+          "minimumVisibleMargin": 18,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "thinking",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/thinking.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1985187,
+        "sha256": "87572642bb541d2405a6607402a40fc9f2c2efadd30de3f6269c2048ee70686a"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-777eacff-6ddc-4708-b32c-41f380322616.png",
+      "sourceSha256": "87572642bb541d2405a6607402a40fc9f2c2efadd30de3f6269c2048ee70686a",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 768783,
+        "opaquePixels": 396,
+        "transparentFraction": 0.48888723548758806,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1236,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 18,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 170,
+          "top": 38,
+          "rightExclusive": 1111,
+          "bottomExclusive": 1217
+        },
+        "visibleMargins": {
+          "left": 170,
+          "top": 38,
+          "right": 143,
+          "bottom": 37
+        },
+        "minimumVisibleMargin": 37,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/thinking.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 75780,
+        "sha256": "aaf738ca7c400e687a33b6c8d6700d674c283163dadd371f113f4ab29100f245",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 128142,
+          "opaquePixels": 1041,
+          "transparentFraction": 0.48882293701171875,
+          "bounds": {
+            "left": 39,
+            "top": 13,
+            "rightExclusive": 471,
+            "bottomExclusive": 501
+          },
+          "margins": {
+            "left": 39,
+            "top": 13,
+            "right": 41,
+            "bottom": 11
+          },
+          "minimumMargin": 11,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 69,
+            "top": 16,
+            "rightExclusive": 454,
+            "bottomExclusive": 498
+          },
+          "visibleMargins": {
+            "left": 69,
+            "top": 16,
+            "right": 58,
+            "bottom": 14
+          },
+          "minimumVisibleMargin": 14,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "confused",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/confused.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2060944,
+        "sha256": "f444ea20eebf98284df8fa72a10565724fd2e57429be106b623fd31d32072b94"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-39145048-cb8c-4a4e-a338-8494e821ac6a.png",
+      "sourceSha256": "f444ea20eebf98284df8fa72a10565724fd2e57429be106b623fd31d32072b94",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 729571,
+        "opaquePixels": 265,
+        "transparentFraction": 0.46395140017653236,
+        "bounds": {
+          "left": 0,
+          "top": 21,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 21,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 97,
+          "top": 34,
+          "rightExclusive": 1196,
+          "bottomExclusive": 1235
+        },
+        "visibleMargins": {
+          "left": 97,
+          "top": 34,
+          "right": 58,
+          "bottom": 19
+        },
+        "minimumVisibleMargin": 19,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/confused.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 80548,
+        "sha256": "64e735a48c988daac60f80bb400313f67aa165aafb91c641555b87bf2f5c919f",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 121796,
+          "opaquePixels": 1128,
+          "transparentFraction": 0.4646148681640625,
+          "bounds": {
+            "left": 14,
+            "top": 12,
+            "rightExclusive": 496,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 14,
+            "top": 12,
+            "right": 16,
+            "bottom": 5
+          },
+          "minimumMargin": 5,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 40,
+            "top": 14,
+            "rightExclusive": 488,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 40,
+            "top": 14,
+            "right": 24,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "curious",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/curious.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1994232,
+        "sha256": "f35da84ca991393adc131a4bef2ed41f66dc8a4c9f5ef042d88f8e4278737ce5"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-6c900633-fbfe-410e-acdd-9291bf6dab39.png",
+      "sourceSha256": "f35da84ca991393adc131a4bef2ed41f66dc8a4c9f5ef042d88f8e4278737ce5",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 756689,
+        "opaquePixels": 542,
+        "transparentFraction": 0.48119637574434854,
+        "bounds": {
+          "left": 59,
+          "top": 19,
+          "rightExclusive": 1190,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 59,
+          "top": 19,
+          "right": 64,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 107,
+          "top": 49,
+          "rightExclusive": 1134,
+          "bottomExclusive": 1217
+        },
+        "visibleMargins": {
+          "left": 107,
+          "top": 49,
+          "right": 120,
+          "bottom": 37
+        },
+        "minimumVisibleMargin": 37,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/curious.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 76704,
+        "sha256": "3e69fd5c6b1b00e20ff7806fb71598bf56d4aafb97f9a31c52171272d1442f3d",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125784,
+          "opaquePixels": 1009,
+          "transparentFraction": 0.479827880859375,
+          "bounds": {
+            "left": 41,
+            "top": 18,
+            "rightExclusive": 465,
+            "bottomExclusive": 499
+          },
+          "margins": {
+            "left": 41,
+            "top": 18,
+            "right": 47,
+            "bottom": 13
+          },
+          "minimumMargin": 13,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 44,
+            "top": 20,
+            "rightExclusive": 463,
+            "bottomExclusive": 497
+          },
+          "visibleMargins": {
+            "left": 44,
+            "top": 20,
+            "right": 49,
+            "bottom": 15
+          },
+          "minimumVisibleMargin": 15,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "idea",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/idea.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2230386,
+        "sha256": "fabd40c5e94511ec40b02595a0b7c7b96577b8151c5d83e07e0542c68cf7d521"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-65fb6c92-6475-47e1-b8f4-8ae18e85ba06.png",
+      "sourceSha256": "fabd40c5e94511ec40b02595a0b7c7b96577b8151c5d83e07e0542c68cf7d521",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 681200,
+        "opaquePixels": 439,
+        "transparentFraction": 0.43319114082146065,
+        "bounds": {
+          "left": 0,
+          "top": 17,
+          "rightExclusive": 1236,
+          "bottomExclusive": 1242
+        },
+        "margins": {
+          "left": 0,
+          "top": 17,
+          "right": 18,
+          "bottom": 12
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 120,
+          "top": 28,
+          "rightExclusive": 1133,
+          "bottomExclusive": 1240
+        },
+        "visibleMargins": {
+          "left": 120,
+          "top": 28,
+          "right": 121,
+          "bottom": 14
+        },
+        "minimumVisibleMargin": 14,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/idea.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 84996,
+        "sha256": "58a2895354a69fad85bab4c7118f91cae16fba167f943e0cfe94efa7ca0a339e",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 113481,
+          "opaquePixels": 1291,
+          "transparentFraction": 0.4328956604003906,
+          "bounds": {
+            "left": 10,
+            "top": 7,
+            "rightExclusive": 466,
+            "bottomExclusive": 508
+          },
+          "margins": {
+            "left": 10,
+            "top": 7,
+            "right": 46,
+            "bottom": 4
+          },
+          "minimumMargin": 4,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 49,
+            "top": 12,
+            "rightExclusive": 464,
+            "bottomExclusive": 506
+          },
+          "visibleMargins": {
+            "left": 49,
+            "top": 12,
+            "right": 48,
+            "bottom": 6
+          },
+          "minimumVisibleMargin": 6,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "help",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/help.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2009848,
+        "sha256": "ad0114db7e5264d88e832f09146d8006fadbcc393d7a147fd49ba3115b9575bf"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-dcb30130-f4cd-4f37-9eb8-785d5c631985.png",
+      "sourceSha256": "ad0114db7e5264d88e832f09146d8006fadbcc393d7a147fd49ba3115b9575bf",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 759975,
+        "opaquePixels": 472,
+        "transparentFraction": 0.4832860206191861,
+        "bounds": {
+          "left": 0,
+          "top": 15,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 15,
+          "right": 20,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 131,
+          "top": 28,
+          "rightExclusive": 1155,
+          "bottomExclusive": 1225
+        },
+        "visibleMargins": {
+          "left": 131,
+          "top": 28,
+          "right": 99,
+          "bottom": 29
+        },
+        "minimumVisibleMargin": 28,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/help.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 78218,
+        "sha256": "983925093c78c90df4e2e025f5d806b013656e6b821e7e2dbfe71520c9406d54",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 126773,
+          "opaquePixels": 1015,
+          "transparentFraction": 0.4836006164550781,
+          "bounds": {
+            "left": 0,
+            "top": 7,
+            "rightExclusive": 502,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 0,
+            "top": 7,
+            "right": 10,
+            "bottom": 7
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 53,
+            "top": 12,
+            "rightExclusive": 472,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 53,
+            "top": 12,
+            "right": 40,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "applause",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/applause.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1859229,
+        "sha256": "ab5e263d3c08b110bfddae8c27b1b3945f10420941f2b3c00db75ab295a36dd1"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-1760bc0e-aaea-4969-a10b-194a62742a56.png",
+      "sourceSha256": "ab5e263d3c08b110bfddae8c27b1b3945f10420941f2b3c00db75ab295a36dd1",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 839044,
+        "opaquePixels": 485,
+        "transparentFraction": 0.5335678619486225,
+        "bounds": {
+          "left": 0,
+          "top": 33,
+          "rightExclusive": 1214,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 33,
+          "right": 40,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 224,
+          "top": 51,
+          "rightExclusive": 1074,
+          "bottomExclusive": 1218
+        },
+        "visibleMargins": {
+          "left": 224,
+          "top": 51,
+          "right": 180,
+          "bottom": 36
+        },
+        "minimumVisibleMargin": 36,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/applause.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 71754,
+        "sha256": "afffd5dcd1c44a9ee944eb36e5b0ffa4c3067b38e2e75674ed4b302515590d43",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 140060,
+          "opaquePixels": 1091,
+          "transparentFraction": 0.5342864990234375,
+          "bounds": {
+            "left": 0,
+            "top": 14,
+            "rightExclusive": 495,
+            "bottomExclusive": 501
+          },
+          "margins": {
+            "left": 0,
+            "top": 14,
+            "right": 17,
+            "bottom": 11
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 92,
+            "top": 20,
+            "rightExclusive": 439,
+            "bottomExclusive": 498
+          },
+          "visibleMargins": {
+            "left": 92,
+            "top": 20,
+            "right": 73,
+            "bottom": 14
+          },
+          "minimumVisibleMargin": 14,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "laughing",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/laughing.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1917743,
+        "sha256": "669da510eabfd2ae3bd4f42efc7619559903a434f680e2709071c98cee48cc5c"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-0308f026-4d02-449b-b776-f5f64a69013b.png",
+      "sourceSha256": "669da510eabfd2ae3bd4f42efc7619559903a434f680e2709071c98cee48cc5c",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 792665,
+        "opaquePixels": 431,
+        "transparentFraction": 0.504074362359429,
+        "bounds": {
+          "left": 0,
+          "top": 31,
+          "rightExclusive": 1250,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 31,
+          "right": 4,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 155,
+          "top": 41,
+          "rightExclusive": 1090,
+          "bottomExclusive": 1224
+        },
+        "visibleMargins": {
+          "left": 155,
+          "top": 41,
+          "right": 164,
+          "bottom": 30
+        },
+        "minimumVisibleMargin": 30,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/laughing.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 71440,
+        "sha256": "7f36956594bb556b2d6f5786b8ad1d8e558c063b3a15af295afcff9cb8547868",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 132127,
+          "opaquePixels": 1007,
+          "transparentFraction": 0.5040245056152344,
+          "bounds": {
+            "left": 0,
+            "top": 13,
+            "rightExclusive": 479,
+            "bottomExclusive": 502
+          },
+          "margins": {
+            "left": 0,
+            "top": 13,
+            "right": 33,
+            "bottom": 10
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 63,
+            "top": 17,
+            "rightExclusive": 445,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 63,
+            "top": 17,
+            "right": 67,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "wink",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/wink.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2057625,
+        "sha256": "1fda382741cd4a59d9a7af5e05cf8872b4b0408dd00fc6e2a615b8794b890bf6"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-1bed765c-3ec5-49f9-b2b7-30d33854ce26.png",
+      "sourceSha256": "1fda382741cd4a59d9a7af5e05cf8872b4b0408dd00fc6e2a615b8794b890bf6",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 730580,
+        "opaquePixels": 367,
+        "transparentFraction": 0.4645930470659758,
+        "bounds": {
+          "left": 0,
+          "top": 20,
+          "rightExclusive": 1251,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 20,
+          "right": 3,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 115,
+          "top": 38,
+          "rightExclusive": 1127,
+          "bottomExclusive": 1231
+        },
+        "visibleMargins": {
+          "left": 115,
+          "top": 38,
+          "right": 127,
+          "bottom": 23
+        },
+        "minimumVisibleMargin": 23,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/wink.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 77966,
+        "sha256": "90b3294b50eab67d4ddd58600e9fc2b1d03083800297cc3ae304d41f8fa403aa",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 121691,
+          "opaquePixels": 1071,
+          "transparentFraction": 0.4642143249511719,
+          "bounds": {
+            "left": 20,
+            "top": 13,
+            "rightExclusive": 481,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 20,
+            "top": 13,
+            "right": 31,
+            "bottom": 7
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 47,
+            "top": 16,
+            "rightExclusive": 460,
+            "bottomExclusive": 502
+          },
+          "visibleMargins": {
+            "left": 47,
+            "top": 16,
+            "right": 52,
+            "bottom": 10
+          },
+          "minimumVisibleMargin": 10,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "relieved",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/relieved.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2021232,
+        "sha256": "2aff08eb0b920c529e618c14b3c45ce8195510867802ff3c40357dd268d30cc7"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-522d2132-2942-499b-bcf9-655b27c94c0a.png",
+      "sourceSha256": "2aff08eb0b920c529e618c14b3c45ce8195510867802ff3c40357dd268d30cc7",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 747611,
+        "opaquePixels": 248,
+        "transparentFraction": 0.4754234615100896,
+        "bounds": {
+          "left": 0,
+          "top": 7,
+          "rightExclusive": 1253,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 7,
+          "right": 1,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 164,
+          "top": 37,
+          "rightExclusive": 1150,
+          "bottomExclusive": 1220
+        },
+        "visibleMargins": {
+          "left": 164,
+          "top": 37,
+          "right": 104,
+          "bottom": 34
+        },
+        "minimumVisibleMargin": 34,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/relieved.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 79792,
+        "sha256": "1196d8d02c1554fba0debe9990f4ac8e50f0380fdfa958adce0d4bdb2548909f",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125161,
+          "opaquePixels": 1165,
+          "transparentFraction": 0.4774513244628906,
+          "bounds": {
+            "left": 17,
+            "top": 9,
+            "rightExclusive": 501,
+            "bottomExclusive": 501
+          },
+          "margins": {
+            "left": 17,
+            "top": 9,
+            "right": 11,
+            "bottom": 11
+          },
+          "minimumMargin": 9,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 67,
+            "top": 14,
+            "rightExclusive": 469,
+            "bottomExclusive": 498
+          },
+          "visibleMargins": {
+            "left": 67,
+            "top": 14,
+            "right": 43,
+            "bottom": 14
+          },
+          "minimumVisibleMargin": 14,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "proud",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/proud.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1999529,
+        "sha256": "c504553f220e1a6ec85e6ae543f3e479186db64408dcd02e41dbb28171c2bf58"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-992dd66a-927f-49ef-a634-799369cf63b9.png",
+      "sourceSha256": "c504553f220e1a6ec85e6ae543f3e479186db64408dcd02e41dbb28171c2bf58",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 753388,
+        "opaquePixels": 330,
+        "transparentFraction": 0.4790971920158523,
+        "bounds": {
+          "left": 0,
+          "top": 18,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 18,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 112,
+          "top": 23,
+          "rightExclusive": 1140,
+          "bottomExclusive": 1237
+        },
+        "visibleMargins": {
+          "left": 112,
+          "top": 23,
+          "right": 114,
+          "bottom": 17
+        },
+        "minimumVisibleMargin": 17,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/proud.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 76198,
+        "sha256": "254d1a24368f97a0d6356cb6ce8ee9ebda98926e7f093d695d445de78ea49d71",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125797,
+          "opaquePixels": 1012,
+          "transparentFraction": 0.4798774719238281,
+          "bounds": {
+            "left": 12,
+            "top": 7,
+            "rightExclusive": 501,
+            "bottomExclusive": 508
+          },
+          "margins": {
+            "left": 12,
+            "top": 7,
+            "right": 11,
+            "bottom": 4
+          },
+          "minimumMargin": 4,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 46,
+            "top": 10,
+            "rightExclusive": 466,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 46,
+            "top": 10,
+            "right": 46,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "determined",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/determined.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2226235,
+        "sha256": "5dac067b7cbba7b88dfdf2799195f9ca6584ce2122f26c4704412b9b115c3276"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-5c0cfd3a-376c-4628-ae13-3d88aa6c2149.png",
+      "sourceSha256": "5dac067b7cbba7b88dfdf2799195f9ca6584ce2122f26c4704412b9b115c3276",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 685015,
+        "opaquePixels": 528,
+        "transparentFraction": 0.43561718926866244,
+        "bounds": {
+          "left": 0,
+          "top": 19,
+          "rightExclusive": 1253,
+          "bottomExclusive": 1240
+        },
+        "margins": {
+          "left": 0,
+          "top": 19,
+          "right": 1,
+          "bottom": 14
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 129,
+          "top": 26,
+          "rightExclusive": 1165,
+          "bottomExclusive": 1237
+        },
+        "visibleMargins": {
+          "left": 129,
+          "top": 26,
+          "right": 89,
+          "bottom": 17
+        },
+        "minimumVisibleMargin": 17,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/determined.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 85696,
+        "sha256": "51d0cc7008bc0a521a1d56b035ef27a71e8017b449e0cd40593b190d746046d3",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 113880,
+          "opaquePixels": 1258,
+          "transparentFraction": 0.434417724609375,
+          "bounds": {
+            "left": 51,
+            "top": 8,
+            "rightExclusive": 484,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 51,
+            "top": 8,
+            "right": 28,
+            "bottom": 5
+          },
+          "minimumMargin": 5,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 53,
+            "top": 10,
+            "rightExclusive": 475,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 53,
+            "top": 10,
+            "right": 37,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "listening",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/listening.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2327210,
+        "sha256": "b7b9a724c49d4ee05b2317ce7686cd5d314fc5d22f5835481a54e1c7958dbf32"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-aa1a7abd-a997-4137-813f-4c085e3904a2.png",
+      "sourceSha256": "b7b9a724c49d4ee05b2317ce7686cd5d314fc5d22f5835481a54e1c7958dbf32",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 652009,
+        "opaquePixels": 344,
+        "transparentFraction": 0.414627895678009,
+        "bounds": {
+          "left": 0,
+          "top": 14,
+          "rightExclusive": 1232,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 14,
+          "right": 22,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 82,
+          "top": 16,
+          "rightExclusive": 1165,
+          "bottomExclusive": 1237
+        },
+        "visibleMargins": {
+          "left": 82,
+          "top": 16,
+          "right": 89,
+          "bottom": 17
+        },
+        "minimumVisibleMargin": 16,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/listening.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 86564,
+        "sha256": "1f9d9e93b490a57efecf4b060f713ed9b587825456e0130c56132037338b2826",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 108736,
+          "opaquePixels": 1161,
+          "transparentFraction": 0.414794921875,
+          "bounds": {
+            "left": 0,
+            "top": 4,
+            "rightExclusive": 477,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 0,
+            "top": 4,
+            "right": 35,
+            "bottom": 5
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 34,
+            "top": 6,
+            "rightExclusive": 475,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 34,
+            "top": 6,
+            "right": 37,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 6,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "good-morning",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/good-morning.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2140872,
+        "sha256": "3b8da03145f8fe4a91965e8ee0c93263fca31fdecc23e694b686201c087f10b5"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-2ef96810-39a3-43b6-a83e-0f8e09a9a632.png",
+      "sourceSha256": "3b8da03145f8fe4a91965e8ee0c93263fca31fdecc23e694b686201c087f10b5",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 712614,
+        "opaquePixels": 598,
+        "transparentFraction": 0.453168044077135,
+        "bounds": {
+          "left": 0,
+          "top": 6,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1210
+        },
+        "margins": {
+          "left": 0,
+          "top": 6,
+          "right": 20,
+          "bottom": 44
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 44,
+          "top": 58,
+          "rightExclusive": 1186,
+          "bottomExclusive": 1205
+        },
+        "visibleMargins": {
+          "left": 44,
+          "top": 58,
+          "right": 68,
+          "bottom": 49
+        },
+        "minimumVisibleMargin": 44,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/good-morning.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 84476,
+        "sha256": "1607cc2b1db423d2c04acc44404a04b972d790d94d4a396f1dea24cedc83aba3",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 118579,
+          "opaquePixels": 1501,
+          "transparentFraction": 0.4523429870605469,
+          "bounds": {
+            "left": 16,
+            "top": 3,
+            "rightExclusive": 486,
+            "bottomExclusive": 494
+          },
+          "margins": {
+            "left": 16,
+            "top": 3,
+            "right": 26,
+            "bottom": 18
+          },
+          "minimumMargin": 3,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 18,
+            "top": 24,
+            "rightExclusive": 484,
+            "bottomExclusive": 492
+          },
+          "visibleMargins": {
+            "left": 18,
+            "top": 24,
+            "right": 28,
+            "bottom": 20
+          },
+          "minimumVisibleMargin": 18,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "coffee",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/coffee.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1925561,
+        "sha256": "53f9a1e9d40a4f201c9db0088177bbb9978b458959250881ddb8a25967e481c4"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-b4ab0b64-476d-4a14-a896-2a53bb30f8ef.png",
+      "sourceSha256": "53f9a1e9d40a4f201c9db0088177bbb9978b458959250881ddb8a25967e481c4",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 800473,
+        "opaquePixels": 389,
+        "transparentFraction": 0.5090396536505829,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1254,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 0,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 181,
+          "top": 29,
+          "rightExclusive": 1091,
+          "bottomExclusive": 1234
+        },
+        "visibleMargins": {
+          "left": 181,
+          "top": 29,
+          "right": 163,
+          "bottom": 20
+        },
+        "minimumVisibleMargin": 20,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/coffee.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 71596,
+        "sha256": "1dee235c098c57254199a4af8c409b0a88383dc68df2a1d4c05d16cc2b21d868",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 133531,
+          "opaquePixels": 985,
+          "transparentFraction": 0.5093803405761719,
+          "bounds": {
+            "left": 10,
+            "top": 10,
+            "rightExclusive": 512,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 10,
+            "top": 10,
+            "right": 0,
+            "bottom": 5
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 73,
+            "top": 12,
+            "rightExclusive": 445,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 73,
+            "top": 12,
+            "right": 67,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "celebration",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/celebration.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2390975,
+        "sha256": "150bc5241fd2a329d046498d816b99bb1c6cb128833470a2bdee89b6bf0b3e59"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-3927e028-0462-4260-bf4a-00a19ec53831.png",
+      "sourceSha256": "150bc5241fd2a329d046498d816b99bb1c6cb128833470a2bdee89b6bf0b3e59",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 594388,
+        "opaquePixels": 428,
+        "transparentFraction": 0.37798534323339156,
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "rightExclusive": 1248,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 0,
+          "right": 6,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 48,
+          "top": 47,
+          "rightExclusive": 1203,
+          "bottomExclusive": 1234
+        },
+        "visibleMargins": {
+          "left": 48,
+          "top": 47,
+          "right": 51,
+          "bottom": 20
+        },
+        "minimumVisibleMargin": 20,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/celebration.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 98612,
+        "sha256": "3bf1d37fc72af8f246b606b2d961c6c6832feb98ac2e35e11fb46b55ae26c0dc",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 99832,
+          "opaquePixels": 1526,
+          "transparentFraction": 0.380828857421875,
+          "bounds": {
+            "left": 0,
+            "top": 0,
+            "rightExclusive": 505,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 0,
+            "top": 0,
+            "right": 7,
+            "bottom": 5
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 20,
+            "top": 19,
+            "rightExclusive": 491,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 20,
+            "top": 19,
+            "right": 21,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "grateful",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/grateful.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1861656,
+        "sha256": "5113f96886fe94a622fe2f40f0dc5a4cd714ab4aecffee97952510fcf05c7c98"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-ded45da8-d3cd-48e9-bc7f-ca882a4be7ef.png",
+      "sourceSha256": "5113f96886fe94a622fe2f40f0dc5a4cd714ab4aecffee97952510fcf05c7c98",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 808608,
+        "opaquePixels": 187,
+        "transparentFraction": 0.5142128919514969,
+        "bounds": {
+          "left": 0,
+          "top": 48,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1238
+        },
+        "margins": {
+          "left": 0,
+          "top": 48,
+          "right": 20,
+          "bottom": 16
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 174,
+          "top": 50,
+          "rightExclusive": 1081,
+          "bottomExclusive": 1221
+        },
+        "visibleMargins": {
+          "left": 174,
+          "top": 50,
+          "right": 173,
+          "bottom": 33
+        },
+        "minimumVisibleMargin": 33,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/grateful.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 71544,
+        "sha256": "dccb4afe7f5340d0a725225546ed34470bc08529e0d3a605f701c9b390495bba",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 134742,
+          "opaquePixels": 937,
+          "transparentFraction": 0.5139999389648438,
+          "bounds": {
+            "left": 60,
+            "top": 18,
+            "rightExclusive": 490,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 60,
+            "top": 18,
+            "right": 22,
+            "bottom": 7
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 71,
+            "top": 20,
+            "rightExclusive": 442,
+            "bottomExclusive": 498
+          },
+          "visibleMargins": {
+            "left": 71,
+            "top": 20,
+            "right": 70,
+            "bottom": 14
+          },
+          "minimumVisibleMargin": 14,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "goodbye",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/goodbye.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1955843,
+        "sha256": "945e106c6853601bb9d799e9a1a4a274c54c8a44fc1f87b51cf3250d8bce5530"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d9d25c6f-6097-4fcf-bfe7-ac4872af1900.png",
+      "sourceSha256": "945e106c6853601bb9d799e9a1a4a274c54c8a44fc1f87b51cf3250d8bce5530",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 806334,
+        "opaquePixels": 583,
+        "transparentFraction": 0.5127668017368344,
+        "bounds": {
+          "left": 0,
+          "top": 33,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1227
+        },
+        "margins": {
+          "left": 0,
+          "top": 33,
+          "right": 20,
+          "bottom": 27
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 137,
+          "top": 39,
+          "rightExclusive": 1178,
+          "bottomExclusive": 1225
+        },
+        "visibleMargins": {
+          "left": 137,
+          "top": 39,
+          "right": 76,
+          "bottom": 29
+        },
+        "minimumVisibleMargin": 29,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/goodbye.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 78332,
+        "sha256": "da8ae43f50779e1152439557fd183a9b542fe69d4cc9360f557ed3c43a5a6b57",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 134084,
+          "opaquePixels": 1453,
+          "transparentFraction": 0.5114898681640625,
+          "bounds": {
+            "left": 36,
+            "top": 14,
+            "rightExclusive": 497,
+            "bottomExclusive": 502
+          },
+          "margins": {
+            "left": 36,
+            "top": 14,
+            "right": 15,
+            "bottom": 10
+          },
+          "minimumMargin": 10,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 56,
+            "top": 16,
+            "rightExclusive": 481,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 56,
+            "top": 16,
+            "right": 31,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "focused",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/focused.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1887626,
+        "sha256": "7172442c94cc983c80012259b6e207f9f73b761a78bfdc025af25eaff63a6164"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-5461dcbd-070f-4b59-afbe-40d005c67655.png",
+      "sourceSha256": "7172442c94cc983c80012259b6e207f9f73b761a78bfdc025af25eaff63a6164",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 832010,
+        "opaquePixels": 409,
+        "transparentFraction": 0.5290947755062587,
+        "bounds": {
+          "left": 33,
+          "top": 40,
+          "rightExclusive": 1176,
+          "bottomExclusive": 1236
+        },
+        "margins": {
+          "left": 33,
+          "top": 40,
+          "right": 78,
+          "bottom": 18
+        },
+        "minimumMargin": 18,
+        "freeEdges": true,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 168,
+          "top": 43,
+          "rightExclusive": 1086,
+          "bottomExclusive": 1226
+        },
+        "visibleMargins": {
+          "left": 168,
+          "top": 43,
+          "right": 168,
+          "bottom": 28
+        },
+        "minimumVisibleMargin": 28,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/focused.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 72376,
+        "sha256": "19abe624fb25c1ca0127bc593ec23df4010866cb8e2996abdd0bb1be426cb336",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 138350,
+          "opaquePixels": 964,
+          "transparentFraction": 0.5277633666992188,
+          "bounds": {
+            "left": 66,
+            "top": 16,
+            "rightExclusive": 477,
+            "bottomExclusive": 503
+          },
+          "margins": {
+            "left": 66,
+            "top": 16,
+            "right": 35,
+            "bottom": 9
+          },
+          "minimumMargin": 9,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 68,
+            "top": 18,
+            "rightExclusive": 444,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 68,
+            "top": 18,
+            "right": 68,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "patient",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/patient.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1580827,
+        "sha256": "fab106670be6a842a571099892278e09aa8b13eef937257c7b5ff8f24a5d32e9"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d26d5c06-4f76-4f46-8911-00e1fb3e94dc.png",
+      "sourceSha256": "fab106670be6a842a571099892278e09aa8b13eef937257c7b5ff8f24a5d32e9",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 949147,
+        "opaquePixels": 274,
+        "transparentFraction": 0.6035849555743789,
+        "bounds": {
+          "left": 0,
+          "top": 19,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 19,
+          "right": 20,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 255,
+          "top": 41,
+          "rightExclusive": 999,
+          "bottomExclusive": 1216
+        },
+        "visibleMargins": {
+          "left": 255,
+          "top": 41,
+          "right": 255,
+          "bottom": 38
+        },
+        "minimumVisibleMargin": 38,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/patient.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 61272,
+        "sha256": "554d5b4e4c3b3895d1750c9b2648cecd196f73f966aead92fe07feb348e3c92d",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 157943,
+          "opaquePixels": 892,
+          "transparentFraction": 0.6025047302246094,
+          "bounds": {
+            "left": 37,
+            "top": 8,
+            "rightExclusive": 497,
+            "bottomExclusive": 500
+          },
+          "margins": {
+            "left": 37,
+            "top": 8,
+            "right": 15,
+            "bottom": 12
+          },
+          "minimumMargin": 8,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 105,
+            "top": 17,
+            "rightExclusive": 407,
+            "bottomExclusive": 496
+          },
+          "visibleMargins": {
+            "left": 105,
+            "top": 17,
+            "right": 105,
+            "bottom": 16
+          },
+          "minimumVisibleMargin": 16,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "surprised",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/surprised.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1911968,
+        "sha256": "36c9989ada6bade06c57b192cf14d50028903a1a59d5f13ff44b6762e87fbd6a"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d9e9a646-0cf2-4bbd-9b7e-081a064de6a9.png",
+      "sourceSha256": "36c9989ada6bade06c57b192cf14d50028903a1a59d5f13ff44b6762e87fbd6a",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 798929,
+        "opaquePixels": 207,
+        "transparentFraction": 0.5080577876473117,
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "rightExclusive": 1253,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 0,
+          "right": 1,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 158,
+          "top": 18,
+          "rightExclusive": 1082,
+          "bottomExclusive": 1236
+        },
+        "visibleMargins": {
+          "left": 158,
+          "top": 18,
+          "right": 172,
+          "bottom": 18
+        },
+        "minimumVisibleMargin": 18,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/surprised.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 74636,
+        "sha256": "9c5367cf2ebf7bb6f62343f26a3835f5f6b30da9dffa0054fa4e0b7fa6409d36",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 133341,
+          "opaquePixels": 946,
+          "transparentFraction": 0.5086555480957031,
+          "bounds": {
+            "left": 0,
+            "top": 4,
+            "rightExclusive": 511,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 0,
+            "top": 4,
+            "right": 1,
+            "bottom": 5
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 64,
+            "top": 7,
+            "rightExclusive": 442,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 64,
+            "top": 7,
+            "right": 70,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "ready",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/ready.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2012021,
+        "sha256": "688eb19e263e01e8557d9550835cb20c2db079c720f615c1c53d7a30e21a5544"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-a58cae0f-b0af-4316-9fb2-0bad9143692d.png",
+      "sourceSha256": "688eb19e263e01e8557d9550835cb20c2db079c720f615c1c53d7a30e21a5544",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 771693,
+        "opaquePixels": 464,
+        "transparentFraction": 0.49073777309738026,
+        "bounds": {
+          "left": 0,
+          "top": 30,
+          "rightExclusive": 1124,
+          "bottomExclusive": 1239
+        },
+        "margins": {
+          "left": 0,
+          "top": 30,
+          "right": 130,
+          "bottom": 15
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 180,
+          "top": 30,
+          "rightExclusive": 1121,
+          "bottomExclusive": 1237
+        },
+        "visibleMargins": {
+          "left": 180,
+          "top": 30,
+          "right": 133,
+          "bottom": 17
+        },
+        "minimumVisibleMargin": 17,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/ready.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 77480,
+        "sha256": "c8a12c3ba6be2388d21f0633f08fc2e79fe0290176f698f277e94d2a03433ee6",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 128335,
+          "opaquePixels": 1211,
+          "transparentFraction": 0.4895591735839844,
+          "bounds": {
+            "left": 0,
+            "top": 11,
+            "rightExclusive": 460,
+            "bottomExclusive": 507
+          },
+          "margins": {
+            "left": 0,
+            "top": 11,
+            "right": 52,
+            "bottom": 5
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 73,
+            "top": 13,
+            "rightExclusive": 458,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 73,
+            "top": 13,
+            "right": 54,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "concerned",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/concerned.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1740092,
+        "sha256": "408a0d16ee044f4ea306667377156bcaf513c048da3b23f5513df71062c541c4"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-d4d32698-7cfc-4d80-a6e3-d52a10ee9399.png",
+      "sourceSha256": "408a0d16ee044f4ea306667377156bcaf513c048da3b23f5513df71062c541c4",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 908134,
+        "opaquePixels": 391,
+        "transparentFraction": 0.5775038219006993,
+        "bounds": {
+          "left": 0,
+          "top": 31,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 31,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 211,
+          "top": 37,
+          "rightExclusive": 1044,
+          "bottomExclusive": 1230
+        },
+        "visibleMargins": {
+          "left": 211,
+          "top": 37,
+          "right": 210,
+          "bottom": 24
+        },
+        "minimumVisibleMargin": 24,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/concerned.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 63382,
+        "sha256": "7854e07db3ddb3016cb8fc988958aed4364bd832052372639204a2b1027159fb",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 151303,
+          "opaquePixels": 939,
+          "transparentFraction": 0.5771751403808594,
+          "bounds": {
+            "left": 20,
+            "top": 13,
+            "rightExclusive": 482,
+            "bottomExclusive": 506
+          },
+          "margins": {
+            "left": 20,
+            "top": 13,
+            "right": 30,
+            "bottom": 6
+          },
+          "minimumMargin": 6,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 86,
+            "top": 16,
+            "rightExclusive": 426,
+            "bottomExclusive": 502
+          },
+          "visibleMargins": {
+            "left": 86,
+            "top": 16,
+            "right": 86,
+            "bottom": 10
+          },
+          "minimumVisibleMargin": 10,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "humming",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/humming.png",
+      "manifest": "assets/characters/chameleon/reactions-a.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1767927,
+        "sha256": "fcf92b61a5d48c8eb941c3069750e29718e008a7994dd2a8469f12502a325203"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-4335-7032-b3cd-b105931d8c73\\exec-9246e96d-dd2f-4dc5-b39c-080828a7096a.png",
+      "sourceSha256": "fcf92b61a5d48c8eb941c3069750e29718e008a7994dd2a8469f12502a325203",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 869255,
+        "opaquePixels": 414,
+        "transparentFraction": 0.5527797491408672,
+        "bounds": {
+          "left": 0,
+          "top": 17,
+          "rightExclusive": 1236,
+          "bottomExclusive": 1224
+        },
+        "margins": {
+          "left": 0,
+          "top": 17,
+          "right": 18,
+          "bottom": 30
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 199,
+          "top": 62,
+          "rightExclusive": 1095,
+          "bottomExclusive": 1220
+        },
+        "visibleMargins": {
+          "left": 199,
+          "top": 62,
+          "right": 159,
+          "bottom": 34
+        },
+        "minimumVisibleMargin": 34,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/humming.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 71192,
+        "sha256": "beeda13297b66b4e37333d92d1fdb15c8d44595440b7e86b3a81b1f8dab7d998",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 145018,
+          "opaquePixels": 1055,
+          "transparentFraction": 0.5531997680664062,
+          "bounds": {
+            "left": 0,
+            "top": 17,
+            "rightExclusive": 476,
+            "bottomExclusive": 500
+          },
+          "margins": {
+            "left": 0,
+            "top": 17,
+            "right": 36,
+            "bottom": 12
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 82,
+            "top": 25,
+            "rightExclusive": 448,
+            "bottomExclusive": 498
+          },
+          "visibleMargins": {
+            "left": 82,
+            "top": 25,
+            "right": 64,
+            "bottom": 14
+          },
+          "minimumVisibleMargin": 14,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "accuracy",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/accuracy.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2098310,
+        "sha256": "f4159de79a5bf66e8e30a761e11d94d7d49570d67e1577f76f22e946adc7877a"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-86dededb-b069-443c-8589-2594f4d5ef68.png",
+      "sourceSha256": "f4159de79a5bf66e8e30a761e11d94d7d49570d67e1577f76f22e946adc7877a",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 748729,
+        "opaquePixels": 555,
+        "transparentFraction": 0.47613442406945305,
+        "bounds": {
+          "left": 0,
+          "top": 47,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 47,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 107,
+          "top": 50,
+          "rightExclusive": 1191,
+          "bottomExclusive": 1215
+        },
+        "visibleMargins": {
+          "left": 107,
+          "top": 50,
+          "right": 63,
+          "bottom": 39
+        },
+        "minimumVisibleMargin": 39,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/accuracy.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 81172,
+        "sha256": "fb7678ae16532cb8c6c9568ac8fa8c4d3eb3189a59c7583be7dd9526920853b8",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 124528,
+          "opaquePixels": 1306,
+          "transparentFraction": 0.47503662109375,
+          "bounds": {
+            "left": 0,
+            "top": 19,
+            "rightExclusive": 504,
+            "bottomExclusive": 499
+          },
+          "margins": {
+            "left": 0,
+            "top": 19,
+            "right": 8,
+            "bottom": 13
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 44,
+            "top": 21,
+            "rightExclusive": 486,
+            "bottomExclusive": 497
+          },
+          "visibleMargins": {
+            "left": 44,
+            "top": 21,
+            "right": 26,
+            "bottom": 15
+          },
+          "minimumVisibleMargin": 15,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "banjo",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/banjo.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1860327,
+        "sha256": "d008a737700e785f6db49aab766b3121d69b98795a5161876d41f3f2d4644d67"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-bdd94711-fe29-4f6d-8cb8-c5429bf87562.png",
+      "sourceSha256": "d008a737700e785f6db49aab766b3121d69b98795a5161876d41f3f2d4644d67",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 853380,
+        "opaquePixels": 408,
+        "transparentFraction": 0.5426844623520524,
+        "bounds": {
+          "left": 17,
+          "top": 41,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 17,
+          "top": 41,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 99,
+          "top": 53,
+          "rightExclusive": 1212,
+          "bottomExclusive": 1230
+        },
+        "visibleMargins": {
+          "left": 99,
+          "top": 53,
+          "right": 42,
+          "bottom": 24
+        },
+        "minimumVisibleMargin": 24,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/banjo.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 74530,
+        "sha256": "70d5cf1354b0dd971167e699df77d1562969a0aeb686eed582f30c34f4a8e107",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 142256,
+          "opaquePixels": 1261,
+          "transparentFraction": 0.54266357421875,
+          "bounds": {
+            "left": 7,
+            "top": 19,
+            "rightExclusive": 497,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 7,
+            "top": 19,
+            "right": 15,
+            "bottom": 7
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 41,
+            "top": 21,
+            "rightExclusive": 495,
+            "bottomExclusive": 502
+          },
+          "visibleMargins": {
+            "left": 41,
+            "top": 21,
+            "right": 17,
+            "bottom": 10
+          },
+          "minimumVisibleMargin": 10,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "baseline",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/baseline.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2144233,
+        "sha256": "7b8043e569afa86bf58b9af36cadbf5a774addd95f94c3334a69bfba0f9dffbf"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-772c70d3-9d27-4b95-8e07-5b53d34a4c3c.png",
+      "sourceSha256": "7b8043e569afa86bf58b9af36cadbf5a774addd95f94c3334a69bfba0f9dffbf",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 713013,
+        "opaquePixels": 722,
+        "transparentFraction": 0.453421777584457,
+        "bounds": {
+          "left": 0,
+          "top": 40,
+          "rightExclusive": 1226,
+          "bottomExclusive": 1238
+        },
+        "margins": {
+          "left": 0,
+          "top": 40,
+          "right": 28,
+          "bottom": 16
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 78,
+          "top": 42,
+          "rightExclusive": 1204,
+          "bottomExclusive": 1231
+        },
+        "visibleMargins": {
+          "left": 78,
+          "top": 42,
+          "right": 50,
+          "bottom": 23
+        },
+        "minimumVisibleMargin": 23,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/baseline.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 83456,
+        "sha256": "e7890c307afc75fef8baf09319bfb386ffd82ee24c904891184ff6c03fbecb15",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 118493,
+          "opaquePixels": 1440,
+          "transparentFraction": 0.4520149230957031,
+          "bounds": {
+            "left": 30,
+            "top": 15,
+            "rightExclusive": 493,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 30,
+            "top": 15,
+            "right": 19,
+            "bottom": 7
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 32,
+            "top": 17,
+            "rightExclusive": 491,
+            "bottomExclusive": 504
+          },
+          "visibleMargins": {
+            "left": 32,
+            "top": 17,
+            "right": 21,
+            "bottom": 8
+          },
+          "minimumVisibleMargin": 8,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "bias",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/bias.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2008369,
+        "sha256": "db6573bd77d0c66436702a963c64db4c56e8aa3b56c065f7b376ceee41cfd2fa"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-b49c791b-e254-4e98-93e3-d2e18a589acf.png",
+      "sourceSha256": "db6573bd77d0c66436702a963c64db4c56e8aa3b56c065f7b376ceee41cfd2fa",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 777591,
+        "opaquePixels": 616,
+        "transparentFraction": 0.49448845035599004,
+        "bounds": {
+          "left": 0,
+          "top": 17,
+          "rightExclusive": 1230,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 17,
+          "right": 24,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 80,
+          "top": 67,
+          "rightExclusive": 1172,
+          "bottomExclusive": 1200
+        },
+        "visibleMargins": {
+          "left": 80,
+          "top": 67,
+          "right": 82,
+          "bottom": 54
+        },
+        "minimumVisibleMargin": 54,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/bias.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 84390,
+        "sha256": "e829187b627c7c871ff48095c147deff42cbe230e585fdc1f3669a9e57d607e2",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 130037,
+          "opaquePixels": 1535,
+          "transparentFraction": 0.4960517883300781,
+          "bounds": {
+            "left": 0,
+            "top": 14,
+            "rightExclusive": 480,
+            "bottomExclusive": 494
+          },
+          "margins": {
+            "left": 0,
+            "top": 14,
+            "right": 32,
+            "bottom": 18
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 33,
+            "top": 27,
+            "rightExclusive": 478,
+            "bottomExclusive": 491
+          },
+          "visibleMargins": {
+            "left": 33,
+            "top": 27,
+            "right": 34,
+            "bottom": 21
+          },
+          "minimumVisibleMargin": 21,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "classify",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/classify.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1967987,
+        "sha256": "08ca7ec1243d0972adca7628bf78fb51ea95411eaf8f06990051837b22bdd711"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-3d977ff6-524b-4c59-bd0c-3ff90683d2ca.png",
+      "sourceSha256": "08ca7ec1243d0972adca7628bf78fb51ea95411eaf8f06990051837b22bdd711",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 802958,
+        "opaquePixels": 405,
+        "transparentFraction": 0.5106199237400446,
+        "bounds": {
+          "left": 0,
+          "top": 21,
+          "rightExclusive": 1224,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 21,
+          "right": 30,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 79,
+          "top": 46,
+          "rightExclusive": 1176,
+          "bottomExclusive": 1231
+        },
+        "visibleMargins": {
+          "left": 79,
+          "top": 46,
+          "right": 78,
+          "bottom": 23
+        },
+        "minimumVisibleMargin": 23,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/classify.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 72452,
+        "sha256": "504aafb604d7d9a7812b8fcb7b1117877ee7ec76461d30efcd41867373bdb8ea",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 133730,
+          "opaquePixels": 970,
+          "transparentFraction": 0.5101394653320312,
+          "bounds": {
+            "left": 31,
+            "top": 17,
+            "rightExclusive": 482,
+            "bottomExclusive": 506
+          },
+          "margins": {
+            "left": 31,
+            "top": 17,
+            "right": 30,
+            "bottom": 6
+          },
+          "minimumMargin": 6,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 33,
+            "top": 19,
+            "rightExclusive": 480,
+            "bottomExclusive": 504
+          },
+          "visibleMargins": {
+            "left": 33,
+            "top": 19,
+            "right": 32,
+            "bottom": 8
+          },
+          "minimumVisibleMargin": 8,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "clustering",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/clustering.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1994334,
+        "sha256": "281daadfe26b3ea27c418e3a974ae988a0e4686e1cf3372c1067f5d4040de2f1"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-43e22e61-9251-4adf-a081-8a270ac19e0b.png",
+      "sourceSha256": "281daadfe26b3ea27c418e3a974ae988a0e4686e1cf3372c1067f5d4040de2f1",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 783143,
+        "opaquePixels": 491,
+        "transparentFraction": 0.49801909805687194,
+        "bounds": {
+          "left": 27,
+          "top": 30,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 27,
+          "top": 30,
+          "right": 20,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 87,
+          "top": 34,
+          "rightExclusive": 1104,
+          "bottomExclusive": 1229
+        },
+        "visibleMargins": {
+          "left": 87,
+          "top": 34,
+          "right": 150,
+          "bottom": 25
+        },
+        "minimumVisibleMargin": 25,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/clustering.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 74656,
+        "sha256": "64ac1f37fa46a0b37b077c4ea5ca302ef100f1db50deaa3f1f4a203b0fab56c6",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 130219,
+          "opaquePixels": 1110,
+          "transparentFraction": 0.4967460632324219,
+          "bounds": {
+            "left": 33,
+            "top": 12,
+            "rightExclusive": 489,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 33,
+            "top": 12,
+            "right": 23,
+            "bottom": 7
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 36,
+            "top": 14,
+            "rightExclusive": 451,
+            "bottomExclusive": 501
+          },
+          "visibleMargins": {
+            "left": 36,
+            "top": 14,
+            "right": 61,
+            "bottom": 11
+          },
+          "minimumVisibleMargin": 11,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "data-cleaning",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/data-cleaning.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1938616,
+        "sha256": "9545965e1cbfec7a41a9419439c8c67a76bfc6fb24b2ebc455d6e18e777fb134"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-3a8aefc6-fef5-4367-bb1f-22282caadb25.png",
+      "sourceSha256": "9545965e1cbfec7a41a9419439c8c67a76bfc6fb24b2ebc455d6e18e777fb134",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 807843,
+        "opaquePixels": 499,
+        "transparentFraction": 0.513726410414902,
+        "bounds": {
+          "left": 0,
+          "top": 39,
+          "rightExclusive": 1232,
+          "bottomExclusive": 1214
+        },
+        "margins": {
+          "left": 0,
+          "top": 39,
+          "right": 22,
+          "bottom": 40
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 104,
+          "top": 54,
+          "rightExclusive": 1119,
+          "bottomExclusive": 1204
+        },
+        "visibleMargins": {
+          "left": 104,
+          "top": 54,
+          "right": 135,
+          "bottom": 50
+        },
+        "minimumVisibleMargin": 50,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/data-cleaning.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 77118,
+        "sha256": "d307a8a3ee518d8ce138d788713370850e66a7781558eaa20a99ccaa8a86d10b",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 134697,
+          "opaquePixels": 1095,
+          "transparentFraction": 0.5138282775878906,
+          "bounds": {
+            "left": 40,
+            "top": 20,
+            "rightExclusive": 503,
+            "bottomExclusive": 493
+          },
+          "margins": {
+            "left": 40,
+            "top": 20,
+            "right": 9,
+            "bottom": 19
+          },
+          "minimumMargin": 9,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 43,
+            "top": 22,
+            "rightExclusive": 456,
+            "bottomExclusive": 492
+          },
+          "visibleMargins": {
+            "left": 43,
+            "top": 22,
+            "right": 56,
+            "bottom": 20
+          },
+          "minimumVisibleMargin": 20,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "explainability",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/explainability.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2021134,
+        "sha256": "bd3fd94cd8cfcf5906cf4cc4d389af9bf6cee8ca85e6991a12862a5aa829adc9"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-cefb5dc3-57a7-461d-b950-6867c7f0328b.png",
+      "sourceSha256": "bd3fd94cd8cfcf5906cf4cc4d389af9bf6cee8ca85e6991a12862a5aa829adc9",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 754681,
+        "opaquePixels": 388,
+        "transparentFraction": 0.4799194412012342,
+        "bounds": {
+          "left": 0,
+          "top": 19,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1228
+        },
+        "margins": {
+          "left": 0,
+          "top": 19,
+          "right": 20,
+          "bottom": 26
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 92,
+          "top": 61,
+          "rightExclusive": 1157,
+          "bottomExclusive": 1207
+        },
+        "visibleMargins": {
+          "left": 92,
+          "top": 61,
+          "right": 97,
+          "bottom": 47
+        },
+        "minimumVisibleMargin": 47,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/explainability.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 78650,
+        "sha256": "c8c9f04bf69633f99cb987f69f06557920c1eef9435347a96f1dc1ccb7b98015",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125822,
+          "opaquePixels": 1039,
+          "transparentFraction": 0.47997283935546875,
+          "bounds": {
+            "left": 0,
+            "top": 8,
+            "rightExclusive": 504,
+            "bottomExclusive": 494
+          },
+          "margins": {
+            "left": 0,
+            "top": 8,
+            "right": 8,
+            "bottom": 18
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 38,
+            "top": 25,
+            "rightExclusive": 472,
+            "bottomExclusive": 492
+          },
+          "visibleMargins": {
+            "left": 38,
+            "top": 25,
+            "right": 40,
+            "bottom": 20
+          },
+          "minimumVisibleMargin": 20,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "features",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/features.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2372412,
+        "sha256": "8bac90ad46c52a6979777a4210fb782b58981d40910748c61a57c4a9ad4111bb"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-571efdeb-6001-4015-a9c0-744798651b58.png",
+      "sourceSha256": "8bac90ad46c52a6979777a4210fb782b58981d40910748c61a57c4a9ad4111bb",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 630732,
+        "opaquePixels": 647,
+        "transparentFraction": 0.40109734972489947,
+        "bounds": {
+          "left": 27,
+          "top": 23,
+          "rightExclusive": 1236,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 27,
+          "top": 23,
+          "right": 18,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 88,
+          "top": 27,
+          "rightExclusive": 1168,
+          "bottomExclusive": 1234
+        },
+        "visibleMargins": {
+          "left": 88,
+          "top": 27,
+          "right": 86,
+          "bottom": 20
+        },
+        "minimumVisibleMargin": 20,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/features.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 93450,
+        "sha256": "6d65035ac96d89fca3cd4345c503ed84b2e490cc66bced146fba5e4f22a9c9a8",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 105010,
+          "opaquePixels": 1489,
+          "transparentFraction": 0.40058135986328125,
+          "bounds": {
+            "left": 17,
+            "top": 10,
+            "rightExclusive": 479,
+            "bottomExclusive": 506
+          },
+          "margins": {
+            "left": 17,
+            "top": 10,
+            "right": 33,
+            "bottom": 6
+          },
+          "minimumMargin": 6,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 36,
+            "top": 12,
+            "rightExclusive": 477,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 36,
+            "top": 12,
+            "right": 35,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "generalization",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/generalization.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2002981,
+        "sha256": "566979d8692a721f335c038c0e5b609353e1ca74e003f622752fbf23043e61e9"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-37f91454-8be9-4655-a3dc-ff2b257316d1.png",
+      "sourceSha256": "566979d8692a721f335c038c0e5b609353e1ca74e003f622752fbf23043e61e9",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 778054,
+        "opaquePixels": 411,
+        "transparentFraction": 0.4947828829722559,
+        "bounds": {
+          "left": 0,
+          "top": 29,
+          "rightExclusive": 1218,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 29,
+          "right": 36,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 165,
+          "top": 45,
+          "rightExclusive": 1094,
+          "bottomExclusive": 1212
+        },
+        "visibleMargins": {
+          "left": 165,
+          "top": 45,
+          "right": 160,
+          "bottom": 42
+        },
+        "minimumVisibleMargin": 42,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/generalization.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 83462,
+        "sha256": "5951d8182f7fe27c6813af3af185783cda598600b0710701b6e24be66eb79552",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 130399,
+          "opaquePixels": 1435,
+          "transparentFraction": 0.4974327087402344,
+          "bounds": {
+            "left": 0,
+            "top": 17,
+            "rightExclusive": 481,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 0,
+            "top": 17,
+            "right": 31,
+            "bottom": 7
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 68,
+            "top": 19,
+            "rightExclusive": 447,
+            "bottomExclusive": 496
+          },
+          "visibleMargins": {
+            "left": 68,
+            "top": 19,
+            "right": 65,
+            "bottom": 16
+          },
+          "minimumVisibleMargin": 16,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "gradient",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/gradient.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1925209,
+        "sha256": "86e5ca98b05518763679660a9ac82f00276ed6af623561fad8392621874dc9b1"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-d87dcfb7-f958-4468-9477-5269bcc62bb1.png",
+      "sourceSha256": "86e5ca98b05518763679660a9ac82f00276ed6af623561fad8392621874dc9b1",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 820090,
+        "opaquePixels": 504,
+        "transparentFraction": 0.5215145664654605,
+        "bounds": {
+          "left": 0,
+          "top": 25,
+          "rightExclusive": 1226,
+          "bottomExclusive": 1226
+        },
+        "margins": {
+          "left": 0,
+          "top": 25,
+          "right": 28,
+          "bottom": 28
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 119,
+          "top": 29,
+          "rightExclusive": 1127,
+          "bottomExclusive": 1224
+        },
+        "visibleMargins": {
+          "left": 119,
+          "top": 29,
+          "right": 127,
+          "bottom": 30
+        },
+        "minimumVisibleMargin": 29,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/gradient.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 72688,
+        "sha256": "85ce6dc6708731b867aeec92bd2014f4725744802da52a52503f6a1bc6877e17",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 136613,
+          "opaquePixels": 1200,
+          "transparentFraction": 0.5211372375488281,
+          "bounds": {
+            "left": 20,
+            "top": 10,
+            "rightExclusive": 466,
+            "bottomExclusive": 502
+          },
+          "margins": {
+            "left": 20,
+            "top": 10,
+            "right": 46,
+            "bottom": 10
+          },
+          "minimumMargin": 10,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 48,
+            "top": 12,
+            "rightExclusive": 460,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 48,
+            "top": 12,
+            "right": 52,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "labels",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/labels.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2211129,
+        "sha256": "00d6ab1351a49973712f665ea8f8ba31042a9a55da9b6fff29d81157792e8840"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-68a9a544-1fcc-40e3-83f6-00dec65db9d9.png",
+      "sourceSha256": "00d6ab1351a49973712f665ea8f8ba31042a9a55da9b6fff29d81157792e8840",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 694410,
+        "opaquePixels": 562,
+        "transparentFraction": 0.4415916912769091,
+        "bounds": {
+          "left": 0,
+          "top": 30,
+          "rightExclusive": 1232,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 30,
+          "right": 22,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 100,
+          "top": 31,
+          "rightExclusive": 1193,
+          "bottomExclusive": 1237
+        },
+        "visibleMargins": {
+          "left": 100,
+          "top": 31,
+          "right": 61,
+          "bottom": 17
+        },
+        "minimumVisibleMargin": 17,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/labels.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 83690,
+        "sha256": "a45e137692fc2911adb4075d510517e7d9e37dde47cc6aec335a8b2d6c663efc",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 115596,
+          "opaquePixels": 1253,
+          "transparentFraction": 0.4409637451171875,
+          "bounds": {
+            "left": 0,
+            "top": 11,
+            "rightExclusive": 492,
+            "bottomExclusive": 506
+          },
+          "margins": {
+            "left": 0,
+            "top": 11,
+            "right": 20,
+            "bottom": 6
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 41,
+            "top": 13,
+            "rightExclusive": 487,
+            "bottomExclusive": 505
+          },
+          "visibleMargins": {
+            "left": 41,
+            "top": 13,
+            "right": 25,
+            "bottom": 7
+          },
+          "minimumVisibleMargin": 7,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "loss",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/loss.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2106275,
+        "sha256": "e3be95e1bcc1e0427b3717d82a640c9177ac38630501dddf2b9eba28f7578905"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-dcfa76df-8724-4d71-98c2-2b0cb6eeb9a8.png",
+      "sourceSha256": "e3be95e1bcc1e0427b3717d82a640c9177ac38630501dddf2b9eba28f7578905",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 745619,
+        "opaquePixels": 337,
+        "transparentFraction": 0.4741567017442112,
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "rightExclusive": 1234,
+          "bottomExclusive": 1234
+        },
+        "margins": {
+          "left": 0,
+          "top": 0,
+          "right": 20,
+          "bottom": 20
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 96,
+          "top": 31,
+          "rightExclusive": 1097,
+          "bottomExclusive": 1225
+        },
+        "visibleMargins": {
+          "left": 96,
+          "top": 31,
+          "right": 157,
+          "bottom": 29
+        },
+        "minimumVisibleMargin": 29,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/loss.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 82460,
+        "sha256": "372a49193e7e400401b51c6449ea0940db647caff7e0527120657a74367b0aa6",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 124424,
+          "opaquePixels": 1315,
+          "transparentFraction": 0.474639892578125,
+          "bounds": {
+            "left": 0,
+            "top": 0,
+            "rightExclusive": 490,
+            "bottomExclusive": 502
+          },
+          "margins": {
+            "left": 0,
+            "top": 0,
+            "right": 22,
+            "bottom": 10
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 40,
+            "top": 12,
+            "rightExclusive": 448,
+            "bottomExclusive": 500
+          },
+          "visibleMargins": {
+            "left": 40,
+            "top": 12,
+            "right": 64,
+            "bottom": 12
+          },
+          "minimumVisibleMargin": 12,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "missing-data",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/missing-data.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1758976,
+        "sha256": "b3a3a1d3a6401707941a6557bfb31ce9d6059a402f2f5c9ad70801509f4176e4"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-b1ff6d4a-8a58-4ac3-8cf5-a18fec599dca.png",
+      "sourceSha256": "b3a3a1d3a6401707941a6557bfb31ce9d6059a402f2f5c9ad70801509f4176e4",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 881012,
+        "opaquePixels": 538,
+        "transparentFraction": 0.5602563026385741,
+        "bounds": {
+          "left": 0,
+          "top": 44,
+          "rightExclusive": 1230,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 44,
+          "right": 24,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 108,
+          "top": 89,
+          "rightExclusive": 1183,
+          "bottomExclusive": 1183
+        },
+        "visibleMargins": {
+          "left": 108,
+          "top": 89,
+          "right": 71,
+          "bottom": 71
+        },
+        "minimumVisibleMargin": 71,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/missing-data.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 67422,
+        "sha256": "f40387193ddc83ea4586c6ced27e4ba229d990dd747c3b0ecee8609a73628e67",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 146535,
+          "opaquePixels": 1263,
+          "transparentFraction": 0.5589866638183594,
+          "bounds": {
+            "left": 0,
+            "top": 21,
+            "rightExclusive": 486,
+            "bottomExclusive": 487
+          },
+          "margins": {
+            "left": 0,
+            "top": 21,
+            "right": 26,
+            "bottom": 25
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 44,
+            "top": 37,
+            "rightExclusive": 482,
+            "bottomExclusive": 484
+          },
+          "visibleMargins": {
+            "left": 44,
+            "top": 37,
+            "right": 30,
+            "bottom": 28
+          },
+          "minimumVisibleMargin": 28,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "overfitting",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/overfitting.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2175486,
+        "sha256": "fa1bb562f3eb6e566746dcbf8dcb7595bf0dca84548fb71a919ced193c84ca05"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-8decada3-6541-4f74-978b-8ec29b9cc0f5.png",
+      "sourceSha256": "fa1bb562f3eb6e566746dcbf8dcb7595bf0dca84548fb71a919ced193c84ca05",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 702054,
+        "opaquePixels": 595,
+        "transparentFraction": 0.4464526911013942,
+        "bounds": {
+          "left": 0,
+          "top": 0,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 0,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 110,
+          "top": 37,
+          "rightExclusive": 1190,
+          "bottomExclusive": 1227
+        },
+        "visibleMargins": {
+          "left": 110,
+          "top": 37,
+          "right": 64,
+          "bottom": 27
+        },
+        "minimumVisibleMargin": 27,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/overfitting.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 88164,
+        "sha256": "e12be3eedd591da506cb7e1cef1d3294a5a4ed06a9c782fb1df4dd6f3851fc0d",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 117120,
+          "opaquePixels": 1518,
+          "transparentFraction": 0.44677734375,
+          "bounds": {
+            "left": 27,
+            "top": 0,
+            "rightExclusive": 498,
+            "bottomExclusive": 512
+          },
+          "margins": {
+            "left": 27,
+            "top": 0,
+            "right": 14,
+            "bottom": 0
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 45,
+            "top": 15,
+            "rightExclusive": 485,
+            "bottomExclusive": 501
+          },
+          "visibleMargins": {
+            "left": 45,
+            "top": 15,
+            "right": 27,
+            "bottom": 11
+          },
+          "minimumVisibleMargin": 11,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "precision-recall",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/precision-recall.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2112960,
+        "sha256": "a8fd487ee70f0cd4a460c803647ad030144a69cda39c089dc44ef560578c05f2"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-c0a25a97-5250-4358-976a-35c9ed3ff78f.png",
+      "sourceSha256": "a8fd487ee70f0cd4a460c803647ad030144a69cda39c089dc44ef560578c05f2",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 748897,
+        "opaquePixels": 460,
+        "transparentFraction": 0.4762412592304307,
+        "bounds": {
+          "left": 27,
+          "top": 23,
+          "rightExclusive": 1238,
+          "bottomExclusive": 1226
+        },
+        "margins": {
+          "left": 27,
+          "top": 23,
+          "right": 16,
+          "bottom": 28
+        },
+        "minimumMargin": 16,
+        "freeEdges": true,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 95,
+          "top": 67,
+          "rightExclusive": 1184,
+          "bottomExclusive": 1168
+        },
+        "visibleMargins": {
+          "left": 95,
+          "top": 67,
+          "right": 70,
+          "bottom": 86
+        },
+        "minimumVisibleMargin": 67,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/precision-recall.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 85462,
+        "sha256": "cb82639beae5a7134fb43d4047b692489667fe50f6ff39081bdc8af1ef04a481",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125278,
+          "opaquePixels": 1530,
+          "transparentFraction": 0.47789764404296875,
+          "bounds": {
+            "left": 16,
+            "top": 15,
+            "rightExclusive": 504,
+            "bottomExclusive": 495
+          },
+          "margins": {
+            "left": 16,
+            "top": 15,
+            "right": 8,
+            "bottom": 17
+          },
+          "minimumMargin": 8,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 39,
+            "top": 28,
+            "rightExclusive": 483,
+            "bottomExclusive": 477
+          },
+          "visibleMargins": {
+            "left": 39,
+            "top": 28,
+            "right": 29,
+            "bottom": 35
+          },
+          "minimumVisibleMargin": 28,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "predict",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/predict.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2020783,
+        "sha256": "15695628f84180bd73ffec66ad29be2b694cb3a10dd65c438cf3b2d6ee275885"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-b8ad437f-bded-402c-8a15-e592a3f46751.png",
+      "sourceSha256": "15695628f84180bd73ffec66ad29be2b694cb3a10dd65c438cf3b2d6ee275885",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 753205,
+        "opaquePixels": 513,
+        "transparentFraction": 0.4789808180012159,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1238,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 16,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 136,
+          "top": 68,
+          "rightExclusive": 1155,
+          "bottomExclusive": 1210
+        },
+        "visibleMargins": {
+          "left": 136,
+          "top": 68,
+          "right": 99,
+          "bottom": 44
+        },
+        "minimumVisibleMargin": 44,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/predict.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 80126,
+        "sha256": "e89682343c2a530f9427426a112b0a802d0caa1ac20d0c6c69494e771fe3c37d",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 125523,
+          "opaquePixels": 1365,
+          "transparentFraction": 0.4788322448730469,
+          "bounds": {
+            "left": 17,
+            "top": 13,
+            "rightExclusive": 484,
+            "bottomExclusive": 500
+          },
+          "margins": {
+            "left": 17,
+            "top": 13,
+            "right": 28,
+            "bottom": 12
+          },
+          "minimumMargin": 12,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 55,
+            "top": 28,
+            "rightExclusive": 471,
+            "bottomExclusive": 494
+          },
+          "visibleMargins": {
+            "left": 55,
+            "top": 28,
+            "right": 41,
+            "bottom": 18
+          },
+          "minimumVisibleMargin": 18,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "privacy",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/privacy.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1845818,
+        "sha256": "9a75fbd61ad5f83eed169edd1edbbb229f392c422cc946c2273c29b44bbfbe35"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-3cee4909-4c5f-4930-a8d6-de102bfb3bb1.png",
+      "sourceSha256": "9a75fbd61ad5f83eed169edd1edbbb229f392c422cc946c2273c29b44bbfbe35",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 822055,
+        "opaquePixels": 351,
+        "transparentFraction": 0.5227641562947531,
+        "bounds": {
+          "left": 0,
+          "top": 17,
+          "rightExclusive": 1214,
+          "bottomExclusive": 1238
+        },
+        "margins": {
+          "left": 0,
+          "top": 17,
+          "right": 40,
+          "bottom": 16
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 172,
+          "top": 26,
+          "rightExclusive": 1094,
+          "bottomExclusive": 1230
+        },
+        "visibleMargins": {
+          "left": 172,
+          "top": 26,
+          "right": 160,
+          "bottom": 24
+        },
+        "minimumVisibleMargin": 24,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/privacy.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 72180,
+        "sha256": "7079d31a8fd80799d7cfa9fd5fa64f732246e4b7f4179f4d88cf4dac49e27e79",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 136907,
+          "opaquePixels": 951,
+          "transparentFraction": 0.5222587585449219,
+          "bounds": {
+            "left": 0,
+            "top": 7,
+            "rightExclusive": 494,
+            "bottomExclusive": 505
+          },
+          "margins": {
+            "left": 0,
+            "top": 7,
+            "right": 18,
+            "bottom": 7
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 70,
+            "top": 11,
+            "rightExclusive": 447,
+            "bottomExclusive": 503
+          },
+          "visibleMargins": {
+            "left": 70,
+            "top": 11,
+            "right": 65,
+            "bottom": 9
+          },
+          "minimumVisibleMargin": 9,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "processing",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/processing.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1990448,
+        "sha256": "4baa9637d766b3af63499909379976152c969e73250de828112d7e81966f3fe4"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-bba3446f-0301-465f-973d-c9b5b977b949.png",
+      "sourceSha256": "4baa9637d766b3af63499909379976152c969e73250de828112d7e81966f3fe4",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 788674,
+        "opaquePixels": 509,
+        "transparentFraction": 0.5015363913626316,
+        "bounds": {
+          "left": 0,
+          "top": 19,
+          "rightExclusive": 1224,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 19,
+          "right": 30,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 145,
+          "top": 38,
+          "rightExclusive": 1111,
+          "bottomExclusive": 1227
+        },
+        "visibleMargins": {
+          "left": 145,
+          "top": 38,
+          "right": 143,
+          "bottom": 27
+        },
+        "minimumVisibleMargin": 27,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/processing.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 77500,
+        "sha256": "ff919ca237da97a96194e6fc341180c2a1c23a6cbe90ba4bf93d098ea8137a76",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 131251,
+          "opaquePixels": 1450,
+          "transparentFraction": 0.5006828308105469,
+          "bounds": {
+            "left": 43,
+            "top": 13,
+            "rightExclusive": 486,
+            "bottomExclusive": 504
+          },
+          "margins": {
+            "left": 43,
+            "top": 13,
+            "right": 26,
+            "bottom": 8
+          },
+          "minimumMargin": 8,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 59,
+            "top": 16,
+            "rightExclusive": 454,
+            "bottomExclusive": 501
+          },
+          "visibleMargins": {
+            "left": 59,
+            "top": 16,
+            "right": 58,
+            "bottom": 11
+          },
+          "minimumVisibleMargin": 11,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "retrain",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/retrain.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1934506,
+        "sha256": "a99c72f3d9d358198a49a0c08275576a796cdb24d6fd7131203dae4f250c0c1d"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-62229415-fa41-4990-8a61-8ad667fce22e.png",
+      "sourceSha256": "a99c72f3d9d358198a49a0c08275576a796cdb24d6fd7131203dae4f250c0c1d",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 807188,
+        "opaquePixels": 612,
+        "transparentFraction": 0.5133098804718044,
+        "bounds": {
+          "left": 0,
+          "top": 19,
+          "rightExclusive": 1232,
+          "bottomExclusive": 1244
+        },
+        "margins": {
+          "left": 0,
+          "top": 19,
+          "right": 22,
+          "bottom": 10
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 109,
+          "top": 54,
+          "rightExclusive": 1096,
+          "bottomExclusive": 1204
+        },
+        "visibleMargins": {
+          "left": 109,
+          "top": 54,
+          "right": 158,
+          "bottom": 50
+        },
+        "minimumVisibleMargin": 50,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/retrain.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 69570,
+        "sha256": "0c4680caa6befa806afb62137dac888f1f8bfde77c9f1057e3a993493a3ccaf8",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 134441,
+          "opaquePixels": 1155,
+          "transparentFraction": 0.5128517150878906,
+          "bounds": {
+            "left": 0,
+            "top": 20,
+            "rightExclusive": 477,
+            "bottomExclusive": 493
+          },
+          "margins": {
+            "left": 0,
+            "top": 20,
+            "right": 35,
+            "bottom": 19
+          },
+          "minimumMargin": 0,
+          "freeEdges": false,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 45,
+            "top": 22,
+            "rightExclusive": 448,
+            "bottomExclusive": 491
+          },
+          "visibleMargins": {
+            "left": 45,
+            "top": 22,
+            "right": 64,
+            "bottom": 21
+          },
+          "minimumVisibleMargin": 21,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "test-data",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/test-data.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 2084530,
+        "sha256": "fb83f1744b25b872426f104120c83ad5f97211215b25c4c3b6582370926de700"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-19fd5364-2cf8-4d74-a971-0ce24db2153b.png",
+      "sourceSha256": "fb83f1744b25b872426f104120c83ad5f97211215b25c4c3b6582370926de700",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 729054,
+        "opaquePixels": 580,
+        "transparentFraction": 0.46362262768709506,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 137,
+          "top": 65,
+          "rightExclusive": 1092,
+          "bottomExclusive": 1194
+        },
+        "visibleMargins": {
+          "left": 137,
+          "top": 65,
+          "right": 162,
+          "bottom": 60
+        },
+        "minimumVisibleMargin": 60,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/test-data.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 87912,
+        "sha256": "5d7112120aa5194819a55287f7ab493b1e6564f41271cc9e815becb84c8608f6",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 122464,
+          "opaquePixels": 1300,
+          "transparentFraction": 0.4671630859375,
+          "bounds": {
+            "left": 33,
+            "top": 11,
+            "rightExclusive": 504,
+            "bottomExclusive": 493
+          },
+          "margins": {
+            "left": 33,
+            "top": 11,
+            "right": 8,
+            "bottom": 19
+          },
+          "minimumMargin": 8,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 55,
+            "top": 26,
+            "rightExclusive": 446,
+            "bottomExclusive": 488
+          },
+          "visibleMargins": {
+            "left": 55,
+            "top": 26,
+            "right": 66,
+            "bottom": 24
+          },
+          "minimumVisibleMargin": 24,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "tuning",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/tuning.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved",
+        "Visible silhouette margin is less than two percent on at least one edge"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1990914,
+        "sha256": "b472e44c6ff1a8e7d8e89157ab979e7f4c8f1efa84debfb0daed098f0853486f"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-3a1481b8-c3df-46c7-b995-aa71a2bb6c3d.png",
+      "sourceSha256": "b472e44c6ff1a8e7d8e89157ab979e7f4c8f1efa84debfb0daed098f0853486f",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 794370,
+        "opaquePixels": 538,
+        "transparentFraction": 0.5051586120586372,
+        "bounds": {
+          "left": 0,
+          "top": 17,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1224
+        },
+        "margins": {
+          "left": 0,
+          "top": 17,
+          "right": 14,
+          "bottom": 30
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 161,
+          "top": 22,
+          "rightExclusive": 1114,
+          "bottomExclusive": 1190
+        },
+        "visibleMargins": {
+          "left": 161,
+          "top": 22,
+          "right": 140,
+          "bottom": 64
+        },
+        "minimumVisibleMargin": 22,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/tuning.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 79266,
+        "sha256": "9d12aab4c1afaca27341244702056114ed14c35bcdb1852bf2ac24d61ec9c357",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 132493,
+          "opaquePixels": 1290,
+          "transparentFraction": 0.5054206848144531,
+          "bounds": {
+            "left": 13,
+            "top": 7,
+            "rightExclusive": 503,
+            "bottomExclusive": 487
+          },
+          "margins": {
+            "left": 13,
+            "top": 7,
+            "right": 9,
+            "bottom": 25
+          },
+          "minimumMargin": 7,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 66,
+            "top": 9,
+            "rightExclusive": 455,
+            "bottomExclusive": 485
+          },
+          "visibleMargins": {
+            "left": 66,
+            "top": 9,
+            "right": 57,
+            "bottom": 27
+          },
+          "minimumVisibleMargin": 9,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "validation",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/validation.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1894057,
+        "sha256": "4b9f7e590c98d7e66161fb8cd252efaacb3d80dd9a7cdd3ee3d5e2454cbb0e5d"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-7e7c-7c00-9527-2e300bdfbaec\\exec-4e6c0440-9fd3-4c58-83c4-715d3a28b334.png",
+      "sourceSha256": "4b9f7e590c98d7e66161fb8cd252efaacb3d80dd9a7cdd3ee3d5e2454cbb0e5d",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 821010,
+        "opaquePixels": 547,
+        "transparentFraction": 0.5220996161565288,
+        "bounds": {
+          "left": 0,
+          "top": 57,
+          "rightExclusive": 1240,
+          "bottomExclusive": 1254
+        },
+        "margins": {
+          "left": 0,
+          "top": 57,
+          "right": 14,
+          "bottom": 0
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 160,
+          "top": 75,
+          "rightExclusive": 1081,
+          "bottomExclusive": 1214
+        },
+        "visibleMargins": {
+          "left": 160,
+          "top": 75,
+          "right": 173,
+          "bottom": 40
+        },
+        "minimumVisibleMargin": 40,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/validation.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 73480,
+        "sha256": "783278b9fd7fb297e06f816e38eebeab378fe7c9a520de4be23702f1b840f65e",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 136661,
+          "opaquePixels": 1328,
+          "transparentFraction": 0.5213203430175781,
+          "bounds": {
+            "left": 10,
+            "top": 29,
+            "rightExclusive": 499,
+            "bottomExclusive": 500
+          },
+          "margins": {
+            "left": 10,
+            "top": 29,
+            "right": 13,
+            "bottom": 12
+          },
+          "minimumMargin": 10,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 65,
+            "top": 31,
+            "rightExclusive": 442,
+            "bottomExclusive": 497
+          },
+          "visibleMargins": {
+            "left": 65,
+            "top": 31,
+            "right": 70,
+            "bottom": 15
+          },
+          "minimumVisibleMargin": 15,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "violin",
+      "group": "emojis",
+      "image": "/images/characters/chameleon/reactions/violin.png",
+      "manifest": "assets/characters/chameleon/reactions-b.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Near-transparent fringe pixels (alpha<=4/255) touch at least one image edge; native original preserved"
+      ],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 4,
+        "hasAlpha": true,
+        "bytes": 1920376,
+        "sha256": "4627762f3747f6999fe5e23181fe054ca3ae19b391f522fda2fd32fb29fca682"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17\\exec-9c593da9-687a-44e8-addf-7211f2054785.png",
+      "sourceSha256": "4627762f3747f6999fe5e23181fe054ca3ae19b391f522fda2fd32fb29fca682",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "transparentPixels": 808165,
+        "opaquePixels": 374,
+        "transparentFraction": 0.5139311778067759,
+        "bounds": {
+          "left": 0,
+          "top": 23,
+          "rightExclusive": 1224,
+          "bottomExclusive": 1225
+        },
+        "margins": {
+          "left": 0,
+          "top": 23,
+          "right": 30,
+          "bottom": 29
+        },
+        "minimumMargin": 0,
+        "freeEdges": false,
+        "visibleAlphaThreshold": 4,
+        "visibleBounds": {
+          "left": 184,
+          "top": 34,
+          "rightExclusive": 1106,
+          "bottomExclusive": 1224
+        },
+        "visibleMargins": {
+          "left": 184,
+          "top": 34,
+          "right": 148,
+          "bottom": 30
+        },
+        "minimumVisibleMargin": 30,
+        "visibleFreeEdges": true
+      },
+      "preview": {
+        "image": "/images/characters/chameleon/reactions/violin.webp",
+        "format": "webp",
+        "width": 512,
+        "height": 512,
+        "hasAlpha": true,
+        "bytes": 74740,
+        "sha256": "7aa6a65d51469866e9938fadd5f5c2de4aed7bf6d236e9dce529c1cdf56385b1",
+        "alpha": {
+          "min": 0,
+          "max": 255,
+          "transparentPixels": 134810,
+          "opaquePixels": 1258,
+          "transparentFraction": 0.5142593383789062,
+          "bounds": {
+            "left": 9,
+            "top": 11,
+            "rightExclusive": 462,
+            "bottomExclusive": 501
+          },
+          "margins": {
+            "left": 9,
+            "top": 11,
+            "right": 50,
+            "bottom": 11
+          },
+          "minimumMargin": 9,
+          "freeEdges": true,
+          "visibleAlphaThreshold": 4,
+          "visibleBounds": {
+            "left": 75,
+            "top": 14,
+            "rightExclusive": 451,
+            "bottomExclusive": 499
+          },
+          "visibleMargins": {
+            "left": 75,
+            "top": 14,
+            "right": 61,
+            "bottom": 13
+          },
+          "minimumVisibleMargin": 13,
+          "visibleFreeEdges": true
+        }
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "01-data-til-model",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/01-data-til-model.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2697132,
+        "sha256": "5e55bde86efa2faa60bc5d9e98de83dcbeb0c7b041a843bd8aa978bb17dca65f"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-bdb25906-525f-4dd9-a13a-bcf17ec8da94.png",
+      "sourceSha256": "5e55bde86efa2faa60bc5d9e98de83dcbeb0c7b041a843bd8aa978bb17dca65f",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/01-data-til-model.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 229032,
+        "sha256": "465b7f423f850eb827ca1eeae88e25f6c84dc9d71892235608bbe1063e268522"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "02-features-og-labels",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/02-features-og-labels.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2523484,
+        "sha256": "222c8636e5d0ad5173af2a36c36dca74db0a8a469ec9af4c425915fc6fb9edf2"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-886ac919-22ed-4714-b57c-55a5f7e4f0dd.png",
+      "sourceSha256": "222c8636e5d0ad5173af2a36c36dca74db0a8a469ec9af4c425915fc6fb9edf2",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/02-features-og-labels.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 194042,
+        "sha256": "4ab968a7cc260033f17df313727e337be719c5b64664ebc5074f0168a29a5185"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "03-train-validation-test",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/03-train-validation-test.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2295104,
+        "sha256": "297db8d5359fc33a0c633f3700b005a49157483d64aaf8569b75803d1cd6e3ed"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-c89b15ef-0c8a-4d36-937d-7cb265a5592a.png",
+      "sourceSha256": "297db8d5359fc33a0c633f3700b005a49157483d64aaf8569b75803d1cd6e3ed",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/03-train-validation-test.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 183838,
+        "sha256": "87d0a9dcb6d9b685d353ca731aa25991c67c58ee43468a0244c993a9090dc66a"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "04-klassifikation",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/04-klassifikation.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2633080,
+        "sha256": "11e96ac9aa1a2a08258e77f7b60f4045a35837ee03033e0ae2ecd680fe1c1eec"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-cfc45649-3083-4e59-be51-5246571d347d.png",
+      "sourceSha256": "11e96ac9aa1a2a08258e77f7b60f4045a35837ee03033e0ae2ecd680fe1c1eec",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/04-klassifikation.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 210622,
+        "sha256": "19eef92f089ec62ecc9829533a87534573c50278f0e699323e74cb24c4aab253"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "05-regression",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/05-regression.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2522647,
+        "sha256": "ff07d3f1d83c7f6080ec526a36339a5c7b6a9d4147158ea94ac45ff7231cc632"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-b5b047af-ed8e-415b-9431-574a02d99fe3.png",
+      "sourceSha256": "ff07d3f1d83c7f6080ec526a36339a5c7b6a9d4147158ea94ac45ff7231cc632",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/05-regression.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 170896,
+        "sha256": "68bd4262fc90e5c44af56fc7cbbfa1a0e58b57f467278e44b9e311baccc2e98f"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "06-klynger",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/06-klynger.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2245420,
+        "sha256": "c797400c69bc75355f13b55aa5ab3f233f97e8ac86ba3de651566a7dd67f7172"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-9f4d063f-6dcd-48d6-b43e-91bc3391ca9a.png",
+      "sourceSha256": "c797400c69bc75355f13b55aa5ab3f233f97e8ac86ba3de651566a7dd67f7172",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/06-klynger.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 143872,
+        "sha256": "049b98421ae6dfc6467ef2c66cbde258f1a24ebb0a56e5cefc5e4e6b2c2f05b9"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "07-traening-og-fejl",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/07-traening-og-fejl.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2480895,
+        "sha256": "f3bbb866750b9f1e96ce8d65855740cf3cf8c43242266951b04b54dd2d47d79f"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-eb0e30ef-1f78-4e66-9ec4-67a3c255b33c.png",
+      "sourceSha256": "f3bbb866750b9f1e96ce8d65855740cf3cf8c43242266951b04b54dd2d47d79f",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/07-traening-og-fejl.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 195266,
+        "sha256": "8314d28cfe749fe4341a2ed4b9ae47d112e8ea4884ded9317865e3ebe1bce887"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "08-overfitting",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/08-overfitting.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2449389,
+        "sha256": "d29e433e3ff64c18e227988f8d80fe1f156e3236ec0e5770a538af33f4561f79"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-1ecce951-e5b9-47c9-88f0-83fe4826f526.png",
+      "sourceSha256": "d29e433e3ff64c18e227988f8d80fe1f156e3236ec0e5770a538af33f4561f79",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/08-overfitting.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 180510,
+        "sha256": "0010f0d1c454ca6a9b0b1a877d0628bb167ad2adb302aab41fd2b31e0ae65eba"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "09-generalisering",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/09-generalisering.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2710887,
+        "sha256": "dfb003f44112d4ec17460944f14fdc6fd4fa186a6fe6078a1d2f91fb5eb15351"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-6dda8b5c-f4c2-42b6-873d-7b8a2c710597.png",
+      "sourceSha256": "dfb003f44112d4ec17460944f14fdc6fd4fa186a6fe6078a1d2f91fb5eb15351",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/09-generalisering.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 242516,
+        "sha256": "4a2e0b223fd00ba73d83f22d8e4bb7237f993294fb7ee445878ffcb49c1efc27"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "10-metrikker",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/10-metrikker.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2701821,
+        "sha256": "6157fa71868e6961f6f0d1a5c03bca22030192506195ec4ebb69b2625847ffe5"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-830682f2-c1b2-4062-a557-20507fc32338.png",
+      "sourceSha256": "6157fa71868e6961f6f0d1a5c03bca22030192506195ec4ebb69b2625847ffe5",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/10-metrikker.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 234476,
+        "sha256": "5db32e04e6fc37c437bab2cdc9356e0a21764e8985014ba38ef1891963eb7682"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "11-confusion-matrix",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/11-confusion-matrix.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2652685,
+        "sha256": "f9bde9c0a5113d1c7320b7ca51655fc46192c7cb1d22142914ae1fe053014b12"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-09edc113-b988-49c8-bb5e-96ec0effac5a.png",
+      "sourceSha256": "f9bde9c0a5113d1c7320b7ca51655fc46192c7cb1d22142914ae1fe053014b12",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/11-confusion-matrix.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 217496,
+        "sha256": "dafbd391248990b92ef15755afc2e4c3586f15f507d73acff2c39b7a1a0f7c8a"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "12-data-laekage",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/12-data-laekage.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2725923,
+        "sha256": "af167d4e93ec9e884bec726efdf221fd8650e76e7125cbbc2da1fb52395bea32"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-07673779-c854-4082-b57a-04d649c70785.png",
+      "sourceSha256": "af167d4e93ec9e884bec726efdf221fd8650e76e7125cbbc2da1fb52395bea32",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/12-data-laekage.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 256448,
+        "sha256": "fbbf70a15ce772616b2a665a3884f9d44d36a1a34a56aa1b94251933691c6933"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "13-skaeve-data",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/13-skaeve-data.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2806996,
+        "sha256": "e48f0e5bc525858e2d0c12cffc8cf462143eab2063c408e9c7a3fed2bf34132f"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-57dd82ca-4b67-4c12-b23f-2c11f5944c08.png",
+      "sourceSha256": "e48f0e5bc525858e2d0c12cffc8cf462143eab2063c408e9c7a3fed2bf34132f",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/13-skaeve-data.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 252048,
+        "sha256": "cff6e8629a9cdb711b233f233340e9445db843f399b458390b9a2ea7806755cf"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "14-forklarlighed",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/14-forklarlighed.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2600780,
+        "sha256": "f26b06f6c70b39f3990ad94cb4e05587c52179b7b1e4360656a9100e1a79a0f0"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-bf7bfb4c-b7c8-4a2b-b947-60ca1572cf6e.png",
+      "sourceSha256": "f26b06f6c70b39f3990ad94cb4e05587c52179b7b1e4360656a9100e1a79a0f0",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/14-forklarlighed.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 215968,
+        "sha256": "6e519fb230acc802a7d3990fcbb7b3783e02193e40cd5070b029f61154ca575a"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "15-drift",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/15-drift.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2378877,
+        "sha256": "0f5ed03bfd5910ff2fab89c047c508aaf12599ea85288b71919e9ba82d23a3cd"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-18c4c4eb-29f3-4709-9518-49f5b9fd8d0d.png",
+      "sourceSha256": "0f5ed03bfd5910ff2fab89c047c508aaf12599ea85288b71919e9ba82d23a3cd",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/15-drift.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 176450,
+        "sha256": "44de3218df00aa05ef5adc90c53b1d21e261f382691acca73c5ac074c1329299"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "16-ansvarlig-ml",
+      "group": "infographics",
+      "image": "/images/characters/chameleon/infographics/16-ansvarlig-ml.png",
+      "manifest": "assets/characters/chameleon/ml-infographics.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2783647,
+        "sha256": "d7dfc5aa1a4fcc62b14519b3ef2650c3845ea915c378a911bb08ff47a68eebf8"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-4fcf22ee-84a5-4fe1-a5d7-b34ad4a8544e.png",
+      "sourceSha256": "d7dfc5aa1a4fcc62b14519b3ef2650c3845ea915c378a911bb08ff47a68eebf8",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/infographics/16-ansvarlig-ml.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 260460,
+        "sha256": "f5407f7533c592e37dd2a7a1ac1516afce68bd4135fa8e00476e9bee13fc0525"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "teacher",
+      "group": "portraits",
+      "image": "/images/characters/chameleon/teacher.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2403793,
+        "sha256": "d741967326307251857df0bd8226ab9cc74be8849da27051cef25e706a3db304"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-667815fc-406c-429a-9c78-df8d2ef6375e.png",
+      "sourceSha256": "d741967326307251857df0bd8226ab9cc74be8849da27051cef25e706a3db304",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/teacher.webp",
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": false,
+        "bytes": 118276,
+        "sha256": "5263ec8fcffd29de82e26d8c51628dc02fe0c3f25ff821ea4f90e3ae90e3eb29"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "banjo",
+      "group": "portraits",
+      "image": "/images/characters/chameleon/banjo.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2190464,
+        "sha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ec850daa-1778-4f5b-b23e-6dfb557262ee.png",
+      "sourceSha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/banjo.webp",
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": false,
+        "bytes": 96520,
+        "sha256": "1ad0f9204311a3edd394a0836b21ca554290d0e7fe9dd1b94acdccb492b3ece1"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "fieldwork",
+      "group": "portraits",
+      "image": "/images/characters/chameleon/fieldwork.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 1920405,
+        "sha256": "8227f5609050a2c1176f6719226c96b60fc592a37b0a9b7e117404a9cb851e85"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ec6dbfbc-2793-4fa7-8971-c393b85edec5.png",
+      "sourceSha256": "8227f5609050a2c1176f6719226c96b60fc592a37b0a9b7e117404a9cb851e85",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/fieldwork.webp",
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": false,
+        "bytes": 91430,
+        "sha256": "0b2672cf891179747d9c422dfb858476b5070e58b29a8af401b26b1623dfea81"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "workshop",
+      "group": "scenes",
+      "image": "/images/characters/chameleon/scenes/workshop.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 3386448,
+        "sha256": "8e2fd28a5b9903225783f5ae2872ea86ca151ec3552ca840bad568537d06121b"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-f678ee08-2dd6-4f86-8d00-6b5a1932a5a3.png",
+      "sourceSha256": "8e2fd28a5b9903225783f5ae2872ea86ca151ec3552ca840bad568537d06121b",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/scenes/workshop.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 411630,
+        "sha256": "36ba5b2e1ba029cf3637247ee7ba898cbe429ad163fa0aa57b9bee6d9131ad77"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "banjo-evening",
+      "group": "scenes",
+      "image": "/images/characters/chameleon/scenes/banjo-evening.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 3305619,
+        "sha256": "3ef009e5d7e2e92070834b1007f266776a115864f9191a882e719f2495c1ed52"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-ba0f287f-e235-4e27-a5ea-339e37b69d0e.png",
+      "sourceSha256": "3ef009e5d7e2e92070834b1007f266776a115864f9191a882e719f2495c1ed52",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/scenes/banjo-evening.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 395054,
+        "sha256": "a9fa86b2aa845458e33ccdace333ad585942b31d95cd4702dd467da87384e106"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "data-garden",
+      "group": "scenes",
+      "image": "/images/characters/chameleon/scenes/data-garden.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 3264497,
+        "sha256": "3d3be7aea2fafab13ecd83e44103542a45d45ddee23748a646e2e6cae63b4b95"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-e0748c3a-4317-4e38-9ca8-99f471b0fc48.png",
+      "sourceSha256": "3d3be7aea2fafab13ecd83e44103542a45d45ddee23748a646e2e6cae63b4b95",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/scenes/data-garden.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 372650,
+        "sha256": "57b42ba3c5bdb29abe0028198e96badfbb4e5d764ea0889ae075201618768630"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "teaching-studio",
+      "group": "scenes",
+      "image": "/images/characters/chameleon/scenes/teaching-studio.png",
+      "manifest": "assets/characters/chameleon/artwork.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1536,
+        "height": 1024,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 3311869,
+        "sha256": "19969ee28b4e0d6dcf9f195c643206356416dd74a6efbdf447e2cff4ff190de6"
+      },
+      "sourceArtifact": "C:\\Users\\Private\\.codex\\generated_images\\01a1bcd4-ce42-72e0-8581-abd3d78c3534\\exec-4ac45367-be78-4515-b09d-2ce539c9b32e.png",
+      "sourceSha256": "19969ee28b4e0d6dcf9f195c643206356416dd74a6efbdf447e2cff4ff190de6",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/scenes/teaching-studio.webp",
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "hasAlpha": false,
+        "bytes": 378050,
+        "sha256": "43e427560e7c85c784ffada0f83813d67e69c9db46e6cebcab5cf6acf3a47fbe"
+      },
+      "previewReportMatches": true
+    },
+    {
+      "id": "portrait",
+      "group": "portraits",
+      "image": "/images/characters/chameleon/portrait.png",
+      "manifest": "assets/characters/chameleon/portrait-provenance.json",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "native": {
+        "format": "png",
+        "width": 1254,
+        "height": 1254,
+        "channels": 3,
+        "hasAlpha": false,
+        "bytes": 2048788,
+        "sha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936"
+      },
+      "sourceArtifact": "C:/Users/Private/.codex/generated_images/01a1b6d3-b5ad-7d81-bfea-fe5c470dcf17/exec-d00c0e52-b8b8-433c-befe-2588c118fa2d.png",
+      "sourceSha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936",
+      "sourceMatches": true,
+      "visualReviewRecorded": true,
+      "preview": {
+        "image": "/images/characters/chameleon/portrait.webp",
+        "format": "webp",
+        "width": 768,
+        "height": 768,
+        "hasAlpha": false,
+        "bytes": 103840,
+        "sha256": "b8bc0d4b6f959a3464514d3ecf180d51eceef963f31d43362a257d27e25f654f"
+      },
+      "previewReportMatches": true
+    }
+  ],
+  "gifValidation": {
+    "checkedSeparately": true,
+    "report": "assets/characters/chameleon/animations/validation.json"
+  }
+}

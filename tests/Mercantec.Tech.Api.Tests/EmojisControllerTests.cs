@@ -213,9 +213,10 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     public async Task CharacterEmojisAreAvailableWithoutUploadsOrObjectStorage()
     {
         var items = ReadList(await As(_student, storage: new DisabledObjectStorage()).List(default));
-        Assert.Equal(120, items.Count);
+        Assert.Equal(168, items.Count);
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "lupp"));
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "raymond"));
+        Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "chameleon"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "beaver"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "fox"));
         Assert.Equal("Tænkepause", CharacterEmojiCatalog.All.Single(item => item.Name == "beaver_thinking").Title);
@@ -247,10 +248,19 @@ public sealed class EmojisControllerTests : IAsyncLifetime
                 Assert.Contains("spil", item.Keywords!);
                 Assert.Contains("gameplay", item.Keywords!);
             }
+            if (asset.CharacterSlug == "chameleon")
+            {
+                Assert.StartsWith("Kamæleonen", item.AltText);
+                Assert.Contains("machine learning", item.Keywords!);
+                Assert.Contains("maskinlæring", item.Keywords!);
+                Assert.Contains("kamæleon", item.Keywords!);
+            }
             Assert.Equal(new DateTimeOffset(2026, 11, 8, 0, 0, 0, TimeSpan.Zero), item.UpdatedAtUtc);
         }
         Assert.Equal("learning", items.Single(item => item.Name == "lupp_idea").Category);
         Assert.Equal("smileys", items.Single(item => item.Name == "fox_idea").Category);
+        Assert.Equal("technology", items.Single(item => item.Name == "chameleon_classify").Category);
+        Assert.Equal("everyday", items.Single(item => item.Name == "chameleon_banjo").Category);
         Assert.Empty(await _db.CustomEmojis.ToListAsync());
         Assert.Empty(_storage.Objects);
     }
@@ -260,6 +270,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     [InlineData("beaver")]
     [InlineData("fox")]
     [InlineData("lupp")]
+    [InlineData("chameleon")]
     public async Task BuiltInCharacterEmojisCannotBeRenamedOrDeleted(string character)
     {
         var asset = CharacterEmojiCatalog.All.First(item => item.CharacterSlug == character);

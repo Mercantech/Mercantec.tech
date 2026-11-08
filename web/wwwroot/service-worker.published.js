@@ -32,8 +32,8 @@ function isAvatarRuntimeAsset(url) {
     return url.origin === baseUrl.origin && url.pathname.startsWith('/assets/avatars/');
 }
 
-function isCharacterInfographicAsset(url) {
-    return url.origin === baseUrl.origin && /^\/images\/characters\/[^/]+\/infographics\//.test(url.pathname);
+function isCharacterMediaAsset(url) {
+    return url.origin === baseUrl.origin && url.pathname.startsWith('/images/characters/');
 }
 
 function isAvatarRuntimeModule(url) {
@@ -65,8 +65,9 @@ async function onInstall(event) {
         .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/notion-editor/'))
         // Avatar sheets, audio and world sprites are optional; fetch them only when used.
         .filter(asset => !isAvatarRuntimeAsset(new URL(asset.url, baseUrl)))
-        // Teaching posters and downloadable originals are optional, not part of app installation.
-        .filter(asset => !isCharacterInfographicAsset(new URL(asset.url, baseUrl)))
+        // Character galleries and downloadable originals load only when opened.
+        // Do not download the entire PNG/GIF collection during app installation.
+        .filter(asset => !isCharacterMediaAsset(new URL(asset.url, baseUrl)))
         // Runtime modules must follow the deployed app rather than race a
         // previous worker's unversioned startup cache.
         .filter(asset => {
@@ -155,9 +156,9 @@ async function onFetch(event) {
     try {
         const response = await fetch(event.request);
         if (event.request.method === 'GET' && response.ok && url.origin === baseUrl.origin
-            && (url.pathname.startsWith('/notion-editor/') || isAvatarRuntimeAsset(url) || isCharacterInfographicAsset(url))) {
-            // Keep only editor chunks/fonts actually used, so an already opened
-            // drawing can still load them offline without a full release precache.
+            && (url.pathname.startsWith('/notion-editor/') || isAvatarRuntimeAsset(url) || isCharacterMediaAsset(url))) {
+            // Keep optional media and editor assets after use, so visited
+            // galleries and drawings remain available without a full precache.
             try {
                 const cache = await caches.open(cacheName);
                 await cache.put(event.request, response.clone());

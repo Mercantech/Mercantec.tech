@@ -1,0 +1,242 @@
+[
+  {
+    "image": "/images/characters/chameleon/infographics/01-data-til-model.png",
+    "preview": "/images/characters/chameleon/infographics/01-data-til-model.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2697132,
+    "previewBytes": 229032,
+    "originalSha256": "5e55bde86efa2faa60bc5d9e98de83dcbeb0c7b041a843bd8aa978bb17dca65f",
+    "previewSha256": "465b7f423f850eb827ca1eeae88e25f6c84dc9d71892235608bbe1063e268522"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/02-features-og-labels.png",
+    "preview": "/images/characters/chameleon/infographics/02-features-og-labels.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2523484,
+    "previewBytes": 194042,
+    "originalSha256": "222c8636e5d0ad5173af2a36c36dca74db0a8a469ec9af4c425915fc6fb9edf2",
+    "previewSha256": "4ab968a7cc260033f17df313727e337be719c5b64664ebc5074f0168a29a5185"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/03-train-validation-test.png",
+    "preview": "/images/characters/chameleon/infographics/03-train-validation-test.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2295104,
+    "previewBytes": 183838,
+    "originalSha256": "297db8d5359fc33a0c633f3700b005a49157483d64aaf8569b75803d1cd6e3ed",
+    "previewSha256": "87d0a9dcb6d9b685d353ca731aa25991c67c58ee43468a0244c993a9090dc66a"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/04-klassifikation.png",
+    "preview": "/images/characters/chameleon/infographics/04-klassifikation.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2633080,
+    "previewBytes": 210622,
+    "originalSha256": "11e96ac9aa1a2a08258e77f7b60f4045a35837ee03033e0ae2ecd680fe1c1eec",
+    "previewSha256": "19eef92f089ec62ecc9829533a87534573c50278f0e699323e74cb24c4aab253"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/05-regression.png",
+    "preview": "/images/characters/chameleon/infographics/05-regression.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2522647,
+    "previewBytes": 170896,
+    "originalSha256": "ff07d3f1d83c7f6080ec526a36339a5c7b6a9d4147158ea94ac45ff7231cc632",
+    "previewSha256": "68bd4262fc90e5c44af56fc7cbbfa1a0e58b57f467278e44b9e311baccc2e98f"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/06-klynger.png",
+    "preview": "/images/characters/chameleon/infographics/06-klynger.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2245420,
+    "previewBytes": 143872,
+    "originalSha256": "c797400c69bc75355f13b55aa5ab3f233f97e8ac86ba3de651566a7dd67f7172",
+    "previewSha256": "049b98421ae6dfc6467ef2c66cbde258f1a24ebb0a56e5cefc5e4e6b2c2f05b9"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/07-traening-og-fejl.png",
+    "preview": "/images/characters/chameleon/infographics/07-traening-og-fejl.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2480895,
+    "previewBytes": 195266,
+    "originalSha256": "f3bbb866750b9f1e96ce8d65855740cf3cf8c43242266951b04b54dd2d47d79f",
+    "previewSha256": "8314d28cfe749fe4341a2ed4b9ae47d112e8ea4884ded9317865e3ebe1bce887"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/08-overfitting.png",
+    "preview": "/images/characters/chameleon/infographics/08-overfitting.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2449389,
+    "previewBytes": 180510,
+    "originalSha256": "d29e433e3ff64c18e227988f8d80fe1f156e3236ec0e5770a538af33f4561f79",
+    "previewSha256": "0010f0d1c454ca6a9b0b1a877d0628bb167ad2adb302aab41fd2b31e0ae65eba"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/09-generalisering.png",
+    "preview": "/images/characters/chameleon/infographics/09-generalisering.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2710887,
+    "previewBytes": 242516,
+    "originalSha256": "dfb003f44112d4ec17460944f14fdc6fd4fa186a6fe6078a1d2f91fb5eb15351",
+    "previewSha256": "4a2e0b223fd00ba73d83f22d8e4bb7237f993294fb7ee445878ffcb49c1efc27"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/10-metrikker.png",
+    "preview": "/images/characters/chameleon/infographics/10-metrikker.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2701821,
+    "previewBytes": 234476,
+    "originalSha256": "6157fa71868e6961f6f0d1a5c03bca22030192506195ec4ebb69b2625847ffe5",
+    "previewSha256": "5db32e04e6fc37c437bab2cdc9356e0a21764e8985014ba38ef1891963eb7682"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/11-confusion-matrix.png",
+    "preview": "/images/characters/chameleon/infographics/11-confusion-matrix.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2652685,
+    "previewBytes": 217496,
+    "originalSha256": "f9bde9c0a5113d1c7320b7ca51655fc46192c7cb1d22142914ae1fe053014b12",
+    "previewSha256": "dafbd391248990b92ef15755afc2e4c3586f15f507d73acff2c39b7a1a0f7c8a"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/12-data-laekage.png",
+    "preview": "/images/characters/chameleon/infographics/12-data-laekage.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2725923,
+    "previewBytes": 256448,
+    "originalSha256": "af167d4e93ec9e884bec726efdf221fd8650e76e7125cbbc2da1fb52395bea32",
+    "previewSha256": "fbbf70a15ce772616b2a665a3884f9d44d36a1a34a56aa1b94251933691c6933"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/13-skaeve-data.png",
+    "preview": "/images/characters/chameleon/infographics/13-skaeve-data.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2806996,
+    "previewBytes": 252048,
+    "originalSha256": "e48f0e5bc525858e2d0c12cffc8cf462143eab2063c408e9c7a3fed2bf34132f",
+    "previewSha256": "cff6e8629a9cdb711b233f233340e9445db843f399b458390b9a2ea7806755cf"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/14-forklarlighed.png",
+    "preview": "/images/characters/chameleon/infographics/14-forklarlighed.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2600780,
+    "previewBytes": 215968,
+    "originalSha256": "f26b06f6c70b39f3990ad94cb4e05587c52179b7b1e4360656a9100e1a79a0f0",
+    "previewSha256": "6e519fb230acc802a7d3990fcbb7b3783e02193e40cd5070b029f61154ca575a"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/15-drift.png",
+    "preview": "/images/characters/chameleon/infographics/15-drift.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2378877,
+    "previewBytes": 176450,
+    "originalSha256": "0f5ed03bfd5910ff2fab89c047c508aaf12599ea85288b71919e9ba82d23a3cd",
+    "previewSha256": "44de3218df00aa05ef5adc90c53b1d21e261f382691acca73c5ac074c1329299"
+  },
+  {
+    "image": "/images/characters/chameleon/infographics/16-ansvarlig-ml.png",
+    "preview": "/images/characters/chameleon/infographics/16-ansvarlig-ml.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 2783647,
+    "previewBytes": 260460,
+    "originalSha256": "d7dfc5aa1a4fcc62b14519b3ef2650c3845ea915c378a911bb08ff47a68eebf8",
+    "previewSha256": "f5407f7533c592e37dd2a7a1ac1516afce68bd4135fa8e00476e9bee13fc0525"
+  },
+  {
+    "image": "/images/characters/chameleon/teacher.png",
+    "preview": "/images/characters/chameleon/teacher.webp",
+    "width": 1254,
+    "height": 1254,
+    "originalBytes": 2403793,
+    "previewBytes": 118276,
+    "originalSha256": "d741967326307251857df0bd8226ab9cc74be8849da27051cef25e706a3db304",
+    "previewSha256": "5263ec8fcffd29de82e26d8c51628dc02fe0c3f25ff821ea4f90e3ae90e3eb29"
+  },
+  {
+    "image": "/images/characters/chameleon/banjo.png",
+    "preview": "/images/characters/chameleon/banjo.webp",
+    "width": 1254,
+    "height": 1254,
+    "originalBytes": 2190464,
+    "previewBytes": 96520,
+    "originalSha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3",
+    "previewSha256": "1ad0f9204311a3edd394a0836b21ca554290d0e7fe9dd1b94acdccb492b3ece1"
+  },
+  {
+    "image": "/images/characters/chameleon/fieldwork.png",
+    "preview": "/images/characters/chameleon/fieldwork.webp",
+    "width": 1254,
+    "height": 1254,
+    "originalBytes": 1920405,
+    "previewBytes": 91430,
+    "originalSha256": "8227f5609050a2c1176f6719226c96b60fc592a37b0a9b7e117404a9cb851e85",
+    "previewSha256": "0b2672cf891179747d9c422dfb858476b5070e58b29a8af401b26b1623dfea81"
+  },
+  {
+    "image": "/images/characters/chameleon/scenes/workshop.png",
+    "preview": "/images/characters/chameleon/scenes/workshop.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 3386448,
+    "previewBytes": 411630,
+    "originalSha256": "8e2fd28a5b9903225783f5ae2872ea86ca151ec3552ca840bad568537d06121b",
+    "previewSha256": "36ba5b2e1ba029cf3637247ee7ba898cbe429ad163fa0aa57b9bee6d9131ad77"
+  },
+  {
+    "image": "/images/characters/chameleon/scenes/banjo-evening.png",
+    "preview": "/images/characters/chameleon/scenes/banjo-evening.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 3305619,
+    "previewBytes": 395054,
+    "originalSha256": "3ef009e5d7e2e92070834b1007f266776a115864f9191a882e719f2495c1ed52",
+    "previewSha256": "a9fa86b2aa845458e33ccdace333ad585942b31d95cd4702dd467da87384e106"
+  },
+  {
+    "image": "/images/characters/chameleon/scenes/data-garden.png",
+    "preview": "/images/characters/chameleon/scenes/data-garden.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 3264497,
+    "previewBytes": 372650,
+    "originalSha256": "3d3be7aea2fafab13ecd83e44103542a45d45ddee23748a646e2e6cae63b4b95",
+    "previewSha256": "57b42ba3c5bdb29abe0028198e96badfbb4e5d764ea0889ae075201618768630"
+  },
+  {
+    "image": "/images/characters/chameleon/scenes/teaching-studio.png",
+    "preview": "/images/characters/chameleon/scenes/teaching-studio.webp",
+    "width": 1536,
+    "height": 1024,
+    "originalBytes": 3311869,
+    "previewBytes": 378050,
+    "originalSha256": "19969ee28b4e0d6dcf9f195c643206356416dd74a6efbdf447e2cff4ff190de6",
+    "previewSha256": "43e427560e7c85c784ffada0f83813d67e69c9db46e6cebcab5cf6acf3a47fbe"
+  },
+  {
+    "image": "/images/characters/chameleon/portrait.png",
+    "preview": "/images/characters/chameleon/portrait.webp",
+    "width": 1254,
+    "height": 1254,
+    "originalBytes": 2048788,
+    "previewBytes": 103840,
+    "originalSha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936",
+    "previewSha256": "b8bc0d4b6f959a3464514d3ecf180d51eceef963f31d43362a257d27e25f654f"
+  }
+]

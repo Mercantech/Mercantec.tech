@@ -17,11 +17,12 @@ public static class CharacterEmojiPolicy
 
     public static EmojiResolvedMetadata Resolve(CharacterEmojiAsset emoji)
     {
-        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", _ => "raymond" };
+        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", "chameleon" => "kamæleonen", _ => "raymond" };
         var subject = emoji.CharacterSlug switch
         {
             "lupp" => new[] { "Game Design", "spil", "gameplay" },
             "raymond" => new[] { "SQL", "database" },
+            "chameleon" => new[] { "Machine Learning", "machinelearning", "maskinlæring", "ML", "kamæleon", "kameleon", "data", "model" },
             _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
         };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
@@ -30,7 +31,7 @@ public static class CharacterEmojiPolicy
         var category = reaction switch
         {
             "wave" or "hello" or "thumbs_up" or "applause" => "gestures",
-            "coffee" or "tea_time" or "good_morning" or "sleepy" or "goodbye" => "everyday",
+            "coffee" or "tea_time" or "good_morning" or "sleepy" or "goodbye" or "humming" => "everyday",
             "break" when emoji.CharacterSlug == "lupp" => "everyday",
             "help" or "listening" or "question" or "idea_notes" or "reading" => "learning",
             "explaining" or "encouragement"
@@ -41,6 +42,12 @@ public static class CharacterEmojiPolicy
                 or "join" or "filter" or "sort" or "primary_key" or "foreign_key" or "normalize" or "transaction"
                 or "commit" or "rollback" or "backup" or "restore" or "performance" or "typing" => "technology",
             "controller" or "input" or "bug" or "fix" when emoji.CharacterSlug == "lupp" => "technology",
+            "train_model" or "test_data" or "validation" or "overfitting" or "generalization"
+                or "features" or "labels" or "classify" or "predict" or "clustering" or "gradient"
+                or "loss" or "accuracy" or "precision_recall" or "bias" or "drift" or "retrain"
+                or "data_cleaning" or "missing_data" or "explainability" or "privacy" or "tuning" or "baseline" or "processing"
+                when emoji.CharacterSlug == "chameleon" => "technology",
+            "violin" or "banjo" when emoji.CharacterSlug == "chameleon" => "everyday",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

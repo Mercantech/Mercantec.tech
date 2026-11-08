@@ -413,8 +413,8 @@ public sealed class CharacterDetailTests
         using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<CharacterIndex>();
 
-        Assert.Equal(5, page.FindAll(".character-card").Count);
-        Assert.Equal(5, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
+        Assert.Equal(6, page.FindAll(".character-card").Count);
+        Assert.Equal(6, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
         Assert.Equal("Bæver", page.Find("a[href='/characters/beaver'] h2").TextContent);
         Assert.Equal("Ræv", page.Find("a[href='/characters/fox'] h2").TextContent);
     }

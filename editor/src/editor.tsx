@@ -25,9 +25,10 @@ import type { AiNativeTarget } from './ai-native-types';
 import { formatUploadSize, uploadNotionAsset, uploadNotebookAsset } from './asset-upload.mjs';
 import { expandEmojiShortcodes, filterCustomEmojis } from './custom-emoji.mjs';
 import { EmojiPicker, type EmojiAnalysis, type EmojiMetadata, type PlatformEmoji } from './emoji-picker';
-import { EmojiCatalog, EmojiReload, EmojiCreate, EmojiAnalyze, CustomEmojiImage } from './emoji-context';
+import { EmojiCatalog, EmojiReload, EmojiCreate, EmojiAnalyze, CustomEmojiImage, EmojiText } from './emoji-context';
 import { analyzePlatformEmoji, uploadPlatformEmoji } from './emoji-upload.mjs';
 import { EmojiSuggestionMenu } from './emoji-suggestion-menu';
+import { ReferenceSuggestionMenu } from './reference-suggestion-menu';
 import { captureEmojiQuery, resolveEmojiQuery } from './emoji-query-target.mjs';
 import { createDrawing } from './drawing-block';
 import { DrawingEnvironmentProvider, requestCreateDrawing, requestOpenDrawing, collectDrawingPublicationData, type DrawingEnvironment } from './drawing-context';
@@ -589,7 +590,7 @@ function ConnectedEditor({session}:{session:Session}) {
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}{!notebook && <button type="button" className="native-ai-selection-button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled}>✦ AI</button>}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
-        <SuggestionMenuController triggerCharacter="@" getItems={async (query):Promise<{title:string;subtext:string;group:string;onItemClick:()=>void}[]>=>{
+        <SuggestionMenuController triggerCharacter="@" suggestionMenuComponent={ReferenceSuggestionMenu} getItems={async (query):Promise<{title:string;subtext:string;group:string;onItemClick:()=>void}[]>=>{
           try {
             const result=await referenceSearch?.search(query);
             return session.destroyed?[]:(result?.items || []).map((item:ResolvedReference)=>({title:item.title,subtext:[referenceKindLabel(item.reference.kind),item.contextLabel,mentionStatusLabel(item.mentionStatus)].filter(Boolean).join(' · '),group:'Indhold i LUP',onItemClick:()=>{if(canEdit(session))editor.insertInlineContent([{type:'entityMention',props:item.reference},' ']);}}));
@@ -631,7 +632,7 @@ function SlideDeck({session}:{session:Session}) {
     if(event.key==='ArrowRight' || event.key==='PageDown'){event.preventDefault();setIndex(value=>Math.min(total-1,value+1));}
     if(event.key==='ArrowLeft' || event.key==='PageUp'){event.preventDefault();setIndex(value=>Math.max(0,value-1));}
   }}>
-    <header className="notion-slide-header"><strong>{session.context.title}</strong><span>{index+1} / {total}</span><button type="button" autoFocus onClick={close}>Luk præsentation</button></header>
+    <header className="notion-slide-header"><strong><EmojiText text={session.context.title} /></strong><span>{index+1} / {total}</span><button type="button" autoFocus onClick={close}>Luk præsentation</button></header>
     <article className="notion-slide-paper"><SlideContent key={index} blocks={session.slides[index]} theme={session.theme} /></article>
     <nav className="notion-slide-controls" aria-label="Skift slide"><button type="button" disabled={index===0} onClick={()=>setIndex(index-1)}>‹ Forrige</button><span>Brug piletasterne til at skifte slide</span><button type="button" disabled={index===total-1} onClick={()=>setIndex(index+1)}>Næste ›</button></nav>
   </dialog>;

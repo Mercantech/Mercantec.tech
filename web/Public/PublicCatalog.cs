@@ -70,7 +70,8 @@ public static class PublicCatalog
     }
 
     private static string CharacterSearchTerms(CharacterProfile character) => string.Join(" ",
-        character.Tags.Concat(character.Materials.Select(group => group.Label))
+        character.Tags.Concat(character.Slug == "chameleon" ? new[] { "chameleon", "kamæleon", "kameleon", "maskinlæring", "machinelearning", "ML" } : Array.Empty<string>())
+            .Concat(character.Materials.Select(group => group.Label))
             .Concat(character.Reactions.Concat(character.Scenes).Concat(character.Illustrations)
                 .Select(image => image.Title + " " + image.Alt + " " + image.Summary + " " + image.Stage
                     + " " + string.Join(" ", image.Explanation)))

@@ -1,6 +1,6 @@
 # Codex og LUP-notesbøger
 
-LUP-MCP lader Codex finde, læse og redigere hold- og teorisider direkte i kladden. Forbindelsen virker også, når ingen browsereditor er åben. Codex udfører skrivearbejdet; LUP kalder ikke sin egen AI-model for at omskrive det igen.
+LUP-MCP lader Codex finde, læse og redigere hold- og teorisider direkte i kladden samt oprette nye undersider. Forbindelsen virker også, når ingen browsereditor er åben. Codex udfører skrivearbejdet; LUP kalder ikke sin egen AI-model for at omskrive det igen.
 
 Personlige notesbøger, elevnoter, afleveringer, udgivelse og sletning af sider indgår ikke i denne forbindelse. Adgang kontrolleres mod den indloggede undervisers aktuelle rettigheder ved hvert kald.
 
@@ -45,17 +45,24 @@ Eksempel:
 
 > Åbn denne LUP-side: https://lup.dk/notion/SIDENS-ID. Gør forklaringen mere forståelig for H1, bevar kode og medier, og tilføj tre øvelser til sidst. Redigér kun kladden.
 
-De fem værktøjer er:
+De seks værktøjer er:
 
 | Værktøj | Formål |
 | --- | --- |
 | `find_pages` | Find sider i et bestemt hold eller en samling. |
 | `read_page` | Læs live-indhold, blok-id'er, formatering og grundlag for ændringer. Store sider har synlig fortsættelse. |
+| `create_page` | Opret en tom underside som kladde under en eksisterende side. Forælderens hold og samling arves; samme operations-id genbruges ved genforsøg. |
 | `apply_changes` | Anvend en samlet, valideret ændring på én side. Brug et nyt operations-id til en ny ændring og samme id ved genforsøg. |
 | `get_change` | Se resultat og før/efter-historik for en konkret ændring. |
 | `undo_change` | Fortryd ændringen, hvis det berørte indhold stadig matcher. |
 
 Codex skal læse siden før redigering og kun sende ændringer for de berørte blokke. En konflikt betyder, at målområdet skal læses igen, før Codex prøver en ny ændring. Redigering andre steder på siden ugyldiggør ikke et ellers uændret målområde.
+
+### Opret en underside
+
+`create_page` kræver `parentPageId`, `title` og et nyt `operationId` (UUID). Oprettelsen kræver lærerrolle og aktuel redigeringsadgang til forælderen. Siden arver hold og samling, mens den kaldende bruger registreres som opretter. Den nye side er en tom kladde. Læs derefter siden med `read_page`, og indsæt skabelon eller tekst gennem `apply_changes`, så indholdet følger den normale samarbejdslagring.
+
+Side og privat oprettelseskvittering gemmes atomisk. Ved et tabt svar gentages `create_page` med samme operations-id og samme titel og forælder; svaret peger på den allerede oprettede side. Et operations-id må ikke genbruges til en anden side. Adgang kontrolleres igen ved genforsøg, og en efterfølgende slettet side bliver ikke genskabt automatisk. `get_change` og `undo_change` gælder indholdsændringer; oprettelsens status genfindes ved at gentage `create_page`.
 
 ### Ændringsformat
 

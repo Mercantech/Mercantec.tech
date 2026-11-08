@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useId, useMemo, useState } from 'react';
 import { createReferenceClient, createReferenceResolver, createReferenceSearch, entityReference, referenceKindLabel } from './entity-references.mjs';
+import { EmojiText } from './emoji-context';
 
 export interface EntityReference { kind: string; id: string }
 export interface ResolvedReference { reference: EntityReference; title: string; href: string; contextLabel: string; mentionStatus?: string | null }
@@ -38,9 +39,12 @@ export function ReferenceView({ reference, block = false }: { reference: EntityR
   const value = state.scope === context && state.value?.reference.kind === reference?.kind && state.value?.reference.id === reference?.id ? state.value : null;
   const status = context?.canEdit ? mentionStatusLabel(value?.mentionStatus) : '';
   if (!reference || !value) return <span className="notion-unavailable" contentEditable={false}>{reference && state.status === 'loading' ? 'Henter reference…' : state.status === 'error' ? <>Referencen kunne ikke hentes <button type="button" onClick={()=>{if(reference)context?.resolver.retry(reference);}}>Prøv igen</button></> : 'Indhold er ikke tilgængeligt'}</span>;
+  return <ResolvedReferenceLink reference={reference} value={value} block={block} status={status} />;
+}
+export function ResolvedReferenceLink({ reference, value, block = false, status = '' }: { reference: EntityReference; value: ResolvedReference; block?: boolean; status?: string }) {
   const person = reference.kind === 'person' || reference.kind === 'member';
   return <a className={block ? 'notion-entity-link' : 'notion-mention'} href={value.href} title={[referenceKindLabel(reference.kind), value.contextLabel, status].filter(Boolean).join(' · ')} contentEditable={false}>
-    <span aria-hidden="true">{person ? '@' : '↗'} </span>{value.title}{block && <small>{referenceKindLabel(reference.kind)} · {value.contextLabel}</small>}
+    <span aria-hidden="true">{person ? '@' : '↗'} </span><EmojiText text={value.title} />{block && <small>{referenceKindLabel(reference.kind)} · <EmojiText text={value.contextLabel} /></small>}
     {person && status && <span className="notion-reference-status">{status}</span>}
   </a>;
 }
@@ -66,6 +70,6 @@ export function ReferencePicker({ onPick }: { onPick: (reference: EntityReferenc
     <label htmlFor={label}>Søg i LUP</label><input id={label} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Side, person, opgave, materiale…" autoComplete="off" maxLength={200} />
     {loading && <p role="status">Søger…</p>}{error && <p role="alert">{error}</p>}
     {!loading && !error && !items.length && <p>Ingen tilgængelige resultater.</p>}
-    <ul aria-label="Tilgængeligt indhold">{items.map((item, index) => <li key={item.reference.kind + ':' + item.reference.id}><button type="button" className={index === selected ? 'is-selected' : undefined} onClick={() => { const ref = entityReference(item.reference.kind, item.reference.id); if (ref) onPick(ref); }}><strong>{item.title}</strong><small>{referenceKindLabel(item.reference.kind)} · {item.contextLabel}</small>{mentionStatusLabel(item.mentionStatus) && <small>{mentionStatusLabel(item.mentionStatus)}</small>}</button></li>)}</ul>
+    <ul aria-label="Tilgængeligt indhold">{items.map((item, index) => <li key={item.reference.kind + ':' + item.reference.id}><button type="button" className={index === selected ? 'is-selected' : undefined} onClick={() => { const ref = entityReference(item.reference.kind, item.reference.id); if (ref) onPick(ref); }}><strong><EmojiText text={item.title} /></strong><small>{referenceKindLabel(item.reference.kind)} · <EmojiText text={item.contextLabel} /></small>{mentionStatusLabel(item.mentionStatus) && <small>{mentionStatusLabel(item.mentionStatus)}</small>}</button></li>)}</ul>
   </div>;
 }

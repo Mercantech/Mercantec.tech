@@ -58,6 +58,12 @@ public sealed class NotionMcpTools(NotionMcpService service, IHttpContextAccesso
         string? query = null, Guid? holdId = null, Guid? collectionId = null, int offset = 0, int limit = 30)
         => Run(() => service.FindAsync(user, query, holdId, collectionId, offset, limit, cancellationToken));
 
+    [McpServerTool(Name = "create_page", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true),
+     Description("Create ONE empty unpublished child page under an existing editable LUP teaching/theory page. parentPageId, title and operationId are required. Parent scope determines hold and collection; personal/student notebooks are not supported. Use a fresh operationId UUID for a new page and repeat the SAME operationId and title/parent to resolve a lost acknowledgement. Changed input conflicts; a deleted created page is never recreated by retry. After creation, read_page and apply_changes edit the new draft through Yjs. This tool has no initial-content, publish or delete operation.")]
+    public Task<NotionMcpCreatedPage> CreatePage(ClaimsPrincipal user, CancellationToken cancellationToken,
+        Guid parentPageId, string title, Guid operationId)
+        => Run(() => service.CreatePageAsync(user, parentPageId, title, operationId, cancellationToken));
+
     [McpServerTool(Name = "read_page", ReadOnly = true, OpenWorld = false, UseStructuredContent = true),
      Description("Read the current LIVE LUP draft by page UUID or LUP /notion/{uuid} URL. Returns lossless XML block content, stable block IDs and fingerprints. Follow nextCursor until null; never assume a partial response is the entire page. Unknown/media/reference blocks are preserved and may be read-only.")]
     public Task<object> ReadPage(ClaimsPrincipal user, CancellationToken cancellationToken,

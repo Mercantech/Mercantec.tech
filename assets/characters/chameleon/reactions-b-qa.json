@@ -1,0 +1,410 @@
+[
+  {
+    "id": "accuracy",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2098310,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      108,
+      52,
+      1189,
+      1213
+    ],
+    "sha256": "f4159de79a5bf66e8e30a761e11d94d7d49570d67e1577f76f22e946adc7877a"
+  },
+  {
+    "id": "banjo",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1860327,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      101,
+      55,
+      1210,
+      1228
+    ],
+    "sha256": "d008a737700e785f6db49aab766b3121d69b98795a5161876d41f3f2d4644d67"
+  },
+  {
+    "id": "baseline",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2144233,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      80,
+      43,
+      1202,
+      1229
+    ],
+    "sha256": "7b8043e569afa86bf58b9af36cadbf5a774addd95f94c3334a69bfba0f9dffbf"
+  },
+  {
+    "id": "bias",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2008369,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      80,
+      69,
+      1170,
+      1197
+    ],
+    "sha256": "db6573bd77d0c66436702a963c64db4c56e8aa3b56c065f7b376ceee41cfd2fa"
+  },
+  {
+    "id": "classify",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1967987,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      81,
+      48,
+      1174,
+      1229
+    ],
+    "sha256": "08ca7ec1243d0972adca7628bf78fb51ea95411eaf8f06990051837b22bdd711"
+  },
+  {
+    "id": "clustering",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1994334,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      89,
+      36,
+      1104,
+      1227
+    ],
+    "sha256": "281daadfe26b3ea27c418e3a974ae988a0e4686e1cf3372c1067f5d4040de2f1"
+  },
+  {
+    "id": "data-cleaning",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1938616,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      106,
+      56,
+      1117,
+      1202
+    ],
+    "sha256": "9545965e1cbfec7a41a9419439c8c67a76bfc6fb24b2ebc455d6e18e777fb134"
+  },
+  {
+    "id": "explainability",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2021134,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      94,
+      63,
+      1156,
+      1205
+    ],
+    "sha256": "bd3fd94cd8cfcf5906cf4cc4d389af9bf6cee8ca85e6991a12862a5aa829adc9"
+  },
+  {
+    "id": "features",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2372412,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      90,
+      29,
+      1168,
+      1231
+    ],
+    "sha256": "8bac90ad46c52a6979777a4210fb782b58981d40910748c61a57c4a9ad4111bb"
+  },
+  {
+    "id": "generalization",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2002981,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      167,
+      47,
+      1094,
+      1210
+    ],
+    "sha256": "566979d8692a721f335c038c0e5b609353e1ca74e003f622752fbf23043e61e9"
+  },
+  {
+    "id": "gradient",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1925209,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      119,
+      31,
+      1125,
+      1223
+    ],
+    "sha256": "86e5ca98b05518763679660a9ac82f00276ed6af623561fad8392621874dc9b1"
+  },
+  {
+    "id": "labels",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2211129,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      102,
+      33,
+      1191,
+      1235
+    ],
+    "sha256": "00d6ab1351a49973712f665ea8f8ba31042a9a55da9b6fff29d81157792e8840"
+  },
+  {
+    "id": "loss",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2106275,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      100,
+      31,
+      1097,
+      1223
+    ],
+    "sha256": "e3be95e1bcc1e0427b3717d82a640c9177ac38630501dddf2b9eba28f7578905"
+  },
+  {
+    "id": "missing-data",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1758976,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      110,
+      91,
+      1181,
+      1181
+    ],
+    "sha256": "b3a3a1d3a6401707941a6557bfb31ce9d6059a402f2f5c9ad70801509f4176e4"
+  },
+  {
+    "id": "overfitting",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2175486,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      110,
+      39,
+      1188,
+      1225
+    ],
+    "sha256": "fa1bb562f3eb6e566746dcbf8dcb7595bf0dca84548fb71a919ced193c84ca05"
+  },
+  {
+    "id": "precision-recall",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2112960,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      96,
+      69,
+      1181,
+      1166
+    ],
+    "sha256": "a8fd487ee70f0cd4a460c803647ad030144a69cda39c089dc44ef560578c05f2"
+  },
+  {
+    "id": "predict",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2020783,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      136,
+      69,
+      1154,
+      1208
+    ],
+    "sha256": "15695628f84180bd73ffec66ad29be2b694cb3a10dd65c438cf3b2d6ee275885"
+  },
+  {
+    "id": "privacy",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1845818,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      172,
+      28,
+      1094,
+      1228
+    ],
+    "sha256": "9a75fbd61ad5f83eed169edd1edbbb229f392c422cc946c2273c29b44bbfbe35"
+  },
+  {
+    "id": "processing",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1990448,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      145,
+      40,
+      1111,
+      1225
+    ],
+    "sha256": "4baa9637d766b3af63499909379976152c969e73250de828112d7e81966f3fe4"
+  },
+  {
+    "id": "retrain",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1934506,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      111,
+      56,
+      1096,
+      1202
+    ],
+    "sha256": "a99c72f3d9d358198a49a0c08275576a796cdb24d6fd7131203dae4f250c0c1d"
+  },
+  {
+    "id": "test-data",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2084530,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      139,
+      68,
+      1087,
+      1191
+    ],
+    "sha256": "fb83f1744b25b872426f104120c83ad5f97211215b25c4c3b6582370926de700"
+  },
+  {
+    "id": "tuning",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1990914,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      161,
+      24,
+      1114,
+      1188
+    ],
+    "sha256": "b472e44c6ff1a8e7d8e89157ab979e7f4c8f1efa84debfb0daed098f0853486f"
+  },
+  {
+    "id": "validation",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1894057,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      160,
+      77,
+      1081,
+      1212
+    ],
+    "sha256": "4b9f7e590c98d7e66161fb8cd252efaacb3d80dd9a7cdd3ee3d5e2454cbb0e5d"
+  },
+  {
+    "id": "violin",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1920376,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "visibleBounds": [
+      184,
+      34,
+      1104,
+      1222
+    ],
+    "sha256": "4627762f3747f6999fe5e23181fe054ca3ae19b391f522fda2fd32fb29fca682"
+  }
+]

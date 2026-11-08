@@ -9,7 +9,7 @@ const current = origin + '/js/auth-storage.js?v=login-return-v1';
 const previous = origin + '/js/auth-storage.js?v=older-login';
 const unversioned = origin + '/js/auth-storage.js';
 
-function fixture({ offline = false, status = 200 } = {}) {
+function fixture({ offline = false, status = 200, assets = [] } = {}) {
     const entries = new Map();
     const fetched = [];
     const matches = [];
@@ -32,6 +32,7 @@ function fixture({ offline = false, status = 200 } = {}) {
                 { url: 'js/auth-storage.js' },
                 { url: 'js/auth-storage.js?v=login-return-v1' },
                 { url: 'js/other-feature.js' },
+                ...assets.map(url => ({ url })),
             ] },
             importScripts() {},
             addEventListener() {},
@@ -124,4 +125,25 @@ test('worker installation does not prefetch either login-runtime URL but still c
     assert.equal(f.entries.has(unversioned), false);
     assert.equal(f.entries.has(current), false);
     assert.equal(f.entries.has(origin + '/js/other-feature.js'), true);
+});
+
+test('large character originals and animations load on demand and only requested media are cached', async () => {
+    const originals = [
+        'images/characters/chameleon/reactions/banjo.png',
+        'images/characters/chameleon/animations/learn-pattern.gif',
+        'images/characters/chameleon/infographics/08-overfitting.png',
+        'images/characters/raymond/scenes/library.png',
+    ];
+    const f = fixture({ assets: originals });
+    await f.install();
+    assert.equal(f.fetched.length, 1, 'installation fetches the ordinary module only');
+    for (const asset of originals) assert.equal(f.entries.has(origin + '/' + asset), false);
+
+    const requested = origin + '/' + originals[1];
+    assert.equal((await f.fetch(requested)).status, 200);
+    assert.equal(f.entries.has(requested), true);
+    assert.equal(f.entries.has(origin + '/' + originals[0]), false);
+    const fetchCount = f.fetched.length;
+    assert.equal((await f.fetch(requested)).status, 200);
+    assert.equal(f.fetched.length, fetchCount, 'the visited animation can be reused from this release cache');
 });
