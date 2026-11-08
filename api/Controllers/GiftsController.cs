@@ -62,6 +62,15 @@ public sealed class GiftsController(AppDbContext db) : ControllerBase
         return Ok(new MailboxDto(received, sent, unread));
     }
 
+    [HttpGet("{id:guid}"), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
+        var gift = await db.ChristmasGifts.AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == id && g.RecipientSub == sub, ct);
+        return gift is null ? NotFound() : Ok(ToDto(gift));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Send(SendGiftRequest request, CancellationToken ct)
     {

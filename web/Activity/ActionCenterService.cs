@@ -88,10 +88,10 @@ public sealed class ActionCenterService : IAsyncDisposable
         IsLoading = true; Error = null; Changed?.Invoke();
         try
         {
-            var path = _viewAs.IsActive ? $"me/actions?asUser={_viewAs.AuthSub!.Value:D}" : "me/actions";
+            var path = _viewAs.IsActive ? $"me/actions?version=2&asUser={_viewAs.AuthSub!.Value:D}" : "me/actions?version=2";
             var result = await _http.GetFromJsonAsync<ActionCenterSnapshot>(path, ct);
             ct.ThrowIfCancellationRequested();
-            if (result?.Items is null || result.Items.Any(i => i is null || i.Severity is not ("important" or "optional") || i.Kind is not ("poll" or "submission" or "review") || i.Count < 1 || i.ResourceId == Guid.Empty || i.HoldId == Guid.Empty || i.WorkspaceId == Guid.Empty))
+            if (result?.Items is null || result.Items.Any(i => !ValidItem(i)))
                 throw new JsonException("Invalid action status.");
             if (!_disposed && ReferenceEquals(_request, request) && identity == Identity)
             {
@@ -111,6 +111,41 @@ public sealed class ActionCenterService : IAsyncDisposable
                 if (_refreshAgain) { _refreshAgain = false; await RefreshAsync(force: true); }
             }
         }
+    }
+    public Task<bool> MarkReadAsync(string kind, Guid resourceId) => MarkReadAsync([new ActionCenterReadItem(kind, resourceId)]);
+    public async Task<bool> MarkReadAsync(IEnumerable<ActionCenterReadItem> requested)
+    {
+        if (_disposed || !_auth.IsInitialized || !_auth.IsAuthenticated || _viewAs.IsActive) return false;
+        var items = requested.Where(i => i.ResourceId != Guid.Empty && i.Kind is "feedback" or "notebook-comment" or "notebook-share").Distinct().ToArray();
+        if (items.Length == 0) return true;
+        var identity = Identity;
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
+        timeout.CancelAfter(TimeSpan.FromSeconds(20));
+        try
+        {
+            foreach (var batch in items.Chunk(200))
+            {
+                using var response = await _http.PostAsJsonAsync("me/actions/read", new ActionCenterReadRequest(batch), timeout.Token);
+                if (!response.IsSuccessStatusCode || _disposed || identity != Identity) return false;
+            }
+            _lastRead = default;
+            if (IsLoading) _refreshAgain = true;
+            else await RefreshAsync(force: true);
+            return true;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException) { return false; }
+    }
+    private static bool ValidItem(ActionCenterItem? item)
+    {
+        if (item is null || item.Severity is not ("important" or "optional") || item.Count < 1 || item.ResourceId == Guid.Empty) return false;
+        if (item.Kind is "gift" or "notebook-comment" or "notebook-share")
+        {
+            if (item.Severity != "optional" || item.HoldId is not null || item.WorkspaceId is not null || item.CourseId is not null || item.SubmissionId is not null) return false;
+            return item.Kind == "gift" ? item.State == "unopened" && item.TargetId is null : item.TargetId is Guid target && target != Guid.Empty;
+        }
+        if (item.Kind == "feedback" && (item.TargetId is not Guid quest || quest == Guid.Empty || item.SubmissionId is not Guid submission || submission == Guid.Empty)) return false;
+        return item.Kind is "poll" or "submission" or "review" or "quest" or "feedback"
+            && item.HoldId is Guid hold && hold != Guid.Empty && item.WorkspaceId is Guid workspace && workspace != Guid.Empty;
     }
     private async Task PollAsync()
     {

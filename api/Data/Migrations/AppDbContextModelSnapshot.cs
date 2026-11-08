@@ -22,6 +22,26 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ActionReadReceipt", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ReadAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserSub", "Kind", "ResourceId");
+
+                    b.ToTable("action_read_receipts", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ChristmasGift", b =>
                 {
                     b.Property<Guid>("Id")

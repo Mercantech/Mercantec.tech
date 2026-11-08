@@ -10,13 +10,26 @@ public sealed record ActionCenterHold(Guid Id, Guid WorkspaceId, string Name);
 public sealed class ActionCenterBuilder(AppDbContext db)
 {
     public async Task<ActionCenterSnapshot> BuildAsync(Guid target, ActionCenterHold[] scope, bool teacher,
-        CancellationToken ct, DateTimeOffset? at = null)
+        CancellationToken ct, DateTimeOffset? at = null, int version = 1, bool includeGifts = true, bool includeNews = true)
     {
         var now = at ?? DateTimeOffset.UtcNow;
-        if (scope.Length == 0) return new(now, []);
         var holds = scope.ToDictionary(h => h.Id);
         var holdIds = holds.Keys.ToArray();
         var items = new List<ActionCenterItem>();
+        var extended = version == 2;
+        if (extended && includeGifts)
+        {
+            var gifts = await db.ChristmasGifts.AsNoTracking().Where(g => g.RecipientSub == target && g.OpenedAtUtc == null)
+                .Select(g => new { g.Id, g.SenderName }).ToArrayAsync(ct);
+            foreach (var gift in gifts)
+            {
+                var sender = string.Concat(gift.SenderName.Where(c => !char.IsControl(c))).Trim();
+                items.Add(new("gift", "optional", null, null, null, gift.Id, null,
+                    sender.Length == 0 ? "Du har modtaget en gave" : $"Gave fra {sender}", "Personligt", null, State: "unopened"));
+            }
+        }
+        if (extended && includeNews) items.AddRange(await new ActionCenterNews(db).BuildAsync(target, scope, teacher, ct));
+        if (scope.Length == 0) return new(now, Ordered(items));
         if (teacher)
         {
             var pending = await db.QuestSubmissions.AsNoTracking()
@@ -35,8 +48,8 @@ public sealed class ActionCenterBuilder(AppDbContext db)
             var membershipIds = await db.Memberships.AsNoTracking().Where(m => holdIds.Contains(m.HoldId) && m.UserSub == target)
                 .Select(m => m.Id).ToArrayAsync(ct);
             var assigned = new QuestAudienceAccess(db).AssignedTo(db.LearningQuests.AsNoTracking()
-                .Where(q => holdIds.Contains(q.HoldId) && q.Required), target);
-            var available = await assigned.Select(q => new QuestRow(q.Id, q.HoldId, q.Title, q.DeadlineUtc, q.OccurrenceDate)).ToListAsync(ct);
+                .Where(q => holdIds.Contains(q.HoldId) && (extended || q.Required)), target);
+            var available = await assigned.Select(q => new QuestRow(q.Id, q.HoldId, q.Title, q.DeadlineUtc, q.OccurrenceDate, q.Required, q.Kind)).ToListAsync(ct);
             var quests = available.Where(q => q.OccurrenceDate is null || q.OccurrenceDate <= today).ToArray();
             var questIds = quests.Select(q => q.Id).ToArray();
             var submissions = await db.QuestSubmissions.AsNoTracking().Where(s => questIds.Contains(s.QuestId)
@@ -63,8 +76,16 @@ public sealed class ActionCenterBuilder(AppDbContext db)
                     var revision = ownRevisions[receipt.Id];
                     var state = revision.Number == receipt.LatestNumber ? receipt.State : latestDecisions.GetValueOrDefault(revision.Id, "submitted");
                     if (state == "changes-requested")
-                        items.Add(new("submission", "important", hold.Id, hold.WorkspaceId, null, quest.Id, receipt.Id,
+                        items.Add(new(quest.Required ? "submission" : "quest", quest.Required ? "important" : "optional", hold.Id, hold.WorkspaceId, null, quest.Id, receipt.Id,
                             quest.Title, hold.Name, quest.DeadlineUtc, State: "changes-requested"));
+                    continue;
+                }
+                if (!quest.Required)
+                {
+                    // An expired voluntary opportunity is not an outstanding obligation.
+                    if (quest.DeadlineUtc < now) continue;
+                    items.Add(new("quest", "optional", hold.Id, hold.WorkspaceId, null, quest.Id, null,
+                        quest.Title, hold.Name, quest.DeadlineUtc, State: quest.Kind is "daily" or "side" ? quest.Kind : "optional"));
                     continue;
                 }
                 var overdue = quest.DeadlineUtc < now;
@@ -82,18 +103,20 @@ public sealed class ActionCenterBuilder(AppDbContext db)
                     poll.Question, hold.Name, null, State: "unanswered"));
             }
         }
-        var resources = items.Where(i => i.Kind != "poll").Select(i => i.ResourceId).Distinct().ToArray();
+        var resources = items.Where(i => i.Kind is "submission" or "review" or "quest" or "feedback").Select(i => i.Kind == "feedback" ? i.TargetId!.Value : i.ResourceId).Distinct().ToArray();
         var courses = await db.TeachingCourseResources.AsNoTracking().Where(r => r.Kind == "quest" && resources.Contains(r.ResourceId)
             && holdIds.Contains(r.Course.HoldId) && !r.Course.Archived && (teacher || r.Course.Published))
             .Select(r => new { r.ResourceId, r.CourseId, r.Course.HoldId }).ToArrayAsync(ct);
         var linked = courses.GroupBy(r => (r.HoldId, r.ResourceId)).ToDictionary(g => g.Key, g => g.OrderBy(r => r.CourseId).First().CourseId);
-        return new(now, items.Select(item => linked.TryGetValue((item.HoldId, item.ResourceId), out var courseId) ? item with { CourseId = courseId } : item)
-            .OrderBy(item => item.Severity == "important" ? 0 : 1).ThenBy(item => item.DeadlineUtc ?? DateTimeOffset.MaxValue)
-            .ThenBy(item => item.HoldName, StringComparer.OrdinalIgnoreCase).ThenBy(item => item.Kind, StringComparer.Ordinal)
-            .ThenBy(item => item.ResourceId).ToArray());
+        return new(now, Ordered(items.Select(item => item.HoldId is Guid holdId && linked.TryGetValue((holdId, item.Kind == "feedback" ? item.TargetId!.Value : item.ResourceId), out var courseId) ? item with { CourseId = courseId } : item)));
     }
 
-    private sealed record QuestRow(Guid Id, Guid HoldId, string Title, DateTimeOffset? DeadlineUtc, DateOnly? OccurrenceDate);
+    private static ActionCenterItem[] Ordered(IEnumerable<ActionCenterItem> items) => items
+        .OrderBy(item => item.Severity == "important" ? 0 : 1).ThenBy(item => item.DeadlineUtc ?? DateTimeOffset.MaxValue)
+        .ThenBy(item => item.HoldName, StringComparer.OrdinalIgnoreCase).ThenBy(item => item.Kind, StringComparer.Ordinal)
+        .ThenBy(item => item.ResourceId).ToArray();
+
+    private sealed record QuestRow(Guid Id, Guid HoldId, string Title, DateTimeOffset? DeadlineUtc, DateOnly? OccurrenceDate, bool Required, string Kind);
     private sealed record SubmissionRow(Guid Id, Guid QuestId, string State, int LatestNumber);
     private sealed record RevisionRow(Guid Id, Guid SubmissionId, int Number, DateTimeOffset SubmittedAtUtc);
     private sealed record DecisionRow(Guid Id, Guid RevisionId, string Decision, DateTimeOffset CreatedAtUtc);

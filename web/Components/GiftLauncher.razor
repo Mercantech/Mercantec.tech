@@ -1,9 +1,10 @@
 @inject GiftMailboxClient Mailbox
 @inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
 @inject IJSRuntime Js
 @implements IAsyncDisposable
-<button class="christmas-present gift-launcher" data-unread="@(Mailbox.Unread > 0 ? "true" : null)" @onclick="Show" aria-haspopup="dialog" aria-label="@(Mailbox.Unread > 0 ? $"Gaver, {Mailbox.Unread} uåbnede" : "Send eller åbn en gave")"><UiIcon Name="gift" />@if (Mailbox.Unread > 0) { <span class="gift-count">@Mailbox.Unread</span> }</button>
+<button disabled="@ViewAs.IsActive" class="christmas-present gift-launcher" data-unread="@(Mailbox.Unread > 0 ? "true" : null)" @onclick="Show" aria-haspopup="dialog" aria-label="@(Mailbox.Unread > 0 ? $"Gaver, {Mailbox.Unread} uåbnede" : "Send eller åbn en gave")"><UiIcon Name="gift" />@if (Mailbox.Unread > 0) { <span class="gift-count">@Mailbox.Unread</span> }</button>
 <dialog id="lup-gift-dialog" class="gift-dialog" aria-labelledby="gift-title" @onkeydown="DialogKey">
     <div class="gift-dialog-head"><div><span class="gift-eyebrow">En lille ting til hinanden</span><h2 id="gift-title">Gaver i LUP</h2></div><button class="gift-close" @onclick="Close" aria-label="Luk gavevinduet">×</button></div>
     @if (_open)
@@ -61,7 +62,7 @@
     private Task? _poll;
     private static readonly (string Id, string Title, string Icon)[] Kinds = [("cheer", "En pose juleglæde", "tree"), ("thanks", "Tak for hjælpen", "heart"), ("warmth", "Lidt ekstra varme", "star")];
     private static readonly (string Id, string Name)[] Wraps = [("berry", "Rød gave"), ("pine", "Grøn gave"), ("gold", "Gylden gave")];
-    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; Mailbox.Changed += OnChanged; Nav.LocationChanged += OnLocation; }
+    protected override void OnInitialized() { Auth.AuthStateChanged += OnAuth; ViewAs.Changed += OnAuth; Mailbox.Changed += OnChanged; Nav.LocationChanged += OnLocation; }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) await UpdateSession();
@@ -72,7 +73,7 @@
     private void OnLocation(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(Close);
     private async Task UpdateSession()
     {
-        var next = Auth.IsAuthenticated ? Auth.Subject : null;
+        var next = Auth.IsAuthenticated && !ViewAs.IsActive ? Auth.Subject : null;
         if (next == _user) return;
         _user = next; _selected = null; _open = _showDialog = _preview = false; _notice = _error = null;
         _recipient = null; _search = _message = ""; _kind = "cheer"; _wrapping = "berry"; _request = Guid.NewGuid();
@@ -86,7 +87,7 @@
         catch (OperationCanceledException) { }
     }
     private async Task StopPolling() { if (_session is null) return; await _session.CancelAsync(); if (_poll is not null) await _poll; _session.Dispose(); _session = null; }
-    private async Task Show() { _request = Guid.NewGuid(); _search = ""; _open = _showDialog = true; _selected = null; _preview = false; _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null; if (Auth.IsAuthenticated) await Reload(); }
+    private async Task Show() { if (ViewAs.IsActive) return; _request = Guid.NewGuid(); _search = ""; _open = _showDialog = true; _selected = null; _preview = false; _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null; if (Auth.IsAuthenticated) await Reload(); }
     private async Task Reload() { _loading = true; try { await Mailbox.RefreshAsync(recipients: true, ct: _session?.Token ?? default); if (_recipient is Guid selected && !Mailbox.Recipients.Any(p => p.UserSub == selected)) _recipient = null; } catch (OperationCanceledException) { } finally { _loading = false; } }
     private async Task Close() { _open = false; _selected = null; _notice = _error = null; await Js.InvokeVoidAsync("lupGiftUi.close", "lup-gift-dialog"); }
     private async Task DialogKey(KeyboardEventArgs e) { if (e.Key == "Escape") await Close(); }
@@ -114,5 +115,5 @@
         finally { _busy = false; }
     }
     private static string Initials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
-    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= OnAuth; Mailbox.Changed -= OnChanged; Nav.LocationChanged -= OnLocation; await StopPolling(); }
+    public async ValueTask DisposeAsync() { Auth.AuthStateChanged -= OnAuth; ViewAs.Changed -= OnAuth; Mailbox.Changed -= OnChanged; Nav.LocationChanged -= OnLocation; await StopPolling(); }
 }

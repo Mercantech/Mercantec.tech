@@ -198,7 +198,7 @@ public sealed class NotificationDropdownTests
         Assert.DoesNotContain("Privat underviserhandling", bell.Markup);
         Assert.Equal("false", Trigger(bell).GetAttribute("aria-expanded"));
         bell.WaitForAssertion(() => Assert.Equal("clear", Trigger(bell).GetAttribute("data-status")));
-        Assert.Equal($"me/actions?asUser={pupil}", api.LastPath);
+        Assert.Equal($"me/actions?version=2&asUser={pupil}", api.LastPath);
         Trigger(bell).Click();
         Assert.Contains("Intet mangler", bell.Find(".notification-dropdown").TextContent);
     }
