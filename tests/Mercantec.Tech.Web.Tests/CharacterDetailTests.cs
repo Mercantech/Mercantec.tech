@@ -216,7 +216,8 @@ public sealed class CharacterDetailTests
 
         Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Contains("Portræt", page.Find(".character-appearance-picker button[aria-pressed='true']").TextContent);
-        Assert.Empty(page.FindAll(".character-gallery"));
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        Assert.All(page.FindAll(".character-gallery img"), image => Assert.StartsWith("/images/characters/raymond/infographics/", image.GetAttribute("src")));
     }
 
     [Theory]
@@ -329,6 +330,80 @@ public sealed class CharacterDetailTests
         Assert.Contains("48 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
         Assert.EndsWith("/lup-fireworks-player.png", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+    }
+
+    [Fact]
+    public async Task RaymondInfographicsCoverTheSuppliedObjectivesWithAccessibleTextAndOriginalDownloads()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.FindAll(".character-appearance-picker button")[2].Click();
+        var illustrations = CharacterCatalog.Find("raymond")!.Illustrations;
+
+        Assert.Equal(Enumerable.Range(1, 24), illustrations.SelectMany(item => item.Objectives).Distinct().Order());
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        Assert.Contains("16474", page.Find(".character-gallery header").TextContent);
+        Assert.DoesNotContain("Game Design", page.Find(".character-gallery header").TextContent);
+        foreach (var (figure, item) in page.FindAll(".character-gallery figure").Zip(illustrations))
+        {
+            Assert.Equal(item.Preview, figure.QuerySelector("img")!.GetAttribute("src"));
+            Assert.EndsWith(".webp", item.Preview);
+            Assert.Equal(item.Image, figure.QuerySelector(".character-illustration-preview")!.GetAttribute("href"));
+            var download = figure.QuerySelector(".character-illustration-download")!;
+            Assert.Equal(item.Image, download.GetAttribute("href"));
+            Assert.EndsWith(".png", item.Image);
+            Assert.Equal($"raymond-{Path.GetFileName(item.Image)}", download.GetAttribute("download"));
+            Assert.False(string.IsNullOrWhiteSpace(figure.QuerySelector("img")!.GetAttribute("alt")));
+            Assert.Contains(item.Stage!, figure.QuerySelector(".character-illustration-objectives")!.TextContent);
+            Assert.All(item.Explanation, paragraph => Assert.Contains(paragraph, figure.TextContent));
+            Assert.True(item.Explanation.Count >= 3);
+            Assert.NotEmpty(item.Sources);
+            foreach (var source in figure.QuerySelectorAll(".character-illustration-sources a"))
+            {
+                Assert.StartsWith("https://", source.GetAttribute("href"));
+                Assert.Equal("_blank", source.GetAttribute("target"));
+                Assert.Contains("noopener", source.GetAttribute("rel"));
+            }
+        }
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(3, page.FindAll(".character-animation-card").Count);
+    }
+
+    [Fact]
+    public async Task InfographicFiltersKeepThePortraitAndResetWhenChangingProfiles()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.FindAll(".character-appearance-picker button")[2].Click();
+        page.FindAll(".character-illustration-stages button").Single(button => button.TextContent == "H3").Click();
+        Assert.Equal(3, page.FindAll(".character-gallery figure").Count);
+        Assert.All(page.FindAll(".character-illustration-objectives"), text => Assert.StartsWith("H3", text.TextContent));
+        Assert.Contains("3 af 16", page.Find(".character-illustration-count").TextContent);
+
+        page.Find("#character-illustration-search").Input("findes-ikke-987");
+        Assert.Empty(page.FindAll(".character-gallery figure"));
+        Assert.Contains("Ingen infografikker", page.Find(".character-illustration-empty").TextContent);
+        page.Find(".character-illustration-search button").Click();
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+
+        page.FindAll(".character-illustration-stages button").Single(button => button.TextContent == "H2").Click();
+        Assert.Equal(3, page.FindAll(".character-gallery figure").Count);
+        page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
+        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Empty(page.FindAll(".character-illustration-tools, .character-illustration-explanation"));
+        Assert.All(page.FindAll(".character-gallery img"), image => Assert.StartsWith("/images/characters/lupp/", image.GetAttribute("src")));
+        Assert.Equal(9, page.FindAll(".character-illustration-download").Count);
+
+        page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal("", page.Find("#character-illustration-search").GetAttribute("value"));
+        Assert.Equal("Alle", page.Find(".character-illustration-stages button[aria-pressed='true']").TextContent);
+        Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
     }
 
     [Fact]

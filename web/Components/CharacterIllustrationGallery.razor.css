@@ -1,0 +1,22 @@
+.character-illustration-tools { margin-top:20px; }
+.character-illustration-tools>label { display:block; font-size:12px; font-weight:600; margin-bottom:6px; }
+.character-illustration-search { display:flex; align-items:center; gap:8px; max-width:560px; }
+.character-illustration-search input { min-width:0; flex:1; padding:11px 12px; border:1px solid var(--rule); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; font-size:13px; }
+.character-illustration-search button,.character-illustration-stages button { min-height:40px; border:1px solid var(--rule); border-radius:8px; padding:9px 13px; background:var(--paper); color:var(--ink); cursor:pointer; font:inherit; font-size:12px; }
+.character-illustration-stages { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.character-illustration-stages button[aria-pressed=true] { color:var(--blue); background:var(--tint); border-color:var(--blue); }
+.character-illustration-count { margin:9px 0 0; font-size:12px; color:var(--muted); }
+.character-illustration-caption { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.character-illustration-caption strong { color:var(--ink); font-size:14px; }
+.character-illustration-download { flex-shrink:0; color:var(--blue); white-space:nowrap; }
+figcaption p { margin:8px 0 0; font-size:13px; line-height:1.7; }
+.character-illustration-objectives { font-size:11px; color:var(--muted); }
+.character-illustration-explanation { margin-top:10px; }
+.character-illustration-explanation summary { cursor:pointer; color:var(--blue); line-height:1.6; }
+.character-illustration-explanation pre { max-width:100%; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; padding:12px; border:1px solid var(--rule); border-radius:8px; background:var(--paper); color:var(--ink); font-size:12px; line-height:1.7; margin:10px 0; }
+.character-illustration-sources { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+.character-illustration-empty { color:var(--muted); padding:20px 0; }
+@media (max-width:420px) {
+    .character-illustration-caption { flex-wrap:wrap; gap:5px 12px; }
+    .character-illustration-search { align-items:stretch; }
+}

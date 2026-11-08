@@ -1,0 +1,394 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/raymond/professor.webp",
+  "entries": [
+    {
+      "id": "01-databasedesign",
+      "title": "Fra behov til databasedesign",
+      "stage": "H1",
+      "objectives": [
+        1,
+        4,
+        8
+      ],
+      "image": "/images/characters/raymond/infographics/01-databasedesign.png",
+      "alt": "Raymond forklarer vejen fra caféens behov over E/R-diagram og SQL-struktur til dokumentation.",
+      "summary": "Fra behov og E/R-diagram til tabeller og dokumentation.",
+      "explanation": [
+        "Et databasedesign beskriver, hvilke data der skal gemmes, hvordan de hænger sammen, og hvilke regler der beskytter dem.",
+        "E/R-diagrammet dokumenterer entiteter, nøgler og relationer, før de omsættes til tabeller.",
+        "CREATE TABLE, ALTER TABLE og DROP TABLE opretter, ændrer og fjerner tabelstrukturen.",
+        "CREATE DATABASE og DROP DATABASE er databaseadministration, som kræver passende rettigheder og en separat øvedatabase; kommandoerne er blokeret i SQL-H1-sandboxen."
+      ],
+      "sql": "CREATE TABLE suppliers (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  name text NOT NULL\n);\nALTER TABLE suppliers ADD COLUMN city text;\nDROP TABLE suppliers;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: tabeldefinition",
+          "href": "https://www.postgresql.org/docs/16/ddl-basics.html"
+        },
+        {
+          "label": "PostgreSQL 16: CREATE DATABASE",
+          "href": "https://www.postgresql.org/docs/16/sql-createdatabase.html"
+        },
+        {
+          "label": "SQL-H1: DDL og E/R",
+          "href": "https://sql.mercantec.tech/learn/ddl-01-intro"
+        }
+      ],
+      "text": [
+        "Fra behov til databasedesign",
+        "H1",
+        "1  Beskriv behov",
+        "Hvad gemmer caféen?",
+        "Kunder • produkter • køb",
+        "2  Tegn E/R",
+        "customers",
+        "id  PK",
+        "orders",
+        "customer_id  FK",
+        "product_id  FK",
+        "products",
+        "id  PK",
+        "3  Byg strukturen",
+        "CREATE TABLE",
+        "ALTER TABLE",
+        "DROP TABLE",
+        "4  Dokumentér",
+        "Tabeller • nøgler • regler",
+        "CREATE/DROP DATABASE: administration uden for SQL-H1-sandboxen",
+        "Kunder",
+        "Produkter",
+        "Køb"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly: 'Fra behov til databasedesign'. Four numbered panels in a calm left-to-right learning path. Panel1 exact text '1  Beskriv behov', 'Hvad gemmer caféen?', 'Kunder • produkter • køb' with small cafe data cards. Panel2 exact '2  Tegn E/R' shows a SIMPLE clear diagram: customers table with 'id  PK', connected to orders 'customer_id  FK'; products table with 'id  PK', connected to orders 'product_id  FK'. Tables need no other rows. Panel3 exact '3  Byg strukturen' with three tidy labels 'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE' beside build/change/remove symbolic table icons; these are command categories, not fake executable SQL. Panel4 exact '4  Dokumentér', 'Tabeller • nøgler • regler' and a document illustration. Small readable footer exactly 'CREATE/DROP DATABASE: administration uden for SQL-H1-sandboxen'. Raymond points to the ER panel, holding his book. No other text. Keep all four panels and footer comfortably readable.",
+      "sourceArtifact": "exec-4ec13b4f-2eb6-4204-96a0-f9d25255f43b.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "02-relationer-og-noegler",
+      "title": "Nøgler og relationer",
+      "stage": "H1",
+      "objectives": [
+        1,
+        5
+      ],
+      "image": "/images/characters/raymond/infographics/02-relationer-og-noegler.png",
+      "alt": "Raymond viser primær- og fremmednøgler samt relationerne én til én, én til mange og mange til mange.",
+      "summary": "Nøgler identificerer rækker og forbinder tabeller med den rigtige kardinalitet.",
+      "explanation": [
+        "En primærnøgle identificerer en række entydigt; en fremmednøgle henviser til en nøgle i en anden eller samme tabel.",
+        "I en én-til-mange-relation ligger fremmednøglen på mange-siden, for eksempel orders.customer_id.",
+        "En valgfri én-til-én-udvidelse kræver unikhed på profilens fremmednøgle, så en kunde højst kan have én profil.",
+        "Mange-til-mange modelleres med en koblingstabel; caféens orders er en forenklet ordrelinjemodel mellem kunder og produkter.",
+        "NOT NULL på en fremmednøgle gør henvisningen obligatorisk for barnet, men sikrer ikke, at alle forældrerækker har et barn."
+      ],
+      "sql": "CREATE TABLE customer_profiles (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  customer_id integer NOT NULL UNIQUE REFERENCES customers(id),\n  biography text\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: nøgler og fremmednøgler",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        },
+        {
+          "label": "SQL-H1: kardinalitet",
+          "href": "https://sql.mercantec.tech/learn/relations-02-cardinalitet"
+        }
+      ],
+      "text": [
+        "Nøgler og relationer",
+        "H1",
+        "PK identificerer • FK forbinder",
+        "1:1",
+        "En valgfri kundeprofil",
+        "customers",
+        "id  PK",
+        "profiles",
+        "customer_id  FK + UNIQUE",
+        "Højst én profil pr. kunde",
+        "1:mange",
+        "Én kunde, flere køb",
+        "customers",
+        "orders",
+        "customer_id  FK",
+        "FK på mange-siden",
+        "mange:mange",
+        "Kunder køber produkter",
+        "customers",
+        "orders",
+        "products",
+        "En koblingstabel forbinder",
+        "UNIQUE begrænser antallet • NOT NULL kræver en værdi",
+        "product_id  FK"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly 'Nøgler og relationer'. Subtitle exactly 'PK identificerer • FK forbinder'. Raymond stands at left with his book and pointer; three large equal teaching panels on right, all labels large. PANEL1 heading '1:1', subheading 'En valgfri kundeprofil'. Draw two simple schema cards: 'customers' with 'id  PK'; 'profiles' with 'customer_id  FK + UNIQUE', joined by a simple plain line, NO crow-foot symbol. Caption 'Højst én profil pr. kunde'. PANEL2 heading '1:mange', subheading 'Én kunde, flere køb'. One 'customers' card connects with three separate small 'orders' row cards, each labeled 'customer_id  FK'. Caption 'FK på mange-siden'. PANEL3 heading 'mange:mange', subheading 'Kunder køber produkter'. Clear horizontal three-card path 'customers' -> 'orders' <- 'products', with orders visibly the joining table and no extra rows. Caption 'En koblingstabel forbinder'. Footer exactly 'UNIQUE begrænser antallet • NOT NULL kræver en værdi'. Simple diagrams must be semantically correct: a unique FK in profiles allows at most one profile per customer, one customer may have many order rows, and orders joins customers and products. No extra text or tiny database schemas.\n\nTargeted correction after review: Edit this infographic, preserving the entire painting, Raymond identity, composition, all colors, all Danish words, all existing correct labels and both upper diagrams exactly. Correct ONLY the bottom 'mange:mange' diagram. Its middle 'orders' schema card MUST have TWO separate field rows: first 'customer_id  FK', second 'product_id  FK'. Connect the customers.id card to orders.customer_id and connect orders.product_id to the products.id card. Do not draw a line from orders.customer_id to products.id. Slightly enlarge the middle orders card vertically within its existing space if needed to fit both rows clearly. This is a database schema correctness fix. Keep all other infographic text and details unchanged. Output the same landscape3:2 format as native PNG.",
+      "sourceArtifact": "exec-e4e44d71-aa3d-4d9d-9093-4ee40f7059b2.png",
+      "width": 1536,
+      "height": 1024,
+      "generationHistory": [
+        {
+          "sourceArtifact": "exec-31dc21fe-dba3-4e9a-9e51-5f053929be82.png",
+          "role": "initial-generation"
+        },
+        {
+          "referenceArtifact": "exec-31dc21fe-dba3-4e9a-9e51-5f053929be82.png",
+          "sourceArtifact": "exec-e4e44d71-aa3d-4d9d-9093-4ee40f7059b2.png",
+          "role": "targeted-correction"
+        }
+      ]
+    },
+    {
+      "id": "03-constraints",
+      "title": "Regler, der beskytter dine data",
+      "stage": "H1",
+      "objectives": [
+        6,
+        11
+      ],
+      "image": "/images/characters/raymond/infographics/03-constraints.png",
+      "alt": "Raymond viser NOT NULL, UNIQUE, CHECK og FOREIGN KEY med gyldige og ugyldige cafédata.",
+      "summary": "Constraints kontrollerer obligatoriske værdier, unikhed, betingelser og gyldige henvisninger.",
+      "explanation": [
+        "Constraints beskytter reglerne i selve databasen, også når data kommer fra flere forskellige programmer.",
+        "NOT NULL afviser NULL, mens UNIQUE som udgangspunkt gør ikke-NULL-værdier unikke; PostgreSQL tillader normalt flere NULL-værdier under UNIQUE.",
+        "CHECK kontrollerer en betingelse, men et resultat på NULL afvises ikke af CHECK alene; derfor bruges NOT NULL også, når en værdi er obligatorisk.",
+        "En fremmednøgle sikrer, at en angivet ikke-NULL-henvisning findes i den refererede nøgle.",
+        "Vælg sletteadfærd bevidst: automatisk CASCADE er ikke den rigtige løsning i alle datamodeller."
+      ],
+      "sql": "CREATE TABLE cafe_orders (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  customer_id integer REFERENCES customers(id),\n  order_code text NOT NULL UNIQUE,\n  quantity integer NOT NULL CHECK (quantity > 0)\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: constraints",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        },
+        {
+          "label": "SQL-H1: konsistens og constraints",
+          "href": "https://sql.mercantec.tech/learn/constraints-01-intro"
+        }
+      ],
+      "text": [
+        "Regler, der beskytter dine data",
+        "H1",
+        "NOT NULL",
+        "En værdi kræves",
+        "name",
+        "Latte",
+        "NULL",
+        "UNIQUE",
+        "Ikke-NULL-værdier er unikke",
+        "order_code",
+        "A101",
+        "A102",
+        "CHECK",
+        "Antallet skal være positivt",
+        "quantity > 0",
+        "2",
+        "-1",
+        "FOREIGN KEY",
+        "Henvisningen skal findes",
+        "customer_id",
+        "customers.id",
+        "CHECK erstatter ikke NOT NULL",
+        "1"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly 'Regler, der beskytter dine data'. Raymond at left pointing to four large teaching cards in a2x2 grid. CARD1 title 'NOT NULL', sentence 'En værdi kræves', tiny example column header 'name' with green-check value 'Latte' and red-cross value 'NULL'. CARD2 title 'UNIQUE', sentence 'Ikke-NULL-værdier er unikke', example column header 'order_code' with distinct values 'A101' and 'A102'; do NOT show NULL values in this card. CARD3 title 'CHECK', sentence 'Antallet skal være positivt', code label 'quantity > 0'; green-check example '2', red-cross example '-1'. CARD4 title 'FOREIGN KEY', sentence 'Henvisningen skal findes', a simple correctly directed connection from 'customer_id' to 'customers.id', illustrated as matching data cards. Large readable footer exactly 'CHECK erstatter ikke NOT NULL'. All code/labels exactly correct, no extra claims or tiny filler. Warm cream paper and same painted Raymond identity.",
+      "sourceArtifact": "exec-acc9d0ee-e990-41a9-8c57-36da893c0fb6.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "04-select",
+      "title": "Find de rigtige rækker",
+      "stage": "H1",
+      "objectives": [
+        2
+      ],
+      "image": "/images/characters/raymond/infographics/04-select.png",
+      "alt": "Raymond viser en SELECT-forespørgsel, der finder caféens kunder i Viborg og sorterer dem efter navn.",
+      "summary": "SELECT, WHERE og ORDER BY vælger kolonner, filtrerer rækker og sorterer resultatet.",
+      "explanation": [
+        "FROM angiver datakilden, WHERE filtrerer rækkerne, og SELECT vælger de værdier, der skal vises i resultatet.",
+        "ORDER BY angiver resultatets rækkefølge; uden ORDER BY er rækkefølgen ikke garanteret.",
+        "I SQL-H1-caféens startdata giver eksemplet Anna Jensen, Clara Holm og Freja Olsen fra Viborg i alfabetisk rækkefølge.",
+        "NULL er en manglende eller ukendt værdi og undersøges med IS NULL eller IS NOT NULL, ikke med = NULL.",
+        "Funktioner kan beregne værdier i resultatet, for eksempel upper(name), uden at opdatere de gemte navne."
+      ],
+      "sql": "SELECT name, city\nFROM customers\nWHERE city = 'Viborg'\nORDER BY name;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: SELECT",
+          "href": "https://www.postgresql.org/docs/16/sql-select.html"
+        },
+        {
+          "label": "SQL-H1: WHERE",
+          "href": "https://sql.mercantec.tech/learn/select-03-where"
+        },
+        {
+          "label": "SQL-H1: NULL",
+          "href": "https://sql.mercantec.tech/learn/select-10-null"
+        }
+      ],
+      "text": [
+        "Find de rigtige rækker",
+        "H1",
+        "Forespørgsel",
+        "SELECT name, city",
+        "FROM customers",
+        "WHERE city = 'Viborg'",
+        "ORDER BY name;",
+        "Resultat",
+        "name",
+        "city",
+        "Anna Jensen",
+        "Viborg",
+        "Clara Holm",
+        "Freja Olsen",
+        "Sådan læses den",
+        "FROM: vælg tabel",
+        "WHERE: filtrér rækker",
+        "SELECT: vælg kolonner",
+        "ORDER BY: sortér resultatet",
+        "NULL testes med IS NULL"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly 'Find de rigtige rækker'. Raymond stands on left25%, pointing to an easily readable SQL panel in the upper right. The teaching content has THREE clear panels. PANEL1 heading 'Forespørgsel', with this EXACT PostgreSQL query in crisp monospaced text on four lines:\nSELECT name, city\nFROM customers\nWHERE city = 'Viborg'\nORDER BY name;\nPANEL2 below, heading 'Resultat', contains a correctly rendered2-column table with headers 'name' and 'city'. Exactly three body rows in this order: 'Anna Jensen'|'Viborg'; 'Clara Holm'|'Viborg'; 'Freja Olsen'|'Viborg'. PANEL3 beside that result table, heading 'Sådan læses den', four short lines exactly 'FROM: vælg tabel', 'WHERE: filtrér rækker', 'SELECT: vælg kolonner', 'ORDER BY: sortér resultatet'. Large footer 'NULL testes med IS NULL'. Do not invent additional table rows, result values or SQL syntax. Query results must precisely match the specified alphabetical ordering. Warm painted cream-paper teaching style matching the series.",
+      "sourceArtifact": "exec-f86c4ed4-0176-4306-9030-0efd000017cf.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "05-gruppering",
+      "title": "Fra rækker til overblik",
+      "stage": "H1",
+      "objectives": [
+        2
+      ],
+      "image": "/images/characters/raymond/infographics/05-gruppering.png",
+      "alt": "Raymond forklarer GROUP BY, COUNT og forskellen på WHERE og HAVING med caféens varekategorier.",
+      "summary": "GROUP BY og aggregater opsummerer rækker; WHERE og HAVING filtrerer på hver sin side af grupperingen.",
+      "explanation": [
+        "WHERE filtrerer de enkelte rækker, før de bliver samlet i grupper af GROUP BY.",
+        "Aggregater som COUNT, SUM, AVG, MIN og MAX beregner værdier for hver gruppe.",
+        "HAVING filtrerer de færdige grupper, for eksempel så kun kategorier med mindst to varer vises.",
+        "COUNT(*) tæller rækker, mens COUNT(kolonne) tæller de rækker, hvor den valgte kolonne ikke er NULL.",
+        "I caféens startdata er der fire drikke og to madvarer på lager; Bagværk har kun én vare på lager og bliver derfor filtreret fra af HAVING."
+      ],
+      "sql": "SELECT category, COUNT(*) AS antal\nFROM products\nWHERE in_stock = TRUE\nGROUP BY category\nHAVING COUNT(*) >= 2\nORDER BY category;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: grupper og HAVING",
+          "href": "https://www.postgresql.org/docs/16/queries-table-expressions.html#QUERIES-GROUP"
+        },
+        {
+          "label": "SQL-H1: gruppering og aggregering",
+          "href": "https://sql.mercantec.tech/learn/select-05-group"
+        }
+      ],
+      "text": [
+        "Fra rækker til overblik",
+        "H1",
+        "Forespørgsel",
+        "SELECT category, COUNT(*) AS antal",
+        "FROM products",
+        "WHERE in_stock = TRUE",
+        "GROUP BY category",
+        "HAVING COUNT(*) >= 2",
+        "ORDER BY category;",
+        "Resultat",
+        "category",
+        "antal",
+        "Drikke",
+        "4",
+        "Mad",
+        "2",
+        "Før og efter",
+        "WHERE: rækker før gruppering",
+        "GROUP BY: én række pr. gruppe",
+        "HAVING: grupper efter gruppering",
+        "COUNT(*): antal rækker",
+        "COUNT(kolonne) tæller kun ikke-NULL"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly 'Fra rækker til overblik'. Raymond at left with book and pointer. THREE clearly separated spacious teaching panels on right, like a teaching poster, not a UI. PANEL1 'Forespørgsel' contains this EXACT6-line PostgreSQL query, all text readable:\nSELECT category, COUNT(*) AS antal\nFROM products\nWHERE in_stock = TRUE\nGROUP BY category\nHAVING COUNT(*) >= 2\nORDER BY category;\nPANEL2 'Resultat': exact2-column table headers 'category'|'antal', exactly rows 'Drikke'|'4' and 'Mad'|'2'. PANEL3 'Før og efter': exactly four short explanations, using line breaks as needed but no changed wording: 'WHERE: rækker før gruppering', 'GROUP BY: én række pr. gruppe', 'HAVING: grupper efter gruppering', 'COUNT(*): antal rækker'. Footer exactly 'COUNT(kolonne) tæller kun ikke-NULL'. The query and result are deliberately based on the cafe's real seed:4 in-stock drinks,2 in-stock food products, only1 in-stock bakery product, so bakery is excluded by HAVING. Do NOT render that explanatory English context or additional rows. Render only the specified Danish text, SQL and result.",
+      "sourceArtifact": "exec-1ce322fe-20f5-4504-a48e-ed0a02c3e64f.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "06-aendr-data",
+      "title": "Ændr data med omtanke",
+      "stage": "H1",
+      "objectives": [
+        3,
+        10
+      ],
+      "image": "/images/characters/raymond/infographics/06-aendr-data.png",
+      "alt": "Raymond forklarer INSERT, UPDATE og DELETE samt kontrol og valg mellem COMMIT og ROLLBACK i en transaktion.",
+      "summary": "Tilføj, ret og fjern rækker med tydelig kontrol af mål og resultat.",
+      "explanation": [
+        "INSERT tilføjer rækker, UPDATE ændrer værdier i udvalgte rækker, og DELETE fjerner udvalgte rækker.",
+        "Kontrollér betingelsen med SELECT, og undersøg resultatet af ændringen; et WHERE-udtryk kan stadig være forkert eller ramme flere rækker end forventet.",
+        "BEGIN starter en transaktion, COMMIT afslutter den med at gemme ændringerne, og ROLLBACK afslutter den uden at bevare transaktionens ændringer.",
+        "I eksemplet sættes prisen for produkt id 2 midlertidigt til 37, hvorefter ROLLBACK bevarer den oprindelige pris.",
+        "Ved samtidige ændringer skal den valgte transaktionsisolering og eventuel låsning også passe til forløbet; en SELECT-kontrol alene giver ingen garanti."
+      ],
+      "sql": "BEGIN;\nSELECT id, name, price FROM products WHERE id = 2;\nUPDATE products SET price = 37 WHERE id = 2;\nSELECT id, name, price FROM products WHERE id = 2;\nROLLBACK;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: datamanipulation",
+          "href": "https://www.postgresql.org/docs/16/dml.html"
+        },
+        {
+          "label": "PostgreSQL 16: transaktioner",
+          "href": "https://www.postgresql.org/docs/16/tutorial-transactions.html"
+        },
+        {
+          "label": "SQL-H1: transaktioner",
+          "href": "https://sql.mercantec.tech/learn/advanced-03-transactions"
+        }
+      ],
+      "text": [
+        "Ændr data med omtanke",
+        "H1",
+        "INSERT",
+        "Tilføj en række",
+        "Kakao",
+        "30",
+        "UPDATE",
+        "Ret en række",
+        "Latte",
+        "35",
+        "37",
+        "DELETE",
+        "Fjern en række",
+        "Kakao",
+        "Kontrollér i en transaktion",
+        "BEGIN",
+        "SELECT",
+        "ændring",
+        "kontrollér",
+        "COMMIT: gem",
+        "ROLLBACK: fortryd",
+        "WHERE er ikke en garanti – kontrollér mål og resultat",
+        "Produkt",
+        "Pris",
+        "Espresso",
+        "28"
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished original Danish SQL teaching infographic, landscape 3:2, ideally1536x1024 or higher. The input image is a character identity/style REFERENCE ONLY. Preserve the SAME warmly painted blue elephant professor Raymond: warm brown eyes, round bronze spectacles, little blue hair tuft, curled friendly trunk, beige knitted cardigan over blue shirt, brown trousers, book and pointing stick. Keep his warm editorial illustration style, NOT3D clay. Light warm cream paper background, dark navy readable Danish title, muted teal and warm gold accents. Raymond occupies about20-25% of the composition, teaching content the rest. Classroom infographic with generous margins, 3-4 clearly separated panels/cards, correct arrows/table structure, very crisp legible typography. Small H1 badge near the title. Use ONLY the specified exact Danish labels and SQL snippets, no invented words, no tiny filler text, no logos, brands, watermarks or screenshot UI. Render æ ø å accurately. PostgreSQL16, not T-SQL/SQLite. No sheet of alternative images. Title exactly 'Ændr data med omtanke'. Raymond stands on left25% with pointer and book, teaching calmly. Three spacious cards across the upper right: CARD1 'INSERT', subtitle 'Tilføj en række', a simple table with a clearly added green row 'Kakao'|'30'. CARD2 'UPDATE', subtitle 'Ret en række', a single 'Latte' row whose price changes with a clear arrow '35' -> '37'; do not imply moving/sorting the row. CARD3 'DELETE', subtitle 'Fjern en række', a single sample 'Kakao' row clearly crossed out with a red minus symbol; show no other rows deleted. FOURTH large panel across lower right titled 'Kontrollér i en transaktion': logical flow of steps 'BEGIN' -> 'SELECT' -> 'ændring' -> 'kontrollér', then TWO ALTERNATIVE exit branches labeled 'COMMIT: gem' and 'ROLLBACK: fortryd'. The two exits are alternatives, NOT sequential. No fake SQL fragments beyond these labels. Footer exactly 'WHERE er ikke en garanti – kontrollér mål og resultat'. This is a conceptual DML teaching diagram, not a promise of automatic safety. All text large, precise Danish, ample breathing room, same series palette and painted Raymond.\n\nTargeted correction after review: Preserve this entire finished infographic, Raymond, composition, Danish text, all correct tables and colors. Make ONLY these TWO correctness fixes. 1) In the INSERT example, change the existing Espresso price from25 to28 so that Espresso matches the real cafe seed. Latte remains35 and Kakao remains30. 2) In the transaction flow, the two alternative COMMIT/ROLLBACK branches must originate AFTER the final 'kontrollér' step, not from 'ændring'. Remove the current branch from under 'ændring'. From the rightmost 'kontrollér' box, draw one clean line down to a splitting point below, then two distinct arrows to the existing 'COMMIT: gem' and 'ROLLBACK: fortryd' boxes. The main sequence remains BEGIN -> SELECT -> ændring -> kontrollér. This must visually show that verification occurs before the commit/rollback decision. Keep all wording unchanged. Landscape3:2, nativePNG.",
+      "generationHistory": [
+        {
+          "sourceArtifact": "exec-48ff594c-0161-45e6-943c-8753afd80872.png",
+          "role": "initial-generation"
+        },
+        {
+          "referenceArtifact": "exec-48ff594c-0161-45e6-943c-8753afd80872.png",
+          "prompt": "Preserve this entire finished infographic, Raymond, composition, Danish text, all correct tables and colors. Make ONLY these TWO correctness fixes. 1) In the INSERT example, change the existing Espresso price from25 to28 so that Espresso matches the real cafe seed. Latte remains35 and Kakao remains30. 2) In the transaction flow, the two alternative COMMIT/ROLLBACK branches must originate AFTER the final 'kontrollér' step, not from 'ændring'. Remove the current branch from under 'ændring'. From the rightmost 'kontrollér' box, draw one clean line down to a splitting point below, then two distinct arrows to the existing 'COMMIT: gem' and 'ROLLBACK: fortryd' boxes. The main sequence remains BEGIN -> SELECT -> ændring -> kontrollér. This must visually show that verification occurs before the commit/rollback decision. Keep all wording unchanged. Landscape3:2, nativePNG.",
+          "role": "targeted-correction",
+          "sourceArtifact": "exec-2f179db7-1ba2-48a8-b90e-73cfee82534d.png"
+        }
+      ],
+      "sourceArtifact": "exec-2f179db7-1ba2-48a8-b90e-73cfee82534d.png",
+      "width": 1536,
+      "height": 1024
+    }
+  ]
+}

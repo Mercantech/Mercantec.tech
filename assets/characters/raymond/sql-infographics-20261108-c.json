@@ -1,0 +1,286 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/raymond/professor.webp",
+  "entries": [
+    {
+      "id": "12-performance",
+      "title": "Mål før du optimerer",
+      "stage": "H2",
+      "objectives": [
+        16
+      ],
+      "alt": "Raymond sammenligner EXPLAIN og EXPLAIN ANALYZE og viser en PostgreSQL-forespørgsel på caféens ordrer.",
+      "summary": "Læs planen, mål den faktiske kørsel, og sammenlign igen på realistiske data.",
+      "explanation": [
+        "EXPLAIN viser den plan, PostgreSQL forventer at bruge, uden at køre SELECT-forespørgslen.",
+        "EXPLAIN ANALYZE udfører forespørgslen og viser blandt andet faktisk tid og faktiske rækker. BUFFERS tilføjer oplysninger om bufferarbejdet.",
+        "Cost er et estimat i plannerens omkostningsenheder og kan ikke læses som millisekunder.",
+        "Sammenlign samme forespørgsel på realistiske datamængder før og efter en ændring. Cache, statistik og øvrig belastning kan påvirke målingen."
+      ],
+      "sql": "EXPLAIN (ANALYZE, BUFFERS)\nSELECT * FROM orders\nWHERE customer_id = 1;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: EXPLAIN",
+          "href": "https://www.postgresql.org/docs/16/using-explain.html"
+        },
+        {
+          "label": "SQL-H1: Drift og EXPLAIN",
+          "href": "https://sql.mercantec.tech/learn/drift-02-backup-explain"
+        }
+      ],
+      "text": [
+        "H2",
+        "MÅL FØR DU OPTIMERER",
+        "EXPLAIN",
+        "Viser planen",
+        "EXPLAIN ANALYZE",
+        "Kører og måler",
+        "SAMMENLIGN",
+        "Realistiske data",
+        "EXPLAIN (ANALYZE, BUFFERS)",
+        "SELECT * FROM orders",
+        "WHERE customer_id = 1;",
+        "Cost måles i plannerens enheder.",
+        "ANALYZE udfører forespørgslen."
+      ],
+      "image": "/images/characters/raymond/infographics/12-performance.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished original educational infographic, LANDSCAPE 3:2 composition, ideally 1536x1024 or higher, a single coherent poster, never a sheet of assets. Input image 1 is ONLY Raymond's character identity and painted material reference. Preserve this same friendly BLUE elephant professor, warm brown eyes, round BRONZE glasses, small blue hair tuft, curled trunk, beige cardigan, blue shirt and brown trousers, book and pointing stick. Warm hand-painted editorial illustration, subtly textured CREAM paper background, dark navy typography, muted teal and warm golden accents. Do not use clay/3D, photorealism, logos, brand lookalikes, screenshots, watermarks, or other characters. The professor occupies about 20-25% of the poster and teaches with his pointer; legible educational diagram/cards dominate. Large exact Danish title, 3-4 spacious explanatory zones, generous margins, readable typography, precise arrows. All listed text must be correctly spelled VERBATIM, including Danish letters and code punctuation. Use only the specified text, no invented small print, no extra labels or random syntax. Stage label: \"H2\". Scene: Use 3 teaching zones: a blueprint labelled EXPLAIN / Viser planen; an execution path with a stopwatch labelled EXPLAIN ANALYZE / Kører og måler; comparison of two unlabeled plan trees with no numeric benchmark labelled SAMMENLIGN / Realistiske data. A big clean code panel below contains exactly the three SQL lines. Keep both footer sentences clearly legible. No invented result numbers. Text (verbatim, render EXACTLY): \"H2\"; \"MÅL FØR DU OPTIMERER\"; \"EXPLAIN\"; \"Viser planen\"; \"EXPLAIN ANALYZE\"; \"Kører og måler\"; \"SAMMENLIGN\"; \"Realistiske data\"; \"EXPLAIN (ANALYZE, BUFFERS)\"; \"SELECT * FROM orders\"; \"WHERE customer_id = 1;\"; \"Cost måles i plannerens enheder.\"; \"ANALYZE udfører forespørgslen.\". Ensure native landscape 3:2, high-resolution complete standalone PNG poster.",
+      "width": 1536,
+      "height": 1024,
+      "sourceArtifact": "exec-55cf8a50-6509-4912-ac91-521e25ebe05c.png",
+      "sha256": "cdb72055ee8d820e883f59dc24cf9119812be1cc64cf9b0c6881f47b2095df53",
+      "codeLanguage": "sql",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      }
+    },
+    {
+      "id": "13-orm",
+      "title": "Fra C# til database",
+      "stage": "H2",
+      "objectives": [
+        1,
+        18,
+        19,
+        20
+      ],
+      "alt": "Raymond viser EF Core med to adskilte veje: Code First fra C#-model til database og reverse engineering fra database til model.",
+      "summary": "ORM forbinder kode og database; migrations og reverse engineering løser forskellige opgaver.",
+      "explanation": [
+        "En ORM som Entity Framework Core forbinder objekter i en domain-model med data i en database og kan generere SQL til forespørgsler.",
+        "Med Code First beskriver du modellen i C#. En migration beskriver schemaændringer, som kan anvendes på databasen.",
+        "Reverse engineering læser et eksisterende databaseskema og genererer entity-klasser og en DbContext. Kontroller og tilpas den genererede model.",
+        "De to arbejdsgange er ikke en automatisk, tabsfri synkronisering. Se også SQL, relationer og constraints, når du vurderer modellen."
+      ],
+      "sql": "var customers = await db.Customers\n    .Where(c => c.City == \"Viborg\")\n    .ToListAsync();",
+      "sources": [
+        {
+          "label": "EF Core: Migrations",
+          "href": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/"
+        },
+        {
+          "label": "EF Core: Reverse engineering",
+          "href": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/"
+        }
+      ],
+      "text": [
+        "H2",
+        "FRA C# TIL DATABASE",
+        "EF Core forbinder objekter og tabeller.",
+        "CODE FIRST",
+        "C#-model",
+        "Migration",
+        "Database",
+        "REVERSE ENGINEERING",
+        "Eksisterende database",
+        "Scaffold",
+        "C#-model",
+        "Se den SQL, ORM’en sender.",
+        "C#"
+      ],
+      "image": "/images/characters/raymond/infographics/13-orm.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished original educational infographic, LANDSCAPE 3:2 composition, ideally 1536x1024 or higher, a single coherent poster, never a sheet of assets. Input image 1 is ONLY Raymond's character identity and painted material reference. Preserve this same friendly BLUE elephant professor, warm brown eyes, round BRONZE glasses, small blue hair tuft, curled trunk, beige cardigan, blue shirt and brown trousers, book and pointing stick. Warm hand-painted editorial illustration, subtly textured CREAM paper background, dark navy typography, muted teal and warm golden accents. Do not use clay/3D, photorealism, logos, brand lookalikes, screenshots, watermarks, or other characters. The professor occupies about 20-25% of the poster and teaches with his pointer; legible educational diagram/cards dominate. Large exact Danish title, 3-4 spacious explanatory zones, generous margins, readable typography, precise arrows. All listed text must be correctly spelled VERBATIM, including Danish letters and code punctuation. Use only the specified text, no invented small print, no extra labels or random syntax. Stage label: \"H2\". Scene: Two clearly SEPARATE horizontal tracks. Upper CODE FIRST: a simple C# model card with no invented code -> Migration blueprint -> Database cylinder. Lower REVERSE ENGINEERING: an Existing database cylinder -> Scaffold tool -> C# model card. These are different workflows, NOT a circular automatic live sync, do not connect the tracks. Labels exactly as listed, no additional text in cards. Raymond points toward the upper path, with a small book. Text (verbatim, render EXACTLY): \"H2\"; \"FRA C# TIL DATABASE\"; \"EF Core forbinder objekter og tabeller.\"; \"CODE FIRST\"; \"C#-model\"; \"Migration\"; \"Database\"; \"REVERSE ENGINEERING\"; \"Eksisterende database\"; \"Scaffold\"; \"C#-model\"; \"Se den SQL, ORM'en sender.\". Ensure native landscape 3:2, high-resolution complete standalone PNG poster.",
+      "width": 1536,
+      "height": 1024,
+      "sourceArtifact": "exec-3be584ab-1a7f-4ac5-80a7-01bd3d907680.png",
+      "sha256": "ffee225789cecbe46c4196271df9d7d6da464c36354b8476d6e57af7eee70101",
+      "codeLanguage": "csharp",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      }
+    },
+    {
+      "id": "14-dokumentdatabaser",
+      "title": "Relationer eller dokumenter?",
+      "stage": "H3",
+      "objectives": [
+        21,
+        22
+      ],
+      "alt": "Raymond sammenligner cafédata som relaterede tabeller og som et dokument og peger på valg ud fra opslag og konsistens.",
+      "summary": "Vælg datamodel efter de opslag, ændringer og konsistenskrav, din løsning har.",
+      "explanation": [
+        "En relationel database organiserer data i tabeller med nøgler, relationer og constraints. JOIN kan forbinde relevante rækker ved læsning.",
+        "En dokumentdatabase gemmer dokumenter, som kan indeholde indlejrede objekter og lister. Relaterede data kan også forbindes med referencer.",
+        "Indlejring kan passe til data, der ofte læses samlet; mange uafhængige ændringer eller voksende lister kan gøre en anden model mere hensigtsmæssig. Fleksibelt schema kræver stadig validering og omtanke om konsistens.",
+        "ORM er et adgangslag til en database, ikke en tredje databasetype. Sammenlign løsninger ved at måle realistiske adgangsmønstre og tydeliggøre krav til relationer og konsistens."
+      ],
+      "sql": "{\n  \"name\": \"Anna\",\n  \"city\": \"Viborg\"\n}",
+      "sources": [
+        {
+          "label": "MongoDB: Datamodellering",
+          "href": "https://www.mongodb.com/docs/manual/data-modeling/best-practices/"
+        },
+        {
+          "label": "EF Core: Overblik",
+          "href": "https://learn.microsoft.com/en-us/ef/core/"
+        }
+      ],
+      "text": [
+        "H3",
+        "RELATIONER ELLER DOKUMENTER?",
+        "TABELLER",
+        "Nøgler forbinder rækker",
+        "DOKUMENTER",
+        "Data kan samles",
+        "Opslag",
+        "Ændringer",
+        "Konsistens",
+        "ORM er et adgangslag.",
+        "Fleksibelt skema kræver validering."
+      ],
+      "image": "/images/characters/raymond/infographics/14-dokumentdatabaser.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished original educational infographic, LANDSCAPE 3:2 composition, ideally 1536x1024 or higher, a single coherent poster, never a sheet of assets. Input image 1 is ONLY Raymond's character identity and painted material reference. Preserve this same friendly BLUE elephant professor, warm brown eyes, round BRONZE glasses, small blue hair tuft, curled trunk, beige cardigan, blue shirt and brown trousers, book and pointing stick. Warm hand-painted editorial illustration, subtly textured CREAM paper background, dark navy typography, muted teal and warm golden accents. Do not use clay/3D, photorealism, logos, brand lookalikes, screenshots, watermarks, or other characters. The professor occupies about 20-25% of the poster and teaches with his pointer; legible educational diagram/cards dominate. Large exact Danish title, 3-4 spacious explanatory zones, generous margins, readable typography, precise arrows. All listed text must be correctly spelled VERBATIM, including Danish letters and code punctuation. Use only the specified text, no invented small print, no extra labels or random syntax. Stage label: \"H3\". Scene: Two equally weighted main zones: TABELLER uses two tiny linked row grids with ONLY neutral colored row marks (no invented text or numbers), demonstrating foreign-key relations; DOKUMENTER uses nested paper/object cards with ONLY neutral colored marks, showing embedding. Beneath, three readable decision cards Opslag / Ændringer / Konsistens. No winner/loser, speed meter or universal superiority. Footer exact two sentences. Raymond thoughtfully compares both sides with his pointer. Text (verbatim, render EXACTLY): \"H3\"; \"RELATIONER ELLER DOKUMENTER?\"; \"TABELLER\"; \"Nøgler forbinder rækker\"; \"DOKUMENTER\"; \"Data kan samles\"; \"Opslag\"; \"Ændringer\"; \"Konsistens\"; \"ORM er et adgangslag.\"; \"Fleksibelt skema kræver validering.\". Ensure native landscape 3:2, high-resolution complete standalone PNG poster.",
+      "width": 1536,
+      "height": 1024,
+      "sourceArtifact": "exec-a727dbb2-6ad9-4759-a211-2de495ca9964.png",
+      "sha256": "b9e8184f4686d6d7d20db9a12fc3123dfce7405a28e2c43898fd3b4ef297c29c",
+      "codeLanguage": "json",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      }
+    },
+    {
+      "id": "15-databasesikkerhed",
+      "title": "Sikker SQL begynder i appen",
+      "stage": "H3",
+      "objectives": [
+        14,
+        23
+      ],
+      "alt": "Raymond viser parameteriseret SQL, mindst mulige rettigheder, TLS og sikker opbevaring af hemmeligheder.",
+      "summary": "Forebyg SQL injection med parametre, og beskyt adgangen med rettigheder, TLS og sikker opbevaring af hemmeligheder.",
+      "explanation": [
+        "Parameteriserede forespørgsler forebygger SQL injection ved at holde SQL-struktur og værdier adskilt. Parametre kan ikke bruges som tabelnavne eller som vilkårlige SQL-fragmenter.",
+        "I Npgsql er $1 en positionsparameter; dens værdi tilføjes separat til parameterlisten. Parametre kan repræsentere værdier, men ikke vilkårlige tabelnavne eller SQL-fragmenter.",
+        "Giv databaserollen kun de nødvendige rettigheder. Brug TLS til forbindelsen, og opbevar credentials i et sikkert secrets- eller miljøsystem frem for i kildekoden.",
+        "Adgangskoder skal beskyttes med salt og en egnet stærk password-hash. Kryptering af data og forbindelsen løser andre opgaver end password-hashing.",
+        "TLS beskytter data under transport. Kryptering af lagrede data og sikker opbevaring af nøgler er særskilte valg; adgangskoder lagres som saltede, stærke hashes frem for reversibel kryptering."
+      ],
+      "sql": "await using var cmd = dataSource.CreateCommand(\n    \"SELECT name FROM customers WHERE city = $1\");\ncmd.Parameters.Add(new() { Value = city });\nawait using var reader = await cmd.ExecuteReaderAsync();",
+      "sources": [
+        {
+          "label": "Npgsql: Parametre",
+          "href": "https://www.npgsql.org/doc/basic-usage.html#parameters"
+        },
+        {
+          "label": "PostgreSQL 16: Kryptering",
+          "href": "https://www.postgresql.org/docs/16/encryption-options.html"
+        }
+      ],
+      "text": [
+        "H3",
+        "SIKKER SQL BEGYNDER I APPEN",
+        "PARAMETRE",
+        "SQL og værdier sendes hver for sig",
+        "SELECT name FROM customers",
+        "WHERE city = $1;",
+        "RETTIGHEDER",
+        "Kun det nødvendige",
+        "TLS",
+        "Beskyt forbindelsen",
+        "HEMMELIGHEDER",
+        "Opbevar credentials sikkert",
+        "Adgangskoder: salt + stærk hash"
+      ],
+      "image": "/images/characters/raymond/infographics/15-databasesikkerhed.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished original educational infographic, LANDSCAPE 3:2 composition, ideally 1536x1024 or higher, a single coherent poster, never a sheet of assets. Input image 1 is ONLY Raymond's character identity and painted material reference. Preserve this same friendly BLUE elephant professor, warm brown eyes, round BRONZE glasses, small blue hair tuft, curled trunk, beige cardigan, blue shirt and brown trousers, book and pointing stick. Warm hand-painted editorial illustration, subtly textured CREAM paper background, dark navy typography, muted teal and warm golden accents. Do not use clay/3D, photorealism, logos, brand lookalikes, screenshots, watermarks, or other characters. The professor occupies about 20-25% of the poster and teaches with his pointer; legible educational diagram/cards dominate. Large exact Danish title, 3-4 spacious explanatory zones, generous margins, readable typography, precise arrows. All listed text must be correctly spelled VERBATIM, including Danish letters and code punctuation. Use only the specified text, no invented small print, no extra labels or random syntax. Stage label: \"H3\". Scene: Four clear security zones: upper large PARAMETRE shows a code card with EXACT two SQL lines and a separate small teal data token labelled with no additional writing, travelling through a distinct parameter path; never concatenate input into SQL. Other zones contain a permission key, encrypted connection shield and locked secret envelope, with exact headings/body text from list. No hacking imagery, no logo, no fake password in the image. Footer password phrase clear. Text (verbatim, render EXACTLY): \"H3\"; \"SIKKER SQL BEGYNDER I APPEN\"; \"PARAMETRE\"; \"SQL og værdier sendes hver for sig\"; \"SELECT name FROM customers\"; \"WHERE city = $1;\"; \"RETTIGHEDER\"; \"Kun det nødvendige\"; \"TLS\"; \"Beskyt forbindelsen\"; \"HEMMELIGHEDER\"; \"Opbevar credentials sikkert\"; \"Adgangskoder: salt + stærk hash\". Ensure native landscape 3:2, high-resolution complete standalone PNG poster.",
+      "width": 1536,
+      "height": 1024,
+      "sourceArtifact": "exec-b77b1769-1196-450e-b7c2-56d588cbdcff.png",
+      "sha256": "621655d90bf4f523157a6caf878074075b44bf9685b83fd31698a2cbc8c5c88a",
+      "codeLanguage": "csharp",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      }
+    },
+    {
+      "id": "16-databasetest",
+      "title": "Test databasen med forventninger",
+      "stage": "H3",
+      "objectives": [
+        24
+      ],
+      "alt": "Raymond viser testforløbet startdata, handling og forventning samt gyldige og ugyldige databasehandlinger i en isoleret testdatabase.",
+      "summary": "Test kendte data, ugyldige tilfælde, rollback, rettigheder og samtidighed i en isoleret database.",
+      "explanation": [
+        "Start med kendte testdata, udfør en handling, og sammenlign det faktiske resultat med en præcis forventning.",
+        "Test både gyldige tilfælde og grænsetilfælde: NULL, dubletter, ugyldige fremmednøgler og transaktioner, der skal rulles tilbage.",
+        "Kontroller også rettigheder, migrationer og samtidige ændringer. En afvist handling skal efterlade den forventede konsistente tilstand.",
+        "Brug en isoleret testdatabase, og vælg samme databaseprovider som produktion, når testen skal bevise databasespecifik SQL-semantik og adfærd. En in-memory-erstatning kan ikke bevise alle disse forhold."
+      ],
+      "sql": "BEGIN;\nINSERT INTO customers (name, city)\nVALUES ('Testkunde', 'Viborg');\nSELECT name, city FROM customers\nWHERE name = 'Testkunde';\nROLLBACK;",
+      "sources": [
+        {
+          "label": "EF Core: Valg af teststrategi",
+          "href": "https://learn.microsoft.com/en-us/ef/core/testing/choosing-a-testing-strategy"
+        },
+        {
+          "label": "PostgreSQL 16: Constraints",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        }
+      ],
+      "text": [
+        "H3",
+        "TEST DATABASEN MED FORVENTNINGER",
+        "STARTDATA",
+        "HANDLING",
+        "FORVENTNING",
+        "Gyldig kunde",
+        "Gemmes",
+        "Ugyldig FK",
+        "Afvises",
+        "ROLLBACK",
+        "Ændring fortrydes",
+        "ISOLERET TESTDATABASE",
+        "Test også rettigheder og samtidighed."
+      ],
+      "image": "/images/characters/raymond/infographics/16-databasetest.png",
+      "prompt": "Use case: scientific-educational. Create ONE finished original educational infographic, LANDSCAPE 3:2 composition, ideally 1536x1024 or higher, a single coherent poster, never a sheet of assets. Input image 1 is ONLY Raymond's character identity and painted material reference. Preserve this same friendly BLUE elephant professor, warm brown eyes, round BRONZE glasses, small blue hair tuft, curled trunk, beige cardigan, blue shirt and brown trousers, book and pointing stick. Warm hand-painted editorial illustration, subtly textured CREAM paper background, dark navy typography, muted teal and warm golden accents. Do not use clay/3D, photorealism, logos, brand lookalikes, screenshots, watermarks, or other characters. The professor occupies about 20-25% of the poster and teaches with his pointer; legible educational diagram/cards dominate. Large exact Danish title, 3-4 spacious explanatory zones, generous margins, readable typography, precise arrows. All listed text must be correctly spelled VERBATIM, including Danish letters and code punctuation. Use only the specified text, no invented small print, no extra labels or random syntax. Stage label: \"H3\". Scene: A spacious upper 3-step flow STARTDATA -> HANDLING -> FORVENTNING, with dataset cards, a small action arrow, and an expected-result check. A large lower test matrix with three clear example pairs: Gyldig kunde -> Gemmes; Ugyldig FK -> Afvises; ROLLBACK -> Ændring fortrydes. Label the containing boundary ISOLERET TESTDATABASE. No claim that in-memory data proves real database behavior. Raymond checks the expected outcomes with a pencil or pointer. Text (verbatim, render EXACTLY): \"H3\"; \"TEST DATABASEN MED FORVENTNINGER\"; \"STARTDATA\"; \"HANDLING\"; \"FORVENTNING\"; \"Gyldig kunde\"; \"Gemmes\"; \"Ugyldig FK\"; \"Afvises\"; \"ROLLBACK\"; \"Ændring fortrydes\"; \"ISOLERET TESTDATABASE\"; \"Test også rettigheder og samtidighed.\". Ensure native landscape 3:2, high-resolution complete standalone PNG poster.",
+      "width": 1536,
+      "height": 1024,
+      "sourceArtifact": "exec-8bee4a70-dcce-4b0f-a83f-32732e89c91f.png",
+      "sha256": "ba614d95f1d600071ec815315a78d44cebdba1a0ea03ef295d12270c315fe9a0",
+      "codeLanguage": "sql",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      }
+    }
+  ]
+}

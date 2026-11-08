@@ -1,0 +1,101 @@
+@using Mercantec.Tech.Web.Characters
+
+@if (Items.Count > 0)
+{
+    var visible = VisibleItems;
+    <section class="character-gallery" aria-labelledby="character-gallery-title">
+        <header>
+            <h2 id="character-gallery-title">@CharacterName i undervisningen</h2>
+            <p>@Description</p>
+        </header>
+        @if (Stages.Length > 0)
+        {
+            <div class="character-illustration-tools">
+                <label for="character-illustration-search">Find en infografik</label>
+                <div class="character-illustration-search">
+                    <input id="character-illustration-search" type="search" value="@_query" @oninput="Search" placeholder="Emne, fx JOIN, normalisering eller ORM" aria-controls="character-illustration-items" />
+                    <button type="button" @onclick="ResetFilters">Vis alle</button>
+                </div>
+                <div class="character-illustration-stages" role="group" aria-label="Hovedforløb">
+                    <button type="button" aria-pressed="@(_stage.Length == 0 ? "true" : "false")" @onclick="() => _stage = string.Empty">Alle</button>
+                    @foreach (var stage in Stages)
+                    {
+                        <button type="button" aria-pressed="@(_stage == stage ? "true" : "false")" @onclick="() => _stage = stage">@stage</button>
+                    }
+                </div>
+                <p class="character-illustration-count" role="status">Viser @visible.Count af @Items.Count @KindLabel</p>
+            </div>
+        }
+        <div class="character-gallery-grid" id="character-illustration-items">
+            @foreach (var item in visible)
+            {
+                <figure @key="item.Image">
+                    <a class="character-illustration-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
+                        <img src="@item.Preview" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
+                    </a>
+                    <figcaption>
+                        <div class="character-illustration-caption">
+                            <strong>@item.Title</strong>
+                            <a class="character-illustration-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image)}")" aria-label="@($"Hent illustration {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
+                        </div>
+                        @if (item.Stage is not null)
+                        {
+                            <p class="character-illustration-objectives">@item.Stage · Målpind @string.Join(", ", item.Objectives)</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(item.Summary))
+                        {
+                            <p>@item.Summary</p>
+                        }
+                        @if (item.Explanation.Count > 0)
+                        {
+                            <details class="character-illustration-explanation">
+                                <summary>Læs forklaringen: @item.Title</summary>
+                                @foreach (var paragraph in item.Explanation) { <p>@paragraph</p> }
+                                @if (!string.IsNullOrWhiteSpace(item.Sql)) { <pre><code>@item.Sql</code></pre> }
+                                <div class="character-illustration-sources" aria-label="Faglige kilder">
+                                    @foreach (var source in item.Sources)
+                                    {
+                                        <a href="@source.Href" target="_blank" rel="noopener noreferrer">@source.Label<span class="visually-hidden"> (åbner i ny fane)</span></a>
+                                    }
+                                </div>
+                            </details>
+                        }
+                    </figcaption>
+                </figure>
+            }
+        </div>
+        @if (visible.Count == 0)
+        {
+            <p class="character-illustration-empty" role="status">Ingen infografikker matcher. Prøv et andet ord, eller vælg Vis alle.</p>
+        }
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string CharacterSlug { get; set; } = "";
+    [Parameter, EditorRequired] public string CharacterName { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string KindLabel { get; set; } = "illustrationer";
+    [Parameter] public IReadOnlyList<CharacterIllustration> Items { get; set; } = [];
+    private string _query = "", _stage = "";
+    private string? _previousSlug;
+    private string[] Stages => Items.Select(item => item.Stage).OfType<string>().Distinct().Order().ToArray();
+    private IReadOnlyList<CharacterIllustration> VisibleItems => Items.Where(item =>
+        (_stage.Length == 0 || item.Stage == _stage) && MatchesQuery(item)).ToArray();
+
+    private bool MatchesQuery(CharacterIllustration item)
+    {
+        var text = item.Title + " " + item.Alt + " " + item.Summary + " " + string.Join(" ", item.Explanation);
+        return _query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .All(word => text.Contains(word, StringComparison.OrdinalIgnoreCase));
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_previousSlug != CharacterSlug) ResetFilters();
+        _previousSlug = CharacterSlug;
+    }
+
+    private void Search(ChangeEventArgs args) => _query = args.Value?.ToString() ?? "";
+    private void ResetFilters() { _query = ""; _stage = ""; }
+}

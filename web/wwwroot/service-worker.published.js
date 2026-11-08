@@ -32,6 +32,10 @@ function isAvatarRuntimeAsset(url) {
     return url.origin === baseUrl.origin && url.pathname.startsWith('/assets/avatars/');
 }
 
+function isCharacterInfographicAsset(url) {
+    return url.origin === baseUrl.origin && /^\/images\/characters\/[^/]+\/infographics\//.test(url.pathname);
+}
+
 function isAvatarRuntimeModule(url) {
     return url.origin === baseUrl.origin && (url.pathname === '/js/lup-avatars.js' || url.pathname === '/js/avatar-layer-preview.js');
 }
@@ -61,6 +65,8 @@ async function onInstall(event) {
         .filter(asset => !new URL(asset.url, baseUrl).pathname.startsWith('/notion-editor/'))
         // Avatar sheets, audio and world sprites are optional; fetch them only when used.
         .filter(asset => !isAvatarRuntimeAsset(new URL(asset.url, baseUrl)))
+        // Teaching posters and downloadable originals are optional, not part of app installation.
+        .filter(asset => !isCharacterInfographicAsset(new URL(asset.url, baseUrl)))
         // Runtime modules must follow the deployed app rather than race a
         // previous worker's unversioned startup cache.
         .filter(asset => {
@@ -149,7 +155,7 @@ async function onFetch(event) {
     try {
         const response = await fetch(event.request);
         if (event.request.method === 'GET' && response.ok && url.origin === baseUrl.origin
-            && (url.pathname.startsWith('/notion-editor/') || isAvatarRuntimeAsset(url))) {
+            && (url.pathname.startsWith('/notion-editor/') || isAvatarRuntimeAsset(url) || isCharacterInfographicAsset(url))) {
             // Keep only editor chunks/fonts actually used, so an already opened
             // drawing can still load them offline without a full release precache.
             try {

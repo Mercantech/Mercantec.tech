@@ -24,6 +24,7 @@ public static class CharacterCatalog
             Reactions = ReactionsFor("lupp"),
             LargeReactionPreviews = true,
             ReactionsDescription = "LUPPs reaktioner fra Game Design: fra den første spilidé og skitse til playtest, feedback og et nyt forsøg. Find et motiv, åbn originalen, eller hent den som transparent PNG.",
+            IllustrationsDescription = "Illustrationer fra Game Design-forløbet. Åbn et billede i fuld størrelse, eller hent originalen som PNG.",
             Illustrations =
             [
                 new("Gameplay loop", "/images/characters/lupp/01-gameplay-loop.png", "LUPP viser et gameplay loop: se, handl, se resultatet og ret til.", 1536, 1024),
@@ -65,6 +66,9 @@ public static class CharacterCatalog
              new("En professor med historie", "Hans fulde navn hylder databasepionererne Raymond Boyce, Michael Stonebraker og Edgar F. Codd. Du møder ham på SQL-H1, hvor SQL og PostgreSQL er i centrum.")],
             [new("Mød Raymond på SQL-H1", "https://sql.mercantec.tech", true, false), new("Udforsk databaser", "/subjects/database", false, false)])
         {
+            Illustrations = InfographicsFor("raymond"),
+            IllustrationsLabel = "infografikker",
+            IllustrationsDescription = "16 infografikker med Raymond om Databaseprogrammering, fag 16474. Serien introducerer alle 24 målpinde på H1, H2 og H3. Find et emne, læs forklaringen, eller hent en PNG til undervisningen. Eksemplerne bruger PostgreSQL og SQL-H1's cafédata; ORM og dokumentdatabaser udvider emnerne til H2 og H3.",
             Animations =
             [
                 new("join-tables", "Forbind tabeller", "JOIN · Relationer", "Raymond viser vejen mellem to tabeller. Med en fælles nøgle kan en JOIN samle data, der hører sammen.",
@@ -122,6 +126,19 @@ public static class CharacterCatalog
         {
             Preview = asset.Preview
         }).ToArray();
+
+    private static CharacterIllustration[] InfographicsFor(string slug) => CharacterInfographicCatalog.All
+        .Where(asset => asset.CharacterSlug == slug)
+        .Select(asset => new CharacterIllustration(asset.Title, asset.Image, asset.Alt, asset.Width, asset.Height)
+        {
+            Preview = asset.Preview,
+            Stage = asset.Stage,
+            Objectives = asset.Objectives,
+            Summary = asset.Summary,
+            Explanation = asset.Explanation,
+            Sql = asset.Sql,
+            Sources = asset.Sources.Select(source => new CharacterLink(source.Label, source.Href, true, false)).ToArray()
+        }).ToArray();
 }
 
 public sealed record CharacterProfile(string Slug, string Name, string Role, string Home, bool ComingSoon,
@@ -130,6 +147,8 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
 {
     public string Path => "/characters/" + Slug;
     public IReadOnlyList<CharacterIllustration> Illustrations { get; init; } = [];
+    public string IllustrationsLabel { get; init; } = "illustrationer";
+    public string IllustrationsDescription { get; init; } = "Åbn en illustration i fuld størrelse, eller hent originalen som PNG.";
     public IReadOnlyList<CharacterIllustration> Reactions { get; init; } = [];
     public bool LargeReactionPreviews { get; init; }
     public string? ReactionsDescription { get; init; }
@@ -144,7 +163,7 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
             if (Scenes.FirstOrDefault() is { } scene)
                 yield return new("miljøer", Scenes.Count, "character-scenes-title", scene.Image, scene.Alt);
             if (Illustrations.FirstOrDefault() is { } illustration)
-                yield return new("illustrationer", Illustrations.Count, "character-gallery-title", illustration.Image, illustration.Alt);
+                yield return new(IllustrationsLabel, Illustrations.Count, "character-gallery-title", illustration.Preview, illustration.Alt);
             if (Animations.FirstOrDefault() is { } animation)
                 yield return new("GIF-animationer", Animations.Count, "character-animations-title", animation.Poster, animation.Alt);
         }
@@ -158,5 +177,11 @@ public sealed record CharacterLink(string Label, string Href, bool External, boo
 public sealed record CharacterIllustration(string Title, string Image, string Alt, int Width, int Height)
 {
     public string Preview { get; init; } = Image;
+    public string? Stage { get; init; }
+    public IReadOnlyList<int> Objectives { get; init; } = [];
+    public string? Summary { get; init; }
+    public IReadOnlyList<string> Explanation { get; init; } = [];
+    public string? Sql { get; init; }
+    public IReadOnlyList<CharacterLink> Sources { get; init; } = [];
 }
 public sealed record CharacterAnimation(string Id, string Title, string Topic, string Description, string Image, string Poster, string Alt, int Width, int Height);

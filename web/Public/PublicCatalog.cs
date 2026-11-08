@@ -72,7 +72,8 @@ public static class PublicCatalog
     private static string CharacterSearchTerms(CharacterProfile character) => string.Join(" ",
         character.Tags.Concat(character.Materials.Select(group => group.Label))
             .Concat(character.Reactions.Concat(character.Scenes).Concat(character.Illustrations)
-                .Select(image => image.Title + " " + image.Alt))
+                .Select(image => image.Title + " " + image.Alt + " " + image.Summary + " " + image.Stage
+                    + " " + string.Join(" ", image.Explanation)))
             .Concat(character.Animations.Select(animation => animation.Title + " " + animation.Topic + " " + animation.Alt)));
 }
 

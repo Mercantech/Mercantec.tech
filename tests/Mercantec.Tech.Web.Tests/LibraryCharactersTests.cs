@@ -53,6 +53,7 @@ public sealed class LibraryCharactersTests
             ("lupp", "character-reactions-title", "48 emojis"),
             ("raymond", "character-scenes-title", "4 miljøer"),
             ("raymond", "character-animations-title", "3 GIF-animationer"),
+            ("raymond", "character-gallery-title", "16 infografikker"),
             ("lupp", "character-gallery-title", "9 illustrationer")
         };
         foreach (var (slug, section, label) in expected)
@@ -106,6 +107,10 @@ public sealed class LibraryCharactersTests
     [InlineData("LUPP playtest", "/characters/lupp")]
     [InlineData("GIF", "/characters/raymond")]
     [InlineData("illustrationer", "/characters/lupp")]
+    [InlineData("infografikker", "/characters/raymond")]
+    [InlineData("Raymond normalisering", "/characters/raymond")]
+    [InlineData("Raymond ORM", "/characters/raymond")]
+    [InlineData("Raymond SQL injection", "/characters/raymond")]
     [InlineData("Raymond kaffepause", "/characters/raymond")]
     [InlineData("Vatson PLC", "/characters/vatson")]
     public void Public_search_finds_media_types_and_named_motifs(string query, string expectedPath)
@@ -131,6 +136,7 @@ public sealed class LibraryCharactersTests
 
     [Theory]
     [InlineData("raymond", "character-animations-title")]
+    [InlineData("raymond", "character-gallery-title")]
     [InlineData("vatson", "character-reactions-title")]
     [InlineData("beaver", "character-reactions-title")]
     [InlineData("fox", "character-reactions-title")]

@@ -1,0 +1,33 @@
+{
+  "courseId": "16474",
+  "courseName": "Databaseprogrammering",
+  "level": 3,
+  "durationWeeks": 3,
+  "source": "De 24 målpinde oplyst af brugeren den 8. november 2026. Nummerering og placering på H1/H2/H3 er bevaret.",
+  "objectives": [
+    { "id": 1, "stage": "H1", "text": "Lærlingen kan udarbejde et avanceret databasedesign, og anvende SQL syntaxen og ORM (Object Relational Mapping) til at opbygge databaser, suppleret af en tilhørende dokumentation." },
+    { "id": 2, "stage": "H1", "text": "Lærlingen kan anvende SELECT til at foretage forespørgsler op imod en tabel, herunder sortering, gruppering, filtrering, aggregering, funktioner." },
+    { "id": 3, "stage": "H1", "text": "Lærlingen kan anvende INSERT, UPDATE, DELETE til at foretage manipulationer af en tabel." },
+    { "id": 4, "stage": "H1", "text": "Lærlingen kan oprette, redigere og slette tabeller samt dokumentere vha. E/R-diagram." },
+    { "id": 5, "stage": "H1", "text": "Lærlingen kan anvende relationstyperne 1:mange, mange:mange og 1:1 med tilhørende nøgler." },
+    { "id": 6, "stage": "H1", "text": "Lærlingen kan implementere konsistenskrav, referenceintegritet, relationer og forskellige constraints." },
+    { "id": 7, "stage": "H1", "text": "Lærlingen kan anvende JOIN og SUBQUERIES til at foretage forespørgsler fra flere tabeller." },
+    { "id": 8, "stage": "H1", "text": "Lærlingen kan oprette og slette en database." },
+    { "id": 9, "stage": "H1", "text": "Lærlingen kan oprette Views og begrunde sikkerhedsaspektet." },
+    { "id": 10, "stage": "H1", "text": "Lærlingen kan anvende avancerede SQL-kommandoer som parametre, kontrolstrukturer, rettighedsstyring o.l." },
+    { "id": 11, "stage": "H1", "text": "Lærlingen kan redegøre for baggrunden for konsistenskrav, referenceintegritet, relationer og forskellige constraints." },
+    { "id": 12, "stage": "H1", "text": "Lærlingen kan oprette, redigere og slette Stored Procedures med et administrations- og databehandlingsformål." },
+    { "id": 13, "stage": "H1", "text": "Lærlingen kan oprette og administrere Triggers med henblik på at holde databasen konsistent." },
+    { "id": 14, "stage": "H3", "text": "Lærlingen kan træffe korrekte forholdsregler til at imødegå SQL Injection." },
+    { "id": 15, "stage": "H2", "text": "Lærlingen kan oprette og administrere indexes så der opnås optimal performance." },
+    { "id": 16, "stage": "H2", "text": "Lærlingen kan udføre performance-måling på en stor database." },
+    { "id": 17, "stage": "H1", "text": "Lærlingen kan normalisere en database." },
+    { "id": 18, "stage": "H2", "text": "Lærlingen har basal viden om ORM (Object Relational Mapping)." },
+    { "id": 19, "stage": "H2", "text": "Lærlingen kan oprette en domain-model og lade ORM generere databasen og forespørgsler." },
+    { "id": 20, "stage": "H2", "text": "Lærlingen kan anvende en færdig database og lade ORM generere domain-modellen." },
+    { "id": 21, "stage": "H3", "text": "Lærlingen har et grundlæggende viden om DocumentDatabaser." },
+    { "id": 22, "stage": "H3", "text": "Lærlingen kan ud fra et givent performancebehov beskrive fordele og ulemper i forhold til valg mellem relationel database, ORM eller DocumentDatabase." },
+    { "id": 23, "stage": "H3", "text": "Lærlingen har en generel viden om mulige sikkerhedsproblematikker omkring databaser, og kan tage højde for dem i forbindelse med opbyggelsen af en database, her f.eks. krypteringen af data og password-beskyttelse af adgangen til databasen." },
+    { "id": 24, "stage": "H3", "text": "Lærlingen har en grundlæggende viden om metoder til at teste en nyudviklet database." }
+  ]
+}

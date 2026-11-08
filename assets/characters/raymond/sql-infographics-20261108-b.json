@@ -1,0 +1,290 @@
+{
+  "generator": "builtin-imagegen",
+  "date": "2026-11-08",
+  "reference": "web/wwwroot/images/characters/raymond/professor.webp",
+  "entries": [
+    {
+      "id": "07-join-og-subqueries",
+      "title": "JOIN og subqueries",
+      "stage": "H1",
+      "objectives": [
+        7
+      ],
+      "image": "/images/characters/raymond/infographics/07-join-og-subqueries.png",
+      "alt": "Raymond sammenligner JOIN, LEFT JOIN og EXISTS med to kunder og to ordrer. Asta har to match; Bo bevares kun af LEFT JOIN.",
+      "summary": "Saml rækker med JOIN, bevar venstre side med LEFT JOIN, eller undersøg om et match findes med EXISTS.",
+      "explanation": [
+        "De viste kunder og ordrer er forenklede café-eksempeltabeller; en JOIN kombinerer hvert par af rækker, der opfylder ON-betingelsen, her customers.id = orders.customer_id.",
+        "Asta har to ordrer og giver derfor to resultatrækker, mens Bo uden ordrer udelades af en almindelig INNER JOIN.",
+        "LEFT JOIN bevarer også Bo og udfylder ordre-felterne med NULL, når der ikke findes et match.",
+        "En korreleret EXISTS-subquery returnerer en sand/falsk-værdi for hver ydre række og kan finde kunder med mindst én ordre uden at gentage kunden for hvert match."
+      ],
+      "sql": "SELECT c.name, o.id AS order_id\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nORDER BY c.id, o.id;\n\nSELECT c.name\nFROM customers AS c\nWHERE EXISTS (\n    SELECT 1 FROM orders AS o WHERE o.customer_id = c.id\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · Table expressions og JOIN",
+          "href": "https://www.postgresql.org/docs/16/queries-table-expressions.html"
+        },
+        {
+          "label": "PostgreSQL 16 · EXISTS og subquery expressions",
+          "href": "https://www.postgresql.org/docs/16/functions-subquery.html"
+        }
+      ],
+      "text": [
+        "H1",
+        "JOIN OG SUBQUERIES",
+        "customers",
+        "id",
+        "name",
+        "1",
+        "Asta",
+        "2",
+        "Bo",
+        "orders",
+        "customer_id",
+        "101",
+        "102",
+        "JOIN",
+        "order_id",
+        "Matchende rækker",
+        "LEFT JOIN",
+        "NULL",
+        "Bevar venstre tabel",
+        "EXISTS",
+        "Findes der en ordre?",
+        "Flere matches kan give flere rækker."
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE finished landscape 3:2 Danish teaching infographic, native 1536x1024 or larger, not a sheet.\nReference image is Raymond's canonical identity/style ONLY: preserve the warm hand-painted blue elephant professor, brown eyes, bronze round glasses, little blue hair tuft, curled trunk, beige knitted cardigan, blue shirt, dark trousers, book and wooden pointer. Raymond occupies about20-25% at the lower right, kindly teaching. Do NOT turn him into clay or 3D.\nSeries style: warm light cream paper, navy typography, muted teal and warm gold panels, clear crisp large type and generous spacing. Opaque background. Small H1 badge, large title \"JOIN OG SUBQUERIES\". No logo, screenshot, watermark, fake code, tiny paragraphs or Venn circles.\nVisual teaching content: show real table-card logic with matching colored key dots. Keep the exact tiny data consistent:\nInput table \"customers\": headers \"id | name\"; rows \"1 | Asta\", \"2 | Bo\".\nInput table \"orders\": headers \"id | customer_id\"; rows \"101 | 1\", \"102 | 1\".\nThree teaching panels across the useful area:\n\"JOIN\" with result columns \"name | order_id\", rows \"Asta | 101\", \"Asta | 102\", small caption \"Matchende rækker\".\n\"LEFT JOIN\" with same columns and rows \"Asta | 101\", \"Asta | 102\", \"Bo | NULL\", small caption \"Bevar venstre tabel\".\n\"EXISTS\" shows one customer card \"Asta\" with checkmark, and question \"Findes der en ordre?\".\nUse arrows from source key1 to both orders to make multiplication clear. Navy bottom teaching sentence exactly: \"Flere matches kan give flere rækker.\" All table values and Danish text MUST be spelled exactly and legibly. Explain joins through rows and matching keys, never through Venn diagrams. No other long text.",
+      "sourceArtifact": "exec-f9047b62-cd7d-46e1-b37e-70cb641f472b.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "08-normalisering",
+      "title": "Normalisering",
+      "stage": "H1",
+      "objectives": [
+        1,
+        17
+      ],
+      "image": "/images/characters/raymond/infographics/08-normalisering.png",
+      "alt": "Raymond viser normalisering: et gentaget kundenavn flyttes fra orders til customers, som ordrerne forbindes med via customer_id. Under diagrammet står huskeregler for 1NF, 2NF og 3NF.",
+      "summary": "Gem hvert faktum det rigtige sted, og undgå modstridende rettelser i gentagne oplysninger.",
+      "explanation": [
+        "De viste café-eksempeltabeller er forenklede; normalisering organiserer relationer for at mindske gentagen lagring og problemer ved indsættelse, opdatering og sletning.",
+        "1NF kræver individuelle værdier uden gentagne grupper; i 2NF skal hver ikke-nøgleattribut desuden afhænge af hele hver kandidatnøgle, ikke blot en del af en sammensat nøgle.",
+        "Billedets 3NF-huskeregel handler om at undgå, at en ikke-nøgleattribut bestemmes gennem en anden ikke-nøgleattribut: kundenavnet hører til kunden og ikke til den enkelte ordre.",
+        "Før-tabellen har allerede enkelte værdier og en enkel ordre-nøgle, så før/efter-eksemplet demonstrerer især forbedringen til 3NF; billederne er ikke en fuld formel definition af alle normalformer.",
+        "Efter opdelingen kan kundenavnet ændres ét sted, mens orders.customer_id stadig peger på den relevante kunde med en fremmednøgle."
+      ],
+      "sql": "CREATE TABLE normalized_customers (\n    id integer PRIMARY KEY,\n    name text NOT NULL\n);\nCREATE TABLE normalized_orders (\n    id integer PRIMARY KEY,\n    customer_id integer NOT NULL REFERENCES normalized_customers(id)\n);",
+      "sources": [
+        {
+          "label": "Microsoft Learn · Normalisering af databaser",
+          "href": "https://learn.microsoft.com/en-us/troubleshoot/microsoft-365-apps/access/database-normalization-description"
+        },
+        {
+          "label": "PostgreSQL 16 · Nøgler og fremmednøgler",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        }
+      ],
+      "text": [
+        "H1",
+        "NORMALISERING",
+        "FØR",
+        "EFTER",
+        "orders",
+        "id",
+        "customer_id",
+        "name",
+        "101",
+        "102",
+        "1",
+        "Asta",
+        "Samme navn gentages",
+        "customers",
+        "1NF",
+        "Én værdi pr. felt",
+        "2NF",
+        "Afhænger af hele nøglen",
+        "3NF",
+        "Ingen ikke-nøgle-mellemled",
+        "Mindre gentagelse. Færre fejl ved rettelser."
+      ],
+      "prompt": "Use case: scientific-educational. Make ONE native landscape3:2 Danish infographic,1536x1024 or larger, opaque warm cream paper. Large navy title \"NORMALISERING\", small gold \"H1\" badge. Warm hand-painted editorial illustration, navy/teal/gold, generous whitespace and crisp readable type, NOT3D, NOTclay, no logos or screenshot.\nImage reference is Raymond identity/style only. Preserve the same blue elephant professor, round bronze glasses, brown eyes, tuft and curled trunk, beige knitted cardigan, blue shirt, dark trousers, book/wooden pointer. Put him along the lower right,20-25% of the composition, pointing kindly at the improved model. Teaching diagrams dominate.\nUpper half: a clearly labelled \"FØR\" example with one table called \"orders\", columns \"id | customer_id | name\" and exactly two rows \"101 | 1 | Asta\" and \"102 | 1 | Asta\". Gold circles around the two identical Asta cells and a small warning caption \"Samme navn gentages\".\nA large arrow leads to \"EFTER\": two separate tables. \"customers\" columns \"id | name\", one row \"1 | Asta\". \"orders\" columns \"id | customer_id\", two rows \"101 | 1\", \"102 | 1\". A clear relationship arrow from orders.customer_id to customers.id. No customer name duplicated in the improved orders table.\nLower teaching strip contains three large numbered cards with exactly these concise labels:\n\"1NF\" then \"Én værdi pr. felt\".\n\"2NF\" then \"Afhænger af hele nøglen\".\n\"3NF\" then \"Ingen ikke-nøgle-mellemled\".\nRaymond stands beside the strip, not covering text. Bottom navy sentence: \"Mindre gentagelse. Færre fejl ved rettelser.\"\nRender all Danish accents and identifiers exactly. The before/after example mainly demonstrates3NF; do not falsely mark the starting atomic table as violating1NF. Do not invent additional data, code or labels.",
+      "sourceArtifact": "exec-76bfa889-81e9-47bc-b6a7-862b016b9308.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "09-views-og-rettigheder",
+      "title": "Views og rettigheder",
+      "stage": "H1",
+      "objectives": [
+        9,
+        10
+      ],
+      "image": "/images/characters/raymond/infographics/09-views-og-rettigheder.png",
+      "alt": "Raymond viser et products-udsnit med name, price og cost_price, et menu-view med kun name og price samt SELECT-adgang til rollen cafe_reader.",
+      "summary": "Gem en forespørgsel som view, og giv roller præcis den nødvendige adgang.",
+      "explanation": [
+        "Et almindeligt PostgreSQL-view gemmer en forespørgselsdefinition og beregner resultatet ved brug; det er ikke en selvstændig kopi af tabellens data.",
+        "De viste produkter og priser er forenklede café-eksempeltabeller, hvor menu udelader den interne cost_price-kolonne.",
+        "GRANT SELECT på et view kan indgå i mindste privilegium, men et view er ikke automatisk en sikkerhedsgrænse: schema-adgang, øvrige grants, view-ejerskab og relevante sikkerhedsindstillinger skal planlægges og testes.",
+        "Brug særskilte roller og kontrollér også adgang direkte til basetabellen; PostgreSQLs security_invoker- og security_barrier-valg har forskellige formål og bør ikke forveksles.",
+        "Oprettelse af roller og tildeling af rettigheder hører til en database, du administrerer, og skal ikke forventes at virke i H1-sitets begrænsede elev-sandbox."
+      ],
+      "sql": "CREATE VIEW menu AS\nSELECT name, price\nFROM products;\n\n-- Kræver en eksisterende rolle og ret til at tildele adgang.\nGRANT SELECT ON menu TO cafe_reader;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · CREATE VIEW og sikkerhedsvalg",
+          "href": "https://www.postgresql.org/docs/16/sql-createview.html"
+        },
+        {
+          "label": "PostgreSQL 16 · GRANT",
+          "href": "https://www.postgresql.org/docs/16/sql-grant.html"
+        }
+      ],
+      "text": [
+        "H1",
+        "VIEWS OG RETTIGHEDER",
+        "products",
+        "name",
+        "price",
+        "cost_price",
+        "Kaffe",
+        "30",
+        "10",
+        "Te",
+        "25",
+        "8",
+        "VIEW",
+        "menu",
+        "cafe_reader",
+        "GRANT SELECT",
+        "Mindste rettighed",
+        "CREATE VIEW menu AS",
+        "SELECT name, price",
+        "FROM products;",
+        "Gemmer forespørgslen, ikke en kopi af data.",
+        "Adgang skal konfigureres og testes."
+      ],
+      "prompt": "Use case: scientific-educational. Generate ONE finished landscape3:2 Danish SQL teaching infographic, native1536x1024+, opaque warm cream paper. Use navy large type, muted teal panels and warm gold arrows. Crisp readable text, spacious4-part layout, no screenshot, no logo, no3D or clay.\nUse reference ONLY for Raymond's original hand-painted identity: friendly blue elephant professor, brown eyes, bronze round spectacles, tuft, curled trunk, beige knitted cardigan, blue shirt, dark trousers, book and wooden pointer. Raymond about20-25%, teaching from the lower right without covering labels.\nSmall gold badge \"H1\". Large title \"VIEWS OG RETTIGHEDER\".\nTell this exact four-step visual story with few words:\n1.A database table-card called \"products\" with headers \"name | price | cost_price\" and rows \"Kaffe | 30 | 10\" and \"Te | 25 | 8\". The cost_price column is softly shaded to show it is internal.\n2.Arrow to a window-card called \"menu\" with ONLY headers \"name | price\" and rows \"Kaffe | 30\" and \"Te | 25\". Label above this card \"VIEW\". No cost_price column may appear in this card.\n3.A small friendly role/key card \"cafe_reader\", a gold permission key labelled \"GRANT SELECT\" pointing to menu. Caption \"Mindste rettighed\". Do not draw a magic shield that claims a view alone guarantees security.\n4.A clear short explanation box with exact text \"Gemmer forespørgslen, ikke en kopi af data.\"\nAdd ONE large readable SQL example split over three lines exactly:\n\"CREATE VIEW menu AS\"\n\"SELECT name, price\"\n\"FROM products;\"\nFooter sentence exactly: \"Adgang skal konfigureres og testes.\"\nAll literal SQL identifiers and Danish accents must be correct. This is an ordinary non-materialized PostgreSQL16view. The diagram shows deliberate permission setup, not automatic security. Keep everything large and pedagogical, omit other text.",
+      "sourceArtifact": "exec-81655774-864c-4b5a-b5d4-d950a78225c1.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "10-procedurer-og-triggere",
+      "title": "Procedurer og triggere",
+      "stage": "H1",
+      "objectives": [
+        10,
+        12,
+        13
+      ],
+      "image": "/images/characters/raymond/infographics/10-procedurer-og-triggere.png",
+      "alt": "Raymond sammenligner en procedure startet med CALL og en trigger, der automatisk kører en triggerfunktion ved BEFORE UPDATE. Begge spor viser kontrol og mulige fejl.",
+      "summary": "En procedure startes med CALL; en trigger reagerer automatisk på en hændelse.",
+      "explanation": [
+        "I PostgreSQL kaldes en stored procedure med CALL og kan bruge parametre, IF-betingelser og fejlhåndtering til administration eller databehandling.",
+        "En trigger oprettes for en tabelhændelse og udfører en triggerfunktion, ikke en procedure; funktionen returnerer typen trigger.",
+        "Billedets forenklede BEFORE UPDATE-rækketrigger kan undersøge NEW og returnere NEW ved godkendelse eller afbryde med RAISE EXCEPTION ved en ugyldig værdi.",
+        "Brug helst almindelige constraints til simple integritetskrav, og vælg triggere til logik, der faktisk kræver hændelsesstyret behandling.",
+        "Definitionerne nedenfor kræver en træningsdatabase med oprettelsesrettigheder og en products-tabel med id og price; de er ikke en garanti for, at H1-sandkassen tillader at oprette rutiner."
+      ],
+      "sql": "CREATE OR REPLACE PROCEDURE ret_pris(p_id integer, p_price numeric)\nLANGUAGE plpgsql AS $$\nBEGIN\n    IF p_price IS NULL OR p_price <= 0 THEN\n        RAISE EXCEPTION 'Prisen skal være positiv';\n    END IF;\n    UPDATE products SET price = p_price WHERE id = p_id;\nEND;\n$$;\nCALL ret_pris(1, 35);\n\nCREATE OR REPLACE FUNCTION kontroller_pris()\nRETURNS trigger LANGUAGE plpgsql AS $$\nBEGIN\n    IF NEW.price IS NULL OR NEW.price <= 0 THEN\n        RAISE EXCEPTION 'Prisen skal være positiv';\n    END IF;\n    RETURN NEW;\nEND;\n$$;\nCREATE TRIGGER products_price_check\nBEFORE UPDATE ON products\nFOR EACH ROW EXECUTE FUNCTION kontroller_pris();",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · CREATE PROCEDURE",
+          "href": "https://www.postgresql.org/docs/16/sql-createprocedure.html"
+        },
+        {
+          "label": "PostgreSQL 16 · Triggerfunktioner og hændelser",
+          "href": "https://www.postgresql.org/docs/16/trigger-definition.html"
+        },
+        {
+          "label": "PostgreSQL 16 · IF og fejlhåndtering i PL/pgSQL",
+          "href": "https://www.postgresql.org/docs/16/plpgsql-control-structures.html"
+        }
+      ],
+      "text": [
+        "H1",
+        "PROCEDURER OG TRIGGERE",
+        "PROCEDURE",
+        "Du starter den",
+        "CALL",
+        "CALL ret_pris(1, 35);",
+        "Rutine (procedure)",
+        "Parametre",
+        "IF",
+        "Resultat",
+        "Fejl",
+        "TRIGGER",
+        "Kører ved en hændelse",
+        "UPDATE",
+        "BEFORE UPDATE",
+        "Triggerfunktion",
+        "RETURNS trigger",
+        "Godkend række",
+        "Afvis med fejl",
+        "PROCEDURE kaldes. TRIGGER reagerer."
+      ],
+      "prompt": "Use case: scientific-educational. Create ONE original landscape3:2 SQL infographic,1536x1024 or larger. Warm cream paper, hand-painted navy/teal/gold graphic language and large clear Danish type, opaque background. No logo, no screenshots, no clay/3D.\nReference image fixes Raymond identity: blue elephant professor, warm brown eyes, bronze round glasses, small hair tuft, curled trunk, beige knitted cardigan, blue shirt, dark trousers, book and pointer. Raymond about20-25%, friendly teacher at bottom right; never obscure any flow or label.\nLarge navy title \"PROCEDURER OG TRIGGERE\", small gold \"H1\" badge.\nTwo clearly SEPARATE teaching tracks, with visible arrows and no confusing merge:\nLEFT track heading \"PROCEDURE\", subtitle \"Du starter den\".\nShow a hand pressing CALL, leading to one large SQL line exactly \"CALL ret_pris(1, 35);\".\nThen a routine box with labels \"Parametre\" and \"IF\" and two branches labelled \"Resultat\" (green check) and \"Fejl\" (small warning).\nRIGHT track heading \"TRIGGER\", subtitle \"Kører ved en hændelse\".\nShow an \"UPDATE\" row-change card leading automatically to a gear-card labelled \"Triggerfunktion\", with the exact short line \"RETURNS trigger\" beneath it. This is a PostgreSQL trigger FUNCTION, NOT a procedure.\nBelow the gear, split to \"Godkend række\" with a green check and \"Afvis med fejl\" with a warning. A small readable pill says \"BEFORE UPDATE\".\nOne bottom teaching sentence exactly \"PROCEDURE kaldes. TRIGGER reagerer.\"\nKeep the diagram friendly, competent and technically precise: in PostgreSQL a procedure is invoked with CALL, a trigger fires a trigger function automatically; routines may validate parameters and raise errors. Render all text exactly and legibly. No extra paragraphs or fake SQL.",
+      "sourceArtifact": "exec-2b126200-a245-43b1-9411-874a06025637.png",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "id": "11-indeks",
+      "title": "Indeks",
+      "stage": "H2",
+      "objectives": [
+        15
+      ],
+      "image": "/images/characters/raymond/infographics/11-indeks.png",
+      "alt": "Raymond sammenligner sekventiel læsning af mange rækker med et separat indeks, der peger på relevante rækker. Billedet viser også ekstra plads og arbejde ved skrivning.",
+      "summary": "Et indeks er en ekstra adgangsvej til data med både fordele og omkostninger.",
+      "explanation": [
+        "Et indeks kan hjælpe PostgreSQL med at finde udvalgte rækker via en separat struktur i stedet for at læse hele tabellen.",
+        "Et indeks på orders.customer_id kan være relevant for hyppige filtre eller JOIN-betingelser på den kolonne, men forbedringen afhænger af forespørgsler og datamængde.",
+        "Indekset fylder på lageret og skal vedligeholdes, når relevante data indsættes, opdateres eller slettes.",
+        "Et indeks er derfor ikke altid den hurtigste løsning; for små tabeller eller forespørgsler, der læser mange rækker, kan en sekventiel scanning være et godt valg.",
+        "Brug realistiske data, opdateret statistik og EXPLAIN til at kontrollere den valgte plan frem for at oprette et indeks på hver kolonne."
+      ],
+      "sql": "CREATE INDEX idx_orders_customer\nON orders (customer_id);\n\nEXPLAIN SELECT * FROM orders WHERE customer_id = 1;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · Introduktion til indekser",
+          "href": "https://www.postgresql.org/docs/16/indexes-intro.html"
+        },
+        {
+          "label": "PostgreSQL 16 · Undersøg brugen af indekser",
+          "href": "https://www.postgresql.org/docs/16/indexes-examine.html"
+        }
+      ],
+      "text": [
+        "INDEKS",
+        "H2",
+        "UDEN INDEKS",
+        "MED INDEKS",
+        "PRISEN",
+        "Læs mange rækker",
+        "customer_id = 1",
+        "Indeks",
+        "Find relevante rækker",
+        "Ekstra plads",
+        "Mere arbejde ved skrivning",
+        "Tabel",
+        "CREATE INDEX idx_orders_customer",
+        "ON orders (customer_id);",
+        "Et indeks er ikke altid hurtigst.",
+        "Små tabeller kan læses sekventielt."
+      ],
+      "prompt": "Use case: scientific-educational. Make ONE complete landscape3:2 Danish infographic, native1536x1024 or larger, opaque warm light cream paper. Large navy title \"INDEKS\", small warm-gold \"H2\" badge. Warm hand-painted educational book illustration, navy, muted teal, gold. Crisp large Danish typography, enough whitespace, clear visual comparisons. No logo, screenshot, clay or3D.\nThe reference is Raymond's canonical identity/style only: preserve friendly blue elephant professor with bronze round glasses, brown eyes, blue tuft, curled trunk, beige knitted cardigan, blue shirt, dark trousers, book and pointer. Raymond is about20-25% at lower right, pointing at an indexed book like a patient teacher.\nThree explanatory panels:\n\"UDEN INDEKS\": a magnifying glass scans a tall stack of database row-cards one by one; caption \"Læs mange rækker\".\n\"MED INDEKS\": a tidy book-index/directory with branch arrows leads directly to a small group of highlighted matching row-cards; caption \"Find relevante rækker\". Small predicate card exactly \"customer_id = 1\". Do NOT depict the table rows physically rearranging; an index is a separate access path.\n\"PRISEN\": disk-space icon plus a pencil maintaining both a table and a separate index-book. Exact labels \"Ekstra plads\" and \"Mere arbejde ved skrivning\".\nA large readable SQL box across the lower area has precisely TWO lines:\n\"CREATE INDEX idx_orders_customer\"\n\"ON orders (customer_id);\"\nBottom teaching sentence exactly: \"Et indeks er ikke altid hurtigst.\"\nAlso a clear small note, still readable: \"Små tabeller kan læses sekventielt.\"\nNo made-up timings, no guaranteed speedup, no extra data/code/text. All identifiers and Danish accents must be correct.",
+      "sourceArtifact": "exec-c0ede966-8bec-43bd-b5ff-fa990df2c0e1.png",
+      "width": 1536,
+      "height": 1024
+    }
+  ]
+}

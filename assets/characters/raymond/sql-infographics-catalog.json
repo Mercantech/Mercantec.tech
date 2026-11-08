@@ -1,0 +1,608 @@
+{
+  "schemaVersion": 1,
+  "generatedOn": "2026-11-08",
+  "courseId": "16474",
+  "courseName": "Databaseprogrammering",
+  "description": "Introduktioner og fagligt overblik til de 24 oplyste målpinde, ikke dokumentation for opnået kompetence.",
+  "entries": [
+    {
+      "id": "01-databasedesign",
+      "title": "Fra behov til databasedesign",
+      "stage": "H1",
+      "objectives": [
+        1,
+        4,
+        8
+      ],
+      "image": "/images/characters/raymond/infographics/01-databasedesign.png",
+      "alt": "Raymond forklarer vejen fra caféens behov over E/R-diagram og SQL-struktur til dokumentation.",
+      "summary": "Fra behov og E/R-diagram til tabeller og dokumentation.",
+      "explanation": [
+        "Et databasedesign beskriver, hvilke data der skal gemmes, hvordan de hænger sammen, og hvilke regler der beskytter dem.",
+        "E/R-diagrammet dokumenterer entiteter, nøgler og relationer, før de omsættes til tabeller.",
+        "CREATE TABLE, ALTER TABLE og DROP TABLE opretter, ændrer og fjerner tabelstrukturen.",
+        "CREATE DATABASE og DROP DATABASE er databaseadministration, som kræver passende rettigheder og en separat øvedatabase; kommandoerne er blokeret i SQL-H1-sandboxen."
+      ],
+      "sql": "CREATE TABLE suppliers (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  name text NOT NULL\n);\nALTER TABLE suppliers ADD COLUMN city text;\nDROP TABLE suppliers;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: tabeldefinition",
+          "href": "https://www.postgresql.org/docs/16/ddl-basics.html"
+        },
+        {
+          "label": "PostgreSQL 16: CREATE DATABASE",
+          "href": "https://www.postgresql.org/docs/16/sql-createdatabase.html"
+        },
+        {
+          "label": "SQL-H1: DDL og E/R",
+          "href": "https://sql.mercantec.tech/learn/ddl-01-intro"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/01-databasedesign.webp"
+    },
+    {
+      "id": "02-relationer-og-noegler",
+      "title": "Nøgler og relationer",
+      "stage": "H1",
+      "objectives": [
+        1,
+        5
+      ],
+      "image": "/images/characters/raymond/infographics/02-relationer-og-noegler.png",
+      "alt": "Raymond viser primær- og fremmednøgler samt relationerne én til én, én til mange og mange til mange.",
+      "summary": "Nøgler identificerer rækker og forbinder tabeller med den rigtige kardinalitet.",
+      "explanation": [
+        "En primærnøgle identificerer en række entydigt; en fremmednøgle henviser til en nøgle i en anden eller samme tabel.",
+        "I en én-til-mange-relation ligger fremmednøglen på mange-siden, for eksempel orders.customer_id.",
+        "En valgfri én-til-én-udvidelse kræver unikhed på profilens fremmednøgle, så en kunde højst kan have én profil.",
+        "Mange-til-mange modelleres med en koblingstabel; caféens orders er en forenklet ordrelinjemodel mellem kunder og produkter.",
+        "NOT NULL på en fremmednøgle gør henvisningen obligatorisk for barnet, men sikrer ikke, at alle forældrerækker har et barn."
+      ],
+      "sql": "CREATE TABLE customer_profiles (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  customer_id integer NOT NULL UNIQUE REFERENCES customers(id),\n  biography text\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: nøgler og fremmednøgler",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        },
+        {
+          "label": "SQL-H1: kardinalitet",
+          "href": "https://sql.mercantec.tech/learn/relations-02-cardinalitet"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "generationHistory": [
+        {
+          "sourceArtifact": "exec-31dc21fe-dba3-4e9a-9e51-5f053929be82.png",
+          "role": "initial-generation"
+        },
+        {
+          "referenceArtifact": "exec-31dc21fe-dba3-4e9a-9e51-5f053929be82.png",
+          "sourceArtifact": "exec-e4e44d71-aa3d-4d9d-9093-4ee40f7059b2.png",
+          "role": "targeted-correction"
+        }
+      ],
+      "preview": "/images/characters/raymond/infographics/02-relationer-og-noegler.webp"
+    },
+    {
+      "id": "03-constraints",
+      "title": "Regler, der beskytter dine data",
+      "stage": "H1",
+      "objectives": [
+        6,
+        11
+      ],
+      "image": "/images/characters/raymond/infographics/03-constraints.png",
+      "alt": "Raymond viser NOT NULL, UNIQUE, CHECK og FOREIGN KEY med gyldige og ugyldige cafédata.",
+      "summary": "Constraints kontrollerer obligatoriske værdier, unikhed, betingelser og gyldige henvisninger.",
+      "explanation": [
+        "Constraints beskytter reglerne i selve databasen, også når data kommer fra flere forskellige programmer.",
+        "NOT NULL afviser NULL, mens UNIQUE som udgangspunkt gør ikke-NULL-værdier unikke; PostgreSQL tillader normalt flere NULL-værdier under UNIQUE.",
+        "CHECK kontrollerer en betingelse, men et resultat på NULL afvises ikke af CHECK alene; derfor bruges NOT NULL også, når en værdi er obligatorisk.",
+        "En fremmednøgle sikrer, at en angivet ikke-NULL-henvisning findes i den refererede nøgle.",
+        "Vælg sletteadfærd bevidst: automatisk CASCADE er ikke den rigtige løsning i alle datamodeller."
+      ],
+      "sql": "CREATE TABLE cafe_orders (\n  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  customer_id integer REFERENCES customers(id),\n  order_code text NOT NULL UNIQUE,\n  quantity integer NOT NULL CHECK (quantity > 0)\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: constraints",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        },
+        {
+          "label": "SQL-H1: konsistens og constraints",
+          "href": "https://sql.mercantec.tech/learn/constraints-01-intro"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/03-constraints.webp"
+    },
+    {
+      "id": "04-select",
+      "title": "Find de rigtige rækker",
+      "stage": "H1",
+      "objectives": [
+        2
+      ],
+      "image": "/images/characters/raymond/infographics/04-select.png",
+      "alt": "Raymond viser en SELECT-forespørgsel, der finder caféens kunder i Viborg og sorterer dem efter navn.",
+      "summary": "SELECT, WHERE og ORDER BY vælger kolonner, filtrerer rækker og sorterer resultatet.",
+      "explanation": [
+        "FROM angiver datakilden, WHERE filtrerer rækkerne, og SELECT vælger de værdier, der skal vises i resultatet.",
+        "ORDER BY angiver resultatets rækkefølge; uden ORDER BY er rækkefølgen ikke garanteret.",
+        "I SQL-H1-caféens startdata giver eksemplet Anna Jensen, Clara Holm og Freja Olsen fra Viborg i alfabetisk rækkefølge.",
+        "NULL er en manglende eller ukendt værdi og undersøges med IS NULL eller IS NOT NULL, ikke med = NULL.",
+        "Funktioner kan beregne værdier i resultatet, for eksempel upper(name), uden at opdatere de gemte navne."
+      ],
+      "sql": "SELECT name, city\nFROM customers\nWHERE city = 'Viborg'\nORDER BY name;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: SELECT",
+          "href": "https://www.postgresql.org/docs/16/sql-select.html"
+        },
+        {
+          "label": "SQL-H1: WHERE",
+          "href": "https://sql.mercantec.tech/learn/select-03-where"
+        },
+        {
+          "label": "SQL-H1: NULL",
+          "href": "https://sql.mercantec.tech/learn/select-10-null"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/04-select.webp"
+    },
+    {
+      "id": "05-gruppering",
+      "title": "Fra rækker til overblik",
+      "stage": "H1",
+      "objectives": [
+        2
+      ],
+      "image": "/images/characters/raymond/infographics/05-gruppering.png",
+      "alt": "Raymond forklarer GROUP BY, COUNT og forskellen på WHERE og HAVING med caféens varekategorier.",
+      "summary": "GROUP BY og aggregater opsummerer rækker; WHERE og HAVING filtrerer på hver sin side af grupperingen.",
+      "explanation": [
+        "WHERE filtrerer de enkelte rækker, før de bliver samlet i grupper af GROUP BY.",
+        "Aggregater som COUNT, SUM, AVG, MIN og MAX beregner værdier for hver gruppe.",
+        "HAVING filtrerer de færdige grupper, for eksempel så kun kategorier med mindst to varer vises.",
+        "COUNT(*) tæller rækker, mens COUNT(kolonne) tæller de rækker, hvor den valgte kolonne ikke er NULL.",
+        "I caféens startdata er der fire drikke og to madvarer på lager; Bagværk har kun én vare på lager og bliver derfor filtreret fra af HAVING."
+      ],
+      "sql": "SELECT category, COUNT(*) AS antal\nFROM products\nWHERE in_stock = TRUE\nGROUP BY category\nHAVING COUNT(*) >= 2\nORDER BY category;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: grupper og HAVING",
+          "href": "https://www.postgresql.org/docs/16/queries-table-expressions.html#QUERIES-GROUP"
+        },
+        {
+          "label": "SQL-H1: gruppering og aggregering",
+          "href": "https://sql.mercantec.tech/learn/select-05-group"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/05-gruppering.webp"
+    },
+    {
+      "id": "06-aendr-data",
+      "title": "Ændr data med omtanke",
+      "stage": "H1",
+      "objectives": [
+        3,
+        10
+      ],
+      "image": "/images/characters/raymond/infographics/06-aendr-data.png",
+      "alt": "Raymond forklarer INSERT, UPDATE og DELETE samt kontrol og valg mellem COMMIT og ROLLBACK i en transaktion.",
+      "summary": "Tilføj, ret og fjern rækker med tydelig kontrol af mål og resultat.",
+      "explanation": [
+        "INSERT tilføjer rækker, UPDATE ændrer værdier i udvalgte rækker, og DELETE fjerner udvalgte rækker.",
+        "Kontrollér betingelsen med SELECT, og undersøg resultatet af ændringen; et WHERE-udtryk kan stadig være forkert eller ramme flere rækker end forventet.",
+        "BEGIN starter en transaktion, COMMIT afslutter den med at gemme ændringerne, og ROLLBACK afslutter den uden at bevare transaktionens ændringer.",
+        "I eksemplet sættes prisen for produkt id 2 midlertidigt til 37, hvorefter ROLLBACK bevarer den oprindelige pris.",
+        "Ved samtidige ændringer skal den valgte transaktionsisolering og eventuel låsning også passe til forløbet; en SELECT-kontrol alene giver ingen garanti."
+      ],
+      "sql": "BEGIN;\nSELECT id, name, price FROM products WHERE id = 2;\nUPDATE products SET price = 37 WHERE id = 2;\nSELECT id, name, price FROM products WHERE id = 2;\nROLLBACK;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: datamanipulation",
+          "href": "https://www.postgresql.org/docs/16/dml.html"
+        },
+        {
+          "label": "PostgreSQL 16: transaktioner",
+          "href": "https://www.postgresql.org/docs/16/tutorial-transactions.html"
+        },
+        {
+          "label": "SQL-H1: transaktioner",
+          "href": "https://sql.mercantec.tech/learn/advanced-03-transactions"
+        }
+      ],
+      "generationHistory": [
+        {
+          "sourceArtifact": "exec-48ff594c-0161-45e6-943c-8753afd80872.png",
+          "role": "initial-generation"
+        },
+        {
+          "referenceArtifact": "exec-48ff594c-0161-45e6-943c-8753afd80872.png",
+          "prompt": "Preserve this entire finished infographic, Raymond, composition, Danish text, all correct tables and colors. Make ONLY these TWO correctness fixes. 1) In the INSERT example, change the existing Espresso price from25 to28 so that Espresso matches the real cafe seed. Latte remains35 and Kakao remains30. 2) In the transaction flow, the two alternative COMMIT/ROLLBACK branches must originate AFTER the final 'kontrollér' step, not from 'ændring'. Remove the current branch from under 'ændring'. From the rightmost 'kontrollér' box, draw one clean line down to a splitting point below, then two distinct arrows to the existing 'COMMIT: gem' and 'ROLLBACK: fortryd' boxes. The main sequence remains BEGIN -> SELECT -> ændring -> kontrollér. This must visually show that verification occurs before the commit/rollback decision. Keep all wording unchanged. Landscape3:2, nativePNG.",
+          "role": "targeted-correction",
+          "sourceArtifact": "exec-2f179db7-1ba2-48a8-b90e-73cfee82534d.png"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/06-aendr-data.webp"
+    },
+    {
+      "id": "07-join-og-subqueries",
+      "title": "JOIN og subqueries",
+      "stage": "H1",
+      "objectives": [
+        7
+      ],
+      "image": "/images/characters/raymond/infographics/07-join-og-subqueries.png",
+      "alt": "Raymond sammenligner JOIN, LEFT JOIN og EXISTS med to kunder og to ordrer. Asta har to match; Bo bevares kun af LEFT JOIN.",
+      "summary": "Saml rækker med JOIN, bevar venstre side med LEFT JOIN, eller undersøg om et match findes med EXISTS.",
+      "explanation": [
+        "De viste kunder og ordrer er forenklede café-eksempeltabeller; en JOIN kombinerer hvert par af rækker, der opfylder ON-betingelsen, her customers.id = orders.customer_id.",
+        "Asta har to ordrer og giver derfor to resultatrækker, mens Bo uden ordrer udelades af en almindelig INNER JOIN.",
+        "LEFT JOIN bevarer også Bo og udfylder ordre-felterne med NULL, når der ikke findes et match.",
+        "En korreleret EXISTS-subquery returnerer en sand/falsk-værdi for hver ydre række og kan finde kunder med mindst én ordre uden at gentage kunden for hvert match."
+      ],
+      "sql": "SELECT c.name, o.id AS order_id\nFROM customers AS c\nLEFT JOIN orders AS o ON o.customer_id = c.id\nORDER BY c.id, o.id;\n\nSELECT c.name\nFROM customers AS c\nWHERE EXISTS (\n    SELECT 1 FROM orders AS o WHERE o.customer_id = c.id\n);",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · Table expressions og JOIN",
+          "href": "https://www.postgresql.org/docs/16/queries-table-expressions.html"
+        },
+        {
+          "label": "PostgreSQL 16 · EXISTS og subquery expressions",
+          "href": "https://www.postgresql.org/docs/16/functions-subquery.html"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/07-join-og-subqueries.webp"
+    },
+    {
+      "id": "08-normalisering",
+      "title": "Normalisering",
+      "stage": "H1",
+      "objectives": [
+        1,
+        17
+      ],
+      "image": "/images/characters/raymond/infographics/08-normalisering.png",
+      "alt": "Raymond viser normalisering: et gentaget kundenavn flyttes fra orders til customers, som ordrerne forbindes med via customer_id. Under diagrammet står huskeregler for 1NF, 2NF og 3NF.",
+      "summary": "Gem hvert faktum det rigtige sted, og undgå modstridende rettelser i gentagne oplysninger.",
+      "explanation": [
+        "De viste café-eksempeltabeller er forenklede; normalisering organiserer relationer for at mindske gentagen lagring og problemer ved indsættelse, opdatering og sletning.",
+        "1NF kræver individuelle værdier uden gentagne grupper; i 2NF skal hver ikke-nøgleattribut desuden afhænge af hele hver kandidatnøgle, ikke blot en del af en sammensat nøgle.",
+        "Billedets 3NF-huskeregel handler om at undgå, at en ikke-nøgleattribut bestemmes gennem en anden ikke-nøgleattribut: kundenavnet hører til kunden og ikke til den enkelte ordre.",
+        "Før-tabellen har allerede enkelte værdier og en enkel ordre-nøgle, så før/efter-eksemplet demonstrerer især forbedringen til 3NF; billederne er ikke en fuld formel definition af alle normalformer.",
+        "Efter opdelingen kan kundenavnet ændres ét sted, mens orders.customer_id stadig peger på den relevante kunde med en fremmednøgle."
+      ],
+      "sql": "CREATE TABLE normalized_customers (\n    id integer PRIMARY KEY,\n    name text NOT NULL\n);\nCREATE TABLE normalized_orders (\n    id integer PRIMARY KEY,\n    customer_id integer NOT NULL REFERENCES normalized_customers(id)\n);",
+      "sources": [
+        {
+          "label": "Microsoft Learn · Normalisering af databaser",
+          "href": "https://learn.microsoft.com/en-us/troubleshoot/microsoft-365-apps/access/database-normalization-description"
+        },
+        {
+          "label": "PostgreSQL 16 · Nøgler og fremmednøgler",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/08-normalisering.webp"
+    },
+    {
+      "id": "09-views-og-rettigheder",
+      "title": "Views og rettigheder",
+      "stage": "H1",
+      "objectives": [
+        9,
+        10
+      ],
+      "image": "/images/characters/raymond/infographics/09-views-og-rettigheder.png",
+      "alt": "Raymond viser et products-udsnit med name, price og cost_price, et menu-view med kun name og price samt SELECT-adgang til rollen cafe_reader.",
+      "summary": "Gem en forespørgsel som view, og giv roller præcis den nødvendige adgang.",
+      "explanation": [
+        "Et almindeligt PostgreSQL-view gemmer en forespørgselsdefinition og beregner resultatet ved brug; det er ikke en selvstændig kopi af tabellens data.",
+        "De viste produkter og priser er forenklede café-eksempeltabeller, hvor menu udelader den interne cost_price-kolonne.",
+        "GRANT SELECT på et view kan indgå i mindste privilegium, men et view er ikke automatisk en sikkerhedsgrænse: schema-adgang, øvrige grants, view-ejerskab og relevante sikkerhedsindstillinger skal planlægges og testes.",
+        "Brug særskilte roller og kontrollér også adgang direkte til basetabellen; PostgreSQLs security_invoker- og security_barrier-valg har forskellige formål og bør ikke forveksles.",
+        "Oprettelse af roller og tildeling af rettigheder hører til en database, du administrerer, og skal ikke forventes at virke i H1-sitets begrænsede elev-sandbox."
+      ],
+      "sql": "CREATE VIEW menu AS\nSELECT name, price\nFROM products;\n\n-- Kræver en eksisterende rolle og ret til at tildele adgang.\nGRANT SELECT ON menu TO cafe_reader;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · CREATE VIEW og sikkerhedsvalg",
+          "href": "https://www.postgresql.org/docs/16/sql-createview.html"
+        },
+        {
+          "label": "PostgreSQL 16 · GRANT",
+          "href": "https://www.postgresql.org/docs/16/sql-grant.html"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/09-views-og-rettigheder.webp"
+    },
+    {
+      "id": "10-procedurer-og-triggere",
+      "title": "Procedurer og triggere",
+      "stage": "H1",
+      "objectives": [
+        10,
+        12,
+        13
+      ],
+      "image": "/images/characters/raymond/infographics/10-procedurer-og-triggere.png",
+      "alt": "Raymond sammenligner en procedure startet med CALL og en trigger, der automatisk kører en triggerfunktion ved BEFORE UPDATE. Begge spor viser kontrol og mulige fejl.",
+      "summary": "En procedure startes med CALL; en trigger reagerer automatisk på en hændelse.",
+      "explanation": [
+        "I PostgreSQL kaldes en stored procedure med CALL og kan bruge parametre, IF-betingelser og fejlhåndtering til administration eller databehandling.",
+        "En trigger oprettes for en tabelhændelse og udfører en triggerfunktion, ikke en procedure; funktionen returnerer typen trigger.",
+        "Billedets forenklede BEFORE UPDATE-rækketrigger kan undersøge NEW og returnere NEW ved godkendelse eller afbryde med RAISE EXCEPTION ved en ugyldig værdi.",
+        "Brug helst almindelige constraints til simple integritetskrav, og vælg triggere til logik, der faktisk kræver hændelsesstyret behandling.",
+        "Definitionerne nedenfor kræver en træningsdatabase med oprettelsesrettigheder og en products-tabel med id og price; de er ikke en garanti for, at H1-sandkassen tillader at oprette rutiner."
+      ],
+      "sql": "CREATE OR REPLACE PROCEDURE ret_pris(p_id integer, p_price numeric)\nLANGUAGE plpgsql AS $$\nBEGIN\n    IF p_price IS NULL OR p_price <= 0 THEN\n        RAISE EXCEPTION 'Prisen skal være positiv';\n    END IF;\n    UPDATE products SET price = p_price WHERE id = p_id;\nEND;\n$$;\nCALL ret_pris(1, 35);\n\nCREATE OR REPLACE FUNCTION kontroller_pris()\nRETURNS trigger LANGUAGE plpgsql AS $$\nBEGIN\n    IF NEW.price IS NULL OR NEW.price <= 0 THEN\n        RAISE EXCEPTION 'Prisen skal være positiv';\n    END IF;\n    RETURN NEW;\nEND;\n$$;\nCREATE TRIGGER products_price_check\nBEFORE UPDATE ON products\nFOR EACH ROW EXECUTE FUNCTION kontroller_pris();",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · CREATE PROCEDURE",
+          "href": "https://www.postgresql.org/docs/16/sql-createprocedure.html"
+        },
+        {
+          "label": "PostgreSQL 16 · Triggerfunktioner og hændelser",
+          "href": "https://www.postgresql.org/docs/16/trigger-definition.html"
+        },
+        {
+          "label": "PostgreSQL 16 · IF og fejlhåndtering i PL/pgSQL",
+          "href": "https://www.postgresql.org/docs/16/plpgsql-control-structures.html"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/10-procedurer-og-triggere.webp"
+    },
+    {
+      "id": "11-indeks",
+      "title": "Indeks",
+      "stage": "H2",
+      "objectives": [
+        15
+      ],
+      "image": "/images/characters/raymond/infographics/11-indeks.png",
+      "alt": "Raymond sammenligner sekventiel læsning af mange rækker med et separat indeks, der peger på relevante rækker. Billedet viser også ekstra plads og arbejde ved skrivning.",
+      "summary": "Et indeks er en ekstra adgangsvej til data med både fordele og omkostninger.",
+      "explanation": [
+        "Et indeks kan hjælpe PostgreSQL med at finde udvalgte rækker via en separat struktur i stedet for at læse hele tabellen.",
+        "Et indeks på orders.customer_id kan være relevant for hyppige filtre eller JOIN-betingelser på den kolonne, men forbedringen afhænger af forespørgsler og datamængde.",
+        "Indekset fylder på lageret og skal vedligeholdes, når relevante data indsættes, opdateres eller slettes.",
+        "Et indeks er derfor ikke altid den hurtigste løsning; for små tabeller eller forespørgsler, der læser mange rækker, kan en sekventiel scanning være et godt valg.",
+        "Brug realistiske data, opdateret statistik og EXPLAIN til at kontrollere den valgte plan frem for at oprette et indeks på hver kolonne."
+      ],
+      "sql": "CREATE INDEX idx_orders_customer\nON orders (customer_id);\n\nEXPLAIN SELECT * FROM orders WHERE customer_id = 1;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16 · Introduktion til indekser",
+          "href": "https://www.postgresql.org/docs/16/indexes-intro.html"
+        },
+        {
+          "label": "PostgreSQL 16 · Undersøg brugen af indekser",
+          "href": "https://www.postgresql.org/docs/16/indexes-examine.html"
+        }
+      ],
+      "width": 1536,
+      "height": 1024,
+      "preview": "/images/characters/raymond/infographics/11-indeks.webp"
+    },
+    {
+      "id": "12-performance",
+      "title": "Mål før du optimerer",
+      "stage": "H2",
+      "objectives": [
+        16
+      ],
+      "alt": "Raymond sammenligner EXPLAIN og EXPLAIN ANALYZE og viser en PostgreSQL-forespørgsel på caféens ordrer.",
+      "summary": "Læs planen, mål den faktiske kørsel, og sammenlign igen på realistiske data.",
+      "explanation": [
+        "EXPLAIN viser den plan, PostgreSQL forventer at bruge, uden at køre SELECT-forespørgslen.",
+        "EXPLAIN ANALYZE udfører forespørgslen og viser blandt andet faktisk tid og faktiske rækker. BUFFERS tilføjer oplysninger om bufferarbejdet.",
+        "Cost er et estimat i plannerens omkostningsenheder og kan ikke læses som millisekunder.",
+        "Sammenlign samme forespørgsel på realistiske datamængder før og efter en ændring. Cache, statistik og øvrig belastning kan påvirke målingen."
+      ],
+      "sql": "EXPLAIN (ANALYZE, BUFFERS)\nSELECT * FROM orders\nWHERE customer_id = 1;",
+      "sources": [
+        {
+          "label": "PostgreSQL 16: EXPLAIN",
+          "href": "https://www.postgresql.org/docs/16/using-explain.html"
+        },
+        {
+          "label": "SQL-H1: Drift og EXPLAIN",
+          "href": "https://sql.mercantec.tech/learn/drift-02-backup-explain"
+        }
+      ],
+      "image": "/images/characters/raymond/infographics/12-performance.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "cdb72055ee8d820e883f59dc24cf9119812be1cc64cf9b0c6881f47b2095df53",
+      "codeLanguage": "sql",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      },
+      "preview": "/images/characters/raymond/infographics/12-performance.webp"
+    },
+    {
+      "id": "13-orm",
+      "title": "Fra C# til database",
+      "stage": "H2",
+      "objectives": [
+        1,
+        18,
+        19,
+        20
+      ],
+      "alt": "Raymond viser EF Core med to adskilte veje: Code First fra C#-model til database og reverse engineering fra database til model.",
+      "summary": "ORM forbinder kode og database; migrations og reverse engineering løser forskellige opgaver.",
+      "explanation": [
+        "En ORM som Entity Framework Core forbinder objekter i en domain-model med data i en database og kan generere SQL til forespørgsler.",
+        "Med Code First beskriver du modellen i C#. En migration beskriver schemaændringer, som kan anvendes på databasen.",
+        "Reverse engineering læser et eksisterende databaseskema og genererer entity-klasser og en DbContext. Kontroller og tilpas den genererede model.",
+        "De to arbejdsgange er ikke en automatisk, tabsfri synkronisering. Se også SQL, relationer og constraints, når du vurderer modellen."
+      ],
+      "sql": "var customers = await db.Customers\n    .Where(c => c.City == \"Viborg\")\n    .ToListAsync();",
+      "sources": [
+        {
+          "label": "EF Core: Migrations",
+          "href": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/"
+        },
+        {
+          "label": "EF Core: Reverse engineering",
+          "href": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/scaffolding/"
+        }
+      ],
+      "image": "/images/characters/raymond/infographics/13-orm.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ffee225789cecbe46c4196271df9d7d6da464c36354b8476d6e57af7eee70101",
+      "codeLanguage": "csharp",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      },
+      "preview": "/images/characters/raymond/infographics/13-orm.webp"
+    },
+    {
+      "id": "14-dokumentdatabaser",
+      "title": "Relationer eller dokumenter?",
+      "stage": "H3",
+      "objectives": [
+        21,
+        22
+      ],
+      "alt": "Raymond sammenligner cafédata som relaterede tabeller og som et dokument og peger på valg ud fra opslag og konsistens.",
+      "summary": "Vælg datamodel efter de opslag, ændringer og konsistenskrav, din løsning har.",
+      "explanation": [
+        "En relationel database organiserer data i tabeller med nøgler, relationer og constraints. JOIN kan forbinde relevante rækker ved læsning.",
+        "En dokumentdatabase gemmer dokumenter, som kan indeholde indlejrede objekter og lister. Relaterede data kan også forbindes med referencer.",
+        "Indlejring kan passe til data, der ofte læses samlet; mange uafhængige ændringer eller voksende lister kan gøre en anden model mere hensigtsmæssig. Fleksibelt schema kræver stadig validering og omtanke om konsistens.",
+        "ORM er et adgangslag til en database, ikke en tredje databasetype. Sammenlign løsninger ved at måle realistiske adgangsmønstre og tydeliggøre krav til relationer og konsistens."
+      ],
+      "sql": "{\n  \"name\": \"Anna\",\n  \"city\": \"Viborg\"\n}",
+      "sources": [
+        {
+          "label": "MongoDB: Datamodellering",
+          "href": "https://www.mongodb.com/docs/manual/data-modeling/best-practices/"
+        },
+        {
+          "label": "EF Core: Overblik",
+          "href": "https://learn.microsoft.com/en-us/ef/core/"
+        }
+      ],
+      "image": "/images/characters/raymond/infographics/14-dokumentdatabaser.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "b9e8184f4686d6d7d20db9a12fc3123dfce7405a28e2c43898fd3b4ef297c29c",
+      "codeLanguage": "json",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      },
+      "preview": "/images/characters/raymond/infographics/14-dokumentdatabaser.webp"
+    },
+    {
+      "id": "15-databasesikkerhed",
+      "title": "Sikker SQL begynder i appen",
+      "stage": "H3",
+      "objectives": [
+        14,
+        23
+      ],
+      "alt": "Raymond viser parameteriseret SQL, mindst mulige rettigheder, TLS og sikker opbevaring af hemmeligheder.",
+      "summary": "Forebyg SQL injection med parametre, og beskyt adgangen med rettigheder, TLS og sikker opbevaring af hemmeligheder.",
+      "explanation": [
+        "Parameteriserede forespørgsler forebygger SQL injection ved at holde SQL-struktur og værdier adskilt. Parametre kan ikke bruges som tabelnavne eller som vilkårlige SQL-fragmenter.",
+        "I Npgsql er $1 en positionsparameter; dens værdi tilføjes separat til parameterlisten. Parametre kan repræsentere værdier, men ikke vilkårlige tabelnavne eller SQL-fragmenter.",
+        "Giv databaserollen kun de nødvendige rettigheder. Brug TLS til forbindelsen, og opbevar credentials i et sikkert secrets- eller miljøsystem frem for i kildekoden.",
+        "Adgangskoder skal beskyttes med salt og en egnet stærk password-hash. Kryptering af data og forbindelsen løser andre opgaver end password-hashing.",
+        "TLS beskytter data under transport. Kryptering af lagrede data og sikker opbevaring af nøgler er særskilte valg; adgangskoder lagres som saltede, stærke hashes frem for reversibel kryptering."
+      ],
+      "sql": "await using var cmd = dataSource.CreateCommand(\n    \"SELECT name FROM customers WHERE city = $1\");\ncmd.Parameters.Add(new() { Value = city });\nawait using var reader = await cmd.ExecuteReaderAsync();",
+      "sources": [
+        {
+          "label": "Npgsql: Parametre",
+          "href": "https://www.npgsql.org/doc/basic-usage.html#parameters"
+        },
+        {
+          "label": "PostgreSQL 16: Kryptering",
+          "href": "https://www.postgresql.org/docs/16/encryption-options.html"
+        }
+      ],
+      "image": "/images/characters/raymond/infographics/15-databasesikkerhed.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "621655d90bf4f523157a6caf878074075b44bf9685b83fd31698a2cbc8c5c88a",
+      "codeLanguage": "csharp",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      },
+      "preview": "/images/characters/raymond/infographics/15-databasesikkerhed.webp"
+    },
+    {
+      "id": "16-databasetest",
+      "title": "Test databasen med forventninger",
+      "stage": "H3",
+      "objectives": [
+        24
+      ],
+      "alt": "Raymond viser testforløbet startdata, handling og forventning samt gyldige og ugyldige databasehandlinger i en isoleret testdatabase.",
+      "summary": "Test kendte data, ugyldige tilfælde, rollback, rettigheder og samtidighed i en isoleret database.",
+      "explanation": [
+        "Start med kendte testdata, udfør en handling, og sammenlign det faktiske resultat med en præcis forventning.",
+        "Test både gyldige tilfælde og grænsetilfælde: NULL, dubletter, ugyldige fremmednøgler og transaktioner, der skal rulles tilbage.",
+        "Kontroller også rettigheder, migrationer og samtidige ændringer. En afvist handling skal efterlade den forventede konsistente tilstand.",
+        "Brug en isoleret testdatabase, og vælg samme databaseprovider som produktion, når testen skal bevise databasespecifik SQL-semantik og adfærd. En in-memory-erstatning kan ikke bevise alle disse forhold."
+      ],
+      "sql": "BEGIN;\nINSERT INTO customers (name, city)\nVALUES ('Testkunde', 'Viborg');\nSELECT name, city FROM customers\nWHERE name = 'Testkunde';\nROLLBACK;",
+      "sources": [
+        {
+          "label": "EF Core: Valg af teststrategi",
+          "href": "https://learn.microsoft.com/en-us/ef/core/testing/choosing-a-testing-strategy"
+        },
+        {
+          "label": "PostgreSQL 16: Constraints",
+          "href": "https://www.postgresql.org/docs/16/ddl-constraints.html"
+        }
+      ],
+      "image": "/images/characters/raymond/infographics/16-databasetest.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ba614d95f1d600071ec815315a78d44cebdba1a0ea03ef295d12270c315fe9a0",
+      "codeLanguage": "sql",
+      "qa": {
+        "identityReviewed": true,
+        "danishTextReviewed": true,
+        "technicalAccuracyReviewed": true,
+        "nativePngPreserved": true
+      },
+      "preview": "/images/characters/raymond/infographics/16-databasetest.webp"
+    }
+  ]
+}
