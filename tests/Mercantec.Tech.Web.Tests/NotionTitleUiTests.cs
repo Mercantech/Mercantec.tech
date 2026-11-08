@@ -27,6 +27,8 @@ public sealed class NotionTitleUiTests
         var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
         var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
+        page.WaitForAssertion(() => Assert.Empty(page.FindAll(".notion-sidebar-status")), Timeout);
+        var initialContextUpdates = javascript.Editor.SetContexts;
 
         page.Find("#notion-title").Input("  Databaser med Vatson  ");
         Assert.Empty(api.Renames);
@@ -43,7 +45,7 @@ public sealed class NotionTitleUiTests
         Assert.Equal("Relationer og nøgler", page.Find("#notion-title").GetAttribute("value"));
         Assert.Equal(1, javascript.Editor.Mounts);
         Assert.Equal(0, javascript.Editor.Destroys);
-        Assert.Equal(2, javascript.Editor.SetContexts);
+        Assert.Equal(initialContextUpdates + 2, javascript.Editor.SetContexts);
         Assert.Empty(api.Unexpected);
     }
 

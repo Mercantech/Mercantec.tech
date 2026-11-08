@@ -33,6 +33,14 @@ Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer de
 
 Sidelinks og elevrelationer bruger stabile ID'er. Elevfelter bruger MembershipId, også når en Lectio-elev endnu ikke har login. Links giver ikke i sig selv ekstra adgang. Grupper og andre tilknyttede holddata vises fra den aktuelle, autoriserede holdkontekst; selve dokumentteksten fastholdes i udgivelsen.
 
+## Indlæsning ved behov
+
+Et direkte sidelink henter først den valgte sides lette kontekst og åbner editoren. Holdvælger, sidetitler og brødkrummer hentes bagefter, uafhængigt af hinanden. Disse opslag læser ingen andre siders dokumenttilstande. Kladden henter heller ikke sin udgivne snapshot. Sideskift afbryder tidligere forespørgsler; sene svar kan ikke erstatte den aktive side.
+
+Store sidelister virtualiseres, så kun synlige rækker bliver oprettet. Den aktive side er altid tilgængelig øverst. Elev-, gruppe- og afstemningsdata hentes samlet første gang en relevant blok, omtale eller AI-funktion bruger dem. Valgfrie opslag kan prøves igen uden at genstarte dokumentet.
+
+Medieadgang og Mermaid-diagrammer indlæses tæt på visningsområdet. Forespørgsler og periodisk fornyelse standses uden for området og i skjulte faner; igangværende medieafspilning fortsætter. Tegninger bevarer den nødvendige kontrol af ejerskab, men holder pause med polling uden for visningsområdet.
+
 ## Holdgrupper
 
 Grupper gemmes på holdet i learning_groups og learning_group_members. De kan oprettes og redigeres under **Forløb og hold → holdets elever og grupper** samt fra valgte elever i editoren. Markér elever, giv gruppen et navn og vælg **Gem gruppe**. En elev kan være med i flere grupper.

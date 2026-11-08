@@ -44,6 +44,20 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
             .OrderBy(p => p.Title).ToList());
     }
 
+    [HttpGet("holds/{holdId:guid}/navigation")]
+    public async Task<IActionResult> Navigation(Guid holdId, CancellationToken ct, bool publishedOnly = false)
+    {
+        var hold = await access.AccessibleHolds(User).AsNoTracking().Where(h => h.Id == holdId)
+            .Select(h => new { h.Id, h.ForloebId }).SingleOrDefaultAsync(ct);
+        if (hold is null) return NotFound();
+        var manage = !publishedOnly && await access.CanManageAsync(holdId, User, ct);
+        var courses = await db.TeachingCourses.AsNoTracking().Where(c => c.HoldId == holdId
+                && !c.Archived && (manage || c.Published))
+            .Select(c => c.Id).ToArrayAsync(ct);
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new NotionNavigationContext(hold.ForloebId, hold.Id, courses));
+    }
+
     /// <summary>Pages in one sidebar collection and the internal page links between them.</summary>
     [HttpGet("graph/{collectionId:guid}")]
     public async Task<IActionResult> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false)
@@ -174,36 +188,61 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
     }
 
     [HttpGet("pages/{id:guid}/context")]
-    public Task<IActionResult> Context(Guid id, CancellationToken ct) => ReadContext(id, false, ct);
+    public Task<IActionResult> Context(Guid id, CancellationToken ct, bool includeResources = true) => ReadContext(id, false, includeResources, ct);
 
     [HttpGet("pages/{id:guid}/published-context")]
-    public Task<IActionResult> PublishedContext(Guid id, CancellationToken ct) => ReadContext(id, true, ct);
+    public Task<IActionResult> PublishedContext(Guid id, CancellationToken ct, bool includeResources = true) => ReadContext(id, true, includeResources, ct);
 
-    private async Task<IActionResult> ReadContext(Guid id, bool publishedOnly, CancellationToken ct)
+    [HttpGet("holds/{holdId:guid}/editor-resources")]
+    public async Task<IActionResult> EditorResources(Guid holdId, CancellationToken ct, bool publishedOnly = false)
     {
-        var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
-            .Select(p => new { p.Id, p.HoldId, p.Title, p.UpdatedAtUtc, p.PublishedAtUtc, p.PublishedTitle,
-                p.DraftRevision, p.PublishedRevision, p.PublishedState, p.PublishedDrawingsJson }).SingleOrDefaultAsync(ct);
-        if (page is null || !await access.CanAccessAsync(page.HoldId, User, ct)) return NotFound();
-        var edit = !publishedOnly && await access.CanManageAsync(page.HoldId, User, ct);
-        if (!edit && (page.PublishedAtUtc is null || page.PublishedTitle is null || page.PublishedState is not { Length: > 0 })) return NotFound();
-        var members = await db.Memberships.AsNoTracking().Where(m => m.HoldId == page.HoldId)
+        if (!await access.CanAccessAsync(holdId, User, ct)) return NotFound();
+        var edit = !publishedOnly && await access.CanManageAsync(holdId, User, ct);
+        Response.Headers.CacheControl = "no-store";
+        return Ok(await ReadEditorResources(holdId, edit, ct));
+    }
+
+    private async Task<NotionEditorResources> ReadEditorResources(Guid holdId, bool edit, CancellationToken ct)
+    {
+        var members = await db.Memberships.AsNoTracking().Where(m => m.HoldId == holdId)
             .OrderBy(m => m.DisplayName).Select(m => new NotionMember(m.Id, m.DisplayName ?? "Elev"))
             .ToArrayAsync(ct);
-        var polls = await db.PollRounds.AsNoTracking().Where(p => p.HoldId == page.HoldId && (edit || p.State != "draft"))
+        var polls = await db.PollRounds.AsNoTracking().Where(p => p.HoldId == holdId && (edit || p.State != "draft"))
             .OrderByDescending(p => p.CreatedAtUtc)
             .Select(p => new NotionPollReference(p.Id, p.Question, p.State)).Take(100).ToArrayAsync(ct);
-        var links = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == page.HoldId
-            && (edit || p.PublishedAtUtc != null && p.PublishedState != null && p.PublishedTitle != null))
-            .Select(p => new { p.Id, p.Title, p.PublishedTitle, p.ParentPageId }).ToListAsync(ct);
-        var visible = links.Select(p => p.Id).ToHashSet();
-        var pages = links.Select(p => new NotionPageLink(p.Id, edit ? p.Title : p.PublishedTitle!,
-            edit || p.ParentPageId is not Guid parent || visible.Contains(parent) ? p.ParentPageId : null)).ToArray();
+        return new(members, polls);
+    }
+
+    private async Task<IActionResult> ReadContext(Guid id, bool publishedOnly, bool includeResources, CancellationToken ct)
+    {
+        // Establish access before fetching the selected document. Draft editing does not need
+        // the potentially large publication snapshot or drawing manifest at all.
+        var holdId = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
+            .Select(p => (Guid?)p.HoldId).SingleOrDefaultAsync(ct);
+        if (holdId is not Guid hold || !await access.CanAccessAsync(hold, User, ct)) return NotFound();
+        var edit = !publishedOnly && await access.CanManageAsync(hold, User, ct);
+        var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
+            .Select(p => new { p.Id, p.HoldId, p.Title, p.UpdatedAtUtc, p.PublishedAtUtc, p.PublishedTitle,
+                p.DraftRevision, p.PublishedRevision, PublishedState = edit ? null : p.PublishedState,
+                PublishedDrawingsJson = edit ? null : p.PublishedDrawingsJson }).SingleOrDefaultAsync(ct);
+        if (page is null) return NotFound();
+        if (!edit && (page.PublishedAtUtc is null || page.PublishedTitle is null || page.PublishedState is not { Length: > 0 })) return NotFound();
+        var resources = includeResources ? await ReadEditorResources(page.HoldId, edit, ct) : new NotionEditorResources([], []);
+        NotionPageLink[] pages = [];
+        if (includeResources)
+        {
+            var links = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == page.HoldId
+                && (edit || p.PublishedAtUtc != null && p.PublishedState != null && p.PublishedTitle != null))
+                .Select(p => new { p.Id, p.Title, p.PublishedTitle, p.ParentPageId }).ToListAsync(ct);
+            var visible = links.Select(p => p.Id).ToHashSet();
+            pages = links.Select(p => new NotionPageLink(p.Id, edit ? p.Title : p.PublishedTitle!,
+                edit || p.ParentPageId is not Guid parent || visible.Contains(parent) ? p.ParentPageId : null)).ToArray();
+        }
         // Published metadata and bytes come from the same row read; a concurrent re-publication
         // cannot combine an old title with a new document body.
         var state = edit ? null : page.PublishedState;
         Response.Headers.CacheControl = "no-store";
-        return Ok(new NotionPageContext(page.Id, page.HoldId, edit ? page.Title : page.PublishedTitle!, edit, members, polls,
+        return Ok(new NotionPageContext(page.Id, page.HoldId, edit ? page.Title : page.PublishedTitle!, edit, resources.Members, resources.Polls,
             edit ? page.UpdatedAtUtc : page.PublishedAtUtc!.Value, pages, page.PublishedAtUtc,
             edit ? page.DraftRevision : page.PublishedRevision ?? 0, page.PublishedRevision,
             state is null ? null : Convert.ToBase64String(state), page.PublishedTitle,

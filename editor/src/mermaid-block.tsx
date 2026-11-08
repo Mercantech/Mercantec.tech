@@ -7,6 +7,7 @@ import {
   prepareMermaidSource,
 } from './mermaid-utils';
 import { readMermaidPalette, mermaidThemeVariables, prepareMermaidSvg } from './mermaid-theme';
+import { useViewport } from './use-viewport';
 
 /** The sample uses the current platform palette, including seasonal themes. */
 export const DEFAULT_MERMAID_SOURCE = `flowchart TB
@@ -60,7 +61,9 @@ function renderMermaid(source: string, palette: Palette, cancelled: () => boolea
 }
 
 function MermaidPreview({ source, showSourceOnError }: { source: string; showSourceOnError: boolean }) {
+  const [container,nearViewport]=useViewport<HTMLDivElement>();
   const probe = useRef<HTMLSpanElement>(null);
+  const rendered = useRef('');
   const [palette, setPalette] = useState<Palette | null>(null);
   const [svgMarkup, setSvgMarkup] = useState('');
   const [error, setError] = useState('');
@@ -90,10 +93,12 @@ function MermaidPreview({ source, showSourceOnError }: { source: string; showSou
   useEffect(() => {
     const { source: code, repaired } = prepareMermaidSource(source);
     if (!code) {
-      setSvgMarkup(''); setError(''); setRepairNote(''); setRendering(false);
+      rendered.current='';setSvgMarkup(''); setError(''); setRepairNote(''); setRendering(false);
       return;
     }
-    if (!palette) return;
+    if (!palette || !nearViewport) { setRendering(false); return; }
+    const signature=JSON.stringify([source,palette]);
+    if(rendered.current===signature)return;
     let cancelled = false;
     const timer = setTimeout(() => {
       setRendering(true);
@@ -107,23 +112,26 @@ function MermaidPreview({ source, showSourceOnError }: { source: string; showSou
       })().then(({ markup, corrected }) => {
         if (cancelled || markup === null) return;
         setSvgMarkup(markup);
+        rendered.current=signature;
         setError('');
         setRepairNote(corrected ? 'Forhåndsvisningen udelader fri tekst efter en pil. Din Mermaid-kode er bevaret.' : '');
       }).catch(error => {
         if (cancelled) return;
+        rendered.current='';
         setSvgMarkup('');
         setRepairNote('');
         setError(formatMermaidRenderError(error));
       }).finally(() => { if (!cancelled) setRendering(false); });
     }, 160);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [source, palette]);
+  }, [source, palette, nearViewport]);
 
   return <>
     <span ref={probe} className="notion-visually-hidden" aria-hidden="true" />
-    <div className="notion-mermaid-host" role="region" aria-label="Mermaid-diagram" aria-busy={rendering}>
+    <div ref={container} className="notion-mermaid-host" role="region" aria-label="Mermaid-diagram" aria-busy={rendering}>
       {svgMarkup && <div className="notion-mermaid-svg" role="img" aria-label="Diagram" dangerouslySetInnerHTML={{ __html: svgMarkup }} />}
       {rendering && !svgMarkup && <p className="notion-block-hint" role="status">Tegner diagrammet…</p>}
+      {!nearViewport && !svgMarkup && source.trim() && <p className="notion-block-hint">Diagrammet indlæses, når det vises.</p>}
     </div>
     {repairNote && <p className="notion-mermaid-hint">{repairNote}</p>}
     {error && <p className="notion-mermaid-error" role="alert">{error}</p>}

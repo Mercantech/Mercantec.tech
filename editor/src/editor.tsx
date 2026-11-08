@@ -28,6 +28,8 @@ import { EmojiSuggestionMenu } from './emoji-suggestion-menu';
 import { captureEmojiQuery, resolveEmojiQuery } from './emoji-query-target.mjs';
 import { createDrawing } from './drawing-block';
 import { DrawingEnvironmentProvider, requestCreateDrawing, requestOpenDrawing, collectDrawingPublicationData, type DrawingEnvironment } from './drawing-context';
+import { useViewport } from './use-viewport';
+import { ensureEditorResources } from './editor-resources.mjs';
 
 export interface EditorContext {
   domain?: 'notion' | 'notebook';
@@ -53,12 +55,21 @@ export interface EditorContext {
   groups?: {id:string;name:string;members:{id:string;displayName:string}[]}[];
   publishedStateBase64?:string|null;
   publishedAtUtc?:string|null;
+  resourcesLoaded?:boolean;
 }
 type DotnetCallbacks = { invokeMethodAsync: (method: string, ...args: string[]) => Promise<unknown> };
 type Status = 'connecting' | 'synced' | 'saving' | 'saved' | 'offline' | 'error';
 const Context = createContext<EditorContext | null>(null);
 const useData = () => useContext(Context);
 const Runtime = createContext<Session | null>(null);
+function useNotionResources(required=true) {
+  const session=useContext(Runtime);
+  const context=useData();
+  useEffect(()=>{
+    // The host shows a retryable resource error; document persistence stays usable.
+    if(required && session)void ensureEditorResources(session).catch(()=>{});
+  },[session,context?.resourcesLoaded,required]);
+}
 type CustomEmojiRecord = PlatformEmoji;
 
 const createRoster = createReactBlockSpec({
@@ -68,7 +79,9 @@ const createRoster = createReactBlockSpec({
 }, {
   render: ({ block, editor }) => {
     const context = useData();
+    useNotionResources(context?.holdId===block.props.holdId);
     if (!context || block.props.holdId !== context.holdId) return <div className="notion-block-note">Elevlisten tilhører et andet hold. Indsæt en ny med /elever.</div>;
+    if(context.resourcesLoaded===false)return <section className="notion-class-block" contentEditable={false}><p role="status">Henter elever og grupper…</p></section>;
     const visible = selectedMembers(context.members, block.props.membershipIds);
     const editable = context.canEdit && editor.isEditable;
     return <section className="notion-class-block" contentEditable={false} aria-label="Elever fra holdet">
@@ -94,7 +107,9 @@ const createPoll = createReactBlockSpec({
 }, {
   render: ({ block, editor }) => {
     const context = useData();
+    useNotionResources(context?.holdId===block.props.holdId);
     const allowed = context && block.props.holdId === context.holdId;
+    if(allowed && context.resourcesLoaded===false)return <section className="notion-poll-block" contentEditable={false}><p role="status">Henter afstemninger…</p></section>;
     const poll = allowed ? context.polls.find(item => item.id === block.props.pollId) : undefined;
     const url = poll ? pollUrl(poll.id,false,context) : null;
     const presentUrl = poll ? pollUrl(poll.id,true,context) : null;
@@ -125,7 +140,7 @@ const pageMention=createReactInlineContentSpec({type:'pageMention',propSchema:{p
   render:({inlineContent})=>{const context=useData();const page=context?.pages?.find(item=>item.id===inlineContent.props.pageId);return page ? <a className="notion-mention" href={pageUrl(page.id,context?.canEdit===false,context) ?? undefined} contentEditable={false}>▤ {page.title}</a> : <span className="notion-unavailable" contentEditable={false}>Side er ikke tilgængelig</span>;},
 });
 const studentMention=createReactInlineContentSpec({type:'studentMention',propSchema:{holdId:{default:''},membershipId:{default:''}},content:'none'},{
-  render:({inlineContent})=>{const context=useData();const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id,context) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>Elev er ikke tilgængelig</span>;},
+  render:({inlineContent})=>{const context=useData();useNotionResources(context?.holdId===inlineContent.props.holdId);const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id,context) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>{context?.resourcesLoaded===false?'Henter elev…':'Elev er ikke tilgængelig'}</span>;},
 });
 const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{emojiId:{default:''},name:{default:''}},content:'none'},{
   render:({inlineContent})=>{
@@ -145,7 +160,7 @@ const createPageLink=createReactBlockSpec({type:'pageLink',propSchema:{schemaVer
   toExternalHTML:()=> <p>Link til undervisningsside</p>,
 });
 const createGroup=createReactBlockSpec({type:'holdGroup',propSchema:{schemaVersion:{default:1},holdId:{default:''},groupId:{default:''}},content:'none'},{
-  render:({block,editor})=>{const context=useData();const allowed=context?.holdId===block.props.holdId;const group=allowed ? context.groups?.find(item=>item.id===block.props.groupId) : undefined;return <section className="notion-group-block" contentEditable={false} aria-label="Holdgruppe">
+  render:({block,editor})=>{const context=useData();const allowed=context?.holdId===block.props.holdId;useNotionResources(allowed);if(allowed && context.resourcesLoaded===false)return <section className="notion-group-block" contentEditable={false}><p role="status">Henter grupper…</p></section>;const group=allowed ? context.groups?.find(item=>item.id===block.props.groupId) : undefined;return <section className="notion-group-block" contentEditable={false} aria-label="Holdgruppe">
     {allowed && context.canEdit && editor.isEditable && <label>Gruppe<select value={group?.id || ''} onChange={event=>editor.updateBlock(block,{props:{groupId:event.target.value}})}><option value="">Vælg gemt gruppe</option>{context.groups?.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
     {group && context ? <><strong>{group.name}</strong><ul>{group.members.map(member=><li key={member.id}><a href={studentUrl(context.holdId,member.id,context) ?? undefined}>{member.displayName}</a></li>)}</ul></> : <p>Vælg en gruppe fra holdet. Grupper oprettes fra elevlisten eller under holdets grupper.</p>}
   </section>;},
@@ -176,7 +191,10 @@ function UploadConfirmation({file,onConfirm}:{file:File;onConfirm:(confirmed:boo
 }
 function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;pageId:string;kind:string;onUpload:(id:string,kind:string)=>void;editable:boolean}) {
   const session=useContext(Runtime);
+  const [container,nearViewport]=useViewport<HTMLElement>();
   const [access,setAccess]=useState<AssetAccess|null>(null);
+  const accessRef=useRef<AssetAccess|null>(null);
+  const [playing,setPlaying]=useState(false);
   const [error,setError]=useState('');
   const [uploading,setUploading]=useState(false);
   const [uploadProgress,setUploadProgress]=useState({sent:0,total:0});
@@ -193,26 +211,34 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
   const [retry,setRetry]=useState(0);
   useEffect(()=>()=>{uploadController.current?.abort();confirmationResolve.current?.(false);},[]);
   useEffect(()=>{
-    setAccess(null);setError('');setPlaybackError(false);
+    accessRef.current=null;setAccess(null);setError('');setPlaybackError(false);setPlaying(false);
     resumeAt.current=0;resumePlaying.current=false;
-    if(!assetId || !session)return;
+  },[assetId,session]);
+  useEffect(()=>{
+    if(!assetId || !session || (!nearViewport && !playing))return;
     const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
+    const schedule=(result:AssetAccess)=>{
+      const until=Date.parse(result.expiresAtUtc)-Date.now()-30000;
+      timer=setTimeout(()=>void load(),Math.max(15000,Math.min(until,240000)));
+    };
     const load=async()=>{
       try {
         const token=await validToken(session);
+        controller.signal.throwIfAborted();
         const response=await fetch((session.context.domain==='notebook'?'/api/notebooks':'/api/notion')+'/assets/'+encodeURIComponent(assetId)+'/access',{headers:{Authorization:'Bearer '+token},signal:controller.signal,cache:'no-store'});
         if(!response.ok)throw new Error(response.status===404?'Filen er ikke tilgængelig i denne udgave.':'Filen kunne ikke åbnes. Prøv igen.');
         const result=await response.json() as AssetAccess;
         if(controller.signal.aborted)return;
         if(media.current){resumeAt.current=media.current.currentTime;resumePlaying.current=!media.current.paused;}
-        setAccess(result);setError('');
-        const until=Date.parse(result.expiresAtUtc)-Date.now()-30000;
-        timer=setTimeout(()=>void load(),Math.max(15000,Math.min(until,240000)));
+        accessRef.current=result;setAccess(result);setError('');
+        schedule(result);
       }catch(ex){if(!controller.signal.aborted){setAccess(null);setError(ex instanceof Error?ex.message:'Filen kunne ikke åbnes.');}}
     };
-    void load();
+    const current=accessRef.current;
+    if(current && Date.parse(current.expiresAtUtc)>Date.now()+30000)schedule(current);
+    else void load();
     return()=>{controller.abort();if(timer)clearTimeout(timer);};
-  },[assetId,retry,session]);
+  },[assetId,retry,session,nearViewport,playing]);
   const upload=async(file:File)=>{
     if(!session || !editable || uploadController.current)return;
     const controller=new AbortController();uploadController.current=controller;
@@ -233,20 +259,20 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
   };
   const loaded=()=>{if(media.current){media.current.currentTime=resumeAt.current;if(resumePlaying.current)void media.current.play().catch(()=>{});}};
   const accept=kind==='video'?'video/mp4,video/webm':kind==='image'?'image/png,image/jpeg,image/gif,image/webp':kind==='audio'?'audio/mpeg,audio/wav,audio/ogg':'.mp4,.webm,.mp3,.wav,.ogg,.jpg,.jpeg,.png,.gif,.webp,.pdf,.zip,.docx,.xlsx,.pptx,.txt';
-  return <section className="notion-media-block" contentEditable={false} aria-label="Uploadet medie">
+  return <section ref={container} className="notion-media-block" contentEditable={false} aria-label="Uploadet medie">
     {confirmationFile && <UploadConfirmation file={confirmationFile} onConfirm={confirmed=>{setConfirmationFile(null);confirmationResolve.current?.(confirmed);confirmationResolve.current=null;requestAnimationFrame(()=>{if(confirmed)cancelUploadButton.current?.focus();else uploadInput.current?.focus();});}}/>}
     {!assetId && editable && <label className="notion-upload-label">{kind==='video'?'Upload video':kind==='image'?'Upload billede':kind==='audio'?'Upload lyd':'Upload fil'}<input ref={uploadInput} type="file" accept={accept} disabled={uploading} onChange={event=>{const file=event.target.files?.[0];if(file)void upload(file);event.target.value='';}}/><span>{session?.context.domain==='notebook'?'Højst 100 MiB. Filen følger sidens læseadgang.':'Filer over 100 MiB kræver din bekræftelse. Filen deles med holdet, når siden udgives.'}</span></label>}
     {uploading && <div className="notion-upload-progress"><p role="status">{uploadProgress.sent===uploadProgress.total?'Færdiggør upload…':'Uploader '+uploadName+' — '+(uploadProgress.total?Math.floor(uploadProgress.sent/uploadProgress.total*100):0)+' %'} <span>{formatUploadSize(uploadProgress.sent)} af {formatUploadSize(uploadProgress.total)}. Hold siden åben.</span></p><progress max={uploadProgress.total || 1} value={uploadProgress.sent} aria-label="Uploadstatus"/><button ref={cancelUploadButton} type="button" onClick={()=>uploadController.current?.abort()}>Annuller upload</button></div>}
-    {error && <div className="notion-media-error" role="alert">{error}{assetId && <button type="button" onClick={()=>setRetry(value=>value+1)}>Prøv igen</button>}</div>}
+    {error && <div className="notion-media-error" role="alert">{error}{assetId && <button type="button" onClick={()=>{accessRef.current=null;setRetry(value=>value+1);}}>Prøv igen</button>}</div>}
     {access && <>
-      {access.kind==='video' && <video ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}>Din browser understøtter ikke denne video. Hent filen nedenfor.</video>}
-      {access.kind==='audio' && <audio ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}/>}
-      {access.kind==='image' && <img src={access.url} alt={access.originalName} loading="lazy"/>}
+      {access.kind==='video' && <video ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}>Din browser understøtter ikke denne video. Hent filen nedenfor.</video>}
+      {access.kind==='audio' && <audio ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}/>}
+      {access.kind==='image' && <img src={access.url} alt={access.originalName} loading="lazy" decoding="async"/>}
       {access.kind==='pdf' && <a href={access.url} target="_blank" rel="noopener noreferrer">Åbn PDF: {access.originalName}</a>}
       <div className="notion-media-caption"><span>{access.originalName}</span><a href={access.downloadUrl} target="_blank" rel="noopener noreferrer">Hent fil</a></div>
       {playbackError && <p className="notion-block-hint">Mediet kunne ikke afspilles i denne browser. Prøv at hente filen, eller brug MP4/WebM med en browserunderstøttet kodning.</p>}
     </>}
-    {assetId && !access && !error && <p role="status">Åbner fil…</p>}
+    {assetId && !access && !error && <p role="status">{nearViewport?'Åbner fil…':'Mediet indlæses, når det vises.'}</p>}
     {!assetId && !editable && <p>Der er endnu ikke tilføjet en fil.</p>}
     {pageId && session && pageId!==session.context.pageId && <p className="notion-media-error">Denne fil tilhører en anden side. Upload filen igen på denne side, før den udgives.</p>}
   </section>;
@@ -266,6 +292,7 @@ interface Session {
   editor?: Editor; ready: boolean; inSync: boolean; connected: boolean; dirty: boolean; generation: number;
   destroyed: boolean; status: Status; detail: string; presenting: boolean; slides: ReturnType<typeof splitSlides>;
   readOnly:boolean; accessToken:string; pendingUploads:number; drawingDirty?:boolean;
+  resourcesTask?:Promise<void>;
   theme: 'light' | 'dark'; render: () => void; removeListeners: () => void;
 }
 const sessions = new WeakMap<HTMLElement, Session>();
@@ -388,10 +415,12 @@ function ConnectedEditor({session}:{session:Session}) {
     if(blockId && !snapshot)return;
     setAiAnchor(snapshot);
     setAiOpen(true);
+    void ensureEditorResources(session).catch(error=>setEmojiInsertError(error.message));
   };
   const onAiOpenChange=(open:boolean)=>{
     if(open && (!aiAnchor || !editor.getBlock(aiAnchor.id)))setAiAnchor(captureAiTarget(editor));
     setAiOpen(open);
+    if(open)void ensureEditorResources(session).catch(error=>setEmojiInsertError(error.message));
   };
   const placeEmoji=(item:CustomEmojiRecord)=>{
     if(!canEdit(session))return;
@@ -485,7 +514,7 @@ function ConnectedEditor({session}:{session:Session}) {
       requestOpenDrawing(block.id);
     } catch(error) {setEmojiInsertError(error instanceof Error?error.message:'Tegningen kunne ikke oprettes. Prøv igen.');}
   };
-  const mentionItems=[
+  const mentionItems=()=>[
     ...(session.context.pages || []).map(page=>({title:page.title,aliases:['side','underside'],group:'Sider',onItemClick:()=>editor.insertInlineContent([{type:'pageMention',props:{pageId:page.id}},' '])})),
     ...(notebook?[]:session.context.members).map(member=>({title:member.displayName,aliases:['elev'],group:'Elever',onItemClick:()=>editor.insertInlineContent([{type:'studentMention',props:{holdId:session.context.holdId,membershipId:member.id}},' '])})),
   ];
@@ -514,7 +543,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {!session.readOnly && !notebook && (
       <AiHelperPanel
         editor={editor}
-        enabled={enabled}
+        enabled={enabled && session.context.resourcesLoaded!==false}
         pageTitle={session.context.title}
         holdId={session.context.holdId}
         pages={session.context.pages}
@@ -534,7 +563,11 @@ function ConnectedEditor({session}:{session:Session}) {
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
-        <SuggestionMenuController triggerCharacter="@" getItems={async query=>filterSuggestionItems(mentionItems,query)} />
+        <SuggestionMenuController triggerCharacter="@" getItems={async query=>{
+          try { await ensureEditorResources(session); }
+          catch(error) { if(!session.destroyed)setEmojiInsertError(error instanceof Error?error.message:'Eleverne kunne ikke hentes.'); }
+          return session.destroyed?[]:filterSuggestionItems(mentionItems(),query);
+        }} />
         {!notebook && <GridSuggestionMenuController triggerCharacter=":" columns={6} minQueryLength={2} floatingUIOptions={{elementProps:{style:{zIndex:100}}}} gridSuggestionMenuComponent={props=><EmojiSuggestionMenu {...props} onAdd={enabled && createEmoji ? startColonUpload : undefined} />} getItems={async query=>{
           const custom=filterCustomEmojis(emojis,query).map((item:CustomEmojiRecord)=>({
             id:`custom-${item.id}`,

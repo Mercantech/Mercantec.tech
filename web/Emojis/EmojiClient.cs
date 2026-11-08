@@ -14,16 +14,25 @@ public sealed class EmojiClient(HttpClient http)
 {
     public const int MaxBytes = 256 * 1024;
     private IReadOnlyList<CustomEmojiItem>? _cache;
+    private readonly SemaphoreSlim _listLock = new(1, 1);
+    private int _cacheVersion;
 
-    public void Invalidate() => _cache = null;
+    public void Invalidate() { _cache = null; Interlocked.Increment(ref _cacheVersion); }
 
     public async Task<IReadOnlyList<CustomEmojiItem>> List(bool refresh = false, CancellationToken ct = default)
     {
         if (!refresh && _cache is not null) return _cache;
-        using var response = await Send(() => http.GetAsync("emojis", ct), ct);
-        var items = await response.Content.ReadFromJsonAsync<List<CustomEmojiItem>>(ct) ?? [];
-        _cache = items;
-        return items;
+        await _listLock.WaitAsync(ct);
+        try
+        {
+            if (!refresh && _cache is not null) return _cache;
+            var version = _cacheVersion;
+            using var response = await Send(() => http.GetAsync("emojis", ct), ct);
+            var items = await response.Content.ReadFromJsonAsync<List<CustomEmojiItem>>(ct) ?? [];
+            if (version == _cacheVersion) _cache = items;
+            return items;
+        }
+        finally { _listLock.Release(); }
     }
 
     public async Task<EmojiAnalysis> Analyze(Stream content, string fileName, CancellationToken ct = default)

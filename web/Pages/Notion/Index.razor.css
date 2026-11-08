@@ -5,7 +5,8 @@
 .notion-sidebar-heading{display:flex;align-items:center;justify-content:space-between;margin:24px 0 8px}
 .notion-sidebar-heading h2{font-size:14px}
 .notion-page-list{display:grid;gap:4px;max-height:420px;overflow-y:auto}
-.notion-page-row{display:flex;align-items:stretch;gap:2px;min-width:0}
+.notion-page-row{display:flex;align-items:stretch;gap:2px;min-width:0;min-height:52px}
+.notion-sidebar-status{font-size:12px;color:var(--muted);line-height:1.5}
 .notion-page-row .notion-page{flex:1;width:auto}
 .notion-graph-link{flex:none;align-self:center;font-size:10px;font-weight:650;padding:4px 6px;border-radius:5px;color:var(--muted)}
 .notion-graph-link:hover{color:var(--blue);background:var(--paper);text-decoration:none}

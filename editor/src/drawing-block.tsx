@@ -10,6 +10,7 @@ import { EmojiPicker, type PlatformEmoji } from './emoji-picker';
 import { consumeDrawingOpen, useDrawingEnvironment, requestCreateDrawing } from './drawing-context';
 import { DrawingApiError, DrawingParentMismatchError, drawingRequest, type DrawingCandidates, type DrawingContext, type DrawingGrant } from './drawing-api';
 import { DrawingController, loadDrawingSdk } from './drawing-runtime';
+import { useViewport } from './use-viewport';
 
 const Canvas = lazy(() => loadDrawingSdk().then(module => ({ default: module.Excalidraw })));
 const DrawingMenu = lazy(() => loadDrawingSdk().then(module => ({ default: function Menu() {
@@ -130,9 +131,11 @@ export const createDrawing = createReactBlockSpec({
   type: 'drawing', propSchema: { schemaVersion: { default: 1 }, drawingId: { default: '' } }, content: 'none',
 }, {
   render: function DrawingBlock({ block, editor }) {
+    const [container,nearViewport]=useViewport<HTMLElement>();
     const runtime = useDrawingEnvironment();
     const controller = runtime && block.props.drawingId ? runtime.scope.get(block.props.drawingId) : null;
     const [opened, setOpened] = useState(false);
+    const active=useRef(false);active.current=nearViewport || opened;
     const [error, setError] = useState('');
     const [creating, setCreating] = useState(false);
     const [refreshAttempt, setRefreshAttempt] = useState(0);
@@ -205,8 +208,10 @@ export const createDrawing = createReactBlockSpec({
         }
       };
       void refresh();
-      const timer = runtime.env.presentation ? undefined : setInterval(() => { void refresh(); }, 15000);
-      const focus = () => { void refresh(); }; window.addEventListener('focus', focus);
+      // The first reconciliation also repairs pasted drawing ownership. Subsequent
+      // preview refreshes only matter while the block or its dialog is visible.
+      const timer = runtime.env.presentation ? undefined : setInterval(() => { if(active.current)void refresh(); }, 15000);
+      const focus = () => { if(active.current)void refresh(); }; window.addEventListener('focus', focus);
       return () => { cancelled = true; clearInterval(timer); window.removeEventListener('focus', focus); };
     }, [controller, block.id, runtime?.env.presentation, refreshAttempt]);
     const create = async () => {
@@ -217,9 +222,9 @@ export const createDrawing = createReactBlockSpec({
       finally { setCreating(false); }
     };
     const preview = runtime?.env.theme === 'dark' ? controller?.context?.previewDarkUrl : controller?.context?.previewLightUrl;
-    return <section className="notion-drawing-block" contentEditable={false} aria-label="Tegning">
+    return <section ref={container} className="notion-drawing-block" contentEditable={false} aria-label="Tegning">
       <button ref={trigger} type="button" className="notion-drawing-preview" disabled={creating || !runtime} onMouseDown={event => event.preventDefault()} onClick={() => { if (controller) open(); else void create(); }} aria-label={controller ? 'Åbn tegning' : 'Opret tegning'}>
-        {preview ? <img src={preview} alt="Tegning" draggable={false} /> : <span>{creating ? 'Opretter…' : controller ? 'Åbn tegning' : 'Opret tegning'}</span>}
+        {preview ? <img src={preview} alt="Tegning" draggable={false} loading="lazy" decoding="async" /> : <span>{creating ? 'Opretter…' : controller ? 'Åbn tegning' : 'Opret tegning'}</span>}
       </button>
       {error && <p className="notion-drawing-error" role="alert">{error} <button type="button" onClick={() => setRefreshAttempt(value => value + 1)}>Prøv igen</button></p>}
       {opened && controller && runtime?.portalHost && <DrawingDialog controller={controller} portalHost={runtime.portalHost} close={close} discard={() => { close(); runtime.scope.discard(controller); }} />}

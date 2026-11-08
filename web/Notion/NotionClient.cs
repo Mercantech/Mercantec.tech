@@ -9,8 +9,10 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionPageSummary[]> Pages(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?holdId={holdId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGraph> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/graph/{collectionId}?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGraph> HoldGraph(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/holds/{holdId}/graph?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
-    public Task<NotionPageContext> Context(Guid id, CancellationToken ct) => Get<NotionPageContext>($"notion/pages/{id}/context", ct);
-    public Task<NotionPageContext> PublishedContext(Guid id, CancellationToken ct) => Get<NotionPageContext>($"notion/pages/{id}/published-context", ct);
+    public Task<NotionPageContext> Context(Guid id, CancellationToken ct, bool includeResources = true) => Get<NotionPageContext>($"notion/pages/{id}/context?includeResources={includeResources.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionPageContext> PublishedContext(Guid id, CancellationToken ct, bool includeResources = true) => Get<NotionPageContext>($"notion/pages/{id}/published-context?includeResources={includeResources.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionEditorResources> EditorResources(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionEditorResources>($"notion/holds/{holdId}/editor-resources?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionNavigationContext> Navigation(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionNavigationContext>($"notion/holds/{holdId}/navigation?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<NotionGroupView[]>($"notion/holds/{holdId}/groups", ct);
     public Task<NotionHoldMember[]> Members(Guid holdId, CancellationToken ct) => Get<NotionHoldMember[]>($"notion/holds/{holdId}/members", ct);
     public Task<NotionStudentProfile> Student(Guid holdId, Guid memberId, CancellationToken ct) => Get<NotionStudentProfile>($"notion/holds/{holdId}/members/{memberId}", ct);

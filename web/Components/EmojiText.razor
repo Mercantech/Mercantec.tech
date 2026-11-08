@@ -9,7 +9,7 @@
     }
     else
     {
-        <img class="custom-emoji" src="@part.Emoji.ContentUrl" alt="@(string.IsNullOrWhiteSpace(part.Emoji.AltText) ? $":{part.Emoji.Name}:" : part.Emoji.AltText)" title="@($":{part.Emoji.Name}:")" @onerror="Reload" />
+        <img class="custom-emoji" src="@part.Emoji.ContentUrl" loading="lazy" decoding="async" alt="@(string.IsNullOrWhiteSpace(part.Emoji.AltText) ? $":{part.Emoji.Name}:" : part.Emoji.AltText)" title="@($":{part.Emoji.Name}:")" @onerror="Reload" />
     }
 }</span>
 
@@ -39,7 +39,7 @@
     {
         try
         {
-            _parts = EmojiTextParts.Split(Text, await Emojis.List());
+            _parts = Text?.Contains(':') == true ? EmojiTextParts.Split(Text, await Emojis.List()) : [new(Text ?? "", null)];
         }
         catch (EmojiException)
         {

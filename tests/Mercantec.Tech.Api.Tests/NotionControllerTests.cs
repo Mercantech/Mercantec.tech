@@ -122,6 +122,133 @@ public sealed class NotionControllerTests : IAsyncLifetime
             .AuthorizeDocument(new("notion:" + page.Id), default)).DocumentId);
     }
 
+    [Fact]
+    public async Task LightweightDraftContextReadsOnlySelectedPageWithoutPublicationOrHoldResources()
+    {
+        var page = await Create();
+        await AddPage(WeekId, "Anden side", page.Id);
+        await SetDocument(page.Id, [1, 2], new byte[1_000_000], "Udgivet titel");
+        var queries = new ReadQueries();
+        await using var lean = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(connection).AddInterceptors(queries).Options);
+
+        var controller = As(teacher, true, lean);
+        var context = Value<NotionPageContext>(await controller.Context(page.Id, default, includeResources: false));
+
+        Assert.True(context.CanEdit);
+        Assert.Equal(page.Id, context.PageId);
+        Assert.Equal("Introduktion", context.Title);
+        Assert.Null(context.PublishedStateBase64);
+        Assert.Empty(context.Members);
+        Assert.Empty(context.Polls);
+        Assert.Empty(context.Pages!);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+        Assert.Equal(4, queries.Commands.Count);
+        Assert.All(queries.Commands, sql =>
+        {
+            Assert.DoesNotContain(".\"YjsState\"", sql, StringComparison.Ordinal);
+            Assert.DoesNotContain(".\"PublishedState\"", sql, StringComparison.Ordinal);
+            Assert.DoesNotContain(".\"PublishedDrawingsJson\"", sql, StringComparison.Ordinal);
+        });
+        Assert.Equal(2, queries.Commands.Count(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)));
+        Assert.All(queries.Commands.Where(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)),
+            sql => Assert.Contains("WHERE \"n\".\"Id\" =", sql, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task LightweightPublishedContextKeepsSelectedSnapshotAndDoesNotReadOtherPages()
+    {
+        var page = await Create();
+        await AddPage(WeekId, "Anden side", page.Id);
+        await SetDocument(page.Id, [9, 9], [1, 2, 3], "Udgivet titel");
+        var queries = new ReadQueries();
+        await using var lean = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(connection).AddInterceptors(queries).Options);
+
+        var context = Value<NotionPageContext>(await As(teacher, true, lean)
+            .PublishedContext(page.Id, default, includeResources: false));
+
+        Assert.False(context.CanEdit);
+        Assert.Equal("Udgivet titel", context.Title);
+        Assert.Equal(new byte[] { 1, 2, 3 }, Convert.FromBase64String(context.PublishedStateBase64!));
+        Assert.Empty(context.Members);
+        Assert.Empty(context.Polls);
+        Assert.Empty(context.Pages!);
+        Assert.Equal(3, queries.Commands.Count);
+        Assert.All(queries.Commands.Where(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)),
+            sql => Assert.Contains("WHERE \"n\".\"Id\" =", sql, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DeferredEditorResourcesAreScopedAndPublishedPreviewExcludesDraftPolls()
+    {
+        db.PollRounds.Add(new() { Id = Guid.NewGuid(), HoldId = holdId, Question = "Privat afstemning", State = "draft" });
+        await db.SaveChangesAsync();
+
+        var controller = As(teacher, true);
+        var resources = Value<NotionEditorResources>(await controller.EditorResources(holdId, default));
+        Assert.Equal(2, resources.Members.Length);
+        Assert.Contains(resources.Members, m => m.Id == shadowId);
+        Assert.Equal(2, resources.Polls.Length);
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+        Assert.Equal("Klar?", Assert.Single(Value<NotionEditorResources>(await As(teacher, true)
+            .EditorResources(holdId, default, publishedOnly: true)).Polls).Title);
+        Assert.Equal("Klar?", Assert.Single(Value<NotionEditorResources>(await As(student)
+            .EditorResources(holdId, default)).Polls).Title);
+        Assert.IsType<NotFoundResult>(await As(outsider, true).EditorResources(holdId, default));
+        Assert.IsType<NotFoundResult>(await As(teacher, true).EditorResources(otherHoldId, default));
+    }
+
+    [Fact]
+    public async Task NavigationReadsOnlyAccessibleHoldAndVisibleCourseIds()
+    {
+        TeachingCourse Course(Guid hold, bool published = false, bool archived = false) => new()
+            { Id = Guid.NewGuid(), HoldId = hold, Title = "Forløb", Published = published, Archived = archived };
+        var published = Course(holdId, true);
+        var draft = Course(holdId);
+        db.TeachingCourses.AddRange(published, draft, Course(holdId, true, true), Course(otherHoldId, true));
+        await db.SaveChangesAsync();
+        var queries = new ReadQueries();
+        await using var lean = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(connection).AddInterceptors(queries).Options);
+        var controller = As(teacher, true, lean);
+
+        var navigation = Value<NotionNavigationContext>(await controller.Navigation(holdId, default));
+
+        Assert.Equal(holdId, navigation.HoldId);
+        Assert.Equal(await db.Hold.Where(h => h.Id == holdId).Select(h => h.ForloebId).SingleAsync(), navigation.WorkspaceId);
+        Assert.Equal(new HashSet<Guid> { published.Id, draft.Id }, navigation.CourseIds.ToHashSet());
+        Assert.Equal("no-store", controller.Response.Headers.CacheControl.ToString());
+        Assert.Equal(3, queries.Commands.Count);
+        Assert.DoesNotContain(queries.Commands, sql => sql.Contains("notion_pages", StringComparison.Ordinal));
+        Assert.Equal(published.Id, Assert.Single(Value<NotionNavigationContext>(await As(teacher, true)
+            .Navigation(holdId, default, publishedOnly: true)).CourseIds));
+        Assert.Equal(published.Id, Assert.Single(Value<NotionNavigationContext>(await As(student)
+            .Navigation(holdId, default)).CourseIds));
+        Assert.IsType<NotFoundResult>(await As(outsider, true).Navigation(holdId, default));
+        Assert.IsType<NotFoundResult>(await As(teacher, true).Navigation(otherHoldId, default));
+    }
+
+    [Fact]
+    public async Task WorkspacePageOverviewNeverMaterializesDocumentBinaries()
+    {
+        var page = await Create();
+        await SetDocument(page.Id, new byte[1_000_000], new byte[1_000_000], "Udgivet titel");
+        var workspaceId = await db.Hold.Where(h => h.Id == holdId).Select(h => h.ForloebId).SingleAsync();
+        var queries = new ReadQueries();
+        await using var lean = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite(connection).AddInterceptors(queries).Options);
+        var controller = new HoldWorkspaceController(lean, new(lean)) { ControllerContext = As(teacher, true).ControllerContext };
+
+        var workspace = Value<HoldWorkspaceView>(await controller.Get(workspaceId, false, default));
+
+        Assert.Equal(page.Id, Assert.Single(workspace.Pages).Id);
+        var sql = Assert.Single(queries.Commands, sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal));
+        Assert.DoesNotContain("YjsState", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("PublishedState", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("PublishedDrawingsJson", sql, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -620,6 +747,17 @@ public sealed class NotionControllerTests : IAsyncLifetime
     }
 
     private static (Guid From, Guid To)[] Edges(NotionGraph graph) => graph.Edges.Select(e => (e.FromId, e.ToId)).ToArray();
+
+    private sealed class ReadQueries : DbCommandInterceptor
+    {
+        public List<string> Commands { get; } = [];
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            Commands.Add(command.CommandText);
+            return ValueTask.FromResult(result);
+        }
+    }
 
     private sealed class BeforePublicationUpdate(Func<DbCommand, Task> before) : DbCommandInterceptor
     {

@@ -16,8 +16,9 @@ else
     <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Mine hold</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>Holdets indhold</span></nav><h1>Holdets indhold</h1></div></header>
     @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
     @if (_notice is not null) { <p class="notion-notice" role="status">@_notice</p> }
+    @if (_resourcesError is not null) { <div class="notion-error" role="alert">@_resourcesError <button class="secondary" @onclick="async () => await EnsureNotionResources()">Hent holddata igen</button></div> }
     @if (_loading) { <p role="status">Henter holdets indhold…</p> }
-    else if (_holds.Length == 0)
+    else if (_holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty)
     {
         <section class="panel notion-welcome"><h2>Du er ikke tilknyttet et hold endnu</h2><p>Når du bliver tilføjet til et hold, vises dets udgivne indhold her.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
     }
@@ -29,14 +30,18 @@ else
         }
         <div class="notion-workspace">
             <aside class="notion-sidebar" aria-label="Holdets dokumenter">
-                <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@_busy">@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+                <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@(_busy || !_holdsLoaded)">@if (!_holdsLoaded) { <option value="@_holdId">Henter hold…</option> }@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
                 <nav class="notion-sidebar-links" aria-label="Holdets oversigt"><a class="notion-hold-link" href="@WorkspaceHref("groups")">Elever og grupper</a><a class="notion-hold-link" href="@HoldGraphHref">Graf for holdet</a></nav>
                 <div class="notion-sidebar-heading"><h2>Sider</h2>@if (Authoring) { <button class="secondary" @onclick="() => BeginCreate(false)" disabled="@_busy" aria-label="Opret dokument">+</button> }</div>
+                @if (_navigationLoading) { <p class="notion-sidebar-status" role="status">Henter sideoversigt…</p> }
+                @if (_navigationError is not null) { <p class="notion-sidebar-status" role="status">@_navigationError <button class="secondary" @onclick="RetryNavigation" disabled="@_navigationLoading">Prøv oversigten igen</button></p> }
+                @if (_pageRows.Count > 60 && _activeRow is not null) { @PageRowContent(_activeRow) }
                 <nav class="notion-page-list" aria-label="Dokumentsider">
-                    @foreach (var item in OrderedPages())
+                    @if (_pageRows.Count > 60)
                     {
-                        <div class="notion-page-row" style="--page-depth:@item.Depth"><button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span><EmojiText Text="@item.Page.Title" />@if (Authoring) { <small>@(item.Page.PublishedAtUtc is null ? "Kladde" : item.Page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet")</small> }</span></button>@if (IsCollection(item.Page)) { <a class="notion-graph-link" href="@GraphHref(item.Page.Id)" title="Graf for kollektionen" aria-label="@($"Graf for {item.Page.Title}")">Graf</a> }</div>
+                        <Virtualize Items="_virtualRows" Context="item" ItemSize="52" OverscanCount="4">@PageRowContent(item)</Virtualize>
                     }
+                    else { @foreach (var item in _pageRows) { @PageRowContent(item) } }
                 </nav>
                 @if (_creating && Authoring)
                 {
@@ -58,9 +63,13 @@ else
                     @if (_statusDetail.Length > 0 && _status is "error" or "offline") { <p class="notion-connection-warning" role="alert">@_statusDetail</p> }
                     @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" /></form> @if (_title.Contains(':')) { <p class="notion-title-preview" aria-label="Sådan vises titlen"><EmojiText Text="@_title" /></p> } }
                     else { <h2 class="notion-published-title"><EmojiText Text="@_current.Title" /></h2> }
-                    <div class="notion-editor-root" @ref="_editorElement"></div>
+                    <div @key="(_current.PageId, _generation)" class="notion-editor-root" @ref="_editorElement"></div>
                 }
             </section>
         </div>
     }
+}
+
+@code {
+    private RenderFragment PageRowContent(PageRow item) => @<div @key="item.Page.Id" class="notion-page-row" style="--page-depth:@item.Depth"><button class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><span aria-hidden="true">▤</span><span><EmojiText Text="@item.Page.Title" />@if (Authoring) { <small>@(item.Page.PublishedAtUtc is null ? "Kladde" : item.Page.HasUnpublishedChanges ? "Ny kladde" : "Udgivet")</small> }</span></button>@if (IsCollection(item.Page)) { <a class="notion-graph-link" href="@GraphHref(item.Page.Id)" title="Graf for kollektionen" aria-label="@($"Graf for {item.Page.Title}")">Graf</a> }</div>;
 }

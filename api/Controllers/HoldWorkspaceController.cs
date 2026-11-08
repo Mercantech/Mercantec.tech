@@ -29,7 +29,9 @@ public sealed class HoldWorkspaceController(AppDbContext db, CourseAccess access
         var actualManage = await access.CanManageAsync(hold.Id, User, ct);
         var manage = !publishedOnly && actualManage;
         var pages = await db.NotionPages.AsNoTracking()
-            .Where(p => p.HoldId == hold.Id && (manage || p.PublishedAtUtc != null)).ToListAsync(ct);
+            .Where(p => p.HoldId == hold.Id && (manage || p.PublishedAtUtc != null))
+            .Select(p => new { p.Id, p.Title, p.PublishedTitle, p.UpdatedAtUtc, p.PublishedAtUtc,
+                p.PublishedRevision, p.DraftRevision }).ToListAsync(ct);
         var questQuery = db.LearningQuests.AsNoTracking().Where(q => q.HoldId == hold.Id && (manage || q.Published));
         if (!actualManage) questQuery = new QuestAudienceAccess(db).Readable(questQuery, sub);
         var quests = await questQuery.ToListAsync(ct);
