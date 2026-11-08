@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { NativeAiLauncher } from './ai-native-launcher';
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs, trackPosition, type BlockNoteEditor } from '@blocknote/core';
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu, SuggestionMenu } from '@blocknote/core/extensions';
 import { TextSelection } from 'prosemirror-state';
@@ -428,6 +429,7 @@ function ConnectedEditor({session}:{session:Session}) {
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<AiNativeTarget|null>(null);
   const aiLayoutRoot=useMemo(()=>session.element.closest<HTMLElement>('.notion-workspace'),[session]);
+  const aiToolbarSlot=useMemo(()=>aiLayoutRoot?.querySelector<HTMLElement>('.notion-ai-toggle-slot')??null,[aiLayoutRoot]);
   const [layoutFocused,setLayoutFocused]=useState(()=>aiLayoutRoot?.dataset.focusMode==='true');
   useEffect(()=>{
     if(!aiLayoutRoot)return;
@@ -581,7 +583,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
     <div className="native-ai-workspace" data-ai-open={!session.readOnly && !notebook && aiVisible}>
     <div className="native-ai-document">
-    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button ref={aiLauncher} type="button" aria-expanded={aiVisible} aria-controls={aiPanelId} aria-label={aiVisible?'Skjul AI-panelet':'Åbn AI-panelet'} disabled={!enabled} onClick={()=>{if(aiVisible)closeAi();else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiVisible?'Skjul':'Skrivepartner'}</span></button></div>}
+    {!session.readOnly && !notebook && <NativeAiLauncher slot={aiToolbarSlot} buttonRef={aiLauncher} panelId={aiPanelId} visible={aiVisible} enabled={enabled} onToggle={()=>{if(aiVisible)closeAi();else openAi();}} />}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false} emojiPicker={false}>
       {!session.readOnly && <>
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}{!notebook && <button type="button" className="native-ai-selection-button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled}>✦ AI</button>}</FormattingToolbar>} />

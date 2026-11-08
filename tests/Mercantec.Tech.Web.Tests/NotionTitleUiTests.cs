@@ -20,6 +20,60 @@ public sealed class NotionTitleUiTests
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
     [Fact]
+    public async Task Toolbar_groups_title_publication_focus_and_the_persistent_AI_host_without_remounting()
+    {
+        using var api = new TitleApi();
+        using var context = await CreateContext(api);
+        var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
+        var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
+        page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
+        var toolbar = page.Find(".notion-document-toolbar");
+
+        Assert.NotNull(toolbar.QuerySelector(".notion-title-form #notion-title"));
+        Assert.NotNull(toolbar.QuerySelector(".notion-toolbar-nav [aria-label='Fokus']"));
+        Assert.NotNull(toolbar.QuerySelector(".notion-toolbar-actions .notion-ai-toggle-slot"));
+        Assert.NotNull(toolbar.QuerySelector(".notion-document-menu [aria-label='Brødkrummer']"));
+        Assert.Contains("Præsenter", toolbar.QuerySelector(".notion-document-menu")!.TextContent);
+        Assert.Equal("Starttitel", toolbar.QuerySelector("h1.notion-visually-hidden")!.TextContent);
+        Assert.Empty(page.FindAll(".notion-publishing, .notion-document > .notion-title-form, .notion-document > .notion-title-preview"));
+        Assert.Equal("Udgiv", Button(page, "Udgiv til holdet").TextContent.Trim());
+        Assert.True(Button(page, "Udgiv til holdet").HasAttribute("disabled"));
+
+        await page.InvokeAsync(() => page.Instance.OnNotionStatus("saved", ""));
+        Assert.False(Button(page, "Udgiv til holdet").HasAttribute("disabled"));
+        page.Find("#notion-title").Input("  SQL :vatson:  ");
+        Assert.Single(page.FindAll(".notion-document-toolbar .notion-title-preview"));
+        await Button(page, "Udgiv til holdet").ClickAsync(new MouseEventArgs());
+
+        Assert.Equal("SQL :vatson:", Assert.Single(api.PublishedTitles));
+        Assert.Equal("SQL :vatson:", page.Find("#notion-title").GetAttribute("value"));
+        Assert.Equal("Opdatér", Button(page, "Opdatér udgivelsen").TextContent.Trim());
+        Assert.Contains("Se udgivet", page.Find(".notion-document-menu").TextContent);
+        Assert.Contains("Træk udgivelse tilbage", page.Find(".notion-document-menu").TextContent);
+        Assert.Single(page.FindAll(".notion-document-toolbar .notion-ai-toggle-slot"));
+        Assert.Equal(1, javascript.Editor.Mounts);
+        Assert.Equal(0, javascript.Editor.Destroys);
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
+    public async Task Read_only_toolbar_shows_the_title_without_authoring_controls()
+    {
+        using var api = new TitleApi { CanEdit = false, PublishedAt = DateTimeOffset.UtcNow };
+        using var context = await CreateContext(api);
+        var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
+        var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
+        page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
+
+        Assert.Equal("Starttitel", page.Find(".notion-document-toolbar .notion-toolbar-title").TextContent);
+        Assert.Empty(page.FindAll(".notion-title-form, .notion-publish-button"));
+        Assert.Single(page.FindAll(".notion-document-toolbar .notion-ai-toggle-slot"));
+        Assert.DoesNotContain("Træk udgivelse tilbage", page.Find(".notion-document-menu").TextContent);
+        Assert.Equal(0, javascript.Editor.Destroys);
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
     public async Task Blur_and_form_submission_save_the_title_without_remounting_the_document()
     {
         using var api = new TitleApi();
@@ -136,7 +190,7 @@ public sealed class NotionTitleUiTests
         });
 
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<NotionPage> page, string label)
-        => page.FindAll("button").Single(button => button.TextContent.Trim() == label);
+        => page.FindAll("button").Single(button => (button.GetAttribute("aria-label") ?? button.TextContent.Trim()) == label);
 
     private sealed class TitleJavascript(IJSRuntime original) : IJSRuntime
     {
@@ -163,7 +217,7 @@ public sealed class NotionTitleUiTests
             => InvokeAsync<TValue>(id, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string id, CancellationToken ct, object?[]? args)
         {
-            if (id == "mount") Mounts++;
+            if (id is "mount" or "mountReadOnly") Mounts++;
             if (id == "destroy") Destroys++;
             if (id == "setContext") SetContexts++;
             if (id == "hasUnsavedChanges") return ValueTask.FromResult((TValue)(object)false);
@@ -183,14 +237,15 @@ public sealed class NotionTitleUiTests
         public Guid PageId { get; } = Guid.NewGuid();
         private Guid HoldId { get; } = Guid.NewGuid();
         public string Title { get; private set; } = "Starttitel";
+        public bool CanEdit { get; init; } = true;
+        public DateTimeOffset? PublishedAt { get; set; }
         public bool FailRenames { get; set; }
         public TaskCompletionSource<bool>? FirstRenameGate { get; init; }
         public ConcurrentQueue<string> Renames { get; } = new();
         public ConcurrentQueue<string> PublishedTitles { get; } = new();
         public ConcurrentQueue<string> Unexpected { get; } = new();
         private int _renameCount;
-        private DateTimeOffset? _publishedAt;
-        private NotionPageSummary Summary => new(PageId, HoldId, Title, null, DateTimeOffset.UtcNow, _publishedAt);
+        private NotionPageSummary Summary => new(PageId, HoldId, Title, null, DateTimeOffset.UtcNow, PublishedAt);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
@@ -209,7 +264,7 @@ public sealed class NotionTitleUiTests
             if (request.Method == HttpMethod.Post && path == $"/api/notion/pages/{PageId}/publish")
             {
                 PublishedTitles.Enqueue(Title);
-                _publishedAt = DateTimeOffset.UtcNow;
+                PublishedAt = DateTimeOffset.UtcNow;
                 return Json(Summary);
             }
             if (request.Method == HttpMethod.Get)
@@ -221,8 +276,8 @@ public sealed class NotionTitleUiTests
                     "/api/references/backlinks" => Array.Empty<ResolvedReference>(),
                     "/api/notion/pages" => new[] { Summary },
                     var p when p == $"/api/notion/holds/{HoldId}/groups" => Array.Empty<NotionGroupView>(),
-                    var p when p == $"/api/notion/pages/{PageId}/context" => new NotionPageContext(PageId, HoldId, Title, true, [], [], DateTimeOffset.UtcNow,
-                        [new(PageId, Title, null)], _publishedAt, DraftRevision: 3),
+                    var p when p == $"/api/notion/pages/{PageId}/context" => new NotionPageContext(PageId, HoldId, Title, CanEdit, [], [], DateTimeOffset.UtcNow,
+                        [new(PageId, Title, null)], PublishedAt, DraftRevision: 3),
                     _ => null
                 };
                 if (body is not null) return Json(body);

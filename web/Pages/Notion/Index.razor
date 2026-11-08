@@ -50,12 +50,63 @@ else
             </aside>
             <section class="notion-document" aria-label="@(IsEditing ? "Dokumenteditor" : "Udgivet dokument")">
                 <div class="notion-document-toolbar">
-                    <header class="page-title notion-ide-heading"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>@(_holdId == Guid.Empty ? "Teori" : "Holdets indhold")</span></nav><h1>@(_holdId == Guid.Empty ? "Teorinotesbog" : "Holdets indhold")</h1></div></header>
-                    <div class="notion-document-location"><button type="button" class="notion-sidebar-toggle" aria-controls="notion-sidebar" aria-expanded="@(_sidebarOpen && !_workspaceFocused ? "true" : "false")" aria-label="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" title="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" @onclick="ToggleSidebar"><UiIcon Name="panel" /><span>Sider</span></button><button type="button" class="notion-focus-toggle" disabled="@(!_sidebarReady || _sidebarModule is null)" aria-pressed="@_workspaceFocused.ToString().ToLowerInvariant()" title="@(_workspaceFocused ? "Gendan sidekolonnerne" : "Skjul sidekolonnerne og fokusér på dokumentet")" @onclick="ToggleWorkspaceFocus"><UiIcon Name="screen" /><span>@(_workspaceFocused ? "Afslut fokus" : "Fokus")</span></button>@if (_current is not null) { @if (IsEditing) { <span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>@StatusLabel</span> } else { <span class="notion-save-status saved">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM"))</span> } }</div>
+                    <h1 class="notion-visually-hidden">@(_current?.Title ?? (_holdId == Guid.Empty ? "Teorinotesbog" : "Holdets indhold"))</h1>
+                    <div class="notion-toolbar-nav">
+                        <button type="button" class="notion-sidebar-toggle" aria-controls="notion-sidebar" aria-expanded="@(_sidebarOpen && !_workspaceFocused ? "true" : "false")" aria-label="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" title="@(_sidebarOpen && !_workspaceFocused ? "Skjul sidemenu" : "Vis sidemenu")" @onclick="ToggleSidebar"><UiIcon Name="panel" /><span>Sider</span></button>
+                        <button type="button" class="notion-focus-toggle" disabled="@(!_sidebarReady || _sidebarModule is null)" aria-pressed="@_workspaceFocused.ToString().ToLowerInvariant()" aria-label="@(_workspaceFocused ? "Afslut fokus" : "Fokus")" title="@(_workspaceFocused ? "Gendan sidekolonnerne" : "Skjul sidekolonnerne og fokusér på dokumentet")" @onclick="ToggleWorkspaceFocus"><UiIcon Name="screen" /><span>@(_workspaceFocused ? "Afslut fokus" : "Fokus")</span></button>
+                    </div>
                     @if (_current is not null)
                     {
-                        <div class="notion-actions"><button type="button" class="secondary" disabled="@(!_mounted)" @onclick="PresentPage"><UiIcon Name="screen" />Præsenter</button><details class="notion-document-more"><summary aria-label="Flere sidehandlinger"><UiIcon Name="more" /><span>Mere</span></summary><div class="notion-document-menu"><button type="button" @onclick="CopyLink"><UiIcon Name="external" />Kopiér link</button><a href="@GraphHref(_current.CollectionId ?? CollectionRoot(_current.PageId))"><UiIcon Name="chart" />Graf for kollektionen</a>@if (IsEditing) { <button type="button" disabled="@_busy" @onclick="() => BeginCreate(true)"><UiIcon Name="plus" />Ny underside</button><button type="button" disabled="@_busy" @onclick="RefreshContext"><UiIcon Name="loop" />@(_holdId == Guid.Empty ? "Opdatér sideoversigt" : "Opdatér holddata")</button> } else { <button type="button" disabled="@_busy" @onclick="Retry"><UiIcon Name="loop" />Opdatér siden</button>@if (CanManageHold) { <a href="@PageHref(_current.PageId, false)"><UiIcon Name="code" />Til kladden</a> } }</div></details></div>
+                        @if (IsEditing)
+                        {
+                            <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault>
+                                <label class="notion-visually-hidden" for="notion-title">Sidens titel</label>
+                                <input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" />
+                                @if (_title.Contains(':')) { <span class="notion-title-preview" aria-label="Sådan vises titlen" title="@_title"><EmojiText Text="@_title" /></span> }
+                            </form>
+                        }
+                        else { <div class="notion-toolbar-title notion-published-title"><EmojiText Text="@_current.Title" /></div> }
                     }
+                    <div class="notion-toolbar-actions">
+                        @if (_current is not null)
+                        {
+                            @if (IsEditing) { <span class="notion-save-status @_status" role="status" title="@StatusLabel"><i aria-hidden="true"></i><span class="notion-save-label">@StatusLabel</span></span> }
+                            else { <span class="notion-save-status saved"><i aria-hidden="true"></i><span class="notion-save-label">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM"))</span></span> }
+                        }
+                        <span class="notion-ai-toggle-slot"></span>
+                        @if (_current is not null)
+                        {
+                            @if (IsEditing)
+                            {
+                                <button type="button" class="action notion-publish-button" aria-label="@(_current.PublishedAtUtc is null ? (_holdId == Guid.Empty ? "Udgiv til LUP" : "Udgiv til holdet") : "Opdatér udgivelsen")" disabled="@(_busy || !_mounted || _status is "connecting" or "offline" or "error")" @onclick="PublishPage">@(_current.PublishedAtUtc is null ? "Udgiv" : "Opdatér")</button>
+                            }
+                            <details class="notion-document-more">
+                                <summary aria-label="Flere sidehandlinger"><UiIcon Name="more" /><span>Mere</span></summary>
+                                <div class="notion-document-menu">
+                                    <p class="notion-publication-status">@(_current.PublishedAtUtc is null ? "Kladde" : $"Udgivet {_current.PublishedAtUtc.Value.ToLocalTime():d. MMM HH:mm}")</p>
+                                    <nav class="breadcrumbs notion-toolbar-breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>@(_holdId == Guid.Empty ? "Teori" : "Holdets indhold")</span></nav>
+                                    <button type="button" disabled="@(!_mounted)" @onclick="PresentPage"><UiIcon Name="screen" />Præsenter</button>
+                                    @if (IsEditing && _current.PublishedAtUtc is not null)
+                                    {
+                                        <a href="@PageHref(_current.PageId, true)">Se udgivet</a>
+                                        <button type="button" disabled="@_busy" @onclick="UnpublishPage">Træk udgivelse tilbage</button>
+                                    }
+                                    <button type="button" @onclick="CopyLink"><UiIcon Name="external" />Kopiér link</button>
+                                    <a href="@GraphHref(_current.CollectionId ?? CollectionRoot(_current.PageId))"><UiIcon Name="chart" />Graf for kollektionen</a>
+                                    @if (IsEditing)
+                                    {
+                                        <button type="button" disabled="@_busy" @onclick="() => BeginCreate(true)"><UiIcon Name="plus" />Ny underside</button>
+                                        <button type="button" disabled="@_busy" @onclick="RefreshContext"><UiIcon Name="loop" />@(_holdId == Guid.Empty ? "Opdatér sideoversigt" : "Opdatér holddata")</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" disabled="@_busy" @onclick="Retry"><UiIcon Name="loop" />Opdatér siden</button>
+                                        @if (CanManageHold) { <a href="@PageHref(_current.PageId, false)"><UiIcon Name="code" />Til kladden</a> }
+                                    }
+                                </div>
+                            </details>
+                        }
+                    </div>
                 </div>
                 @PageFeedback
                 @if (_showGroups && CanManageHold && _holdId != Guid.Empty)
@@ -69,13 +120,7 @@ else
                 }
                 else
                 {
-                    @if (IsEditing)
-                    {
-                        <div class="notion-publishing"><strong>@(_current.PublishedAtUtc is null ? "Kladde" : $"Udgivet {_current.PublishedAtUtc.Value.ToLocalTime():d. MMM HH:mm}")</strong><div class="notion-actions"><button class="action" disabled="@(_busy || !_mounted || _status is "connecting" or "offline" or "error")" @onclick="PublishPage">@(_current.PublishedAtUtc is null ? (_holdId == Guid.Empty ? "Udgiv til LUP" : "Udgiv til holdet") : "Opdatér udgivelsen")</button>@if (_current.PublishedAtUtc is not null) { <a class="secondary" href="@PageHref(_current.PageId, true)">Se udgivet</a><button class="secondary" disabled="@_busy" @onclick="UnpublishPage">Træk udgivelse tilbage</button> }</div></div>
-                    }
                     @if (_statusDetail.Length > 0 && _status is "error" or "offline") { <p class="notion-connection-warning" role="alert">@_statusDetail</p> }
-                    @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" /></form> @if (_title.Contains(':')) { <p class="notion-title-preview" aria-label="Sådan vises titlen"><EmojiText Text="@_title" /></p> } }
-                    else { <h2 class="notion-published-title"><EmojiText Text="@_current.Title" /></h2> }
                     <div @key="(_current.PageId, _generation)" class="notion-editor-root" @ref="_editorElement"></div>@if (!string.IsNullOrEmpty(MentionNotice)) { <MentionReceipt SourceId="_current.PageId" Loaded="_mounted" Notice="@MentionNotice" /> }<ReferenceBacklinks Kind="notion-page" Id="@_current.PageId.ToString()" Revision="_current.DraftRevision" PublishedOnly="ForceReadOnly" />
                 }
             </section>

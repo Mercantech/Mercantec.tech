@@ -27,7 +27,7 @@ public sealed class NotionSidebarTests
         var page = Render(context, api, javascript);
         var requests = api.Requests.Count;
         Assert.Equal("true", page.Find(".notion-workspace").GetAttribute("data-edge-to-edge"));
-        Assert.Single(page.FindAll(".notion-document-toolbar .notion-ide-heading h1"));
+        Assert.Single(page.FindAll(".notion-document-toolbar h1.notion-visually-hidden"));
         Assert.Empty(page.FindAll(".notion-workspace > .page-title"));
 
         page.Find(".notion-sidebar-toggle").Click();
@@ -62,9 +62,11 @@ public sealed class NotionSidebarTests
         Assert.Contains("sidebar-open", workspace.ClassList);
         Assert.Equal("false", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
         Assert.Equal("Afslut fokus", page.Find(".notion-focus-toggle").TextContent.Trim());
+        Assert.Equal("Afslut fokus", page.Find(".notion-focus-toggle").GetAttribute("aria-label"));
 
         page.Find(".notion-focus-toggle").Click();
         Assert.Equal("false", page.Find(".notion-focus-toggle").GetAttribute("aria-pressed"));
+        Assert.Equal("Fokus", page.Find(".notion-focus-toggle").GetAttribute("aria-label"));
         Assert.DoesNotContain("notion-focus-mode", workspace.ClassList);
         Assert.Equal("true", page.Find(".notion-sidebar-toggle").GetAttribute("aria-expanded"));
         Assert.Single(page.FindAll(".notion-ai-slot"));

@@ -6,14 +6,16 @@
 .native-ai-workspace{position:relative;min-width:0}
 .native-ai-document{min-width:0}
 .native-ai-taskbar{display:flex;justify-content:flex-end;padding:8px 16px 0}
-.native-ai-taskbar button,.native-ai-selection-button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--notion-rule);border-radius:7px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px;font-weight:600;min-height:40px;padding:6px 12px;cursor:pointer}
+.native-ai-toolbar-toggle,.native-ai-selection-button{--notion-rule:var(--rule,#dfe7f2);--notion-paper:var(--paper,#fff);--notion-ink:var(--ink,#17243b);--notion-blue:var(--blue,#2452e8);--notion-tint:var(--tint,#eaf0ff);display:inline-flex;align-items:center;gap:6px;border:1px solid var(--notion-rule);border-radius:7px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px;font-weight:600;min-height:40px;padding:6px 12px;cursor:pointer}
 .native-ai-taskbar button>span:last-child{color:var(--notion-muted);font-weight:400}
-.native-ai-taskbar button[aria-expanded=true]{border-color:var(--notion-blue);background:var(--notion-tint)}
+.native-ai-toolbar-toggle[aria-expanded=true]{border-color:var(--notion-blue);background:var(--notion-tint)}
+.notion-ai-toggle-slot .native-ai-toolbar-toggle{min-height:36px;padding:7px 9px;font-size:11px}
+.notion-ai-toggle-slot .native-ai-toggle-detail{display:none}
 .native-ai-panel{position:fixed;z-index:70;inset:var(--native-ai-top,64px) 0 0 auto;display:flex;flex-direction:column;box-sizing:border-box;width:min(var(--native-ai-width,400px),max(320px,calc(100vw - 300px)));max-width:100vw;min-width:0;height:var(--native-ai-height,calc(100dvh - var(--native-ai-top,64px)));margin:0;border:0;border-left:1px solid var(--notion-rule);border-radius:0;background:var(--notion-paper);color:var(--notion-ink);font:13px/1.5 'DM Sans',sans-serif;box-shadow:-12px 0 40px color-mix(in srgb,var(--notion-ink) 10%,transparent);animation:native-ai-drawer-in 160ms ease-out}
 .native-ai-panel[data-resizing=true]{animation:none;user-select:none}
 .native-ai-panel[data-layout=columns]{position:relative;z-index:auto;inset:auto;width:100%;max-width:100%;height:100%;min-height:0;border-left:1px solid var(--notion-rule);border-radius:0 12px 12px 0;box-shadow:none;animation:none}
 .notion-workspace[data-edge-to-edge=true] .native-ai-panel[data-layout=columns]{border-radius:0}
-.notion-workspace[data-edge-to-edge=true] .bn-editor{padding:20px 32px 56px}
+.notion-workspace[data-edge-to-edge=true] .bn-editor{padding:16px 28px 56px 64px}
 .native-ai-panel[data-layout=columns] .native-ai-panel-body{padding-block:0}
 .native-ai-panel[data-layout=columns] .native-ai-panel-body::before,.native-ai-panel[data-layout=columns] .native-ai-panel-body::after{content:'';display:block;height:16px}
 .native-ai-panel[data-layout=columns] .native-ai-resize{left:-6px;width:12px}
@@ -24,9 +26,9 @@
 .native-ai-panel header small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--notion-muted);font-size:11px}
 .native-ai-header-actions{display:flex;flex:none;gap:3px;align-items:center}
 .native-ai-panel button,.native-ai-proposal button{border:1px solid var(--notion-rule);border-radius:7px;background:var(--notion-paper);color:var(--notion-ink);font:inherit;font-size:12px;min-height:40px;padding:7px 11px;cursor:pointer}
-.native-ai-panel button:hover,.native-ai-proposal button:hover,.native-ai-taskbar button:hover{border-color:var(--notion-blue);background:var(--notion-tint)}
-.native-ai-panel button:disabled,.native-ai-proposal button:disabled,.native-ai-taskbar button:disabled,.native-ai-selection-button:disabled{opacity:.45;cursor:default}
-.native-ai-panel button:focus-visible,.native-ai-proposal button:focus-visible,.native-ai-taskbar button:focus-visible,.native-ai-selection-button:focus-visible,.native-ai-panel textarea:focus-visible,.native-ai-panel select:focus-visible,.native-ai-panel summary:focus-visible,.native-ai-panel input:focus-visible{outline:2px solid var(--notion-blue);outline-offset:2px}
+.native-ai-panel button:hover,.native-ai-proposal button:hover,.native-ai-toolbar-toggle:hover{border-color:var(--notion-blue);background:var(--notion-tint)}
+.native-ai-panel button:disabled,.native-ai-proposal button:disabled,.native-ai-toolbar-toggle:disabled,.native-ai-selection-button:disabled{opacity:.45;cursor:default}
+.native-ai-panel button:focus-visible,.native-ai-proposal button:focus-visible,.native-ai-toolbar-toggle:focus-visible,.native-ai-selection-button:focus-visible,.native-ai-panel textarea:focus-visible,.native-ai-panel select:focus-visible,.native-ai-panel summary:focus-visible,.native-ai-panel input:focus-visible{outline:2px solid var(--notion-blue);outline-offset:2px}
 .native-ai-panel .native-ai-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-color:transparent;min-width:44px;min-height:44px;font-size:21px;padding:3px 8px}
 .native-ai-resize{position:absolute;z-index:2;inset:0 auto 0 -22px;width:44px;cursor:ew-resize;touch-action:none;outline:0}
 .native-ai-resize::after{content:'';position:absolute;left:21px;top:50%;width:3px;height:48px;border-radius:2px;background:var(--notion-muted);opacity:.35;transform:translateY(-50%);transition:height 120ms,opacity 120ms,background 120ms}
@@ -119,12 +121,13 @@
 .native-ai-preview-children{padding-left:20px;border-left:1px solid var(--notion-rule)}
 .native-ai-review-actions{display:flex;gap:6px;flex-wrap:wrap;padding:8px 11px;border-top:1px solid var(--notion-rule)}
 .notion-workspace[data-center-narrow=true] .bn-editor{padding:24px 28px 60px}
+.notion-workspace[data-edge-to-edge=true][data-center-narrow=true] .bn-editor{padding:16px 20px 56px 60px}
 @media(max-width:760px){.native-ai-panel{top:var(--native-ai-top,56px);height:var(--native-ai-height,calc(100dvh - var(--native-ai-top,56px)));width:100%;max-width:100%;border-left:0;box-shadow:none}.native-ai-panel header{padding-inline:16px}.native-ai-panel-body{padding:16px}.native-ai-composer{padding-inline:16px}.native-ai-resize{display:none}.native-ai-panel .native-ai-expand{display:none}.native-ai-composer textarea{font-size:16px}.native-ai-taskbar{padding-right:10px}.native-ai-taskbar button>span:last-child{display:none}.native-ai-proposal{font-size:13px}.native-ai-proposal-head{align-items:flex-start}}
 @media(max-width:1100px) and (max-height:500px){.native-ai-panel header{min-height:52px;padding-block:4px}.native-ai-panel header small{display:none}.native-ai-panel-body{padding-block:8px}.native-ai-composer{max-height:calc(100% - 60px);padding-block:6px}.native-ai-composer textarea{min-height:60px;max-height:100px}.native-ai-compose-foot{margin-top:5px}.native-ai-options{margin-bottom:4px}.native-ai-composer-context{font-size:9px}}
-@media(pointer:coarse){.native-ai-panel button,.native-ai-proposal button,.native-ai-taskbar button,.native-ai-panel select,.native-ai-selection-button,.native-ai-panel summary{min-height:44px}.native-ai-sources input{width:20px;height:20px}}
+@media(pointer:coarse){.native-ai-panel button,.native-ai-proposal button,.native-ai-toolbar-toggle,.notion-ai-toggle-slot .native-ai-toolbar-toggle,.native-ai-panel select,.native-ai-selection-button,.native-ai-panel summary{min-height:44px}.native-ai-sources input{width:20px;height:20px}}
 @media(pointer:coarse) and (min-width:761px){.native-ai-panel[data-layout=columns] .native-ai-resize{left:-22px;width:44px}.native-ai-panel[data-layout=columns] .native-ai-resize::after{left:21px}}
 @media(prefers-reduced-motion:reduce){.native-ai-working,.native-ai-panel{animation:none}.native-ai-resize::after{transition:none}}
-@media print{.native-ai-panel,.native-ai-resize,.native-ai-taskbar,.native-ai-proposal{display:none!important}.native-ai-workspace[data-ai-open=true]{display:block}.native-ai-workspace .native-ai-document{margin:0!important}.native-ai-removed,.native-ai-removed-block,.native-ai-removed-block [data-content-type]{background:transparent!important;text-decoration:none!important;border:0!important}}
+@media print{.native-ai-panel,.native-ai-resize,.native-ai-taskbar,.native-ai-toolbar-toggle,.native-ai-proposal{display:none!important}.native-ai-workspace[data-ai-open=true]{display:block}.native-ai-workspace .native-ai-document{margin:0!important}.native-ai-removed,.native-ai-removed-block,.native-ai-removed-block [data-content-type]{background:transparent!important;text-decoration:none!important;border:0!important}}
 @keyframes native-ai-drawer-in{from{transform:translateX(24px);opacity:.5}to{transform:translateX(0);opacity:1}}
 @keyframes native-ai-pulse{50%{opacity:.3}}
 .notion-slide-deck button{border:1px solid transparent;border-radius:6px;padding:7px 10px;min-height:34px;background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer}
