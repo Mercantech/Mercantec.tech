@@ -289,8 +289,10 @@ function appendInline(parent: HTMLElement, content: unknown) {
 
 /** Safe, inert rich previews never mount uploaders, drawings, reference searches or collaboration. */
 export function appendAiPreview(parent: HTMLElement, blocks: AiBlock[]) {
+  let numberedIndex = 0;
   for (const block of blocks) {
     const props = block.props || {};
+    numberedIndex = block.type === 'numberedListItem' ? (typeof props.start === 'number' ? props.start : numberedIndex + 1) : 0;
     let element: HTMLElement;
     if (block.type === 'table') {
       element = document.createElement('table');
@@ -314,7 +316,7 @@ export function appendAiPreview(parent: HTMLElement, blocks: AiBlock[]) {
       const heading = block.type === 'heading' ? Math.max(1, Math.min(6, Number(props.level) || 2)) : 0;
       element = document.createElement(heading ? 'h' + heading : block.type === 'quote' ? 'blockquote' : 'p');
       if (block.type === 'bulletListItem') element.append(document.createTextNode('• '));
-      if (block.type === 'numberedListItem') element.append(document.createTextNode('1. '));
+      if (block.type === 'numberedListItem') element.append(document.createTextNode(numberedIndex + '. '));
       if (block.type === 'checkListItem') element.append(document.createTextNode(props.checked ? '☑ ' : '☐ '));
       if (block.type === 'callout' || block.type === 'learningGoal') element.className = 'native-ai-callout';
       appendInline(element, block.content);
