@@ -20,6 +20,7 @@ COPY web/Mercantec.Tech.Web.csproj web/
 RUN dotnet restore web/Mercantec.Tech.Web.csproj
 COPY shared/ shared/
 COPY web/ web/
+COPY api/Arena/ArenaSimulation.cs api/Arena/
 COPY --from=editor-build /src/web/wwwroot/notion-editor/ web/wwwroot/notion-editor/
 COPY --from=image-tools-build /src/web/wwwroot/image-tools/ web/wwwroot/image-tools/
 WORKDIR /src/web
