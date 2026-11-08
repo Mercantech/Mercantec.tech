@@ -1,13 +1,18 @@
-import React, { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createNativeAiApi } from './ai-native-api';
 import { NativeAiReview } from './ai-native-review';
 import { aiNativeError } from './ai-native-errors';
 import { aiRunWorking, type AiNativeTarget, type AiRun, type AiRunSummary } from './ai-native-types';
 
-type Props = { review: NativeAiReview; pageId: string; pageTitle: string; enabled: boolean; open: boolean; target: AiNativeTarget | null; onClose: () => void; onReveal: () => void; onCapture: () => void; getToken: () => Promise<string> };
+type Props = { review: NativeAiReview; pageId: string; pageTitle: string; enabled: boolean; open: boolean; panelId?: string; target: AiNativeTarget | null; onClose: () => void; onReveal: () => void; onCapture: () => void; getToken: () => Promise<string> };
 const statusLabel: Record<string, string> = { queued: 'I kø', gathering: 'Læser relevante kilder', generating: 'Skriver forslag', ready: 'Klar til gennemgang', needs_continuation: 'Klar til at fortsætte', cancelled: 'Stoppet', failed: 'Opgaven blev afbrudt' };
+const drawerWidthKey = 'lup.ai.drawer.width.v1';
+const storedDrawerWidth = () => {
+  try { const value = JSON.parse(window.localStorage.getItem(drawerWidthKey) || '400'); return typeof value === 'number' && Number.isFinite(value) ? Math.max(320, Math.min(900, value)) : 400; }
+  catch { return 400; }
+};
 
-export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, target, onClose, onReveal, onCapture, getToken }: Props) {
+export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, panelId: suppliedPanelId, target, onClose, onReveal, onCapture, getToken }: Props) {
   useSyncExternalStore(review.subscribe, review.snapshot);
   const tokenRef = useRef(getToken); tokenRef.current = getToken;
   const api = useMemo(() => createNativeAiApi(() => tokenRef.current()), []);
@@ -29,7 +34,57 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, target
   const mounted = useRef(true);
   const pendingReviews = useRef(new Map<string, { runId: string; hunkId: string; version: number; status: string }>());
   const syncing = useRef(false);
-  const panelId = useId();
+  const generatedPanelId = useId();
+  const panelId = suppliedPanelId || generatedPanelId;
+  const [preferredWidth, setPreferredWidth] = useState(storedDrawerWidth);
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [viewport, setViewport] = useState(() => ({ top: 0, height: window.innerHeight }));
+  const [resizing, setResizing] = useState(false);
+  const drag = useRef<{ pointerId: number; startX: number; startWidth: number; handle: HTMLElement } | null>(null);
+  const maxWidth = Math.max(320, Math.min(900, viewportWidth - 300));
+  const width = Math.min(preferredWidth, maxWidth);
+  const expanded = width > Math.min(400, maxWidth) + 1;
+  const releaseResize = () => {
+    const current = drag.current; drag.current = null;
+    if (current?.handle.hasPointerCapture(current.pointerId)) current.handle.releasePointerCapture(current.pointerId);
+  };
+  const finishResize = () => { releaseResize(); setResizing(false); };
+  useEffect(() => {
+    const resize = () => { releaseResize(); setResizing(false); setViewportWidth(window.innerWidth); };
+    window.addEventListener('resize', resize);
+    return () => { window.removeEventListener('resize', resize); releaseResize(); };
+  }, []);
+  useEffect(() => { if (!open) finishResize(); }, [open]);
+  useLayoutEffect(() => {
+    if (!open) return;
+    let frame = 0;
+    const header = document.querySelector<HTMLElement>('.lup-header');
+    const measure = () => {
+      frame = 0;
+      const visible = window.visualViewport;
+      const offset = visible?.offsetTop || 0;
+      const height = visible?.height || window.innerHeight;
+      const top = Math.min(offset + height, Math.max(offset, header?.getBoundingClientRect().bottom || 0));
+      const available = Math.max(0, height - (top - offset));
+      setViewport(current => current.top === top && current.height === available ? current : { top, height: available });
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    measure();
+    const observer = new ResizeObserver(schedule); if (header) observer.observe(header);
+    window.addEventListener('scroll', schedule, { passive: true }); window.addEventListener('resize', schedule);
+    window.visualViewport?.addEventListener('resize', schedule); window.visualViewport?.addEventListener('scroll', schedule);
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.visualViewport?.removeEventListener('resize', schedule); window.visualViewport?.removeEventListener('scroll', schedule); };
+  }, [open]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { try { window.localStorage.setItem(drawerWidthKey, JSON.stringify(preferredWidth)); } catch { /* The drawer also works without persistent storage. */ } }, 180);
+    return () => window.clearTimeout(timer);
+  }, [preferredWidth]);
+  const resizeKey = (event: React.KeyboardEvent<HTMLElement>) => {
+    const step = event.shiftKey ? 40 : 20;
+    const next = event.key === 'Home' ? 320 : event.key === 'End' ? maxWidth : event.key === 'ArrowLeft' ? width + step : event.key === 'ArrowRight' ? width - step : null;
+    if (next === null) return;
+    event.preventDefault(); event.stopPropagation(); setPreferredWidth(Math.max(320, Math.min(maxWidth, next)));
+  };
   const consume = (value: AiRun) => {
     if (!mounted.current || value.pageId.toLowerCase() !== pageId.toLowerCase()) return;
     if (runRef.current?.id === value.id && value.eventCursor < runRef.current.eventCursor) return;
@@ -102,7 +157,7 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, target
         await pause(Math.min(1000 * 2 ** attempts, 15000));
       }
     })();
-    // Closing the panel or navigating only stops this subscription, never the background run.
+    // Hiding the drawer keeps this subscription alive. Navigating never stops the background run.
     return () => abort.abort();
   }, [api, run?.id, run?.status, streamRetry]);
   const accept = (ids: string[]) => {
@@ -128,7 +183,7 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, target
   review.onAccept = accept; review.onReject = reject; review.onAdjust = adjust;
   const submit = async (event?: React.FormEvent) => {
     event?.preventDefault();
-    if (!instruction.trim() || !enabled || busy || !review.editor) return;
+    if (!instruction.trim() || !enabled || busy || aiRunWorking(runRef.current) || !review.editor) return;
     const current = runRef.current;
     try {
       setError(''); setBusy(true); review.enabled = false; review.refresh();
@@ -156,32 +211,55 @@ export function NativeAiPanel({ review, pageId, pageTitle, enabled, open, target
   };
   const pending = (run?.hunks || []).filter(hunk => ['ready', 'conflict'].includes(hunk.status) && !review.hasReceipt(hunk));
   const accepted = (run?.hunks || []).filter(hunk => hunk.status === 'accepted' || review.hasReceipt(hunk)).length;
+  const newTask = () => { setRun(null); runRef.current = null; review.setRun(null); setAdjustId(null); onCapture(); textarea.current?.focus(); };
+  const showProposal = (id: string) => {
+    const proposal = [...document.querySelectorAll<HTMLElement>('[data-ai-hunk]')].find(element => element.dataset.aiHunk === id);
+    onClose();
+    requestAnimationFrame(() => proposal?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+  };
+  const scopeLabel = scope === 'selection' ? 'Markeret tekst' : scope === 'page' ? 'Aktiv side' : 'Ved dit afsnit';
   if (!open) return null;
-  return <aside id={panelId} className="native-ai-panel" aria-label="AI-skrivepartner" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onClose(); } }}>
-    <header><div><strong>AI-skrivepartner</strong><small title={pageTitle}>{pageTitle}</small></div><button type="button" className="native-ai-icon" onClick={onClose} aria-label="Skjul AI-panelet" title="Skjul AI-panelet (Esc)">×</button></header>
+  return <aside id={panelId} className="native-ai-panel" role={viewportWidth <= 760 ? 'dialog' : undefined} aria-modal={viewportWidth <= 760 ? true : undefined} aria-label="AI-skrivepartner" data-expanded={expanded} data-resizing={resizing} style={{ '--native-ai-width': width + 'px', '--native-ai-top': viewport.top + 'px', '--native-ai-height': viewport.height + 'px' } as React.CSSProperties} onKeyDown={event => {
+    if (event.key === 'Tab' && viewportWidth <= 760) {
+      const controls = [...event.currentTarget.querySelectorAll<HTMLElement>('button,input,textarea,select,a[href],summary,[tabindex]')].filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && element.getClientRects().length);
+      const first = controls[0], last = controls.at(-1);
+      if (first && last && (event.shiftKey ? document.activeElement === first : document.activeElement === last)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
+      return;
+    }
+    const target = event.target as HTMLElement;
+    const nestedSurface = target.closest('[role="menu"],[role="listbox"],[role="dialog"]');
+    if (event.key !== 'Escape' || event.defaultPrevented || target.closest('select') || nestedSurface && nestedSurface !== event.currentTarget) return;
+    event.preventDefault(); event.stopPropagation();
+    if (drag.current) { setPreferredWidth(drag.current.startWidth); finishResize(); } else onClose();
+  }}>
+    <div className="native-ai-resize" role="separator" aria-label="AI-panelets bredde" aria-orientation="vertical" aria-controls={panelId} aria-valuemin={320} aria-valuemax={maxWidth} aria-valuenow={Math.round(width)} aria-valuetext={Math.round(width) + ' pixels'} tabIndex={0} onKeyDown={resizeKey}
+      onPointerDown={event => { if (event.button !== 0 || viewportWidth <= 760) return; event.preventDefault(); event.currentTarget.focus(); drag.current = { pointerId: event.pointerId, startX: event.clientX, startWidth: width, handle: event.currentTarget }; event.currentTarget.setPointerCapture(event.pointerId); setResizing(true); }}
+      onPointerMove={event => { const current = drag.current; if (current?.pointerId === event.pointerId) setPreferredWidth(Math.max(320, Math.min(maxWidth, current.startWidth + current.startX - event.clientX))); }}
+      onPointerUp={finishResize} onPointerCancel={() => { if (drag.current) setPreferredWidth(drag.current.startWidth); finishResize(); }} onLostPointerCapture={() => { drag.current = null; setResizing(false); }} />
+    <header><div><strong id={panelId + '-title'}>AI</strong><small title={pageTitle}>{pageTitle}</small></div><div className="native-ai-header-actions"><button type="button" className="native-ai-icon native-ai-expand" onClick={() => setPreferredWidth(expanded ? 400 : maxWidth)} aria-label={expanded ? 'Gør AI-panelet smallere' : 'Udvid AI-panelet'} title={expanded ? 'Gør AI-panelet smallere' : 'Giv AI mere plads'} aria-pressed={expanded}><span aria-hidden="true">{expanded ? '↙' : '↗'}</span></button><button type="button" className="native-ai-icon" onClick={onClose} aria-label="Skjul AI-panelet" title="Skjul AI-panelet (Esc)">×</button></div></header>
     <div className="native-ai-panel-body">
       {loading && <p role="status">Henter dine private kladder…</p>}
-      {runs.length > 0 && <label className="native-ai-run-picker">Opgave<select aria-label="Vælg gemt AI-opgave" value={run?.id || ''} onChange={event => { setError(''); setAdjustId(null); void api.read(event.target.value).then(consume).catch(reason => setError(reason instanceof Error ? reason.message : 'Kladde kunne ikke åbnes.')); }}><option value="" disabled>Vælg opgave</option>{runs.map(item => <option key={item.id} value={item.id}>{item.instruction}</option>)}</select></label>}
-      {!run && <div className="native-ai-intro"><strong>Skriv videre med dokumentet</strong><p>Beskriv opgaven. Gennemgå forslagene direkte ved teksten, og godkend de ændringer du vil beholde.</p></div>}
+      {!run && <div className="native-ai-intro"><strong>Hvad skal vi arbejde med?</strong><p>Beskriv det her. Forslagene vises direkte i teksten, hvor du kan godkende dem.</p><div className="native-ai-starters">{['Gør teksten tydeligere', 'Skriv videre', 'Lav et overblik'].map(prompt => <button type="button" key={prompt} disabled={!enabled} onClick={() => { setInstruction(prompt); setMode(prompt === 'Gør teksten tydeligere' ? 'rewrite' : 'generate'); textarea.current?.focus(); }}>{prompt}</button>)}</div></div>}
       {run && <>
         <div className="native-ai-task"><strong>{run.instruction}</strong><p role="status" aria-live="polite">{statusLabel[run.status] || run.status}{aiRunWorking(run) && <span className="native-ai-working" aria-hidden="true"> ···</span>}</p>{run.progress && <small>{run.progress}</small>}{streamState && aiRunWorking(run) && <small>{streamState}</small>}</div>
-        {run.coverage && <p className={'native-ai-coverage' + (run.coverage.partial ? ' is-partial' : '')}>{run.coverage.partial ? 'Udvalgte dele læst' : 'Aktiv side læst'} · {run.coverage.activeBlocks} af {run.coverage.totalBlocks} blokke{run.coverage.detail && <span>{run.coverage.detail}</span>}</p>}
-        {run.sources.length > 0 && <details className="native-ai-sources"><summary>Kilder · {run.sources.length}</summary>{run.sources.map(source => <label key={source.id}><input type="checkbox" checked={!excluded.includes(source.id)} onChange={event => setExcluded(current => event.target.checked ? current.filter(id => id !== source.id) : [...current, source.id])} /><span><a href={source.href} target="_blank" rel="noopener noreferrer">{source.title}</a>{source.location && <small>{source.location}</small>}{source.state !== 'ready' && <small>{source.state}</small>}{source.excerpt && <small>{source.excerpt}</small>}</span></label>)}<small>Fravalg bruges ved næste opgave eller justering.</small></details>}
-        <div className="native-ai-batch"><span>{pending.length} forslag · {accepted} godkendt</span>{aiRunWorking(run) && <small>Gennemgå forslagene, når opgaven er færdig eller stoppet.</small>}<div><button type="button" disabled={!review.enabled || !pending.length || review.conflicts.size > 0} onClick={() => accept(pending.map(item => item.id))}>Godkend alle</button><button type="button" disabled={!review.enabled || !pending.length} onClick={() => reject(pending.map(item => item.id))}>Afvis alle</button></div></div>
-        {pending.map(hunk => <div key={hunk.id} className={'native-ai-hunk-summary' + (review.conflicts.has(hunk.id) ? ' is-conflict' : '')}><button type="button" onClick={() => document.querySelector<HTMLElement>(`[data-ai-hunk="${hunk.id}"]`)?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })}>{review.conflicts.has(hunk.id) ? '⚠ ' : '↳ '}{hunk.explanation || 'Ændring ' + (hunk.order + 1)}</button><button type="button" onClick={() => adjust(hunk.id)}>Justér</button></div>)}
+        {run.coverage?.partial && <p className="native-ai-coverage is-partial">Udvalgte dele læst · {run.coverage.activeBlocks} af {run.coverage.totalBlocks} blokke</p>}
+        <div className="native-ai-batch"><span>{pending.length} forslag · {accepted} godkendt</span>{aiRunWorking(run) && <small>Forslagene kan gennemgås, når opgaven er færdig.</small>}{pending.length > 0 && <div><button type="button" disabled={!review.enabled || review.conflicts.size > 0} onClick={() => accept(pending.map(item => item.id))}>Godkend alle</button><button type="button" disabled={!review.enabled} onClick={() => reject(pending.map(item => item.id))}>Afvis alle</button></div>}</div>
+        {pending.map(hunk => <div key={hunk.id} className={'native-ai-hunk-summary' + (review.conflicts.has(hunk.id) ? ' is-conflict' : '')}><button type="button" onClick={() => showProposal(hunk.id)} title="Se forslaget i teksten">{review.conflicts.has(hunk.id) ? '⚠ ' : '↳ '}{hunk.explanation || 'Ændring ' + (hunk.order + 1)}</button><button type="button" onClick={() => adjust(hunk.id)}>Justér</button></div>)}
         {run.status === 'needs_continuation' && <div className="native-ai-continuation"><p>De færdige forslag er gemt. Fortsæt for at skrive næste del.</p><button type="button" disabled={!enabled || busy} onClick={() => { void resume(); }}>Fortsæt</button></div>}
         {run.status === 'failed' && <button type="button" disabled={!enabled || busy} onClick={() => { void resume(); }}>Fortsæt opgaven</button>}
         {run.error && <p className="native-ai-error" role="alert">{aiNativeError(run.error)}</p>}
-        <div className="native-ai-task-actions">{aiRunWorking(run) && <button type="button" onClick={() => { void stop(); }}>Stop opgaven</button>}<button type="button" onClick={() => { setRun(null); runRef.current = null; review.setRun(null); setAdjustId(null); onCapture(); textarea.current?.focus(); }}>Ny opgave</button>{!aiRunWorking(run) && <button type="button" onClick={() => { void remove(); }}>Slet kladde</button>}</div>
+        <div className="native-ai-task-actions">{aiRunWorking(run) && <button type="button" onClick={() => { void stop(); }}>Stop opgaven</button>}<button type="button" onClick={newTask}>Ny opgave</button></div>
+        {(run.coverage || run.sources.length > 0) && <details className="native-ai-context"><summary>Kontekst og kilder · {run.sources.length}</summary>{run.coverage && <p className="native-ai-coverage">{run.coverage.activeBlocks} af {run.coverage.totalBlocks} blokke læst{run.coverage.detail && <span>{run.coverage.detail}</span>}</p>}<div className="native-ai-sources">{run.sources.map(source => <label key={source.id}><input type="checkbox" checked={!excluded.includes(source.id)} onChange={event => setExcluded(current => event.target.checked ? current.filter(id => id !== source.id) : [...current, source.id])} /><span><a href={source.href} target="_blank" rel="noopener noreferrer">{source.title}</a>{source.location && <small>{source.location}</small>}{source.state !== 'ready' && <small>{source.state}</small>}{source.excerpt && <small>{source.excerpt}</small>}</span></label>)}{run.sources.length > 0 && <small>Fravalg bruges ved næste opgave eller justering.</small>}</div></details>}
       </>}
       {error && <div className="native-ai-error" role="alert"><p>{error}</p>{unsynced > 0 && <button type="button" onClick={() => { setError(''); void syncReviews(); }}>Gem reviewstatus igen</button>}{aiRunWorking(run) && <button type="button" onClick={() => { setError(''); setStreamRetry(value => value + 1); }}>Forbind igen</button>}</div>}
+      {runs.length > 0 && <details className="native-ai-history"><summary>Tidligere opgaver · {runs.length}</summary><label className="native-ai-run-picker">Opgave<select aria-label="Vælg gemt AI-opgave" value={run?.id || ''} onChange={event => { setError(''); setAdjustId(null); void api.read(event.target.value).then(consume).catch(reason => setError(reason instanceof Error ? reason.message : 'Kladde kunne ikke åbnes.')); }}><option value="" disabled>Vælg opgave</option>{runs.map(item => <option key={item.id} value={item.id}>{item.instruction}</option>)}</select></label>{run && !aiRunWorking(run) && <button type="button" onClick={() => { void remove(); }}>Slet kladde</button>}<small>Private kladder gemmes i 30 dage.</small></details>}
     </div>
     <form className="native-ai-composer" onSubmit={event => { void submit(event); }}>
-      {adjustId ? <div className="native-ai-adjust-label"><strong>Justér dette forslag</strong><button type="button" onClick={() => setAdjustId(null)}>Annuller</button></div> : <div className="native-ai-options"><select aria-label="AI-opgave" value={mode} onChange={event => setMode(event.target.value)}><option value="generate">Skriv indhold</option><option value="rewrite">Omskriv</option><option value="mermaid">Diagram</option></select><select aria-label="Redigeringsområde" value={scope} onChange={event => setScope(event.target.value)}><option value="section">Ved dette afsnit</option><option value="page">Aktiv side</option>{target?.selection && <option value="selection">Markeret tekst</option>}</select></div>}
+      {adjustId && <div className="native-ai-adjust-label"><strong>Justér dette forslag</strong><button type="button" onClick={() => setAdjustId(null)}>Annuller</button></div>}
       <label htmlFor={panelId + '-instruction'} className="native-ai-sr-only">Instruktion til AI</label>
       <textarea ref={textarea} id={panelId + '-instruction'} value={instruction} onChange={event => setInstruction(event.target.value)} placeholder={adjustId ? 'Hvordan skal forslaget ændres?' : 'Hvad skal vi skrive eller forbedre?'} onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); void submit(); } }} />
-      <div className="native-ai-compose-foot"><button type="button" disabled={!enabled} onClick={onCapture}>{target?.selection ? 'Opdatér markering' : 'Brug markering / sted'}</button><button type="submit" disabled={!enabled || !instruction.trim() || busy || aiRunWorking(run)}>{busy ? 'Starter…' : adjustId ? 'Justér forslag' : 'Lav forslag'}</button></div>
-      <small>Private kladder · gemmes i 30 dage · Ctrl/⌘ + Enter</small>
+      {!adjustId && <details className="native-ai-options"><summary>Tilpas opgaven <span>{scopeLabel}</span></summary><div className="native-ai-options-fields"><select aria-label="AI-opgave" value={mode} onChange={event => setMode(event.target.value)}><option value="generate">Skriv indhold</option><option value="rewrite">Omskriv</option><option value="mermaid">Diagram</option></select><select aria-label="Redigeringsområde" value={scope} onChange={event => setScope(event.target.value)}><option value="section">Ved dette afsnit</option><option value="page">Aktiv side</option>{target?.selection && <option value="selection">Markeret tekst</option>}</select><button type="button" disabled={!enabled} onClick={onCapture}>{target?.selection ? 'Opdatér markering' : 'Brug markering / sted'}</button></div></details>}
+      <div className="native-ai-compose-foot"><small className="native-ai-composer-context">Privat kladde · Ctrl/⌘ + Enter</small><button type="submit" disabled={!enabled || !instruction.trim() || busy || aiRunWorking(run)}>{busy ? 'Starter…' : adjustId ? 'Justér forslag' : 'Lav forslag'}</button></div>
     </form>
   </aside>;
 }

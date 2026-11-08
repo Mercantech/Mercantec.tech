@@ -1,5 +1,5 @@
 /** Development-only integration fixture. Run through Vite; it is not included in the editor library build. */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BlockNoteSchema, defaultBlockSpecs, type BlockNoteEditor } from '@blocknote/core';
 import { createReactBlockSpec, useCreateBlockNote } from '@blocknote/react';
@@ -62,6 +62,8 @@ function App() {
   const [revision, setRevision] = useState(0);
   const [ready, setReady] = useState(false);
   const [theme, setTheme] = useState(readFixtureTheme);
+  const launcher = useRef<HTMLButtonElement>(null);
+  const closePanel = () => { setOpen(false); requestAnimationFrame(() => launcher.current?.focus()); };
   useEffect(() => {
     const sync = () => setTheme(readFixtureTheme());
     const observer = new MutationObserver(sync);
@@ -150,7 +152,13 @@ function App() {
     (window as any).nativeAiQa = { ready: true, editor, review, ydoc, reset, propose, makeHunk, select, snapshot, runChecks, setOpen, setTarget, accept: (ids?: string[]) => review.accept(ids || apiRun!.hunks.map(hunk => hunk.id)), setTheme: (name: string, colors: Record<string, string> = {}) => { document.documentElement.dataset.theme = name; document.body.dataset.theme = name; for (const [key, value] of Object.entries(colors)) document.documentElement.style.setProperty('--' + key, value); } };
     void reset().then(() => propose()).then(() => setReady(true));
   }, [editor, review, ydoc]);
-  return <div className="notion-blocknote-host" data-notion-theme={theme} style={{ maxWidth: 1320, margin: '30px auto', minHeight: '90vh', border: '1px solid var(--notion-rule)', borderRadius: 12 }}><div className="native-ai-workspace" data-ai-open={open}><div className="native-ai-document"><div className="native-ai-taskbar"><button type="button" onClick={() => { setTarget(review.capture()); setOpen(value => !value); }} aria-expanded={open}>✦ AI · {open ? 'Skjul skrivepartner' : 'Skrivepartner'}</button></div><BlockNoteView editor={editor} editable theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} emojiPicker={false} /></div>{ready && <NativeAiPanel key={revision} review={review} pageId={pageId} pageTitle="Normalisering af databaser" enabled open={open} target={target} onClose={() => setOpen(false)} onReveal={() => setOpen(true)} onCapture={() => setTarget(review.capture())} getToken={async () => 'fixture-only'} />}</div></div>;
+  return <>
+    <style>{`.qa-app-header{position:fixed;inset:0 0 auto;height:64px;box-sizing:border-box;display:flex;align-items:center;gap:24px;padding:0 24px;background:var(--paper,#fff);color:var(--ink,#17243b);border-bottom:1px solid var(--rule,#dfe7f2);z-index:20}.qa-app-header strong{font-size:17px}.qa-app-header span{font-size:12px;color:var(--muted,#63728b)}.qa-page{display:grid;grid-template-columns:268px minmax(0,1fr);padding-top:64px;min-width:0}.qa-page-overview{padding:24px 20px;background:var(--bg,#f3f6fb);color:var(--ink,#17243b);border-right:1px solid var(--rule,#dfe7f2);min-height:calc(100dvh - 64px);box-sizing:border-box}.qa-page-overview h2{font-size:18px;margin:0 0 18px}.qa-page-overview ul{list-style:none;padding:0;margin:0;display:grid;gap:16px;font-size:13px}.qa-page-overview [aria-current]{color:var(--blue,#2452e8);font-weight:600}.qa-page-document{min-width:0;padding:24px 20px}.qa-page-document>p{font-size:12px;color:var(--muted,#63728b);margin:0 0 16px}.qa-page-document .notion-blocknote-host{min-height:calc(100dvh - 136px);border:1px solid var(--rule,#dfe7f2);border-radius:10px}.qa-app-header,.qa-page{font-family:'DM Sans',Arial,sans-serif}@media(max-width:760px){.qa-app-header{height:56px;padding-inline:16px}.qa-page{grid-template-columns:minmax(0,1fr);padding-top:56px}.qa-page-overview{display:none}.qa-page-document{padding:16px 8px}.qa-page-document .notion-blocknote-host{min-height:calc(100dvh - 100px)}}`}</style>
+    <header className="qa-app-header lup-header"><strong>Dokumenter</strong><span>Fælles teori · Databaser</span></header>
+    <div className="qa-page"><nav className="qa-page-overview" aria-label="Sideoversigt"><h2>Sider</h2><ul><li>SQL og relationer</li><li aria-current="page">Normalisering af databaser</li><li>Praktiske øvelser</li><li>Faglige begreber</li></ul></nav><main className="qa-page-document"><p>Fælles teorinotesbog / Normalisering af databaser</p>
+      <div className="notion-blocknote-host" data-notion-theme={theme}><div className="native-ai-workspace" data-ai-open={open}><div className="native-ai-document"><div className="native-ai-taskbar"><button ref={launcher} type="button" onClick={() => { if (open) closePanel(); else { setTarget(review.capture()); setOpen(true); } }} aria-expanded={open} aria-controls="qa-ai-drawer">AI</button></div><BlockNoteView editor={editor} editable theme={theme} formattingToolbar={false} sideMenu={false} slashMenu={false} emojiPicker={false} /></div>{ready && <NativeAiPanel key={revision} panelId="qa-ai-drawer" review={review} pageId={pageId} pageTitle="Normalisering af databaser" enabled open={open} target={target} onClose={closePanel} onReveal={() => setOpen(true)} onCapture={() => setTarget(review.capture())} getToken={async () => 'fixture-only'} />}</div></div>
+    </main></div>
+  </>;
 }
-document.body.style.cssText = 'margin:0;padding:12px;background:var(--tint,#f4f6fa);font-family:Arial,sans-serif';
+document.body.style.cssText = 'margin:0;padding:0;background:var(--bg,#f4f6fa);font-family:Arial,sans-serif';
 createRoot(document.getElementById('root')!).render(<App />);

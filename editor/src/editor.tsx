@@ -427,9 +427,26 @@ function ConnectedEditor({session}:{session:Session}) {
   };
   const [aiOpen,setAiOpen]=useState(false);
   const [aiAnchor,setAiAnchor]=useState<AiNativeTarget|null>(null);
+  const aiPanelId=useId();
+  const aiLauncher=useRef<HTMLButtonElement>(null);
+  const aiReturnFocus=useRef<HTMLElement|null>(null);
+  const revealAi=()=>{
+    if(!aiOpen && document.activeElement instanceof HTMLElement && document.activeElement!==document.body)aiReturnFocus.current=document.activeElement;
+    setAiOpen(true);
+  };
+  const closeAi=()=>{
+    setAiOpen(false);
+    requestAnimationFrame(()=>{
+      if(session.destroyed)return;
+      const previous=aiReturnFocus.current;
+      if(previous?.isConnected && previous.getClientRects().length && !previous.closest('.native-ai-panel'))previous.focus({preventScroll:true});
+      else if(aiLauncher.current)aiLauncher.current.focus({preventScroll:true});
+      else editor.focus();
+    });
+  };
   const openAi=(blockId?:string)=>{
     if(!canEdit(session) || notebook)return;
-    try { setAiAnchor(aiReview.capture(blockId)); setAiOpen(true); }
+    try { setAiAnchor(aiReview.capture(blockId)); revealAi(); }
     catch(error) { setEmojiInsertError(error instanceof Error?error.message:'Vælg et sted i dokumentet først.'); }
   };
   const placeEmoji=(item:CustomEmojiRecord)=>{
@@ -549,7 +566,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {!session.readOnly && !session.inSync && <p className="notion-connection-note" role="status">Redigering fortsætter, når forbindelsen er gendannet. Afventende ændringer bevares i denne fane.</p>}
     <div className="native-ai-workspace" data-ai-open={!session.readOnly && !notebook && aiOpen}>
     <div className="native-ai-document">
-    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button type="button" aria-expanded={aiOpen} disabled={!enabled} onClick={()=>{if(aiOpen)setAiOpen(false);else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiOpen?'Skjul skrivepartner':'Skrivepartner'}</span></button></div>}
+    {!session.readOnly && !notebook && <div className="native-ai-taskbar"><button ref={aiLauncher} type="button" aria-expanded={aiOpen} aria-controls={aiPanelId} aria-label={aiOpen?'Skjul AI-panelet':'Åbn AI-panelet'} disabled={!enabled} onClick={()=>{if(aiOpen)closeAi();else openAi();}}><span aria-hidden="true">✦</span> AI <span>{aiOpen?'Skjul':'Skrivepartner'}</span></button></div>}
     <BlockNoteView editor={editor} editable={enabled} theme={session.theme} slashMenu={false} formattingToolbar={false} sideMenu={false} emojiPicker={false}>
       {!session.readOnly && <>
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}{!notebook && <button type="button" className="native-ai-selection-button" onMouseDown={event=>event.preventDefault()} onClick={()=>openAi()} disabled={!enabled}>✦ AI</button>}</FormattingToolbar>} />
@@ -574,7 +591,7 @@ function ConnectedEditor({session}:{session:Session}) {
       </>}
     </BlockNoteView>
     </div>
-    {!session.readOnly && !notebook && <NativeAiPanel review={aiReview} pageId={session.context.pageId} pageTitle={session.context.title} enabled={enabled} open={aiOpen} target={aiAnchor} onClose={()=>setAiOpen(false)} onReveal={()=>setAiOpen(true)} onCapture={()=>openAi()} getToken={()=>validToken(session)} />}
+    {!session.readOnly && !notebook && <NativeAiPanel review={aiReview} pageId={session.context.pageId} pageTitle={session.context.title} panelId={aiPanelId} enabled={enabled} open={aiOpen} target={aiAnchor} onClose={closeAi} onReveal={revealAi} onCapture={()=>openAi()} getToken={()=>validToken(session)} />}
     </div>
   </OpenAiOnBlockProvider>;
 }
