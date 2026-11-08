@@ -1,0 +1,102 @@
+@page "/notion"
+@using Mercantec.Tech.Web.Notion
+@using Mercantec.Tech.Web.Notebooks
+@inject NotionClient Client
+@inject NotebookClient Notebooks
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Notesbøger · LUP</PageTitle>
+<header class="page-title"><div><h1>Notesbøger</h1><p>Teori, holdets samlinger og dine egne noter ét sted.</p></div><div class="books-actions"><a class="secondary" href="/notion/connections">Udforsk forbindelser</a>@if (Teacher) { <button class="action" @onclick="() => _creating = !_creating">Ny notesbog</button> }</div></header>
+@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
+else if (!Auth.IsAuthenticated) { <section class="panel"><h2>Åbn dine notesbøger</h2><p>Log ind for at finde teori, holdets indhold og dine noter.</p><a class="action" href="@Auth.LoginPath()">Log ind</a></section> }
+else
+{
+    @if (_error is not null) { <div class="panel" role="alert">@_error <button class="secondary" @onclick="Load">Prøv igen</button></div> }
+    <nav class="books-tabs" aria-label="Notesbogstyper">
+        @foreach (var tab in Tabs) { <button class="secondary @(tab.Key == _type ? "is-selected" : "")" aria-pressed="@(tab.Key == _type)" @onclick="() => SelectType(tab.Key)">@tab.Label</button> }
+    </nav>
+    <div class="books-filters"><label class="field">Find notesbog<input type="search" @bind="_search" @bind:event="oninput" placeholder="Titel, hold eller ejer" /></label><label class="field">Hold<select @bind="_hold"><option value="">Alle hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label></div>
+    @if (_creating && Teacher)
+    {
+        <form class="panel books-create" @onsubmit="Create" @onsubmit:preventDefault><h2>Ny notesbog</h2><label class="field">Titel<input @bind="_title" @bind:event="oninput" maxlength="200" required /></label><label class="field">Tilhørsforhold<select aria-label="Tilhørsforhold" @bind="_newHold"><option value="">Teori · uafhængig af hold</option>@foreach (var hold in _holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }</select></label><p>@(_newHold.Length == 0 ? "Alle undervisere kan redigere. Alle i LUP kan læse de sider, du udgiver." : "Holdets eksisterende adgang og udgivelse gælder.")</p><div class="books-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annullér</button></div></form>
+    }
+    @if (_loading) { <p role="status">Henter notesbøger…</p> }
+    else if (!Visible.Any()) { <section class="panel"><h2>Ingen notesbøger matcher</h2><p>Prøv en anden søgning eller et andet filter.</p>@if (_type == "students") { <a class="secondary" href="/teacher/notebooks">Åbn elevoversigten</a> }</section> }
+    else
+    {
+        <div class="books-grid">@foreach (var book in Visible)
+        {
+            <article class="panel books-card"><div class="books-kind"><UiIcon Name="book" /><span>@book.Label</span></div><h2><a href="@book.Href"><EmojiText Text="@book.Title" /></a></h2><p>@book.Context</p>@if (book.Updated is DateTimeOffset updated) { <small>Opdateret @updated.ToLocalTime().ToString("d. MMM yyyy HH:mm")</small> }@if (book.Pages is { Length: > 0 }) { <details><summary>@book.Pages.Length tilgængelige sider</summary><nav aria-label="Delte sider">@foreach (var page in book.Pages) { <a href="/notebook/@(page.Id)">@(page.Title)</a> }</nav></details> }<a class="books-open" href="@book.Href">Åbn notesbog <span aria-hidden="true">→</span></a></article>
+        }</div>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
+    private bool Teacher => Redirect.ShowsTeacherChrome && !ViewAs.IsActive;
+    private IEnumerable<(string Key, string Label)> Tabs => new[] { ("", "Alle"), ("theory", "Teori"), ("hold", "Holdsamlinger"), ("personal", "Mine og delte") }.Concat(Teacher ? new[] { ("students", "Elevnotesbøger") } : []);
+    private NotionHold[] _holds = [];
+    private Book[] _books = [], _students = [];
+    private string _type = "", _search = "", _hold = "", _title = "", _newHold = "";
+    private string? _error;
+    private bool _loading = true, _busy, _creating, _disposed, _studentsLoaded;
+    private CancellationTokenSource _request = new();
+    private IEnumerable<Book> Visible => (_type == "students" ? _students : _books).Where(b =>
+        (_type.Length == 0 || _type == "students" || b.Type == _type) && (_hold.Length == 0 || b.Holds.Contains(_hold)) &&
+        (_search.Length == 0 || (b.Title + " " + b.Context).Contains(_search, StringComparison.CurrentCultureIgnoreCase)))
+        .OrderByDescending(b => b.Updated).ThenBy(b => b.Title);
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    protected override async Task OnParametersSetAsync() { _hold = HoldQuery?.ToString() ?? ""; await Load(); }
+    private void Changed() => _ = InvokeAsync(async () => { await Load(); StateHasChanged(); });
+    private async Task Load()
+    {
+        _request.Cancel(); _request.Dispose(); _request = new(); var ct = _request.Token;
+        _books = []; _students = []; _holds = []; _studentsLoaded = false; _error = null; _loading = Auth.IsAuthenticated;
+        if (!Auth.IsAuthenticated || _disposed) return;
+        try
+        {
+            var collectionsTask = Client.Collections(ct, ViewAs.IsActive); var holdsTask = Client.Holds(ct);
+            await Task.WhenAll(collectionsTask, holdsTask);
+            if (ct.IsCancellationRequested) return;
+            _holds = await holdsTask;
+            _books = (await collectionsTask).Select(c => new Book(c.HoldId is null ? "theory" : "hold", c.Title,
+                c.HoldId is null ? "Teorinotesbog" : "Holdsamling", c.HoldName ?? "Fælles teori · alle i LUP", "/notion/" + c.RootPageId,
+                c.HoldId is Guid id ? [id.ToString()] : [], c.UpdatedAtUtc)).ToArray();
+            if (!ViewAs.IsActive)
+            {
+                var mineTask = Notebooks.Mine(ct); var sharedTask = Notebooks.Shared(ct); await Task.WhenAll(mineTask, sharedTask);
+                var mine = await mineTask; var pages = await Notebooks.Pages(mine.Id, "", "", "", 0, ct);
+                if (ct.IsCancellationRequested) return;
+                _books = [.. _books, new("personal", "Min notesbog", "Personlig", mine.OwnerName, "/notebook", [], pages.Items.FirstOrDefault()?.UpdatedAtUtc),
+                    .. (await sharedTask).GroupBy(p => p.NotebookId).Select(g => new Book("personal", g.First().Title, "Delt med mig", "Kun sider, du har læseadgang til", "/notebook/" + g.First().Id,
+                        g.Where(p => p.HoldId != null).Select(p => p.HoldId!.Value.ToString()).Distinct().ToArray(), g.Max(p => p.UpdatedAtUtc), g.ToArray()))];
+            }
+        }
+        catch (Exception ex) when (ex is NotionException or NotebookException or HttpRequestException or OperationCanceledException)
+        { if (!ct.IsCancellationRequested) _error = "Nogle notesbøger kunne ikke hentes. Prøv igen."; }
+        finally { if (!ct.IsCancellationRequested) _loading = false; }
+    }
+    private async Task SelectType(string type)
+    {
+        _type = type;
+        if (type != "students" || _studentsLoaded || !Teacher) return;
+        var ct = _request.Token; var account = Auth.Subject;
+        _loading = true;
+        try { var result = await Notebooks.Teacher("", null, ct); if (ct.IsCancellationRequested || account != Auth.Subject || !Teacher || _disposed) return; _students = result.Select(n => new Book("students", n.OwnerName + "s notesbog", "Elevnotesbog", string.Join(" · ", n.Holds), "/notebook?owner=" + n.Id, _holds.Where(h => n.Holds.Contains(h.Name)).Select(h => h.Id.ToString()).ToArray(), n.UpdatedAtUtc)).ToArray(); _studentsLoaded = true; }
+        catch (Exception ex) when (ex is NotebookException or HttpRequestException or OperationCanceledException) { if (!ct.IsCancellationRequested) _error = "Elevnotesbøgerne kunne ikke hentes."; }
+        finally { if (!ct.IsCancellationRequested) _loading = false; }
+    }
+    private async Task Create()
+    {
+        if (_busy || !Teacher) return; _busy = true; _error = null;
+        try { var book = await Client.CreateCollection(_title.Trim(), Guid.TryParse(_newHold, out var hold) ? hold : null, _request.Token); Nav.NavigateTo("/notion/" + book.RootPageId); }
+        catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (!_request.IsCancellationRequested) _error = ex.Message; }
+        finally { _busy = false; }
+    }
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _request.Cancel(); _request.Dispose(); }
+    private sealed record Book(string Type, string Title, string Label, string Context, string Href, string[] Holds, DateTimeOffset? Updated, NotebookPageSummary[]? Pages = null);
+}

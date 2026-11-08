@@ -75,7 +75,7 @@ test('default template has three editable H2 prompts and empty answers; blank no
   assert.throws(() => cloneNotebookDocument({ pageId: 'invalid', defaultTemplate: true }));
   assert.throws(() => cloneNotebookDocument({ pageId: id, stateBase64: 'invalid' }));
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/default-notebook-template.json', import.meta.url)));
-  assert.deepEqual(notebookStateProjection(Buffer.from(fixture.stateBase64, 'base64')), { ...fixture, drawingIds: [], drawingBlocks: {} });
+  assert.deepEqual(notebookStateProjection(Buffer.from(fixture.stateBase64, 'base64')), { ...fixture, drawingIds: [], drawingBlocks: {}, references: [] });
   doc.destroy();
 });
 
@@ -102,4 +102,23 @@ test('nullable C# drawingMap transport keeps legacy blank template creation work
   assert.equal(projection.plainText, '');
   assert.deepEqual(projection.drawingIds, []);
   assert.deepEqual(projection.drawingBlocks, {});
+});
+
+test('typed and legacy references project across domains without labels or deleted history', () => {
+  const doc = new Y.Doc({ gc: false });
+  const group = element('blockGroup', {}, [
+    element('blockContainer', { id: 'legacy' }, [element('pageLink', { pageId: targetId })]),
+    element('blockContainer', { id: 'typed' }, [element('paragraph', {}, [element('entityMention', { kind: 'person', id })])]),
+    element('blockContainer', { id: 'slug' }, [element('entityLink', { kind: 'subject', id: 'database/joins' })]),
+    element('blockContainer', { id: 'poll' }, [element('holdPoll', { holdId: id, pollId: oldAsset })]),
+    element('blockContainer', { id: 'removed' }, [element('entityMention', { kind: 'person', id: newAsset })]),
+  ]);
+  doc.getXmlFragment('document-store').insert(0, [group]); group.delete(4, 1);
+  assert.deepEqual(projectNotebookDocument(doc).references, [
+    { kind: 'notebook-page', id: targetId }, { kind: 'person', id }, { kind: 'poll', id: oldAsset }, { kind: 'subject', id: 'database/joins' },
+  ]);
+  assert.equal(projectNotebookDocument(doc, 'notion').references[0].kind, 'notion-page');
+  assert.deepEqual(projectNotebookDocument(doc).linkIds, [targetId]);
+  assert.equal(JSON.stringify(projectNotebookDocument(doc).references).includes(newAsset), false);
+  doc.destroy();
 });

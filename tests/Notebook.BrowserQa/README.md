@@ -23,8 +23,14 @@ synlighed, sidedeling kontra hel-notesbogdeling, tilbagekaldelse, backlinks/graf
 læseopdatering efter 15 sekunder, mobilbredde og bevaret skrive-/scrollkontekst.
 
 Dette testprojekt er ikke del af produktionsappen, løsningen eller Docker-builds.
-Den særlige auth-handler accepterer kun fixture-processens tre præcise fiktive tokens.
+Den særlige auth-handler accepterer kun fixture-processens fire præcise fiktive tokens.
 Ingen auth-omgåelse eller QA-rute tilføjes til den rigtige API.
+
+`node editor/tests/qa-references-browser.mjs` bruger samme fixture og fjerde fiktive bruger
+uden hold til at teste oprettelse af teori via oversigten, rigtige globale mentions,
+udgivelse, private linkmåls synlighed, personnotifikationer og graf på tværs af
+undervisningssider og personlige notesbøger. Rapport og screenshots gemmes i
+`.tools/references-browser-qa/`. Scriptet kontakter kun loopback og starter ikke hosten.
 
 ## Tegninger: automatiseret browseraccept
 

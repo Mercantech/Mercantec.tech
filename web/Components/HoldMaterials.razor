@@ -13,6 +13,7 @@
     else if (!Auth.IsAuthenticated) { <p>Log ind for at åbne holdets materialer.</p> }
     else
     {
+        @if (RequestedMaterialId is Guid requested && !_loading && !VisibleMaterials.Any(m => m.Id == requested)) { <p class="materials-notice" role="status">Materialet findes ikke, eller din konto har ikke adgang til det.</p> }
         @if (MayManage)
         {
             <details class="materials-upload" open="@_uploadOpen">
@@ -37,7 +38,7 @@
             <div class="materials-list">
                 @foreach (var material in VisibleMaterials)
                 {
-                    <article class="material-row"><div class="material-file-mark"><UiIcon Name="book" /></div><div class="material-copy"><div class="material-title"><h3>@material.Title</h3>@if (!material.Published) { <span class="material-draft">Kladde</span> }</div>@if (!string.IsNullOrWhiteSpace(material.Description)) { <p>@material.Description</p> }</div><div class="materials-actions"><button type="button" class="secondary" @onclick="() => OpenFile(material.FileAssetId)">Åbn fil</button>@if (MayManage) { <button type="button" class="secondary" disabled="@_busy" @onclick="() => Toggle(material)">@(material.Published ? "Skjul for elever" : "Udgiv til elever")</button> }</div></article>
+                    <article class="material-row @(material.Id == RequestedMaterialId ? "is-selected" : null)" aria-current="@(material.Id == RequestedMaterialId ? "true" : null)"><div class="material-file-mark"><UiIcon Name="book" /></div><div class="material-copy"><div class="material-title"><h3>@material.Title</h3>@if (!material.Published) { <span class="material-draft">Kladde</span> }</div>@if (!string.IsNullOrWhiteSpace(material.Description)) { <p>@material.Description</p> }</div><div class="materials-actions"><button type="button" class="secondary" @onclick="() => OpenFile(material.FileAssetId)">Åbn fil</button>@if (MayManage) { <button type="button" class="secondary" disabled="@_busy" @onclick="() => Toggle(material)">@(material.Published ? "Skjul for elever" : "Udgiv til elever")</button> }</div></article>
                 }
             </div>
         }
@@ -51,13 +52,14 @@
 @code {
     [Parameter] public Guid HoldId { get; set; }
     [Parameter] public bool CanManage { get; set; }
+    [Parameter] public Guid? RequestedMaterialId { get; set; }
     [Parameter] public EventCallback OnChanged { get; set; }
     private CancellationTokenSource _scope = new();
     private (Guid Hold, string? Subject, bool Preview)? _context;
     private CourseMaterialView[] _materials = [];
     private IBrowserFile? _file;
     private UploadedFile? _uploaded;
-    private Guid? _viewer;
+    private Guid? _viewer, _appliedMaterialId;
     private int _generation, _fileInputKey;
     private string _title = "", _description = "";
     private string? _error, _notice;
@@ -69,6 +71,7 @@
     protected override async Task OnParametersSetAsync()
     {
         await SyncContext();
+        ApplyRequestedMaterial();
         if (_viewer is Guid file && !VisibleMaterials.Any(m => m.FileAssetId == file)) _viewer = null;
     }
     private void ContextChanged() => _ = InvokeAsync(async () => { await SyncContext(); if (!_disposed) StateHasChanged(); });
@@ -79,7 +82,7 @@
         if (_context is { } current && current == next) return;
         _context = next;
         _scope.Cancel(); _scope.Dispose(); _scope = new(); _generation++;
-        _materials = []; _viewer = null; _serverCanManage = false; _busy = false; _loading = false;
+        _materials = []; _viewer = _appliedMaterialId = null; _serverCanManage = false; _busy = false; _loading = false;
         _error = _notice = null; ResetUpload();
         if (Auth.IsAuthenticated && HoldId != Guid.Empty) await Load(_generation, _scope.Token);
     }
@@ -88,7 +91,7 @@
     private async Task Reload()
     {
         if (_busy || _loading || !Auth.IsAuthenticated) return;
-        _viewer = null;
+        _viewer = _appliedMaterialId = null;
         await Load(_generation, _scope.Token);
     }
     private async Task Load(int generation, CancellationToken ct)
@@ -101,6 +104,7 @@
             if (!Current(generation) || ct.IsCancellationRequested) return;
             _serverCanManage = holds.Any(h => h.Id == HoldId && h.CanManage);
             _materials = materials;
+            ApplyRequestedMaterial();
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception ex) when (ex is LearningException or HttpRequestException or OperationCanceledException)
@@ -121,6 +125,12 @@
     private void OpenFile(Guid id)
     {
         if (Auth.IsAuthenticated && VisibleMaterials.Any(m => m.FileAssetId == id)) _viewer = id;
+    }
+    private void ApplyRequestedMaterial()
+    {
+        if (_disposed || RequestedMaterialId == _appliedMaterialId) return;
+        _appliedMaterialId = RequestedMaterialId;
+        _viewer = RequestedMaterialId is Guid id ? VisibleMaterials.FirstOrDefault(m => m.Id == id)?.FileAssetId : null;
     }
     private async Task Upload()
     {

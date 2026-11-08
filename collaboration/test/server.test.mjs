@@ -92,7 +92,7 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     await new Promise(resolve => http.close(resolve));
   });
 
-  const connect = (accessToken, name = documentName, schemaVersion = '7') => {
+  const connect = (accessToken, name = documentName, schemaVersion = '8') => {
     const doc = new Y.Doc();
     const messages = [];
     let denied = false;

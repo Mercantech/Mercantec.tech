@@ -113,7 +113,7 @@ public partial class Index
     private object EditorContext() => new
     {
         domain = "notebook", documentName = "notebook:" + _current!.DocumentId,
-        pageId = _current.DocumentId, holdId = _current.HoldId?.ToString() ?? "", title = _current.Title,
+        pageId = _current.DocumentId, collectionId = _current.NotebookId, holdId = _current.HoldId?.ToString() ?? "", title = _current.Title,
         canEdit = Editing, members = Array.Empty<object>(), polls = Array.Empty<object>(), groups = Array.Empty<object>(),
         pages = _current.Pages, publishedStateBase64 = _current.StateBase64, stateBase64 = _current.StateBase64,
         revision = _current.Revision, updatedAtUtc = _current.UpdatedAtUtc, userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject
@@ -178,7 +178,7 @@ public partial class Index
                     _loadedNotebookAccess = notebook;
                 }
                 if (_current is null && _pages.FirstOrDefault() is { } first) Select(await Client.Context(first.Id, ct));
-                if (_current is not null) _backlinks = await Client.Backlinks(_current.DocumentId, ct);
+
                 if (RequestedComments && _current?.CanComment == true)
                 {
                     var commentPage = _current.DocumentId;
@@ -267,7 +267,7 @@ public partial class Index
         _pages = more ? _pages.Concat(result.Items).DistinctBy(p => p.Id).ToArray() : result.Items;
         _total = result.Total;
     });
-    private async Task ShowGraph() => await Work(async ct => { if (_notebookId is Guid id) { _graph = await Client.Graph(id, ct); _showGraph = true; } });
+    private Task ShowGraph() { _showGraph = true; return Task.CompletedTask; }
     private void BeginCreate(bool child)
     {
         if (!Own && !TemplateMode) return;
@@ -411,7 +411,7 @@ public partial class Index
             _shared = _shared.Where(p => p.NotebookId != context.NotebookId || visibleIds.Contains(p.Id)).ToArray();
             if (changed)
             {
-                var backlinks = await Client.Backlinks(page, ct);
+                var backlinks = Array.Empty<NotebookPageSummary>();
                 if (generation != _generation || _current?.DocumentId != page || _disposed) return;
                 _backlinks = backlinks;
             }

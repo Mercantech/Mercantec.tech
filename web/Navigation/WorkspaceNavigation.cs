@@ -21,12 +21,12 @@ public static class WorkspaceNavigation
     };
 
     public static string View(Guid workspaceId, string view = "overview", Guid? courseId = null, bool create = false,
-        Guid? questId = null, string? status = null, Guid? eventId = null) => workspaceId == Guid.Empty ? "/courses"
-        : WorkspacePath($"/courses/{workspaceId:D}", view, courseId, create, questId, status, eventId);
+        Guid? questId = null, string? status = null, Guid? eventId = null, Guid? materialId = null, Guid? groupId = null) => workspaceId == Guid.Empty ? "/courses"
+        : WorkspacePath($"/courses/{workspaceId:D}", view, courseId, create, questId, status, eventId, materialId, groupId);
     public static string Hold(Guid holdId, string view = "overview", Guid? courseId = null, bool create = false,
-        Guid? questId = null, string? status = null, Guid? eventId = null) => holdId == Guid.Empty ? "/courses"
-        : WorkspacePath($"/holds/{holdId:D}", view, courseId, create, questId, status, eventId);
-    private static string WorkspacePath(string path, string view, Guid? courseId, bool create, Guid? questId, string? status, Guid? eventId)
+        Guid? questId = null, string? status = null, Guid? eventId = null, Guid? materialId = null, Guid? groupId = null) => holdId == Guid.Empty ? "/courses"
+        : WorkspacePath($"/holds/{holdId:D}", view, courseId, create, questId, status, eventId, materialId, groupId);
+    private static string WorkspacePath(string path, string view, Guid? courseId, bool create, Guid? questId, string? status, Guid? eventId, Guid? materialId, Guid? groupId)
     {
         var query = new List<string> { "view=" + NormalizeView(view) };
         AddId(query, "course", courseId);
@@ -34,6 +34,8 @@ public static class WorkspaceNavigation
         AddId(query, "quest", questId);
         if (status is not null && Statuses.Contains(status)) query.Add("status=" + status);
         AddId(query, "event", eventId);
+        AddId(query, "material", materialId);
+        AddId(query, "group", groupId);
         return path + "?" + string.Join("&", query);
     }
 

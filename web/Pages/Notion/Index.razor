@@ -1,4 +1,3 @@
-@page "/notion"
 @page "/notion/{PageId:guid}"
 @using Mercantec.Tech.Web.Notion
 @implements IAsyncDisposable
@@ -13,7 +12,7 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/courses">Mine hold</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>Holdets indhold</span></nav><h1>Holdets indhold</h1></div></header>
+    <header class="page-title"><div><nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/notion">Notesbøger</a><span>›</span><a href="@WorkspaceHref()">Undervisning</a><span>›</span><span>@(_holdId == Guid.Empty ? "Teori" : "Holdets indhold")</span></nav><h1>@(_holdId == Guid.Empty ? "Teorinotesbog" : "Holdets indhold")</h1></div></header>
     @if (_error is not null) { <div class="notion-error" role="alert">@_error <button class="secondary" @onclick="Retry" disabled="@_busy">Prøv igen</button></div> }
     @if (_notice is not null) { <p class="notion-notice" role="status">@_notice</p> }
     @if (_resourcesError is not null) { <div class="notion-error" role="alert">@_resourcesError <button class="secondary" @onclick="async () => await EnsureNotionResources()">Hent holddata igen</button></div> }
@@ -24,14 +23,14 @@ else
     }
     else
     {
-        @if (_showGroups && CanManageHold)
+        @if (_showGroups && CanManageHold && _holdId != Guid.Empty)
         {
             <section class="panel notion-group-panel"><div class="notion-actions"><button class="secondary" @onclick="() => _showGroups = false">Luk gruppeværktøj</button><a href="@WorkspaceHref("groups")" class="secondary">Åbn holdets grupper</a></div><HoldGroups @key="(_holdId, _groupPanelGeneration)" HoldId="_holdId" WorkspaceId="@(_returnContext?.WorkspaceId ?? Guid.Empty)" CourseId="_returnContext?.CourseId" InitialSelection="_groupSelection" OnSaved="RefreshContext" /></section>
         }
         <div class="notion-workspace">
             <aside class="notion-sidebar" aria-label="Holdets dokumenter">
-                <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@(_busy || !_holdsLoaded)">@if (!_holdsLoaded) { <option value="@_holdId">Henter hold…</option> }@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
-                <nav class="notion-sidebar-links" aria-label="Holdets oversigt"><a class="notion-hold-link" href="@WorkspaceHref("groups")">Elever og grupper</a><a class="notion-hold-link" href="@HoldGraphHref">Graf for holdet</a></nav>
+                @if (_holdId != Guid.Empty) { <label class="field">Hold<select value="@_holdId" @onchange="ChangeHold" disabled="@(_busy || !_holdsLoaded)">@if (!_holdsLoaded) { <option value="@_holdId">Henter hold…</option> }@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label> }
+                <nav class="notion-sidebar-links" aria-label="Holdets oversigt"><a class="notion-hold-link" href="/notion">Alle notesbøger</a>@if (_holdId != Guid.Empty) { <a class="notion-hold-link" href="@WorkspaceHref("groups")">Elever og grupper</a><a class="notion-hold-link" href="@HoldGraphHref">Graf for holdet</a> }</nav>
                 <div class="notion-sidebar-heading"><h2>Sider</h2>@if (Authoring) { <button class="secondary" @onclick="() => BeginCreate(false)" disabled="@_busy" aria-label="Opret dokument">+</button> }</div>
                 @if (_navigationLoading) { <p class="notion-sidebar-status" role="status">Henter sideoversigt…</p> }
                 @if (_navigationError is not null) { <p class="notion-sidebar-status" role="status">@_navigationError <button class="secondary" @onclick="RetryNavigation" disabled="@_navigationLoading">Prøv oversigten igen</button></p> }
@@ -55,15 +54,15 @@ else
                 }
                 else
                 {
-                    <div class="notion-document-toolbar">@if (IsEditing) { <span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>Kladde · @StatusLabel</span> } else { <span class="notion-save-status saved">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM yyyy HH:mm"))</span> }<div class="notion-actions"><a class="secondary" href="@HoldGraphHref">Graf for holdet</a><a class="secondary" href="@GraphHref(CollectionRoot(_current.PageId))">Graf for kollektionen</a><button class="secondary" disabled="@(!_mounted)" @onclick="PresentPage">Præsenter</button><button class="secondary" @onclick="CopyLink">Kopiér link</button>@if (IsEditing) { <button class="secondary" disabled="@_busy" @onclick="RefreshContext">Opdatér holddata</button><button class="secondary" disabled="@_busy" @onclick="() => BeginCreate(true)">Ny underside</button> } else { <button class="secondary" disabled="@_busy" @onclick="Retry">Opdatér siden</button>@if (CanManageHold) { <a class="secondary" href="@PageHref(_current.PageId, false)">Til kladden</a> } }</div></div>
+                    <div class="notion-document-toolbar">@if (IsEditing) { <span class="notion-save-status @_status" role="status"><i aria-hidden="true"></i>Kladde · @StatusLabel</span> } else { <span class="notion-save-status saved">Udgivet @(_current.PublishedAtUtc?.ToLocalTime().ToString("d. MMM yyyy HH:mm"))</span> }<div class="notion-actions">@if (_holdId != Guid.Empty) { <a class="secondary" href="@HoldGraphHref">Graf for holdet</a> }<a class="secondary" href="@GraphHref(_current.CollectionId ?? CollectionRoot(_current.PageId))">Graf for kollektionen</a><button class="secondary" disabled="@(!_mounted)" @onclick="PresentPage">Præsenter</button><button class="secondary" @onclick="CopyLink">Kopiér link</button>@if (IsEditing) { <button class="secondary" disabled="@_busy" @onclick="RefreshContext">@(_holdId == Guid.Empty ? "Opdatér sideoversigt" : "Opdatér holddata")</button><button class="secondary" disabled="@_busy" @onclick="() => BeginCreate(true)">Ny underside</button> } else { <button class="secondary" disabled="@_busy" @onclick="Retry">Opdatér siden</button>@if (CanManageHold) { <a class="secondary" href="@PageHref(_current.PageId, false)">Til kladden</a> } }</div></div>
                     @if (IsEditing)
                     {
-                        <div class="notion-publishing"><strong>@(_current.PublishedAtUtc is null ? "Kladde" : $"Udgivet {_current.PublishedAtUtc.Value.ToLocalTime():d. MMM HH:mm}")</strong><div class="notion-actions"><button class="action" disabled="@(_busy || !_mounted || _status is "connecting" or "offline" or "error")" @onclick="PublishPage">@(_current.PublishedAtUtc is null ? "Udgiv til holdet" : "Opdatér udgivelsen")</button>@if (_current.PublishedAtUtc is not null) { <a class="secondary" href="@PageHref(_current.PageId, true)">Se udgivet</a><button class="secondary" disabled="@_busy" @onclick="UnpublishPage">Træk udgivelse tilbage</button> }</div></div>
+                        <div class="notion-publishing"><strong>@(_current.PublishedAtUtc is null ? "Kladde" : $"Udgivet {_current.PublishedAtUtc.Value.ToLocalTime():d. MMM HH:mm}")</strong><div class="notion-actions"><button class="action" disabled="@(_busy || !_mounted || _status is "connecting" or "offline" or "error")" @onclick="PublishPage">@(_current.PublishedAtUtc is null ? (_holdId == Guid.Empty ? "Udgiv til LUP" : "Udgiv til holdet") : "Opdatér udgivelsen")</button>@if (_current.PublishedAtUtc is not null) { <a class="secondary" href="@PageHref(_current.PageId, true)">Se udgivet</a><button class="secondary" disabled="@_busy" @onclick="UnpublishPage">Træk udgivelse tilbage</button> }</div></div>
                     }
                     @if (_statusDetail.Length > 0 && _status is "error" or "offline") { <p class="notion-connection-warning" role="alert">@_statusDetail</p> }
                     @if (IsEditing) { <form class="notion-title-form" @onsubmit="RenamePage" @onsubmit:preventDefault><label class="notion-visually-hidden" for="notion-title">Sidens titel</label><input id="notion-title" class="notion-title" @bind="_title" @bind:event="oninput" @onblur="RenamePage" maxlength="200" placeholder="Sidens titel" disabled="@_busy" aria-busy="@_savingTitle" /></form> @if (_title.Contains(':')) { <p class="notion-title-preview" aria-label="Sådan vises titlen"><EmojiText Text="@_title" /></p> } }
                     else { <h2 class="notion-published-title"><EmojiText Text="@_current.Title" /></h2> }
-                    <div @key="(_current.PageId, _generation)" class="notion-editor-root" @ref="_editorElement"></div>
+                    <div @key="(_current.PageId, _generation)" class="notion-editor-root" @ref="_editorElement"></div>@if (!string.IsNullOrEmpty(MentionNotice)) { <MentionReceipt SourceId="_current.PageId" Loaded="_mounted" Notice="@MentionNotice" /> }<ReferenceBacklinks Kind="notion-page" Id="@_current.PageId.ToString()" Revision="_current.DraftRevision" PublishedOnly="ForceReadOnly" />
                 }
             </section>
         </div>

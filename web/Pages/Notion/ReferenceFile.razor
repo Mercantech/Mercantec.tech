@@ -1,0 +1,41 @@
+@page "/references/{Kind}/{Id:guid}"
+@page "/references/file/{Kind}/{Id:guid}"
+@using Mercantec.Tech.Web.Pages.Learning
+@inject HttpClient Http
+@inject AuthService Auth
+@implements IDisposable
+<PageTitle>@(_asset?.OriginalName ?? "Fil") · LUP</PageTitle>
+<header class="page-title"><div><nav class="breadcrumbs"><a href="/notion">Notesbøger</a><span>›</span><span>Fil</span></nav><h1>@(_asset?.OriginalName ?? "Fil")</h1></div></header>
+@if (!Auth.IsAuthenticated) { <a class="action" href="@Auth.LoginPath()">Log ind</a> }
+else if (Kind == "file") { <FileViewer FileId="Id" @key="Id" /> }
+else if (_loading) { <p role="status">Henter fil…</p> }
+else if (_asset is null) { <p role="alert">Filen er ikke tilgængelig.</p> }
+else
+{
+    <section class="panel"><p><a class="action" href="@_asset.DownloadUrl" download>Hent fil</a> <button class="secondary" @onclick="Load">Opdatér adgang</button></p>
+    @if (_asset.Kind == "image") { <img src="@_asset.Url" alt="@_asset.OriginalName" style="max-width:100%;height:auto" /> }
+    else if (_asset.Kind == "video") { <video src="@_asset.Url" controls style="max-width:100%"></video> }
+    else if (_asset.Kind == "audio") { <audio src="@_asset.Url" controls></audio> }
+    else if (_asset.ContentType == "application/pdf") { <iframe src="@_asset.Url" title="@_asset.OriginalName" sandbox style="width:100%;height:70vh;border:0"></iframe> }
+    </section>
+}
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+    [Parameter] public Guid Id { get; set; }
+    private NotionAssetAccess? _asset;
+    private bool _loading;
+    private CancellationTokenSource _request = new();
+    protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
+    protected override Task OnParametersSetAsync() => Load();
+    private void Changed() => _ = InvokeAsync(async () => { await Load(); StateHasChanged(); });
+    private async Task Load()
+    {
+        _request.Cancel(); _request.Dispose(); _request = new(); var ct = _request.Token; _asset = null; _loading = false;
+        var domain = Kind switch { "notion-asset" => "notion", "notebook-asset" => "notebooks", _ => null };
+        if (!Auth.IsAuthenticated || domain is null) return; _loading = true;
+        try { var asset = await Http.GetFromJsonAsync<NotionAssetAccess>($"{domain}/assets/{Id}/access", ct); if (!ct.IsCancellationRequested) _asset = asset; }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException) { }
+        finally { if (!ct.IsCancellationRequested) _loading = false; }
+    }
+    public void Dispose() { Auth.AuthStateChanged -= Changed; _request.Cancel(); _request.Dispose(); }
+}

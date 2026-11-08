@@ -1,0 +1,28 @@
+@page "/people/{Sub:guid}"
+@inject HttpClient Http
+@inject AuthService Auth
+@implements IDisposable
+<PageTitle>@(_person?.DisplayName ?? "Person") · LUP</PageTitle>
+<header class="page-title"><div><nav class="breadcrumbs"><a href="/notion">Notesbøger</a><span>›</span><span>Person</span></nav><h1>@(_person?.DisplayName ?? "Person")</h1></div></header>
+@if (!Auth.IsAuthenticated) { <a class="action" href="@Auth.LoginPath()">Log ind</a> }
+else if (_loading) { <p role="status">Henter person…</p> }
+else if (_person is null) { <p role="alert">Personen er ikke tilgængelig.</p> }
+else { <section class="panel"><p>@(_person.IsTeacher ? "Underviser" : "Elev") · LUP</p><h2>Hold, du har adgang til</h2>@if (_person.Memberships.Length == 0) { <p>Ingen fælles hold at vise.</p> } else { <nav>@foreach (var member in _person.Memberships) { <p><a href="@member.Href">@member.ContextLabel</a></p> }</nav> }</section> }
+@code {
+    [Parameter] public Guid Sub { get; set; }
+    private ReferencePerson? _person;
+    private bool _loading;
+    private CancellationTokenSource _request = new();
+    protected override void OnInitialized() => Auth.AuthStateChanged += Changed;
+    protected override Task OnParametersSetAsync() => Load();
+    private void Changed() => _ = InvokeAsync(async () => { await Load(); StateHasChanged(); });
+    private async Task Load()
+    {
+        _request.Cancel(); _request.Dispose(); _request = new(); var ct = _request.Token; _person = null; _loading = Auth.IsAuthenticated;
+        if (!Auth.IsAuthenticated) return;
+        try { var person = await Http.GetFromJsonAsync<ReferencePerson>($"references/people/{Sub}", ct); if (!ct.IsCancellationRequested) _person = person; }
+        catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException) { }
+        finally { if (!ct.IsCancellationRequested) _loading = false; }
+    }
+    public void Dispose() { Auth.AuthStateChanged -= Changed; _request.Cancel(); _request.Dispose(); }
+}

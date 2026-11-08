@@ -113,6 +113,7 @@ internal static class QaIdentities
     {
         Create("pupil", "aaaaaaaa-1111-4111-8111-111111111111", "QA Elev Anna", "Elev"),
         Create("peer", "bbbbbbbb-2222-4222-8222-222222222222", "QA Elev Emil", "Elev"),
+        Create("outsider", "dddddddd-4444-4444-8444-444444444444", "QA Elev uden hold", "Elev"),
         Create("teacher", "cccccccc-3333-4333-8333-333333333333", "QA Underviser", "Underviser")
     }.ToDictionary(identity => identity.Key);
 

@@ -5,6 +5,7 @@ using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Learning;
+using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Api.Storage;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ namespace Mercantec.Tech.Api.Controllers;
 public sealed class NotionAssetsController(AppDbContext db, CourseAccess access, IObjectStorage storage,
     IDataProtectionProvider protection) : ControllerBase
 {
+    private readonly NotionAccess pagesAccess = new(db, access);
     // Compatibility with already-open older editors. New editors use /assets/uploads, which accepts
     // whole files above this bounded single-request size through authenticated multipart requests.
     public const long MaxLegacyRequestBytes = 100 * 1024 * 1024;
@@ -30,9 +32,7 @@ public sealed class NotionAssetsController(AppDbContext db, CourseAccess access,
     public async Task<IActionResult> Upload(Guid pageId, IFormFile? file, CancellationToken ct)
     {
         if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
-        var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == pageId)
-            .Select(p => new { p.HoldId }).SingleOrDefaultAsync(ct);
-        if (page is null || !await access.CanManageAsync(page.HoldId, User, ct)) return NotFound();
+        if (!await pagesAccess.CanManageAsync(pageId, User, ct)) return NotFound();
         if (!storage.IsConfigured) return StatusCode(503, new { error = "object_storage_disabled" });
         if (file is null || file.Length == 0) return BadRequest(new { error = "missing_file" });
         if (file.Length > MaxLegacyRequestBytes) return StatusCode(413, new { error = "use_multipart_upload" });
@@ -85,7 +85,7 @@ public sealed class NotionAssetsController(AppDbContext db, CourseAccess access,
         var expires = DateTimeOffset.UtcNow.AddMinutes(5);
         var admin = User.Claims.Any(c => (c.Type is "role" or "roles" || c.Type == ClaimTypes.Role)
             && c.Value.Equals("Admin", StringComparison.OrdinalIgnoreCase));
-        var manager = await access.CanManageAsync(asset.Page.HoldId, User, ct);
+        var manager = await pagesAccess.CanManageAsync(asset.Page, User, ct);
         var ticket = tickets.Protect(JsonSerializer.Serialize(new MediaTicket(id, sub, UserClaims.IsTeacher(User), admin,
             expires, manager ? null : asset.Page.PublicationVersion)));
         var url = $"/api/notion/assets/{id}/content?ticket={Uri.EscapeDataString(ticket)}";
@@ -156,8 +156,8 @@ public sealed class NotionAssetsController(AppDbContext db, CourseAccess access,
     {
         var asset = await db.NotionAssets.AsNoTracking().Include(a => a.Page).SingleOrDefaultAsync(a => a.Id == id, ct);
         if (asset is null) return null;
-        if (await access.CanManageAsync(asset.Page.HoldId, viewer, ct)) return asset;
-        if (asset.Page.PublishedAtUtc is null || !await access.CanAccessAsync(asset.Page.HoldId, viewer, ct)) return null;
+        if (await pagesAccess.CanManageAsync(asset.Page, viewer, ct)) return asset;
+        if (asset.Page.PublishedAtUtc is null || !await pagesAccess.CanAccessScopeAsync(asset.Page.HoldId, viewer, ct)) return null;
         var issuedVersion = viewer.FindFirstValue("notion_publication_version");
         if (issuedVersion is not null && (!long.TryParse(issuedVersion, out var version) || version != asset.Page.PublicationVersion)) return null;
         try

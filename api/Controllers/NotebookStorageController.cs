@@ -30,6 +30,7 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
         if (!NotebookDocumentValidation.ValidProjection(request, out var state)) return BadRequest(new { error = "invalid_document" });
         // Serialize state + its derived projection in the same transaction. No client-provided search index is trusted.
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await db.NotebookDocuments.Where(d => d.Id == id).ExecuteUpdateAsync(s => s.SetProperty(d => d.Revision, d => d.Revision), ct);
         var doc = await db.NotebookDocuments.AsNoTracking().SingleOrDefaultAsync(d => d.Id == id, ct);
         if (doc is null) return NotFound();
         var assets = request.AssetIds.Distinct().ToArray();
@@ -48,6 +49,8 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
         }
         if (doc.Fingerprint == request.Fingerprint)
             return Ok(new { savedAtUtc = doc.UpdatedAtUtc });
+        var references = new Mercantec.Tech.Api.References.ReferenceService(db);
+        await references.BaselineNotebookAsync(id, ct);
         var updated = DateTimeOffset.UtcNow;
         var manifest = JsonSerializer.Serialize(assets);
         var drawingManifest = JsonSerializer.Serialize(drawingIds);
@@ -66,6 +69,7 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
                 .Select(d => d.Id).ToArrayAsync(ct) : [];
         db.NotebookLinks.AddRange(targets.Select(target => new NotebookLink { FromId = id, ToId = target }));
         await db.SaveChangesAsync(ct);
+        await references.RefreshNotebookAsync(id, ct);
         await transaction.CommitAsync(ct);
         Response.Headers.CacheControl = "no-store";
         return Ok(new { savedAtUtc = updated });

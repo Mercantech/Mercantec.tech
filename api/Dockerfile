@@ -5,6 +5,12 @@ COPY api/Mercantec.Tech.Api.csproj api/
 RUN dotnet restore api/Mercantec.Tech.Api.csproj
 COPY shared/ shared/
 COPY api/ api/
+COPY web/Courses/CourseTemplateCatalog.cs web/Courses/
+COPY web/Public/PublicCatalog.cs web/Public/
+COPY web/Demo/DemoCatalog.cs web/Demo/
+COPY web/Demo/LearningContent.cs web/Demo/
+COPY web/Characters/CharacterCatalog.cs web/Characters/
+COPY web/Characters/VatsonEmojiCatalog.cs web/Characters/
 WORKDIR /src/api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 

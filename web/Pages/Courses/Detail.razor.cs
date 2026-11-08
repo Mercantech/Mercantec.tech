@@ -19,6 +19,8 @@ public partial class Detail
     [SupplyParameterFromQuery(Name = "quest")] public Guid? RequestedQuestId { get; set; }
     [SupplyParameterFromQuery(Name = "status")] public string? SubmissionFilter { get; set; }
     [SupplyParameterFromQuery(Name = "event")] public Guid? RequestedEventId { get; set; }
+    [SupplyParameterFromQuery(Name = "material")] public Guid? RequestedMaterialId { get; set; }
+    [SupplyParameterFromQuery(Name = "group")] public Guid? RequestedGroupId { get; set; }
     private HoldWorkspaceView? _workspace;
     private CancellationTokenSource _requests = new();
     private string? _identity, _error, _notice;

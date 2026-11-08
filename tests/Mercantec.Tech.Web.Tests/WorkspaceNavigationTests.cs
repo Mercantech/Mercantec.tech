@@ -62,6 +62,15 @@ public sealed class WorkspaceNavigationTests
     }
 
     [Fact]
+    public void Material_and_group_deep_links_preserve_typed_targets_through_workspace_routes()
+    {
+        Assert.Equal($"/holds/{HoldId}?view=materials&material={ResourceId}", WorkspaceNavigation.Hold(HoldId, "materials", materialId: ResourceId));
+        Assert.Equal($"/courses/{WorkspaceId}?view=materials&material={ResourceId}", WorkspaceNavigation.View(WorkspaceId, "materials", materialId: ResourceId));
+        Assert.Equal($"/courses/{WorkspaceId}?view=groups&group={ResourceId}", WorkspaceNavigation.View(WorkspaceId, "groups", groupId: ResourceId));
+        Assert.Equal($"/holds/{HoldId}?view=groups", WorkspaceNavigation.Hold(HoldId, "groups", groupId: Guid.Empty));
+    }
+
+    [Fact]
     public void Return_context_uses_the_resources_actual_hold_and_rejects_a_foreign_or_deleted_selection()
     {
         var workspace = Workspace();

@@ -5,6 +5,7 @@ using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Learning;
 using Mercantec.Tech.Api.Notebooks;
+using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,21 +13,18 @@ namespace Mercantec.Tech.Api.Drawings;
 
 public sealed class DrawingAccess(AppDbContext db, CourseAccess courses, NotebookAccess notebooks)
 {
+    private readonly NotionAccess teachingPages = new(db, courses);
     public async Task<bool> CanReadParentAsync(Drawing drawing, ClaimsPrincipal user, CancellationToken ct)
     {
         if (UserClaims.GetSub(user) is null) return false;
         if (drawing.NotebookDocumentId is Guid notebook) return await notebooks.CanReadAsync(notebook, user, ct);
-        var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == drawing.NotionPageId)
-            .Select(p => new { p.HoldId, HasPublication = p.PublishedAtUtc != null && p.PublishedState != null }).SingleOrDefaultAsync(ct);
-        return page is not null && (await courses.CanManageAsync(page.HoldId, user, ct)
-            || page.HasPublication && await courses.CanAccessAsync(page.HoldId, user, ct));
+        return drawing.NotionPageId is Guid page && await teachingPages.CanReadAsync(page, user, ct);
     }
 
     public async Task<bool> CanManageAsync(Drawing drawing, ClaimsPrincipal user, CancellationToken ct)
     {
         if (drawing.NotebookDocumentId is Guid notebook) return await notebooks.CanEditAsync(notebook, user, ct);
-        var hold = await db.NotionPages.AsNoTracking().Where(p => p.Id == drawing.NotionPageId).Select(p => (Guid?)p.HoldId).SingleOrDefaultAsync(ct);
-        return hold is Guid id && await courses.CanManageAsync(id, user, ct);
+        return drawing.NotionPageId is Guid page && await teachingPages.CanManageAsync(page, user, ct);
     }
 
     public async Task<bool> CanEditAsync(Drawing drawing, ClaimsPrincipal user, CancellationToken ct)

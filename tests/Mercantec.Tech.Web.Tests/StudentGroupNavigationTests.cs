@@ -12,6 +12,24 @@ namespace Mercantec.Tech.Web.Tests;
 public sealed class StudentGroupNavigationTests
 {
     [Fact]
+    public async Task Group_deep_link_selects_its_accessible_set_and_does_not_reveal_unknown_groups()
+    {
+        var hold = Guid.NewGuid();
+        var member = new NotionMember(Guid.NewGuid(), "Anna");
+        var set = new GroupSetView(Guid.NewGuid(), hold, "Makkerpar", false, 0, 1, 1);
+        var group = new NotionGroupView(Guid.NewGuid(), hold, "Kodeparret", 0, [member], set.Id);
+        using var context = await LearningUiTestContext.CreateAsync(new GroupHandler(hold, [set], [group],
+            [new(member.Id, member.DisplayName, [group.Id])]), configure: services =>
+        { services.AddSingleton<NotionClient>(); services.AddSingleton<GroupSetsClient>(); });
+        var cut = context.Render<HoldGroups>(p => p.Add(x => x.HoldId, hold).Add(x => x.RequestedGroupId, group.Id));
+        cut.WaitForAssertion(() => Assert.Equal("Kodeparret", cut.Find(".hold-group-card.is-selected h4").TextContent));
+        Assert.Equal(set.Id.ToString(), cut.Find("select").GetAttribute("value"));
+        cut.Render(p => p.Add(x => x.HoldId, hold).Add(x => x.RequestedGroupId, Guid.NewGuid()));
+        Assert.Empty(cut.FindAll(".hold-group-card.is-selected"));
+        Assert.Contains("Gruppen findes ikke, eller din konto har ikke adgang", cut.Markup);
+    }
+
+    [Fact]
     public async Task StudentFindsOwnGroupsAcrossActiveSetsWithoutTeacherControls()
     {
         var holdId = Guid.NewGuid();

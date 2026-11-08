@@ -738,3 +738,16 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
   .notion-code-language-search { min-height: 44px; font-size: 1rem; }
 }
 .notion-emoji-crop-panel{min-width:0;padding:8px;border:1px solid var(--notion-rule);border-radius:8px;background:var(--notion-paper)}
+/* The reference picker shares the editor's theme and never renders saved private labels. */
+.notion-reference-picker{padding:12px;border:1px solid var(--bn-colors-border,#d9dce3);border-radius:10px;margin-top:8px;background:var(--bn-colors-editor-background,#fff);color:var(--bn-colors-editor-text,#20232c)}
+.notion-reference-picker label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px}
+.notion-reference-picker input{box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--bn-colors-border,#d9dce3);border-radius:7px;color:inherit;background:transparent;font:inherit}
+.notion-reference-picker ul{list-style:none;padding:0!important;margin:8px 0 0;max-height:300px;overflow:auto}
+.notion-reference-picker li{margin:0;padding:0}
+.notion-reference-picker li button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:9px;text-align:left;border:0;border-radius:7px;color:inherit;background:transparent;cursor:pointer}
+.notion-reference-picker li button:hover,.notion-reference-picker li button.is-selected{background:var(--bn-colors-hovered-background,#edf1ff)}
+.notion-reference-picker small,.notion-entity-link small{font-size:.78rem;opacity:.75}
+.notion-reference-change{font:inherit;font-size:.8rem;padding:5px 9px;border:1px solid var(--bn-colors-border,#d9dce3);border-radius:7px;background:transparent;color:inherit;cursor:pointer;margin-top:6px}
+.notion-entity-link{display:flex;align-items:flex-start;flex-wrap:wrap;gap:6px;text-decoration:none}
+.notion-entity-link small{flex-basis:100%;padding-inline-start:22px}
+.notion-reference-status{font-size:.72em;opacity:.72;margin-inline-start:5px}

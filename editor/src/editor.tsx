@@ -30,6 +30,8 @@ import { createDrawing } from './drawing-block';
 import { DrawingEnvironmentProvider, requestCreateDrawing, requestOpenDrawing, collectDrawingPublicationData, type DrawingEnvironment } from './drawing-context';
 import { useViewport } from './use-viewport';
 import { ensureEditorResources } from './editor-resources.mjs';
+import { ReferenceProvider, ReferenceView, ReferencePicker, useReferenceSearch, mentionStatusLabel, type EntityReference, type ResolvedReference } from './entity-reference-components';
+import { legacyReference, entityReference, referenceKindLabel } from './entity-references.mjs';
 
 export interface EditorContext {
   domain?: 'notion' | 'notebook';
@@ -40,7 +42,8 @@ export interface EditorContext {
   canComment?: boolean;
   canShare?: boolean;
   pageId: string;
-  holdId: string;
+  holdId?: string | null;
+  collectionId?: string | null;
   workspaceId?: string | null;
   courseId?: string | null;
   title: string;
@@ -137,10 +140,13 @@ function GroupButton({ids}:{ids:string[]}) {
 }
 
 const pageMention=createReactInlineContentSpec({type:'pageMention',propSchema:{pageId:{default:''}},content:'none'},{
-  render:({inlineContent})=>{const context=useData();const page=context?.pages?.find(item=>item.id===inlineContent.props.pageId);return page ? <a className="notion-mention" href={pageUrl(page.id,context?.canEdit===false,context) ?? undefined} contentEditable={false}>▤ {page.title}</a> : <span className="notion-unavailable" contentEditable={false}>Side er ikke tilgængelig</span>;},
+  render:({inlineContent})=>{const context=useData();return <ReferenceView reference={legacyReference('pageMention',inlineContent.props,context?.domain)}/>;},
 });
 const studentMention=createReactInlineContentSpec({type:'studentMention',propSchema:{holdId:{default:''},membershipId:{default:''}},content:'none'},{
-  render:({inlineContent})=>{const context=useData();useNotionResources(context?.holdId===inlineContent.props.holdId);const member=context?.holdId===inlineContent.props.holdId ? context.members.find(item=>item.id===inlineContent.props.membershipId) : undefined;return member && context ? <a className="notion-mention" href={studentUrl(context.holdId,member.id,context) ?? undefined} contentEditable={false}>@{member.displayName}</a> : <span className="notion-unavailable" contentEditable={false}>{context?.resourcesLoaded===false?'Henter elev…':'Elev er ikke tilgængelig'}</span>;},
+  render:({inlineContent})=><ReferenceView reference={legacyReference('studentMention',inlineContent.props)}/>,
+});
+const entityMention=createReactInlineContentSpec({type:'entityMention',propSchema:{kind:{default:''},id:{default:''}},content:'none'},{
+  render:({inlineContent})=><ReferenceView reference={entityReference(inlineContent.props.kind,inlineContent.props.id)}/>,
 });
 const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{emojiId:{default:''},name:{default:''}},content:'none'},{
   render:({inlineContent})=>{
@@ -153,11 +159,19 @@ const customEmoji=createReactInlineContentSpec({type:'customEmoji',propSchema:{e
   },
 });
 const createPageLink=createReactBlockSpec({type:'pageLink',propSchema:{schemaVersion:{default:1},pageId:{default:''}},content:'none'},{
-  render:({block,editor})=>{const context=useData();const page=context?.pages?.find(item=>item.id===block.props.pageId);return <section className="notion-link-block" contentEditable={false} aria-label="Link til side">
-    {context?.canEdit && editor.isEditable && <label>Link til side<select value={page?.id || ''} onChange={event=>editor.updateBlock(block,{props:{pageId:event.target.value}})}><option value="">Vælg side eller underside</option>{context.pages?.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-    {page ? <a href={pageUrl(page.id,context?.canEdit===false,context) ?? undefined}>▤ {page.title}</a> : <p>Siden er ikke tilgængelig.</p>}
-  </section>;},
+  render:({block,editor})=>{const context=useData();return <EntityLinkBlock reference={legacyReference('pageLink',block.props,context?.domain)} editable={Boolean(context?.canEdit && editor.isEditable)} onPick={reference=>editor.updateBlock(block,{type:'entityLink',props:reference} as never)}/>;},
   toExternalHTML:()=> <p>Link til undervisningsside</p>,
+});
+function EntityLinkBlock({reference,editable,onPick}:{reference:EntityReference|null;editable:boolean;onPick:(reference:EntityReference)=>void}) {
+  const [selecting,setSelecting]=useState(!reference);
+  return <section className="notion-link-block" contentEditable={false} aria-label="Link til indhold i LUP">
+    {reference && <ReferenceView reference={reference} block/>}
+    {editable && <><button type="button" className="notion-reference-change" onClick={()=>setSelecting(value=>!value)}>{selecting?'Luk søgning':reference?'Skift reference':'Vælg indhold'}</button>{selecting && <ReferencePicker onPick={value=>{onPick(value);setSelecting(false);}}/>}</>}
+  </section>;
+}
+const createEntityLink=createReactBlockSpec({type:'entityLink',propSchema:{schemaVersion:{default:1},kind:{default:''},id:{default:''}},content:'none'},{
+  render:({block,editor})=>{const context=useData();return <EntityLinkBlock reference={entityReference(block.props.kind,block.props.id)} editable={Boolean(context?.canEdit && editor.isEditable)} onPick={reference=>editor.updateBlock(block,{props:reference})}/>;},
+  toExternalHTML:()=> <p>Reference til indhold i LUP</p>,
 });
 const createGroup=createReactBlockSpec({type:'holdGroup',propSchema:{schemaVersion:{default:1},holdId:{default:''},groupId:{default:''}},content:'none'},{
   render:({block,editor})=>{const context=useData();const allowed=context?.holdId===block.props.holdId;useNotionResources(allowed);if(allowed && context.resourcesLoaded===false)return <section className="notion-group-block" contentEditable={false}><p role="status">Henter grupper…</p></section>;const group=allowed ? context.groups?.find(item=>item.id===block.props.groupId) : undefined;return <section className="notion-group-block" contentEditable={false} aria-label="Holdgruppe">
@@ -282,8 +296,8 @@ const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersi
   toExternalHTML:()=> <p>Vedhæftet undervisningsfil</p>,
 });
 const schema = BlockNoteSchema.create({
-  blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout(),drawing:createDrawing()},
-  inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention,customEmoji},
+  blockSpecs: {...defaultBlockSpecs, codeBlock:createNotionCodeBlock(), classRoster:createRoster(),holdPoll:createPoll(),slideBreak:createSlideBreak(),learningGoal:createLearningGoal(),pageLink:createPageLink(),entityLink:createEntityLink(),holdGroup:createGroup(),pageMedia:createMedia(),mermaidDiagram:createMermaidDiagram(),callout:createCallout(),drawing:createDrawing()},
+  inlineContentSpecs:{...defaultInlineContentSpecs,pageMention,studentMention,entityMention,customEmoji},
 });
 type Editor = BlockNoteEditor<typeof schema.blockSchema, typeof schema.inlineContentSchema, typeof schema.styleSchema>;
 
@@ -353,6 +367,7 @@ function ConnectedEditor({session}:{session:Session}) {
   useEffect(() => () => { session.editor=undefined; },[session]);
   const enabled=canEdit(session);
   const notebook=session.context.domain==='notebook';
+  const referenceSearch=useReferenceSearch();
   const emojis=useContext(EmojiCatalog);
   const [emojiOpen,setEmojiOpen]=useState(false);
   const [emojiUploadFile,setEmojiUploadFile]=useState<File|null>(null);
@@ -481,7 +496,7 @@ function ConnectedEditor({session}:{session:Session}) {
       });
     },false);
   },[editor,emojis,session]);;
-  const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'pageLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
+  const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'entityLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
     if(!enabled) return;
     editor.focus();
     const cursor=editor.getTextCursorPosition().block;
@@ -489,10 +504,10 @@ function ConnectedEditor({session}:{session:Session}) {
       if(cursor.content!==undefined) insertOrUpdateBlockForSlashMenu(editor,block);
       else {const inserted=editor.insertBlocks([block,{type:'paragraph'}],cursor,'after');editor.setTextCursorPosition(inserted[1],'end');}
     };
-    if(type==='classRoster') add({type,props:{holdId:session.context.holdId}});
-    else if(type==='holdPoll') add({type,props:{holdId:session.context.holdId}});
+    if(type==='classRoster') add({type,props:{holdId:session.context.holdId || ''}});
+    else if(type==='holdPoll') add({type,props:{holdId:session.context.holdId || ''}});
     else if(type==='learningGoal') add({type,content:'Efter aktiviteten kan du…'});
-    else if(type==='holdGroup')add({type,props:{holdId:session.context.holdId}});
+    else if(type==='holdGroup')add({type,props:{holdId:session.context.holdId || ''}});
     else if(type==='pageMedia')add({type,props:{pageId:session.context.pageId,kind}});
     else if(type==='mermaidDiagram')add({type,props:{source:DEFAULT_MERMAID_SOURCE}});
     else if(type==='callout')add({type,props:{tone:'info'},content:'Skriv din note her…'});
@@ -514,13 +529,9 @@ function ConnectedEditor({session}:{session:Session}) {
       requestOpenDrawing(block.id);
     } catch(error) {setEmojiInsertError(error instanceof Error?error.message:'Tegningen kunne ikke oprettes. Prøv igen.');}
   };
-  const mentionItems=()=>[
-    ...(session.context.pages || []).map(page=>({title:page.title,aliases:['side','underside'],group:'Sider',onItemClick:()=>editor.insertInlineContent([{type:'pageMention',props:{pageId:page.id}},' '])})),
-    ...(notebook?[]:session.context.members).map(member=>({title:member.displayName,aliases:['elev'],group:'Elever',onItemClick:()=>editor.insertInlineContent([{type:'studentMention',props:{holdId:session.context.holdId,membershipId:member.id}},' '])})),
-  ];
   const customItems=[
     {title:'Tegning',aliases:['tegning','excalidraw','canvas','whiteboard'],group:'Medier',onItemClick:()=>{void insertDrawing();}},
-    {title:'Link til side',subtext:notebook?'Vælg en side fra notesbogen':'Vælg en side eller underside fra holdet',aliases:['side','underside','link'],group:'Undervisning',onItemClick:()=>insert('pageLink')},
+    {title:'Link til indhold',subtext:'Find sider, personer, opgaver og andet indhold i LUP',aliases:['side','underside','link','reference','notesbog'],group:'Undervisning',onItemClick:()=>insert('entityLink')},
     {title:'Gemt gruppe',subtext:'Indsæt en gemt gruppe fra holdet',aliases:['gruppe','grupper'],group:'Undervisning',onItemClick:()=>insert('holdGroup')},
     {title:'Upload video',subtext:notebook?'Tilføj MP4 eller WebM til siden':'Del MP4 eller WebM med holdet ved udgivelse',aliases:['video','upload'],group:'Medier',onItemClick:()=>insert('pageMedia','video')},
     {title:'Upload billede',subtext:'Tilføj et billede fra din computer',aliases:['billede','foto','image'],group:'Medier',onItemClick:()=>insert('pageMedia','image')},
@@ -535,7 +546,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
     {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
     {title:'Præsenter',subtext:'Vis dokumentet som slides',aliases:['præsenter','præsentation','slides','presentation'],group:'Visning',onItemClick:()=>openPresentation(session)},
-  ].filter(item=>!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','Emoji','AI','Præsenter'].includes(item.title));
+  ].filter(item=>(!notebook || !['Gemt gruppe','Elever fra holdet','Afstemning','Slidegrænse','Emoji','AI','Præsenter'].includes(item.title)) && (session.context.holdId || !['Gemt gruppe','Elever fra holdet','Afstemning','AI'].includes(item.title)));
   return <OpenAiOnBlockProvider openOnBlock={notebook?null:openAi}>
     {!session.readOnly && !notebook && enabled && createEmoji && <input ref={colonFileInput} className="notion-emoji-file notion-emoji-colon-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Vælg emoji-billede fra kolonmenu" onChange={chooseColonFile} tabIndex={-1} />}
     {emojiInsertError && <p className="notion-editor-persistence-error" role="alert">{emojiInsertError}</p>}
@@ -545,7 +556,7 @@ function ConnectedEditor({session}:{session:Session}) {
         editor={editor}
         enabled={enabled && session.context.resourcesLoaded!==false}
         pageTitle={session.context.title}
-        holdId={session.context.holdId}
+        holdId={session.context.holdId || ''}
         pages={session.context.pages}
         members={session.context.members}
         getToken={()=>validToken(session)}
@@ -563,10 +574,11 @@ function ConnectedEditor({session}:{session:Session}) {
         <FormattingToolbarController formattingToolbar={() => <FormattingToolbar><NotionBlockTypeSelect />{getFormattingToolbarItems().filter((item) => item.key !== 'blockTypeSelect')}</FormattingToolbar>} />
         <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={NotionDragHandleMenu} />} />
         <SuggestionMenuController triggerCharacter="/" getItems={async query=>filterSuggestionItems([...customItems,...getDefaultReactSlashMenuItems(editor)],query)} />
-        <SuggestionMenuController triggerCharacter="@" getItems={async query=>{
-          try { await ensureEditorResources(session); }
-          catch(error) { if(!session.destroyed)setEmojiInsertError(error instanceof Error?error.message:'Eleverne kunne ikke hentes.'); }
-          return session.destroyed?[]:filterSuggestionItems(mentionItems(),query);
+        <SuggestionMenuController triggerCharacter="@" getItems={async (query):Promise<{title:string;subtext:string;group:string;onItemClick:()=>void}[]>=>{
+          try {
+            const result=await referenceSearch?.search(query);
+            return session.destroyed?[]:(result?.items || []).map((item:ResolvedReference)=>({title:item.title,subtext:[referenceKindLabel(item.reference.kind),item.contextLabel,mentionStatusLabel(item.mentionStatus)].filter(Boolean).join(' · '),group:'Indhold i LUP',onItemClick:()=>{if(canEdit(session))editor.insertInlineContent([{type:'entityMention',props:item.reference},' ']);}}));
+          } catch(error) { if(!session.destroyed)setEmojiInsertError(error instanceof Error?error.message:'Søgningen kunne ikke hentes.');return []; }
         }} />
         {!notebook && <GridSuggestionMenuController triggerCharacter=":" columns={6} minQueryLength={2} floatingUIOptions={{elementProps:{style:{zIndex:100}}}} gridSuggestionMenuComponent={props=><EmojiSuggestionMenu {...props} onAdd={enabled && createEmoji ? startColonUpload : undefined} />} getItems={async query=>{
           const custom=filterCustomEmojis(emojis,query).map((item:CustomEmojiRecord)=>({
@@ -648,16 +660,17 @@ function App({session}:{session:Session}) {
   };
   useEffect(()=>{void loadRef.current();},[session]);
   const drawingEnv=useMemo(()=>drawingEnvironment(session),[session,session.context,session.theme,session.presenting]);
+  const referenceEnv={sourceKind:session.context.domain==='notebook'?'notebook-page':'notion-page',sourceId:session.context.pageId,holdId:session.context.holdId,publishedOnly:session.context.domain!=='notebook' && session.readOnly,apiBase:session.context.apiBase || '/api',getToken:()=>validToken(session),revision:session.context.revision ?? session.context.updatedAtUtc,canEdit:canEdit(session)};
   return <Runtime.Provider value={session}><Context.Provider value={session.context}><EmojiCatalog.Provider value={emojis}><EmojiReload.Provider value={()=>{void loadRef.current();}}><EmojiCreate.Provider value={session.context.domain==='notebook' ? undefined : createEmoji}><EmojiAnalyze.Provider value={session.context.domain==='notebook' ? undefined : analyzeEmoji}><div className="notion-blocknote-host" data-notion-theme={session.theme}>
     {session.status==='error' && <p className="notion-editor-persistence-error" role="alert">{session.detail}</p>}
-    <DrawingEnvironmentProvider value={drawingEnv}><EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary></DrawingEnvironmentProvider>
+    <ReferenceProvider environment={referenceEnv}><DrawingEnvironmentProvider value={drawingEnv}><EditorBoundary session={session}>{session.ready ? <ConnectedEditor session={session} /> : <div className="notion-editor-loading" role="status">Forbinder til dokumentet…</div>}{session.presenting && <SlideDeck session={session}/>}</EditorBoundary></DrawingEnvironmentProvider></ReferenceProvider>
   </div></EmojiAnalyze.Provider></EmojiCreate.Provider></EmojiReload.Provider></EmojiCatalog.Provider></Context.Provider></Runtime.Provider>;
 }
 
 export async function mount(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {
   destroy(element);
   if(!context.canEdit)return mountReadOnly(element,context,accessToken,dotnetCallbacks);
-  if(!context.pageId || (context.domain!=='notebook' && !context.holdId) || !accessToken) throw new Error('Dokument, hold og login er påkrævet.');
+  if(!context.pageId || !accessToken) throw new Error('Dokument og login er påkrævet.');
   const session:Session={root:createRoot(element),context,callbacks:dotnetCallbacks,doc:new Y.Doc(),ready:false,inSync:false,connected:false,dirty:false,generation:0,destroyed:false,readOnly:false,accessToken,pendingUploads:0,status:'connecting',detail:'Forbinder til dokumentet…',presenting:false,slides:[],theme:readTheme(),render:()=>{},removeListeners:()=>{}};
   sessions.set(element,session);
   session.render=()=>{if(!session.destroyed)session.root.render(<App session={session}/>);};
@@ -669,7 +682,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
     if(origin!==session.provider && session.ready && !session.destroyed){session.dirty=true;session.generation++;notify(session,session.connected?'saving':'offline',session.connected?'Gemmer i skyen…':'Forbindelsen er afbrudt. Ændringer afventer lagring.');}
   });
   session.provider=new HocuspocusProvider({
-    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=7',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
+    url:(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+'/collaboration?schemaVersion=8',name:(context.domain==='notebook'?'notebook:':'notion:')+String(context.pageId).toLowerCase(),document:session.doc,token:async()=>{if(!session.callbacks)return accessToken;const token=await session.callbacks.invokeMethodAsync('GetNotionToken');if(typeof token!=='string' || !token)throw new Error('Log ind igen for at åbne dokumentet.');return token.startsWith('Bearer ')?token.slice(7):token;},
     onStatus:({status})=>{session.connected=status==='connected';if(!session.connected){session.inSync=false;notify(session,status==='connecting'?'connecting':'offline',status==='connecting'?'Forbinder til dokumentet…':'Forbindelsen er afbrudt. Redigering er sat på pause.');}},
     onSynced:({state})=>{if(!state)return;session.ready=true;session.inSync=true;session.connected=true;notify(session,session.dirty?'saving':'synced',session.dirty?'Gemmer afventende ændringer…':'Forbundet til dokumentet');},
     onAuthenticationFailed:({reason})=>{session.connected=false;session.inSync=false;notify(session,'error',reason.includes('editor_version_mismatch')?'Editoren er opdateret. Genindlæs siden for at åbne dokumentet med den nye version.':'Du har ikke længere adgang, eller dit login er udløbet. Log ind igen.');},
@@ -692,7 +705,7 @@ export async function mount(element:HTMLElement,context:EditorContext,accessToke
 export async function mountReadOnly(element:HTMLElement,context:EditorContext,accessToken:string,dotnetCallbacks?:DotnetCallbacks):Promise<void> {
   destroy(element);
   const snapshot=context.domain==='notebook'?(context.stateBase64 ?? context.publishedStateBase64):context.publishedStateBase64;
-  if(!context.pageId || (context.domain!=='notebook' && !context.holdId) || !snapshot)throw new Error('Der er endnu ingen udgivet udgave af siden.');
+  if(!context.pageId || !snapshot)throw new Error('Der er endnu ingen udgivet udgave af siden.');
   if(snapshot.length>24*1024*1024)throw new Error('Den udgivne side er for stor.');
   const doc=new Y.Doc();
   try {Y.applyUpdate(doc,Uint8Array.from(atob(snapshot),value=>value.charCodeAt(0)));}

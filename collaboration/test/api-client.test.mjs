@@ -78,7 +78,7 @@ test('binary persistence uses the service key, preserves bytes and waits for suc
     assert.equal(request.headers.Authorization, undefined);
     if (request.method === 'PUT') {
       assert.equal(request.headers['Content-Type'], 'application/json');
-      assert.deepEqual(JSON.parse(request.body), { stateBase64: Buffer.from(bytes).toString('base64'), fingerprint: canonical, drawingIds: [], drawingBlocks: {} });
+      assert.deepEqual(JSON.parse(request.body), { stateBase64: Buffer.from(bytes).toString('base64'), fingerprint: canonical, drawingIds: [], drawingBlocks: {}, references: [] });
       assert.equal(request.headers['X-Notion-State-Fingerprint'], canonical);
       return Response.json({ savedAtUtc: '2026-11-05T12:00:00Z' });
     }

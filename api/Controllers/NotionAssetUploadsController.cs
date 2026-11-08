@@ -4,6 +4,7 @@ using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Learning;
+using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Api.Storage;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ namespace Mercantec.Tech.Api.Controllers;
 [ApiController, Authorize, Route("api/notion/pages/{pageId:guid}/assets/uploads")]
 public sealed class NotionAssetUploadsController(AppDbContext db, CourseAccess access, IObjectStorage storage) : ControllerBase
 {
+    private readonly NotionAccess pagesAccess = new(db, access);
     public sealed record CreateUpload(string OriginalName, long SizeBytes, string? ContentType = null);
     public sealed record UploadCreated(Guid Id, int ChunkSizeBytes);
 
@@ -220,8 +222,7 @@ public sealed class NotionAssetUploadsController(AppDbContext db, CourseAccess a
 
     private async Task<bool> CanManage(Guid pageId, CancellationToken ct)
     {
-        var holdId = await db.NotionPages.AsNoTracking().Where(p => p.Id == pageId).Select(p => (Guid?)p.HoldId).SingleOrDefaultAsync(ct);
-        return holdId is Guid id && await access.CanManageAsync(id, User, ct);
+        return await pagesAccess.CanManageAsync(pageId, User, ct);
     }
 
     private async Task<NotionAssetUpload?> Authorized(Guid pageId, Guid id, CancellationToken ct)

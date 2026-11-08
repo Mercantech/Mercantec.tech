@@ -18,6 +18,7 @@ public partial class Index
     [Inject] private NotionClient Client { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? PageId { get; set; }
+    [SupplyParameterFromQuery(Name = "notice")] public string? MentionNotice { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
     [SupplyParameterFromQuery(Name = "published")] public bool PublishedPreview { get; set; }
     [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
@@ -67,7 +68,7 @@ public partial class Index
     private string PageHref(Guid id, bool? publishedOnly = null) => WorkspaceNavigation.Page(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, publishedOnly ?? ForceReadOnly, _holdId);
     private string GraphHref(Guid id) => WorkspaceNavigation.Graph(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly, _holdId);
     private string HoldGraphHref => WorkspaceNavigation.HoldGraph(_holdId, _returnContext?.WorkspaceId, _returnContext?.CourseId, ForceReadOnly);
-    private string WorkspaceHref(string view = "content") => _returnContext?.View(view) ?? WorkspaceNavigation.Hold(_holdId, view);
+    private string WorkspaceHref(string view = "content") => _holdId == Guid.Empty ? "/notion" : _returnContext?.View(view) ?? WorkspaceNavigation.Hold(_holdId, view);
     private bool IsCollection(NotionPageSummary page) => _collections.Contains(page.Id);
     private Guid CollectionRoot(Guid id)
     {
@@ -125,7 +126,7 @@ public partial class Index
     }
     private object EditorContext() => new
     {
-        pageId = _current!.PageId, holdId = _current.HoldId, title = _current.Title,
+        pageId = _current!.PageId, holdId = _current.HoldId, collectionId = _current.CollectionId, title = _current.Title,
         workspaceId = _returnContext?.WorkspaceId, courseId = _returnContext?.CourseId,
         canEdit = IsEditing, members = _current.Members, polls = _current.Polls,
         pages = _current.Pages ?? [], groups = _groups, resourcesLoaded = _resourcesLoaded, publishedStateBase64 = _current.PublishedStateBase64,
@@ -161,8 +162,8 @@ public partial class Index
             {
                 var context = await FetchContext(id, ct);
                 if (!IsCurrent(generation, ct) || account != _account) return;
-                _holdId = context.HoldId;
-                if (_pagesHold != _holdId || _pagesPublishedOnly != ForceReadOnly) { _pages = []; _pagesHold = null; }
+                _holdId = context.HoldId ?? Guid.Empty;
+                if (_pagesHold != (context.CollectionId ?? _holdId) || _pagesPublishedOnly != ForceReadOnly) { _pages = []; _pagesHold = null; }
                 SelectContext(context);
             }
             else
@@ -219,7 +220,7 @@ public partial class Index
         ct = _navigationRequests.Token;
         if (previous is not null) { previous.Cancel(); previous.Dispose(); }
         _navigationLoading = true; _navigationError = null;
-        var holdId = _holdId;
+        var holdId = _holdId; var collectionId = _current?.CollectionId; var scopeId = collectionId ?? holdId;
         // Each independent metadata request handles its own failure. A slow hold
         // selector must not prevent the page list or the document from appearing.
         async Task LoadPart(Func<Task> action)
@@ -235,14 +236,14 @@ public partial class Index
             var holds = await Client.Holds(ct);
             if (IsCurrent(generation, ct)) { _holds = holds; _holdsLoaded = true; }
         }));
-        if (_pagesHold != holdId || _pagesPublishedOnly != ForceReadOnly || refresh) parts.Add(LoadPart(async () =>
+        if (_pagesHold != scopeId || _pagesPublishedOnly != ForceReadOnly || refresh) parts.Add(LoadPart(async () =>
         {
-            var pages = await Client.Pages(holdId, ct, ForceReadOnly);
+            var pages = collectionId is Guid collection ? await Client.CollectionPages(collection, ct, ForceReadOnly) : await Client.Pages(holdId, ct, ForceReadOnly);
             if (!IsCurrent(generation, ct)) return;
             SetPages(pages);
             await PushEditorContext(generation, ct);
         }));
-        if ((HoldQuery is null || HoldQuery == holdId) &&
+        if (holdId != Guid.Empty && (HoldQuery is null || HoldQuery == holdId) &&
             (WorkspaceNavigation.NonEmpty(WorkspaceQuery) is not null || WorkspaceNavigation.NonEmpty(CourseQuery) is not null))
             parts.Add(LoadPart(async () =>
             {
@@ -258,7 +259,7 @@ public partial class Index
     private void SetPages(NotionPageSummary[] pages)
     {
         pages = ReconcileActivePage(pages);
-        _pages = pages; _pagesHold = _holdId; _pagesPublishedOnly = ForceReadOnly;
+        _pages = pages; _pagesHold = _current?.CollectionId ?? _holdId; _pagesPublishedOnly = ForceReadOnly;
         if (_current is not null) _current = _current with { Pages = pages.Select(p => new NotionPageLink(p.Id, p.Title, p.ParentPageId)).ToArray() };
         RebuildPageRows();
     }
@@ -289,6 +290,7 @@ public partial class Index
     private async Task LoadResources(int generation, CancellationToken ct)
     {
         _resourcesError = null;
+        if (_holdId == Guid.Empty) { _resourcesLoaded = true; await PushEditorContext(generation, ct); return; }
         var resourcesTask = Client.EditorResources(_holdId, ct, ForceReadOnly);
         var groupsTask = Client.Groups(_holdId, ct);
         try
@@ -321,7 +323,7 @@ public partial class Index
     private async Task CreatePage()
     {
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
-        await Work(async ct => { var page = await Client.Create(_holdId, _newTitle.Trim(), _newParent, ct); _creating = false; _pagesHold = null; Nav.NavigateTo(PageHref(page.Id)); });
+        await Work(async ct => { var page = await Client.Create(_current?.HoldId, _newTitle.Trim(), _newParent, ct, _current?.CollectionId); _creating = false; _pagesHold = null; Nav.NavigateTo(PageHref(page.Id)); });
     }
     private void InsertNewTitleEmoji(CustomEmojiItem emoji) => _newTitle = EmojiInsert.Append(_newTitle, emoji.Name, 200);
     private async Task RenamePage() => await SaveTitle();

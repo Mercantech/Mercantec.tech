@@ -217,7 +217,10 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         {
             db.NotebookDocuments.Add(doc); db.NotebookAssets.AddRange(copies);
             db.NotebookLinks.AddRange(linkedTargets.Distinct().Select(target => new NotebookLink { FromId = id, ToId = target }));
-            await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);
+            await db.SaveChangesAsync(ct);
+            // Copies inherit links as an initial baseline, without notifying historical template mentions.
+            await new Mercantec.Tech.Api.References.ReferenceService(db).BaselineNotebookAsync(id, ct);
+            await transaction.CommitAsync(ct);
         }
         catch (DbUpdateException ex) when (NotebookPeriods.IsUniqueViolation(ex))
         {

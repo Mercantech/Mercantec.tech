@@ -1,0 +1,23 @@
+@using Mercantec.Tech.Web.Activity
+@inject ActionCenterService Actions
+@implements IDisposable
+@code {
+    [Parameter] public Guid SourceId { get; set; }
+    [Parameter] public bool Loaded { get; set; }
+    [Parameter] public string? Notice { get; set; }
+    private Guid? _read;
+    private bool _reading, _disposed;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!Loaded || _reading || _disposed || !Guid.TryParse(Notice, out var id) || _read == id) return;
+        _reading = true;
+        try
+        {
+            await Actions.EnsureAsync();
+            if (_disposed || !Loaded || !Actions.Items.Any(i => i.Kind == "mention" && i.ResourceId == id && i.TargetId == SourceId)) return;
+            if (await Actions.MarkReadAsync("mention", id)) _read = id;
+        }
+        finally { _reading = false; }
+    }
+    public void Dispose() => _disposed = true;
+}

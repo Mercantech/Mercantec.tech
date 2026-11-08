@@ -70,7 +70,7 @@ try {
     response.setHeader('Blazor-Environment', 'Production');
     if (url.pathname === '/_qa/login') {
       const identity = identities.find(item => item.key === url.searchParams.get('user'));
-      if (!identity) { response.writeHead(400).end('Choose pupil, peer or teacher.'); return; }
+      if (!identity) { response.writeHead(400).end('Choose pupil, peer, outsider or teacher.'); return; }
       response.setHeader('Content-Type', 'text/html;charset=utf-8');
       response.end(`<!doctype html><html lang="da"><title>Fiktivt QA-login</title><body><p>Åbner ${identity.name}…</p><script>
         sessionStorage.setItem('mt_access_token',${JSON.stringify(identity.token)});

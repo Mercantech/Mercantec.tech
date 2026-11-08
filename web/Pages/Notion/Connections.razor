@@ -1,0 +1,16 @@
+@page "/notion/connections"
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@implements IDisposable
+<PageTitle>Forbindelser · LUP</PageTitle>
+<header class="page-title"><div><nav class="breadcrumbs"><a href="/notion">Notesbøger</a><span>›</span><span>Forbindelser</span></nav><h1>Forbindelser</h1><p>Følg links mellem noter, teori og resten af LUP.</p></div></header>
+@if (!Auth.IsAuthenticated) { <a class="action" href="@Auth.LoginPath()">Log ind</a> }
+else { <ReferenceGraphView ScopeKind="@ScopeKind" ScopeId="@ScopeId" PublishedOnly="@(PublishedOnly || ViewAs.IsActive)" /> }
+@code {
+    [SupplyParameterFromQuery(Name = "scopeKind")] public string? ScopeKind { get; set; }
+    [SupplyParameterFromQuery(Name = "scopeId")] public string? ScopeId { get; set; }
+    [SupplyParameterFromQuery(Name = "published")] public bool PublishedOnly { get; set; }
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
+    private void Changed() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() { Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; }
+}

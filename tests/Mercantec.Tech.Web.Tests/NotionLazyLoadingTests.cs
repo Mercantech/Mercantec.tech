@@ -329,6 +329,7 @@ public sealed class NotionLazyLoadingTests
             Requests.Enqueue(new(path, request.RequestUri.Query, ct));
             Events.Enqueue($"{request.Method} {path}");
             if (path == "/api/emojis") return Json(Array.Empty<CustomEmojiItem>());
+            if (path == "/api/references/backlinks") return Json(Array.Empty<ResolvedReference>());
             if (path == ContextPath(FirstId) || path == ContextPath(FirstId, true)
                 || path == ContextPath(SecondId) || path == ContextPath(SecondId, true))
             {

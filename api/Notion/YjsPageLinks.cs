@@ -1,4 +1,5 @@
 using System.Text;
+using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Api.Notion;
 
@@ -9,6 +10,25 @@ namespace Mercantec.Tech.Api.Notion;
 /// </summary>
 public static class YjsPageLinks
 {
+    public static bool TryReadReferences(ReadOnlySpan<byte> update, string pageKind, ISet<EntityReference> references,
+        ISet<EntityReference>? mentions = null)
+    {
+        if (update.IsEmpty) return true;
+        try
+        {
+            if (update.Length > 16 * 1024 * 1024) return false;
+            var doc = Doc.Decode(update.ToArray());
+            var found = new HashSet<EntityReference>();
+            var explicitMentions = new HashSet<EntityReference>();
+            if (doc.Roots.TryGetValue("document-store", out var root)) doc.CollectReferences(root, pageKind, found, explicitMentions);
+            foreach (var reference in found) references.Add(reference);
+            if (mentions is not null) foreach (var reference in explicitMentions) mentions.Add(reference);
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or ArgumentOutOfRangeException or OverflowException)
+        { return false; }
+    }
+
     public static IReadOnlyCollection<Guid> Read(ReadOnlySpan<byte> update)
     {
         var links = new HashSet<Guid>();
@@ -201,6 +221,47 @@ public static class YjsPageLinks
         {
             var seen = new HashSet<YNode>();
             Walk(node, links, seen);
+        }
+
+        public void CollectReferences(YNode node, string pageKind, ISet<EntityReference> references, ISet<EntityReference> mentions)
+        {
+            var pending = new Stack<YNode>();
+            var seen = new HashSet<YNode>();
+            pending.Push(node);
+            while (pending.TryPop(out var current))
+            {
+                if (!seen.Add(current)) continue;
+                for (var child = current.Start; child != null; child = child.Right)
+                {
+                    if (child.Deleted || child.Content is not TypeContent type) continue;
+                    var element = type.Node;
+                    var name = element.ElementName;
+                    void Add(string kind, string? value, bool isMention = false)
+                    {
+                        if (value is not { Length: > 0 and <= 300 } || kind.Length is 0 or > 32
+                            || value.Any(char.IsControl)) return;
+                        var normalized = Guid.TryParse(value, out var guid) ? guid.ToString("D") : value;
+                        if (normalized == Guid.Empty.ToString()) return;
+                        var reference = new EntityReference(kind, normalized);
+                        references.Add(reference);
+                        if (isMention) mentions.Add(reference);
+                    }
+                    if (name is "entityMention" or "entityLink") Add(Attribute(element, "kind") ?? "", Attribute(element, "id"), name == "entityMention");
+                    else if (name is "pageLink" or "pageMention") Add(pageKind, Attribute(element, "pageId"), name == "pageMention");
+                    else if (name == "studentMention") Add("member", Attribute(element, "membershipId"), true);
+                    else if (name == "holdPoll") Add("poll", Attribute(element, "pollId"));
+                    else if (name == "holdGroup") Add("group", Attribute(element, "groupId"));
+                    else if (name == "pageMedia") Add(pageKind == "notebook-page" ? "notebook-asset" : "notion-asset", Attribute(element, "assetId"));
+                    else if (name == "drawing") Add("drawing", Attribute(element, "drawingId"));
+                    else if (name == "classRoster")
+                    {
+                        var members = Attribute(element, "membershipIds");
+                        if (string.IsNullOrEmpty(members)) Add("hold", Attribute(element, "holdId"));
+                        else foreach (var member in members.Split(',')) if (Guid.TryParse(member, out _)) Add("member", member);
+                    }
+                    pending.Push(element);
+                }
+            }
         }
 
         private void Walk(YNode node, ISet<Guid> links, HashSet<YNode> seen)

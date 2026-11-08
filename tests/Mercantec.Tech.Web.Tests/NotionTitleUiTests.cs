@@ -209,6 +209,7 @@ public sealed class NotionTitleUiTests
                 {
                     "/api/emojis" => Array.Empty<CustomEmojiItem>(),
                     "/api/notion/holds" => new[] { new NotionHold(HoldId, "Testhold", true) },
+                    "/api/references/backlinks" => Array.Empty<ResolvedReference>(),
                     "/api/notion/pages" => new[] { Summary },
                     var p when p == $"/api/notion/holds/{HoldId}/groups" => Array.Empty<NotionGroupView>(),
                     var p when p == $"/api/notion/pages/{PageId}/context" => new NotionPageContext(PageId, HoldId, Title, true, [], [], DateTimeOffset.UtcNow,

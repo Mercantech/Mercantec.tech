@@ -158,6 +158,7 @@ public sealed class NotebookUiTests
                 "/api/notebooks/templates" => Array.Empty<NotebookTemplateView>(),
                 "/api/notebooks/today" => new DateOnly(2026, 11, 7),
                 "/api/notion/holds" => Array.Empty<NotionHold>(),
+                "/api/references/backlinks" => Array.Empty<ResolvedReference>(),
                 var p when p == $"/api/notebooks/{notebook}/pages" => new NotebookPageList([page], 1),
                 var p when p == $"/api/notebooks/{notebook}/shares" => Array.Empty<NotebookShareView>(),
                 var p when p == $"/api/notebooks/pages/{Page.Id}/context" => new NotebookDocumentContext(Page.Id, notebook, Page.Title, "note", true, !Reader, !Reader, !Reader, request.RequestUri.Query.Contains("knownRevision=", StringComparison.Ordinal) ? null : "AA==", DateTimeOffset.UtcNow, 1, null, [new(Page.Id, Page.Title, null)], ["sql"]),

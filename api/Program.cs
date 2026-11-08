@@ -23,6 +23,7 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<Mercantec.Tech.Api.Notebooks.NotebookAccess>();
+builder.Services.AddHostedService<Mercantec.Tech.Api.References.ReferenceBackfill>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingAccess>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingService>();
 builder.Services.AddSingleton<Mercantec.Tech.Api.Notebooks.NotebookServiceKey>();

@@ -19,6 +19,8 @@ else { <p role="status">Åbner holdet…</p> }
     [SupplyParameterFromQuery(Name = "quest")] public Guid? QuestId { get; set; }
     [SupplyParameterFromQuery(Name = "status")] public string? Status { get; set; }
     [SupplyParameterFromQuery(Name = "event")] public Guid? EventId { get; set; }
+    [SupplyParameterFromQuery(Name = "material")] public Guid? MaterialId { get; set; }
+    [SupplyParameterFromQuery(Name = "group")] public Guid? GroupId { get; set; }
     private readonly CancellationTokenSource _life = new();
     private string? _error;
     private int _generation;
@@ -40,7 +42,9 @@ else { <p role="status">Åbner holdet…</p> }
             {
                 var context = WorkspaceNavigation.Validate(workspace, hold, null, CourseId);
                 if (context is null) { _error = "Holdet kunne ikke åbnes. Prøv igen fra holdoversigten."; return; }
-                Nav.NavigateTo(WorkspaceNavigation.View(context.WorkspaceId, View ?? "overview", context.CourseId, Create, QuestId, Status, EventId), replace: true);
+                var destination = WorkspaceNavigation.View(context.WorkspaceId, View ?? "overview", context.CourseId, Create, QuestId, Status, EventId, MaterialId, GroupId);
+                if (!string.Equals(Nav.Uri, Nav.ToAbsoluteUri(destination).AbsoluteUri, StringComparison.Ordinal))
+                    Nav.NavigateTo(destination, replace: true);
             }
         }
         catch (OperationCanceledException) { }

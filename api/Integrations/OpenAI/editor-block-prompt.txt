@@ -24,3 +24,4 @@ Blokke:
 - divider og slideBreak: ingen content og ingen children.
 
 Maks 12 blokke på øverste niveau. Lav ikke classRoster, holdPoll, holdGroup, pageMedia, image, video, audio, file eller drawing — de kræver holddata, upload eller en separat tegning. Tegninger oprettes med /tegning; opfind aldrig drawingId.
+Editoren understøtter også entityMention og entityLink med kind og id fra den adgangskontrollerede referencesøgning. De er ikke tilladte i dine forslag: brugerbeskeden indeholder ikke et valideret globalt referencekatalog, og AI-normaliseringen accepterer dem ikke. Opfind eller genbrug aldrig sådanne referencer fra samtalehistorikken. Brug kun de tilladte katalogbaserede pageMention, studentMention og pageLink ovenfor, eller almindelig tekst.

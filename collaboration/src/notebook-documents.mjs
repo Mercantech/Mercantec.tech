@@ -16,8 +16,13 @@ function decode(encoded) {
 }
 
 /** Only integrated, live XML children are visited. Deleted CRDT history is never searchable. */
-export function projectNotebookDocument(doc) {
-  const text = [], links = new Set(), assets = new Set(), drawings = new Set(), drawingBlocks = {};
+export function projectNotebookDocument(doc, domain = 'notebook') {
+  const text = [], links = new Set(), assets = new Set(), drawings = new Set(), drawingBlocks = {}, references = new Map();
+  const reference = (kind, id) => {
+    if (typeof kind !== 'string' || !/^[a-z][a-z0-9-]{0,47}$/.test(kind) || typeof id !== 'string' || !id || id.length > 240 || /[\u0000-\u001f\u007f]/.test(id)) return;
+    if (guid.test(id)) id = id.toLowerCase();
+    references.set(kind + ':' + id, { kind, id });
+  };
   let visited = 0;
   const visit = (node, depth = 0, blockId) => {
     if (++visited > 250000 || depth > 256) throw new Error('Notebook document is too complex');
@@ -29,12 +34,21 @@ export function projectNotebookDocument(doc) {
       const attrs = node.getAttributes();
       if (node.nodeName === 'blockContainer' && typeof attrs.id === 'string') blockId = attrs.id;
       if (node.nodeName === 'pageLink' || node.nodeName === 'pageMention') {
-        if (typeof attrs.pageId === 'string' && guid.test(attrs.pageId)) links.add(attrs.pageId.toLowerCase());
+        if (typeof attrs.pageId === 'string' && guid.test(attrs.pageId)) { links.add(attrs.pageId.toLowerCase()); reference(domain === 'notion' ? 'notion-page' : 'notebook-page', attrs.pageId); }
       }
-      if (node.nodeName === 'pageMedia' && typeof attrs.assetId === 'string' && guid.test(attrs.assetId)) assets.add(attrs.assetId.toLowerCase());
+      if (node.nodeName === 'entityMention' || node.nodeName === 'entityLink') reference(attrs.kind, attrs.id);
+      if (node.nodeName === 'studentMention') reference('member', attrs.membershipId);
+      if (node.nodeName === 'holdPoll') reference('poll', attrs.pollId);
+      if (node.nodeName === 'holdGroup') reference('group', attrs.groupId);
+      if (node.nodeName === 'classRoster') {
+        reference('hold', attrs.holdId);
+        for (const id of String(attrs.membershipIds || '').split(',')) if (guid.test(id)) reference('member', id);
+      }
+      if (node.nodeName === 'pageMedia' && typeof attrs.assetId === 'string' && guid.test(attrs.assetId)) { assets.add(attrs.assetId.toLowerCase()); reference(domain === 'notion' ? 'notion-asset' : 'notebook-asset', attrs.assetId); }
       if (node.nodeName === 'drawing' && typeof attrs.drawingId === 'string' && guid.test(attrs.drawingId)) {
         const id = attrs.drawingId.toLowerCase();
         drawings.add(id);
+        reference('drawing', id);
         if (blockId) {
           if (drawingBlocks[id] && drawingBlocks[id] !== blockId) throw new Error('A drawing cannot belong to multiple blocks');
           drawingBlocks[id] = blockId;
@@ -44,18 +58,18 @@ export function projectNotebookDocument(doc) {
     }
     if (node instanceof Y.XmlElement || node instanceof Y.XmlFragment) {
       for (const child of node.toArray()) visit(child, depth + 1, blockId);
-      if (node instanceof Y.XmlElement && !['pageMention', 'studentMention', 'customEmoji'].includes(node.nodeName)) text.push('\n');
+      if (node instanceof Y.XmlElement && !['pageMention', 'studentMention', 'entityMention', 'customEmoji'].includes(node.nodeName)) text.push('\n');
     }
   };
   visit(doc.getXmlFragment('document-store'));
-  return { plainText: text.join('').replace(/\n{3,}/g, '\n\n').trim(), linkIds: [...links].sort(), assetIds: [...assets].sort(), drawingIds: [...drawings].sort(), drawingBlocks: Object.fromEntries(Object.entries(drawingBlocks).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+  return { plainText: text.join('').replace(/\n{3,}/g, '\n\n').trim(), linkIds: [...links].sort(), references: [...references].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([, value]) => value), assetIds: [...assets].sort(), drawingIds: [...drawings].sort(), drawingBlocks: Object.fromEntries(Object.entries(drawingBlocks).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
 }
 
-export function notebookStateProjection(state) {
+export function notebookStateProjection(state, domain = 'notebook') {
   const doc = new Y.Doc();
   try {
     Y.applyUpdate(doc, state);
-    return { stateBase64: Buffer.from(state).toString('base64'), fingerprint: fingerprintHash(state, Y.encodeStateVector(doc)), ...projectNotebookDocument(doc) };
+    return { stateBase64: Buffer.from(state).toString('base64'), fingerprint: fingerprintHash(state, Y.encodeStateVector(doc)), ...projectNotebookDocument(doc, domain) };
   } finally { doc.destroy(); }
 }
 

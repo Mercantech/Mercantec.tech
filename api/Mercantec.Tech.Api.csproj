@@ -17,6 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Compile the existing editorial metadata directly; frontend and references share one source. -->
+    <Compile Include="../web/Courses/CourseTemplateCatalog.cs" Link="References/Catalog/CourseTemplateCatalog.cs" />
+    <Compile Include="../web/Public/PublicCatalog.cs" Link="References/Catalog/PublicCatalog.cs" />
+    <Compile Include="../web/Demo/DemoCatalog.cs" Link="References/Catalog/DemoCatalog.cs" />
+    <Compile Include="../web/Demo/LearningContent.cs" Link="References/Catalog/LearningContent.cs" />
+    <Compile Include="../web/Characters/CharacterCatalog.cs" Link="References/Catalog/CharacterCatalog.cs" />
+    <Compile Include="../web/Characters/VatsonEmojiCatalog.cs" Link="References/Catalog/VatsonEmojiCatalog.cs" />
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.511.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />

@@ -14,6 +14,8 @@ public static class ActionCenterPresentation
         .ThenBy(i => i.HoldName).ThenBy(i => i.Title);
     public static string Href(ActionCenterItem item)
     {
+        if (item.Kind == "mention" && SafeMentionHref(item.Href))
+            return item.Href + (item.Href!.Contains('?') ? "&" : "?") + $"noticeKind=mention&notice={item.ResourceId:D}";
         if (item.Kind == "gift") return $"/gifts/{item.ResourceId:D}";
         if (item.Kind is "notebook-comment" or "notebook-share" && item.TargetId is Guid document)
         {
@@ -37,10 +39,13 @@ public static class ActionCenterPresentation
         "feedback" => "Feedback på din aflevering",
         "notebook-comment" => "Kommentar i notesbogen",
         "notebook-share" => "Delt med dig",
+        "mention" => "Du er nævnt i denne side",
         "quest" => item.State switch { "daily" => "Daily quest", "side" => "Side quest", "changes-requested" => "Feedback på en valgfri quest", _ => "Valgfri quest" },
         "review" => item.Count == 1 ? "1 aflevering til vurdering" : $"{item.Count} afleveringer til vurdering",
         _ => item.State == "changes-requested" ? "Ret din aflevering" : item.State == "overdue" ? "Afleveringsfristen er overskredet" : "Du mangler at aflevere"
     };
-    public static string Icon(ActionCenterItem item) => item.Kind switch { "poll" => "chart", "review" => "check", "gift" => "gift", "feedback" or "notebook-comment" => "message", "notebook-share" => "book", _ => "target" };
+    public static string Icon(ActionCenterItem item) => item.Kind switch { "poll" => "chart", "review" => "check", "gift" => "gift", "feedback" or "notebook-comment" or "mention" => "message", "notebook-share" => "book", _ => "target" };
+    public static bool SafeMentionHref(string? href) => href is not null && !href.Any(char.IsControl) && !href.Contains('\\') &&
+        (href.StartsWith("/notion/", StringComparison.Ordinal) || href.StartsWith("/notebook/", StringComparison.Ordinal));
     public static string DateLabel(DateTimeOffset deadline) => TimeZoneInfo.ConvertTime(deadline, Copenhagen).ToString("d. MMM yyyy 'kl.' HH:mm", Danish);
 }

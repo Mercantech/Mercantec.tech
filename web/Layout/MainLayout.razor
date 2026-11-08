@@ -23,7 +23,7 @@
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
                     <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                     <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Bibliotek</a>
-                    <a href="@NotebookLinks[0].Href" class="@(NotebookIsCurrent ? "active" : null)" aria-current="@(NotebookIsCurrent ? "true" : null)">@NotebookLinks[0].Label</a>
+                    <a href="/notion" class="@(NotebookIsCurrent ? "active" : null)" aria-current="@(NotebookIsCurrent ? "true" : null)">Notesbøger</a>
                     @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                 </nav>
                 <details class="lup-mobile-nav">
@@ -31,6 +31,7 @@
                     <nav class="lup-mobile-menu" aria-label="Hovednavigation">
                         <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                         <a href="/library">Bibliotek</a>
+                        <a href="/notion">Notesbøger</a>
                         @foreach (var link in NotebookLinks) { <NavLink href="@link.Href">@link.Label</NavLink> }
                         @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                     </nav>
@@ -86,12 +87,12 @@
     private bool _loginBusy;
     private string? _notebookProfileAccount;
     private IReadOnlyList<NotebookNavigationLink> NotebookLinks => WorkspaceNavigation.NotebookLinks(IsTeacher);
-    private bool NotebookIsCurrent => CurrentPath == "/journal" || CurrentPath.StartsWith("/notebook", StringComparison.Ordinal) || CurrentPath.StartsWith("/teacher/notebook", StringComparison.Ordinal);
+    private bool NotebookIsCurrent => CurrentPath == "/journal" || CurrentPath.StartsWith("/notion", StringComparison.Ordinal) || CurrentPath.StartsWith("/notebook", StringComparison.Ordinal) || CurrentPath.StartsWith("/teacher/notebook", StringComparison.Ordinal);
     private bool IsTeacher => Redirect.ShowsTeacherChrome;
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
     private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
     private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
-    private bool HoldsIsCurrent => CurrentPath is "/courses" or "/notion" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/notion/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
+    private bool HoldsIsCurrent => CurrentPath is "/courses" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
     private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
     private string SkipToContentHref
     {

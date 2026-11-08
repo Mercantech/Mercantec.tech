@@ -133,11 +133,11 @@ else
         }
         else if (ActiveView == "groups")
         {
-            <HoldGroups @key="_workspace.HoldId" HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" OnSaved="RefreshSummary" />
+            <HoldGroups @key="_workspace.HoldId" HoldId="_workspace.HoldId" WorkspaceId="Id" CourseId="SelectedCourseId" RequestedGroupId="RequestedGroupId" OnSaved="RefreshSummary" />
         }
         else if (ActiveView == "materials")
         {
-            <HoldMaterials @key="_workspace.HoldId" HoldId="_workspace.HoldId" CanManage="CanManage" OnChanged="RefreshSummary" />
+            <HoldMaterials @key="_workspace.HoldId" HoldId="_workspace.HoldId" CanManage="CanManage" RequestedMaterialId="RequestedMaterialId" OnChanged="RefreshSummary" />
         }
         else if (ActiveView == "settings" && CanManage)
         {

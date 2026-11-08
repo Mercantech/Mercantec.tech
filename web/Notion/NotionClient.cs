@@ -5,6 +5,9 @@ namespace Mercantec.Tech.Web.Notion;
 
 public sealed class NotionClient(HttpClient http)
 {
+    public Task<NotionCollectionView[]> Collections(CancellationToken ct, bool publishedOnly = false) => Get<NotionCollectionView[]>($"notion/collections?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionCollectionView> CreateCollection(string title, Guid? holdId, CancellationToken ct) => Post<NotionCollectionView>("notion/collections", new CreateNotionCollection(title, holdId), ct);
+    public Task<NotionPageSummary[]> CollectionPages(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?collectionId={collectionId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionHold[]> Holds(CancellationToken ct) => Get<NotionHold[]>("notion/holds", ct);
     public Task<NotionPageSummary[]> Pages(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?holdId={holdId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGraph> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/graph/{collectionId}?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
@@ -16,7 +19,7 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<NotionGroupView[]>($"notion/holds/{holdId}/groups", ct);
     public Task<NotionHoldMember[]> Members(Guid holdId, CancellationToken ct) => Get<NotionHoldMember[]>($"notion/holds/{holdId}/members", ct);
     public Task<NotionStudentProfile> Student(Guid holdId, Guid memberId, CancellationToken ct) => Get<NotionStudentProfile>($"notion/holds/{holdId}/members/{memberId}", ct);
-    public Task<NotionPageSummary> Create(Guid holdId, string title, Guid? parentPageId, CancellationToken ct) => Post<NotionPageSummary>("notion/pages", new { holdId, title, parentPageId }, ct);
+    public Task<NotionPageSummary> Create(Guid? holdId, string title, Guid? parentPageId, CancellationToken ct, Guid? collectionId = null) => Post<NotionPageSummary>("notion/pages", new { holdId, title, parentPageId, collectionId }, ct);
     public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct,
         DrawingPublicationRequest[]? drawings = null) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds, drawings }, ct);
     public Task<NotionPageSummary> Unpublish(Guid id, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/unpublish", new {}, ct);

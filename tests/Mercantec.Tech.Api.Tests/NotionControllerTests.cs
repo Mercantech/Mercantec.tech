@@ -548,10 +548,9 @@ public sealed class NotionControllerTests : IAsyncLifetime
         var page = await Create();
         var context = await SaveDraft(page.Id, [1, 2]);
         await PublishCurrent(page.Id);
-        var interceptor = new BeforePublicationUpdate(async command =>
+        var interceptor = new BeforePublicationTransaction(async connection =>
         {
-            await using var mutation = command.Connection!.CreateCommand();
-            mutation.Transaction = command.Transaction;
+            await using var mutation = connection.CreateCommand();
             mutation.CommandText = withdraw
                 ? "UPDATE notion_pages SET PublishedAtUtc = NULL, PublishedState = NULL, PublicationVersion = PublicationVersion + 1"
                 : "UPDATE notion_pages SET DraftRevision = DraftRevision + 1, Title = 'Changed during publication'";
@@ -759,17 +758,18 @@ public sealed class NotionControllerTests : IAsyncLifetime
         }
     }
 
-    private sealed class BeforePublicationUpdate(Func<DbCommand, Task> before) : DbCommandInterceptor
+    // A competing commit occurs after the initial draft read and before the publication's
+    // atomic transaction obtains its row lock. A write inside that transaction would roll back with it.
+    private sealed class BeforePublicationTransaction(Func<DbConnection, Task> before) : DbTransactionInterceptor
     {
         public bool Intercepted { get; private set; }
-        public override async ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command,
-            CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        public override async ValueTask<InterceptionResult<DbTransaction>> TransactionStartingAsync(DbConnection connection,
+            TransactionStartingEventData eventData, InterceptionResult<DbTransaction> result, CancellationToken cancellationToken = default)
         {
-            if (!Intercepted && command.CommandText.StartsWith("UPDATE", StringComparison.OrdinalIgnoreCase)
-                && command.CommandText.Contains("PublishedState", StringComparison.Ordinal))
+            if (!Intercepted)
             {
                 Intercepted = true;
-                await before(command);
+                await before(connection);
             }
             return result;
         }

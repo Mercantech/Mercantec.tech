@@ -26,7 +26,10 @@ public sealed class ActionCenterController(AppDbContext db, CourseAccess access)
         var scope = await holds.AsNoTracking().Select(h => new ActionCenterHold(h.Id, h.ForloebId, h.Name)).ToArrayAsync(ct);
         // An empty preview scope cannot establish the selected pupil's personal status.
         if (preview && scope.Length == 0) return NotFound();
-        return Ok(await new ActionCenterBuilder(db).BuildAsync(target, scope, teacher && !preview, ct, version: version, includeGifts: !preview, includeNews: !preview));
+        var snapshot = await new ActionCenterBuilder(db).BuildAsync(target, scope, teacher && !preview, ct, version: version, includeGifts: !preview, includeNews: !preview);
+        if (version == 2 && !preview)
+            snapshot = snapshot with { Items = [.. snapshot.Items, .. await new Mercantec.Tech.Api.References.ReferenceService(db).MentionsAsync(User, ct)] };
+        return Ok(snapshot);
     }
     [HttpPost("read"), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> Read(ActionCenterReadRequest request, CancellationToken ct)
@@ -37,6 +40,7 @@ public sealed class ActionCenterController(AppDbContext db, CourseAccess access)
         var holds = teacher ? access.AccessibleHolds(User, true) : db.Hold.Where(h => h.Memberships.Any(m => m.UserSub == subject));
         var scope = await holds.AsNoTracking().Select(h => new ActionCenterHold(h.Id, h.ForloebId, h.Name)).ToArrayAsync(ct);
         await new ActionCenterNews(db).AcknowledgeAsync(subject, request.Items, scope, teacher, ct);
+        await new Mercantec.Tech.Api.References.ReferenceService(db).AcknowledgeMentionsAsync(User, request.Items, ct);
         return NoContent();
     }
 }

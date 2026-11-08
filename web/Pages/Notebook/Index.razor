@@ -49,9 +49,9 @@ else
                 {
                     <section class="nb-journal-library" aria-labelledby="nb-journal-title"><div class="nb-sidebar-title"><h2 id="nb-journal-title">Skriv logbog</h2><button class="secondary" @onclick="() => _showJournal = false">Luk</button></div><p>Vælg en skabelon. Et dagligt eller ugentligt indlæg åbnes igen, hvis du allerede har skrevet i perioden.</p><div class="nb-meta-grid"><label>Dato<input type="date" @bind="_period" /></label><label>Hold (valgfrit)<select @bind="_entryHold"><option value="">Uden hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label></div><div class="nb-template-cards">@foreach (var template in _templates.Where(t => t.IsActive)) { <button class="nb-template-card" disabled="@_busy" @onclick="() => Entry(template.Id)"><strong>@template.Title</strong><span>@CadenceLabel(template.Cadence)</span></button> }</div>@if (!_templates.Any(t => t.IsActive)) { <p class="nb-muted">Der er endnu ingen aktive skabeloner. Din underviser kan oprette dem.</p> }</section>
                 }
-                @if (_showGraph && _graph is not null)
+                @if (_showGraph && _notebookId is not null)
                 {
-                    <section class="nb-graph-panel"><div class="nb-sidebar-title"><h2>Forbindelser mellem sider</h2><button class="secondary" @onclick="() => _showGraph = false">Luk grafen</button></div><NotebookGraphView Graph="_graph" />@if (_graph.Total > _graph.Nodes.Length) { <p class="nb-muted">Viser @_graph.Nodes.Length af @_graph.Total sider.</p> }</section>
+                    <section class="nb-graph-panel"><div class="nb-sidebar-title"><h2>Forbindelser mellem sider</h2><button class="secondary" @onclick="() => _showGraph = false">Luk grafen</button></div><ReferenceGraphView ScopeKind="notebook" ScopeId="@_notebookId.ToString()" /></section>
                 }
                 @if (_current is null)
                 {
@@ -71,11 +71,11 @@ else
                     {
                         <div class="nb-template-status"><div><strong>@(currentTemplate.IsActive ? $"Aktiv · version {currentTemplate.Version}" : "Kladde / arkiveret")</strong><p>Gem oplysninger og indhold før aktivering. Ændringer bruges først i nye indlæg, når du aktiverer igen.</p></div><div class="nb-actions"><button class="action" disabled="@(_busy || !_mounted || MetadataDirty || _status is "connecting" or "saving" or "offline" or "error")" @onclick="Activate">@(currentTemplate.IsActive ? "Aktivér ny version" : "Aktivér skabelon")</button>@if (currentTemplate.IsActive) { <button class="secondary" disabled="@_busy" @onclick="Archive">Arkivér</button> }</div></div>
                     }
-                    <div class="nb-editor-root" @ref="_editorElement"></div>
+                    <div class="nb-editor-root" @ref="_editorElement"></div>@if (NoticeKind == "mention" && !string.IsNullOrEmpty(NoticeQuery)) { <MentionReceipt SourceId="_current.DocumentId" Loaded="_mounted" Notice="@NoticeQuery" /> }
                     @if (!Editing && !_mounted) { <p class="nb-muted nb-waiting" role="status">Venter på sidens gemte indhold…</p> }
                     @if (!TemplateMode)
                     {
-                        <section class="nb-backlinks"><h3>Sider, der linker hertil</h3>@if (_backlinks.Length == 0) { <p class="nb-muted">Ingen tilgængelige sider linker hertil endnu.</p> } else { <nav aria-label="Tilbagelinks">@foreach (var page in _backlinks) { <a href="@PageHref(page.Id)">@(page.Title)</a> }</nav> }</section>
+                        <ReferenceBacklinks Kind="notebook-page" Id="@_current.DocumentId.ToString()" Revision="_current.Revision" />
                     }
                     @if (_showComments && _current.CanComment)
                     {

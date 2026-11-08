@@ -34,6 +34,6 @@ public sealed record EnsureJournalEntry(Guid TemplateId, Guid RequestId, DateOnl
 // These projections are accepted only from the authenticated collaboration service.
 public sealed record StoreNotebookDocument(string StateBase64, string Fingerprint, string PlainText,
     Guid[] LinkIds, Guid[] AssetIds, Guid[]? DrawingIds = null,
-    Dictionary<string, string>? DrawingBlocks = null);
+    Dictionary<string, string>? DrawingBlocks = null, EntityReference[]? References = null);
 public sealed record CloneNotebookDocument(string? StateBase64, Guid PageId,
     Dictionary<string, string> AssetMap, bool DefaultTemplate = false, Dictionary<string, string>? DrawingMap = null);

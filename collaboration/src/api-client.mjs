@@ -144,8 +144,8 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       if (typeof fingerprint !== 'string' || !/^[0-9a-f]{64}$/.test(fingerprint)) {
         throw new Error('A canonical document fingerprint is required');
       }
-      const projected = drawing ? drawingStateProjection(state) : notebookStateProjection(state);
-      const projection = domain === 'notion' ? { stateBase64: projected.stateBase64, fingerprint: projected.fingerprint, drawingIds: projected.drawingIds, drawingBlocks: projected.drawingBlocks } : projected;
+      const projected = drawing ? drawingStateProjection(state) : notebookStateProjection(state, domain);
+      const projection = domain === 'notion' ? { stateBase64: projected.stateBase64, fingerprint: projected.fingerprint, drawingIds: projected.drawingIds, drawingBlocks: projected.drawingBlocks, references: projected.references } : projected;
       if (projection.fingerprint !== fingerprint) throw new Error(`${drawing ? 'Drawing' : domain === 'notebook' ? 'Notebook' : 'Document'} fingerprint mismatch`);
       const response = await request(statePath(domain, id), {
         method: 'PUT',

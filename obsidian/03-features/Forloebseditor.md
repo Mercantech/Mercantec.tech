@@ -1,6 +1,18 @@
 # Forløbseditor: kladde, udgivelse, grupper og medier
 
-Åbn `/notion` med Mercantec-login. Undervisere med adgang til at administrere holdet kan redigere; holdets elever kan læse de udgivne sider. Navigationen findes under Læring, og forløbets holdside linker til indhold og grupper.
+Åbn **Notesbøger** i hovedmenuen (`/notion`) med Mercantec-login. Oversigten samler teori, holdsamlinger, egen notesbog og delte sider; undervisere kan hente elevnotesbøger i en separat fane. Undervisere med adgang til at administrere holdet kan redigere holdets sider; elever læser de udgivne sider.
+
+## Teori og forbindelser på tværs
+
+**Ny notesbog** kan oprette en selvstændig teorinotesbog uden hold. Alle undervisere kan redigere og udgive; alle loggede ind kan læse udgivelserne, også uden holdmedlemskab. Hold genbruger teorien ved at linke til originalen. Personlige notesbøgers eksisterende ejerskab og delinger ændres ikke.
+
+Mentions og linkblokke bruger fælles søgning på tværs af sider, noter, samlinger, undervisning, personer, grupper, filer, kalender og det offentlige bibliotek. Samme notesbog prioriteres før aktivt hold og øvrige resultater. Type og tilhørsforhold adskiller ens titler. Mål og backlinks filtreres med brugerens aktuelle læseadgang; et link deler aldrig indhold.
+
+Grafer viser det lokale område med direkte forbindelser udad. Global søgning kan fokusere et andet mål; hvert udsnit er højst 400 noder. Gamle side- og grafadresser bevares. Historiske dokumenter indekseres i baggrunden uden udsendelse af gamle notifikationer.
+
+Kun eksplicitte personmentions udløser beskeder: undervisningssider ved udgivelse, personlige sider efter lagring. Elevlister og almindelige personlinkblokke giver kun grafkanter. En besked vises først, når modtageren har adgang; fjernes mentionen eller adgangen, skjules beskeden. Gentagen lagring giver ingen dubletter. Skabelonkopier og historisk backfill sender ingen beskeder.
+
+API: `/api/notion/collections` til oversigt/oprettelse og `/api/references/search`, `/resolve`, `/graph`, `/backlinks`, `/people/{sub}` til fælles referencer. Referencer gemmer kun `kind` og stabilt `id`; titler og destinationer opløses med aktuelle rettigheder. Editorens skemaversion er 8; ældre klienter skal genindlæses, før de kan deltage i samarbejde.
 
 Nye og ændrede editorblokke følger [komponentstandarden og skabelonen](../../editor/COMPONENT_TEMPLATE.md), som beskriver platformdesign, temaer, tilgængelighed og de understøttede visninger og formater.
 
@@ -18,8 +30,8 @@ Udgivelse kopierer serverens gemte Yjs-tilstand og titel. API'et kontrollerer de
 
 ## Links og kommandoer
 
-- `@`: søg efter en side, underside eller elev fra holdet.
-- `/side`: indsæt et link til en side. Et elevlink åbner en minimal elevside med navn og relevante grupper.
+- `@`: søg efter tilgængeligt indhold og personer i hele LUP.
+- `/side`: indsæt en linkblok med fælles søgning. Personlinks åbner en minimal profil uden automatisk adgang til noter.
 - `/elever`: indsæt holdets elevliste, vælg deltagere og opret en gemt gruppe.
 - `/gruppe`: vis en gemt gruppe i dokumentet.
 - `/afstemning`: vælg en eksisterende afstemning fra holdet.

@@ -116,7 +116,7 @@ public sealed class ActionCenterService : IAsyncDisposable
     public async Task<bool> MarkReadAsync(IEnumerable<ActionCenterReadItem> requested)
     {
         if (_disposed || !_auth.IsInitialized || !_auth.IsAuthenticated || _viewAs.IsActive) return false;
-        var items = requested.Where(i => i.ResourceId != Guid.Empty && i.Kind is "feedback" or "notebook-comment" or "notebook-share").Distinct().ToArray();
+        var items = requested.Where(i => i.ResourceId != Guid.Empty && i.Kind is "feedback" or "notebook-comment" or "notebook-share" or "mention").Distinct().ToArray();
         if (items.Length == 0) return true;
         var identity = Identity;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
@@ -138,6 +138,7 @@ public sealed class ActionCenterService : IAsyncDisposable
     private static bool ValidItem(ActionCenterItem? item)
     {
         if (item is null || item.Severity is not ("important" or "optional") || item.Count < 1 || item.ResourceId == Guid.Empty) return false;
+        if (item.Kind == "mention") return item.Severity == "optional" && item.TargetId is Guid targetId && targetId != Guid.Empty && ActionCenterPresentation.SafeMentionHref(item.Href);
         if (item.Kind is "gift" or "notebook-comment" or "notebook-share")
         {
             if (item.Severity != "optional" || item.HoldId is not null || item.WorkspaceId is not null || item.CourseId is not null || item.SubmissionId is not null) return false;

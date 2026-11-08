@@ -272,6 +272,7 @@ public sealed class ReadNotificationUiTests
             if (path == "/api/notebooks/templates") return Json(Array.Empty<NotebookTemplateView>());
             if (path == "/api/notebooks/shared") return Json(Array.Empty<NotebookPageSummary>());
             if (path == "/api/notion/holds") return Json(Array.Empty<NotionHold>());
+            if (path == "/api/references/backlinks") return Json(Array.Empty<ResolvedReference>());
             if (path == $"/api/notebooks/{Notebook}/pages") { PageListRead = true; return Json(new NotebookPageList(EmptyNotebook ? [] : [Page], EmptyNotebook ? 0 : 1)); }
             if (path == $"/api/notebooks/pages/{Page.Id}/context")
             {

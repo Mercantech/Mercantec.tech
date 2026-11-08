@@ -84,6 +84,11 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         bytes = state.ToArray();
         }
         var updated = DateTimeOffset.UtcNow;
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        // The source row also serializes its reference diff and durable mention occurrences.
+        await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.PublicationVersion, p => p.PublicationVersion), ct);
+        var references = new Mercantec.Tech.Api.References.ReferenceService(db);
+        await references.BaselineNotionAsync(id, ct);
         // Atomic column update leaves concurrently renamed page metadata intact.
         var written = await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, updated)
@@ -93,6 +98,8 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             .SetProperty(p => p.DraftFingerprint, fingerprint)
             .SetProperty(p => p.DrawingIdsJson, p => drawingManifest ?? p.DrawingIdsJson), ct);
         if (written == 0) return NotFound();
+        await references.RefreshNotionAsync(id, ct);
+        await transaction.CommitAsync(ct);
         return Ok(new { savedAtUtc = updated });
     }
 
