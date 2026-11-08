@@ -93,6 +93,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
         object[] gifts = [];
         object? giftProfile = null;
         object[] pollResponses = [];
+        object[] actionReadReceipts = [];
         if (subGuid is not null)
         {
             memberships = await db.Memberships
@@ -115,6 +116,8 @@ public class PrivacyController(AppDbContext db) : ControllerBase
 
         if (subGuid is Guid giftSub)
         {
+            actionReadReceipts = await db.ActionReadReceipts.AsNoTracking().Where(r => r.UserSub == giftSub)
+                .Select(r => (object)new { r.UserSub, r.Kind, r.ResourceId, r.ReadAtUtc }).ToArrayAsync(ct);
             pollResponses = await db.PollResponses.AsNoTracking().Where(r => r.UserSub == giftSub)
                 .Select(r => (object)new { r.PollId, r.Poll.Question, r.Choice, r.Text, r.UpdatedAtUtc }).ToArrayAsync(ct);
             gifts = await db.ChristmasGifts.AsNoTracking().Where(g => g.SenderSub == giftSub || g.RecipientSub == giftSub)
@@ -140,6 +143,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 gifts,
                 giftProfile,
                 pollResponses,
+                actionReadReceipts,
                 submissions = Array.Empty<object>(),
                 deletionRequests = Array.Empty<object>()
             },

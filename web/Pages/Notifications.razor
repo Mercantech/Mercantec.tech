@@ -7,7 +7,7 @@ else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Notifikati
 else
 {
     <div class="action-center">
-        <header class="page-title"><div><h1>Notifikationer</h1><p>Dine afstemninger og afleveringer på tværs af hold.</p></div><button type="button" class="secondary" disabled="@Actions.IsLoading" @onclick="Refresh"><UiIcon Name="loop" />Opdatér</button></header>
+        <header class="page-title"><div><h1>Notifikationer</h1><p>Dine opgaver, afstemninger, gaver og beskeder.</p></div><button type="button" class="secondary" disabled="@Actions.IsLoading" @onclick="Refresh"><UiIcon Name="loop" />Opdatér</button></header>
         @if (ViewAs.IsActive) { <p class="notification-note">Viser status for @ViewAs.DisplayName på de hold, du underviser.</p> }
         @if (Actions.Error is not null)
         {
@@ -15,13 +15,13 @@ else
         }
         else if (Actions.Snapshot is null)
         {
-            <p class="panel" role="status">Henter dine afstemninger og afleveringer…</p>
+            <p class="panel" role="status">Henter dine notifikationer…</p>
         }
         else
         {
             <section class="notification-summary @Actions.Status.ToString().ToLowerInvariant()" aria-label="Din samlede status">
                 <span class="summary-symbol" aria-hidden="true"><UiIcon Name="@(Actions.Status == ActionCenterStatus.Clear ? "check" : "target")" /></span>
-                <div><h2>@Actions.Label</h2><p>@(Actions.Status == ActionCenterStatus.Clear ? "Du har ingen ubesvarede afstemninger eller afleveringer, der kræver din handling." : "Åbn en handling for at svare, aflevere eller give feedback.")</p></div>
+                <div><h2>@Actions.Label</h2><p>@(Actions.Status == ActionCenterStatus.Clear ? "Du har ingen handlinger, der venter på dig." : "Åbn en handling for at svare, aflevere eller give feedback.")</p></div>
             </section>
             @foreach (var severity in new[] { "important", "optional" })
             {
@@ -31,7 +31,7 @@ else
                     <section class="notification-section @severity" aria-labelledby="@($"actions-{severity}")"><div class="notification-heading"><span class="status-dot" aria-hidden="true"></span><h2 id="@($"actions-{severity}")">@(severity == "important" ? "Vigtigt" : "Det kan du gøre")</h2><span>@rows.Sum(i => Math.Max(1, i.Count))</span></div>
                         @foreach (var item in rows)
                         {
-                            <a class="notification-row" href="@Href(item)"><span class="notification-mark"><UiIcon Name="@Icon(item)" /></span><div class="notification-copy"><small>@item.HoldName</small><h3>@item.Title</h3><p>@KindLabel(item)@if (item.DeadlineUtc is DateTimeOffset deadline) { <span> · Frist @DateLabel(deadline)</span> }</p></div><span class="notification-open">@(item.Kind == "poll" ? "Svar" : item.Kind == "review" ? "Giv feedback" : "Åbn opgave") <span aria-hidden="true">›</span></span></a>
+                            <a class="notification-row" href="@Href(item)"><span class="notification-mark"><UiIcon Name="@Icon(item)" /></span><div class="notification-copy"><small>@item.HoldName</small><h3>@item.Title</h3><p>@KindLabel(item)@if (item.DeadlineUtc is DateTimeOffset deadline) { <span> · Frist @DateLabel(deadline)</span> }</p></div><span class="notification-open">@(item.Kind == "poll" ? "Svar" : item.Kind == "review" ? "Giv feedback" : item.Kind == "gift" ? "Åbn gave" : item.Kind == "feedback" ? "Læs feedback" : item.Kind is "notebook-comment" or "notebook-share" ? "Åbn notesbog" : "Åbn opgave") <span aria-hidden="true">›</span></span></a>
                         }
                     </section>
                 }

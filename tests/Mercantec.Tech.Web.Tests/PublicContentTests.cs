@@ -42,6 +42,8 @@ public sealed class PublicContentTests
     [InlineData("/quests/30000000-0000-0000-0000-000000000001/submit")]
     [InlineData("/universe/shop")]
     [InlineData("/notifications")]
+    [InlineData("/gifts")]
+    [InlineData("/gifts/30000000-0000-0000-0000-000000000001")]
     [InlineData("/polls/30000000-0000-0000-0000-000000000001")]
     [InlineData("/courses/template-private/123")]
     [InlineData("/characters/lupp/private")]

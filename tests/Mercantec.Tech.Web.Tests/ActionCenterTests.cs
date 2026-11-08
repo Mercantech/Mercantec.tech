@@ -109,7 +109,7 @@ public sealed class ActionCenterTests
         var target = Guid.NewGuid();
         api.Items = [];
         context.ViewAs.Enter("student-lectio", "Elev", authSub: target);
-        bell.WaitForAssertion(() => Assert.Equal($"me/actions?asUser={target}", api.LastPath));
+        bell.WaitForAssertion(() => Assert.Equal($"me/actions?version=2&asUser={target}", api.LastPath));
         bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("button.notification-bell").GetAttribute("data-status")));
         Assert.Equal(ActionCenterStatus.Clear, service.Status);
         Assert.Equal(0, service.OptionalCount);
@@ -132,7 +132,7 @@ public sealed class ActionCenterTests
         gate.SetResult(true);
         await oldRequest;
         bell.WaitForAssertion(() => Assert.Equal("clear", bell.Find("button.notification-bell").GetAttribute("data-status")));
-        Assert.Equal($"me/actions?asUser={target}", api.LastPath);
+        Assert.Equal($"me/actions?version=2&asUser={target}", api.LastPath);
         Assert.Equal(ActionCenterStatus.Clear, service.Status);
         Assert.Empty(service.Items);
     }

@@ -132,8 +132,8 @@ else
                         }
                         @foreach (var revision in _submission.Revisions.OrderByDescending(r => r.Number))
                         {
-                            <details class="assignment-revision" open="@(revision.Number == _submission.Revisions.Max(r => r.Number))">
-                                <summary>Version @revision.Number · @HoldTime.Display(revision.SubmittedAtUtc)</summary><p class="assignment-help">Deltagere: @string.Join(", ", revision.Participants.Select(p => p.DisplayName))</p><p class="emoji-prose"><EmojiText Text="@revision.Text" /></p>
+                            <details class="assignment-revision" open="@_openRevisions.Contains(revision.Id)">
+                                <summary @onclick="() => ToggleRevision(revision.Id)" @onclick:preventDefault>Version @revision.Number · @HoldTime.Display(revision.SubmittedAtUtc)</summary><p class="assignment-help">Deltagere: @string.Join(", ", revision.Participants.Select(p => p.DisplayName))</p><p class="emoji-prose"><EmojiText Text="@revision.Text" /></p>
                                 @foreach (var file in revision.Files) { <p><button type="button" class="secondary" @onclick="() => OpenFile(file.Id)">@file.OriginalName</button></p> }
                                 @if (revision.Feedback.Length > 0) { <h4>Feedback fra din underviser</h4> }
                                 @foreach (var feedback in revision.Feedback.OrderBy(f => f.CreatedAtUtc))

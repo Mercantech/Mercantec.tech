@@ -16,7 +16,7 @@ public sealed class NotebookUiTests
     public async Task Typing_enables_create_and_find_buttons_without_blurring_the_input()
     {
         using var api = new NotebookApi();
-        using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
         {
             var original = (IJSRuntime)services.Last(s => s.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
             services.AddSingleton<IJSRuntime>(new NotebookJavascript(original));
@@ -47,7 +47,7 @@ public sealed class NotebookUiTests
     {
         using var api = new NotebookApi();
         NotebookJavascript? javascript = null;
-        using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
         {
             var original = (IJSRuntime)services.Last(s => s.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
             javascript = new(original);
@@ -78,7 +78,7 @@ public sealed class NotebookUiTests
     {
         using var api = new NotebookApi { Reader = true };
         NotebookJavascript? javascript = null;
-        using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
         {
             var original = (IJSRuntime)services.Last(s => s.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
             javascript = new(original);

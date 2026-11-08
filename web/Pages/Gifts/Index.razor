@@ -1,0 +1,94 @@
+@page "/gifts"
+@page "/gifts/{GiftId:guid}"
+@using Mercantec.Tech.Web.Gifts
+@inject GiftMailboxClient Mailbox
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Mine gaver · LUP</PageTitle>
+<div class="gift-page">
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/universe">Mit univers</a><span aria-hidden="true">/</span><a href="/gifts">Mine gaver</a>@if (GiftId is not null) { <span aria-hidden="true">/</span><span>Din gave</span> }</nav>
+    <header class="page-title"><div><h1>@(GiftId is null ? "Mine gaver" : "En gave til dig")</h1>@if (GiftId is null) { <p>Gaver og hilsner, du har modtaget.</p> }</div>@if (GiftId is not null) { <a class="secondary" href="/gifts">Alle modtagne gaver</a> } else { <button type="button" class="secondary" disabled="@_loading" @onclick="Reload">Opdatér</button> }</header>
+    @if (!Auth.IsInitialized || _loading) { <p role="status">Henter dine gaver…</p> }
+    else if (!Auth.IsAuthenticated) { <p>Log ind for at åbne dine gaver.</p><a class="action" href="/login">Log ind</a> }
+    else if (ViewAs.IsActive) { <section class="panel"><h2>Gaver er personlige</h2><p>Gaver kan åbnes fra din egen konto.</p><a href="/student">Til elevens overblik</a></section> }
+    else if (_error is not null) { <section class="panel" role="alert"><h2>Gaven kunne ikke åbnes</h2><p>@_error</p><button type="button" class="secondary" @onclick="Reload">Prøv igen</button></section> }
+    else if (_gift is GiftMessage gift)
+    {
+        <section class="gift-page-reveal"><GiftReveal Sender="@gift.SenderName" Title="@GiftTitle(gift.Kind)" Icon="@GiftIcon(gift.Kind)" Message="@gift.Message" Wrapping="@GiftWrapping(gift.Wrapping)" Revealed="@(gift.OpenedAtUtc is not null)" Busy="_busy" OnOpen="OpenGift" OnBack="BackToInbox" @key="gift.Id" /></section>
+    }
+    else if (_received.Length == 0) { <section class="panel gift-page-empty"><UiIcon Name="gift" /><h2>Ingen modtagne gaver endnu</h2><p>Når nogen sender dig en gave, ligger den her.</p></section> }
+    else
+    {
+        <div class="gift-page-list">@foreach (var item in _received) { <a class="gift-page-row" href="@($"/gifts/{item.Id:D}")"><span class="gift-page-mark"><UiIcon Name="gift" /></span><div><h2>Fra @item.SenderName</h2><p>@GiftTitle(item.Kind)</p><time datetime="@item.CreatedAtUtc.ToString("O")">@item.CreatedAtUtc.ToLocalTime().ToString("d. MMM yyyy")</time></div><span class="gift-page-state @(item.OpenedAtUtc is null ? "unopened" : null)">@(item.OpenedAtUtc is null ? "Uåbnet" : "Åbnet")</span><span aria-hidden="true">›</span></a> }</div>
+    }
+</div>
+@code {
+    [Parameter] public Guid? GiftId { get; set; }
+    private GiftMessage? _gift;
+    private GiftMessage[] _received = [];
+    private string? _loaded, _error;
+    private bool _loading = true, _busy, _disposed;
+    private CancellationTokenSource _requests = new();
+    private string Identity => $"{Auth.Subject}:{ViewAs.IsActive}:{ViewAs.AuthSub}:{GiftId}";
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        if (!parameters.TryGetValue<Guid?>(nameof(GiftId), out _)) GiftId = null;
+        return base.SetParametersAsync(parameters);
+    }
+    protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; Mailbox.Changed += MailChanged; }
+    protected override async Task OnParametersSetAsync() { if (Auth.IsInitialized && _loaded != Identity) await Reload(); }
+    private void Changed() => _ = InvokeAsync(async () => { if (_loaded != Identity) await Reload(); StateHasChanged(); });
+    private void MailChanged() => _ = InvokeAsync(() =>
+    {
+        if (_disposed || !Auth.IsAuthenticated || ViewAs.IsActive || _loaded != Identity) return;
+        if (GiftId is null) _received = Mailbox.Received.ToArray();
+        else if (_gift is not null && Mailbox.Received.FirstOrDefault(gift => gift.Id == _gift.Id) is GiftMessage latest) _gift = latest;
+        StateHasChanged();
+    });
+    private async Task Reload()
+    {
+        if (_disposed || !Auth.IsInitialized) return;
+        _requests.Cancel(); _requests.Dispose(); _requests = new();
+        var ct = _requests.Token; var identity = Identity;
+        _loaded = identity; _gift = null; _received = []; _error = null; _busy = false; _loading = true;
+        if (!Auth.IsAuthenticated || ViewAs.IsActive) { _loading = false; return; }
+        try
+        {
+            if (GiftId is Guid id)
+            {
+                var gift = await Mailbox.GetAsync(id, ct);
+                if (!_disposed && !ct.IsCancellationRequested && identity == Identity) _gift = gift;
+            }
+            else
+            {
+                await Mailbox.RefreshAsync(ct: ct);
+                if (!_disposed && !ct.IsCancellationRequested && identity == Identity) { _received = Mailbox.Received.ToArray(); _error = Mailbox.Error; }
+            }
+        }
+        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException)
+        { if (!_disposed && !ct.IsCancellationRequested && identity == Identity) _error = ex is GiftException ? ex.Message : "Kontrollér forbindelsen, og prøv igen."; }
+        finally { if (!_disposed && !ct.IsCancellationRequested && identity == Identity) _loading = false; }
+    }
+    private async Task OpenGift()
+    {
+        if (_busy || _gift is null || ViewAs.IsActive || !Auth.IsAuthenticated) return;
+        var id = _gift.Id; var identity = Identity; var ct = _requests.Token;
+        _busy = true; _error = null;
+        try
+        {
+            var opened = await Mailbox.OpenAsync(id, ct);
+            if (!_disposed && !ct.IsCancellationRequested && identity == Identity && _gift?.Id == id) _gift = opened;
+        }
+        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException)
+        { if (!_disposed && !ct.IsCancellationRequested && identity == Identity) _error = ex is GiftException ? ex.Message : "Gaven kunne ikke åbnes. Prøv igen."; }
+        finally { if (!_disposed && !ct.IsCancellationRequested && identity == Identity) _busy = false; }
+    }
+    private void BackToInbox() => Nav.NavigateTo("/gifts");
+    private static string GiftTitle(string kind) => kind switch { "cheer" => "En pose juleglæde", "thanks" => "Tak for hjælpen", "warmth" => "Lidt ekstra varme", _ => "En hilsen til dig" };
+    private static string GiftIcon(string kind) => kind switch { "cheer" => "tree", "thanks" => "heart", "warmth" => "star", _ => "gift" };
+    private static string GiftWrapping(string wrapping) => wrapping is "berry" or "pine" or "gold" ? wrapping : "berry";
+    public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; Mailbox.Changed -= MailChanged; _requests.Cancel(); _requests.Dispose(); }
+}

@@ -1,6 +1,7 @@
 using System.Net;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
+using Mercantec.Tech.Web.Activity;
 using Mercantec.Tech.Web.Notebooks;
 using Mercantec.Tech.Web.Notion;
 using Microsoft.AspNetCore.Components;
@@ -16,11 +17,19 @@ public partial class Index
     [Inject] private AuthRedirect Redirect { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
     [Inject] private NotebookClient Client { get; set; } = default!;
+    [Inject] private ActionCenterService Actions { get; set; } = default!;
     [Inject] private NotionClient HoldsClient { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? PageId { get; set; }
     [Parameter] public Guid? TemplateId { get; set; }
     [SupplyParameterFromQuery(Name = "owner")] public Guid? NotebookId { get; set; }
+    [SupplyParameterFromQuery(Name = "comments")] public bool RequestedComments { get; set; }
+    [SupplyParameterFromQuery(Name = "noticeKind")] public string? NoticeKind { get; set; }
+    [SupplyParameterFromQuery(Name = "notice")] public string? NoticeQuery { get; set; }
+    private Guid? NoticeId => Guid.TryParse(NoticeQuery, out var id) && id != Guid.Empty ? id : null;
+    private readonly HashSet<(string Kind, Guid Id)> _readNotifications = [];
+    private int? _readingNotificationsGeneration;
+    private Guid? _loadedNotebookAccess;
     private readonly CancellationTokenSource _life = new();
     private readonly Dictionary<Guid, string> _commentDrafts = [];
     private CancellationTokenSource? _requests;
@@ -52,7 +61,7 @@ public partial class Index
     private bool CanUse => Auth.IsAuthenticated && !ViewAs.IsActive;
     private bool Own => _notebookId is not null && _notebookId == _mine?.Id;
     private bool Editing => _current?.CanEdit == true && CanUse;
-    private string RouteKey => $"{PageId}:{TemplateId}:{NotebookId}:{TemplateMode}:{Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath == "/journal"}";
+    private string RouteKey => $"{PageId}:{TemplateId}:{NotebookId}:{RequestedComments}:{NoticeKind}:{NoticeQuery}:{TemplateMode}:{Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath == "/journal"}";
     private NotebookTemplateView? CurrentTemplate => _templates.FirstOrDefault(t => t.Id == TemplateId);
     private string Heading => TemplateMode ? "Logbogsskabeloner" : Own ? "Min notesbog" : _ownerName.Length > 0 ? $"{_ownerName}s notesbog" : "Notesbog";
     private string StatusLabel => _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Kunne ikke gemme", _ => "Forbinder…" };
@@ -64,11 +73,13 @@ public partial class Index
     {
         Auth.AuthStateChanged += AccountChanged;
         ViewAs.Changed += AccountChanged;
+        Actions.Changed += NotificationStateChanged;
         _ = Poll();
     }
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        PageId = null; TemplateId = null;
+        PageId = null; TemplateId = null; NotebookId = null;
+        RequestedComments = false; NoticeKind = NoticeQuery = null;
         return base.SetParametersAsync(parameters);
     }
     protected override async Task OnParametersSetAsync()
@@ -78,6 +89,7 @@ public partial class Index
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender) { await SyncAccount(); return; }
+        await ReadVisibleNotifications();
         if (!_needsMount || _current is null || !CanUse || _disposed) return;
         if (!Editing && string.IsNullOrEmpty(_current.StateBase64)) return;
         _needsMount = false;
@@ -106,6 +118,7 @@ public partial class Index
         pages = _current.Pages, publishedStateBase64 = _current.StateBase64, stateBase64 = _current.StateBase64,
         revision = _current.Revision, updatedAtUtc = _current.UpdatedAtUtc, userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject
     };
+    private void NotificationStateChanged() { if (!_disposed) _ = InvokeAsync(StateHasChanged); }
     private void AccountChanged() => _ = InvokeAsync(SyncAccount);
     private async Task SyncAccount()
     {
@@ -118,6 +131,7 @@ public partial class Index
         await Unmount();
         _current = null; _mine = null; _notebookId = null; _pages = []; _shared = []; _comments = []; _shares = []; _users = []; _graph = null;
         _commentDrafts.Clear(); _comment = ""; _period = default;
+        _readNotifications.Clear(); _loadedNotebookAccess = null;
         if (CanUse) await Load(); else _loading = false;
         if (!_disposed) StateHasChanged();
     }
@@ -127,7 +141,8 @@ public partial class Index
         _requests = CancellationTokenSource.CreateLinkedTokenSource(_life.Token);
         var ct = _requests.Token;
         var generation = ++_generation;
-        _route = RouteKey; _loading = true; _error = null; _notice = null; _current = null;
+        _route = RouteKey; var route = _route; _loading = true; _error = null; _notice = null; _current = null;
+        _loadedNotebookAccess = null; _readNotifications.Clear();
         _showComments = _showShares = _showGraph = false; _comments = []; _shares = []; _backlinks = []; _graph = null;
         try
         {
@@ -160,15 +175,73 @@ public partial class Index
                 {
                     var result = await Client.Pages(notebook, _search, _tag, _kind, 0, ct);
                     _pages = result.Items; _total = result.Total;
+                    _loadedNotebookAccess = notebook;
                 }
                 if (_current is null && _pages.FirstOrDefault() is { } first) Select(await Client.Context(first.Id, ct));
                 if (_current is not null) _backlinks = await Client.Backlinks(_current.DocumentId, ct);
+                if (RequestedComments && _current?.CanComment == true)
+                {
+                    var commentPage = _current.DocumentId;
+                    var comments = await Client.Comments(commentPage, ct);
+                    ct.ThrowIfCancellationRequested();
+                    if (generation == _generation && route == RouteKey && _current?.DocumentId == commentPage)
+                    { _comments = comments; _showComments = true; }
+                }
             }
             ct.ThrowIfCancellationRequested();
         }
         catch (Exception ex) when (Expected(ex)) { if (generation == _generation && !ct.IsCancellationRequested) Report(ex); }
         finally { if (generation == _generation && !ct.IsCancellationRequested) _loading = false; }
     }
+    private bool VisibleShare(ActionCenterItem item) => item.Kind == "notebook-share" && item.TargetId is Guid target
+        && (item.State == "shared-page" && _current?.CanRead == true && _current.DocumentId == target
+            || item.State == "shared-notebook" && _loadedNotebookAccess == target);
+    private ActionCenterReadItem[] VisibleUnreadNotifications()
+    {
+        if (_disposed || _loading || _busy || !CanUse || TemplateMode || _error is not null || _route != RouteKey
+            || PageId is Guid page && _current?.DocumentId != page
+            || NotebookId is Guid notebook && _loadedNotebookAccess != notebook) return [];
+        if (!string.IsNullOrWhiteSpace(NoticeQuery))
+        {
+            if (NoticeId is not Guid notice) return [];
+            if (NoticeKind == "notebook-comment")
+            {
+                if (!_showComments || _current?.CanComment != true || !_comments.Any(c => c.Id == notice)) return [];
+            }
+            else if (NoticeKind == "notebook-share")
+            {
+                if (!Actions.Items.Any(item => item.ResourceId == notice && VisibleShare(item))) return [];
+            }
+            else return [];
+        }
+        IEnumerable<ActionCenterReadItem> comments = _showComments && _current?.CanComment == true
+            ? _comments.Where(c => c.Id != Guid.Empty && c.AuthorSub.ToString() != Auth.Subject).Select(c => new ActionCenterReadItem("notebook-comment", c.Id)) : [];
+        var shares = Actions.Items.Where(VisibleShare).Where(item => string.IsNullOrWhiteSpace(NoticeQuery) || NoticeKind != "notebook-share" || item.ResourceId == NoticeId)
+            .Select(item => new ActionCenterReadItem("notebook-share", item.ResourceId));
+        return comments.Concat(shares).Where(item => !_readNotifications.Contains((item.Kind, item.ResourceId))).Distinct().ToArray();
+    }
+    private async Task ReadVisibleNotifications()
+    {
+        var generation = _generation;
+        if (_disposed || _loading || _busy || !CanUse || TemplateMode || _error is not null || _readingNotificationsGeneration == generation) return;
+        var route = RouteKey; var account = _account;
+        _readingNotificationsGeneration = generation;
+        try
+        {
+            if (NoticeKind == "notebook-share" && NoticeId is not null) await Actions.EnsureAsync();
+            if (_disposed || generation != _generation || route != RouteKey || account != _account || !CanUse) return;
+            var items = VisibleUnreadNotifications();
+            if (items.Length == 0) return;
+            var read = await Actions.MarkReadAsync(items);
+            if (read && !_disposed && generation == _generation && route == RouteKey && account == _account && CanUse)
+            {
+                foreach (var item in items) _readNotifications.Add((item.Kind, item.ResourceId));
+                if (VisibleUnreadNotifications().Length > 0) StateHasChanged();
+            }
+        }
+        finally { if (_readingNotificationsGeneration == generation) _readingNotificationsGeneration = null; }
+    }
+
     private void Select(NotebookDocumentContext context)
     {
         _current = context;
@@ -411,7 +484,7 @@ public partial class Index
     }
     public async ValueTask DisposeAsync()
     {
-        _disposed = true; Auth.AuthStateChanged -= AccountChanged; ViewAs.Changed -= AccountChanged;
+        _disposed = true; Auth.AuthStateChanged -= AccountChanged; ViewAs.Changed -= AccountChanged; Actions.Changed -= NotificationStateChanged;
         await _life.CancelAsync(); _requests?.Cancel();
         try { if (_lifecycle is not null) { await _lifecycle.InvokeVoidAsync("unwatch"); await _lifecycle.DisposeAsync(); } await Unmount(); if (_editor is not null) await _editor.DisposeAsync(); } catch (JSDisconnectedException) { }
         _callbacks?.Dispose(); _requests?.Dispose(); _life.Dispose();

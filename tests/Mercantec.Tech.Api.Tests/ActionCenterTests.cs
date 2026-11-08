@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mercantec.Tech.Api.Tests;
 
-public sealed class ActionCenterTests : IAsyncLifetime
+public sealed partial class ActionCenterTests : IAsyncLifetime
 {
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
     private AppDbContext _db = null!;
@@ -241,5 +241,137 @@ public sealed class ActionCenterTests : IAsyncLifetime
         var snapshot = await new ActionCenterBuilder(_db).BuildAsync(_student, [new(_hold.Id, _hold.ForloebId, _hold.Name)], false, default, at);
         Assert.Equal(at, snapshot.GeneratedAtUtc);
         Assert.Equal(today.Id, Assert.Single(snapshot.Items).ResourceId);
+    }
+
+    private ChristmasGift Gift(Guid recipient, bool opened = false, Guid? sender = null)
+    {
+        var gift = new ChristmasGift { Id = Guid.NewGuid(), RecipientSub = recipient, SenderSub = sender ?? _peer,
+            SenderName = "Mathias", RecipientName = "Private recipient", Message = "Private gift message",
+            Kind = "warmth", Wrapping = "gold", CreatedAtUtc = _now.UtcDateTime,
+            OpenedAtUtc = opened ? _now.UtcDateTime : null };
+        _db.ChristmasGifts.Add(gift); return gift;
+    }
+    private LearningQuest Optional(string title, string kind = "side", DateTimeOffset? deadline = null, string audience = "hold")
+    {
+        var quest = Quest(title, deadline: deadline, audience: audience); quest.Required = false; quest.Kind = kind; return quest;
+    }
+
+    [Fact]
+    public async Task Version_one_default_and_explicit_remain_compatible_with_old_clients()
+    {
+        var required = Quest("Obligatorisk");
+        Optional("Valgfri"); Gift(_student);
+        await _db.SaveChangesAsync();
+        foreach (var snapshot in new[] { Read(await Api(_student).Get(null, default)), Read(await Api(_student).Get(null, default, 1)) })
+        {
+            var item = Assert.Single(snapshot.Items);
+            Assert.Equal(required.Id, item.ResourceId); Assert.Equal("submission", item.Kind);
+            Assert.NotNull(item.HoldId); Assert.NotNull(item.WorkspaceId);
+        }
+        Assert.IsType<BadRequestObjectResult>(await Api(_student).Get(null, default, 0));
+        Assert.IsType<BadRequestObjectResult>(await Api(_student).Get(null, default, 3));
+    }
+
+    [Fact]
+    public async Task Version_two_includes_only_own_unopened_gifts_without_message_or_hold_fabrication()
+    {
+        var expected = Gift(_student); expected.CreatedAtUtc = _now.AddMonths(-1).UtcDateTime;
+        for (var i = 0; i < 55; i++) Gift(_student, opened: true);
+        Gift(_teacher); Gift(_peer, sender: _student);
+        await _db.SaveChangesAsync();
+        var result = Read(await Api(_student).Get(null, default, 2));
+        var item = Assert.Single(result.Items);
+        Assert.Equal(expected.Id, item.ResourceId); Assert.Equal("gift", item.Kind);
+        Assert.Equal("optional", item.Severity); Assert.Equal("unopened", item.State); Assert.Equal(1, item.Count);
+        Assert.Null(item.HoldId); Assert.Null(item.WorkspaceId); Assert.Null(item.CourseId); Assert.Null(item.SubmissionId);
+        Assert.Equal("Gave fra Mathias", item.Title);
+        var json = JsonSerializer.Serialize(result);
+        Assert.DoesNotContain("Private gift message", json); Assert.DoesNotContain("Private recipient", json);
+        Assert.DoesNotContain("warmth", json); Assert.DoesNotContain("gold", json);
+        expected.OpenedAtUtc = _now.UtcDateTime; await _db.SaveChangesAsync();
+        Assert.Empty(Read(await Api(_student).Get(null, default, 2)).Items);
+    }
+
+    [Fact]
+    public async Task Personal_gifts_work_without_hold_membership_for_students_and_teachers()
+    {
+        var unlinked = Guid.NewGuid(); var gift = Gift(unlinked);
+        await _db.SaveChangesAsync();
+        Assert.Equal(gift.Id, Assert.Single(Read(await Api(unlinked).Get(null, default, 2)).Items).ResourceId);
+        Assert.Equal(gift.Id, Assert.Single(Read(await Api(unlinked, true).Get(null, default, 2)).Items).ResourceId);
+        Assert.Empty(Read(await Api(unlinked, true).Get(null, default, 1)).Items);
+    }
+
+    [Fact]
+    public async Task Teacher_has_own_gifts_and_reviews_but_preview_never_exposes_any_mailbox()
+    {
+        var personal = Gift(_teacher); Gift(_student);
+        var pending = Quest("Til vurdering"); Submission(pending, "submitted", [_peerMember]);
+        var choice = Optional("Valgfri mulighed");
+        await _db.SaveChangesAsync();
+        var teacher = Read(await Api(_teacher, true).Get(null, default, 2));
+        Assert.Equal(2, teacher.Items.Length);
+        Assert.Contains(teacher.Items, i => i.Kind == "gift" && i.ResourceId == personal.Id);
+        Assert.Contains(teacher.Items, i => i.Kind == "review" && i.ResourceId == pending.Id);
+        Assert.DoesNotContain(teacher.Items, i => i.Kind == "quest");
+        var preview = Read(await Api(_teacher, true).Get(_student, default, 2));
+        Assert.DoesNotContain(preview.Items, i => i.Kind is "gift" or "review");
+        Assert.Contains(preview.Items, i => i.Kind == "quest" && i.ResourceId == choice.Id);
+        Assert.All(preview.Items, i => Assert.Equal(_hold.Id, i.HoldId));
+    }
+
+    [Fact]
+    public async Task Available_optional_daily_side_and_other_quests_are_orange_but_expired_and_future_repetitions_are_not_actions()
+    {
+        var daily = Optional("Dagens mulighed", "daily", _now.AddHours(3));
+        var side = Optional("Ekstra udfordring", "side");
+        var other = Optional("Frivillig main", "main", _now.AddDays(2));
+        Optional("Udløbet mulighed", deadline: _now.AddDays(-1));
+        var tomorrow = Optional("I morgen", "daily", _now.AddDays(2)); tomorrow.OccurrenceDate = DateOnly.FromDateTime(_now.AddDays(2).DateTime);
+        var unpublished = Optional("Ikke udgivet"); unpublished.Published = false;
+        await _db.SaveChangesAsync();
+        var result = Read(await Api(_student).Get(null, default, 2));
+        Assert.Equal(3, result.Items.Length);
+        Assert.All(result.Items, i => { Assert.Equal("quest", i.Kind); Assert.Equal("optional", i.Severity); Assert.Equal(1, i.Count); });
+        Assert.Equal("daily", result.Items.Single(i => i.ResourceId == daily.Id).State);
+        Assert.Equal("side", result.Items.Single(i => i.ResourceId == side.Id).State);
+        Assert.Equal("optional", result.Items.Single(i => i.ResourceId == other.Id).State);
+    }
+
+    [Fact]
+    public async Task Submitted_or_approved_optional_quests_are_complete_and_returned_optional_work_stays_orange()
+    {
+        var submitted = Optional("Indsendt"); Submission(submitted, "submitted", [_member]);
+        var approved = Optional("Godkendt"); Submission(approved, "approved", [_member]);
+        Submission(approved, "draft", [], Group(_member));
+        var returned = Optional("Valgfri retur", deadline: _now.AddDays(-1));
+        var receipt = Submission(returned, "changes-requested", [_member]);
+        var required = Quest("Obligatorisk retur", deadline: _now.AddDays(1)); Submission(required, "changes-requested", [_member]);
+        await _db.SaveChangesAsync();
+        var result = Read(await Api(_student).Get(null, default, 2));
+        Assert.Equal(2, result.Items.Length);
+        var action = result.Items.Single(i => i.ResourceId == returned.Id);
+        Assert.Equal("quest", action.Kind); Assert.Equal("optional", action.Severity);
+        Assert.Equal("changes-requested", action.State); Assert.Equal(receipt.Id, action.SubmissionId);
+        var requiredAction = result.Items.Single(i => i.ResourceId == required.Id);
+        Assert.Equal("submission", requiredAction.Kind); Assert.Equal("important", requiredAction.Severity);
+    }
+
+    [Fact]
+    public async Task Optional_quests_respect_current_personal_and_group_audiences_including_preview_intersection()
+    {
+        var own = Optional("Kun mig", audience: "students");
+        var excluded = Optional("Anden elev", audience: "students");
+        _db.QuestAudienceMemberships.AddRange(new() { QuestId = own.Id, MembershipId = _member.Id }, new() { QuestId = excluded.Id, MembershipId = _peerMember.Id });
+        var grouped = Optional("Min gruppe", audience: "groups"); var group = Group(_member);
+        var otherGrouped = Optional("Anden gruppe", audience: "groups"); var otherGroup = Group(_peerMember);
+        _db.QuestAudienceGroups.AddRange(new() { QuestId = grouped.Id, GroupId = group.Id }, new() { QuestId = otherGrouped.Id, GroupId = otherGroup.Id });
+        var foreign = Quest("Anden lærers frivillige opgave", _otherHold); foreign.Required = false;
+        await _db.SaveChangesAsync();
+        var student = Read(await Api(_student).Get(null, default, 2));
+        Assert.Equal(3, student.Items.Length);
+        Assert.Contains(student.Items, i => i.ResourceId == foreign.Id);
+        var preview = Read(await Api(_teacher, true).Get(_student, default, 2));
+        Assert.Equal(new[] { own.Id, grouped.Id }.Order(), preview.Items.Select(i => i.ResourceId).Order());
     }
 }

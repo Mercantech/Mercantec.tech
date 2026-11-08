@@ -16,7 +16,7 @@ public sealed class AssignmentsStudentTests
     public async Task Direct_quest_route_opens_its_hold_and_existing_editable_draft()
     {
         using var api = new AssignmentApi();
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
 
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
 
@@ -35,7 +35,7 @@ public sealed class AssignmentsStudentTests
     public async Task Submit_saves_the_text_typed_in_the_editor_before_submitting_the_new_version()
     {
         using var api = new AssignmentApi();
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
         page.WaitForAssertion(() => Assert.Equal("Tidligere kladde", DraftText(page)));
 
@@ -56,7 +56,7 @@ public sealed class AssignmentsStudentTests
     public async Task Failed_draft_save_keeps_the_typed_text_and_does_not_submit()
     {
         using var api = new AssignmentApi { FailDraftSave = true };
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
         page.WaitForAssertion(() => Assert.Equal("Tidligere kladde", DraftText(page)));
 
@@ -74,7 +74,7 @@ public sealed class AssignmentsStudentTests
     {
         using var api = new AssignmentApi();
         api.Submission = api.Submission with { DraftText = "" };
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
 
         page.WaitForAssertion(() => Assert.True(Button(page, "Aflevér").HasAttribute("disabled")));
@@ -87,7 +87,7 @@ public sealed class AssignmentsStudentTests
     {
         using var api = new AssignmentApi { HasSubmission = false };
         api.Quest = api.Quest with { SubmissionMode = "group", GroupSetId = Guid.NewGuid() };
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
 
         page.WaitForAssertion(() => Assert.Contains("Du mangler en gruppe til denne quest.", page.Markup));
@@ -105,7 +105,7 @@ public sealed class AssignmentsStudentTests
         var revision = new SubmissionRevisionView(Guid.NewGuid(), 1, "Gruppens løsning", Guid.NewGuid(),
             DateTimeOffset.UtcNow, [], [], []);
         api.Submission = api.Submission with { GroupId = Guid.NewGuid(), State = "approved", CanEdit = false, Revisions = [revision] };
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
 
         page.WaitForAssertion(() => Assert.Contains("Gruppens løsning", page.Markup));
@@ -120,7 +120,7 @@ public sealed class AssignmentsStudentTests
     {
         using var api = new AssignmentApi { Teacher = true };
         api.Quest = api.Quest with { CanManage = true };
-        using var context = await LearningUiTestContext.CreateAsync(api, teacher: true, preview: true);
+        await using var context = await LearningUiTestContext.CreateAsync(api, teacher: true, preview: true);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
 
         page.WaitForAssertion(() => Assert.Contains(api.Quest.Description, page.Markup));
@@ -136,16 +136,16 @@ public sealed class AssignmentsStudentTests
     public async Task Account_refresh_for_the_same_identity_preserves_unsaved_editor_text()
     {
         using var api = new AssignmentApi();
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
         page.WaitForAssertion(() => Assert.Equal("Tidligere kladde", DraftText(page)));
         page.Find("textarea").Input("Stadig i gang");
-        var requestCount = api.Requests.Count;
+        var requestCount = api.Requests.Count(r => !(r.Method == "GET" && r.Path.StartsWith("me/actions", StringComparison.Ordinal)));
 
         await page.InvokeAsync(context.Auth.InitializeAsync);
 
         page.WaitForAssertion(() => Assert.Equal("Stadig i gang", DraftText(page)));
-        Assert.Equal(requestCount, api.Requests.Count);
+        Assert.Equal(requestCount, api.Requests.Count(r => !(r.Method == "GET" && r.Path.StartsWith("me/actions", StringComparison.Ordinal))));
         Assert.Empty(api.Mutations);
     }
 
@@ -153,7 +153,7 @@ public sealed class AssignmentsStudentTests
     public async Task Leaving_a_dirty_draft_requires_confirmation_and_cancel_preserves_the_editor()
     {
         using var api = new AssignmentApi();
-        using var context = await LearningUiTestContext.CreateAsync(api);
+        await using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<Assignments>(p => p.Add(x => x.QuestId, api.Quest.Id));
         page.WaitForAssertion(() => Assert.Equal("Tidligere kladde", DraftText(page)));
         page.Find("textarea").Input("Arbejde jeg vil beholde");
@@ -215,6 +215,7 @@ public sealed class AssignmentsStudentTests
                 if (path == $"submissions?questId={Quest.Id}") return Json(HasSubmission ? new[] { Submission } : []);
                 if (path == $"submissions/{Submission.Id}") return Json(Submission);
                 if (path == "emojis") return Json(Array.Empty<object>());
+                if (path.StartsWith("me/actions", StringComparison.Ordinal)) return Json(new ActionCenterSnapshot(DateTimeOffset.UtcNow, []));
             }
             if (request.Method == HttpMethod.Put && path == $"submissions/{Submission.Id}/draft")
             {

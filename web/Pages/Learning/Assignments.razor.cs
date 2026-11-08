@@ -1,4 +1,5 @@
 using Mercantec.Tech.Contracts;
+using Mercantec.Tech.Web.Activity;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Emojis;
 using Mercantec.Tech.Web.Learning;
@@ -13,6 +14,7 @@ namespace Mercantec.Tech.Web.Pages.Learning;
 public partial class Assignments
 {
     [Inject] private LearningClient Client { get; set; } = null!;
+    [Inject] private ActionCenterService Actions { get; set; } = null!;
     [Inject] private HttpClient Http { get; set; } = null!;
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private ViewAsStudentContext ViewAs { get; set; } = null!;
@@ -23,8 +25,13 @@ public partial class Assignments
     [SupplyParameterFromQuery(Name = "submission")] public Guid? RequestedSubmissionId { get; set; }
     [SupplyParameterFromQuery(Name = "workspace")] public Guid? WorkspaceQuery { get; set; }
     [SupplyParameterFromQuery(Name = "course")] public Guid? CourseQuery { get; set; }
-    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course) _loadedRoute;
-    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course) CurrentRoute => (QuestId, RequestedHoldId, RequestedSubmissionId, WorkspaceQuery, CourseQuery);
+    [SupplyParameterFromQuery(Name = "notice")] public string? NoticeQuery { get; set; }
+    private Guid? FeedbackNoticeId => Guid.TryParse(NoticeQuery, out var id) && id != Guid.Empty ? id : null;
+    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course, string? Notice) _loadedRoute;
+    private (Guid Quest, Guid? Hold, Guid? Submission, Guid? Workspace, Guid? Course, string? Notice) CurrentRoute => (QuestId, RequestedHoldId, RequestedSubmissionId, WorkspaceQuery, CourseQuery, NoticeQuery);
+    private readonly HashSet<Guid> _openRevisions = [], _readFeedback = [];
+    private int _feedbackGeneration;
+    private int? _readingFeedbackGeneration;
     private WorkspaceRouteContext? _returnContext;
     private string WorkspaceHref(string view = "overview", bool create = false) => _returnContext is { } context
         ? WorkspaceNavigation.View(context.WorkspaceId, view, context.CourseId, create)
@@ -75,6 +82,7 @@ public partial class Assignments
         RequestedHoldId = null;
         RequestedSubmissionId = null;
         WorkspaceQuery = CourseQuery = null;
+        NoticeQuery = null;
         return base.SetParametersAsync(parameters);
     }
 
@@ -86,7 +94,8 @@ public partial class Assignments
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender) await SyncAccount();
+        if (firstRender) { await SyncAccount(); return; }
+        await ReadVisibleFeedback();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -186,6 +195,7 @@ public partial class Assignments
     private void ClearHold()
     {
         _returnContext = null;
+        _feedbackGeneration++; _openRevisions.Clear(); _readFeedback.Clear();
         _materials = [];
         _quests = [];
         _groups = [];
@@ -250,6 +260,20 @@ public partial class Assignments
 
     private void SetSubmission(SubmissionView? submission)
     {
+        var changed = _submission?.Id != submission?.Id;
+        var previousLatest = _submission?.Revisions.OrderByDescending(r => r.Number).FirstOrDefault()?.Id;
+        if (changed) { _feedbackGeneration++; _openRevisions.Clear(); _readFeedback.Clear(); }
+        if (submission is not null)
+        {
+            _openRevisions.RemoveWhere(id => !submission.Revisions.Any(r => r.Id == id));
+            if (!changed && submission.Revisions.OrderByDescending(r => r.Number).FirstOrDefault() is { } latest && latest.Id != previousLatest) _openRevisions.Add(latest.Id);
+            if (changed || _submission is null)
+            {
+                var initial = FeedbackNoticeId is Guid notice ? submission.Revisions.FirstOrDefault(r => r.Feedback.Any(f => f.Id == notice)) : null;
+                initial ??= submission.Revisions.OrderByDescending(r => r.Number).FirstOrDefault();
+                if (initial is not null) _openRevisions.Add(initial.Id);
+            }
+        }
         _submission = submission;
         _submissionGroup = submission?.GroupId?.ToString() ?? "";
         _draftText = submission?.DraftText ?? "";
@@ -259,6 +283,40 @@ public partial class Assignments
         _feedbackFiles.Clear();
         if (submission is not null)
             _submissions = [.. _submissions.Where(s => s.Id != submission.Id), submission];
+    }
+
+    private void ToggleRevision(Guid id)
+    {
+        if (!_openRevisions.Remove(id)) _openRevisions.Add(id);
+    }
+    private IEnumerable<Guid> VisibleUnreadFeedback()
+    {
+        if (_submission is null || _quest is null || ViewAs.IsActive || !Auth.IsAuthenticated || _loading || _busy || _error is not null || _loadedRoute != CurrentRoute
+            || _submission.QuestId != _quest.Id || QuestId != Guid.Empty && QuestId != _quest.Id
+            || RequestedSubmissionId is Guid requested && requested != _submission.Id) return [];
+        if (!string.IsNullOrWhiteSpace(NoticeQuery)
+            && (FeedbackNoticeId is not Guid notice || !_submission.Revisions.Any(r => r.Feedback.Any(f => f.Id == notice)))) return [];
+        return _submission.Revisions.Where(r => _openRevisions.Contains(r.Id)).SelectMany(r => r.Feedback)
+            .Where(f => f.Id != Guid.Empty && f.TeacherSub.ToString() != Auth.Subject && !_readFeedback.Contains(f.Id)).Select(f => f.Id).Distinct();
+    }
+    private async Task ReadVisibleFeedback()
+    {
+        var generation = _feedbackGeneration;
+        if (_disposed || _readingFeedbackGeneration == generation) return;
+        var ids = VisibleUnreadFeedback().ToArray();
+        if (ids.Length == 0) return;
+        var route = CurrentRoute; var subject = Auth.Subject;
+        _readingFeedbackGeneration = generation;
+        try
+        {
+            var read = await Actions.MarkReadAsync(ids.Select(id => new ActionCenterReadItem("feedback", id)));
+            if (read && !_disposed && generation == _feedbackGeneration && route == CurrentRoute && subject == Auth.Subject && !ViewAs.IsActive)
+            {
+                _readFeedback.UnionWith(ids);
+                if (VisibleUnreadFeedback().Any()) StateHasChanged();
+            }
+        }
+        finally { if (_readingFeedbackGeneration == generation) _readingFeedbackGeneration = null; }
     }
 
     private void RemoveDraftFile(Guid id) => _draftFiles.RemoveAll(f => f.Id == id);
