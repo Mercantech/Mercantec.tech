@@ -57,11 +57,17 @@ public sealed class AiController(OpenAiEditorClient openAi, AppDbContext db) : C
 
     private async Task<IReadOnlyList<EditorAiEmojiRef>> LoadEmojis(CancellationToken ct)
     {
-        var rows = await db.CustomEmojis.AsNoTracking().OrderBy(emoji => emoji.Name).Take(EmojiName.MaxCount).ToListAsync(ct);
-        return rows.Select(emoji =>
+        var rows = await db.CustomEmojis.AsNoTracking().OrderBy(emoji => emoji.Name).ToListAsync(ct);
+        var stored = rows.Take(EmojiName.MaxCount).Select(emoji =>
         {
             var metadata = EmojiMetadataPolicy.Resolve(emoji);
             return new EditorAiEmojiRef(emoji.Id.ToString(), emoji.Name, metadata.AltText, metadata.Category, metadata.Keywords);
-        }).ToList();
+        });
+        var characters = CharacterEmojiPolicy.Available(rows).Select(emoji =>
+        {
+            var metadata = CharacterEmojiPolicy.Resolve(emoji);
+            return new EditorAiEmojiRef(emoji.Id.ToString(), emoji.Name, metadata.AltText, metadata.Category, metadata.Keywords);
+        });
+        return stored.Concat(characters).ToList();
     }
 }

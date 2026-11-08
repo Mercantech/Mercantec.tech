@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Mercantec.Tech.Api.Emojis;
+using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Api.Integrations.OpenAI;
 
@@ -81,7 +83,7 @@ public sealed class EditorAiCatalog
             }
         }
 
-        foreach (var emoji in (request.Emojis ?? []).Take(400))
+        foreach (var emoji in (request.Emojis ?? []).Take(EmojiName.MaxCount + CharacterEmojiCatalog.All.Count))
         {
             if (emoji is null || !TryGuid(emoji.Id, out var id)
                 || Mercantec.Tech.Api.Emojis.EmojiName.Normalize(emoji.Name) is not { } name) continue;

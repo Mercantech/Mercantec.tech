@@ -81,7 +81,8 @@ else
 
     <section class="panel" aria-labelledby="emoji-library-title">
         <h2 id="emoji-library-title">Bibliotek</h2>
-        <p class="emoji-attribution">Standardpakken bruger grafik fra Twitter og øvrige bidragydere til <a href="https://github.com/jdecked/twemoji/tree/v17.0.1">Twemoji v17.0.1</a>, udgivet under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+        <p class="emoji-attribution">Twemoji-ikonerne i standardpakken er fra Twitter og øvrige bidragydere til <a href="https://github.com/jdecked/twemoji/tree/v17.0.1">Twemoji v17.0.1</a>, udgivet under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+        <p class="emoji-hint">Hent karakterernes originale PNG-billeder i <a href="/library?category=characters">karakterbiblioteket</a>.</p>
         @if (_items is null)
         {
             <p role="status">Henter emojis…</p>
@@ -99,7 +100,7 @@ else
                         <img src="@item.ContentUrl" alt="@(string.IsNullOrWhiteSpace(item.AltText) ? $":{item.Name}:" : item.AltText)" title="@($":{item.Name}:")" />
                         <div>
                             <strong>:@item.Name:</strong>
-                            @if (CanManage && _renaming == item.Id)
+                            @if (CanManage && !item.IsReadOnly && _renaming == item.Id)
                             {
                                 <form @onsubmit="() => SaveRename(item.Id)" @onsubmit:preventDefault>
                                     <label class="field">Nyt navn
@@ -114,7 +115,7 @@ else
                                     </div>
                                 </form>
                             }
-                            else if (CanManage)
+                            else if (CanManage && !item.IsReadOnly)
                             {
                                 <div class="actions">
                                     <button type="button" class="secondary" disabled="@_busy" @onclick="() => BeginRename(item)">Omdøb</button>
@@ -175,6 +176,7 @@ else
     private int _fileKey, _catalogVersion;
     private bool _busy, _backgroundBusy;
     private bool CanManage => Redirect.ShowsTeacherChrome;
+    private bool CanManageItem(Guid id) => CanManage && _items?.Any(item => item.Id == id && !item.IsReadOnly) == true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,6 +195,8 @@ else
         try
         {
             _items = await Emojis.List(refresh: true, _life.Token);
+            if (_renaming is { } renameId && !CanManageItem(renameId)) _renaming = null;
+            if (_confirmDelete is { } deleteId && !CanManageItem(deleteId)) _confirmDelete = null;
             _error = null;
             _catalogVersion++;
         }
@@ -310,6 +314,7 @@ else
 
     private void BeginRename(CustomEmojiItem item)
     {
+        if (!CanManageItem(item.Id) || _busy) return;
         _renaming = item.Id;
         _rename = item.Name;
         _renameAlt = item.AltText;
@@ -322,7 +327,7 @@ else
 
     private async Task SaveRename(Guid id)
     {
-        if (!CanManage || _busy) return;
+        if (!CanManageItem(id) || _busy) return;
         _busy = true;
         _error = _notice = null;
         try
@@ -340,7 +345,7 @@ else
 
     private async Task Delete(Guid id)
     {
-        if (!CanManage || _busy) return;
+        if (!CanManageItem(id) || _busy) return;
         _busy = true;
         _error = _notice = null;
         try

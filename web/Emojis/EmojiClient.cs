@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Mercantec.Tech.Web.Emojis;
 
 public sealed record CustomEmojiItem(Guid Id, string Name, string ContentType, long SizeBytes, DateTimeOffset UpdatedAtUtc, string ContentUrl,
-    bool IsStandard = false, string Category = "custom", string[]? Keywords = null, string AltText = "");
+    bool IsStandard = false, string Category = "custom", string[]? Keywords = null, string AltText = "", bool IsReadOnly = false);
 
 public sealed record EmojiUploadMetadata(string AltText, string Category, IReadOnlyList<string> Keywords);
 public sealed record EmojiAnalysis(string Name, string AltText, string Category, string[] Keywords);

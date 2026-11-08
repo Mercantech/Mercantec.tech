@@ -24,7 +24,7 @@
             {
                 <figure @key="item.Image">
                     <a class="character-artwork-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
-                        <img src="@item.Image" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
+                        <img src="@item.Preview" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
                     </a>
                     <figcaption>
                         <span>@item.Title</span>

@@ -6,6 +6,7 @@ using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Storage;
+using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
 {
     public const int MaxBytes = EmojiName.MaxBytes;
     private static readonly TimeSpan TicketLifetime = TimeSpan.FromHours(12);
+    private static readonly DateTimeOffset CharacterEmojiUpdatedAt = new(2026, 11, 8, 0, 0, 0, TimeSpan.Zero);
     private readonly IDataProtector tickets = protection.CreateProtector("Mercantec.CustomEmoji.v1");
 
     [HttpGet]
@@ -27,7 +29,9 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
     {
         if (UserClaims.GetSub(User) is null) return Unauthorized();
         var rows = await db.CustomEmojis.AsNoTracking().OrderBy(e => e.Name).ToListAsync(ct);
-        return Ok(rows.Select(ToView).ToList());
+        var characters = CharacterEmojiPolicy.Available(rows);
+        return Ok(rows.Select(ToView).Concat(characters.Select(ToView))
+            .OrderBy(emoji => emoji.Name, StringComparer.Ordinal).ToList());
     }
 
     [AllowAnonymous, HttpGet("{id:guid}/content")]
@@ -95,7 +99,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         if (!NotionMediaPolicy.MatchesSignature(original, buffer.GetBuffer().AsSpan(0, (int)buffer.Length)))
             return BadRequest(new { error = "invalid_file_signature" });
 
-        if (await db.CustomEmojis.AnyAsync(e => e.Name == normalized, ct))
+        if (IsCharacterName(normalized) || await db.CustomEmojis.AnyAsync(e => e.Name == normalized, ct))
             return Conflict(new { error = "name_taken" });
         if (await db.CustomEmojis.CountAsync(ct) >= EmojiName.MaxCount)
             return Conflict(new { error = "emoji_limit" });
@@ -157,6 +161,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         {
             var result = await analysis.AnalyzeAsync(bytes, type.Value.ContentType, original, ct);
             var names = await db.CustomEmojis.AsNoTracking().Select(item => item.Name).ToListAsync(ct);
+            names.AddRange(CharacterEmojiCatalog.All.Select(item => item.Name));
             var name = result.Name;
             for (var number = 2; names.Contains(name, StringComparer.OrdinalIgnoreCase); number++)
             {
@@ -184,8 +189,9 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         if (normalized is null) return BadRequest(new { error = "invalid_name" });
         var keywordValues = EmojiMetadataPolicy.Keywords(request?.Keywords);
         var emoji = await db.CustomEmojis.SingleOrDefaultAsync(e => e.Id == id, ct);
-        if (emoji is null) return NotFound();
-        if (emoji.Name != normalized && await db.CustomEmojis.AnyAsync(e => e.Name == normalized && e.Id != id, ct))
+        if (emoji is null) return IsCharacterId(id) ? Forbid() : NotFound();
+        if (emoji.Name != normalized && (IsCharacterName(normalized)
+            || await db.CustomEmojis.AnyAsync(e => e.Name == normalized && e.Id != id, ct)))
             return Conflict(new { error = "name_taken" });
         emoji.Name = normalized;
         if (request!.AltText is not null) emoji.AltText = EmojiMetadataPolicy.CleanText(request.AltText, EmojiMetadataPolicy.MaxAltText);
@@ -206,7 +212,7 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         if (UserClaims.GetSub(User) is null) return Unauthorized();
         if (!UserClaims.IsTeacher(User)) return Forbid();
         var emoji = await db.CustomEmojis.SingleOrDefaultAsync(e => e.Id == id, ct);
-        if (emoji is null) return NotFound();
+        if (emoji is null) return IsCharacterId(id) ? Forbid() : NotFound();
         var key = emoji.Key;
         db.CustomEmojis.Remove(emoji);
         await db.SaveChangesAsync(ct);
@@ -224,6 +230,17 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
         var metadata = EmojiMetadataPolicy.Resolve(emoji);
         return new CustomEmojiView(emoji.Id, emoji.Name, emoji.ContentType, emoji.SizeBytes, emoji.UpdatedAtUtc, url,
             standard, metadata.Category, metadata.Keywords, metadata.AltText);
+    }
+
+    private static bool IsCharacterId(Guid id) => CharacterEmojiCatalog.All.Any(emoji => emoji.Id == id);
+    private static bool IsCharacterName(string name) => CharacterEmojiCatalog.All.Any(emoji =>
+        string.Equals(emoji.Name, name, StringComparison.OrdinalIgnoreCase));
+
+    private static CustomEmojiView ToView(CharacterEmojiAsset emoji)
+    {
+        var metadata = CharacterEmojiPolicy.Resolve(emoji);
+        return new(emoji.Id, emoji.Name, "image/webp", emoji.PreviewSizeBytes, CharacterEmojiUpdatedAt, emoji.Preview,
+            true, metadata.Category, metadata.Keywords, metadata.AltText, true);
     }
 
     private bool CanView(Guid id, string? ticket)
@@ -259,6 +276,6 @@ public sealed class EmojisController(AppDbContext db, IObjectStorage storage, ID
 
     public sealed record RenameEmoji(string? Name, string? AltText = null, string? Category = null, string[]? Keywords = null);
     public sealed record CustomEmojiView(Guid Id, string Name, string ContentType, long SizeBytes, DateTimeOffset UpdatedAtUtc, string ContentUrl,
-        bool IsStandard = false, string Category = "custom", string[]? Keywords = null, string AltText = "");
+        bool IsStandard = false, string Category = "custom", string[]? Keywords = null, string AltText = "", bool IsReadOnly = false);
     private sealed record EmojiTicket(Guid EmojiId, DateTimeOffset ExpiresAtUtc);
 }

@@ -7,6 +7,7 @@ using Mercantec.Tech.Api.Data.Migrations;
 using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Storage;
+using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +47,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.IsType<UnauthorizedResult>(await As(null).List(default));
         Assert.IsType<UnauthorizedResult>(await As(null).Upload(Png("lup.png"), "lup", default));
         Assert.IsType<ForbidResult>(await As(_student).Upload(Png("lup.png"), "lup", default));
-        Assert.Empty(ReadList(await As(_student).List(default)));
+        Assert.Empty(ReadStoredList(await As(_student).List(default)));
     }
 
     [Fact]
@@ -59,11 +60,11 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.Equal("custom", created.Category);
         Assert.Empty(created.Keywords!);
         Assert.StartsWith($"/api/emojis/{created.Id}/content?ticket=", created.ContentUrl);
-        Assert.Equal("lup", Assert.Single(ReadList(await As(_student).List(default))).Name);
+        Assert.Equal("lup", Assert.Single(ReadStoredList(await As(_student).List(default))).Name);
 
         var admin = Read(await As(Guid.NewGuid(), admin: true).Upload(Gif("ok.gif"), "ok", default));
         Assert.Equal("image/gif", admin.ContentType);
-        Assert.Equal(2, ReadList(await As(_student).List(default)).Count);
+        Assert.Equal(2, ReadStoredList(await As(_student).List(default)).Count);
     }
 
     [Fact]
@@ -129,7 +130,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.IsType<NoContentResult>(await As(_teacher, teacher: true).Delete(created.Id, default));
         Assert.IsType<NotFoundResult>(await As(_student).Content(created.Id, default));
         Assert.DoesNotContain(_storage.Objects.Keys, key => key.Contains(created.Id.ToString("N")));
-        Assert.Equal("lup", Assert.Single(ReadList(await As(_student).List(default))).Name);
+        Assert.Equal("lup", Assert.Single(ReadStoredList(await As(_student).List(default))).Name);
     }
 
     [Fact]
@@ -162,12 +163,13 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     public async Task StandardImagesUseNormalTicketsAndWorkWithoutObjectStorage()
     {
         await ImportStandards();
-        var items = ReadList(await As(_student).List(default));
+        var items = ReadStoredList(await As(_student).List(default));
         Assert.Equal(40, items.Count);
         var controller = As(null, storage: new DisabledObjectStorage());
         foreach (var item in items)
         {
             Assert.True(item.IsStandard);
+            Assert.False(item.IsReadOnly);
             Assert.Contains(item.Category, new[] { "smileys", "gestures", "symbols", "learning", "technology", "everyday" });
             Assert.NotEmpty(item.Keywords!);
             Assert.IsType<UnauthorizedResult>(await controller.Content(item.Id, default));
@@ -203,8 +205,117 @@ public sealed class EmojisControllerTests : IAsyncLifetime
 
         Assert.IsType<NoContentResult>(await teacher.Delete(standard.Id, default));
         Assert.IsType<NotFoundResult>(await As(_student).Content(standard.Id, default));
-        Assert.Equal(39, ReadList(await As(_student).List(default)).Count);
+        Assert.Equal(39, ReadStoredList(await As(_student).List(default)).Count);
         Assert.Empty(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task CharacterEmojisAreAvailableWithoutUploadsOrObjectStorage()
+    {
+        var items = ReadList(await As(_student, storage: new DisabledObjectStorage()).List(default));
+        Assert.Equal(72, items.Count);
+        Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "raymond"));
+        Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "beaver"));
+        Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "fox"));
+        Assert.Equal("Tænkepause", CharacterEmojiCatalog.All.Single(item => item.Name == "beaver_thinking").Title);
+        Assert.All(CharacterEmojiCatalog.All.Where(item => item.CharacterSlug == "beaver"), item => Assert.StartsWith("Bæver", item.Alt));
+        Assert.Equal(items.Count, items.Select(item => item.Id).Distinct().Count());
+        Assert.Equal(items.Count, items.Select(item => item.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(items.OrderBy(item => item.Name, StringComparer.Ordinal), items);
+        foreach (var asset in CharacterEmojiCatalog.All)
+        {
+            var item = Assert.Single(items, item => item.Id == asset.Id);
+            Assert.Equal(asset.Name, item.Name);
+            Assert.Equal(asset.Name, EmojiName.Normalize(asset.Name));
+            Assert.Equal(asset.Preview, item.ContentUrl);
+            Assert.StartsWith($"/images/characters/{asset.CharacterSlug}/reactions/", item.ContentUrl);
+            Assert.EndsWith(".webp", item.ContentUrl.Split('?')[0]);
+            Assert.DoesNotContain("ticket=", item.ContentUrl, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal("image/webp", item.ContentType);
+            Assert.Equal(asset.PreviewSizeBytes, item.SizeBytes);
+            Assert.True(item.SizeBytes > 0);
+            Assert.True(item.IsStandard);
+            Assert.True(item.IsReadOnly);
+            Assert.Contains(item.Category, EmojiMetadataPolicy.Categories);
+            Assert.Contains(asset.CharacterSlug, item.Keywords!);
+            Assert.Equal(asset.Alt, item.AltText);
+            Assert.Equal(new DateTimeOffset(2026, 11, 8, 0, 0, 0, TimeSpan.Zero), item.UpdatedAtUtc);
+        }
+        Assert.Empty(await _db.CustomEmojis.ToListAsync());
+        Assert.Empty(_storage.Objects);
+    }
+
+    [Theory]
+    [InlineData("raymond")]
+    [InlineData("beaver")]
+    [InlineData("fox")]
+    public async Task BuiltInCharacterEmojisCannotBeRenamedOrDeleted(string character)
+    {
+        var asset = CharacterEmojiCatalog.All.First(item => item.CharacterSlug == character);
+        var teacher = As(_teacher, teacher: true, storage: new DisabledObjectStorage());
+        Assert.IsType<ForbidResult>(await teacher.Rename(asset.Id, new("renamed"), default));
+        Assert.IsType<ForbidResult>(await teacher.Delete(asset.Id, default));
+        Assert.IsType<ForbidResult>(await As(_student).Rename(asset.Id, new("renamed"), default));
+        Assert.IsType<ForbidResult>(await As(_student).Delete(asset.Id, default));
+        Assert.IsType<UnauthorizedResult>(await As(null).List(default));
+        Assert.IsType<UnauthorizedResult>(await As(null).Rename(asset.Id, new("renamed"), default));
+        Assert.IsType<UnauthorizedResult>(await As(null).Delete(asset.Id, default));
+        Assert.Single(ReadList(await As(_student).List(default)), item => item.Id == asset.Id && item.Name == asset.Name);
+        Assert.Empty(await _db.CustomEmojis.ToListAsync());
+        Assert.Empty(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task CharacterShortcodesCannotBeClaimedByNewUploadsOrRenames()
+    {
+        var teacher = As(_teacher, teacher: true);
+        var own = Read(await teacher.Upload(Png("ours.png"), "ours", default));
+        foreach (var asset in CharacterEmojiCatalog.All.GroupBy(item => item.CharacterSlug).Select(group => group.First()))
+        {
+            Assert.Equal("name_taken", Error(await teacher.Upload(Png("other.png"), asset.Name.ToUpperInvariant(), default)));
+            Assert.Equal("name_taken", Error(await teacher.Rename(own.Id, new(asset.Name), default)));
+        }
+        Assert.Equal("ours", Assert.Single(await _db.CustomEmojis.ToListAsync()).Name);
+        Assert.Single(_storage.Objects);
+    }
+
+    [Fact]
+    public async Task LegacyUploadedNamesAndIdsRemainAuthoritativeInTheCombinedCatalog()
+    {
+        var first = CharacterEmojiCatalog.All[0];
+        var second = CharacterEmojiCatalog.All[1];
+        var legacyName = new CustomEmoji
+        {
+            Id = Guid.NewGuid(), Name = first.Name, Key = "emojis/legacy-name", ContentType = "image/png",
+            SizeBytes = PngBytes.Length, CreatedBySub = _teacher,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        var legacyId = new CustomEmoji
+        {
+            Id = second.Id, Name = "legacy_id", Key = "emojis/legacy-id", ContentType = "image/png",
+            SizeBytes = PngBytes.Length, CreatedBySub = _teacher,
+            CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        _db.CustomEmojis.AddRange(legacyName, legacyId);
+        await _db.SaveChangesAsync();
+        var items = ReadList(await As(_student).List(default));
+        Assert.Equal(CharacterEmojiCatalog.All.Count, items.Count);
+        var byName = Assert.Single(items, item => item.Name == first.Name);
+        Assert.Equal(legacyName.Id, byName.Id);
+        Assert.False(byName.IsStandard);
+        Assert.False(byName.IsReadOnly);
+        Assert.StartsWith("/api/emojis/", byName.ContentUrl);
+        var byId = Assert.Single(items, item => item.Id == second.Id);
+        Assert.Equal("legacy_id", byId.Name);
+        Assert.False(byId.IsStandard);
+        Assert.False(byId.IsReadOnly);
+        Assert.DoesNotContain(items, item => item.Id == first.Id);
+        Assert.Equal(items.Count, items.Select(item => item.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(items.Count, items.Select(item => item.Id).Distinct().Count());
+        var renamed = Read(await As(_teacher, teacher: true).Rename(legacyId.Id, new("legacy_renamed"), default));
+        Assert.Equal(legacyId.Id, renamed.Id);
+        Assert.Equal("legacy_renamed", renamed.Name);
+        Assert.False(renamed.IsStandard);
     }
 
     private Task ImportStandards()
@@ -294,6 +405,9 @@ public sealed class EmojisControllerTests : IAsyncLifetime
 
     private static List<EmojisController.CustomEmojiView> ReadList(IActionResult result) =>
         Assert.IsType<List<EmojisController.CustomEmojiView>>(Assert.IsType<OkObjectResult>(result).Value);
+
+    private static List<EmojisController.CustomEmojiView> ReadStoredList(IActionResult result) =>
+        ReadList(result).Where(item => item.ContentUrl.StartsWith("/api/emojis/", StringComparison.Ordinal)).ToList();
 
     private static string? Error(IActionResult result) =>
         result switch

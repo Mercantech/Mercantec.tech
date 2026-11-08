@@ -1,0 +1,355 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "/images/characters/fox/portrait.png",
+  "createdOn": "2026-11-08",
+  "items": [
+    {
+      "id": "wave",
+      "title": "Vinker",
+      "alt": "Ræv smiler varmt og vinker med en løftet pote.",
+      "prompt": "Use case: identity-preserve. Asset type: one standalone reaction emoji PNG for an educational character. Reference image 1 is the canonical identity and painted illustration style; do not alter it into a different fox. Create one square 1024x1024 transparent cutout of the same warm red-brown anthropomorphic fox teacher: large amber-brown eyes, ivory cheeks and muzzle, triangular pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, gentle expressive brows and subtly textured hand-painted storybook finish. Head-and-upper-torso framing, face dominates the composition and stays readable as a small emoji. Reaction: WAVE — warm welcoming smile, attentive happy eyes, one friendly raised fox paw waving beside the face. No notebook for this pose. Keep full ears, all raised paw fingers, head and jacket inside the canvas with clear transparent margins on every side. Competent, friendly ethical security-testing teacher, never villainous. Truly transparent alpha background, no panel, no landscape, no ground shadow, no words, letters, numbers, logos, watermark, border or decorative frame. One fox only, one clean complete emoji asset, no grid.",
+      "source": "exec-b3fbb20c-f35d-42af-b8f9-93d66156083a.png",
+      "path": "/images/characters/fox/reactions/wave.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        12,
+        1254,
+        1254
+      ],
+      "visibleBBox": [
+        160,
+        15,
+        1140,
+        1244
+      ],
+      "fullyTransparentFraction": 0.4798,
+      "sha256": "88c254a1fb089b17785115aaff79dd6ed8dc97143c85309e488ecf55a478bc07"
+    },
+    {
+      "id": "idea",
+      "title": "Aha!",
+      "alt": "Ræv får en idé med store glade øjne og en lille gylden pære ved den løftede pote.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: AHA, a clever new idea. Bright excited eyes and delighted open smile, one raised index finger/paw with a small warm golden lightbulb floating just above it. Competent, friendly ethical security-testing teacher, never villainous. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-e616545f-0ff4-4ea4-8a0a-07ea09555661.png",
+      "path": "/images/characters/fox/reactions/idea.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        33,
+        1244,
+        1254
+      ],
+      "visibleBBox": [
+        210,
+        35,
+        1093,
+        1192
+      ],
+      "fullyTransparentFraction": 0.5271,
+      "sha256": "b2d1dcabe5310ca37f6b1551bb4fe6aa46ed090bf3fd926c3a50ae0a8d66e3bd"
+    },
+    {
+      "id": "curious",
+      "title": "Nysgerrig",
+      "alt": "Ræv lægger hovedet nysgerrigt på skrå og lytter med opmærksomme øjne.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: CURIOUS. Head tilted noticeably to one side, one ear perked higher, alert sparkling eyes and a gentle closed-mouth smile, one relaxed paw near the chest. Curious and approachable. Competent, friendly ethical security-testing teacher, never villainous. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-d11f892b-fa69-46a3-b4ff-e95992cc1aa3.png",
+      "path": "/images/characters/fox/reactions/curious.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        20,
+        1234,
+        1254
+      ],
+      "visibleBBox": [
+        183,
+        59,
+        980,
+        1181
+      ],
+      "fullyTransparentFraction": 0.6638,
+      "sha256": "8a6e60ed2a1e0577415bb369db09e8c5680a68918fc77d60156867f2609da796"
+    },
+    {
+      "id": "skeptical",
+      "title": "Er vi sikre?",
+      "alt": "Ræv løfter det ene øjenbryn og ser venligt skeptisk på en antagelse.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: SKEPTICAL, questioning an assumption. One eyebrow raised and the other lowered, friendly thoughtful sideways glance and a restrained half-smile. Folded forepaws across the upper chest. Amused investigative skepticism, never angry. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-77d6c719-d60b-4066-bbd0-c51001d24e3d.png",
+      "path": "/images/characters/fox/reactions/skeptical.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        17,
+        1242,
+        1254
+      ],
+      "visibleBBox": [
+        285,
+        47,
+        958,
+        1205
+      ],
+      "fullyTransparentFraction": 0.6325,
+      "sha256": "8bf48e3376449474f14fd5561b515cc485e49964051040da4a6e02fe549623bd"
+    },
+    {
+      "id": "success",
+      "title": "Fandt løsningen",
+      "alt": "Ræv smiler tilfreds og giver en tydelig tommel op efter at have fundet løsningen.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: FOUND THE SOLUTION. Confident pleased smile and warm smiling eyes, one paw making a clear thumbs-up close beside the face. Relaxed friendly shoulders. No other props. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-dc617cff-0eb9-4214-9e7a-03bae6123f72.png",
+      "path": "/images/characters/fox/reactions/success.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        32,
+        1230,
+        1214
+      ],
+      "visibleBBox": [
+        187,
+        72,
+        1104,
+        1183
+      ],
+      "fullyTransparentFraction": 0.5602,
+      "sha256": "a4fc1e6d6cca9d51ed1e536cac4148cac84bfdcd2a4522fdc3827f7e09153245"
+    },
+    {
+      "id": "celebration",
+      "title": "Flot fund",
+      "alt": "Ræv jubler over et godt fund med begge poter løftet og et begejstret smil.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: WELL DONE, GOOD FIND. Delighted happy open smile, eyes crinkled in joy, both forepaws lifted in a small celebratory cheer beside the face, with three tiny warm golden sparkles. No notebook. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-0869e5dc-573e-49b9-b91d-5af489da4a42.png",
+      "path": "/images/characters/fox/reactions/celebration.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        19,
+        1218,
+        1206
+      ],
+      "visibleBBox": [
+        203,
+        54,
+        1041,
+        1195
+      ],
+      "fullyTransparentFraction": 0.5854,
+      "sha256": "ee0e575fc5556d91a5d6da5e15e26b865d29f3e618c93d5cda3f26b0cd762e6e"
+    },
+    {
+      "id": "listening",
+      "title": "Jeg lytter",
+      "alt": "Ræv lytter opmærksomt med ranke ører, et beroligende smil og rolige poter.",
+      "prompt": "Make one original transparent-background emoji of the same friendly fox teacher shown in the reference. Preserve the warm painted illustration style, orange-red fur, cream cheeks, brown eyes, rust-red jacket and cream shirt. The fox is listening patiently to a student: attentive calm eyes, a small reassuring smile, ears perked, head turned slightly as if listening, both paws resting together calmly at chest level. Only the head, shoulders and paws, completely surrounded by empty transparent margin. No words, labels, borders or background scenery. One square PNG.",
+      "source": "exec-42e1f726-1b17-4864-b698-33eb46370814.png",
+      "path": "/images/characters/fox/reactions/listening.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        0,
+        1240,
+        1254
+      ],
+      "visibleBBox": [
+        223,
+        13,
+        1023,
+        1218
+      ],
+      "fullyTransparentFraction": 0.5551,
+      "sha256": "917d33000448c38aae027dfbbd109a34da9f47379dc9f78fd5bc0956c25fc13a"
+    },
+    {
+      "id": "thinking",
+      "title": "Tænker videre",
+      "alt": "Ræv overvejer næste skridt med poten ved hagen og et eftertænksomt blik.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: THINKING DEEPLY. Calm focused eyes look slightly upward to the side, closed mouth with a subtle thoughtful smile, one index finger and paw lightly supporting the chin. Head mostly upright. No props or lightbulb. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-7febb061-7729-4e9b-9c74-0918b7cf41df.png",
+      "path": "/images/characters/fox/reactions/thinking.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        23,
+        49,
+        1240,
+        1222
+      ],
+      "visibleBBox": [
+        280,
+        55,
+        971,
+        1182
+      ],
+      "fullyTransparentFraction": 0.637,
+      "sha256": "48fc25ee18a93518e91a9b5e6821ee5fab0f6e3738ff66083683c02988445f6c"
+    },
+    {
+      "id": "inspect",
+      "title": "Undersøger input",
+      "alt": "Ræv undersøger et lille kort med en lup og et nysgerrigt blik.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: INSPECTING AN INPUT. Hold a small round brass magnifying glass near one eye in one paw, the other paw holds one small blank cream card. One brow raised with a warmly inquisitive half-smile, eye visible naturally through glass. The card has no writing or symbols. Magnifier and card small enough to keep the expressive face dominant. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-d7757a4e-599c-48cc-8cd4-c2693d9ae1a8.png",
+      "path": "/images/characters/fox/reactions/inspect.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        9,
+        1253,
+        1254
+      ],
+      "visibleBBox": [
+        189,
+        48,
+        1035,
+        1214
+      ],
+      "fullyTransparentFraction": 0.4508,
+      "sha256": "959e96c1053a478f8ebd96e02a98bb2320099288ff9da152690a11466bc3a247"
+    },
+    {
+      "id": "test-rights",
+      "title": "Afprøver rettigheder",
+      "alt": "Ræv holder en lille nøgle frem og undersøger, hvilke rettigheder den giver.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: TESTING PERMISSIONS. The inquisitive friendly teacher holds one small brass key upright between two fingers of a fox paw, at chest height beside the face. Looks thoughtfully at the key with one eyebrow raised and a small confident smile. Other paw is relaxed below. No locks, extra objects or writing. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-378b184f-0327-4db6-97e3-8c323319fc86.png",
+      "path": "/images/characters/fox/reactions/test-rights.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        33,
+        1232,
+        1254
+      ],
+      "visibleBBox": [
+        208,
+        37,
+        1044,
+        1200
+      ],
+      "fullyTransparentFraction": 0.5818,
+      "sha256": "96a8634b2e688d05a46f7aeab58d44fe11beb0cc25fff51c6ceb67d75f55a554"
+    },
+    {
+      "id": "report",
+      "title": "Deler sit fund",
+      "alt": "Ræv viser sin notesbog frem og deler et fund med et opmuntrende smil.",
+      "prompt": "Use case: identity-preserve. Asset type: ONE standalone educational reaction emoji PNG. Canonical reference image 1 provides the exact fox identity and hand-painted style. Preserve this same warm red-brown fox teacher, big amber-brown eyes, ivory cheeks and muzzle, pointed ears with pale inner fur, black nose, rust-red jacket over ivory shirt, expressive brows and softly textured painted storybook finish. Framing: head and upper-torso bust, face large and readable small; entire bust silhouette floats well INSIDE the square 1024 canvas, at least 6 percent completely transparent margin on all four sides including below the jacket; no head, ears, paws or clothes touching canvas edges. Reaction: SHARING A FIND WITH A COLLEAGUE. Warm encouraging smile, attentive open eyes; one paw presents a small open cream notebook with only a few simple diagram lines and three small checkmarks, no writing, while the other paw holds a short pencil pointing gently at one checkmark. Keep notebook small below the face. Competent, friendly teacher. Truly transparent alpha background. No panel, landscape, ground shadow, words, lettering, numbers, logo, watermark, border or frame. One fox only. Never a grid or contact sheet.",
+      "source": "exec-dd07f8a4-b3d1-47a0-a313-53d3afa41cac.png",
+      "path": "/images/characters/fox/reactions/report.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        23,
+        1244,
+        1254
+      ],
+      "visibleBBox": [
+        211,
+        57,
+        1033,
+        1182
+      ],
+      "fullyTransparentFraction": 0.6028,
+      "sha256": "b7623f64155aa773ddd729144cc4a1ca7d1b290ca8221bc80b5da9698496139a"
+    },
+    {
+      "id": "tea",
+      "title": "Tepause",
+      "alt": "Ræv nyder en varm kop te med et afslappet smil og bløde øjne.",
+      "prompt": "Make one original transparent-background emoji of the same friendly fox teacher shown in the reference. Preserve the warm painted illustration style, orange-red fur, cream cheeks, brown eyes, rust-red jacket and cream shirt. Show the fox taking a peaceful tea break: a small cream tea cup held in both paws just below the face, a quiet warm smile and attentive relaxed eyes. Only the head and shoulders and the cup, completely surrounded by empty transparent margin. No words, labels, borders or background scenery. One square PNG.",
+      "source": "exec-58d00213-872f-448b-881c-d602ae79bb23.png",
+      "path": "/images/characters/fox/reactions/tea.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "bbox": [
+        0,
+        23,
+        1240,
+        1254
+      ],
+      "visibleBBox": [
+        188,
+        37,
+        1043,
+        1229
+      ],
+      "fullyTransparentFraction": 0.5131,
+      "sha256": "bd750c72f11f93cc10ab4f3d3d39c0394449dedcd6713acb3b7e4cb339e7640e"
+    }
+  ]
+}

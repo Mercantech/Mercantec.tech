@@ -30,27 +30,32 @@ public sealed class CharacterDetailTests
         var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
         page.FindAll(".character-appearance-picker button")[2].Click();
 
-        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
-        Assert.All(page.FindAll(".character-artwork-gallery figure"), figure =>
+        var artworks = CharacterCatalog.Find("raymond")!.Reactions.Concat(CharacterCatalog.Find("raymond")!.Scenes).ToArray();
+        var figures = page.FindAll(".character-artwork-gallery figure");
+        Assert.Equal(artworks.Length, figures.Count);
+        for (var index = 0; index < artworks.Length; index++)
         {
+            var expected = artworks[index];
+            var figure = figures[index];
             var image = figure.QuerySelector("img")!;
             var preview = figure.QuerySelector(".character-artwork-preview")!;
             var download = figure.QuerySelector(".character-artwork-download")!;
-            var source = image.GetAttribute("src")!;
-            var filePath = source.Split('?')[0];
-            Assert.StartsWith("/images/characters/raymond/", source);
+            var filePath = expected.Image.Split('?')[0];
+            Assert.Equal(expected.Preview, image.GetAttribute("src"));
+            Assert.Equal(expected.Alt, image.GetAttribute("alt"));
+            Assert.StartsWith("/images/characters/raymond/", filePath);
             Assert.EndsWith(".png", filePath);
-            Assert.False(string.IsNullOrWhiteSpace(image.GetAttribute("alt")));
-            Assert.Equal(source, preview.GetAttribute("href"));
+            Assert.Equal(expected.Image, preview.GetAttribute("href"));
             Assert.Equal("_blank", preview.GetAttribute("target"));
             Assert.Contains("noopener", preview.GetAttribute("rel"));
-            Assert.Equal(source, download.GetAttribute("href"));
+            Assert.Equal(expected.Image, download.GetAttribute("href"));
             Assert.Equal($"raymond-{Path.GetFileName(filePath)}", download.GetAttribute("download"));
-        });
+        }
         Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);
-        Assert.Equal(16, page.FindAll(".character-artwork-preview").Select(link => link.GetAttribute("href")).Distinct().Count());
+        Assert.Equal(52, page.FindAll(".character-artwork-preview").Select(link => link.GetAttribute("href")).Distinct().Count());
     }
 
     [Fact]
@@ -71,7 +76,7 @@ public sealed class CharacterDetailTests
         Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/vatson/", image.GetAttribute("src")));
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
-        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
         Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
     }
@@ -132,8 +137,10 @@ public sealed class CharacterDetailTests
         page.Find(".character-artwork-search input").Input("kaffe");
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
-        Assert.Empty(page.FindAll(".character-artwork-search, .character-reactions-large"));
-        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        Assert.Single(page.FindAll(".character-artwork-search"));
+        Assert.Single(page.FindAll(".character-reactions-large"));
+        Assert.Equal("", page.Find(".character-artwork-search input").GetAttribute("value"));
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
         Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
@@ -223,6 +230,25 @@ public sealed class CharacterDetailTests
         Assert.Equal($"/images/characters/{slug}/portrait.png", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Contains(explanation, page.Find(".character-features").TextContent, StringComparison.OrdinalIgnoreCase);
         Assert.Empty(page.FindAll(".character-gallery, .character-status"));
+        Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
+        var reactions = CharacterCatalog.Find(slug)!.Reactions;
+        var figures = page.FindAll(".character-reactions figure");
+        for (var index = 0; index < reactions.Count; index++)
+        {
+            var expected = reactions[index];
+            var figure = figures[index];
+            var image = figure.QuerySelector("img")!;
+            var preview = figure.QuerySelector(".character-artwork-preview")!;
+            var download = figure.QuerySelector(".character-artwork-download")!;
+            Assert.Equal(expected.Preview, image.GetAttribute("src"));
+            Assert.Equal(expected.Alt, image.GetAttribute("alt"));
+            Assert.Equal(expected.Image, preview.GetAttribute("href"));
+            Assert.Equal(expected.Image, download.GetAttribute("href"));
+            Assert.StartsWith($"/images/characters/{slug}/reactions/", expected.Image);
+            Assert.EndsWith(".png", expected.Image);
+            Assert.EndsWith(".webp", expected.Preview);
+            Assert.Equal($"{slug}-{Path.GetFileName(expected.Image)}", download.GetAttribute("download"));
+        }
     }
 
     [Fact]
@@ -280,6 +306,34 @@ public sealed class CharacterDetailTests
         Assert.Equal("Karakteren blev ikke fundet", page.Find("h1").TextContent);
         Assert.Equal("/characters", page.Find("a.action").GetAttribute("href"));
         Assert.Empty(page.FindAll(".character-detail, .character-appearance-picker, .character-main-art img"));
+    }
+
+    [Fact]
+    public async Task Raymonds48EmojisCanBeSearchedAndClearedWithoutChangingTheSelectedPortrait()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "raymond"));
+        page.FindAll(".character-appearance-picker button")[2].Click();
+
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(48, page.FindAll(".character-reactions .character-artwork-download").Select(link => link.GetAttribute("href")).Distinct().Count());
+        Assert.Single(page.FindAll(".character-reactions .character-artwork-download[href='/images/characters/raymond/reactions/laughing.png?v=097b5eeb']"));
+        page.Find(".character-reactions .character-artwork-search input").Input("Tommel op");
+
+        Assert.Single(page.FindAll(".character-reactions figure"));
+        Assert.Contains("1 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
+        Assert.Equal("/images/characters/raymond/reactions/thumbs-up.png", page.Find(".character-reactions .character-artwork-download").GetAttribute("href"));
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+
+        page.Find(".character-reactions .character-artwork-search input").Input("ingen-match-her-987");
+        Assert.Empty(page.FindAll(".character-reactions figure"));
+        Assert.Contains("Ingen emojis", page.Find(".character-reactions .character-artwork-empty").TextContent);
+        page.Find(".character-reactions .character-artwork-search button").Click();
+
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Contains("48 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
+        Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
     }
 
     private sealed class NoNetwork : HttpMessageHandler

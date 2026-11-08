@@ -1,0 +1,442 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-11-08",
+  "referenceImages": [
+    "web/wwwroot/images/characters/raymond/neutral.webp",
+    "web/wwwroot/images/characters/raymond/reactions/success.png"
+  ],
+  "entries": [
+    {
+      "id": "wave",
+      "title": "Vinker",
+      "image": "/images/characters/raymond/reactions/wave.png",
+      "alt": "Raymond smiler og vinker velkommen med en lille blå hånd.",
+      "prompt": "Use case: illustration-story. Create ONE original square 1024x1024 transparent PNG reaction sticker for Raymond, the exact blue elephant professor in the two reference images. Image 1 and image 2 are identity/style references, not layouts to reproduce. Preserve his warm large brown eyes, round bronze glasses, blue tuft, rounded ears, naturally gently curled trunk, blue palette and warm painterly cartoon illustration. Primary request: Raymond gives a friendly welcoming wave, smiling with one raised small blue elephant hand beside his face. Head and a little bust only, readable at emoji size, expressive and distinct from a neutral smile. Anatomically natural hands and trunk. Center the whole silhouette with 10% transparent breathing room on every side. Genuinely transparent background, no scene, no shadow plate, no text, no letters, no logo, no border, no watermark. Keep the soft painted texture and generous facial proportions. Do not redesign him realistically or make the trunk strange.",
+      "source": "exec-c067cdbc-bad0-4a03-ad1b-99f67ea316af.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          45,
+          121,
+          1209,
+          1134
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "good-morning",
+      "title": "Godmorgen",
+      "image": "/images/characters/raymond/reactions/good-morning.png",
+      "alt": "Raymond gaber lidt bag sin hånd med søvnige, venlige øjne.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond says good morning with a small sleepy yawn politely covered by one hand, soft half-closed eyes and a mildly tousled blue tuft. Warm endearing morning expression, not exhausted or ill.",
+      "source": "exec-c2c2da0b-85cb-4f1f-8e46-c94fd923f6d0.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          25,
+          112,
+          1220,
+          1145
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "thumbs-up",
+      "title": "Tommel op",
+      "image": "/images/characters/raymond/reactions/thumbs-up.png",
+      "alt": "Raymond giver en tydelig tommel op med et opmuntrende smil.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond gives one unmistakable thumbs-up next to his smiling face, eyes encouraging and slightly tilted head. One blue elephant cartoon hand, natural simple fingers. No additional props.",
+      "source": "exec-135579f7-526f-44e8-98d9-76168c680068.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          33,
+          128,
+          1189,
+          1113
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "applause",
+      "title": "Klapper",
+      "image": "/images/characters/raymond/reactions/applause.png",
+      "alt": "Raymond klapper begejstret med glade øjne og et bredt smil.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond applauds with TWO small blue elephant hands brought together in front of his lower chest, delighted bright eyes and a broad warm smile. A few tiny golden motion accents suggest the clap, but no floating objects or text.",
+      "source": "exec-0f5d69dd-73fb-4cf6-b64e-84d04ebb469a.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          31,
+          65,
+          1196,
+          1188
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "proud",
+      "title": "Stolt",
+      "image": "/images/characters/raymond/reactions/proud.png",
+      "alt": "Raymond ranker sig med lukkede, tilfredse øjne og en hånd ved hjertet.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond feels quietly proud after his students succeed: chest gently lifted, soft closed eyes, a serene satisfied smile and one blue hand resting over his heart. Avoid smugness, medals or trophies.",
+      "source": "exec-ebd4c530-4674-4d22-b277-058adbe95b28.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          42,
+          112,
+          1203,
+          1158
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "curious",
+      "title": "Nysgerrig",
+      "image": "/images/characters/raymond/reactions/curious.png",
+      "alt": "Raymond læner hovedet nysgerrigt frem med store, interesserede øjne.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond is genuinely curious: head tilted slightly to the side and forward, wide attentive warm eyes, one eyebrow lifted, a small curious half-smile, relaxed gently curled trunk. No props, no question marks.",
+      "source": "exec-5a1d5190-bf52-49dd-b4b6-1edbed7c72ee.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          50,
+          134,
+          1202,
+          1118
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "skeptical",
+      "title": "Er vi sikre?",
+      "image": "/images/characters/raymond/reactions/skeptical.png",
+      "alt": "Raymond ser venligt skeptisk ud med ét hævet øjenbryn og en hånd under hagen.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond is kindly skeptical about an assumption: ONE eyebrow high, other lowered slightly, warm sideways glance, one small blue hand under his chin and gently pursed smiling mouth. An inviting let's-check-that expression, not angry or mocking.",
+      "source": "exec-8a3a48c9-9a10-4613-a867-bb02bef8a65d.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          48,
+          143,
+          1204,
+          1109
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "surprised",
+      "title": "Overrasket",
+      "image": "/images/characters/raymond/reactions/surprised.png",
+      "alt": "Raymond åbner øjnene overrasket og løfter øjenbrynene.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond is pleasantly surprised by an unexpected query result: very raised eyebrows, large wide brown eyes and a small rounded open mouth. Keep the trunk relaxed and naturally curled, ears open, no fright or distress, no symbols.",
+      "source": "exec-960c4449-17ee-4870-8bbb-8323c9061d60.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          42,
+          148,
+          1187,
+          1145
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "relieved",
+      "title": "Lettet",
+      "image": "/images/characters/raymond/reactions/relieved.png",
+      "alt": "Raymond ånder lettet ud med bløde øjne og en hånd på brystet.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond feels relieved when the database is safe again: soft half-closed grateful eyes, shoulders dropping, a small exhale smile, one hand gently on his chest. Keep mouth subtle and trunk natural, no sweat drops or symbols.",
+      "source": "exec-945d1fb6-3581-49e6-b58d-ffb25c3f8b00.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          47,
+          111,
+          1186,
+          1162
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "determined",
+      "title": "Vi prøver igen",
+      "image": "/images/characters/raymond/reactions/determined.png",
+      "alt": "Raymond ser beslutsomt frem og løfter en lille opmuntrende knyttet hånd.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond is encouragingly determined to try again: looking forward with focused warm eyes and a confident kind smile, one small fist raised at chest height as a gentle let's-do-this gesture. Not angry, not shouting, no aggression.",
+      "source": "exec-ae800e6b-6f03-429f-b043-6d9a9c6f474c.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          22,
+          119,
+          1227,
+          1139
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "focused",
+      "title": "Fuld koncentration",
+      "image": "/images/characters/raymond/reactions/focused.png",
+      "alt": "Raymond koncentrerer sig med samlede øjenbryn og en pegefinger ved brillen.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond concentrates carefully: brows gently drawn inward, eyes attentively looking down through his bronze glasses, mouth a small calm line, one fingertip adjusting the glasses at his temple. Competent and absorbed, not angry.",
+      "source": "exec-2864c877-7650-459a-b1e6-c7608acce3cc.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          31,
+          140,
+          1207,
+          1074
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "patient",
+      "title": "Tag dig tid",
+      "image": "/images/characters/raymond/reactions/patient.png",
+      "alt": "Raymond smiler tålmodigt med en åben hånd og et roligt blik.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond reassures a learner to take their time: relaxed kind eyes and a patient half-smile, head slightly lowered and one blue hand held palm-up in an open gentle invitation. Calm, steady, no clock or other props.",
+      "source": "exec-5291585c-6768-4db6-90d3-629b84dbd21d.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          39,
+          112,
+          1190,
+          1141
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "listening",
+      "title": "Jeg lytter",
+      "image": "/images/characters/raymond/reactions/listening.png",
+      "alt": "Raymond holder en hånd ved øret og lytter opmærksomt med et venligt smil.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond listens attentively to a learner: one small blue hand cupped near the outer edge of his huge ear, eyes looking toward the speaker, a gentle welcoming smile and slightly leaned-in head. No hearing aid, no headphones, no symbols.",
+      "source": "exec-345e3d60-7019-4315-bd61-bde14722330d.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          45,
+          189,
+          1202,
+          1073
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "question",
+      "title": "Et godt spørgsmål",
+      "image": "/images/characters/raymond/reactions/question.png",
+      "alt": "Raymond stiller et spørgsmål med en løftet finger og et interesseret blik.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond asks a thoughtful question: index finger raised softly beside his face, eyebrows inquisitive, mouth slightly open as if speaking, eyes bright and interested. Not an idea/eureka pose, no bulb and no question-mark text.",
+      "source": "exec-ee57f272-6bbd-4b59-a7f8-40ef10bb20b2.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          30,
+          112,
+          1205,
+          1108
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "idea-notes",
+      "title": "Skriver idéen ned",
+      "image": "/images/characters/raymond/reactions/idea-notes.png",
+      "alt": "Raymond noterer en idé med blyant i en lille åben notesbog.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond writes an idea in a small open notebook held near his chest: one hand supports the notebook, the other holds a short pencil, eyes glancing down with an engaged small smile. Notebook pages have just a few abstract line strokes, no legible text. Face stays dominant and large.",
+      "source": "exec-3d1745f5-fd1a-42fd-ba14-5139ed60b739.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          34,
+          81,
+          1209,
+          1206
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "reading",
+      "title": "Læser dokumentation",
+      "image": "/images/characters/raymond/reactions/reading.png",
+      "alt": "Raymond læser roligt i en lille åben bog gennem sine bronzebriller.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond is carefully reading documentation in a small open dark-blue book held below his chin with two blue hands. Eyes looking down through his bronze glasses, warm absorbed half-smile. Book has unlettered cream pages and no title, keep face large and dominant.",
+      "source": "exec-6a6aad12-16ea-4946-a63d-224cd820eb8b.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          27,
+          87,
+          1226,
+          1184
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "typing",
+      "title": "Ved tastaturet",
+      "image": "/images/characters/raymond/reactions/typing.png",
+      "alt": "Raymond skriver ved et lille tastatur og følger koncentreret med.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond types thoughtfully with two small blue hands on a compact keyboard at the bottom of the bust. Slightly furrowed concentrating brow, friendly focused eyes and a small pleased smile. No screen, no desk scene, no letters on keys. Keep whole keyboard within frame and face dominant.",
+      "source": "exec-ca6bdda2-2e6a-4cfa-8cd0-9713d3b5a855.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          42,
+          133,
+          1188,
+          1152
+        ],
+        "visuallyReviewed": true
+      }
+    },
+    {
+      "id": "debugging",
+      "title": "Fejlsøger",
+      "image": "/images/characters/raymond/reactions/debugging.png",
+      "alt": "Raymond undersøger en lille kodeblok med en lup og et eftertænksomt blik.",
+      "prompt": "Use case: illustration-story. Produce ONE original transparent PNG emoji sticker, square canvas. References show the exact canonical identity and painterly style of Raymond, a friendly blue elephant professor. Preserve warm large brown eyes, round bronze glasses, blue hair tuft, big rounded ears, natural gently curled trunk, soft painted texture and friendly cartoon proportions. Head-and-small-bust composition with navy professor clothing when visible. No photorealistic redesign. The face and emotion are the main focus, legible at emoji scale; props stay small. Keep all ears, trunk, hands and props completely within the canvas with generous transparent padding. Genuinely transparent background; no scenery, no colored rectangle, no captions, no letters, no logos, no borders, no watermark. Natural anatomy, no doubled trunk, no extra arms. PRIMARY REACTION: Raymond investigates a puzzling bug: holds a small bronze magnifying glass beside a tiny card containing only colored abstract code-line bars, no characters or text. One eyebrow raised thoughtfully, eyes peering carefully, mouth a gentle thinking smile. No insects, no frightening imagery, face dominant.",
+      "source": "exec-dae7aa7e-615b-4f0d-9bd2-204445ea70c9.png",
+      "width": 1254,
+      "height": 1254,
+      "qa": {
+        "mode": "RGBA",
+        "alphaRange": [
+          0,
+          255
+        ],
+        "visibleBounds": [
+          20,
+          116,
+          1225,
+          1162
+        ],
+        "visuallyReviewed": true
+      }
+    }
+  ]
+}

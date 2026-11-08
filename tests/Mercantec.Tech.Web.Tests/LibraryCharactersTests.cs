@@ -47,7 +47,9 @@ public sealed class LibraryCharactersTests
         var expected = new[]
         {
             ("vatson", "character-reactions-title", "63 emojis"),
-            ("raymond", "character-reactions-title", "12 emojis"),
+            ("raymond", "character-reactions-title", "48 emojis"),
+            ("beaver", "character-reactions-title", "12 emojis"),
+            ("fox", "character-reactions-title", "12 emojis"),
             ("raymond", "character-scenes-title", "4 miljøer"),
             ("raymond", "character-animations-title", "3 GIF-animationer"),
             ("lupp", "character-gallery-title", "9 illustrationer")
@@ -60,7 +62,7 @@ public sealed class LibraryCharactersTests
             var profile = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, slug));
             Assert.Single(profile.FindAll("#" + section));
         }
-        Assert.Empty(page.FindAll(".character-beaver .character-card-materials, .character-fox .character-card-materials"));
+        Assert.Equal(2, page.FindAll(".character-beaver .character-card-materials, .character-fox .character-card-materials").Count);
         Assert.DoesNotContain(page.FindAll(".character-card-materials img"),
             image => image.GetAttribute("src")!.EndsWith(".gif", StringComparison.OrdinalIgnoreCase));
     }
@@ -74,7 +76,7 @@ public sealed class LibraryCharactersTests
 
         page.Find("#library-search").Input("emojis");
         var results = page.FindAll(".library-search-character");
-        Assert.Equal(2, results.Count);
+        Assert.Equal(4, results.Count);
         Assert.All(results, result =>
         {
             var path = result.GetAttribute("href");
@@ -82,7 +84,7 @@ public sealed class LibraryCharactersTests
             Assert.Equal(character.Appearances[0].Image, result.QuerySelector("img")!.GetAttribute("src"));
         });
         page.FindAll(".library-categories button").Single(button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal)).Click();
-        Assert.Equal(2, page.FindAll(".library-search-character").Count);
+        Assert.Equal(4, page.FindAll(".library-search-character").Count);
         Assert.Contains("i Karakterer", page.Find(".library-section-heading [role='status']").TextContent);
 
         page.Find(".library-search button").Click();
@@ -97,6 +99,8 @@ public sealed class LibraryCharactersTests
     [Theory]
     [InlineData("emojis", "/characters/vatson")]
     [InlineData("emojis", "/characters/raymond")]
+    [InlineData("emojis", "/characters/beaver")]
+    [InlineData("emojis", "/characters/fox")]
     [InlineData("GIF", "/characters/raymond")]
     [InlineData("illustrationer", "/characters/lupp")]
     [InlineData("Raymond kaffepause", "/characters/raymond")]
@@ -125,6 +129,8 @@ public sealed class LibraryCharactersTests
     [Theory]
     [InlineData("raymond", "character-animations-title")]
     [InlineData("vatson", "character-reactions-title")]
+    [InlineData("beaver", "character-reactions-title")]
+    [InlineData("fox", "character-reactions-title")]
     [InlineData("lupp", "character-gallery-title")]
     public async Task Gallery_deep_links_scroll_after_render_without_repeating_on_profile_interactions(string slug, string section)
     {
@@ -165,7 +171,7 @@ public sealed class LibraryCharactersTests
 
     [Theory]
     [InlineData("raymond", "#not-a-gallery")]
-    [InlineData("beaver", "#character-reactions-title")]
+    [InlineData("beaver", "#character-animations-title")]
     [InlineData("lupp", "#character-animations-title")]
     [InlineData("missing", "#character-animations-title")]
     [InlineData("raymond", "")]

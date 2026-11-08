@@ -1,0 +1,38 @@
+using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Contracts;
+
+namespace Mercantec.Tech.Api.Emojis;
+
+/// <summary>One availability and metadata policy for pickers and the editor assistant.</summary>
+public static class CharacterEmojiPolicy
+{
+    public static IReadOnlyList<CharacterEmojiAsset> Available(IEnumerable<CustomEmoji> existing)
+    {
+        var rows = existing.ToArray();
+        var ids = rows.Select(emoji => emoji.Id).ToHashSet();
+        var names = rows.Select(emoji => emoji.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Existing uploads keep their IDs and shortcodes if a legacy row collides.
+        return CharacterEmojiCatalog.All.Where(emoji => !ids.Contains(emoji.Id) && !names.Contains(emoji.Name)).ToArray();
+    }
+
+    public static EmojiResolvedMetadata Resolve(CharacterEmojiAsset emoji)
+    {
+        var characterName = emoji.CharacterSlug switch { "beaver" => "bæver", "fox" => "ræv", _ => "raymond" };
+        var subject = emoji.CharacterSlug == "raymond" ? new[] { "SQL", "database" }
+            : new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" };
+        var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
+            .Concat(subject).Concat(emoji.Name.Split('_')));
+        var reaction = emoji.Name[(emoji.CharacterSlug.Length + 1)..];
+        var category = reaction switch
+        {
+            "wave" or "hello" or "thumbs_up" or "applause" => "gestures",
+            "coffee" or "tea_time" or "good_morning" or "sleepy" or "goodbye" => "everyday",
+            "help" or "listening" or "question" or "idea_notes" or "reading" => "learning",
+            "safe_lock" or "check_logs" or "regression_test" or "debugging" or "testing" or "query_ready"
+                or "join" or "filter" or "sort" or "primary_key" or "foreign_key" or "normalize" or "transaction"
+                or "commit" or "rollback" or "backup" or "restore" or "performance" or "typing" => "technology",
+            _ => "smileys"
+        };
+        return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);
+    }
+}

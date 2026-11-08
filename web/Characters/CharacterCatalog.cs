@@ -1,3 +1,5 @@
+using Mercantec.Tech.Contracts;
+
 namespace Mercantec.Tech.Web.Characters;
 
 /// <summary>Shared editorial profiles; independent of accounts and course data.</summary>
@@ -69,21 +71,9 @@ public static class CharacterCatalog
                 new("find-row", "Find den manglende række", "WHERE · Undersøg data", "Raymond tager luppen frem, når en række mangler. Tjek først dine filtre: Matcher værdien, og bliver rækken udeladt af din WHERE-betingelse?",
                     "/images/characters/raymond/animations/find-row.gif", "/images/characters/raymond/animations/find-row.png", "Raymond holder en lup, undersøger en datatabel og peger på den tomme række.", 512, 512)
             ],
-            Reactions =
-            [
-                new("Det virker", "/images/characters/raymond/reactions/success.png", "Raymond smiler tilfreds: forespørgslen virker.", 1254, 1254),
-                new("Koden driller", "/images/characters/raymond/reactions/error.png", "Raymond ser tålmodigt bekymret ud og er klar til at hjælpe med fejlen.", 1254, 1254),
-                new("Et lille hint", "/images/characters/raymond/reactions/help.png", "Raymond løfter et øjenbryn og smiler opmuntrende.", 1254, 1254),
-                new("Tænkepause", "/images/characters/raymond/reactions/thinking.png", "Raymond kigger eftertænksomt opad, mens han overvejer løsningen.", 1254, 1254),
-                new("Pas på", "/images/characters/raymond/reactions/warning.png", "Raymond hæver brynene i mild overraskelse og beder dig kontrollere en ekstra gang.", 1254, 1254),
-                new("Flot klaret", "/images/characters/raymond/reactions/celebration.png", "Raymond stråler af begejstring over en opgave, der er løst.", 1254, 1254),
-                new("Griner", "/images/characters/raymond/reactions/laughing.png?v=097b5eeb", "Raymond griner varmt med et naturligt smil, bløde øjne og en afslappet snabel.", 1254, 1254),
-                new("Aha!", "/images/characters/raymond/reactions/eureka.png", "Raymond får en idé med løftet finger og en lille gylden pære.", 1254, 1254),
-                new("Åh nej", "/images/characters/raymond/reactions/facepalm.png", "Raymond lægger en hånd ved panden i en tålmodig og humoristisk facepalm.", 1254, 1254),
-                new("Kaffepause", "/images/characters/raymond/reactions/coffee.png", "Raymond holder en dampende mørkeblå kaffekop med et afslappet smil.", 1254, 1254),
-                new("Tak!", "/images/characters/raymond/reactions/grateful.png", "Raymond smiler taknemmeligt med en åben hånd og små gyldne hjerter.", 1254, 1254),
-                new("Hov, hvad?", "/images/characters/raymond/reactions/confused.png", "Raymond lægger hovedet på skrå med et hævet øjenbryn og et lille spørgsmålstegn.", 1254, 1254)
-            ],
+            Reactions = ReactionsFor("raymond"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "48 emojis og reaktioner med professoren – fra hverdagsfølelser og opmuntring til nøgler, forespørgsler og sikre databaser. Find et motiv, åbn originalen, eller hent den som PNG.",
             Scenes =
             [
                 new("Biblioteket", "/images/characters/raymond/scenes/library.png", "Raymond læser i et hyggeligt træbibliotek med bøger og varmt lampelys.", 1536, 1024),
@@ -99,7 +89,12 @@ public static class CharacterCatalog
             [new("Portræt", "/images/characters/beaver/portrait.png", "Bæver, en venlig brun bæver med tydelig flad hale, blå underviserjakke og en tablet med logs")],
             [new("Hvorfor en bæver?", "Bæverens byggeri og vedligeholdelse er en god metafor for robuste systemer. Det handler om at bygge med omtanke, holde øje med svage steder og forstærke løsningen, når forholdene ændrer sig."),
              new("Sikkerhed, der kan efterprøves", "Bæver arbejder med sikre standardindstillinger, adgangskontrol, logging og automatiserede regressionstests. Når Ræv finder en svaghed, undersøger de sammen årsagen og kontrollerer, at rettelsen virker.")],
-            [new("Mød Ræv på rødt team", "/characters/fox", false, false)]),
+            [new("Mød Ræv på rødt team", "/characters/fox", false, false)])
+        {
+            Reactions = ReactionsFor("beaver"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "Bævers reaktioner fra det blå team: rolige forklaringer, opmuntring, adgangskontrol, logs og tests. Åbn en original i fuld størrelse, eller hent en transparent PNG."
+        },
         new("fox", "Ræv", "Underviser i Sikkerhed og test · Rød team", "Sikkerhed og test", false,
             "Den nysgerrige sikkerhedstester på rødt team: undersøger angrebsflader, uventede input og systemets rettigheder.",
             "Ræv underviser i Sikkerhed og test fra det røde teams perspektiv. Med notesbog og testskitser udfordrer Ræv de antagelser, et system bygger på: Hvad hvis inputtet er anderledes, eller brugeren prøver en anden vej? Testen foregår inden for aftalte rammer, og fundene dokumenteres, så de kan forstås, rettes og testes igen.",
@@ -108,10 +103,22 @@ public static class CharacterCatalog
             [new("Hvorfor en ræv?", "Ræven repræsenterer opfindsomhed og evnen til at undersøge alternative veje. Det er en god metafor for etisk sikkerhedstest: at udfordre antagelser og finde grænsetilfælde, som den første løsning måske har overset."),
              new("Find svagheden, og del forståelsen", "Ræv arbejder med angrebsflader, uventede input og afprøvning af rettigheder. Ræv og Bæver er kolleger: De deler fund, styrker løsningen og skriver tests, der viser, om forbedringen holder.")],
             [new("Mød Bæver på blåt team", "/characters/beaver", false, false)])
+        {
+            Reactions = ReactionsFor("fox"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "Rævs reaktioner fra det røde team: nysgerrige spørgsmål, nye idéer, undersøgende tests og fund, der deles med kollegerne. Åbn en original i fuld størrelse, eller hent en transparent PNG."
+        }
     ];
 
     public static CharacterProfile? Find(string? slug) =>
         All.FirstOrDefault(character => string.Equals(character.Slug, slug, StringComparison.OrdinalIgnoreCase));
+
+    private static CharacterIllustration[] ReactionsFor(string slug) => CharacterEmojiCatalog.All
+        .Where(asset => asset.CharacterSlug == slug)
+        .Select(asset => new CharacterIllustration(asset.Title, asset.Image, asset.Alt, asset.Width, asset.Height)
+        {
+            Preview = asset.Preview
+        }).ToArray();
 }
 
 public sealed record CharacterProfile(string Slug, string Name, string Role, string Home, bool ComingSoon,
@@ -130,7 +137,7 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
         get
         {
             if (Reactions.FirstOrDefault() is { } reaction)
-                yield return new("emojis", Reactions.Count, "character-reactions-title", reaction.Image, reaction.Alt);
+                yield return new("emojis", Reactions.Count, "character-reactions-title", reaction.Preview, reaction.Alt);
             if (Scenes.FirstOrDefault() is { } scene)
                 yield return new("miljøer", Scenes.Count, "character-scenes-title", scene.Image, scene.Alt);
             if (Illustrations.FirstOrDefault() is { } illustration)
@@ -145,5 +152,8 @@ public sealed record CharacterMaterialGroup(string Label, int Count, string Sect
 public sealed record CharacterAppearance(string Name, string Image, string Alt);
 public sealed record CharacterFeature(string Title, string Description);
 public sealed record CharacterLink(string Label, string Href, bool External, bool RequiresLogin);
-public sealed record CharacterIllustration(string Title, string Image, string Alt, int Width, int Height);
+public sealed record CharacterIllustration(string Title, string Image, string Alt, int Width, int Height)
+{
+    public string Preview { get; init; } = Image;
+}
 public sealed record CharacterAnimation(string Id, string Title, string Topic, string Description, string Image, string Poster, string Alt, int Width, int Height);
