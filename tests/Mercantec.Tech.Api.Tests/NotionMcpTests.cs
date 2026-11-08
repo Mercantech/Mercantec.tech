@@ -94,6 +94,26 @@ public sealed class NotionMcpTests : IAsyncLifetime
         await using var client = await McpClient.CreateAsync(transport);
         var tools = await client.ListToolsAsync();
         Assert.Equal(new[] { "apply_changes", "find_pages", "get_change", "read_page", "undo_change" }, tools.Select(t => t.Name).Order().ToArray());
+        // MCP clients require object-valued top-level property schemas. JsonElement return
+        // types otherwise export a boolean schema in properties.result, rejected by the TypeScript SDK.
+        http.DefaultRequestHeaders.Authorization = new("Bearer", "teacher");
+        http.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json, text/event-stream");
+        http.DefaultRequestHeaders.TryAddWithoutValidation("MCP-Protocol-Version", "2025-06-18");
+        using var rawToolsResponse = await http.PostAsync(url + "/api/mcp", new StringContent("{\"jsonrpc\":\"2.0\",\"id\":4242,\"method\":\"tools/list\",\"params\":{}}", Encoding.UTF8, "application/json"));
+        rawToolsResponse.EnsureSuccessStatusCode();
+        var wire = await rawToolsResponse.Content.ReadAsStringAsync();
+        if (rawToolsResponse.Content.Headers.ContentType?.MediaType == "text/event-stream")
+            wire = wire.Split('\n').Single(line => line.StartsWith("data:", StringComparison.Ordinal))[5..].Trim();
+        var rawResult = JsonSerializer.Deserialize<JsonElement>(wire).GetProperty("result");
+        if (Environment.GetEnvironmentVariable("LUP_MCP_SCHEMA_OUTPUT") is { Length: > 0 } schemaPath)
+            await File.WriteAllTextAsync(schemaPath, rawResult.GetRawText());
+        foreach (var protocol in rawResult.GetProperty("tools").EnumerateArray())
+        {
+            if (!protocol.TryGetProperty("outputSchema", out var schema)) continue;
+            Assert.Equal(JsonValueKind.Object, schema.ValueKind);
+            if (schema.TryGetProperty("properties", out var properties))
+                Assert.All(properties.EnumerateObject(), property => Assert.Equal(JsonValueKind.Object, property.Value.ValueKind));
+        }
         var editSchema = tools.Single(t => t.Name == "apply_changes").JsonSchema.ToString();
         Assert.Contains("replace_text", editSchema);
         Assert.Contains("contentFingerprint", editSchema);

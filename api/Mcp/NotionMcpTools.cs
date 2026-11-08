@@ -60,9 +60,9 @@ public sealed class NotionMcpTools(NotionMcpService service, IHttpContextAccesso
 
     [McpServerTool(Name = "read_page", ReadOnly = true, OpenWorld = false, UseStructuredContent = true),
      Description("Read the current LIVE LUP draft by page UUID or LUP /notion/{uuid} URL. Returns lossless XML block content, stable block IDs and fingerprints. Follow nextCursor until null; never assume a partial response is the entire page. Unknown/media/reference blocks are preserved and may be read-only.")]
-    public Task<JsonElement> ReadPage(ClaimsPrincipal user, CancellationToken cancellationToken,
+    public Task<object> ReadPage(ClaimsPrincipal user, CancellationToken cancellationToken,
         [Description("Page UUID or a URL on this LUP installation.")] string page, string? cursor = null, int limit = 30)
-        => Run(() => service.ReadAsync(user, Token(), page, cursor, limit, cancellationToken));
+        => Run(async () => (object)await service.ReadAsync(user, Token(), page, cursor, limit, cancellationToken));
 
     [McpServerTool(Name = "apply_changes", ReadOnly = false, Destructive = true, Idempotent = true, OpenWorld = false, UseStructuredContent = true),
      Description("Edit ONE teaching/theory draft, never publish. First read_page. Supply a fresh operationId UUID and keep it unchanged on retries. Example changes:[{type:'replace_text',blockId:'id-from-read',contentFingerprint:'hash-from-read',from:0,to:3,text:'New text'}]. insert_before/insert_after/update_block require blockId,fingerprint,block; delete_block requires blockId,fingerprint. append_block is only for an empty document. block is lossless XML from read_page or {type,props,content,children}. Text offsets use UTF-16 and preserve outside formatting. All changes validate before one collaborative transaction. A conflict changes nothing: read again and use a NEW operationId. Never replace/delete unknown, media, drawing or reference nodes implicitly. Returns a compact receipt only after durable storage; get_change resolves ambiguous outcomes.")]
