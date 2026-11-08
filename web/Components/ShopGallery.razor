@@ -1,29 +1,32 @@
 @using Mercantec.Tech.Web.Demo
 @inject DemoWorld World
+@inject AuthService Auth
 @implements IDisposable
 
-@if (!World.Ready)
+@if (!World.Ready || !World.AvatarProfileReady)
 {
-    <p>Indlæser…</p>
+    @if (World.AvatarProfileError is not null)
+    {
+        <p role="alert">@World.AvatarProfileError</p>
+        <button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Prøv igen</button>
+    }
+    else { <p role="status">Indlæser…</p> }
 }
 else
 {
     <div class="v4-shop-summary">
         <div>
             <strong><i class="v3-gold-dot" aria-hidden="true"></i>@World.Gold guld</strong>
-            <p>Level @DemoWorld.Level · Nye ting ved level @NextLevel</p>
+            <p>Level @World.CurrentLevel · Nye ting ved level @NextLevel</p>
         </div>
         <a class="secondary" href="/universe/unlocks">Se alle level- og badge-oplåsninger</a>
     </div>
-    <div class="v4-shop-tabs" aria-label="Butikskategorier">
-        @foreach (var category in new[] { "Tøj", "Møbler", "Alle" })
-        {
-            <button type="button" class="filter" aria-pressed="@DemoWorld.Pressed(World.ShopCategory == category)" @onclick="() => World.SetCategory(category)">@(category == "Tøj" ? "Avatartøj" : category)</button>
-        }
-        <a class="secondary" href="/profile/character">Min garderobe</a>
+    <div class="v4-shop-tabs" aria-label="Dit univers">
+        <a class="secondary" href="/profile/character">Min avatarsamling</a>
+        <a class="secondary" href="/apartment">Mit inventar</a>
     </div>
     <div class="v4-shop-grid">
-        @foreach (var item in World.VisibleGoods)
+        @foreach (var item in FurnitureGoods)
         {
             var owned = World.Owned(item);
             var open = World.Unlocked(item);
@@ -46,23 +49,23 @@ else
                     }
                 </div>
                 <div class="actions">
-                    @if (owned && item.Kind == "Tøj")
-                    {
-                        <button type="button" class="secondary" disabled="@(World.EquippedId == item.Id)" @onclick="() => World.Equip(item.Id)">@(World.EquippedId == item.Id ? "✓ På din avatar" : "Tag på")</button>
-                    }
-                    else if (owned)
+                    @if (owned)
                     {
                         <a class="secondary" href="/apartment">Indret med møblet</a>
                     }
                     else
                     {
                         var enough = World.Gold >= item.Cost;
-                        <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(!open || !enough)" @onclick="() => World.Buy(item.Id)">@BuyLabel(item, open, enough)</button>
+                        <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(World.AvatarBusy || !open || !enough)" @onclick="async () => await World.BuyAsync(item.Id)">@BuyLabel(item, open, enough)</button>
                     }
                 </div>
             </section>
         }
     </div>
+    @if (World.AvatarProfileError is not null)
+    {
+        <div role="alert"><p>@World.AvatarProfileError</p><button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Hent kontoen igen</button></div>
+    }
     @if (World.NoticeArea == "shop" && World.Notice is not null)
     {
         <p class="v2-status" role="status">@World.Notice</p>
@@ -71,7 +74,8 @@ else
 }
 
 @code {
-    private int NextLevel => DemoWorld.Goods.Where(g => g.Level > DemoWorld.Level).Select(g => g.Level).DefaultIfEmpty(DemoWorld.Level).Min();
+    private static IEnumerable<DemoGoods> FurnitureGoods => DemoWorld.Goods.Where(g => g.Kind == "Møbler");
+    private int NextLevel => FurnitureGoods.Where(g => g.Level > World.CurrentLevel).Select(g => g.Level).DefaultIfEmpty(World.CurrentLevel).Min();
 
     private string BuyLabel(DemoGoods item, bool open, bool enough)
     {
@@ -79,13 +83,14 @@ else
             return "Låst";
         if (!enough)
             return $"Mangler {item.Cost - World.Gold} guld";
-        return item.Kind == "Tøj" ? $"Køb og tag på · {item.Cost} guld" : $"Køb · {item.Cost} guld";
+        return $"Køb · {item.Cost} guld";
     }
 
     protected override async Task OnInitializedAsync()
     {
         World.Changed += OnChanged;
         await World.EnsureAsync();
+        await World.BindAvatarProfileAsync(Auth.Subject);
     }
 
     private void OnChanged() => InvokeAsync(StateHasChanged);

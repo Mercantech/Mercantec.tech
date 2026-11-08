@@ -1,0 +1,908 @@
+{
+  "id": "bip01",
+  "name": "BIP-01",
+  "characterOnly": true,
+  "frameSize": 256,
+  "columns": 4,
+  "rows": 2,
+  "face": "face.png",
+  "emojis": [
+    {
+      "id": "happy",
+      "file": "emoji-happy.png"
+    },
+    {
+      "id": "wink",
+      "file": "emoji-wink.png"
+    },
+    {
+      "id": "think",
+      "file": "emoji-think.png"
+    },
+    {
+      "id": "celebrate",
+      "file": "emoji-celebrate.png"
+    }
+  ],
+  "actions": [
+    {
+      "id": "idle",
+      "file": "sprites/idle.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "blink",
+      "file": "sprites/blink.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "wave",
+      "file": "sprites/wave.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "think",
+      "file": "sprites/think.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "talk",
+      "file": "sprites/talk.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "point",
+      "file": "sprites/point.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "celebrate",
+      "file": "sprites/celebrate.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "encourage",
+      "file": "sprites/encourage.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "surprised",
+      "file": "sprites/surprised.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "unlock",
+      "file": "sprites/unlock.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "walk",
+      "file": "sprites/walk.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "run",
+      "file": "sprites/run.png",
+      "frames": 8,
+      "fps": 12,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "jump",
+      "file": "sprites/jump.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "land",
+      "file": "sprites/land.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "sit",
+      "file": "sprites/sit.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "sleep",
+      "file": "sprites/sleep.png",
+      "frames": 8,
+      "fps": 6,
+      "loop": true,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "pickup",
+      "file": "sprites/pickup.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "attach_item",
+          "payload": {
+            "anchor": "right_hand",
+            "runtimeInputs": [
+              "itemId",
+              "itemTransform"
+            ],
+            "attachment": "follow_anchor",
+            "identityOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        },
+        "right_hand": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "none",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 334,
+              "y": 353
+            },
+            {
+              "frame": 1,
+              "x": 335,
+              "y": 343
+            },
+            {
+              "frame": 2,
+              "x": 349,
+              "y": 349
+            },
+            {
+              "frame": 3,
+              "x": 347,
+              "y": 362
+            },
+            {
+              "frame": 4,
+              "x": 355,
+              "y": 369
+            },
+            {
+              "frame": 5,
+              "x": 346,
+              "y": 322
+            },
+            {
+              "frame": 6,
+              "x": 372,
+              "y": 299
+            },
+            {
+              "frame": 7,
+              "x": 371,
+              "y": 297
+            }
+          ],
+          "notes": "Hand center estimated from the final clean whole-body drawings in the exported 512px coordinate system; preview visually checked. Per-item grip offset belongs to the game."
+        }
+      }
+    },
+    {
+      "id": "interact",
+      "file": "sprites/interact.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "activate_target",
+          "payload": {
+            "runtimeInputs": [
+              "targetEntityId"
+            ],
+            "identityOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "hit",
+      "file": "sprites/hit.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "knockout",
+      "file": "sprites/knockout.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "respawn",
+      "file": "sprites/respawn.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "events": [],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ability_1_pulse",
+      "file": "sprites/ability_1_pulse.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "spawn_projectile",
+          "payload": {
+            "anchor": "muzzle",
+            "runtimeInputs": [
+              "projectileId",
+              "aimDirection",
+              "projectileSpeed"
+            ],
+            "attachment": "spawn_once",
+            "identityOwner": "game",
+            "motionOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        },
+        "muzzle": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "none",
+          "samples": [
+            {
+              "frame": 4,
+              "x": 350,
+              "y": 260
+            }
+          ],
+          "notes": "Outer cannon opening at release frame4 in the clean 512px drawing. Projectile spawns once here; its later transform is independent."
+        }
+      }
+    },
+    {
+      "id": "ability_2_magnet",
+      "file": "sprites/ability_2_magnet.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 2,
+            "runtimeInputs": [
+              "abilityId",
+              "targetEntityId"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "magnet_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ability_3_shield",
+      "file": "sprites/ability_3_shield.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "shield",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ability_4_dash",
+      "file": "sprites/ability_4_dash.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 4,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection",
+              "dashVelocity"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "dash_trail",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ability_5_repair",
+      "file": "sprites/ability_5_repair.png",
+      "frames": 8,
+      "fps": 8,
+      "loop": false,
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "repair_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ultimate_charge",
+      "file": "sprites/ultimate_charge.png",
+      "frames": 8,
+      "fps": 5,
+      "loop": false,
+      "events": [
+        {
+          "frame": 0,
+          "at": 0,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_charge",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    },
+    {
+      "id": "ultimate_release",
+      "file": "sprites/ultimate_release.png",
+      "frames": 8,
+      "fps": 5,
+      "loop": false,
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": "ultimate",
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_release",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {
+        "root": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "hold",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 256,
+              "y": 448
+            }
+          ],
+          "notes": "Fixed exported world origin. This is not a tracked body joint."
+        }
+      }
+    }
+  ]
+}

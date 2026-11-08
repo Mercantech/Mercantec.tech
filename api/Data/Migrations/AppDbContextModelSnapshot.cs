@@ -42,6 +42,70 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("action_read_receipts", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarItemOwnership", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ItemId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("UserSub", "ItemId");
+
+                    b.ToTable("avatar_item_ownerships", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarOwnership", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("UserSub", "AvatarId");
+
+                    b.ToTable("avatar_ownerships", (string)null);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarProfile", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("LegacyImportAvailable")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SelectedAvatarId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("UserSub");
+
+                    b.ToTable("avatar_profiles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_avatar_profiles_gold", "\"Gold\" >= 0");
+
+                            t.HasCheckConstraint("CK_avatar_profiles_level", "\"Level\" >= 1");
+
+                            t.HasCheckConstraint("CK_avatar_profiles_revision", "\"Revision\" >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ChristmasGift", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1790,6 +1854,28 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("teaching_course_resources", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarItemOwnership", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.AvatarProfile", "Profile")
+                        .WithMany("Items")
+                        .HasForeignKey("UserSub")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarOwnership", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.AvatarProfile", "Profile")
+                        .WithMany("Avatars")
+                        .HasForeignKey("UserSub")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.CourseMaterial", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.FileAsset", "FileAsset")
@@ -2296,6 +2382,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarProfile", b =>
+                {
+                    b.Navigation("Avatars");
+
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>

@@ -14,6 +14,15 @@ else if (!Auth.IsAuthenticated)
 {
     <p>Du skal være logget ind. <a href="@Auth.LoginPath()">Log ind</a></p>
 }
+else if (!World.AvatarProfileReady)
+{
+    @if (World.AvatarProfileError is not null)
+    {
+        <p role="alert">@World.AvatarProfileError</p>
+        <button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Prøv igen</button>
+    }
+    else { <p role="status">Indlæser din konto…</p> }
+}
 else if (Item is null)
 {
     <header class="page-title"><div><h1>Varen findes ikke</h1><p>Gå tilbage til butikken, og vælg en anden vare.</p></div></header>
@@ -31,7 +40,7 @@ else
             <h2 style="font-size:26px">@(Item.Cost == 0 ? "Dit startsæt" : $"{Item.Cost} guld")</h2>
             <p class="small muted" style="margin-top:10px">@Item.Desc</p>
             <ul class="v4-requirements">
-                <li class="@(DemoWorld.Level >= Item.Level ? "passed" : null)">@(DemoWorld.Level >= Item.Level ? "✓" : "○") Level @Item.Level · Du er level @DemoWorld.Level</li>
+                <li class="@(World.CurrentLevel >= Item.Level ? "passed" : null)">@(World.CurrentLevel >= Item.Level ? "✓" : "○") Level @Item.Level · Du er level @World.CurrentLevel</li>
                 @if (Item.Badge is not null)
                 {
                     <li class="@(DemoWorld.BadgeRank(Item.Badge) >= Item.Rank ? "passed" : null)">@(DemoWorld.BadgeRank(Item.Badge) >= Item.Rank ? "✓" : "○") <a href="/badges/@Item.Badge">@World.LockText(Item)</a></li>
@@ -48,12 +57,21 @@ else
                 {
                     <a class="secondary" href="/apartment">Se min lejlighed</a>
                 }
+                else if (Item.Kind == "Tøj")
+                {
+                    <a class="secondary" href="/profile/character">Vælg en figur i avatarsamlingen</a>
+                }
                 else
                 {
                     var enough = World.Gold >= Item.Cost;
-                    <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(!open || !enough)" @onclick="Buy">@(!open ? "Låst" : !enough ? $"Mangler {Item.Cost - World.Gold} guld" : $"Køb · {Item.Cost} guld")</button>
+                    <button type="button" class="@(open && enough ? "action" : "secondary")" disabled="@(World.AvatarBusy || !open || !enough)" @onclick="Buy">@(!open ? "Låst" : !enough ? $"Mangler {Item.Cost - World.Gold} guld" : $"Køb · {Item.Cost} guld")</button>
                 }
             </div>
+            @if (World.AvatarProfileError is not null)
+            {
+                <div role="alert"><p>@World.AvatarProfileError</p><button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Hent kontoen igen</button></div>
+            }
+            @if (World.NoticeArea == "shop" && World.Notice is not null) { <p role="status">@World.Notice</p> }
             <p class="tiny muted" style="margin-top:15px">Din saldo: @World.Gold guld.</p>
         </section>
     </div>
@@ -70,12 +88,13 @@ else
     {
         World.Changed += OnChanged;
         await World.EnsureAsync();
+        await World.BindAvatarProfileAsync(Auth.Subject);
     }
 
-    private void Buy()
+    private async Task Buy()
     {
         if (Item is not null)
-            World.Buy(Item.Id);
+            await World.BuyAsync(Item.Id);
     }
 
     private void OnChanged() => InvokeAsync(StateHasChanged);

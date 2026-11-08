@@ -40,7 +40,7 @@
                     <a class="lup-search-link" href="/search" aria-label="Søg"><UiIcon Name="search" /><span>Søg</span></a>
                     <NotificationBell />
                     <details class="lup-account v3-navgroup">
-                        <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarSprite Mini="true" /> } else { @Initials }</span></summary>
+                        <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarIcon Size="32" Decorative="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
                             <p class="lup-account-name">@AccountDisplayName</p>
                             <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elevvisning" : "Elev") · LUP</p>
@@ -125,9 +125,9 @@
     protected override void OnInitialized()
     {
         Auth.AuthStateChanged += OnAuthChanged;
-        ViewAs.Changed += OnAuthChanged;
+        ViewAs.Changed += OnViewChanged;
         Nav.LocationChanged += OnLocation;
-        World.Changed += OnAuthChanged;
+        World.Changed += OnWorldChanged;
         EnforceViewAsRoutes();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -136,7 +136,7 @@
         try
         {
             _theme = await Js.InvokeAsync<string>("lupTheme.get");
-            if (Auth.IsAuthenticated) { await World.EnsureAsync(); await RegisterNotebookProfile(); }
+            if (Auth.IsAuthenticated) { await World.EnsureAsync(); await World.BindAvatarProfileAsync(Auth.Subject); await RegisterNotebookProfile(); }
             var storedCourse = await Js.InvokeAsync<string?>("lupCourse.get");
             if (storedCourse is not null) CourseContext.Select(storedCourse);
             await Js.InvokeVoidAsync("lupIcons");
@@ -155,7 +155,9 @@
     private async Task Logout() { ViewAs.Exit(); await Auth.LogoutLocalAsync(); Nav.NavigateTo("/"); }
     private void ExitViewAs() { var returnUrl = ViewAs.ReturnUrl ?? "/lectio"; ViewAs.Exit(); Nav.NavigateTo(returnUrl); }
     private void EnforceViewAsRoutes() { if (ViewAs.IsActive && ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath)) Nav.NavigateTo("/student"); }
-    private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) { await World.EnsureAsync(); await RegisterNotebookProfile(); } else _notebookProfileAccount = null; EnforceViewAsRoutes(); StateHasChanged(); });
+    private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) { await World.EnsureAsync(); await World.BindAvatarProfileAsync(Auth.Subject); await RegisterNotebookProfile(); } else { _notebookProfileAccount = null; await World.BindAvatarProfileAsync(null); } EnforceViewAsRoutes(); StateHasChanged(); });
+    private void OnViewChanged() => InvokeAsync(() => { EnforceViewAsRoutes(); StateHasChanged(); });
+    private void OnWorldChanged() => InvokeAsync(StateHasChanged);
     private async Task RegisterNotebookProfile()
     {
         var subject = Auth.Subject;
@@ -172,5 +174,5 @@
         EnforceViewAsRoutes();
         StateHasChanged();
     });
-    public void Dispose() { Auth.AuthStateChanged -= OnAuthChanged; ViewAs.Changed -= OnAuthChanged; World.Changed -= OnAuthChanged; Nav.LocationChanged -= OnLocation; }
+    public void Dispose() { Auth.AuthStateChanged -= OnAuthChanged; ViewAs.Changed -= OnViewChanged; World.Changed -= OnWorldChanged; Nav.LocationChanged -= OnLocation; }
 }

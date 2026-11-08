@@ -1,4 +1,6 @@
 using Bunit;
+using Mercantec.Tech.Contracts;
+using Mercantec.Tech.Web.Avatars;
 using Mercantec.Tech.Web.Components;
 using Mercantec.Tech.Web.Demo;
 using Mercantec.Tech.Web.Pages.Demo;
@@ -16,8 +18,9 @@ public sealed class PublicLibraryNavigationTests
     public async Task Badge_catalogue_and_requirements_never_present_example_awards_as_the_readers_own(bool authenticated)
     {
         using var api = new NoNetwork();
+        var avatars = new PublicAvatarClient();
         using var context = await LearningUiTestContext.CreateAsync(api,
-            configure: services => services.AddSingleton<DemoWorld>());
+            configure: services => services.AddSingleton<IAvatarClient>(avatars).AddSingleton<DemoWorld>());
         if (!authenticated) await context.Auth.LogoutLocalAsync();
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("/badges");
@@ -33,6 +36,7 @@ public sealed class PublicLibraryNavigationTests
         Assert.Empty(requirements.FindAll(".v2-owned, .v2-missing, .rank-dot.achieved"));
         Assert.Equal(5, requirements.FindAll(".v2-rank").Count);
         Assert.Contains(requirements.FindAll(".breadcrumbs a"), link => link.GetAttribute("href") == "/library?category=badges");
+        Assert.Equal(0, avatars.Reads);
     }
 
     [Theory]
@@ -52,5 +56,23 @@ public sealed class PublicLibraryNavigationTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             => throw new InvalidOperationException($"Public catalogue must not request personal records: {request.Method} {request.RequestUri}");
+    }
+
+    private sealed class PublicAvatarClient : IAvatarClient
+    {
+        public int Reads { get; private set; }
+
+        public Task<AvatarProfileDto> GetAsync(CancellationToken ct = default, string? expectedSubject = null)
+        {
+            Reads++;
+            return Task.FromResult(new AvatarProfileDto(AvatarEconomy.StarterId, [AvatarEconomy.StarterId],
+                AvatarEconomy.InitialGold, AvatarEconomy.InitialLevel, AvatarEconomy.InitialItemIds, true, 0));
+        }
+
+        private static Task<AvatarProfileDto> RejectMutation() => throw new InvalidOperationException("Public catalogue must not change an avatar profile.");
+        public Task<AvatarProfileDto> UnlockAsync(string avatarId, CancellationToken ct = default, string? expectedSubject = null) => RejectMutation();
+        public Task<AvatarProfileDto> SelectAsync(string avatarId, CancellationToken ct = default, string? expectedSubject = null) => RejectMutation();
+        public Task<AvatarProfileDto> ImportLegacyAsync(AvatarLegacyImportRequest request, CancellationToken ct = default, string? expectedSubject = null) => RejectMutation();
+        public Task<AvatarProfileDto> BuyItemAsync(string itemId, CancellationToken ct = default, string? expectedSubject = null) => RejectMutation();
     }
 }

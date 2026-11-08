@@ -92,6 +92,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
         object[] memberships = [];
         object[] gifts = [];
         object? giftProfile = null;
+        object? avatarProfile = null;
         object[] pollResponses = [];
         object[] actionReadReceipts = [];
         if (subGuid is not null)
@@ -116,6 +117,16 @@ public class PrivacyController(AppDbContext db) : ControllerBase
 
         if (subGuid is Guid giftSub)
         {
+            avatarProfile = await db.AvatarProfiles.AsNoTracking().Where(profile => profile.UserSub == giftSub)
+                .Select(profile => new
+                {
+                    selectedAvatarId = profile.SelectedAvatarId,
+                    ownedAvatarIds = profile.Avatars.OrderBy(owned => owned.AvatarId).Select(owned => owned.AvatarId).ToArray(),
+                    gold = profile.Gold,
+                    level = profile.Level,
+                    ownedItemIds = profile.Items.OrderBy(owned => owned.ItemId).Select(owned => owned.ItemId).ToArray(),
+                    revision = profile.Revision
+                }).SingleOrDefaultAsync(ct);
             actionReadReceipts = await db.ActionReadReceipts.AsNoTracking().Where(r => r.UserSub == giftSub)
                 .Select(r => (object)new { r.UserSub, r.Kind, r.ResourceId, r.ReadAtUtc }).ToArrayAsync(ct);
             pollResponses = await db.PollResponses.AsNoTracking().Where(r => r.UserSub == giftSub)
@@ -142,6 +153,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 memberships,
                 gifts,
                 giftProfile,
+                avatarProfile,
                 pollResponses,
                 actionReadReceipts,
                 submissions = Array.Empty<object>(),

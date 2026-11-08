@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Mercantec.Tech.Contracts;
+using Mercantec.Tech.Web.Avatars;
 using Microsoft.JSInterop;
 
 namespace Mercantec.Tech.Web.Demo;
@@ -14,11 +16,22 @@ public sealed class DemoWorld
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     private readonly IJSRuntime _js;
+    private readonly IAvatarClient _avatars;
     private Task? _loading;
     private bool _hadSnapshot;
     private bool _legacyImported;
+    private readonly HashSet<string> _ownedAvatarIds = [AvatarCatalog.StarterId];
+    private bool _avatarProfileBound;
+    private string? _avatarSubject;
+    private Task? _avatarProfileLoading;
+    private int _avatarProfileVersion;
+    private CancellationTokenSource _avatarProfileCancellation = new();
+    private long _avatarRevision = -1;
+    private int _legacyGold = DemoCatalog.Gold;
+    private readonly HashSet<string> _legacyOwnedWear = ["basic"];
+    private readonly HashSet<string> _legacyOwnedFurniture = ["desk", "bed", "chair", "plant", "board"];
 
-    public DemoWorld(IJSRuntime js) => _js = js;
+    public DemoWorld(IJSRuntime js, IAvatarClient avatars) { _js = js; _avatars = avatars; }
 
     public event Action? Changed;
 
@@ -28,6 +41,13 @@ public sealed class DemoWorld
     public string Hair { get; private set; } = "#42302a";
     public string HairStyle { get; private set; } = "short";
     public string EquippedId { get; private set; } = "basic";
+    public string SelectedAvatarId { get; private set; } = AvatarCatalog.StarterId;
+    public AvatarDefinition SelectedAvatar => AvatarCatalog.Find(SelectedAvatarId) ?? AvatarCatalog.All[0];
+    public IReadOnlySet<string> OwnedAvatarIds => _ownedAvatarIds;
+    public bool AvatarProfileReady { get; private set; }
+    public bool AvatarBusy { get; private set; }
+    public string? AvatarProfileError { get; private set; }
+    public int CurrentLevel { get; private set; } = DemoCatalog.Level;
     public string ShopCategory { get; private set; } = "Tøj";
     public int Gold { get; private set; } = DemoCatalog.Gold;
     public int Player { get; private set; } = 40;
@@ -79,6 +99,59 @@ public sealed class DemoWorld
 
     public Task EnsureAsync() => _loading ??= LoadAsync();
 
+    // The account API owns avatar purchases and the wallet. The older room layout remains local.
+    public Task BindAvatarProfileAsync(string? subject)
+    {
+        subject = string.IsNullOrWhiteSpace(subject) ? null : subject.Trim();
+        if (_avatarProfileBound && _avatarSubject == subject)
+            return _avatarProfileLoading ?? Task.CompletedTask;
+
+        _avatarProfileBound = true;
+        _avatarSubject = subject;
+        AvatarProfileReady = false;
+        AvatarProfileError = null;
+        AvatarBusy = subject is not null;
+        _avatarRevision = -1;
+        _avatarProfileCancellation.Cancel();
+        _avatarProfileCancellation.Dispose();
+        _avatarProfileCancellation = new CancellationTokenSource();
+        ResetAvatarProfile();
+        ResetItemOwnership();
+        Gold = subject is null ? _legacyGold : 0;
+        CurrentLevel = DemoCatalog.Level;
+        if (NoticeArea == "avatar")
+        {
+            Notice = null;
+            NoticeArea = null;
+        }
+        var version = ++_avatarProfileVersion;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _avatarProfileLoading = completion.Task;
+        Changed?.Invoke();
+        _ = CompleteAvatarProfileLoadAsync(subject, version, _avatarProfileCancellation.Token, completion);
+        return completion.Task;
+    }
+
+    public Task ReloadAvatarProfileAsync()
+    {
+        if (!_avatarProfileBound)
+            return BindAvatarProfileAsync(null);
+        if (AvatarBusy)
+            return _avatarProfileLoading ?? Task.CompletedTask;
+
+        AvatarBusy = _avatarSubject is not null;
+        AvatarProfileError = null;
+        _avatarProfileCancellation.Cancel();
+        _avatarProfileCancellation.Dispose();
+        _avatarProfileCancellation = new CancellationTokenSource();
+        var version = ++_avatarProfileVersion;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _avatarProfileLoading = completion.Task;
+        Changed?.Invoke();
+        _ = CompleteAvatarProfileLoadAsync(_avatarSubject, version, _avatarProfileCancellation.Token, completion);
+        return completion.Task;
+    }
+
     // Keep local appearance/room choices from the earlier design without replacing an existing world.
     public async Task ImportLegacyAsync(string? subject)
     {
@@ -116,12 +189,54 @@ public sealed class DemoWorld
 
     public bool Owned(DemoGoods item) => item.Kind == "Tøj" ? OwnedWear.Contains(item.Id) : OwnedFurniture.Contains(item.Id);
 
-    public bool Unlocked(DemoGoods item) => Level >= item.Level && BadgeOk(item);
+    public bool Unlocked(DemoGoods item) => CurrentLevel >= item.Level && BadgeOk(item);
+
+    public bool OwnsAvatar(string? id) => id is not null && _ownedAvatarIds.Contains(id);
+
+    public bool CanUnlockAvatar(string? id) => Ready && AvatarProfileReady && !AvatarBusy
+        && AvatarProfileError is null && _avatarSubject is not null
+        && AvatarCatalog.Find(id) is { } avatar
+        && !OwnsAvatar(id)
+        && CurrentLevel >= avatar.Level
+        && Gold >= avatar.Cost;
+
+    public string AvatarRequirementText(string? id)
+    {
+        if (AvatarCatalog.Find(id) is not { } avatar)
+            return "Kommer senere";
+        if (OwnsAvatar(id))
+            return "Låst op";
+        if (_avatarSubject is null)
+            return "Log ind for at låse op";
+        if (CurrentLevel < avatar.Level)
+            return $"Kræver level {avatar.Level}";
+        if (Gold < avatar.Cost)
+            return $"Mangler {avatar.Cost - Gold} guld";
+        return avatar.Cost == 0 ? "Gratis" : $"{avatar.Cost} guld";
+    }
+
+    public Task<bool> TryUnlockAvatarAsync(string? id)
+    {
+        if (!CanUnlockAvatar(id) || AvatarCatalog.Find(id) is not { } avatar)
+            return Task.FromResult(false);
+        return MutateAvatarProfileAsync((subject, ct) => _avatars.UnlockAsync(avatar.Id, ct, subject), "avatar",
+            $"{avatar.Name} er låst op og valgt som din avatar.");
+    }
+
+    public Task<bool> SelectAvatarAsync(string? id)
+    {
+        if (!CanMutateAvatarProfile() || !OwnsAvatar(id) || AvatarCatalog.Find(id) is not { } avatar)
+            return Task.FromResult(false);
+        if (SelectedAvatarId == avatar.Id)
+            return Task.FromResult(true);
+        return MutateAvatarProfileAsync((subject, ct) => _avatars.SelectAsync(avatar.Id, ct, subject), "avatar",
+            $"{avatar.Name} er nu din avatar.");
+    }
 
     public string LockText(DemoGoods item)
     {
         var parts = new List<string>();
-        if (Level < item.Level)
+        if (CurrentLevel < item.Level)
             parts.Add($"Level {item.Level}");
         if (!BadgeOk(item))
             parts.Add(BadgeLabel(item));
@@ -166,26 +281,13 @@ public sealed class DemoWorld
         Touch();
     }
 
-    public bool Buy(string id)
+    public async Task<bool> BuyAsync(string id)
     {
         var item = Goods.FirstOrDefault(g => g.Id == id);
-        if (item is null || Owned(item) || !Unlocked(item) || Gold < item.Cost)
+        if (!CanMutateAvatarProfile() || item is null || Owned(item) || !Unlocked(item) || Gold < item.Cost)
             return false;
-        Gold -= item.Cost;
-        if (item.Kind == "Tøj")
-        {
-            OwnedWear.Add(item.Id);
-            EquippedId = item.Id;
-        }
-        else
-        {
-            OwnedFurniture.Add(item.Id);
-        }
-
-        NoticeArea = "shop";
-        Notice = $"{item.Name} er købt og føjet til dit inventar.";
-        Touch();
-        return true;
+        return await MutateAvatarProfileAsync((subject, ct) => _avatars.BuyItemAsync(item.Id, ct, subject), "shop",
+            $"{item.Name} er købt og føjet til dit inventar.");
     }
 
     public void ChooseFurniture(string id)
@@ -374,7 +476,8 @@ public sealed class DemoWorld
         if (snap.HairStyle is "short" or "long" or "cap") HairStyle = snap.HairStyle;
         if (Goods.Any(g => g.Id == snap.EquippedId && g.Kind == "Tøj")) EquippedId = snap.EquippedId!;
         if (snap.ShopCategory is "Tøj" or "Møbler" or "Alle") ShopCategory = snap.ShopCategory;
-        Gold = Math.Clamp(snap.Gold, 0, 100000);
+        _legacyGold = Math.Clamp(snap.Gold, 0, 100000);
+        if (!_avatarProfileBound || _avatarSubject is null) Gold = _legacyGold;
         Player = Math.Clamp(snap.Player, 0, 47);
         Collected.Clear();
         foreach (var cell in snap.Collected ?? [])
@@ -389,17 +492,185 @@ public sealed class DemoWorld
         foreach (var pair in snap.Room ?? [])
             if (int.TryParse(pair.Key, out var cell) && cell is >= 0 and < 48 && Furniture.Any(f => f.Id == pair.Value))
                 Room[cell] = pair.Value;
-        OwnedWear.Clear();
-        OwnedWear.Add("basic");
+        _legacyOwnedWear.Clear();
+        _legacyOwnedWear.Add("basic");
         foreach (var id in snap.OwnedWear ?? [])
-            if (Goods.Any(g => g.Id == id && g.Kind == "Tøj")) OwnedWear.Add(id);
-        OwnedFurniture.Clear();
-        OwnedFurniture.UnionWith(["desk", "bed", "chair", "plant", "board"]);
+            if (Goods.Any(g => g.Id == id && g.Kind == "Tøj")) _legacyOwnedWear.Add(id);
+        _legacyOwnedFurniture.Clear();
+        _legacyOwnedFurniture.UnionWith(["desk", "bed", "chair", "plant", "board"]);
         foreach (var id in snap.OwnedFurniture ?? [])
-            if (Goods.Any(g => g.Id == id && g.Kind == "Møbler")) OwnedFurniture.Add(id);
-        if (!OwnedWear.Contains(EquippedId))
-            EquippedId = "basic";
+            if (Goods.Any(g => g.Id == id && g.Kind == "Møbler")) _legacyOwnedFurniture.Add(id);
+        ResetItemOwnership();
     }
+
+    private void ResetAvatarProfile()
+    {
+        _ownedAvatarIds.Clear();
+        _ownedAvatarIds.Add(AvatarCatalog.StarterId);
+        SelectedAvatarId = AvatarCatalog.StarterId;
+    }
+
+    private void ResetItemOwnership()
+    {
+        OwnedWear.Clear();
+        OwnedWear.UnionWith(_legacyOwnedWear);
+        OwnedFurniture.Clear();
+        OwnedFurniture.UnionWith(_legacyOwnedFurniture);
+        if (!OwnedWear.Contains(EquippedId)) EquippedId = "basic";
+    }
+
+    private bool ApplyServerAvatarProfile(AvatarProfileDto profile)
+    {
+        if (profile.Revision < _avatarRevision) return false;
+        _avatarRevision = profile.Revision;
+        ResetAvatarProfile();
+        foreach (var id in profile.OwnedAvatarIds ?? [])
+            if (AvatarCatalog.Find(id) is not null) _ownedAvatarIds.Add(id);
+        if (OwnsAvatar(profile.SelectedAvatarId)) SelectedAvatarId = profile.SelectedAvatarId;
+        Gold = Math.Max(0, profile.Gold);
+        CurrentLevel = Math.Max(1, profile.Level);
+        ResetItemOwnership();
+        foreach (var id in profile.OwnedItemIds ?? [])
+        {
+            var item = Goods.FirstOrDefault(item => item.Id == id);
+            if (item?.Kind == "Tøj") OwnedWear.Add(id);
+            else if (item?.Kind == "Møbler") OwnedFurniture.Add(id);
+        }
+        return true;
+    }
+
+    private bool IsCurrentAvatarProfile(string? subject, int version) =>
+        version == _avatarProfileVersion && subject == _avatarSubject;
+
+    private bool CanMutateAvatarProfile() => Ready && AvatarProfileReady && !AvatarBusy
+        && AvatarProfileError is null && _avatarSubject is not null;
+
+    private async Task LoadAvatarProfileAsync(string? subject, int version, CancellationToken ct)
+    {
+        await EnsureAsync();
+        if (!IsCurrentAvatarProfile(subject, version)) return;
+        try
+        {
+            if (subject is null)
+            {
+                Gold = _legacyGold;
+                AvatarProfileReady = true;
+                return;
+            }
+
+            var profile = await _avatars.GetAsync(ct, subject);
+            if (!IsCurrentAvatarProfile(subject, version)) return;
+            ApplyServerAvatarProfile(profile);
+            AvatarProfileReady = true;
+
+            if (profile.CanImportLegacy)
+            {
+                var legacy = await ReadLegacyAvatarProfileAsync(subject);
+                if (!IsCurrentAvatarProfile(subject, version)) return;
+                if (legacy is not null)
+                {
+                    var owned = (legacy.OwnedAvatarIds ?? []).Where(id => AvatarCatalog.Find(id) is not null).ToArray();
+                    var request = new AvatarLegacyImportRequest(owned, legacy.SelectedAvatarId, _legacyGold);
+                    try { profile = await _avatars.ImportLegacyAsync(request, ct, subject); }
+                    catch (AvatarApiException ex) when (ex.Code == "legacy_import_closed")
+                    {
+                        profile = await _avatars.GetAsync(ct, subject);
+                    }
+                    if (!IsCurrentAvatarProfile(subject, version)) return;
+                    ApplyServerAvatarProfile(profile);
+                }
+            }
+
+            if (!profile.CanImportLegacy && IsCurrentAvatarProfile(subject, version))
+                await RemoveLegacyAvatarProfileAsync(subject);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is AvatarApiException or HttpRequestException or JsonException or OperationCanceledException)
+        {
+            if (IsCurrentAvatarProfile(subject, version)) AvatarProfileError = AvatarErrorMessage(ex);
+        }
+        finally
+        {
+            if (IsCurrentAvatarProfile(subject, version))
+            {
+                AvatarBusy = false;
+                Changed?.Invoke();
+            }
+        }
+    }
+
+    private async Task CompleteAvatarProfileLoadAsync(string? subject, int version, CancellationToken ct, TaskCompletionSource completion)
+    {
+        try
+        {
+            await LoadAvatarProfileAsync(subject, version, ct);
+            completion.TrySetResult();
+        }
+        catch (Exception error) { completion.TrySetException(error); }
+    }
+
+    private async Task<AvatarProfile?> ReadLegacyAvatarProfileAsync(string subject)
+    {
+        try
+        {
+            var json = await _js.InvokeAsync<string?>("lupAvatars.get", subject);
+            return string.IsNullOrWhiteSpace(json) ? null : JsonSerializer.Deserialize<AvatarProfile>(json, Json);
+        }
+        catch (JsonException) { return null; }
+        catch (JSException) { return null; }
+    }
+
+    private async Task RemoveLegacyAvatarProfileAsync(string subject)
+    {
+        try { await _js.InvokeVoidAsync("lupAvatars.remove", subject); }
+        catch (JSException) { /* The API remains canonical if old browser storage cannot be removed. */ }
+    }
+
+    private async Task<bool> MutateAvatarProfileAsync(Func<string, CancellationToken, Task<AvatarProfileDto>> operation, string area, string success)
+    {
+        if (!CanMutateAvatarProfile()) return false;
+        var subject = _avatarSubject!;
+        var version = _avatarProfileVersion;
+        var ct = _avatarProfileCancellation.Token;
+        AvatarBusy = true;
+        AvatarProfileError = null;
+        NoticeArea = area;
+        Notice = null;
+        Changed?.Invoke();
+        try
+        {
+            if (!IsCurrentAvatarProfile(subject, version)) return false;
+            var profile = await operation(subject, ct);
+            if (!IsCurrentAvatarProfile(subject, version) || !ApplyServerAvatarProfile(profile)) return false;
+            AvatarProfileReady = true;
+            NoticeArea = area;
+            Notice = success;
+            Touch();
+            return true;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { return false; }
+        catch (Exception ex) when (ex is AvatarApiException or HttpRequestException or JsonException or OperationCanceledException)
+        {
+            if (IsCurrentAvatarProfile(subject, version)) AvatarProfileError = AvatarErrorMessage(ex);
+            return false;
+        }
+        finally
+        {
+            if (IsCurrentAvatarProfile(subject, version))
+            {
+                AvatarBusy = false;
+                Changed?.Invoke();
+            }
+        }
+    }
+
+    private static string AvatarErrorMessage(Exception error) => error switch
+    {
+        AvatarApiException api => api.Message,
+        JsonException => "Serveren gav et uventet svar. Prøv at hente din avatarsamling igen.",
+        OperationCanceledException => "Forbindelsen tog for lang tid. Prøv igen.",
+        _ => "Din avatarsamling kunne ikke synkroniseres. Tjek forbindelsen, og prøv igen."
+    };
 
     private void Touch()
     {
@@ -415,16 +686,16 @@ public sealed class DemoWorld
             Outfit = Outfit,
             Hair = Hair,
             HairStyle = HairStyle,
-            EquippedId = EquippedId,
+            EquippedId = _legacyOwnedWear.Contains(EquippedId) ? EquippedId : "basic",
             ShopCategory = ShopCategory,
-            Gold = Gold,
+            Gold = _legacyGold,
             Player = Player,
             Collected = Collected.ToArray(),
             Done = Done.ToArray(),
             Votes = Votes.ToDictionary(pair => pair.Key, pair => pair.Value),
             Room = Room.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
-            OwnedWear = OwnedWear.ToArray(),
-            OwnedFurniture = OwnedFurniture.ToArray()
+            OwnedWear = _legacyOwnedWear.ToArray(),
+            OwnedFurniture = _legacyOwnedFurniture.ToArray()
         };
         try
         {
@@ -455,6 +726,12 @@ public sealed class DemoWorld
         public Dictionary<string, string>? Room { get; set; }
         public string[]? OwnedWear { get; set; }
         public string[]? OwnedFurniture { get; set; }
+    }
+
+    private sealed class AvatarProfile
+    {
+        public string? SelectedAvatarId { get; set; }
+        public string[]? OwnedAvatarIds { get; set; }
     }
 }
 

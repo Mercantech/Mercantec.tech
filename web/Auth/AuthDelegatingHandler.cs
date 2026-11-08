@@ -5,8 +5,6 @@ namespace Mercantec.Tech.Web.Auth;
 
 public sealed class AuthDelegatingHandler(AuthService auth) : DelegatingHandler
 {
-    private bool _retried;
-
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
@@ -17,31 +15,42 @@ public sealed class AuthDelegatingHandler(AuthService auth) : DelegatingHandler
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized && !_retried)
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            _retried = true;
-            response.Dispose();
-            var refreshed = await auth.TryRefreshOnUnauthorizedAsync();
-            if (refreshed)
+            try
             {
-                var retry = await CloneRequestAsync(request);
-                var newToken = await auth.GetValidAccessTokenAsync();
-                if (!string.IsNullOrEmpty(newToken))
-                    retry.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+                if (!await auth.TryRefreshOnUnauthorizedAsync())
+                    return response;
 
+                using var retry = await CloneRequestAsync(request, cancellationToken);
+                var newToken = await auth.GetValidAccessTokenAsync();
+                if (string.IsNullOrEmpty(newToken))
+                    return response;
+
+                retry.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+                // A failed refresh must return the original readable401. Only
+                // release it once an actual retry will replace the response.
+                response.Dispose();
+                // Calling the inner handler directly gives each request one
+                // retry, without a shared flag affecting later requests.
                 return await base.SendAsync(retry, cancellationToken);
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
             }
         }
 
         return response;
     }
 
-    private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage request)
+    private static async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var clone = new HttpRequestMessage(request.Method, request.RequestUri);
         if (request.Content is not null)
         {
-            var bytes = await request.Content.ReadAsByteArrayAsync();
+            var bytes = await request.Content.ReadAsByteArrayAsync(cancellationToken);
             clone.Content = new ByteArrayContent(bytes);
             foreach (var header in request.Content.Headers)
                 clone.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
