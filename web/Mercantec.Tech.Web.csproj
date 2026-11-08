@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../api/Arena/ArenaSimulation.cs" Link="Arena/ArenaSimulation.cs" />
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />
     <PackageReference Include="ColorCode.HTML" Version="2.0.15" />
     <PackageReference Include="Markdig" Version="0.41.0" />

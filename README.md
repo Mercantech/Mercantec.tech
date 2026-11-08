@@ -20,6 +20,10 @@ dotnet run --project web
 
 [Designgennemgangen](obsidian/03-features/Blazor-designgennemgang.md) beskriver, hvad der er genskabt i Blazor, og hvilke datakoblinger der stadig mangler.
 
+## LUP Arena
+
+[LUP Arena](obsidian/03-features/LUP-Arena.md) på `/arena` er et platformskampspil med profilavatarer, tre baner, lokal CPU-træning og serverstyret online multiplayer for 2–4 spillere. Opret et rum, del invitationen, og spil fra hver sin computer. Online bruger det eksisterende login/API; træning kan spilles uden login.
+
 ## Den oprindelige designreference
 
 Den oprindelige klikbare designreference ligger i [`design/lup/`](design/lup/README.md). Fra repoets rod:

@@ -25,6 +25,9 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 
 builder.Services.AddControllers();
 builder.Services.AddNotionMcp();
+// Arena rooms and simulation share a single authoritative process.
+builder.Services.AddSingleton<Mercantec.Tech.Api.Arena.ArenaRoomService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<Mercantec.Tech.Api.Arena.ArenaRoomService>());
 builder.Services.AddScoped<Mercantec.Tech.Api.Notebooks.NotebookAccess>();
 builder.Services.AddHostedService<Mercantec.Tech.Api.References.ReferenceBackfill>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingAccess>();
@@ -245,6 +248,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 app.UseCors("Spa");
+app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15), KeepAliveTimeout = TimeSpan.FromSeconds(30) });
 app.UseAuthentication();
 app.UseAuthorization();
 if (!builder.Configuration.GetValue<bool>("PreviewWorker:Only"))

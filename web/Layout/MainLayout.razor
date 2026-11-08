@@ -49,6 +49,7 @@
                             <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
                             @foreach (var link in NotebookLinks.Skip(1)) { <NavLink href="@link.Href">@link.Label</NavLink> }
                             <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
+                            <NavLink href="/arena">LUP Arena</NavLink>
                             <NavLink href="/characters">Karakterer</NavLink>
                             <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
                             @if (IsTeacher)
