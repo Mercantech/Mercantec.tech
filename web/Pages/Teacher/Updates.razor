@@ -23,7 +23,7 @@ else
         <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/teacher">Overblik</a><span aria-hidden="true">›</span><span aria-current="page">Nyt i LUP</span></nav>
         <header class="updates-heading">
             <h1>Nyt i LUP</h1>
-            <p>Små og store forbedringer, vist tæt på. De nyeste står øverst.</p>
+            <p>@if (!_loading && _error is null && _entries.Length > 0) { <span>@_entries.Length opdateringer · </span> }Små og store forbedringer, vist tæt på. De nyeste står øverst.</p>
         </header>
 
         @if (_loading)
@@ -56,7 +56,7 @@ else
                     </article>
                 }
             </div>
-            <p class="updates-note">Billederne viser ændringerne på det tidspunkt, de blev lavet. Eksemplerne indeholder testdata.</p>
+            <p class="updates-note">Billederne viser funktionerne tæt på og indeholder testdata. Hvor der findes et tidligere billede, kan du sammenligne Før og Efter.</p>
         }
     </div>
 

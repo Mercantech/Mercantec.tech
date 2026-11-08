@@ -1,0 +1,3063 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-11-08",
+  "repository": "Mercantech/Mercantec.tech",
+  "baselineCommit": "74db49e319aff1118d12e1a8fdacf5dbd0f75228",
+  "fullHistory": true,
+  "firstHistoryDate": "2026-10-22",
+  "totalCommits": 201,
+  "catalogEntries": 48,
+  "scope": "All user-facing changes through the reviewed baseline, grouped by related feature. Internal-only changes and duplicate merges carry explicit exclusion reasons. Screenshots use isolated test data.",
+  "entries": [
+    {
+      "id": "characters",
+      "date": "2026-11-07",
+      "commits": [
+        "82437e8c4de9ce9546d678e0d2e53b729d0182dc"
+      ],
+      "changes": [
+        "Tre afspilbare scener: JOIN, ORDER BY og WHERE.",
+        "Stillbillede indtil aktiv afspilning, stop og GIF-download."
+      ],
+      "evidence": [
+        "web/Components/CharacterAnimationGallery.razor"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "notebook",
+      "date": "2026-11-07",
+      "commits": [
+        "1d662dd63056c2a616b246dd1004930ad50215ba"
+      ],
+      "changes": [
+        "Noter, undersider, tags, søgning, backlinks, graf og automatisk lagring.",
+        "Daglige/ugentlige/frie skabeloner; undervisere skriver og aktiverer fælles skabeloner.",
+        "Undervisere kan læse/kommentere elevnotesbøger; eleven kan give andre læseadgang til en side eller hele notesbogen.",
+        "Læreroversigt, filer og opdatering af læsevisning ved ændringer."
+      ],
+      "evidence": [
+        "obsidian/03-features/Logbog.md",
+        "web/Pages/Notebook/Index.razor"
+      ],
+      "caveats": [
+        "Ingen vedvarende offline-redigering. Deling giver læseadgang; alle undervisere kan læse og kommentere."
+      ]
+    },
+    {
+      "id": "roulette",
+      "date": "2026-11-07",
+      "commits": [
+        "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925",
+        "1bfd322b0a171e2156dc1d5de351a19c20a753ce",
+        "b756dac90c3b650022448e4ace11e5f4c68ad316",
+        "fbb52bc988d747ae61e1f7deed7e84e5185ed4fb",
+        "43454a6df830e650e332d345975ce8c04c7b1fda"
+      ],
+      "changes": [
+        "Navngiv og arkivér forskellige gruppesæt.",
+        "En elev kan høre til flere sæt; gruppequests kan knyttes til et valgt sæt.",
+        "Historik og afleveringer bevares ved arkivering.",
+        "Tavlevindue med navne, håndtag, gruppevis afsløring og fuldskærm.",
+        "Fordel alle valgte elever og gem først runden ved et aktivt valg.",
+        "Lydvalg, tempo, auto-spin, forudindtalte Røst-navne og arenaspeaker samt temaer.",
+        "Rettet gammel cache i afspilleren."
+      ],
+      "evidence": [
+        "api/Controllers/GroupSetsController.cs",
+        "web/Components/HoldGroups.razor",
+        "web/Pages/Courses/Roulette.razor",
+        "web/wwwroot/js/group-roulette-show.js"
+      ],
+      "caveats": [
+        "Ingen elevdata blev brugt i illustrationsbillederne. Lyd er frivillig og afhænger af tilgængelige lydklip."
+      ]
+    },
+    {
+      "id": "notification-dropdown",
+      "date": "2026-11-07",
+      "commits": [
+        "70dfe621ed80b863c9bfe02de85cdb20e503eaf1",
+        "e2feecdf62d34110c40f6aabd34fa2016c506c2e",
+        "6a4e334d702b0cb77008f0605c4de957a0999259",
+        "cf0d752c9a61df55280befe1473874d37937ab7e"
+      ],
+      "changes": [
+        "Personlig serverberegnet rød/orange/grøn handlingsstatus.",
+        "Klik åbner alle ventende handlinger med rulning og vigtige punkter først.",
+        "Direkte links til aflevering/aktivitet med holdkontekst; Escape/klik udenfor lukker."
+      ],
+      "evidence": [
+        "web/Components/NotificationBell.razor",
+        "api/Learning/ActionCenterBuilder.cs"
+      ],
+      "caveats": [
+        "Personlige beskeder og læsekvitteringer blev tilføjet 8/11 og dækkes af action-center."
+      ]
+    },
+    {
+      "id": "library",
+      "date": "2026-11-07",
+      "commits": [
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "70dfe621ed80b863c9bfe02de85cdb20e503eaf1",
+        "e2feecdf62d34110c40f6aabd34fa2016c506c2e"
+      ],
+      "changes": [
+        "Projektkort med billeder, ejer, reaktioner og kommentarer i demouniverset.",
+        "Søgning omfatter fag/emner, quests, badges og projekter og åbner konkrete indholdssider.",
+        "Private demoprojekter udelades fra det fælles søgeindeks.",
+        "Samlet bibliotek for forløb, fag/emner, DEMO-projekter og badgekrav.",
+        "Lokal offentlig søgning, kategorier og direkte stabile links; kursusindeks med mål/ugeplan."
+      ],
+      "evidence": [
+        "web/Components/ProjectGallery.razor",
+        "web/Pages/Demo/Explore.razor",
+        "web/Demo/DemoCatalog.cs",
+        "web/Pages/Library.razor",
+        "web/Pages/Library.razor.css"
+      ],
+      "caveats": [
+        "Demo-/katalogindhold; ikke dokumentation for færdig serverbaseret social portfolio eller global adgangsfiltreret serversøgning.",
+        "Biblioteket blev oprettet og udbygget 7/11. Projektkort, reaktioner og kommentarer er demo."
+      ]
+    },
+    {
+      "id": "hold-navigation",
+      "date": "2026-11-07",
+      "commits": [
+        "f981d09ef4850e47250fc89bdbabf550503349f4",
+        "70dfe621ed80b863c9bfe02de85cdb20e503eaf1"
+      ],
+      "changes": [
+        "Holdoverblik samler sider, opgaver, kalender, elever, grupper og materialer.",
+        "Rigtig holdkalender med uge/måned/liste samt opret/rediger/slet.",
+        "Questfrister vises automatisk, og materialer kan uploades og udgives/skjules.",
+        "Mine hold og Bibliotek i hovednavigationen; profil samler personlige sider og indstillinger.",
+        "Fem holdfaner: Overblik, Undervisning, Opgaver, Kalender og Klassen.",
+        "Valgt hold/forløb følger URL, editor, grupper, kalender og afstemninger; gamle direkte links virker stadig."
+      ],
+      "evidence": [
+        "obsidian/03-features/Hold-dashboard.md",
+        "api/Controllers/HoldWorkspaceController.cs",
+        "api/Controllers/HoldCalendarController.cs",
+        "web/Navigation/WorkspaceNavigation.cs",
+        "obsidian/03-features/LUP-navigation-og-soegning.md"
+      ],
+      "caveats": [
+        "Navigationen blev leveret 7/11."
+      ]
+    },
+    {
+      "id": "published-pages",
+      "date": "2026-11-05",
+      "commits": [
+        "25f12db77461a28f8cb09711cdd611015d87b026",
+        "10ebd55d5b93fd94312543098bfe5de52c9cb083",
+        "e044c4c9d55179d7aeb30fa9de03cf6b812b933b",
+        "d8ac5efcbc33a37e09c3df4bcc6486c5e17e8f73",
+        "db80162abed73372cd0ade0db3b19c62d7c63f52"
+      ],
+      "changes": [
+        "Skriv samtidigt i selvhostet blokeditor, opret sider og undersider.",
+        "Udgiv en fast læseversion til elever og træk den tilbage igen.",
+        "@-henvisninger, stabile sidelinks, elevlister og gemte grupper i dokumentet.",
+        "Indlejrede medier, sidebaseret filadgang og præsentation som slides.",
+        "Rettet tokenafvisning og samarbejde på begge LUP-domæner."
+      ],
+      "evidence": [
+        "obsidian/03-features/Forloebseditor.md",
+        "api/Controllers/NotionController.cs"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "poll-studio",
+      "date": "2026-11-05",
+      "commits": [
+        "fa3cb3c3e42929fecb7a4ddbbc143b9c8b40244a",
+        "d686fa54921bdc49d5bb4ac01b4003c0f58c46d7"
+      ],
+      "changes": [
+        "Stemning, valg, skala og kort svar.",
+        "Kladde/start/luk/genåbn, elevsvar og samlede resultater på tværs af klienter.",
+        "Tavlevisning med antal/procenter uden elevnavne."
+      ],
+      "evidence": [
+        "obsidian/03-features/Afstemninger-og-stemning.md",
+        "api/Controllers/PollsController.cs"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "gift-opening",
+      "date": "2026-11-05",
+      "commits": [
+        "de3f0d6bc9364ceef8491d2941381feaeffb55be",
+        "fa3cb3c3e42929fecb7a4ddbbc143b9c8b40244a",
+        "d686fa54921bdc49d5bb4ac01b4003c0f58c46d7"
+      ],
+      "changes": [
+        "Gaveindbakke, modtager, indpakning, hilsen og åbnet/leveret-status på tværs af konti.",
+        "Forbedret elevadgang til registrerede undervisere og opdatering af modtagervælgeren.",
+        "Ny scene med papirfolder, bånd, konfetti og personligt kort."
+      ],
+      "evidence": [
+        "obsidian/03-features/Julegaver-og-sne.md",
+        "web/Components/GiftReveal.razor"
+      ],
+      "caveats": [
+        "Gratis hilsner; gaver overfører ikke XP, guld eller inventar. Begge konti skal bruge samme API."
+      ]
+    },
+    {
+      "id": "newyear",
+      "date": "2026-11-05",
+      "commits": [
+        "e4e49efe0c03a2a1beaf7c0c48914f11d9d412ae",
+        "59006d7f33f41bb49d9aef0322778c57712ad3db",
+        "38519aae9a32d1518697db27949d86a622592d50"
+      ],
+      "changes": [
+        "Frivilligt fyrværkerispil på siden, senere med lilla figur.",
+        "Ingen tidsgrænse, seks slags programmeringsfejl og stigende sværhedsgrad.",
+        "Fem kombinerbare boosts, store fyrværkeribuketter og gendannelse af interfacet ved afslutning."
+      ],
+      "evidence": [
+        "web/wwwroot/js/lup-newyear.js",
+        "obsidian/03-features/Temaer-og-nytaar.md"
+      ],
+      "caveats": [
+        "Spillet ændrer ikke platformens data eller belønninger."
+      ]
+    },
+    {
+      "id": "student-front",
+      "date": "2026-11-05",
+      "commits": [
+        "70743da2777b6d6bbcecb6085f5ae0a8ff70c231",
+        "5af82b1f780d1c7331f5ba8641b4b39967398120",
+        "1445b6cdf331b1d72c8a62089e9f8388b1f5988d",
+        "473b77d050d53a8459a6c5f05a9857745f1e96d6",
+        "6e36c230c6a8deae9d94fe9be7284f1703f327fc"
+      ],
+      "changes": [
+        "Aktivt forløb, genveje, udvikling, avatar og badges på elevforsiden.",
+        "Kompakt Lectio/VUF-panel og foldbar forløbstidslinje.",
+        "Korrekt fejltekst og genforsøg; netværksfejl er forskellige fra manglende kontokobling."
+      ],
+      "evidence": [
+        "web/Pages/Student/Dashboard.razor",
+        "obsidian/03-features/Blazor-designgennemgang.md"
+      ],
+      "caveats": [
+        "XP, guld og badges følger fortsat demotilstand; Lectio/VUF bruger API."
+      ]
+    },
+    {
+      "id": "avatar",
+      "date": "2026-11-04",
+      "commits": [
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+      ],
+      "changes": [
+        "Vælg figurens udseende og tøj; garderoben deles med Rune Run Mini.",
+        "Valg gemmes lokalt og gamle lokale avatarvalg importeres."
+      ],
+      "evidence": [
+        "web/Components/AvatarEditor.razor",
+        "web/Demo/DemoWorld.cs"
+      ],
+      "caveats": [
+        "Historisk udgave fra 4/11 med lokale garderobevalg. Den blev 8/11 afløst af hele figurer og kontogemt avatarsamling, dækket af avatar-collection."
+      ]
+    },
+    {
+      "id": "apartment",
+      "date": "2026-11-04",
+      "commits": [
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+      ],
+      "changes": [
+        "Placér, flyt og fjern møbler i et 8x6-rum.",
+        "Møbler fra lokale butikskøb bliver synlige i samme inventar."
+      ],
+      "evidence": [
+        "web/Components/ApartmentView.razor",
+        "web/Demo/DemoWorld.cs"
+      ],
+      "caveats": [
+        "Rumplaceringer er fortsat browserdata. Fra 8/11 gemmes nye møbelkøb på kontoen med samme saldo som avatarer."
+      ]
+    },
+    {
+      "id": "profile",
+      "date": "2026-11-04",
+      "commits": [
+        "dfaa976186ed8a20136190dc18b9bb9ec722016c",
+        "0f1f62199ffd321d4e331798c47d76da91eb6253",
+        "c11e34aa413f267fbbe09902a5fc2d73117ee4c1",
+        "f324fb735843fa1f487ff2c47529024ca0e42b95"
+      ],
+      "changes": [
+        "Mercantec Auth-login via PKCE og rollebaserede elev-/undervisersider.",
+        "Profil viser brugerens oplysninger og roller; rettelse sikrer, at rolleclaims læses rigtigt.",
+        "Brugere-indgang med Auth-brugeroversigt og rolleoplysninger.",
+        "Korrekt rollebehandling og længere ventetid til Auth-administration."
+      ],
+      "evidence": [
+        "web/Auth/AuthService.cs",
+        "web/Auth/RoleResolver.cs",
+        "web/Pages/Profile.razor",
+        "api/Controllers/UsersController.cs",
+        "web/Pages/Users.razor"
+      ],
+      "caveats": [
+        "Adgang og konkrete redigeringsmuligheder følger de eksisterende Auth-rettigheder."
+      ]
+    },
+    {
+      "id": "rights",
+      "date": "2026-10-30",
+      "commits": [
+        "82b4dcd7741e30ecec8f657af57165b6f4b1c630"
+      ],
+      "changes": [
+        "Privatlivsside og egne rettigheder.",
+        "Eksport af egne data og mulighed for at sende en sletteanmodning."
+      ],
+      "evidence": [
+        "api/Controllers/PrivacyController.cs",
+        "web/Pages/Rights.razor",
+        "obsidian/03-features/GDPR-og-rettigheder.md"
+      ],
+      "caveats": [
+        "Sletteanmodning er en anmodning; den er ikke automatisk udført sletning."
+      ]
+    },
+    {
+      "id": "lectio-linking",
+      "date": "2026-11-05",
+      "commits": [
+        "b505477d3797a9f560ecce8c104839effc884996",
+        "7498344640a078ad4add0e4e92279e025fb342e0",
+        "3bef8c76fc729d3039991797e233b520c13e726b",
+        "ac7b9b001a6c1959a8ed783f6513adb683dd78c7"
+      ],
+      "changes": [
+        "Lectio-data vises med elev-/underviseradgang.",
+        "Eleven kan vælge sin Lectio-kandidat fra dashboardet.",
+        "Undervisere kan foretage en manuel Auth/Lectio-kobling og se koblingsstatus."
+      ],
+      "evidence": [
+        "web/Pages/Lectio.razor",
+        "obsidian/03-features/Hold-og-Lectio.md"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "lectio-overview",
+      "date": "2026-10-31",
+      "commits": [
+        "994de4e4cfc6b70b5f7b5ad86a7cdab9cf396c5a",
+        "f7295cd246b0ec5480324105ed651a36c5bb5ac3",
+        "3d612ca85802a169206a72adea30a19de25b7aae",
+        "e501c3659402c503edea9592a9b18aad5df20c63",
+        "dd2041b229823dea23ff7d47a30faae5e46762ff",
+        "5940eca2fe3df53b7fe6255d8fac9c58b9006844",
+        "144faf10ef7c8ce2891a5a190e8be0729faa6fee",
+        "ce5748066a0681dc2f73da8cabd068b2d4786e0c",
+        "030c52226c4445c82147f7e4fae92f5ef78d6f52",
+        "0cf98ddffd4453d804ff6c42f59de8a849acd3ba",
+        "6b3ba3c12c6260e42f23d6cf106ff29e80a5c476",
+        "0260a5e1dc43246cac5a6ea2d90c2d989e868c51",
+        "27f980673e9b6f0a17c709e700acbb3ed79124df",
+        "db6f7e281d99feadaa4d0bfa0ab141a2c8acc2a2"
+      ],
+      "changes": [
+        "Forløb, hold og medlemskaber gemmes i databasen.",
+        "Opret forløb fra Lectio-hold, inklusive elever uden platformskonto.",
+        "Flere Lectio-hold kan samles i samme forløb.",
+        "Elev- og holdoversigt erstatter rå/tom JSON.",
+        "Vis læreplads, VUF, studieplan, alle elevforløb og tidslinje.",
+        "Filtrér og sortér elever og se elevliste for hvert hold.",
+        "Rettelser af filtrering og Razor-tekst i filterknapper.",
+        "LC-logo på links til Lectio-Collector.",
+        "Logoet holdes kompakt; selve logoet bliver linket."
+      ],
+      "evidence": [
+        "api/Controllers/ForloebController.cs",
+        "api/Controllers/HoldsController.cs",
+        "web/Pages/Lectio.razor"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "reliable-app",
+      "date": "2026-11-07",
+      "commits": [
+        "bbed21a37382c71e2cb0599ac1d773ecad5565db",
+        "e81e0cfc362cc55094e21b5800bc02fc9460cff7",
+        "be8bbe1968a7fcdec97ca6cc5a2b39efcbf6ef4b",
+        "9ebe1159273ba678cccd66710ef5a16b3fb46fa8",
+        "06190988ff5689fcb617f734c7a7951d4b196b9e",
+        "433538cbaa115fb1e6ea1e1695bf4718be68c827",
+        "0fafda8c39f4f13a88d10d5741553f8cf5c4c03b",
+        "41b90572e80ba76b31959dfc711d5f9b23e4bef0",
+        "0184bc23e1cc8e88164ab642f357e01e740bd39f"
+      ],
+      "changes": [
+        "Blazor-app, API, sundhedstjek og installérbar PWA blev oprettet 30/10.",
+        "PWA-navn og offentlig sundhedsstatus blev rettet.",
+        "Dansk ikke-fundet-side, engelske ruter og netværksførst-navigation med fallback ved netværksfejl.",
+        "Forhindrer gammel service worker og udviklingskonfiguration i at hænge fast bag Cloudflare.",
+        "Installerer appen trods WASM-integritetsproblemer og undgår gammelt manifest efter en opdatering.",
+        "lup.dk tilføjes som alias til den samme platform 5/11."
+      ],
+      "evidence": [
+        "web/wwwroot/manifest.webmanifest",
+        "api/Controllers/HealthController.cs",
+        "web/wwwroot/service-worker.published.js",
+        "web/Pages/NotFound.razor"
+      ],
+      "caveats": [
+        "22/10 var kun repositoryets README, ikke den færdige platform.",
+        "Dette betyder ikke vedvarende offline-redigering eller at alle serverdata er tilgængelige offline."
+      ]
+    },
+    {
+      "id": "lup-design",
+      "date": "2026-11-04",
+      "commits": [
+        "3609f6bf3d5b16de786fc29f2bd6e298965b34a9",
+        "d9c0e319f70a29b7c906b89751d8c44b67f3e5e3",
+        "246ae1a47775f63422a6dac498434498fe190adc",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "be5e70dc5d87443c59976657f584bc3854ad292c",
+        "71bdda5d777b55b54b7c585740e59371ef3abe96",
+        "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6",
+        "0e8ca604b18ea8b09a88aba013f8a70e0cbcd480",
+        "0b0bd6a4c084b7a278179e4fc40d1451d81423d5",
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54"
+      ],
+      "changes": [
+        "Selvstændig klikbar prototype af LUP med undervisning, aktiviteter og personligt univers.",
+        "Fælles LUP-header, brødkrummer, forløbsnavigation og mobiltilpasning i Blazor.",
+        "Undgår hvidt Lectio-design fra gammel CSS og forkert indhold efter navigation.",
+        "Mathias' lokale funktioner og det nye design samles, så køb, avatar og spil bruger samme lokale tilstand.",
+        "Undervisningsplaner på /lup og Lectio på samme fælles flade.",
+        "Samlet indgang 'Andre sider' fra undervisningsplanerne.",
+        "Aktivitetsindgang og lokale questmarkeringer.",
+        "Visuel ugekalender med tidsskala, aktivitetsblokke og grøn/blå/gul fremmødeform."
+      ],
+      "evidence": [
+        "design/lup/README.md",
+        "design/lup/app.js",
+        "web/Layout/MainLayout.razor",
+        "obsidian/03-features/Blazor-designgennemgang.md",
+        "web/wwwroot/lup/index.html",
+        "web/wwwroot/lup/js/main.js",
+        "web/Components/WeekCalendar.razor",
+        "web/Demo/DemoWorld.cs"
+      ],
+      "caveats": [
+        "Designreference med lokale data; ikke en ekstra serverimplementering.",
+        "Den historiske kalender og lokale markeringer var demo. Rigtige holdkalendere/quests kom senere; udført er ikke det samme som afleveret/godkendt."
+      ]
+    },
+    {
+      "id": "themes",
+      "date": "2026-11-04",
+      "commits": [
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "1968ae0ae5a4ee681c454e41dbf4108fa2f4474c",
+        "de3f0d6bc9364ceef8491d2941381feaeffb55be"
+      ],
+      "changes": [
+        "System, lyst, mørkt, jul og hacker som frie valg; senere tilføjes nytår.",
+        "Interaktiv sne, julelys og mulighed for at vælge stille/bevægelig sne.",
+        "Sne respekterer reduceret bevægelse og kan pauses."
+      ],
+      "evidence": [
+        "web/Theming/ThemeCatalog.cs",
+        "obsidian/03-features/Temaer-og-nytaar.md"
+      ],
+      "caveats": [
+        "Rainbow er udgået. Temaer giver ikke adgang til indhold."
+      ]
+    },
+    {
+      "id": "shop",
+      "date": "2026-11-04",
+      "commits": [
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+      ],
+      "changes": [
+        "Varekatalog med tøj/møbler, kategorier, priser og level-/badgekrav.",
+        "Køb opdaterer lokal saldo, inventar, garderobe og header.",
+        "Visuel plan for kommende oplåsninger."
+      ],
+      "evidence": [
+        "web/Components/ShopGallery.razor",
+        "web/Components/UnlockRow.razor",
+        "web/Demo/DemoWorld.cs"
+      ],
+      "caveats": [
+        "Historisk demobutik fra 4/11. Fra 8/11 gemmes guldsaldo og nye møbelkøb på kontoen; tøj/garderobe er ikke længere et aktuelt brugerflow."
+      ]
+    },
+    {
+      "id": "progress",
+      "date": "2026-11-04",
+      "commits": [
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a"
+      ],
+      "changes": [
+        "Visuelt galleri med 13 badges og fem medaljeniveauer.",
+        "Filtre for ejet/mangler og separate kriteriesider.",
+        "Visninger af XP, level og næste badge."
+      ],
+      "evidence": [
+        "web/Components/BadgeGallery.razor",
+        "web/Components/BadgeMark.razor",
+        "web/Demo/DemoCatalog.cs"
+      ],
+      "caveats": [
+        "Personlige XP, niveauer og optjening er fixturedata; offentlige kriterier er læseindhold."
+      ]
+    },
+    {
+      "id": "rune-run",
+      "date": "2026-11-04",
+      "commits": [
+        "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+        "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+        "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6"
+      ],
+      "changes": [
+        "Minispillet genbruger avatar, garderobe og lokale valg."
+      ],
+      "evidence": [
+        "web/Components/AvatarGame.razor"
+      ],
+      "caveats": [
+        "Lokalt minispil med eksempel-highscores. Oprindeligt brugte det lokale garderobevalg; fra 8/11 viser det kontoens valgte figur."
+      ]
+    },
+    {
+      "id": "login-return",
+      "date": "2026-11-07",
+      "commits": [
+        "fe3512880820555a75f714ed98c8675c6798b61f",
+        "07defe3509d90ff64d790118e47bd01d8ba40296",
+        "aa650337a647577226cb7594d7a5099c89c2009d",
+        "74d2d231a266d578a54b92788a3b1e1f7c672450",
+        "79b0c69ea75d14976062b970115113ec58e7c513"
+      ],
+      "changes": [
+        "Tydelige indlæsnings- og fejltilstande ved login.",
+        "Lokal logud logger ikke straks brugeren ind igen.",
+        "Login sender tilbage til den ønskede side og undgår løkker ved kodede adresser.",
+        "Loginfilen opdateres sammen med appen."
+      ],
+      "evidence": [
+        "web/Auth/AuthReturnPath.cs",
+        "web/Auth/AuthService.cs",
+        "web/Pages/Login.razor"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "view-as-student",
+      "date": "2026-11-05",
+      "commits": [
+        "13ea1939aab98a70cd691fa3504c92f9575cbf78",
+        "a47d1cdbeaab8943e175505775217fbe3d6be6f2",
+        "98bc61a6a2b06be82034a783c121831fdfca70ef",
+        "7e93fa8101c8cce4f0b4a4f6e4b2dd9c13ad1356",
+        "6e36c230c6a8deae9d94fe9be7284f1703f327fc"
+      ],
+      "changes": [
+        "Start 'Se som elev' fra brugeroversigten.",
+        "Hele elev-UI'et viser den valgte elevs Lectio, VUF, studieplan og medlemskaber.",
+        "Tydeligt banner over navigationen og mulighed for at afslutte preview."
+      ],
+      "evidence": [
+        "web/Auth/ViewAsStudentContext.cs",
+        "web/Layout/MainLayout.razor"
+      ],
+      "caveats": [
+        "Preview ændrer ikke lærerens JWT eller reelle rolle og er ikke en adgang til elevens private gave-/notesbogsbeskeder."
+      ]
+    },
+    {
+      "id": "course-catalog",
+      "date": "2026-11-05",
+      "commits": [
+        "5213e8a35efbba4155b108ff83922eee2c68a916",
+        "c73e18c8983f693fd45b44ff289c0e30d34f0728",
+        "fd19ca9a69ee21edd8704f36c080d1e101fbc606",
+        "076866ae8397fdf42490ea4a32b65d06eecf3835",
+        "548e2461d09bcdfecd661fe13dfa04835806ef90",
+        "b38f1075767280e9b3f67cc0efdd1f511b87bf80"
+      ],
+      "changes": [
+        "Fælles kursusskabelon for hovedforløb H1-H6 og valgfag.",
+        "H2 med pensum, ugeplan og hele 'Teori for dagen'.",
+        "Indholdsfortegnelsens ankre åbner det rigtige sted.",
+        "Syntaksfarver og kopiering i kodeblokke, inklusive Razor/Blazor/cshtml.",
+        "Mermaid-diagrammer og rigtige HTML-tabeller fra Notion/Lectio."
+      ],
+      "evidence": [
+        "web/Pages/Courses/Template/Detail.razor",
+        "web/wwwroot/content/courses/h2-teori.md",
+        "web/wwwroot/js/course-mermaid.js"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "course-h2",
+      "date": "2026-11-05",
+      "commits": [
+        "78ef1238305aba7fe8a655ccf28fe964eafb551f",
+        "562d0d9e4583ed8e0461b5e5da1e7b1e38768778"
+      ],
+      "changes": [
+        "Fælles kursusskabelon for hovedforløb H1-H6 og valgfag.",
+        "H2 med pensum, ugeplan og hele 'Teori for dagen'."
+      ],
+      "evidence": [
+        "web/Pages/Courses/Template/Detail.razor",
+        "web/wwwroot/content/courses/h2-teori.md"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "private-files",
+      "date": "2026-11-05",
+      "commits": [
+        "65d16c051a3d7a1b9cd23fbf6468c6e217b0fabe",
+        "c2835d8077466f25677756ae2d0f221ecbaf416b",
+        "1f48c1f617b057ab600809690da8b57085f7a15b",
+        "d8ac5efcbc33a37e09c3df4bcc6486c5e17e8f73",
+        "ae5e14da617b8b17fa19d0be2e9061c67d837f3a"
+      ],
+      "changes": [
+        "Upload og hent private undervisningsfiler og afleveringer.",
+        "Individuelle/gruppers afleveringer, revisioner og privat feedback.",
+        "Visning af billeder, PDF, video, lyd, arkiver og understøttede webbuilds.",
+        "Forløbseditoren bruger multipart-upload til private filer.",
+        "Over 100 MiB beder den om bekræftelse; fremdrift og afbrydelse vises.",
+        "Rydder ufuldstændige uploads op uden at slette færdige filer."
+      ],
+      "evidence": [
+        "obsidian/03-features/Afleveringer.md",
+        "api/Controllers/SubmissionsController.cs",
+        "obsidian/03-features/Forloebseditor.md",
+        "api/Controllers/NotionAssetUploadsController.cs"
+      ],
+      "caveats": [
+        "Filer kræver autorisation. Native programmer afvikles ikke; server-XP afventer separat model.",
+        "Browseren skal blive på siden; almindelige elevafleveringer bruger fortsat deres eksisterende flow."
+      ]
+    },
+    {
+      "id": "outlook-calendar",
+      "date": "2026-11-05",
+      "commits": [
+        "72e16cd4b5e0ae2bbcc0243c1951a22fcd44b8c3",
+        "661b837173d7058510f81b6aa214145bb7da10fe",
+        "1eb9bed8a1495e6235c67ad939492c72be59f732"
+      ],
+      "changes": [
+        "Vis egen Outlook-kalender i ugevisning via Azure Graph.",
+        "Rettet kontokobling og skjult dublerede Lectio-hold i kalenderen."
+      ],
+      "evidence": [
+        "web/Components/WeekCalendar.razor",
+        "api/Controllers/CalendarController.cs"
+      ],
+      "caveats": [
+        "Kræver konfigureret Azure Graph og adgang til den pågældende postkasse."
+      ]
+    },
+    {
+      "id": "editor-mermaid",
+      "date": "2026-11-07",
+      "commits": [
+        "1de5d31a7d96db31a15f63651ec0ae801bb8a990",
+        "7fc4888fd02c7e47eec9df683182db6ebfa0b8e2",
+        "d76d1022a90f5ab09f8cb2d1869d1bb9de5d6865",
+        "362169671e67eb933233f2c4837236cdc9939e59",
+        "254c772f2d5aaa2f33289626d895dfe749e845cd"
+      ],
+      "changes": [
+        "Indsæt og redigér Mermaid; vælg mellem diagram og kilde og kopiér koden.",
+        "Parserfejl vises frem for et tomt diagram.",
+        "Diagrammer bliver stående efter genrendering, overflødig ramme fjernes, og hele diagrammet vises uden intern scrollramme."
+      ],
+      "evidence": [
+        "editor/src/mermaid-block.tsx",
+        "editor/src/mermaid-utils.ts"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "editor-code",
+      "date": "2026-11-06",
+      "commits": [
+        "15334674e403b1ad5df2f8f0b87be29463c5221f",
+        "773a7e97a627e98993274a692c70d2bb0d891e90",
+        "d6b648c9188cd63d549b14169d2c98296706e241",
+        "4254fbdc91c9da3ab5e17824b41be431dc9f318c"
+      ],
+      "changes": [
+        "Sprogvælger, syntaksfarver og kopiér i editorens kodeblokke.",
+        "Bedre læsbarhed i alle temaer, linjetal og lettere betjening.",
+        "Blokmenuen genskabes, så koden kan omdannes eller slettes."
+      ],
+      "evidence": [
+        "editor/src/code-block.ts",
+        "editor/src/code-language-picker.ts",
+        "editor/COMPONENT_TEMPLATE.md"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "editor-blocks",
+      "date": "2026-11-07",
+      "commits": [
+        "65e2e54a03525062b4e2cdae9101826196d7544f",
+        "a5845ac939a2b702f8a16b64280fb3c939641be1",
+        "44d36ebcf2414df8b45c403c626856c16e1a0801",
+        "bdb2ee52d3ae7de53faf1114250272fc52b3d787",
+        "58312202c945ec1a390164b6cbab1cd21fb56319",
+        "10a39bc56a593a0d3eb54fe181620dbb73a16fb5",
+        "e740826b40d0c10a7d91c539a05b0e521d2735e8"
+      ],
+      "changes": [
+        "Omdan afsnit, lister, citater, kode, diagrammer og læringsmål.",
+        "Omdannelse bevarer teksten/kilden i stedet for at smide den væk.",
+        "Callouts med info/tip/advarsel/vigtigt og valgbare platformsemojis.",
+        "Fælles design og temaadfærd for editorblokke.",
+        "Sidemenu bliver stående ved scroll.",
+        "Fjern støj fra editoren og gem titler automatisk."
+      ],
+      "evidence": [
+        "editor/src/turn-into-content.ts",
+        "editor/src/callout-block.tsx",
+        "web/Pages/Notion/Index.razor",
+        "editor/src/editor.tsx"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "editor-ai",
+      "date": "2026-11-07",
+      "commits": [
+        "6a31e53475860c85d5b4319118828a1f15b832b1",
+        "bec96172c3d6e8c8522764ca9c84085a8e61e6e4",
+        "7780b50f487069979b1860448bae18fa8329dbc1",
+        "080009dff02b6fd965b260574e68c8e22a4488e0",
+        "9e1b3852e5eaeeffb56d56bc0b12514ce23acb7e",
+        "9abb2ef146b908b6f2a2da412174262a851e28c5",
+        "7045af70f7a509bc713d70535e337a9c63fa0e0a"
+      ],
+      "changes": [
+        "Generér blokindhold, omskriv markeringer og lav Mermaid fra hjælperen eller den aktuelle bloks menu.",
+        "Flydende samtaleassistent med kontekst, minimering og bevaret kladde i sidens session.",
+        "Assistenten kender editorens bloktyper og egne platformsemojis; uploadede emojis kan beskrives automatisk."
+      ],
+      "evidence": [
+        "editor/src/ai-helper.tsx",
+        "api/Controllers/AiController.cs",
+        "editor/README.md"
+      ],
+      "caveats": [
+        "Kun undervisere under redigering; kræver serverkonfigureret OpenAI-adgang. Samtalen er ikke permanent lagret."
+      ]
+    },
+    {
+      "id": "page-graph",
+      "date": "2026-11-06",
+      "commits": [
+        "89b7fa5b09d8a9f05d8d984bd08d4cc28fba6eef",
+        "17dff84e4071fb7f270f51f2e0dd713b477ac59d",
+        "e76c6c36ee7abfc46b8272901a4c22a066defffa",
+        "b15224d5daf2a381641704644df86107451798b2"
+      ],
+      "changes": [
+        "Graf over interne sidelinks og senere hele holdets rodsider.",
+        "Temafarver virker også på canvas.",
+        "Flydende graf med flytning/zoom og navigation til sider."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Graph.razor",
+        "web/wwwroot/js/notion-graph.js"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "emojis",
+      "date": "2026-11-07",
+      "commits": [
+        "8cca7d66e9764cfb5e189ffc56421a617a18a868",
+        "bdb2ee52d3ae7de53faf1114250272fc52b3d787",
+        "ed130d7b59877da9f9930d04aec97117f73115fd",
+        "7b9e17d5d86ab0b6ce32ef4b8577721ebf2e814d",
+        "fb984580db815565264e56096166c33b2cf5265b",
+        "b4c99725fd728861fca3b531b40f7cc0d53ca5f3",
+        "7b1479c2008aefc454361398a9d0f960c366e636",
+        "dcfff6b9e9febe80a426a5c862ca0a9b3c980c00",
+        "186784f721ff52a2bbf8158d33a6d2b91956fda4",
+        "763f636eba91cb9da8b35b85f3be6e74d0413bfd",
+        "7045af70f7a509bc713d70535e337a9c63fa0e0a",
+        "58312202c945ec1a390164b6cbab1cd21fb56319",
+        "1e465e008ecafefa3c9d70ae90b9867a8b741153"
+      ],
+      "changes": [
+        "Upload, omdøb og brug egne emojis på tværs af platform og editor.",
+        "Standardpakke, søgning, kategorier, nøgleord og upload direkte fra vælgeren.",
+        "Filnavne bevares som forslag, bindestreger accepteres, og billeder får metadataforslag.",
+        "Beskæring, lettere import og baggrundsfjernelse før upload.",
+        "GIF-animation bevares fra søgning til gemt emoji; gamle cachede vælgere rettes."
+      ],
+      "evidence": [
+        "web/Pages/Emojis/Index.razor",
+        "editor/src/emoji-picker.tsx",
+        "api/Controllers/EmojisController.cs"
+      ],
+      "caveats": [
+        "Kun undervisere administrerer emojis; øvrige brugere kan bruge kataloget. GIF-beskæring kan kræve stillbilledevalg, jf. udvidelsens aktuelle flow."
+      ]
+    },
+    {
+      "id": "teaching-courses",
+      "date": "2026-11-06",
+      "commits": [
+        "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925"
+      ],
+      "changes": [
+        "Navngivne forløb med periode, læringsmål, kladde/udgivelse og arkiv.",
+        "Samler sider, quests, materialer og begivenheder; opret sider direkte i forløbet.",
+        "Advarsel ved navigation med ugemte formularændringer."
+      ],
+      "evidence": [
+        "api/Controllers/TeachingCoursesController.cs",
+        "web/Components/HoldCourses.razor",
+        "obsidian/03-features/Hold-dashboard.md"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "submissions",
+      "date": "2026-11-06",
+      "commits": [
+        "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925",
+        "f28b9844b426118fbc87830acc1ed9424f105827"
+      ],
+      "changes": [
+        "Afleveringsoverblik pr. quest og elev med mangler, fristoverskridelser, kladder, godkendelser og rettelser.",
+        "Filtre for forløb, quest, elev og status; direkte links til afleveringen.",
+        "Gruppeafleveringer bruger deltagersnapshot og dobbelttæller ikke elever.",
+        "Direkte vej fra elevens hold/forløb til de relevante quests og afleveringer.",
+        "Elevvisning af grupper og egne gruppeafleveringer med korrekte links.",
+        "Afleveringssiden og adgang til relevante filer er tilpasset elevens arbejdsgang."
+      ],
+      "evidence": [
+        "api/Learning/SubmissionOverviewBuilder.cs",
+        "web/Components/HoldSubmissionOverview.razor",
+        "web/Pages/Learning/Assignments.razor",
+        "web/Components/HoldGroups.razor"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "quests",
+      "date": "2026-11-06",
+      "commits": [
+        "f981d09ef4850e47250fc89bdbabf550503349f4",
+        "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925"
+      ],
+      "changes": [
+        "Main, side og daily quests med kladde/udgivelse, afleveringsform og frist.",
+        "Vælg hele holdet, bestemte elever eller grupper; markér obligatorisk/valgfri.",
+        "Kopiér til en ny kladde og opret daglige/ugentlige/hverdagsforekomster i en afgrænset periode."
+      ],
+      "evidence": [
+        "api/Controllers/QuestsController.cs",
+        "web/Components/HoldQuests.razor"
+      ],
+      "caveats": [
+        "Gentagelser er separate forekomster i højst 90 dage; der er fortsat ingen automatisk XP-økonomi."
+      ]
+    },
+    {
+      "id": "public-home",
+      "date": "2026-11-06",
+      "commits": [
+        "74edd8ab1b18fe7f537088685822ab6bf02329ce"
+      ],
+      "changes": [
+        "Offentlig LUP-forside og undervisningskatalog.",
+        "Åbne kursus-, fag-, projekt- og badgekravssider; personlige sider kræver fortsat login."
+      ],
+      "evidence": [
+        "obsidian/03-features/Offentlig-forside.md",
+        "web/Pages/Home.razor",
+        "web/Auth/PublicPageAccess.cs"
+      ],
+      "caveats": [
+        "Offentlige projektkort er tydeligt DEMO-indhold, ikke udgivne elevprojekter."
+      ]
+    },
+    {
+      "id": "drawings",
+      "date": "2026-11-07",
+      "commits": [
+        "370ea06152e1b836a7e56ff2270a5f9bebdf634e",
+        "51362b1b9824ec7a892e909ba25698336d0bb898",
+        "8b234fc918bcc709879fe7e864aeefe960c4dfd2"
+      ],
+      "changes": [
+        "/tegning åbner Excalidraw i undervisningssider og noter.",
+        "Del tegningen som fast udgivelsessnapshot eller live-tavle med tegningsret.",
+        "Eksportér PNG/SVG/redigerbar fil; kopier/indsæt bliver i tegningen.",
+        "Rettet levering af den opdaterede tegneeditor."
+      ],
+      "evidence": [
+        "editor/README.md",
+        "editor/src/drawing-block.tsx",
+        "api/Controllers/DrawingsController.cs"
+      ],
+      "caveats": [
+        "Tegningsrettigheder følger den aktuelle sides adgang; et link giver ikke ekstra adgang."
+      ]
+    },
+    {
+      "id": "chrome-extension",
+      "date": "2026-11-07",
+      "commits": [
+        "b6e9228fa2a7f0abea0b4cd505331e573f235798",
+        "f998f24de02650396cafa53c77356dec5d5d299a",
+        "066f10e96d38add63592f98d26472ccece7d7d6c",
+        "0d58bf03997b149f6b17a96459a3f987f64701d8",
+        "1e465e008ecafefa3c9d70ae90b9867a8b741153",
+        "0f706f7618a5206d2055292d5849b2d0622b8b76"
+      ],
+      "changes": [
+        "Højreklik på et billede, beskær/fjern baggrund og gem som LUP-emoji.",
+        "Søg efter nye billeder og GIF'er og behold søgning/udsnit mellem handlinger.",
+        "Robust billedimport, kilde-/licensvisning og forståelige fejl med genforsøg.",
+        "Beskærings-CSS og bevaring af GIF-animation er rettet."
+      ],
+      "evidence": [
+        "extensions/lup/README.md"
+      ],
+      "caveats": [
+        "Adgang er begrænset til godkendte konti (standard Kasper/Mathias), og udvidelsen installeres upakket. GIF-animation bevares også ved beskæring; kun aktiv baggrundsfjernelse vælger PNG-stillbillede."
+      ]
+    },
+    {
+      "id": "character-profiles",
+      "date": "2026-11-07",
+      "commits": [
+        "7528e7454bc1ebd3b3ae33655ad4b57fc889a678",
+        "58a7758dbcc125eff475ae72144ef79c6f0f327e",
+        "57bd150df8a75eeb62561ec384e54ade7b5be518",
+        "eff651d812ef21a9671f656f8323de54678da5db",
+        "83d613c7ae444b9e891af777f078be2c573f1215"
+      ],
+      "changes": [
+        "Offentlige profiler for LUPP, Vatson, Raymond, Bæver og Ræv med tydelige faglige roller.",
+        "LUPPs Game Design-undervisningsillustrationer.",
+        "Raymonds portrætvarianter, 12 reaktioner og fire miljøer med download; mere naturligt grin.",
+        "Vatsons rolle og links til det separate VATek-univers forklares."
+      ],
+      "evidence": [
+        "obsidian/03-features/Karaktersider.md",
+        "web/Characters/CharacterCatalog.cs"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "action-center",
+      "date": "2026-11-08",
+      "commits": [
+        "0c109d219f6002bc9fb612854bbbda813afc536c"
+      ],
+      "changes": [
+        "Klokken samler obligatoriske rettelser, relevante frivillige quests, ubesvarede afstemninger og lærerens vurderinger.",
+        "Ulæst afleveringsfeedback, notesbogskommentarer og delinger med egne læsekvitteringer.",
+        "Kun faktisk hentet/vist indhold markeres læst; ingen opdigtet logbogspligt eller falske mangler.",
+        "Fremtidige gentagelser og udløbne valgfrie muligheder tæller korrekt.",
+        "Personlig gaveside og direkte links fra klokken/Mit univers i alle temaer.",
+        "Gaven bliver ved med at stå i klokken, indtil modtageren pakker den ud."
+      ],
+      "evidence": [
+        "api/Learning/ActionCenterNews.cs",
+        "obsidian/03-features/LUP-navigation-og-soegning.md",
+        "web/Pages/Gifts/Index.razor",
+        "web/Pages/PersonalUniverse.razor"
+      ],
+      "caveats": [
+        "Elevpreview åbner ikke private gaver på elevens vegne."
+      ]
+    },
+    {
+      "id": "visual-updates",
+      "date": "2026-11-08",
+      "commits": [
+        "ac4ea2eea36977a4a7a21304d7a82271be42acae"
+      ],
+      "changes": [
+        "Privat visuel ændringsoversigt i underviserens menu.",
+        "Kategori-/datooversigt med udklip, billedzoom og ægte før/efter-par.",
+        "API og billeder kræver underviseradgang."
+      ],
+      "evidence": [
+        "api/Updates/PlatformUpdatesCatalog.cs",
+        "web/Pages/Teacher/Updates.razor"
+      ],
+      "caveats": []
+    },
+    {
+      "id": "avatar-collection",
+      "date": "2026-11-08",
+      "commits": [
+        "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7"
+      ],
+      "changes": [
+        "Avatarsamlingen afløser garderoben med gratis startfigur, BIP-01 og felter til kommende figurer.",
+        "Valgt avatar, ejede figurer, guldsaldo og nye møbelkøb gemmes på kontoen og hentes på en anden computer.",
+        "Oplåsning og køb valideres på serveren uden dobbeltbetaling; kendte gamle kontospecifikke browserdata kan overføres én gang under afgrænsede betingelser.",
+        "BIP-01 har animationer, lyd, fem danske replikker samt download af emojiansigter og profilbillede.",
+        "Den valgte figur bruges i header, profil, elevside, lejlighed og Rune Run Mini."
+      ],
+      "evidence": [
+        "obsidian/03-features/Avatarer-og-oplaasning.md",
+        "api/Controllers/AvatarsController.cs",
+        "web/Components/AvatarEditor.razor",
+        "shared/Avatars.cs"
+      ],
+      "caveats": [
+        "Level og XP er fortsat demoprogression. Rumplaceringer og legacy-tøjdata er stadig lokale; hele lejlighedssystemet er ikke flyttet til databasen. Kommende figurer er information, ikke købsmuligheder. Nye møbelkøb deler kontoens guldsaldo; møbler med uopfyldte server-badgekrav kan ikke købes."
+      ]
+    },
+    {
+      "id": "gift-choices",
+      "date": "2026-11-08",
+      "commits": [
+        "b8d165206a06d37d49e335179cfee8d48867e1a4"
+      ],
+      "changes": [
+        "Valgt modtager, gavetype og navngiven indpakning vises med flueben og Valgt-markering.",
+        "Valgt modtager bevares, når søgningen ændres; samlet overblik viser modtager, gave, indpakning og hilsen før afsendelse.",
+        "Forhåndsvisning gør tydeligt, at den ikke sender noget; valg låses under afsendelse.",
+        "Ved fejl beholdes valgene og genforsøg bruger samme forsøgs-ID. Fokus og indlæsnings-/fejltilstande er tydeligere."
+      ],
+      "evidence": [
+        "web/Components/GiftComposer.razor",
+        "web/Components/GiftLauncher.razor",
+        "obsidian/03-features/Julegaver-og-sne.md"
+      ],
+      "caveats": [
+        "Gaver er fortsat gratis hilsner og overfører ikke XP, guld eller inventar."
+      ]
+    },
+    {
+      "id": "theme-shortcut",
+      "date": "2026-11-08",
+      "commits": [
+        "b8d165206a06d37d49e335179cfee8d48867e1a4"
+      ],
+      "changes": [
+        "Tema-knap i topbaren før og efter login.",
+        "Alle seks gratis temaer har forklaring, flueben og tydeligt valgt-status.",
+        "Temavalg gemmes i browseren; Escape/klik udenfor lukker menuen, som også passer på mobil."
+      ],
+      "evidence": [
+        "web/Components/ThemePicker.razor",
+        "web/Layout/MainLayout.razor",
+        "obsidian/03-features/Temaer-og-nytaar.md"
+      ],
+      "caveats": [
+        "Temavalget er fortsat browserspecifikt, modsat den nye kontogemte avatarsamling."
+      ]
+    },
+    {
+      "id": "vatson-emojis",
+      "date": "2026-11-08",
+      "commits": [
+        "74db49e319aff1118d12e1a8fdacf5dbd0f75228"
+      ],
+      "changes": [
+        "Vatsons offentlige profil viser 63 eksisterende PNG-emojis som store previews.",
+        "Søg på navn eller motiv, vis alle, og se antallet af resultater.",
+        "Åbn originalen i fuld størrelse eller hent en PNG."
+      ],
+      "evidence": [
+        "web/Characters/VatsonEmojiCatalog.cs",
+        "web/Components/CharacterArtworkGallery.razor",
+        "web/Pages/Characters/Detail.razor"
+      ],
+      "caveats": [
+        "Billederne er eksisterende Vatson-emojis, kopieret uændret til den offentlige profil; dette opretter ikke nye uploads i brugernes emojibibliotek."
+      ]
+    }
+  ],
+  "commits": [
+    {
+      "commit": "af20dfd3e2c5efde0c93fde09da8a3103be21467",
+      "date": "2026-10-22",
+      "subject": "Initial commit",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "README-only initial commit; ingen app eller brugerfunktion."
+    },
+    {
+      "commit": "06c4a8a841c300c980e2f3c80f6113641e3b255e",
+      "date": "2026-10-30",
+      "subject": "Init Docs & Notes",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Dokumentation, vision, backlog og arbejdsnoter; ikke leverede sitefeatures."
+    },
+    {
+      "commit": "079ddf1e116056d18c019ea201023be4bb5af5e3",
+      "date": "2026-10-30",
+      "subject": "Enhance badge system and workspace configuration. Added new canvas and excalidraw states in workspace, updated badge-related notes with new links and structures, and refined badge templates to include subject levels and requirements.",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Badgeplaner/-skabeloner og Obsidian-konfiguration; ikke implementeret optjening."
+    },
+    {
+      "commit": "ed809a9a617bfb2681bad24f5be96f38d56fa1b0",
+      "date": "2026-10-30",
+      "subject": "Update badge documentation and workspace settings. Added links to the new Badge-statistik note across various badge-related files, and included statistics sections in badge templates and specific badges to display user percentages.",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Badge-statistik i noter og skabeloner; ikke implementeret brugerstatistik."
+    },
+    {
+      "commit": "bbed21a37382c71e2cb0599ac1d773ecad5565db",
+      "date": "2026-10-30",
+      "subject": "Update README and workspace configuration; enhance AI workflows documentation. Expanded README with development instructions, Docker setup, and project links. Updated workspace to include recent files and improved AI workflows notes with links to relevant documents.",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "be8bbe1968a7fcdec97ca6cc5a2b39efcbf6ef4b",
+      "date": "2026-10-30",
+      "subject": "Refactor configuration for production environment. Updated project file to exclude Development appsettings in Release mode, modified nginx configuration to set Blazor environment to Production, and enhanced API base URL handling in Program.cs. Added error display improvements in Home.razor and updated service worker to prevent caching of Development appsettings.",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "dfaa976186ed8a20136190dc18b9bb9ec722016c",
+      "date": "2026-10-30",
+      "subject": "Tilføj Mercantec Auth PKCE i Blazor og JWT-validering i API.",
+      "classification": "user_facing",
+      "entryIds": [
+        "profile"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9ec9e957f483001f161c3586de1a19e47c96f9b8",
+      "date": "2026-10-30",
+      "subject": "Merge pull request #14 from Mercantech/feature/issue-2-mercantec-auth",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "0f1f62199ffd321d4e331798c47d76da91eb6253",
+      "date": "2026-10-30",
+      "subject": "Tilføj elev/underviser-shells og brugeroplysningsside.",
+      "classification": "user_facing",
+      "entryIds": [
+        "profile"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "c11e34aa413f267fbbe09902a5fc2d73117ee4c1",
+      "date": "2026-10-30",
+      "subject": "Ret rolle-claims: slå inbound claim-mapping fra ved JWT-læsning.",
+      "classification": "user_facing",
+      "entryIds": [
+        "profile"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "8c8123b0ad8db236b619106ffb6fa419b5f3cee2",
+      "date": "2026-10-30",
+      "subject": "Merge pull request #16 from Mercantech/feature/issue-3-views-profil",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "e81e0cfc362cc55094e21b5800bc02fc9460cff7",
+      "date": "2026-10-30",
+      "subject": "Finpuds scaffold (#1): README, health AllowAnonymous, PWA-navn, sprint-status. (#17)",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "82b4dcd7741e30ecec8f657af57165b6f4b1c630",
+      "date": "2026-10-30",
+      "subject": "GDPR-fundament (#18): privatliv, eksport og sletteanmodning. (#19)",
+      "classification": "user_facing",
+      "entryIds": [
+        "rights"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "994de4e4cfc6b70b5f7b5ad86a7cdab9cf396c5a",
+      "date": "2026-10-30",
+      "subject": "Domæne-skeleton (#4): Forløb/Hold/Membership + EF/Postgres. (#20)",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b505477d3797a9f560ecce8c104839effc884996",
+      "date": "2026-10-31",
+      "subject": "Lectio-integration (#10): proxy, ADR-003 og elev/underviser-scope. (#21)",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-linking"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e501c3659402c503edea9592a9b18aad5df20c63",
+      "date": "2026-10-31",
+      "subject": "Vis elevliste for undervisere på /lectio i stedet for tom JSON. (#22)",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9ebe1159273ba678cccd66710ef5a16b3fb46fa8",
+      "date": "2026-10-31",
+      "subject": "Fix PWA-cache: network-first navigation og dansk NotFound.",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "06190988ff5689fcb617f734c7a7951d4b196b9e",
+      "date": "2026-10-31",
+      "subject": "Cache-Control no-store for service-worker.js (undgå Cloudflare-stale SW).",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7498344640a078ad4add0e4e92279e025fb342e0",
+      "date": "2026-10-31",
+      "subject": "Elev Lectio-kobling via kandidater og CTA på dashboard.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-linking"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "dd2041b229823dea23ff7d47a30faae5e46762ff",
+      "date": "2026-10-31",
+      "subject": "Vis læreplads, forløb og VUF i underviser-Lectio-listen.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "5940eca2fe3df53b7fe6255d8fac9c58b9006844",
+      "date": "2026-10-31",
+      "subject": "Fix FilteredStudents.Any i Lectio-underviserliste.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "144faf10ef7c8ce2891a5a190e8be0729faa6fee",
+      "date": "2026-10-31",
+      "subject": "Toggle alle elevforløb fra studieplan i underviser-listen.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ce5748066a0681dc2f73da8cabd068b2d4786e0c",
+      "date": "2026-10-31",
+      "subject": "Tidslinje ved siden af alle forløb i underviser-Lectio.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "030c52226c4445c82147f7e4fae92f5ef78d6f52",
+      "date": "2026-10-31",
+      "subject": "Underviser-holdoversigt fra Lectio-Collector på /lectio.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f7295cd246b0ec5480324105ed651a36c5bb5ac3",
+      "date": "2026-10-31",
+      "subject": "Forløb fra Lectio-hold med shadow-medlemmer (#6).",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "3d612ca85802a169206a72adea30a19de25b7aae",
+      "date": "2026-10-31",
+      "subject": "Samle flere Lectio-hold i ét forløb (pro + proEA).",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0cf98ddffd4453d804ff6c42f59de8a849acd3ba",
+      "date": "2026-10-31",
+      "subject": "Giv underviserens Lectio-side filtre, sortering og elevliste pr. hold.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "433538cbaa115fb1e6ea1e1695bf4718be68c827",
+      "date": "2026-10-31",
+      "subject": "Giv Blazor-sider engelske routes og filnavne, og lad service workeren falde tilbage ved netværksfejl.",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0fafda8c39f4f13a88d10d5741553f8cf5c4c03b",
+      "date": "2026-10-31",
+      "subject": "Lad service workeren installere, selv om WASM-integrity fejler bag Cloudflare.",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "6b3ba3c12c6260e42f23d6cf106ff29e80a5c476",
+      "date": "2026-10-31",
+      "subject": "Vis filterknapper som tekst, ikke som ufortolket Razor.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0260a5e1dc43246cac5a6ea2d90c2d989e868c51",
+      "date": "2026-10-31",
+      "subject": "Vis LC-logo på links til Lectio-Collector.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "27f980673e9b6f0a17c709e700acbb3ed79124df",
+      "date": "2026-10-31",
+      "subject": "Hold LC-mærket på 18 pixel, så det ikke sprænger rækken.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "db6f7e281d99feadaa4d0bfa0ab141a2c8acc2a2",
+      "date": "2026-10-31",
+      "subject": "Lad LC-linket være logoet alene.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-overview"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ad503c0597ad22e6901e92bab7f4a9e731dc9f85",
+      "date": "2026-11-02",
+      "subject": "Knyt Skattekisten til Sprint NTH i vaulten.",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Skattekisten kobles til planlagt NTH-sprint; ingen sitefunktion."
+    },
+    {
+      "commit": "3609f6bf3d5b16de786fc29f2bd6e298965b34a9",
+      "date": "2026-11-03",
+      "subject": "Del LUP-designet og afklar de næste leverancer",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "d9c0e319f70a29b7c906b89751d8c44b67f3e5e3",
+      "date": "2026-11-04",
+      "subject": "Gør LUP til appens fælles flade, så demo og de live sider kan vises sammen.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0e8ca604b18ea8b09a88aba013f8a70e0cbcd480",
+      "date": "2026-11-04",
+      "subject": "Læg undervisningsplanerne på /lup og lad Lectio følge samme flade.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "246ae1a47775f63422a6dac498434498fe190adc",
+      "date": "2026-11-04",
+      "subject": "Lad Lectio hente den mørke flade, så den cachede hvide CSS ikke bliver hængende.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9fa48888a8c5da64ef2a96d5037e3263a5003b54",
+      "date": "2026-11-04",
+      "subject": "Add demo features and components for enhanced user experience",
+      "classification": "user_facing",
+      "entryIds": [
+        "avatar",
+        "apartment",
+        "lup-design",
+        "shop",
+        "progress",
+        "rune-run"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "be5e70dc5d87443c59976657f584bc3854ad292c",
+      "date": "2026-11-04",
+      "subject": "Refactor initialization and disposal logic in demo pages to include navigation state changes",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "4c1cd58961341e4152d4619fb416b83c3e546b6a",
+      "date": "2026-11-04",
+      "subject": "Genskab LUP-designet i Blazor med jul og hacker",
+      "classification": "user_facing",
+      "entryIds": [
+        "library",
+        "avatar",
+        "apartment",
+        "lup-design",
+        "themes",
+        "shop",
+        "progress",
+        "rune-run"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "daf88949a6ab387ea8b00f6b3ce64dd32e3197f6",
+      "date": "2026-11-04",
+      "subject": "Saml Mathias’ funktioner med det nye LUP-design",
+      "classification": "user_facing",
+      "entryIds": [
+        "avatar",
+        "apartment",
+        "lup-design",
+        "shop",
+        "rune-run"
+      ],
+      "reason": "Integration merge with user-visible preservation/fixes; grouped with the originating feature."
+    },
+    {
+      "commit": "71bdda5d777b55b54b7c585740e59371ef3abe96",
+      "date": "2026-11-04",
+      "subject": "header footer størrelse",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fe3512880820555a75f714ed98c8675c6798b61f",
+      "date": "2026-11-04",
+      "subject": "Implement login functionality and UI updates across MainLayout, Home, and Login pages. Introduce loading states and error handling for login processes, enhancing user experience and navigation flow.",
+      "classification": "user_facing",
+      "entryIds": [
+        "login-return"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f324fb735843fa1f487ff2c47529024ca0e42b95",
+      "date": "2026-11-04",
+      "subject": "Add new HTTP client for auth-admin with a 45-second timeout; update user role handling in UserClaims; add Users link to MainLayout navigation",
+      "classification": "user_facing",
+      "entryIds": [
+        "profile"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1968ae0ae5a4ee681c454e41dbf4108fa2f4474c",
+      "date": "2026-11-04",
+      "subject": "Update theme handling across the application to default to 'light' mode; enhance theme selection logic in JavaScript and HTML for better user experience. Introduce new themes and update styles accordingly.",
+      "classification": "user_facing",
+      "entryIds": [
+        "themes"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0b0bd6a4c084b7a278179e4fc40d1451d81423d5",
+      "date": "2026-11-04",
+      "subject": "Update platform navigation and styling; add new platform section in HTML, enhance JavaScript for dynamic rendering of platform content, and increment versioning for CSS and JS files.",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-design"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "de3f0d6bc9364ceef8491d2941381feaeffb55be",
+      "date": "2026-11-04",
+      "subject": "Tilføj rigtig gavelevering og ret sne ved reduceret bevægelse",
+      "classification": "user_facing",
+      "entryIds": [
+        "gift-opening",
+        "themes"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "07defe3509d90ff64d790118e47bd01d8ba40296",
+      "date": "2026-11-05",
+      "subject": "Fix lokal logud der stille loggede brugeren ind igen",
+      "classification": "user_facing",
+      "entryIds": [
+        "login-return"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "3bef8c76fc729d3039991797e233b520c13e726b",
+      "date": "2026-11-05",
+      "subject": "Tilføj underviser-UI til manuel Auth↔Lectio-kobling på /lectio",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-linking"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f084765ba6027ee0124a4e31edc1dee7f0891381",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #35 from Mercantech/cursor/fix-logout-relogin-3c86",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "b3630e5b02a36d2ae37d671c78c97b11b21eb57f",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #36 from Mercantech/cursor/teacher-lectio-auth-link-baa8",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "ac7b9b001a6c1959a8ed783f6513adb683dd78c7",
+      "date": "2026-11-05",
+      "subject": "Vis Auth↔Lectio-koblingsstatus i Lectio-oversigten",
+      "classification": "user_facing",
+      "entryIds": [
+        "lectio-linking"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "abf1ead9621648c7d035ca0e705cce1c8f9b2025",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #37 from Mercantech/cursor/lectio-auth-link-status-0348",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "5213e8a35efbba4155b108ff83922eee2c68a916",
+      "date": "2026-11-05",
+      "subject": "Tilføj fælles kursusskabelon for H1–H6 og valgfag",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ab5c604ecfa841fa16d3ecbafcd3f53e6f0b731f",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #38 from Mercantech/cursor/course-template-pages-3d7e",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "70743da2777b6d6bbcecb6085f5ae0a8ff70c231",
+      "date": "2026-11-05",
+      "subject": "Giv elev-dashboard forløbstidslinje og VUF-status",
+      "classification": "user_facing",
+      "entryIds": [
+        "student-front"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fae9afc1b4470e23cceceb51b12b8a82b2dbfae1",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #39 from Mercantech/cursor/student-timeline-vuf-59f8",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "78ef1238305aba7fe8a655ccf28fe964eafb551f",
+      "date": "2026-11-05",
+      "subject": "Fyld H2-kursustemplate med pensum og ugeplan",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-h2"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b31c1379369f61fb21b9dac3d8ef9f11462015e6",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #40 from Mercantech/cursor/h2-syllabus-template-6cde",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "c73e18c8983f693fd45b44ff289c0e30d34f0728",
+      "date": "2026-11-05",
+      "subject": "Ret TOC-ankre så pensum ikke hopper til forsiden",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "5af82b1f780d1c7331f5ba8641b4b39967398120",
+      "date": "2026-11-05",
+      "subject": "Vis elev-overblik med VUF og tidslinje på /lectio",
+      "classification": "user_facing",
+      "entryIds": [
+        "student-front"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "94a5b62d48d7d27449e7652b59b31d545b65bbc8",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #41 from Mercantech/cursor/fix-course-template-anchors-3f28",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "e04577be3f6ce5784f68e49617346927fae5ac30",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #42 from Mercantech/cursor/student-lectio-overview-39c1",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "562d0d9e4583ed8e0461b5e5da1e7b1e38768778",
+      "date": "2026-11-05",
+      "subject": "Vis al H2 «Teori for dagen» på kursusskabelonen",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-h2"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "832caa6a78a674093227e29733b174eb1e727ae0",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #43 from Mercantech/cursor/h2-teori-fuld-e3d7",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "fa3cb3c3e42929fecb7a4ddbbc143b9c8b40244a",
+      "date": "2026-11-05",
+      "subject": "Ret elevens gavemodtagere og tilføj fælles afstemninger",
+      "classification": "user_facing",
+      "entryIds": [
+        "poll-studio",
+        "gift-opening"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "d686fa54921bdc49d5bb4ac01b4003c0f58c46d7",
+      "date": "2026-11-05",
+      "subject": "Sammenflet H2-materiale med gaver og fælles afstemninger",
+      "classification": "user_facing",
+      "entryIds": [
+        "poll-studio",
+        "gift-opening"
+      ],
+      "reason": "Integration merge with user-visible preservation/fixes; grouped with the originating feature."
+    },
+    {
+      "commit": "fd19ca9a69ee21edd8704f36c080d1e101fbc606",
+      "date": "2026-11-05",
+      "subject": "Tilføj syntax highlight og Kopiér på kursus-kodeblokke",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fc1e1a0dbea4eaa5c79726c5223ba5189a2f2ead",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #44 from Mercantech/cursor/course-code-highlight-5f29",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "13ea1939aab98a70cd691fa3504c92f9575cbf78",
+      "date": "2026-11-05",
+      "subject": "Tilføj underviser-preview «se som elev»",
+      "classification": "user_facing",
+      "entryIds": [
+        "view-as-student"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b5db0164a5b20f9d6912d0f63c9f698b2c320736",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #45 from Mercantech/cursor/teacher-view-as-student-cec6",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "076866ae8397fdf42490ea4a32b65d06eecf3835",
+      "date": "2026-11-05",
+      "subject": "Tegn Mermaid-diagrammer i kursusteori",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "c0425a79cb38d1118448e3512ded95eceb00fd54",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #46 from Mercantech/cursor/mermaid-course-diagrams-6cc0",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "a47d1cdbeaab8943e175505775217fbe3d6be6f2",
+      "date": "2026-11-05",
+      "subject": "Gør «Se som elev» tilgængelig fra Brugere",
+      "classification": "user_facing",
+      "entryIds": [
+        "view-as-student"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "a038588e37c34611112ecf2a854fdb43ac3bf0be",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #47 from Mercantech/cursor/users-view-as-student-bd5e",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "548e2461d09bcdfecd661fe13dfa04835806ef90",
+      "date": "2026-11-05",
+      "subject": "Tilføj Razor/Blazor/cshtml syntax highlight i kursus-kodeblokke",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e2a16c39874e2f632f3f3ffb94bd0e52935807fa",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #48 from Mercantech/cursor/blazor-razor-highlight-be65",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "65d16c051a3d7a1b9cd23fbf6468c6e217b0fabe",
+      "date": "2026-11-05",
+      "subject": "Tilføj MinIO S3-storage i Compose til uploads",
+      "classification": "user_facing",
+      "entryIds": [
+        "private-files"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "5c3d93830e7c1d2f1202399428c01c9ce5943c2b",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #49 from Mercantech/cursor/minio-object-storage-f404",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "c2835d8077466f25677756ae2d0f221ecbaf416b",
+      "date": "2026-11-05",
+      "subject": "Ret MinIO-pull: skift quay.io til pgsty/silo",
+      "classification": "user_facing",
+      "entryIds": [
+        "private-files"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fd7c0d8e587a4d5b9be01c87e989caf22b9f3629",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #50 from Mercantech/cursor/minio-quay-401-fix-305b",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "98bc61a6a2b06be82034a783c121831fdfca70ef",
+      "date": "2026-11-05",
+      "subject": "Gør «se som elev» til fuld elev-UI takeover",
+      "classification": "user_facing",
+      "entryIds": [
+        "view-as-student"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ea5bd26d634ab979de4113d6b2d7ae303531f672",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #51 from Mercantech/cursor/view-as-full-student-ui-560b",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "1445b6cdf331b1d72c8a62089e9f8388b1f5988d",
+      "date": "2026-11-05",
+      "subject": "Genskab elevens overblik og integrer Lectio kompakt",
+      "classification": "user_facing",
+      "entryIds": [
+        "student-front"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "6e36c230c6a8deae9d94fe9be7284f1703f327fc",
+      "date": "2026-11-05",
+      "subject": "Bevar elevdesignet og Mathias’ nye elevvisning",
+      "classification": "user_facing",
+      "entryIds": [
+        "student-front",
+        "view-as-student"
+      ],
+      "reason": "Integration merge with user-visible preservation/fixes; grouped with the originating feature."
+    },
+    {
+      "commit": "7aa2e43152229b13b5e4cee9699845bbbb922359",
+      "date": "2026-11-05",
+      "subject": "Eksponér MinIO Console på minio.mercantec.tech via Traefik",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Driftsadministration: eksponér MinIO Console; ikke en ændring i selve LUP-brugerfladen."
+    },
+    {
+      "commit": "a296d10f681dbbc6f3f5874db537183022ef1315",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #52 from Mercantech/cursor/hosted-minio-console-45c6",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "7e93fa8101c8cce4f0b4a4f6e4b2dd9c13ad1356",
+      "date": "2026-11-05",
+      "subject": "Flyt «Du ser som»-banner over navbar",
+      "classification": "user_facing",
+      "entryIds": [
+        "view-as-student"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "8ed7c94af350d45a8150c047d98976098c562d68",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #53 from Mercantech/cursor/view-as-banner-above-nav-e74a",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "473b77d050d53a8459a6c5f05a9857745f1e96d6",
+      "date": "2026-11-05",
+      "subject": "Ret PlanError-binding så elev-tidslinje viser rigtig fejltekst",
+      "classification": "user_facing",
+      "entryIds": [
+        "student-front"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "2758de43c3431bdf894a9ef0896f7be72180a29b",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #54 from Mercantech/cursor/fix-elev-plan-error-1f91",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "b38f1075767280e9b3f67cc0efdd1f511b87bf80",
+      "date": "2026-11-05",
+      "subject": "Gør Notion/Lectio-teori-tabeller til rigtige HTML-tabeller",
+      "classification": "user_facing",
+      "entryIds": [
+        "course-catalog"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "4b5f5c08e85e603387deb0376b5bd321144777c6",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #55 from Mercantech/cursor/course-markdown-tables-9eb8",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "0184bc23e1cc8e88164ab642f357e01e740bd39f",
+      "date": "2026-11-05",
+      "subject": "Tilføj lup.dk som Traefik-alias til LUP-appen",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "49683e13d64c0287e0ba39ecf724cd47a406d318",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #56 from Mercantech/cursor/lup-dk-hosting-auth-ae89",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "25f12db77461a28f8cb09711cdd611015d87b026",
+      "date": "2026-11-05",
+      "subject": "Add self-hosted BlockNote editor with hold collaboration",
+      "classification": "user_facing",
+      "entryIds": [
+        "published-pages"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "53042a65d6d7ba9b63234f23149b03531018ef06",
+      "date": "2026-11-05",
+      "subject": "Merge remote-tracking branch 'origin/main' into codex/notion-publish",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "10ebd55d5b93fd94312543098bfe5de52c9cb083",
+      "date": "2026-11-05",
+      "subject": "Allow collaboration on both LUP domains",
+      "classification": "user_facing",
+      "entryIds": [
+        "published-pages"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e4e49efe0c03a2a1beaf7c0c48914f11d9d412ae",
+      "date": "2026-11-05",
+      "subject": "Tilføj nytårstema med raketspil og fælles temakatalog",
+      "classification": "user_facing",
+      "entryIds": [
+        "newyear"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1f48c1f617b057ab600809690da8b57085f7a15b",
+      "date": "2026-11-05",
+      "subject": "Tilføj private filer, gruppeafleveringer og forhåndsvisninger",
+      "classification": "user_facing",
+      "entryIds": [
+        "private-files"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "59006d7f33f41bb49d9aef0322778c57712ad3db",
+      "date": "2026-11-05",
+      "subject": "Giv nytårstemaet en figur, uendelige mål og normal footer",
+      "classification": "user_facing",
+      "entryIds": [
+        "newyear"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e044c4c9d55179d7aeb30fa9de03cf6b812b933b",
+      "date": "2026-11-05",
+      "subject": "Add published course pages, hold groups, mentions and private media",
+      "classification": "user_facing",
+      "entryIds": [
+        "published-pages"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "d8ac5efcbc33a37e09c3df4bcc6486c5e17e8f73",
+      "date": "2026-11-05",
+      "subject": "Integrate published pages with shared groups and private file services",
+      "classification": "user_facing",
+      "entryIds": [
+        "published-pages",
+        "private-files"
+      ],
+      "reason": "Integration merge with user-visible preservation/fixes; grouped with the originating feature."
+    },
+    {
+      "commit": "72e16cd4b5e0ae2bbcc0243c1951a22fcd44b8c3",
+      "date": "2026-11-05",
+      "subject": "Vis underviserens Outlook-uge via Azure Graph",
+      "classification": "user_facing",
+      "entryIds": [
+        "outlook-calendar"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "46f14a12d24406c11c30ab184ef666642228487a",
+      "date": "2026-11-05",
+      "subject": "Merge remote-tracking branch 'origin/main' into codex/notion-publishing",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "661b837173d7058510f81b6aa214145bb7da10fe",
+      "date": "2026-11-05",
+      "subject": "Kobl Mathias Auth-sub til mags@mercantec.dk i kalenderen",
+      "classification": "user_facing",
+      "entryIds": [
+        "outlook-calendar"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1eb9bed8a1495e6235c67ad939492c72be59f732",
+      "date": "2026-11-05",
+      "subject": "Skjul Lectio-dublethold (4/8) i underviserkalenderen",
+      "classification": "user_facing",
+      "entryIds": [
+        "outlook-calendar"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "56728d3b4dfa901dfe9a2353de0ac06f9eb96085",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #59 from Mercantech/cursor/calendar-hold-dedupe-63e5",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "db80162abed73372cd0ade0db3b19c62d7c63f52",
+      "date": "2026-11-05",
+      "subject": "Ret Notion-collaboration auth der fejlagtigt afviste gyldige JWT.",
+      "classification": "user_facing",
+      "entryIds": [
+        "published-pages"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "bc34435142a1cf81abecec3da88c44abd739d49f",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #60 from Mercantech/cursor/notion-collab-token-skew-56ac",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "1de5d31a7d96db31a15f63651ec0ae801bb8a990",
+      "date": "2026-11-05",
+      "subject": "Tilføj Mermaid-diagrammer i forløbseditoren.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-mermaid"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "05c1eec857ec245f4b65d88d51aadc0c19bbb017",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #61 from Mercantech/cursor/notion-mermaid-diagram-56ac",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "10a39bc56a593a0d3eb54fe181620dbb73a16fb5",
+      "date": "2026-11-05",
+      "subject": "Gør Notion-sidebaren sticky under scroll.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "4af7bbc1aa4433e8e831387eea9a5099e5cf4451",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #62 from Mercantech/cursor/notion-sidebar-sticky-6a5d",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "65e2e54a03525062b4e2cdae9101826196d7544f",
+      "date": "2026-11-05",
+      "subject": "Tilføj Omdan til og callout i forløbseditoren.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ae694e8458736cdcdd2a62c5f9b7c9bda1d73b89",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #63 from Mercantech/cursor/notion-turn-into-56ac",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "7fc4888fd02c7e47eec9df683182db6ebfa0b8e2",
+      "date": "2026-11-05",
+      "subject": "Fjern Diagram-ramme omkring Mermaid.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-mermaid"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "a49b7eab0862ca2b68497f7fe449dfe30906920b",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #64 from Mercantech/cursor/notion-diagram-chrome-56ac",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "6a31e53475860c85d5b4319118828a1f15b832b1",
+      "date": "2026-11-05",
+      "subject": "Tilføj OpenAI-hjælper i forløbseditoren",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "eb9dd7304dfe3b09e8e136a0fdf1cf5b2673b5bf",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #65 from Mercantech/cursor/notion-ai-helper-56ac",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "a5845ac939a2b702f8a16b64280fb3c939641be1",
+      "date": "2026-11-05",
+      "subject": "Callout: cykel ikon+tema ved klik i stedet for dropdown",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "959654368bd685f90146e7d0141e0367e02686a0",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #66 from Mercantech/cursor/callout-icon-cycle-a999",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "bec96172c3d6e8c8522764ca9c84085a8e61e6e4",
+      "date": "2026-11-05",
+      "subject": "Bump AI-hjælper default til gpt-6-luna.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0424b86b78044ffe44948bf0247841be40be4fb9",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #67 from Mercantech/cursor/openai-model-gpt-6-luna-97e1",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "15334674e403b1ad5df2f8f0b87be29463c5221f",
+      "date": "2026-11-05",
+      "subject": "Tilføj sprogvælger, syntax highlight og Kopiér i Notion-kodeblokke.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-code"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b194ae7e5f8fa83b48c85e1dc19efab79e5dd19d",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #68 from Mercantech/cursor/notion-code-blocks-c232",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "89b7fa5b09d8a9f05d8d984bd08d4cc28fba6eef",
+      "date": "2026-11-05",
+      "subject": "Vis graph view for sidernes interne links.",
+      "classification": "user_facing",
+      "entryIds": [
+        "page-graph"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1e170353c13a8659805ff3b87a44849da58e1844",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #69 from Mercantech/cursor/notion-graph-view-1634",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "d76d1022a90f5ab09f8cb2d1869d1bb9de5d6865",
+      "date": "2026-11-05",
+      "subject": "Ret Mermaid-diagrammer der forsvandt ved React re-render. (#70)",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-mermaid"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "38519aae9a32d1518697db27949d86a622592d50",
+      "date": "2026-11-05",
+      "subject": "Giv nytårstemaet programmeringsmål, fyrværkeribuketter og boosts",
+      "classification": "user_facing",
+      "entryIds": [
+        "newyear"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ae5e14da617b8b17fa19d0be2e9061c67d837f3a",
+      "date": "2026-11-05",
+      "subject": "Tillad store underviseruploads med bekræftelse og multipart",
+      "classification": "user_facing",
+      "entryIds": [
+        "private-files"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fc730ae8ecec2fbf7f59e0ee82ed9dbafa5ae1ee",
+      "date": "2026-11-05",
+      "subject": "Merge remote-tracking branch 'origin/main' into codex/notion-large-uploads",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "e76c6c36ee7abfc46b8272901a4c22a066defffa",
+      "date": "2026-11-05",
+      "subject": "Ret Notion-graf: opløs light-dark-temafarver til canvas (#71)",
+      "classification": "user_facing",
+      "entryIds": [
+        "page-graph"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "362169671e67eb933233f2c4837236cdc9939e59",
+      "date": "2026-11-05",
+      "subject": "Ret Mermaid parse ved fri tekst efter kanter og vis parser-fejl",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-mermaid"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "17dff84e4071fb7f270f51f2e0dd713b477ac59d",
+      "date": "2026-11-05",
+      "subject": "Vis graf for hele holdet på tværs af rodsider. (#73)",
+      "classification": "user_facing",
+      "entryIds": [
+        "page-graph"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7780b50f487069979b1860448bae18fa8329dbc1",
+      "date": "2026-11-05",
+      "subject": "Tilføj AI i blokmenuen, så hjælperen bruger den aktuelle bloks tekst.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f6f65a2708d608fa5b89ba1e0bba551c2bd00514",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #74 from Mercantech/cursor/notion-side-menu-ai-b4b8",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "44d36ebcf2414df8b45c403c626856c16e1a0801",
+      "date": "2026-11-05",
+      "subject": "Bevar teksten når en blok omdannes til kode, diagram eller afsnit.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "080009dff02b6fd965b260574e68c8e22a4488e0",
+      "date": "2026-11-05",
+      "subject": "Giv AI-editoren et vedligeholdt blokkatalog.",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "39c64a79f78ebc2f319970fef9620e0f8c4347a6",
+      "date": "2026-11-05",
+      "subject": "Merge remote-tracking branch 'origin/main' into cursor/ai-editor-block-prompt-1fb3",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "8cca7d66e9764cfb5e189ffc56421a617a18a868",
+      "date": "2026-11-05",
+      "subject": "Gør egne emojis tilgængelige på tværs af platformen.",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9b9ea6c4f391e42b9f0e110c9ae13fcf9343d927",
+      "date": "2026-11-05",
+      "subject": "Merge pull request #77 from Mercantech/cursor/custom-emoji-library-4229",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "f981d09ef4850e47250fc89bdbabf550503349f4",
+      "date": "2026-11-05",
+      "subject": "Build hold command center with quests, calendar and groups",
+      "classification": "user_facing",
+      "entryIds": [
+        "hold-navigation",
+        "quests"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9e1b3852e5eaeeffb56d56bc0b12514ce23acb7e",
+      "date": "2026-11-05",
+      "subject": "Keep editor prompt aligned with custom emoji support",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b15224d5daf2a381641704644df86107451798b2",
+      "date": "2026-11-06",
+      "subject": "Gør sidegrafen flydende og nem at udforske",
+      "classification": "user_facing",
+      "entryIds": [
+        "page-graph"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "773a7e97a627e98993274a692c70d2bb0d891e90",
+      "date": "2026-11-06",
+      "subject": "Gør kodeblokke læsbare i alle temaer",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-code"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "d6b648c9188cd63d549b14169d2c98296706e241",
+      "date": "2026-11-06",
+      "subject": "Gendan blokmenuen på kodeblokke",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-code"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "4254fbdc91c9da3ab5e17824b41be431dc9f318c",
+      "date": "2026-11-06",
+      "subject": "Gør kodeblokke nemmere at læse og betjene",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-code"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "aa1fe1b139e66c9c71381fdfbb3cc7f8b8022925",
+      "date": "2026-11-06",
+      "subject": "Udbyg holdcentral med afleveringer, forløb og klassespin",
+      "classification": "user_facing",
+      "entryIds": [
+        "roulette",
+        "teaching-courses",
+        "submissions",
+        "quests"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "74edd8ab1b18fe7f537088685822ab6bf02329ce",
+      "date": "2026-11-06",
+      "subject": "Gør LUPs forside og undervisningskatalog tilgængeligt uden login",
+      "classification": "user_facing",
+      "entryIds": [
+        "public-home"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f28b9844b426118fbc87830acc1ed9424f105827",
+      "date": "2026-11-06",
+      "subject": "Gør elevens forløb, quests og afleveringer nemme at finde",
+      "classification": "user_facing",
+      "entryIds": [
+        "submissions"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1bfd322b0a171e2156dc1d5de351a19c20a753ce",
+      "date": "2026-11-07",
+      "subject": "Genskab grupperoulettens spin, lyde og lokal Røst-oplæsning",
+      "classification": "user_facing",
+      "entryIds": [
+        "roulette"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "bdb2ee52d3ae7de53faf1114250272fc52b3d787",
+      "date": "2026-11-07",
+      "subject": "Ensret editorblokke og tilføj fælles standardemojis",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks",
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b756dac90c3b650022448e4ace11e5f4c68ad316",
+      "date": "2026-11-07",
+      "subject": "Brug forudindtalte Røst-ord til grupperoulettens arenaspeaker",
+      "classification": "user_facing",
+      "entryIds": [
+        "roulette"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ed130d7b59877da9f9930d04aec97117f73115fd",
+      "date": "2026-11-07",
+      "subject": "Gør emojis nemme at finde med søgning og kategorier",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7b9e17d5d86ab0b6ce32ef4b8577721ebf2e814d",
+      "date": "2026-11-07",
+      "subject": "Undgå gamle cachede filer i emoji-vælgeren",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fb984580db815565264e56096166c33b2cf5265b",
+      "date": "2026-11-07",
+      "subject": "Gør det nemt at uploade emojis fra vælgeren",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "fbb52bc988d747ae61e1f7deed7e84e5185ed4fb",
+      "date": "2026-11-07",
+      "subject": "Undgå gammel cache i grupperoulettens afspiller",
+      "classification": "user_facing",
+      "entryIds": [
+        "roulette"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "9abb2ef146b908b6f2a2da412174262a851e28c5",
+      "date": "2026-11-07",
+      "subject": "Gør AI-hjælperen til en flydende skriveassistent",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "70dfe621ed80b863c9bfe02de85cdb20e503eaf1",
+      "date": "2026-11-07",
+      "subject": "Saml navigationen om hold og bevar valgt forløb",
+      "classification": "user_facing",
+      "entryIds": [
+        "notification-dropdown",
+        "library",
+        "hold-navigation"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7045af70f7a509bc713d70535e337a9c63fa0e0a",
+      "date": "2026-11-07",
+      "subject": "Giv AI adgang til egne emojis og beskriv uploads automatisk",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai",
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "43454a6df830e650e332d345975ce8c04c7b1fda",
+      "date": "2026-11-07",
+      "subject": "Udvid roulette med arenaspeaker og temaer",
+      "classification": "user_facing",
+      "entryIds": [
+        "roulette"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1d662dd63056c2a616b246dd1004930ad50215ba",
+      "date": "2026-11-07",
+      "subject": "Giv eleverne en samlet notesbog og logbog",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7b1479c2008aefc454361398a9d0f960c366e636",
+      "date": "2026-11-07",
+      "subject": "Bevar filnavnet som standard ved emoji-analyse",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "dcfff6b9e9febe80a426a5c862ca0a9b3c980c00",
+      "date": "2026-11-07",
+      "subject": "Tillad Vatson-navne med bindestreg i emojis",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e2feecdf62d34110c40f6aabd34fa2016c506c2e",
+      "date": "2026-11-07",
+      "subject": "Vis faktiske handlinger på klokken og gør biblioteket brugbart",
+      "classification": "user_facing",
+      "entryIds": [
+        "notification-dropdown",
+        "library"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "41b90572e80ba76b31959dfc711d5f9b23e4bef0",
+      "date": "2026-11-07",
+      "subject": "Undgå forældet service worker-manifest efter deploy",
+      "classification": "user_facing",
+      "entryIds": [
+        "reliable-app"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "6a4e334d702b0cb77008f0605c4de957a0999259",
+      "date": "2026-11-07",
+      "subject": "Åbn handlinger direkte fra notifikationsklokken",
+      "classification": "user_facing",
+      "entryIds": [
+        "notification-dropdown"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "cf0d752c9a61df55280befe1473874d37937ab7e",
+      "date": "2026-11-07",
+      "subject": "Gør alle ventende handlinger tilgængelige i dropdownen",
+      "classification": "user_facing",
+      "entryIds": [
+        "notification-dropdown"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b4c99725fd728861fca3b531b40f7cc0d53ca5f3",
+      "date": "2026-11-07",
+      "subject": "Gør det nemmere at vælge og tilføje emojis",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "58312202c945ec1a390164b6cbab1cd21fb56319",
+      "date": "2026-11-07",
+      "subject": "Lad callouts bruge platformens emoji-ikoner",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks",
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "e740826b40d0c10a7d91c539a05b0e521d2735e8",
+      "date": "2026-11-07",
+      "subject": "Fjern støj fra editoren og gem titler automatisk",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-blocks"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "254c772f2d5aaa2f33289626d895dfe749e845cd",
+      "date": "2026-11-07",
+      "subject": "Vis hele Mermaid-diagrammet uden scrollramme",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-mermaid"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "7b0cbeaebabca397b89321d10ae74c1ae2ac8e88",
+      "date": "2026-11-07",
+      "subject": "Mål dansk talesyntese før fælles integration",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Måling/benchmark af talesyntese før integration; ikke en ny leveret brugerfunktion."
+    },
+    {
+      "commit": "7528e7454bc1ebd3b3ae33655ad4b57fc889a678",
+      "date": "2026-11-07",
+      "subject": "Saml LUPs karakterer med egne profiler",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-profiles"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "186784f721ff52a2bbf8158d33a6d2b91956fda4",
+      "date": "2026-11-07",
+      "subject": "Gør billedimport til LUP-emojis lettere",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "763f636eba91cb9da8b35b85f3be6e74d0413bfd",
+      "date": "2026-11-07",
+      "subject": "Gør emoji-baggrunde gennemsigtige før upload",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "370ea06152e1b836a7e56ff2270a5f9bebdf634e",
+      "date": "2026-11-07",
+      "subject": "Tegn sammen direkte i LUP",
+      "classification": "user_facing",
+      "entryIds": [
+        "drawings"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "51362b1b9824ec7a892e909ba25698336d0bb898",
+      "date": "2026-11-07",
+      "subject": "Lad kopier og indsæt blive i tegningen",
+      "classification": "user_facing",
+      "entryIds": [
+        "drawings"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "b6e9228fa2a7f0abea0b4cd505331e573f235798",
+      "date": "2026-11-07",
+      "subject": "Gem beskårne emojis direkte fra Chrome",
+      "classification": "user_facing",
+      "entryIds": [
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "aa650337a647577226cb7594d7a5099c89c2009d",
+      "date": "2026-11-07",
+      "subject": "Send brugeren tilbage efter login",
+      "classification": "user_facing",
+      "entryIds": [
+        "login-return"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "74d2d231a266d578a54b92788a3b1e1f7c672450",
+      "date": "2026-11-07",
+      "subject": "Undgå loginløkker med kodede adresser",
+      "classification": "user_facing",
+      "entryIds": [
+        "login-return"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "f998f24de02650396cafa53c77356dec5d5d299a",
+      "date": "2026-11-07",
+      "subject": "Servér beskæringsværktøjets CSS korrekt",
+      "classification": "user_facing",
+      "entryIds": [
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "79b0c69ea75d14976062b970115113ec58e7c513",
+      "date": "2026-11-07",
+      "subject": "Hent loginfilen sammen med den aktuelle app",
+      "classification": "user_facing",
+      "entryIds": [
+        "login-return"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "58a7758dbcc125eff475ae72144ef79c6f0f327e",
+      "date": "2026-11-07",
+      "subject": "Giv fagene tydelige underviserkarakterer",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-profiles"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "8b234fc918bcc709879fe7e864aeefe960c4dfd2",
+      "date": "2026-11-07",
+      "subject": "Lad browseren hente den rettede tegneeditor",
+      "classification": "user_facing",
+      "entryIds": [
+        "drawings"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "066f10e96d38add63592f98d26472ccece7d7d6c",
+      "date": "2026-11-07",
+      "subject": "Gør LUP-udvidelsen til et enkelt billedværksted",
+      "classification": "user_facing",
+      "entryIds": [
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "57bd150df8a75eeb62561ec384e54ade7b5be518",
+      "date": "2026-11-07",
+      "subject": "Forklar Vatsons hjemsted og rolle hos VATek",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-profiles"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "eff651d812ef21a9671f656f8323de54678da5db",
+      "date": "2026-11-07",
+      "subject": "Giv Raymond et bibliotek af reaktioner og miljøer",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-profiles"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0d58bf03997b149f6b17a96459a3f987f64701d8",
+      "date": "2026-11-07",
+      "subject": "Find nye emoji-billeder direkte i LUP-udvidelsen",
+      "classification": "user_facing",
+      "entryIds": [
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "83d613c7ae444b9e891af777f078be2c573f1215",
+      "date": "2026-11-07",
+      "subject": "Giv Raymond et mere naturligt grin",
+      "classification": "user_facing",
+      "entryIds": [
+        "character-profiles"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "1e465e008ecafefa3c9d70ae90b9867a8b741153",
+      "date": "2026-11-07",
+      "subject": "Bevar GIF-animationer fra søgning til emoji",
+      "classification": "user_facing",
+      "entryIds": [
+        "emojis",
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "82437e8c4de9ce9546d678e0d2e53b729d0182dc",
+      "date": "2026-11-07",
+      "subject": "Gør Raymond levende med databaseanimationer",
+      "classification": "user_facing",
+      "entryIds": [
+        "characters"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0f706f7618a5206d2055292d5849b2d0622b8b76",
+      "date": "2026-11-07",
+      "subject": "Gør billedimport robust og forklar fejl tydeligt",
+      "classification": "user_facing",
+      "entryIds": [
+        "chrome-extension"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "0c109d219f6002bc9fb612854bbbda813afc536c",
+      "date": "2026-11-08",
+      "subject": "Saml personlige handlinger og læste beskeder i klokken",
+      "classification": "user_facing",
+      "entryIds": [
+        "action-center"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "ac4ea2eea36977a4a7a21304d7a82271be42acae",
+      "date": "2026-11-08",
+      "subject": "Tilføj privat visuel ændringsoversigt for undervisere",
+      "classification": "user_facing",
+      "entryIds": [
+        "visual-updates"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "eb507720a39d97fef5fd01241b3b4899fd2fa8fc",
+      "date": "2026-11-08",
+      "subject": "Merge remote-tracking branch 'origin/main' into codex/visual-updates",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Pure PR/integration merge; its user-facing commits are already classified separately."
+    },
+    {
+      "commit": "b8d165206a06d37d49e335179cfee8d48867e1a4",
+      "date": "2026-11-08",
+      "subject": "Gør gavevalg tydelige og tilføj temaknap i topbaren",
+      "classification": "user_facing",
+      "entryIds": [
+        "gift-choices",
+        "theme-shortcut"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "38a15464adaca70ddbfa6acd1e6eb20b2da7f9d7",
+      "date": "2026-11-08",
+      "subject": "Gem avatarsamling og avatarvalg på brugerkontoen",
+      "classification": "user_facing",
+      "entryIds": [
+        "avatar-collection"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    },
+    {
+      "commit": "74db49e319aff1118d12e1a8fdacf5dbd0f75228",
+      "date": "2026-11-08",
+      "subject": "Vis alle Vatsons emojis i stor størrelse",
+      "classification": "user_facing",
+      "entryIds": [
+        "vatson-emojis"
+      ],
+      "reason": "Feature or user-visible fix; grouped in the proposed entry/entries."
+    }
+  ]
+}

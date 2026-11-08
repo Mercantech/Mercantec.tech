@@ -198,5 +198,505 @@
       650
     ],
     "bytes": 34654
+  },
+  "profile": {
+    "source": "tmp/platform-updates-completeness/public-capture/profile.png",
+    "crop": null,
+    "size": [
+      1280,
+      258
+    ],
+    "bytes": 7814,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "rights": {
+    "source": "tmp/platform-updates-completeness/public-capture/rights.png",
+    "crop": null,
+    "size": [
+      1280,
+      488
+    ],
+    "bytes": 23366,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "lectio-linking": {
+    "source": "tmp/platform-updates-completeness/core-capture/lectio-linking.png",
+    "crop": [
+      15,
+      230,
+      1425,
+      540
+    ],
+    "size": [
+      1280,
+      281
+    ],
+    "bytes": 15256,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "lectio-overview": {
+    "source": "tmp/platform-updates-completeness/core-capture/lectio.png",
+    "crop": [
+      15,
+      240,
+      1425,
+      665
+    ],
+    "size": [
+      1280,
+      386
+    ],
+    "bytes": 24372,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "reliable-app": {
+    "source": "tmp/platform-updates-completeness/public-capture/personal-universe.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      620
+    ],
+    "size": [
+      1280,
+      551
+    ],
+    "bytes": 27286,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "lup-design": {
+    "source": "design/blazor-qa/course-light.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      1270
+    ],
+    "size": [
+      1280,
+      1129
+    ],
+    "bytes": 81074,
+    "captureDate": null,
+    "sourceRevision": null,
+    "note": "Existing genuine project screenshot; historical interface or isolated test data."
+  },
+  "themes": {
+    "source": "tmp/platform-updates-completeness/public-capture/hacker-theme.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      520
+    ],
+    "size": [
+      1280,
+      462
+    ],
+    "bytes": 17158,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "shop": {
+    "source": "tmp/platform-updates-completeness/public-capture/shop.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      940
+    ],
+    "size": [
+      1280,
+      836
+    ],
+    "bytes": 42294,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "progress": {
+    "source": "tmp/platform-updates-completeness/public-capture/public-badges.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      1200
+    ],
+    "size": [
+      1280,
+      1067
+    ],
+    "bytes": 62116,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "rune-run": {
+    "source": "tmp/platform-updates-completeness/public-capture/rune-run.png",
+    "crop": null,
+    "size": [
+      1280,
+      889
+    ],
+    "bytes": 14708,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "login-return": {
+    "source": "tmp/platform-updates-completeness/public-capture/login-return.png",
+    "crop": [
+      0,
+      0,
+      650,
+      300
+    ],
+    "size": [
+      650,
+      300
+    ],
+    "bytes": 5130,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "view-as-student": {
+    "source": "tmp/platform-updates-completeness/core-capture/student-preview.png",
+    "crop": null,
+    "size": [
+      1280,
+      996
+    ],
+    "bytes": 81912,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "course-catalog": {
+    "source": "tmp/platform-updates-completeness/public-capture/course-catalog.png",
+    "crop": null,
+    "size": [
+      1280,
+      634
+    ],
+    "bytes": 35196,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "course-h2": {
+    "source": "tmp/platform-updates-completeness/public-capture/course-h2.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      1250
+    ],
+    "size": [
+      1280,
+      1111
+    ],
+    "bytes": 89994,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "private-files": {
+    "source": "tmp/platform-updates-completeness/core-capture/materials.png",
+    "crop": null,
+    "size": [
+      1280,
+      560
+    ],
+    "bytes": 22596,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "outlook-calendar": {
+    "source": "tmp/platform-updates-completeness/core-capture/outlook.png",
+    "crop": null,
+    "size": [
+      1280,
+      657
+    ],
+    "bytes": 24896,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "editor-mermaid": {
+    "source": "tmp/platform-updates-completeness/editor-capture/editor-mermaid.png",
+    "crop": null,
+    "size": [
+      931,
+      187
+    ],
+    "bytes": 5082,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "editor-code": {
+    "source": "tmp/platform-updates-completeness/editor-capture/editor-code.png",
+    "crop": null,
+    "size": [
+      931,
+      181
+    ],
+    "bytes": 8936,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "editor-blocks": {
+    "source": "tmp/platform-updates-completeness/editor-capture/editor-blocks.png",
+    "crop": null,
+    "size": [
+      1093,
+      417
+    ],
+    "bytes": 17568,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "editor-ai": {
+    "source": "tmp/platform-updates-completeness/editor-capture/ai-assistant.png",
+    "crop": null,
+    "size": [
+      360,
+      680
+    ],
+    "bytes": 8154,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "page-graph": {
+    "source": "tmp/platform-updates-completeness/public-capture/page-graph.png",
+    "crop": [
+      700,
+      320,
+      2070,
+      1450
+    ],
+    "size": [
+      1280,
+      1056
+    ],
+    "bytes": 30298,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "emojis": {
+    "source": "tmp/platform-updates-completeness/editor-capture/emoji-picker-react.png",
+    "crop": null,
+    "size": [
+      341,
+      233
+    ],
+    "bytes": 6336,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "teaching-courses": {
+    "source": "tmp/platform-updates-completeness/core-capture/teaching-course.png",
+    "crop": null,
+    "size": [
+      1280,
+      552
+    ],
+    "bytes": 30438,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "submissions": {
+    "source": "tmp/platform-updates-completeness/core-capture/submission-overview.png",
+    "crop": null,
+    "size": [
+      1280,
+      1011
+    ],
+    "bytes": 54796,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "quests": {
+    "source": "tmp/platform-updates-completeness/core-capture/targeted-repeating-quest.png",
+    "crop": null,
+    "size": [
+      1280,
+      1150
+    ],
+    "bytes": 44752,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "public-home": {
+    "source": "tmp/platform-updates-completeness/public-capture/public-home.png",
+    "crop": null,
+    "size": [
+      1280,
+      876
+    ],
+    "bytes": 101950,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "drawings": {
+    "source": "tmp/platform-updates-completeness/editor-capture/editor-drawing.png",
+    "crop": [
+      0,
+      0,
+      1000,
+      680
+    ],
+    "size": [
+      1000,
+      680
+    ],
+    "bytes": 14792,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "chrome-extension": {
+    "source": "tmp/platform-updates-completeness/editor-capture/chrome-workshop.png",
+    "crop": null,
+    "size": [
+      1140,
+      1004
+    ],
+    "bytes": 59156,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "character-profiles": {
+    "source": "tmp/platform-updates-completeness/public-capture/character-profiles.png",
+    "crop": null,
+    "size": [
+      1100,
+      1293
+    ],
+    "bytes": 94784,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "action-center": {
+    "source": "tmp/platform-updates-completeness/public-capture/action-center.png",
+    "crop": null,
+    "size": [
+      1120,
+      816
+    ],
+    "bytes": 38726,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "eb50772",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
+  },
+  "visual-updates": {
+    "source": "output/lup-updates.png",
+    "crop": [
+      0,
+      0,
+      1440,
+      1000
+    ],
+    "size": [
+      1280,
+      889
+    ],
+    "bytes": 64544,
+    "captureDate": null,
+    "sourceRevision": null,
+    "note": "Existing genuine project screenshot; historical interface or isolated test data."
+  },
+  "avatar-collection": {
+    "source": "design/robot-avatar-platform/collection-desktop.png",
+    "crop": [
+      18,
+      82,
+      1420,
+      1065
+    ],
+    "size": [
+      1280,
+      897
+    ],
+    "bytes": 51558,
+    "captureDate": null,
+    "sourceRevision": null,
+    "note": "Existing genuine project screenshot; historical interface or isolated test data."
+  },
+  "gift-choices": {
+    "source": "design/gift-selection-review.jpg",
+    "crop": [
+      320,
+      16,
+      960,
+      704
+    ],
+    "size": [
+      640,
+      688
+    ],
+    "bytes": 23106,
+    "captureDate": null,
+    "sourceRevision": null,
+    "note": "Existing genuine project screenshot; historical interface or isolated test data."
+  },
+  "theme-shortcut": {
+    "source": "design/theme-picker-live.jpg",
+    "crop": [
+      787,
+      5,
+      1150,
+      687
+    ],
+    "size": [
+      363,
+      682
+    ],
+    "bytes": 19996,
+    "captureDate": null,
+    "sourceRevision": null,
+    "note": "Existing genuine project screenshot; historical interface or isolated test data."
+  },
+  "vatson-emojis": {
+    "source": "tmp/platform-updates-completeness/public-capture/vatson-emojis.png",
+    "crop": [
+      0,
+      0,
+      1100,
+      1055
+    ],
+    "size": [
+      1100,
+      1055
+    ],
+    "bytes": 65986,
+    "captureDate": "2026-11-08",
+    "sourceRevision": "74db49e",
+    "note": "Actual interface; fictional account/content in isolated API fixtures. Feature date and screenshot date can differ."
   }
 }
