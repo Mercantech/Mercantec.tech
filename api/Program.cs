@@ -6,6 +6,7 @@ using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Ai.EditorRuns;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
+using Mercantec.Tech.Api.Mcp;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 }
 
 builder.Services.AddControllers();
+builder.Services.AddNotionMcp();
 builder.Services.AddScoped<Mercantec.Tech.Api.Notebooks.NotebookAccess>();
 builder.Services.AddHostedService<Mercantec.Tech.Api.References.ReferenceBackfill>();
 builder.Services.AddScoped<Mercantec.Tech.Api.Drawings.DrawingAccess>();
@@ -184,6 +186,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 context.HandleResponse();
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                if (context.Request.Path.StartsWithSegments("/api/mcp") && NotionMcpEndpoints.ResourceMetadataUrl(builder.Configuration) is { } metadata)
+                    context.Response.Headers.WWWAuthenticate = $"Bearer resource_metadata=\"{metadata}\"";
                 context.Response.ContentType = "application/json";
                 return context.Response.WriteAsync("""{"error":"unauthorized"}""");
             },
@@ -244,6 +248,9 @@ app.UseCors("Spa");
 app.UseAuthentication();
 app.UseAuthorization();
 if (!builder.Configuration.GetValue<bool>("PreviewWorker:Only"))
+{
     app.MapControllers();
+    app.MapNotionMcp();
+}
 
 app.Run();

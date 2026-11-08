@@ -34,6 +34,7 @@ public sealed class NotionTitleUiTests
         Assert.NotNull(toolbar.QuerySelector(".notion-toolbar-actions .notion-ai-toggle-slot"));
         Assert.NotNull(toolbar.QuerySelector(".notion-document-menu [aria-label='Brødkrummer']"));
         Assert.Contains("Præsenter", toolbar.QuerySelector(".notion-document-menu")!.TextContent);
+        Assert.Contains("Codex-ændringer", toolbar.QuerySelector(".notion-document-menu")!.TextContent);
         Assert.Equal("Starttitel", toolbar.QuerySelector("h1.notion-visually-hidden")!.TextContent);
         Assert.Empty(page.FindAll(".notion-publishing, .notion-document > .notion-title-form, .notion-document > .notion-title-preview"));
         Assert.Equal("Udgiv", Button(page, "Udgiv til holdet").TextContent.Trim());
@@ -67,6 +68,7 @@ public sealed class NotionTitleUiTests
 
         Assert.Equal("Starttitel", page.Find(".notion-document-toolbar .notion-toolbar-title").TextContent);
         Assert.Empty(page.FindAll(".notion-title-form, .notion-publish-button"));
+        Assert.DoesNotContain("Codex-ændringer", page.Find(".notion-document-menu").TextContent);
         Assert.Single(page.FindAll(".notion-document-toolbar .notion-ai-toggle-slot"));
         Assert.DoesNotContain("Træk udgivelse tilbage", page.Find(".notion-document-menu").TextContent);
         Assert.Equal(0, javascript.Editor.Destroys);

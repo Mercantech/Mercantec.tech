@@ -181,7 +181,10 @@ function App() {
       assert(editor.getBlock('drawing')?.props.reference === 'owned-drawing-42', 'Existing opaque block ID changed'); results.push('opaque original blocks retain IDs and references');
       await reset(); await propose(); return results;
     };
-    (window as any).nativeAiQa = { ready: true, editor, review, ydoc, reset, propose, makeHunk, select, snapshot, runChecks, setOpen, setTarget, accept: (ids?: string[]) => review.accept(ids || apiRun!.hunks.map(hunk => hunk.id)), setTheme: (name: string, colors: Record<string, string> = {}) => { document.documentElement.dataset.theme = name; document.body.dataset.theme = name; for (const [key, value] of Object.entries(colors)) document.documentElement.style.setProperty('--' + key, value); } };
+    (window as any).nativeAiQa = { ready: true, editor, review, ydoc, reset, propose, makeHunk, select, snapshot, runChecks, setOpen, setTarget,
+      exportState: () => [...Y.encodeStateAsUpdate(ydoc)],
+      mergeState: (bytes: number[]) => { Y.applyUpdate(ydoc, new Uint8Array(bytes)); editor.prosemirrorState.doc.check(); return snapshot(); },
+      accept: (ids?: string[]) => review.accept(ids || apiRun!.hunks.map(hunk => hunk.id)), setTheme: (name: string, colors: Record<string, string> = {}) => { document.documentElement.dataset.theme = name; document.body.dataset.theme = name; for (const [key, value] of Object.entries(colors)) document.documentElement.style.setProperty('--' + key, value); } };
     void reset().then(() => propose()).then(() => setReady(true));
   }, [editor, review, ydoc]);
   return <OpenAiOnBlockProvider openOnBlock={blockId => { setTarget(review.capture(blockId)); revealPanel(); }}>

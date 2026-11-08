@@ -18,7 +18,8 @@ public sealed record NotionPageContext(Guid PageId, Guid? HoldId, string Title, 
 public sealed record PublishNotionPage(long ExpectedRevision, string ExpectedFingerprint, Guid[] AssetIds,
     DrawingPublicationRequest[]? Drawings = null);
 public sealed record StoreNotionDocument(string StateBase64, string Fingerprint, Guid[]? DrawingIds = null,
-    Dictionary<string, string>? DrawingBlocks = null, EntityReference[]? References = null);
+    Dictionary<string, string>? DrawingBlocks = null, EntityReference[]? References = null,
+    StoreNotionMcpChange? McpChange = null);
 public sealed record AuthorizeNotionCollaboration(string DocumentName);
 public sealed record NotionCollaborationAccess(Guid DocumentId, bool CanEdit);
 public sealed record NotionGraph(Guid? HoldId, Guid CollectionId, string Title, bool CanRename,

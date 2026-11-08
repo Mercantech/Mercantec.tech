@@ -43,6 +43,7 @@ builder.Services.AddScoped<Mercantec.Tech.Web.Learning.TeachingCoursesClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Learning.GroupSetsClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Learning.RouletteSpeechClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Notion.NotionClient>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Notion.NotionMcpClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Notebooks.NotebookClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Emojis.EmojiClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Extensions.ExtensionAccessClient>();

@@ -70,6 +70,7 @@ public partial class Index
     private string _title = "", _newTitle = "", _status = "connecting", _statusDetail = "";
     private bool _loading = true, _busy, _creating, _needsMount, _mounted, _disposed, _showGroups, _scrollCenterToTop;
     private bool _savingTitle;
+    private Guid? _codexHistoryPageId;
     private Task<bool>? _titleSaveTask;
     private bool CanUse => Auth.IsAuthenticated;
     private bool ForceReadOnly => PublishedPreview || ViewAs.IsActive;
@@ -103,6 +104,7 @@ public partial class Index
     protected override async Task OnParametersSetAsync()
     {
         if (_account is null || !Auth.IsInitialized || !CanUse || _loadedRoute == RouteKey) return;
+        _codexHistoryPageId = null;
         await Load();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)

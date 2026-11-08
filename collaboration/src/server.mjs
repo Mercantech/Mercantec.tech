@@ -6,6 +6,7 @@ import { createApiClient, documentDomainFromName, documentIdFromName, resolveSer
 import { fingerprintHash } from './fingerprint.mjs';
 import { cloneNotebookDocument, projectNotionContext } from './notebook-documents.mjs';
 import { cloneDrawingDocument, drawingStateProjection, validateDrawingUpdate, MAX_DRAWING_BYTES } from './drawing-documents.mjs';
+import { McpDocumentError, MCP_RECEIPTS, readMcpPage, prepareMcpApply, prepareMcpUndo, makeMcpReceipt, verifyMcpReceipt, revalidateMcpPlan, applyPreparedMcpPlan } from './mcp-documents.mjs';
 
 const DENIED = { code: 4403, reason: 'Document access denied. Open the page again to reconnect.' };
 const SCHEMA_MISMATCH = { code: 4409, reason: 'editor_version_mismatch' };
@@ -26,6 +27,14 @@ export function createCollaborationServer({
   const sessions = new Set();
   const cloneSecret = resolveServiceSecret(serviceSecret, serviceSecretFile);
   const drawingQueues = new WeakMap();
+  const mcpQueues = new Map();
+  async function lockMcp(documentName) {
+    const previous = mcpQueues.get(documentName) ?? Promise.resolve();
+    let unlock;
+    const pending = new Promise(resolve => { unlock = resolve; });
+    mcpQueues.set(documentName, pending); await previous;
+    return () => { unlock(); if (mcpQueues.get(documentName) === pending) mcpQueues.delete(documentName); };
+  }
   async function lockDrawing(document) {
     const previous = drawingQueues.get(document) ?? Promise.resolve();
     let unlock;
@@ -65,11 +74,11 @@ export function createCollaborationServer({
     sessions.delete(context);
   }
 
-  async function persistDocument(documentName, document) {
+  async function persistDocument(documentName, document, mcpChange = undefined) {
     const state = Y.encodeStateAsUpdate(document), vector = Y.encodeStateVector(document);
     const fingerprint = fingerprintHash(state, vector);
     try {
-      const result = await api.store(documentName, state, fingerprint);
+      const result = await api.store(documentName, state, fingerprint, mcpChange);
       const metadata = typeof result === 'string' ? { savedAtUtc: result } : result;
       if (fingerprint === fingerprintHash(Y.encodeStateAsUpdate(document), Y.encodeStateVector(document))) {
         document.broadcastStateless(JSON.stringify({
@@ -104,6 +113,67 @@ export function createCollaborationServer({
     },
 
     async onRequest({ request, response }) {
+      if (request.method === 'POST' && ['/internal/notion/mcp/read', '/internal/notion/mcp/apply', '/internal/notion/mcp/undo'].includes(request.url)) {
+        const supplied = request.headers['x-notion-service-key'];
+        const trusted = typeof supplied === 'string' && supplied.length <= 1024 && cloneSecret.length >= 32
+          && timingSafeEqual(createHash('sha256').update(supplied).digest(), createHash('sha256').update(cloneSecret).digest());
+        if (!trusted || request.headers.origin) {
+          response.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); response.end(JSON.stringify({ error: 'unauthorized' })); throw null;
+        }
+        let connection, release;
+        try {
+          const chunks = []; let size = 0;
+          for await (const chunk of request) { size += chunk.length; if (size > 24 * 1024 * 1024) throw new McpDocumentError('request_too_large', 'Opgaven er for stor.', 413); chunks.push(chunk); }
+          let body; try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new McpDocumentError('invalid_request', 'Ugyldig JSON.'); }
+          if (typeof body?.pageId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.pageId)) throw new McpDocumentError('invalid_request', 'Ugyldigt side-id.');
+          const pageId = documentIdFromName(`notion:${body.pageId}`), name = `notion:${pageId}`;
+          if (body.pageId !== pageId || typeof body.accessToken !== 'string') throw new McpDocumentError('invalid_request', 'Ugyldigt side-id eller adgangstoken.');
+          const authorize = async () => {
+            try { const permission = await api.authorize(name, body.accessToken); if (!permission.canEdit) throw new Error(); }
+            catch { throw new McpDocumentError('access_denied', 'Din aktuelle redigeringsadgang kunne ikke bekræftes.', 403); }
+          };
+          await authorize();
+          release = await lockMcp(name);
+          connection = await server.hocuspocus.openDirectConnection(name, { source: 'mcp', token: body.accessToken });
+          const document = connection.document;
+          let result;
+          if (request.url.endsWith('/read')) {
+            await authorize();
+            result = readMcpPage(document, body);
+          } else {
+            let sub;
+            try { const token = body.accessToken.replace(/^Bearer /, ''); sub = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8')).sub; } catch { /* Denied below after signature-backed API authorization. */ }
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.actorSub || '') || typeof sub !== 'string' || sub.toLowerCase() !== body.actorSub
+                || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.operationId || '') || !/^[0-9a-f]{64}$/.test(body.requestHash || '')) throw new McpDocumentError('invalid_request', 'Ugyldig operationsidentitet.');
+            const savedReceipt = document.getMap(MCP_RECEIPTS).get(body.operationId);
+            if (savedReceipt) {
+              if (!verifyMcpReceipt(cloneSecret, body, savedReceipt)) throw new McpDocumentError('operation_conflict', 'Operations-id’et er allerede brugt eller har en ugyldig kvittering.', 409);
+              await authorize();
+            } else {
+              const plan = request.url.endsWith('/undo') ? prepareMcpUndo(document, body) : prepareMcpApply(document, body);
+              await api.prepareMcpChange(pageId, { operationId: body.operationId, ownerSub: body.actorSub, requestHash: body.requestHash,
+                summary: typeof body.summary === 'string' ? body.summary.slice(0, 1000) : (request.url.endsWith('/undo') ? 'Fortryd Codex-ændring' : 'Codex redigerede dokumentet'),
+                ...(body.undoOf ? { undoOf: body.undoOf } : {}), before: plan.before, after: plan.after });
+              await authorize();
+              revalidateMcpPlan(document, plan);
+              applyPreparedMcpPlan(document, plan, makeMcpReceipt(cloneSecret, body, plan));
+            }
+            // onStoreDocument/disconnect intentionally swallow hook errors. This explicit path must propagate the DB acknowledgement.
+            const stored = await document.saveMutex.runExclusive(() => persistDocument(name, document,
+              { operationId: body.operationId, ownerSub: body.actorSub, requestHash: body.requestHash }));
+            result = { pageId, operationId: body.operationId, status: 'applied', replayed: Boolean(savedReceipt), savedAtUtc: stored.savedAtUtc, fingerprint: stored.fingerprint };
+          }
+          response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); response.end(JSON.stringify(result));
+        } catch (error) {
+          const known = error instanceof McpDocumentError;
+          response.writeHead(known ? error.status : 503, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          response.end(JSON.stringify({ error: known ? error.code : 'document_unavailable', detail: known ? error.message : 'Ændringen er endnu ikke bekræftet gemt. Prøv igen med samme operations-id.' }));
+        } finally {
+          // Keeping the room warm also avoids a second swallowed store being mistaken for the explicit acknowledgement above.
+          await connection?.disconnect({ unloadImmediately: false }).catch(() => {}); release?.();
+        }
+        throw null;
+      }
       if (request.method === 'POST' && ['/internal/notebook/clone', '/internal/notion/project', '/internal/drawing/clone', '/internal/drawing/checkpoint', '/internal/drawing/invalidate'].includes(request.url)) {
         const supplied = request.headers['x-notion-service-key'];
         const authorized = typeof supplied === 'string' && supplied.length <= 1024 && cloneSecret.length >= 32

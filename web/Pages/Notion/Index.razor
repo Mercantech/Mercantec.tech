@@ -95,6 +95,7 @@ else
                                     <a href="@GraphHref(_current.CollectionId ?? CollectionRoot(_current.PageId))"><UiIcon Name="chart" />Graf for kollektionen</a>
                                     @if (IsEditing)
                                     {
+                                        <button type="button" @onclick="() => _codexHistoryPageId = _current.PageId"><UiIcon Name="loop" />Codex-ændringer</button>
                                         <button type="button" disabled="@_busy" @onclick="() => BeginCreate(true)"><UiIcon Name="plus" />Ny underside</button>
                                         <button type="button" disabled="@_busy" @onclick="RefreshContext"><UiIcon Name="loop" />@(_holdId == Guid.Empty ? "Opdatér sideoversigt" : "Opdatér holddata")</button>
                                     }
@@ -126,6 +127,10 @@ else
             </section>
             <div class="notion-ai-slot" aria-label="AI-arbejdsområde"></div>
         </div>
+        @if (IsEditing && _codexHistoryPageId is Guid historyPageId && _current?.PageId == historyPageId)
+        {
+            <NotionCodexChanges @key="historyPageId" PageId="historyPageId" OnClose="() => _codexHistoryPageId = null" />
+        }
     }
 }
 

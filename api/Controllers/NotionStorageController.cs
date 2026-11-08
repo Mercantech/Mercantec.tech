@@ -41,6 +41,7 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         byte[] bytes;
         string? fingerprint;
         string? drawingManifest = null;
+        StoreNotionMcpChange? mcpChange = null;
         if (json)
         {
             StoreNotionDocument? projection;
@@ -66,6 +67,7 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             }
             fingerprint = projection.Fingerprint;
             drawingManifest = JsonSerializer.Serialize(drawingIds);
+            mcpChange = projection.McpChange;
         }
         else
         {
@@ -87,6 +89,14 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         // The source row also serializes its reference diff and durable mention occurrences.
         await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.PublicationVersion, p => p.PublicationVersion), ct);
+        Mercantec.Tech.Api.Data.Entities.NotionMcpChange? operation = null;
+        if (mcpChange is not null)
+        {
+            operation = await db.NotionMcpChanges.SingleOrDefaultAsync(c => c.Id == mcpChange.OperationId, ct);
+            if (operation is null || operation.PageId != id || operation.OwnerSub != mcpChange.OwnerSub
+                || operation.RequestHash != mcpChange.RequestHash || operation.BeforeJson is null || operation.AfterJson is null)
+                return Conflict(new { error = "operation_not_prepared" });
+        }
         var references = new Mercantec.Tech.Api.References.ReferenceService(db);
         await references.BaselineNotionAsync(id, ct);
         // Atomic column update leaves concurrently renamed page metadata intact.
@@ -99,8 +109,23 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             .SetProperty(p => p.DrawingIdsJson, p => drawingManifest ?? p.DrawingIdsJson), ct);
         if (written == 0) return NotFound();
         await references.RefreshNotionAsync(id, ct);
+        if (operation is { Status: "pending" })
+        {
+            if (operation.UndoOf is Guid originalId)
+            {
+                var original = await db.NotionMcpChanges.SingleOrDefaultAsync(c => c.Id == originalId, ct);
+                if (original is null || original.PageId != id || original.OwnerSub != operation.OwnerSub || original.Status != "applied")
+                    return Conflict(new { error = "undo_conflict" });
+                original.Status = "undone";
+                original.UndoneAtUtc = updated;
+            }
+            operation.Status = "applied";
+            operation.AppliedAtUtc = updated;
+            operation.Error = null;
+            await db.SaveChangesAsync(ct);
+        }
         await transaction.CommitAsync(ct);
-        return Ok(new { savedAtUtc = updated });
+        return Ok(new { savedAtUtc = updated, mcpOperationId = operation?.Id });
     }
 
     public static bool IsFingerprint(string? fingerprint) => fingerprint is { Length: 64 }

@@ -100,6 +100,7 @@ services:
       Cors__SpaOrigins: ${CORS_SPA_ORIGINS:-http://localhost:3000;https://mercantec.tech;https://lup.dk;https://www.lup.dk}
       AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.mercantec.tech}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-mercantec-apps}
+      Mcp__PublicUrl: ${LUP_MCP_PUBLIC_URL:-https://lup.dk/api/mcp}
       JWKS_URI: ${JWKS_URI:-https://auth.mercantec.tech/.well-known/jwks.json}
       ExtensionUpload__AllowedEmails: ${EXTENSION_UPLOAD_ALLOWED_EMAILS:-mags@mercantec.dk;kasc@mercantec.dk}
       ExtensionUpload__AllowedSubjects: ${EXTENSION_UPLOAD_ALLOWED_SUBJECTS:-d969fced-f7be-46d4-9bb9-5a2f03ca6974}

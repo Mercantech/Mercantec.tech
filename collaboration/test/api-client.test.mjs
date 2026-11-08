@@ -41,6 +41,33 @@ test('configuration fails closed without a strong service key or with embedded A
   assert.throws(() => createApiClient({ apiBaseUrl: 'file:///tmp/api', serviceSecret: secret }));
 });
 
+test('MCP audit prepare binds the page and sends only the internal service credential', async () => {
+  const operationId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+  const change = { operationId, ownerSub: id, requestHash: 'b'.repeat(64), before: { version: 1, blocks: [] }, after: { version: 1, blocks: [] } };
+  const api = client(async (url, request) => {
+    assert.equal(url.pathname, '/api/internal/notion/mcp/changes/prepare');
+    assert.equal(url.searchParams.get('pageId'), id); assert.equal(request.method, 'POST');
+    assert.equal(request.headers['X-Notion-Service-Key'], secret); assert.equal(request.headers.Authorization, undefined);
+    assert.deepEqual(JSON.parse(request.body), change); return Response.json({ prepared: true });
+  });
+  assert.deepEqual(await api.prepareMcpChange(id, change), { prepared: true });
+  await assert.rejects(client(async () => new Response(null, { status: 409 })).prepareMcpChange(id, change), /could not be prepared/);
+});
+
+test('MCP storage includes the prepared operation and requires an exact durable operation acknowledgement', async () => {
+  const doc = new Y.Doc(); doc.getText('test').insert(0, 'MCP'); const bytes = Y.encodeStateAsUpdate(doc);
+  const canonical = fingerprintHash(bytes, Y.encodeStateVector(doc)); doc.destroy();
+  const change = { operationId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee', ownerSub: id, requestHash: 'b'.repeat(64) };
+  const api = client(async (url, request) => {
+    assert.equal(url.pathname, `/api/internal/notion/documents/${id}/state`);
+    assert.deepEqual(JSON.parse(request.body).mcpChange, change);
+    return Response.json({ savedAtUtc: '2026-11-08T14:00:00Z', mcpOperationId: change.operationId });
+  });
+  assert.deepEqual(await api.store(name, bytes, canonical, change), { savedAtUtc: '2026-11-08T14:00:00Z', mcpOperationId: change.operationId });
+  await assert.rejects(client(async () => Response.json({ savedAtUtc: 'now' })).store(name, bytes, canonical, change), /acknowledgement/);
+  await assert.rejects(client(async () => Response.json({ savedAtUtc: 'now', mcpOperationId: id })).store(name, bytes, canonical, change), /acknowledgement/);
+});
+
 test('authorization needs an explicit write grant for the exact document', async () => {
   await assert.rejects(client(async () => new Response('', { status: 403 })).authorize(name, validToken()), /denied/);
   await assert.rejects(client(async () => Response.json({ documentId: id, canEdit: false })).authorize(name, validToken()), /denied/);

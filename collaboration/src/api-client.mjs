@@ -134,7 +134,15 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       return state;
     },
 
-    async store(documentName, state, fingerprint) {
+    async prepareMcpChange(pageId, change) {
+      const response = await request(`/api/internal/notion/mcp/changes/prepare?pageId=${encodeURIComponent(pageId)}`, {
+        method: 'POST', headers: { ...storageHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(change),
+      });
+      if (!response.ok) throw new Error('MCP change audit could not be prepared');
+      return response.json().catch(() => ({}));
+    },
+
+    async store(documentName, state, fingerprint, mcpChange = undefined) {
       const id = documentIdFromName(documentName);
       const domain = documentDomainFromName(documentName), drawing = domain === 'drawing';
       if (!(state instanceof Uint8Array) || state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
@@ -146,6 +154,10 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       }
       const projected = drawing ? drawingStateProjection(state) : notebookStateProjection(state, domain);
       const projection = domain === 'notion' ? { stateBase64: projected.stateBase64, fingerprint: projected.fingerprint, drawingIds: projected.drawingIds, drawingBlocks: projected.drawingBlocks, references: projected.references } : projected;
+      if (mcpChange) {
+        if (domain !== 'notion') throw new Error('MCP only supports teaching documents');
+        projection.mcpChange = mcpChange;
+      }
       if (projection.fingerprint !== fingerprint) throw new Error(`${drawing ? 'Drawing' : domain === 'notebook' ? 'Notebook' : 'Document'} fingerprint mismatch`);
       const response = await request(statePath(domain, id), {
         method: 'PUT',
@@ -154,6 +166,10 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       });
       if (!response.ok) throw new Error('Document state could not be saved');
       const result = await response.json().catch(() => null);
+      if (mcpChange) {
+        if (result?.mcpOperationId !== mcpChange.operationId || typeof result.savedAtUtc !== 'string') throw new Error('MCP storage acknowledgement is invalid');
+        return { savedAtUtc: result.savedAtUtc, mcpOperationId: result.mcpOperationId };
+      }
       if (drawing) {
         if (!Number.isSafeInteger(result?.revision) || result.revision < 0 || result.fingerprint !== fingerprint || typeof result.savedAtUtc !== 'string') throw new Error('Drawing storage acknowledgement is invalid');
         return { savedAtUtc: result.savedAtUtc, revision: result.revision, fingerprint: result.fingerprint, accessVersion: result.accessVersion };
