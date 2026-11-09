@@ -71,7 +71,7 @@ public sealed class CharacterDetailTests
         Assert.Empty(page.FindAll(".character-scenes, .character-animation-card"));
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/lupp/", image.GetAttribute("src")));
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
         Assert.Empty(page.FindAll(".character-scenes, .character-gallery"));
@@ -189,7 +189,7 @@ public sealed class CharacterDetailTests
 
         page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
         Assert.Empty(page.FindAll(".character-animations"));
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
         Assert.Equal(3, page.FindAll(".character-animation-card").Count);
@@ -264,18 +264,24 @@ public sealed class CharacterDetailTests
 
         Assert.Contains("Underviser i Game Design", page.Find(".character-subtitle").TextContent);
         Assert.Equal(2, page.FindAll(".character-appearance-picker button").Count);
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
-        Assert.All(page.FindAll(".character-gallery figure"), figure =>
+        var figures = page.FindAll(".character-gallery figure");
+        Assert.Equal(24, figures.Count);
+        Assert.Equal(15, figures.Count(figure => figure.QuerySelector("img")!.GetAttribute("src")!.EndsWith(".webp")));
+        Assert.All(figures, figure =>
         {
             var img = figure.QuerySelector("img")!;
-            var link = figure.QuerySelector("a")!;
-            Assert.StartsWith("/images/characters/lupp/", img.GetAttribute("src"));
+            var preview = figure.QuerySelector(".character-illustration-preview")!;
+            var download = figure.QuerySelector(".character-illustration-download")!;
+            var source = img.GetAttribute("src");
+            Assert.StartsWith("/images/characters/lupp/", source);
             Assert.False(string.IsNullOrWhiteSpace(img.GetAttribute("alt")));
-            Assert.Equal(img.GetAttribute("src"), link.GetAttribute("href"));
-            Assert.Equal("_blank", link.GetAttribute("target"));
-            Assert.Contains("noopener", link.GetAttribute("rel"));
+            Assert.Equal(Path.ChangeExtension(source, ".png"), preview.GetAttribute("href"));
+            Assert.Equal(preview.GetAttribute("href"), download.GetAttribute("href"));
+            Assert.Equal("_blank", preview.GetAttribute("target"));
+            Assert.Contains("noopener", preview.GetAttribute("rel"));
         });
         Assert.Contains(page.FindAll(".character-links a"), link => link.GetAttribute("href") == "/courses/template/game-design");
+        Assert.Contains(page.FindAll(".character-links a"), link => link.GetAttribute("href") == "https://app.notion.com/p/Game-Design-3c6123f464aa8158906ae7c7a3643328");
 
         page.FindAll(".character-appearance-picker button")[1].Click();
         Assert.EndsWith("/lup-fireworks-player.png", page.Find(".character-main-art img").GetAttribute("src"));
@@ -297,7 +303,7 @@ public sealed class CharacterDetailTests
         Assert.Equal(48, reactions.Count);
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Equal(48, page.FindAll(".character-reactions .character-artwork-download").Select(link => link.GetAttribute("href")).Distinct().Count());
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
         Assert.Contains("Game Design", page.Find(".character-reactions").TextContent);
         Assert.Contains("character-reactions-large", page.Find(".character-reactions").ClassList);
         foreach (var (figure, expected) in page.FindAll(".character-reactions figure").Zip(reactions))
@@ -329,7 +335,7 @@ public sealed class CharacterDetailTests
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Contains("48 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
         Assert.EndsWith("/lup-fireworks-player.png", page.Find(".character-main-art img").GetAttribute("src"));
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
     }
 
     [Fact]
@@ -394,10 +400,10 @@ public sealed class CharacterDetailTests
         page.FindAll(".character-illustration-stages button").Single(button => button.TextContent == "H2").Click();
         Assert.Equal(3, page.FindAll(".character-gallery figure").Count);
         page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
-        Assert.Equal(9, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
         Assert.Empty(page.FindAll(".character-illustration-tools, .character-illustration-explanation"));
         Assert.All(page.FindAll(".character-gallery img"), image => Assert.StartsWith("/images/characters/lupp/", image.GetAttribute("src")));
-        Assert.Equal(9, page.FindAll(".character-illustration-download").Count);
+        Assert.Equal(24, page.FindAll(".character-illustration-download").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
         Assert.Equal(16, page.FindAll(".character-gallery figure").Count);

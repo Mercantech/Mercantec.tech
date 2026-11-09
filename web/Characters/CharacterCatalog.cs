@@ -18,13 +18,13 @@ public static class CharacterCatalog
              new("En hjælpende hånd i editoren", "I Notion-editoren hjælper LUPP med ny tekst, omskrivning og Mermaid-diagrammer. Du vælger selv, hvad du vil arbejde videre med."),
              new("Klar til nytår", "I nytårstemaet skyder LUPP fyrværkeri mod programmeringsfejl. Spillet startes frivilligt og gendanner siden, når du afslutter.")],
             [new("Se Game Design-forløbet", "/courses/template/game-design", false, false),
-             new("Læs Game Design-lektionen", "https://mercantec.notion.site/Game-design-400dab5ca23780bbaa93fa9e9e9f2e6b?pvs=74", true, false),
+             new("Åbn Game Design i Notion", "https://app.notion.com/p/Game-Design-3c6123f464aa8158906ae7c7a3643328", true, false),
              new("Åbn Notion-editoren", "/notion", false, true), new("Vælg nytårstema", "/settings", false, true)])
         {
             Reactions = ReactionsFor("lupp"),
             LargeReactionPreviews = true,
             ReactionsDescription = "LUPPs reaktioner fra Game Design: fra den første spilidé og skitse til playtest, feedback og et nyt forsøg. Find et motiv, åbn originalen, eller hent den som transparent PNG.",
-            IllustrationsDescription = "Illustrationer fra Game Design-forløbet. Åbn et billede i fuld størrelse, eller hent originalen som PNG.",
+            IllustrationsDescription = "Illustrationer fra Game Design-forløbet og Rune Run, hvor den lilla figur afprøver spillets regler. Åbn et billede i fuld størrelse, eller hent originalen som PNG.",
             Illustrations =
             [
                 new("Gameplay loop", "/images/characters/lupp/01-gameplay-loop.png", "LUPP viser et gameplay loop: se, handl, se resultatet og ret til.", 1536, 1024),
@@ -35,7 +35,22 @@ public static class CharacterCatalog
                 new("Held og færdigheder", "/images/characters/lupp/06-held-og-faerdigheder.png", "LUPP sammenligner tilfældighed med timing, præcision og andre færdigheder i spil.", 1536, 1024),
                 new("Spin en spilidé", "/images/characters/lupp/07-spin-en-spilide.png", "LUPP kombinerer gameplay, controller og målgruppe for at finde flere forskellige spilidéer.", 1536, 1024),
                 new("Mini-GDD", "/images/characters/lupp/09-mini-gdd.png", "LUPP samler spilidé, spiller, regler, gameplay loop, styring, feedback og første version i et mini-GDD.", 1536, 1024),
-                new("Præsentation og feedback", "/images/characters/lupp/10-praesentation-og-feedback.png", "LUPP viser sin idé, lytter til feedback og retter den til før næste afprøvning.", 1536, 1024)
+                new("Præsentation og feedback", "/images/characters/lupp/10-praesentation-og-feedback.png", "LUPP viser sin idé, lytter til feedback og retter den til før næste afprøvning.", 1536, 1024),
+                RuneRun("spillets-byggesten", "Spillets byggesten", "Rune Runs lilla figur viser forskellen på spillets mål, regler, mekanikker, spilrum, tilstand og visning."),
+                RuneRun("core-loop", "Rune Runs gameplay loop", "Den lilla figur finder en rune, bevæger sig hen til den, samler den op og vælger den næste."),
+                RuneRun("valg", "To veje – ét reelt valg?", "To baner viser forskellen på en farveændring og et valg mellem en kort, risikabel rute og en længere, sikker vej."),
+                RuneRun("double-half", "Fordobl eller halvér", "Den lilla figur løber den samme strækning med halv fart, normal fart og dobbelt fart."),
+                RuneRun("skill", "Færdighed og præcision", "Den lilla figur planlægger en rute på kortet og udfører den gennem en smal passage."),
+                RuneRun("puzzle-door", "Find nøglen, åbn vejen", "Den lilla figur ser en låst dør, følger sporet til nøglen og får adgang til en ny vej."),
+                RuneRun("information", "Kendt, skjult eller tilfældigt?", "Et skakbræt, den lilla figur bag et sænke slagskibe-bræt og et terningkast viser tre typer information."),
+                RuneRun("signals", "Mulighed, signal og feedback", "Den lilla figur opdager en åben passage. En pil viser vejen, og runetælleren bekræfter, at runen er samlet op."),
+                RuneRun("puzzle", "Sådan løser spilleren en gåde", "Den lilla figur undersøger en mur, prøver en vej rundt og når portalen."),
+                RuneRun("06-resource-loop", "Ét boost – hvornår bruger du det?", "Den lilla figur har én opladning, bruger den til at løbe hurtigt og må derefter vente til næste runde.", 1774, 887),
+                RuneRun("time-score", "Hvad er omvejen værd?", "Den lilla figur vælger mellem en direkte vej til portalen og en omvej, hvor der kan samles point."),
+                RuneRun("random-output", "Samme gennemsnit – ny oplevelse", "Den lilla figur bruger boost. Fast udfald giver to, mens terningen kan give ét eller tre."),
+                RuneRun("strategy", "Plan, tilpasning og timing", "Den lilla figur lægger en plan, tilpasser den ved en rullende sten og sætter farten op, da vejen åbner sig."),
+                RuneRun("flow", "Udfordringen skal passe til spilleren", "Tre baner viser den lilla figur på en let bane, en passende udfordring og en bane med mange farer."),
+                RuneRun("design-wheel", "Tre designgreb – frit tema", "Den lilla lerfigur peger på et hjul med skjult information, tidspres samt risiko og belønning.")
             ]
         },
         new("vatson", "Vatson", "Digital guide til automation og teknologi", "VATek · Eksternt univers", false,
@@ -159,6 +174,12 @@ public static class CharacterCatalog
 
     public static CharacterProfile? Find(string? slug) =>
         All.FirstOrDefault(character => string.Equals(character.Slug, slug, StringComparison.OrdinalIgnoreCase));
+
+    private static CharacterIllustration RuneRun(string file, string title, string alt, int width = 1536, int height = 1024) =>
+        new(title, $"/images/characters/lupp/rune-run/{file}.png", alt, width, height)
+        {
+            Preview = $"/images/characters/lupp/rune-run/{file}.webp"
+        };
 
     private static CharacterIllustration[] ReactionsFor(string slug) => CharacterEmojiCatalog.All
         .Where(asset => asset.CharacterSlug == slug)

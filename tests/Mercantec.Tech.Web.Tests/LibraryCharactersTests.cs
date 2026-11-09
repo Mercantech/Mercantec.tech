@@ -54,7 +54,7 @@ public sealed class LibraryCharactersTests
             ("raymond", "character-scenes-title", "4 miljøer"),
             ("raymond", "character-animations-title", "3 GIF-animationer"),
             ("raymond", "character-gallery-title", "16 infografikker"),
-            ("lupp", "character-gallery-title", "9 illustrationer"),
+            ("lupp", "character-gallery-title", "24 illustrationer"),
             ("chameleon", "character-reactions-title", "48 emojis"),
             ("chameleon", "character-scenes-title", "4 miljøer"),
             ("chameleon", "character-animations-title", "3 GIF-animationer"),

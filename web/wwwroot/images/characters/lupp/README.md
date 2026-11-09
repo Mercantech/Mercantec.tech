@@ -39,3 +39,25 @@ De følgende referencer identificerer originalfilerne i Notion. Udløbende downl
 De ni brede illustrationer vises i deres oprindelige rækkefølge i LUPPs undervisningsgalleri. De er ikke portrætvarianter. Bevar det naturlige 3:2-format, hele billedet og illustrationernes tekst. Galleriets billedtekster og ALT-tekster ligger i CharacterCatalog.
 
 Nummer 08 er ikke en billedfil på kildesiden. Den indlejrede Spin-en-spilide.html importeres ikke; den fulde lektion er tilgængelig gennem kildelinket.
+
+## Rune Run fra det offentlige Game Design-forløb
+
+De 15 motiver blev hentet den 9. november 2026 fra undersiderne til [Game Design](https://app.notion.com/p/Game-Design-3c6123f464aa8158906ae7c7a3643328). De viser den lilla Rune Run-figur. Galleriet viser WebP-forhåndsvisninger og linker til PNG-originalerne.
+
+| Originalfil | Dimensioner | Bytes | SHA256 | Notion-kilde |
+| --- | --- | ---: | --- | --- |
+| `rune-run/core-loop.png` | 1536 × 1024 | 2008078 | `c93de6bac6b7ab10353686adbceac26ef2260884bb52e3b626a3e75e3a296f5f` | [Billedblok](https://app.notion.com/p/3d8123f464aa8154b026ee386b6bcdc7#4f3ed73e27fc491791f98badce7f5ed4) |
+| `rune-run/spillets-byggesten.png` | 1536 × 1024 | 2036056 | `a44fcdd98ff36e3f852d43e8af6b0d53cf4c4856bfe76a9c4ad77cefa76687c7` | [Billedblok](https://app.notion.com/p/3d8123f464aa8154b026ee386b6bcdc7#6a578a90604a43239d0bd4623f124799) |
+| `rune-run/valg.png` | 1536 × 1024 | 2405405 | `ce927202119718c9e6ca87c1efad732e0bf6f12b823bc3be3f6da3593951b044` | [Billedblok](https://app.notion.com/p/3d8123f464aa81f290c2d4047f109390#ffb631cbe1244a3eb8af5d2eaa4c95ef) |
+| `rune-run/design-wheel.png` | 1536 × 1024 | 2368928 | `0dc1fbf2c9027fec003e5c1067402589e4627131a72f2e4fea6d17d59d437035` | [Billedblok](https://app.notion.com/p/3d9123f464aa81728fc7f614ea6d0203#2407ef5eacec40398b314bd79e674550) |
+| `rune-run/skill.png` | 1536 × 1024 | 2178553 | `9df3771f6eb603cbd3b97645f06369d0904194e2abb6f8c8e2d4dde567a4683e` | [Billedblok](https://app.notion.com/p/3d9123f464aa819ba6e0decda3d79135#c28d4a94c5b94bd38dd8304800765cb1) |
+| `rune-run/06-resource-loop.png` | 1774 × 887 | 2229880 | `fb5f3f8f0bf2ecced1c922ebbbe37f9065db353b17f06df9cf3b2a3e166d2dc1` | [Billedblok](https://app.notion.com/p/3d9123f464aa81e6b75dd9d0d87e67a4#08410d7f8a944ca58bf2b45c6c4c66cd) |
+| `rune-run/time-score.png` | 1536 × 1024 | 2305572 | `6283a7787ad77d8f31f44ae624f18cf71d0223dbe0bd69a09620355455f91bb2` | [Billedblok](https://app.notion.com/p/3d9123f464aa81e6b75dd9d0d87e67a4#569dc8e8b7254cafbe5a103f8b36b6d3) |
+| `rune-run/random-output.png` | 1536 × 1024 | 2161544 | `e11a0e753ee02321ccca43b67e7523f061223b52a53ec67061f97f69b49ad6b3` | [Billedblok](https://app.notion.com/p/3d9123f464aa81e6b75dd9d0d87e67a4#709ea8a2c0ff4f398275fb1e8f1b3e14) |
+| `rune-run/strategy.png` | 1536 × 1024 | 1996948 | `f9ae3379dc318f15f8ab12ae3f9f7f6bbab9dde89666b20c62300268b7f2b401` | [Billedblok](https://app.notion.com/p/3d9123f464aa81e6b75dd9d0d87e67a4#f4aa17631c414ee6b0781c7b24830c54) |
+| `rune-run/flow.png` | 1536 × 1024 | 2104751 | `54e5697a4fb9632677a49248f7b9d7e73b11af733220a6f6bc42466db774f988` | [Billedblok](https://app.notion.com/p/3d9123f464aa81e6b75dd9d0d87e67a4#ffb655d902254d218bbe2a6660fabe32) |
+| `rune-run/puzzle-door.png` | 1536 × 1024 | 2036109 | `11f0cfeda13d0f96fb95fbf9d7d560a4e82c50bc3dfde84e5adcc8d85d69ce8e` | [Billedblok](https://app.notion.com/p/3d9123f464aa81edabfce68516a21a70#0f08aa7b3f9a41c1994b1b1bee721b40) |
+| `rune-run/information.png` | 1536 × 1024 | 2016854 | `769d15ac317ea059d995c7fb307a2a99b4950e3549d6d8b02db946a5ff055c5f` | [Billedblok](https://app.notion.com/p/3d9123f464aa81edabfce68516a21a70#22d6ad40a29f43ce9578b806fe735716) |
+| `rune-run/signals.png` | 1536 × 1024 | 1984165 | `590eafb4a2740532aa3f2117b1378d7a50e4c49d0389564b929d4e78a2fbb07d` | [Billedblok](https://app.notion.com/p/3d9123f464aa81edabfce68516a21a70#d9e4eb1a0b0f4d5f8d2ed68f4a8d9f1d) |
+| `rune-run/puzzle.png` | 1536 × 1024 | 1832605 | `d0d6a26d959fc49b74a5266a9b9e4f7bcd1c4a52b69a9d1a6f36bc0ef3f7192b` | [Billedblok](https://app.notion.com/p/3d9123f464aa81edabfce68516a21a70#fa81c6957a8149aea1bf3639d65d5f6c) |
+| `rune-run/double-half.png` | 1536 × 1024 | 1869324 | `2857dee55a81b70210843569ea3e6aed9f5f3aa712e5bcd66e68e81e7d9a6bf7` | [Billedblok](https://app.notion.com/p/3dd123f464aa81fcbb7dfe77a5c6d654#419a615be1f04b7a940bf514eaf0f3b1) |
