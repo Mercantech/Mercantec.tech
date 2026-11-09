@@ -1,0 +1,55 @@
+[
+  [
+    "En model kan ramme alle træningspunkter og stadig gætte dårligt på nye data.",
+    "Det kalder vi overfitting. Lad os se, hvordan det sker."
+  ],
+  [
+    "De turkise punkter er træningsdata. Nogle ligger lidt væk fra det krumme mønster.",
+    "De gule punkter er valideringsdata. De holdes ude, mens vi tilpasser modellerne."
+  ],
+  [
+    "En ret linje er for simpel til at følge krumningen.",
+    "Den har stor fejl på både træning og validering. Det kalder vi underfitting."
+  ],
+  [
+    "Med et andengradspolynomium får modellen lov til at bøje.",
+    "Kurven følger det overordnede mønster og rammer de gule punkter bedre."
+  ],
+  [
+    "Den mest fleksible kurve går gennem alle træningspunkter.",
+    "Den følger også tilfældige udsving. Se, hvor langt den nu rammer fra flere af de gule punkter."
+  ],
+  [
+    {
+      "text": "Her måler vi fejl med RMSE. Lavere er bedre.",
+      "spoken": "Her måler vi fejl med ær, em, es, e. Lavere er bedre."
+    },
+    "Den fleksible kurve vinder på træning. Andengradspolynomiet vinder på validering."
+  ],
+  [
+    "I en model, der lærer over flere epoker, kan træningstabet falde, selv når valideringstabet stiger.",
+    "Med tidligt stop holder vi øje med valideringen og kan gå tilbage til den bedste epoke."
+  ],
+  [
+    {
+      "text": "Ved 10-fold krydsvalidering deler vi træningsdata i ti dele.",
+      "spoken": "Ved ti fold krydsvalidering deler vi træningsdata i ti dele."
+    },
+    "Hver runde træner på ni dele og validerer på den sidste. Så skifter vi, hvilken del der holdes ude."
+  ],
+  [
+    "Tag gennemsnittet af de ti valideringsfejl for hver modelindstilling.",
+    "Brug validering til at vælge model. Gem et separat testsæt til slut."
+  ],
+  [
+    {
+      "text": "Se efter det samme mønster i TensorFlow-øvelsen, som LUP linker til.",
+      "spoken": "Se efter det samme mønster i TensorFlow øvelsen, som el, u, pe, linker til."
+    },
+    {
+      "text": "Ved epoke 100 havde den store model 100,0 % på træning og 66,7 % på validering.",
+      "spoken": "Ved epoke hundrede havde den store model hundrede procent på træning og cirka syvogtres procent på validering."
+    },
+    "Prøv selv: Hvilken model vælger du, hvis den skal virke på nye data?"
+  ]
+]
