@@ -42,9 +42,27 @@ public sealed class PlatformUpdatesTests
             Assert.False(string.IsNullOrWhiteSpace(image.GetAttribute("alt")));
         });
         Assert.Contains(page.FindAll("article img"), image => image.GetAttribute("alt") == api.Newer.Before!.Alt);
-        Assert.Contains(page.FindAll("article img"), image => image.GetAttribute("alt") == api.Newer.After.Alt);
+        Assert.Contains(page.FindAll("article img"), image => image.GetAttribute("alt") == api.Newer.After!.Alt);
         Assert.Equal(1, api.ListRequests);
         Assert.Equal(3, api.Requests.Count(p => p.StartsWith("platform-updates/images/", StringComparison.Ordinal)));
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
+    public async Task Text_updates_are_readable_without_requesting_or_showing_images()
+    {
+        var update = new PlatformUpdate("release-note", new(2026, 11, 9), "Find rundt med tastaturet",
+            "Du kan åbne menuen og skifte mellem punkterne med piletasterne.");
+        using var api = new UpdatesApi { Entries = [update] };
+        await using var context = await Context(api);
+        var page = context.Render<UpdatesPage>();
+
+        page.WaitForAssertion(() => Assert.Single(page.FindAll("article.update-entry")));
+        var entry = page.Find("article.update-entry");
+        Assert.Equal(update.Title, entry.QuerySelector("h2")!.TextContent);
+        Assert.Contains(update.Description, entry.TextContent);
+        Assert.Empty(page.FindAll(".update-pictures, .update-image-error, img"));
+        Assert.Equal("platform-updates?includeText=true", Assert.Single(api.Requests));
         Assert.Empty(api.Unexpected);
     }
 
@@ -175,6 +193,9 @@ public sealed class PlatformUpdatesTests
 
     private sealed class UpdatesApi : HttpMessageHandler
     {
+        private const string ListPath = "platform-updates?includeText=true";
+
+        public PlatformUpdate[]? Entries { get; init; }
         public PlatformUpdate Older { get; } = new("calendar", new(2026, 11, 7), "En tydeligere holdkalender",
             "Holdets aftaler vises i en samlet uge.", new("calendar-after", "Holdkalender med ugens aftaler"))
         {
@@ -195,7 +216,7 @@ public sealed class PlatformUpdatesTests
         private int _imageRequestsStarted, _imageRequestsCancelled, _imageResponsesReleased;
         public int ImageRequestsStarted => Volatile.Read(ref _imageRequestsStarted);
         public int ImageRequestsCancelled => Volatile.Read(ref _imageRequestsCancelled);
-        public int ListRequests => Requests.Count(p => p == "platform-updates");
+        public int ListRequests => Requests.Count(p => p == ListPath);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
@@ -206,9 +227,9 @@ public sealed class PlatformUpdatesTests
                 Unexpected.Enqueue($"{request.Method} {path}");
                 return new(HttpStatusCode.MethodNotAllowed);
             }
-            if (path == "platform-updates")
+            if (path == ListPath)
                 return FailList ? new(HttpStatusCode.ServiceUnavailable)
-                    : new(HttpStatusCode.OK) { Content = JsonContent.Create(new[] { Older, Newer }) };
+                    : new(HttpStatusCode.OK) { Content = JsonContent.Create(Entries ?? new[] { Older, Newer }) };
             if (path.StartsWith("platform-updates/images/", StringComparison.Ordinal))
             {
                 var id = path["platform-updates/images/".Length..];

@@ -11,6 +11,7 @@
     <EmbeddedResource Include="Emojis/Standard/*.png" LogicalName="standard-emojis/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Updates/Images/*.webp" LogicalName="platform-updates/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Updates/coverage.json" LogicalName="platform-updates/coverage.json" />
+    <EmbeddedResource Include="Updates/Notes/*.json" LogicalName="platform-updates/notes/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Integrations\OpenAI\editor-block-prompt.txt">
       <LogicalName>Mercantec.Tech.Api.EditorBlockPrompt.txt</LogicalName>
     </EmbeddedResource>

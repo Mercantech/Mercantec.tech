@@ -7,7 +7,7 @@ public sealed class PlatformUpdatesClient(HttpClient http)
 {
     public async Task<PlatformUpdate[]> Get(CancellationToken ct)
     {
-        using var response = await http.GetAsync("platform-updates", ct);
+        using var response = await http.GetAsync("platform-updates?includeText=true", ct);
         Check(response);
         try
         {

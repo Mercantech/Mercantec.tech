@@ -55,14 +55,20 @@ else
                             <h2 id="@($"update-{entry.Id}")">@entry.Title</h2>
                             <p>@entry.Description</p>
                         </div>
-                        <div class="update-pictures @(entry.Before is not null ? "is-comparison" : null)">
-                            @if (entry.Before is not null) { @Picture(entry.Before, "Før", entry.Title) }
-                            @Picture(entry.After, entry.Before is not null ? "Efter" : "Nærbillede", entry.Title)
-                        </div>
+                        @if (entry.After is { } after)
+                        {
+                            <div class="update-pictures @(entry.Before is not null ? "is-comparison" : null)">
+                                @if (entry.Before is { } before) { @Picture(before, "Før", entry.Title) }
+                                @Picture(after, entry.Before is not null ? "Efter" : "Nærbillede", entry.Title)
+                            </div>
+                        }
                     </article>
                 }
             </div>
-            <p class="updates-note">Billederne viser funktionerne tæt på og indeholder testdata. Hvor der findes et tidligere billede, kan du sammenligne Før og Efter.</p>
+            @if (_entries.Any(entry => entry.After is not null))
+            {
+                <p class="updates-note">Billederne viser funktionerne tæt på og indeholder testdata. Hvor der findes et tidligere billede, kan du sammenligne Før og Efter.</p>
+            }
         }
     </div>
 

@@ -4,16 +4,20 @@ using Mercantec.Tech.Api.Updates;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Mercantec.Tech.Api.Tests;
 
 public sealed class PlatformUpdatesControllerTests
 {
+    private static readonly PlatformUpdatesFeed Feed = new(NullLogger<PlatformUpdatesFeed>.Instance);
+
     [Fact]
     public void AnonymousCannotReadCatalogOrImages()
     {
         var controller = As(authenticated: false);
         Assert.IsType<UnauthorizedResult>(controller.List());
+        Assert.IsType<UnauthorizedResult>(controller.List(includeText: true));
         Assert.IsType<UnauthorizedResult>(controller.Image(ImageId));
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
     }
@@ -23,6 +27,7 @@ public sealed class PlatformUpdatesControllerTests
     {
         var controller = As("Elev");
         Assert.IsType<ForbidResult>(controller.List());
+        Assert.IsType<ForbidResult>(controller.List(includeText: true));
         Assert.IsType<ForbidResult>(controller.Image(ImageId));
         Assert.IsType<ForbidResult>(controller.Image("unknown"));
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
@@ -41,7 +46,7 @@ public sealed class PlatformUpdatesControllerTests
         Assert.NotEmpty(updates);
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
 
-        var image = Assert.IsType<FileStreamResult>(controller.Image(updates[0].After.Id));
+        var image = Assert.IsType<FileStreamResult>(controller.Image(Assert.IsType<UpdateImage>(updates[0].After).Id));
         using var content = image.FileStream;
         Assert.Equal("image/webp", image.ContentType);
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
@@ -82,7 +87,7 @@ public sealed class PlatformUpdatesControllerTests
     [Fact]
     public void EveryCuratedScreenshotIsEmbeddedAndEveryEntryHasUsefulText()
     {
-        var updates = PlatformUpdatesCatalog.Entries;
+        var updates = Feed.Entries;
         Assert.Equal(updates.Count, updates.Select(update => update.Id).Distinct().Count());
         Assert.Equal(updates.OrderByDescending(update => update.Date), updates);
         Assert.Contains(updates, update => update.Before is not null);
@@ -90,22 +95,48 @@ public sealed class PlatformUpdatesControllerTests
         {
             Assert.False(string.IsNullOrWhiteSpace(update.Title));
             Assert.False(string.IsNullOrWhiteSpace(update.Description));
-            foreach (var image in update.Before is null ? new[] { update.After } : new[] { update.After, update.Before })
+            if (update.Before is not null) Assert.NotNull(update.After);
+            foreach (var image in new[] { update.After, update.Before }.OfType<UpdateImage>())
             {
                 Assert.False(string.IsNullOrWhiteSpace(image.Alt));
-                using var stream = PlatformUpdatesCatalog.OpenImage(image.Id);
+                using var stream = Feed.OpenImage(image.Id);
                 Assert.NotNull(stream);
                 Assert.True(stream.Length > 12);
             }
         }
     }
 
-    private static string ImageId => PlatformUpdatesCatalog.Entries[0].After.Id;
+    [Fact]
+    public void EmbeddedReleaseNotesJoinTheFeedAndOldClientsReceiveOnlyIllustratedEntries()
+    {
+        var controller = As("Underviser");
+        var updates = Assert.IsAssignableFrom<IReadOnlyList<PlatformUpdate>>(
+            Assert.IsType<OkObjectResult>(controller.List(includeText: true)).Value);
+        var legacy = Assert.IsAssignableFrom<IReadOnlyList<PlatformUpdate>>(
+            Assert.IsType<OkObjectResult>(controller.List()).Value);
+
+        var note = Assert.Single(updates, update => update.Id == "nyheder-med-udgivelser");
+        Assert.Null(note.After);
+        Assert.Null(note.Before);
+        Assert.DoesNotContain(legacy, update => update.Id == note.Id);
+        Assert.Equal(updates.Where(update => update.After is not null), legacy);
+        Assert.Contains(PlatformUpdatesCatalog.Entries[0], updates);
+
+        const string prefix = "platform-updates/notes/";
+        var embeddedIds = typeof(PlatformUpdatesFeed).Assembly.GetManifestResourceNames()
+            .Where(name => name.StartsWith(prefix, StringComparison.Ordinal))
+            .Select(name => name[prefix.Length..^".json".Length]);
+        var publishedIds = updates.Select(update => update.Id)
+            .Except(PlatformUpdatesCatalog.Entries.Select(update => update.Id));
+        Assert.Equal(embeddedIds.Order(StringComparer.Ordinal), publishedIds.Order(StringComparer.Ordinal));
+    }
+
+    private static string ImageId => PlatformUpdatesCatalog.Entries[0].After!.Id;
 
     private static PlatformUpdatesController As(string role = "Elev", bool authenticated = true, string? sub = null)
     {
         var claims = new[] { new Claim("sub", sub ?? Guid.NewGuid().ToString()), new Claim("role", role) };
-        return new PlatformUpdatesController
+        return new PlatformUpdatesController(Feed)
         {
             ControllerContext = new()
             {

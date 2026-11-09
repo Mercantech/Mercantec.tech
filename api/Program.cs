@@ -24,6 +24,7 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 }
 
 builder.Services.AddControllers();
+builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.PlatformUpdatesFeed>();
 builder.Services.AddNotionMcp();
 // Arena rooms and simulation share a single authoritative process.
 builder.Services.AddSingleton<Mercantec.Tech.Api.Arena.ArenaRoomService>();

@@ -64,8 +64,10 @@ public partial class Updates : IDisposable
         try
         {
             var entries = await Client.Get(ct);
-            var images = entries.SelectMany(e => e.Before is null ? new[] { e.After } : new[] { e.Before, e.After })
-                .DistinctBy(i => i.Id).ToArray();
+            var images = entries.Where(entry => entry.After is not null)
+                .SelectMany(entry => new[] { entry.Before, entry.After })
+                .OfType<UpdateImage>()
+                .DistinctBy(image => image.Id).ToArray();
             using var slots = new SemaphoreSlim(4);
             var results = await Task.WhenAll(images.Select(async image =>
             {

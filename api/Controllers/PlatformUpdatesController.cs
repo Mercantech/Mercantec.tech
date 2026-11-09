@@ -7,15 +7,15 @@ namespace Mercantec.Tech.Api.Controllers;
 
 [ApiController, Authorize, Route("api/platform-updates")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class PlatformUpdatesController : ControllerBase
+public sealed class PlatformUpdatesController(PlatformUpdatesFeed feed) : ControllerBase
 {
     [HttpGet]
-    public IActionResult List()
+    public IActionResult List([FromQuery] bool includeText = false)
     {
         NoStore();
         if (User.Identity?.IsAuthenticated != true || UserClaims.GetSub(User) is null) return Unauthorized();
         if (!UserClaims.IsTeacher(User)) return Forbid();
-        return Ok(PlatformUpdatesCatalog.Entries);
+        return Ok(includeText ? feed.Entries : feed.WithImages);
     }
 
     [HttpGet("images/{id}")]
@@ -24,7 +24,7 @@ public sealed class PlatformUpdatesController : ControllerBase
         NoStore();
         if (User.Identity?.IsAuthenticated != true || UserClaims.GetSub(User) is null) return Unauthorized();
         if (!UserClaims.IsTeacher(User)) return Forbid();
-        var content = PlatformUpdatesCatalog.OpenImage(id);
+        var content = feed.OpenImage(id);
         if (content is null) return NotFound();
         Response.Headers["X-Content-Type-Options"] = "nosniff";
         return File(content, "image/webp");

@@ -197,15 +197,4 @@ public static class PlatformUpdatesCatalog
             "Se privatlivsoplysningerne, download dine egne platformdata, eller send en sletteanmodning. Sletning behandles manuelt efter kontrol; Auth-konto og Lectio håndteres særskilt.",
             new("rights", "Siden Mine rettigheder med dataeksport og sletteanmodning.")) { Authors = ["Mathias"] }
     ]);
-
-    private static readonly HashSet<string> ImageIds = Entries
-        .SelectMany(update => update.Before is { } before ? new[] { update.After.Id, before.Id } : [update.After.Id])
-        .ToHashSet(StringComparer.Ordinal);
-
-    public static Stream? OpenImage(string id)
-    {
-        // Only images referenced by these notes are addressable; request paths never reach the filesystem.
-        if (!ImageIds.Contains(id)) return null;
-        return typeof(PlatformUpdatesCatalog).Assembly.GetManifestResourceStream($"platform-updates/{id}.webp");
-    }
 }
