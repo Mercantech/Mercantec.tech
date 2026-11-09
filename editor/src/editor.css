@@ -686,7 +686,7 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
 .bn-editor[contenteditable="false"] .notion-code-language-picker,
 .bn-editor[contenteditable="false"] .notion-code-line-toggle { display: none; }
 .bn-editor[contenteditable="false"] .notion-code-language { display: block; }
-.notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy) {
+.notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy, .notion-latex-edit-toggle) {
   min-height: 32px;
   padding: 4px 8px;
   border: 1px solid var(--notion-rule);
@@ -717,16 +717,18 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
   font: 700 .75rem/1 ui-monospace, Consolas, monospace;
 }
 .notion-code-line-toggle,
-.notion-code-copy { flex: none; }
+.notion-code-copy,
+.notion-latex-edit-toggle { flex: none; }
 .notion-code-toolbar .notion-code-line-toggle {
   display: grid;
   place-items: center;
   min-width: 32px;
 }
 .notion-code-copy { min-width: 5.25rem; }
-.notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy):hover,
+.notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy, .notion-latex-edit-toggle):hover,
 .notion-code-toolbar .notion-code-language-button[aria-expanded="true"],
 .notion-code-toolbar .notion-code-line-toggle[aria-pressed="true"],
+.notion-code-toolbar .notion-latex-edit-toggle[aria-expanded="true"],
 .notion-code-toolbar .notion-code-copy.is-copied {
   border-color: var(--notion-blue);
   background: var(--notion-tint);
@@ -859,6 +861,39 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
   font: inherit;
   white-space: inherit;
 }
+.notion-code-block.is-latex .notion-code-toolbar {
+  flex-wrap: wrap;
+}
+.notion-code-block.is-latex :is(.notion-code-scroll, .notion-code-line-toggle, .notion-latex-preview)[hidden],
+.notion-code-toolbar .notion-latex-edit-toggle[hidden] {
+  display: none;
+}
+.notion-latex-preview {
+  min-width: 0;
+  max-width: 100%;
+  padding: clamp(12px, 3vw, 24px) 16px;
+  overflow-x: auto;
+  color: var(--notion-ink);
+}
+.notion-latex-preview .katex-display {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+}
+.notion-latex-preview[data-latex-state="error"] {
+  padding-block: 10px;
+  color: var(--notion-muted);
+  font-size: .875rem;
+}
+@media print {
+  .notion-code-block.is-latex { break-inside: avoid; }
+  .notion-code-block.is-latex:has(.notion-latex-preview .katex) :is(.notion-code-toolbar, .notion-code-scroll) {
+    display: none;
+  }
+  .notion-code-block.is-latex .notion-latex-preview[hidden]:has(.katex) {
+    display: block;
+  }
+}
 /* The default BlockNote rule assumes a dark background. The code surface follows LUP. */
 .notion-code-block .shiki {
   --code-token: var(--shiki-light, var(--notion-ink));
@@ -868,7 +903,7 @@ button.notion-callout-mark:focus-visible{outline:2px solid var(--notion-accent,#
   --code-token: var(--shiki-dark, var(--notion-ink));
 }
 @media (pointer: coarse) {
-  .notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy),
+  .notion-code-toolbar :is(.notion-code-language-button, .notion-code-line-toggle, .notion-code-copy, .notion-latex-edit-toggle),
   .notion-code-language-option { min-height: 44px; }
   .notion-code-toolbar .notion-code-line-toggle { min-width: 44px; }
   .notion-code-language-search { min-height: 44px; font-size: 1rem; }

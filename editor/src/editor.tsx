@@ -526,7 +526,7 @@ function ConnectedEditor({session}:{session:Session}) {
       });
     },false);
   },[editor,emojis,session]);;
-  const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'entityLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout',kind='download') => {
+  const insert=(type:'classRoster'|'holdPoll'|'slideBreak'|'learningGoal'|'entityLink'|'holdGroup'|'pageMedia'|'mermaidDiagram'|'callout'|'codeBlock',kind='download') => {
     if(!enabled) return;
     editor.focus();
     const cursor=editor.getTextCursorPosition().block;
@@ -540,6 +540,7 @@ function ConnectedEditor({session}:{session:Session}) {
     else if(type==='holdGroup')add({type,props:{holdId:session.context.holdId || ''}});
     else if(type==='pageMedia')add({type,props:{pageId:session.context.pageId,kind}});
     else if(type==='mermaidDiagram')add({type,props:{source:DEFAULT_MERMAID_SOURCE}});
+    else if(type==='codeBlock')add({type,props:{language:'latex'}});
     else if(type==='callout')add({type,props:{tone:'info'},content:'Skriv din note her…'});
     else add({type});
   };
@@ -573,6 +574,7 @@ function ConnectedEditor({session}:{session:Session}) {
     {title:'Slidegrænse',subtext:'Start næste slide i præsentationen',aliases:['slide','slides','præsentation'],group:'Undervisning',icon:<span aria-hidden="true">▱</span>,onItemClick:()=>insert('slideBreak')},
     {title:'Læringsmål',subtext:'Fremhæv målet for aktiviteten',aliases:['læringsmål','mål','learning'],group:'Undervisning',icon:<span aria-hidden="true">◎</span>,onItemClick:()=>insert('learningGoal')},
     {title:'Diagram',subtext:'Mermaid flowchart, sequence m.m.',aliases:['diagram','mermaid','flowchart','graf'],group:'Undervisning',icon:<span aria-hidden="true">◈</span>,onItemClick:()=>insert('mermaidDiagram')},
+    {title:'LaTeX-formel',subtext:'Skriv en matematisk formel med LaTeX',aliases:['latex','tex','formel','matematik','math','ligning'],group:'Undervisning',icon:<span aria-hidden="true">∑</span>,onItemClick:()=>insert('codeBlock')},
     {title:'Callout',subtext:'Fremhæv info, tip, advarsel eller vigtigt',aliases:['callout','info','tip','advarsel','note'],group:'Undervisning',icon:<span aria-hidden="true">▣</span>,onItemClick:()=>insert('callout')},
     {title:'AI',subtext:'Generér blokke, omskriv tekst eller lav et diagram',aliases:['ai','openai','hjælp','assistent'],group:'Undervisning',icon:<span aria-hidden="true">✦</span>,onItemClick:()=>openAi()},
     {title:'Præsenter',subtext:'Vis dokumentet som slides',aliases:['præsenter','præsentation','slides','presentation'],group:'Visning',onItemClick:()=>openPresentation(session)},

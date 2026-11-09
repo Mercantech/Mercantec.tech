@@ -8,6 +8,7 @@ import {
 import { codeBlockOptions as bundledOptions, syntaxHighlighter } from '@blocknote/code-block';
 import { createCodeLanguagePicker } from './code-language-picker';
 import { curlLanguage, highlightCodeLanguage } from './code-syntax';
+import { isLatexLanguage, renderLatex } from './latex-renderer';
 
 export { syntaxHighlighter };
 
@@ -29,6 +30,8 @@ for (const id of preferredOrder) {
     orderedLanguages.text = { name: 'Almindelig tekst', aliases: entry.aliases };
   } else if (id === 'shellscript') {
     orderedLanguages.shellscript = { name: 'Shell', aliases: entry.aliases };
+  } else if (id === 'latex') {
+    orderedLanguages.latex = { name: 'LaTeX', aliases: ['latex', 'tex'] };
   } else {
     orderedLanguages[id] = entry;
   }
@@ -115,6 +118,25 @@ function createCodeBlockWithCopy(
   lineToggle.addEventListener('click', onLineToggle);
   toolbar.append(languagePicker.dom, languageLabel, lineToggle);
 
+  const latexToggle = document.createElement('button');
+  latexToggle.type = 'button';
+  latexToggle.className = 'notion-latex-edit-toggle';
+  latexToggle.hidden = true;
+  const onLatexToggle = () => {
+    if (!editor.isEditable || !isLatexLanguage(language)) return;
+    sourceOpen = scroll.hidden;
+    cursorInSource = false;
+    updateSourceVisibility();
+    if (sourceOpen) {
+      editor.setTextCursorPosition(block.id, 'end');
+      editor.focus();
+    } else {
+      latexToggle.focus();
+    }
+  };
+  latexToggle.addEventListener('click', onLatexToggle);
+  toolbar.append(latexToggle);
+
   const copy = document.createElement('button');
   copy.type = 'button';
   copy.className = 'notion-code-copy';
@@ -139,7 +161,9 @@ function createCodeBlockWithCopy(
 
     copy.textContent = copied ? 'Kopieret' : 'Fejl';
     copy.classList.toggle('is-copied', copied);
-    status.textContent = copied ? 'Koden er kopieret.' : 'Koden kunne ikke kopieres.';
+    status.textContent = isLatexLanguage(language)
+      ? (copied ? 'LaTeX-kilden er kopieret.' : 'LaTeX-kilden kunne ikke kopieres.')
+      : (copied ? 'Koden er kopieret.' : 'Koden kunne ikke kopieres.');
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = setTimeout(() => {
       copy.textContent = 'Kopiér';
@@ -160,17 +184,68 @@ function createCodeBlockWithCopy(
   const code = document.createElement('code');
   pre.appendChild(code);
   scroll.append(lineNumbers, pre);
-  wrap.append(toolbar, scroll);
+  const formula = document.createElement('div');
+  formula.className = 'notion-latex-preview';
+  formula.contentEditable = 'false';
+  formula.hidden = true;
+  wrap.append(toolbar, formula, scroll);
 
   let language = String(block.props.language || notionCodeBlockOptions.defaultLanguage);
   let showLineNumbers = block.props.showLineNumbers === true;
   let renderedLineCount = 0;
+  let lastFormulaSource: string | undefined;
+  let sourceOpen = false;
+  let cursorInSource = false;
+  let stopTrackingCursor: (() => void) | undefined;
+  function updateSourceVisibility() {
+    const latex = isLatexLanguage(language);
+    const ready = formula.dataset.latexState === 'ready';
+    scroll.hidden = latex && ready && !(editor.isEditable && (sourceOpen || cursorInSource));
+    formula.hidden = !latex || !lastFormulaSource?.trim();
+    latexToggle.hidden = !latex || !ready || !editor.isEditable;
+    latexToggle.textContent = scroll.hidden ? 'Redigér formel' : 'Vis kun formel';
+    latexToggle.setAttribute('aria-expanded', String(!scroll.hidden));
+    lineToggle.hidden = scroll.hidden;
+  }
+  function trackCursor() {
+    const anchor = editor.prosemirrorView?.state.selection.$anchor;
+    const next = Boolean(anchor && anchor.depth > 0 && anchor.parent.type.name === block.type &&
+      anchor.node(anchor.depth - 1).attrs.id === block.id);
+    if (next === cursorInSource) return;
+    cursorInSource = next;
+    updateSourceVisibility();
+  }
+  function updateFormula(text: string) {
+    if (!isLatexLanguage(language) || lastFormulaSource === text) return;
+    lastFormulaSource = text;
+    void renderLatex(formula, text).then(() => {
+      if (!destroyed) updateSourceVisibility();
+    });
+    updateSourceVisibility();
+  }
   function updateControls() {
     const id = resolveLanguage(language);
+    const latex = isLatexLanguage(language);
+    wrap.classList.toggle('is-latex', latex);
     languagePicker.setLanguage(id);
     languageLabel.textContent = languages[id].name;
+    copy.setAttribute('aria-label', latex ? 'Kopiér LaTeX-kilde' : 'Kopiér kode');
     lineToggle.setAttribute('aria-pressed', String(showLineNumbers));
     lineNumbers.hidden = !showLineNumbers;
+    if (latex && editor.isEditable && !stopTrackingCursor) {
+      const stopSelection = editor.onSelectionChange(trackCursor);
+      const stopFocus = editor.onFocusChange((_editor, { focused }) => {
+        if (focused) trackCursor();
+      });
+      stopTrackingCursor = () => { stopSelection(); stopFocus(); };
+    } else if (!latex) {
+      stopTrackingCursor?.();
+      stopTrackingCursor = undefined;
+      lastFormulaSource = undefined;
+      sourceOpen = false;
+      cursorInSource = false;
+    }
+    updateSourceVisibility();
   }
   function updateLineNumbers(text: string) {
     if (!showLineNumbers) return;
@@ -180,7 +255,9 @@ function createCodeBlockWithCopy(
     lineNumbers.textContent = Array.from({ length: count }, (_, index) => index + 1).join('\n');
   }
   updateControls();
-  updateLineNumbers(plainText(block));
+  const initialText = plainText(block);
+  updateLineNumbers(initialText);
+  updateFormula(initialText);
 
   const view = {
     dom: wrap,
@@ -188,8 +265,10 @@ function createCodeBlockWithCopy(
     destroy: () => {
       destroyed = true;
       languagePicker.destroy();
+      stopTrackingCursor?.();
       toolbar.removeEventListener('keydown', onToolbarKey);
       lineToggle.removeEventListener('click', onLineToggle);
+      latexToggle.removeEventListener('click', onLatexToggle);
       copy.removeEventListener('click', onCopy);
       if (resetTimer) clearTimeout(resetTimer);
     },
@@ -217,7 +296,11 @@ function createCodeBlockWithCopy(
         updateControls();
         applyDataAttributes(wrapped.dom, { language, showLineNumbers }, codeBlockProps);
       }
-      if (showLineNumbers) updateLineNumbers(node.textBetween(0, node.content.size, '\n', '\n'));
+      if (showLineNumbers || isLatexLanguage(language)) {
+        const text = node.textBetween(0, node.content.size, '\n', '\n');
+        updateLineNumbers(text);
+        updateFormula(text);
+      }
       return true;
     },
   } satisfies ReturnType<CodeRender>;

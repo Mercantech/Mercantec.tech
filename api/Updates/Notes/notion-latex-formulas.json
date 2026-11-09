@@ -1,0 +1,6 @@
+{
+  "date": "2026-11-09",
+  "title": "Skriv formler med LaTeX",
+  "description": "Indsæt en formel med /latex, og skift mellem matematik og kildekode. Dine eksisterende LaTeX-kodeblokke vises som formler i dokumenter og præsentationer.",
+  "authors": ["Mathias"]
+}
