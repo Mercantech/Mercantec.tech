@@ -63,6 +63,9 @@ public sealed class GiftLauncherFlowTests
         Assert.Equal("Tak for hjælpen med vores projekt.", launcher.FindComponent<GiftComposer>().Instance.Message);
         Assert.False(launcher.Find(".gift-actions .gift-primary").HasAttribute("disabled"));
 
+        // A theme change after an uncertain send cannot relabel the same request.
+        setup.Runtime.Theme = "newyear";
+
         await launcher.Find(".gift-actions .gift-primary").ClickAsync(new MouseEventArgs());
 
         launcher.WaitForAssertion(() => Assert.Contains(api.Recipients[0].DisplayName, launcher.Find("#gift-feedback").TextContent));
@@ -73,8 +76,19 @@ public sealed class GiftLauncherFlowTests
         var drafts = api.Drafts.ToArray();
         Assert.Equal(2, drafts.Length);
         Assert.NotEqual(Guid.Empty, drafts[0].Id);
+        Assert.Equal("christmas", drafts[0].Theme);
         Assert.Equal(drafts[0], drafts[1]);
+        Assert.Equal(1, setup.Runtime.ThemeReads);
         Assert.Single(api.Sent);
+
+        // A genuinely new gift captures the currently selected theme afresh.
+        await launcher.FindAll(".gift-tabs button")[1].ClickAsync(new MouseEventArgs());
+        await launcher.Find(".gift-actions .gift-primary").ClickAsync(new MouseEventArgs());
+        launcher.WaitForAssertion(() => Assert.Equal(3, api.Drafts.Count));
+        var nextDraft = api.Drafts.Last();
+        Assert.NotEqual(drafts[0].Id, nextDraft.Id);
+        Assert.Equal("newyear", nextDraft.Theme);
+        Assert.Equal(2, setup.Runtime.ThemeReads);
         Assert.Empty(api.UnexpectedRequests);
     }
 
@@ -102,6 +116,34 @@ public sealed class GiftLauncherFlowTests
         Assert.Contains("#gift-welcome-title", setup.Runtime.FocusTargets);
         Assert.Empty(api.Requests);
         Assert.Empty(api.Drafts);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("unsupported-theme")]
+    public async Task An_unknown_initial_theme_is_sent_as_unknown_and_cannot_be_relabelled_by_retry(string? theme)
+    {
+        using var api = new GiftApi();
+        api.ReleaseFirstSend.TrySetResult(true);
+        var setup = await Context(api);
+        await using var context = setup.Context;
+        setup.Runtime.Theme = theme;
+        var launcher = context.Render<GiftLauncher>();
+        launcher.Find(".gift-launcher").Click();
+        launcher.WaitForAssertion(() => Assert.Equal(2, launcher.FindAll(".gift-recipient").Count));
+        launcher.Find(".gift-recipient input").Change(true);
+        await launcher.Find(".gift-actions .gift-primary").ClickAsync(new MouseEventArgs());
+        launcher.WaitForAssertion(() => Assert.Single(launcher.FindAll("#gift-error")));
+        Assert.Null(api.Drafts.Single().Theme);
+
+        setup.Runtime.Theme = "christmas";
+        await launcher.Find(".gift-actions .gift-primary").ClickAsync(new MouseEventArgs());
+        launcher.WaitForAssertion(() => Assert.Single(launcher.FindAll("#gift-feedback")));
+
+        Assert.Equal(2, api.Drafts.Count);
+        Assert.All(api.Drafts, draft => Assert.Null(draft.Theme));
+        Assert.Equal(api.Drafts.First().Id, api.Drafts.Last().Id);
+        Assert.Equal(1, setup.Runtime.ThemeReads);
     }
 
     [Fact]
@@ -139,11 +181,18 @@ public sealed class GiftLauncherFlowTests
     {
         private readonly ConcurrentQueue<string> _focusTargets = [];
         public string[] FocusTargets => _focusTargets.ToArray();
+        public string? Theme { get; set; } = "christmas";
+        public int ThemeReads { get; private set; }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, default, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             if (identifier == "lupGiftUi.focus") _focusTargets.Enqueue(args?[1]?.ToString() ?? "");
+            if (identifier == "lupTheme.get")
+            {
+                ThemeReads++;
+                return ValueTask.FromResult((TValue)(object)Theme!);
+            }
             return inner.InvokeAsync<TValue>(identifier, cancellationToken, args);
         }
     }
@@ -181,7 +230,7 @@ public sealed class GiftLauncherFlowTests
                     return new(HttpStatusCode.ServiceUnavailable) { Content = JsonContent.Create(new { error = "unavailable" }) };
                 }
                 var gift = new GiftMessage(draft.Id, "Testelev", Recipients.Single(person => person.UserSub == draft.RecipientSub).DisplayName,
-                    draft.Kind, draft.Wrapping, draft.Message, DateTime.UtcNow, null);
+                    draft.Kind, draft.Wrapping, draft.Message, DateTime.UtcNow, null, draft.Theme);
                 Sent.Enqueue(gift);
                 return Json(gift);
             }

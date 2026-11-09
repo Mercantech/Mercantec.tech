@@ -14,6 +14,7 @@ public sealed class GiftMailboxClient(HttpClient http, AuthService auth, ActionC
     public int Unread { get; private set; }
     public string? Error { get; private set; }
     public event Action? Changed;
+    public event Action? GiftSent;
 
     public async Task RefreshAsync(bool recipients = false, CancellationToken ct = default)
     {
@@ -49,12 +50,18 @@ public sealed class GiftMailboxClient(HttpClient http, AuthService auth, ActionC
 
     public async Task<GiftMessage> SendAsync(GiftDraft draft, CancellationToken ct)
     {
+        var subject = OwnAccount();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(TimeSpan.FromSeconds(15));
-        using var response = await http.PostAsJsonAsync("gifts", draft, timeout.Token);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "gifts") { Content = JsonContent.Create(draft) };
+        request.Headers.Add("X-LUP-Gift-Subject", subject);
+        using var response = await http.SendAsync(request, timeout.Token);
         await RequireSuccess(response);
         var gift = await ReadGift(response, timeout.Token);
+        CheckAccount(subject);
         await RefreshAsync(ct: ct);
+        CheckAccount(subject);
+        GiftSent?.Invoke();
         return gift;
     }
 
@@ -122,6 +129,7 @@ public sealed class GiftMailboxClient(HttpClient http, AuthService auth, ActionC
         {
             "recipient_unavailable" => "Modtageren er ikke længere tilgængelig. Vælg en anden.",
             "request_conflict" => "Gaven er allerede registreret med andre valg. Luk og åbn gavevinduet igen.",
+            "account_changed" => "Kontoen blev skiftet. Åbn gavevinduet igen fra din egen konto.",
             _ when response.StatusCode == System.Net.HttpStatusCode.NotFound => "Gaven er ikke tilgængelig for din konto.",
             _ => response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? "Log ind igen for at hente dine gaver." : "Gaven kunne ikke gemmes. Prøv igen om lidt."
         });
@@ -130,6 +138,6 @@ public sealed class GiftMailboxClient(HttpClient http, AuthService auth, ActionC
     private sealed record GiftMailbox(List<GiftMessage> Received, List<GiftMessage> Sent, int Unread);
 }
 public sealed record GiftRecipient(Guid UserSub, string DisplayName, bool IsTeacher);
-public sealed record GiftMessage(Guid Id, string SenderName, string RecipientName, string Kind, string Wrapping, string Message, DateTime CreatedAtUtc, DateTime? OpenedAtUtc);
-public sealed record GiftDraft(Guid Id, Guid RecipientSub, string Kind, string Wrapping, string Message);
+public sealed record GiftMessage(Guid Id, string SenderName, string RecipientName, string Kind, string Wrapping, string Message, DateTime CreatedAtUtc, DateTime? OpenedAtUtc, string? Theme = null);
+public sealed record GiftDraft(Guid Id, Guid RecipientSub, string Kind, string Wrapping, string Message, string? Theme = null);
 public sealed class GiftException(string message) : Exception(message);

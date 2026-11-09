@@ -47,6 +47,29 @@ public sealed class GiftsControllerTests : IAsyncLifetime
         Assert.IsType<UnauthorizedResult>(await controller.Send(Draft(), default));
         Assert.IsType<UnauthorizedResult>(await controller.Open(Guid.NewGuid(), default));
     }
+    [Theory]
+    [InlineData("00000000-0000-0000-0000-000000000002")]
+    [InlineData("not-a-subject")]
+    [InlineData("")]
+    public async Task StaleOrInvalidAccountBindingCannotSendOrCreateQuota(string expectedSubject)
+    {
+        var controller = As(Sender);
+        controller.Request.Headers["X-LUP-Gift-Subject"] = expectedSubject;
+        var response = Assert.IsType<ConflictObjectResult>(await controller.Send(Draft() with { Theme = "christmas" }, default));
+        Assert.Equal("account_changed", System.Text.Json.JsonSerializer.SerializeToElement(response.Value).GetProperty("error").GetString());
+        Assert.Empty(await _db.ChristmasGifts.ToListAsync());
+        var progress = await Mercantec.Tech.Api.Avatars.AvatarRequirementEvaluator.EvaluateAsync(_db, Sender,
+            Mercantec.Tech.Contracts.AvatarEconomy.Avatars, default);
+        Assert.Equal(0, Assert.Single(progress).Current);
+    }
+    [Fact] public async Task MatchingAccountBindingAllowsTheAuthenticatedSender()
+    {
+        var controller = As(Sender);
+        controller.Request.Headers["X-LUP-Gift-Subject"] = Sender.ToString();
+        Assert.IsType<CreatedResult>(await controller.Send(Draft() with { Theme = "christmas" }, default));
+        var stored = Assert.Single(await _db.ChristmasGifts.ToListAsync());
+        Assert.Equal(Sender, stored.SenderSub); Assert.Equal("christmas", stored.Theme);
+    }
     [Fact] public async Task StudentOnlySeesPeersAndTheirTeacher()
     {
         var recipients = Assert.IsType<List<GiftsController.RecipientDto>>(Assert.IsType<OkObjectResult>(await As(Sender).Recipients(default)).Value);
@@ -93,6 +116,44 @@ public sealed class GiftsControllerTests : IAsyncLifetime
         Assert.IsType<ConflictObjectResult>(await As(Sender).Send(draft with { Message = "Anden besked" }, default));
         Assert.Single(await _db.ChristmasGifts.ToListAsync());
         Assert.Equal("Kasper", gift.SenderName);
+    }
+    [Theory]
+    [InlineData("system")]
+    [InlineData("light")]
+    [InlineData("dark")]
+    [InlineData("christmas")]
+    [InlineData("newyear")]
+    [InlineData("hacker")]
+    public async Task GiftThemePersistsAndIsPartOfTheIdempotentPayload(string theme)
+    {
+        var draft = Draft() with { Theme = theme };
+        var gift = await Send(draft);
+        Assert.Equal(theme, gift.Theme);
+        Assert.Equal(theme, (await _db.ChristmasGifts.SingleAsync()).Theme);
+        var repeated = Assert.IsType<GiftsController.GiftDto>(Assert.IsType<OkObjectResult>(await As(Sender).Send(draft, default)).Value);
+        Assert.Equal(theme, repeated.Theme);
+        Assert.IsType<ConflictObjectResult>(await As(Sender).Send(draft with { Theme = theme == "christmas" ? "newyear" : "christmas" }, default));
+        var received = Assert.IsType<GiftsController.GiftDto>(Assert.IsType<OkObjectResult>(await As(Receiver).Get(gift.Id, default)).Value);
+        Assert.Equal(theme, received.Theme);
+    }
+    [Fact] public async Task LegacyGiftWithoutThemeStaysUnknownAndCannotBeRetaggedAsChristmasByRetry()
+    {
+        var draft = Draft();
+        var gift = await Send(draft);
+        Assert.Equal("unknown", gift.Theme);
+        Assert.IsType<OkObjectResult>(await As(Sender).Send(draft, default));
+        Assert.IsType<ConflictObjectResult>(await As(Sender).Send(draft with { Theme = "christmas" }, default));
+        Assert.Equal("unknown", (await _db.ChristmasGifts.SingleAsync()).Theme);
+    }
+    [Theory]
+    [InlineData("unknown")]
+    [InlineData("CHRISTMAS")]
+    [InlineData("")]
+    [InlineData("not-a-theme")]
+    public async Task UnknownExplicitThemeIsRejectedWithoutSaving(string theme)
+    {
+        Assert.IsType<BadRequestObjectResult>(await As(Sender).Send(Draft() with { Theme = theme }, default));
+        Assert.Empty(await _db.ChristmasGifts.ToListAsync());
     }
     [Fact] public async Task MailboxOnlyContainsOwnGiftsAndUnreadChangesWhenOpened()
     {

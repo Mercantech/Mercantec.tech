@@ -1,6 +1,7 @@
 @using Mercantec.Tech.Web.Demo
 @inject DemoWorld World
 @inject AuthService Auth
+@inject GiftMailboxClient Mailbox
 @inject IJSRuntime Js
 @implements IAsyncDisposable
 
@@ -64,7 +65,14 @@ else
             <a class="avatar-game-link" href="/games/avatar-demo">Prøv din valgte avatar i Rune Run <span aria-hidden="true">↗</span></a>
         </section>
         <section class="avatar-library" aria-labelledby="avatar-library-title">
-            <div class="avatar-section-heading"><div><h2 id="avatar-library-title">Vælg din figur</h2><p>Lås en figur op én gang. Skift mellem dem, du ejer.</p></div><span>@World.OwnedAvatarIds.Count / @AvatarCatalog.All.Count</span></div>
+            <div class="avatar-section-heading"><div><h2 id="avatar-library-title">Vælg din figur</h2><p>Opfyld figurens krav, og lås den op én gang.</p></div><span>@World.OwnedAvatarIds.Count / @AvatarCatalog.All.Count</span></div>
+            @if (AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id) && avatar.UnlockRequirements.Count > 0))
+            {
+                <div class="avatar-requirements-help">
+                    <p>@if (HasChristmasGiftRequirement) { <span>Julemanden kræver gaver til tre forskellige brugere. Vælg temaet <strong>Jul</strong>, og send via gaveikonet.</span> } else { <span>Se figurens krav nedenfor. Opdatér, når du har gjort fremskridt.</span> }</p>
+                    <button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="RefreshRequirements">@(World.AvatarBusy ? "Henter krav…" : "Opdatér krav")</button>
+                </div>
+            }
             <div class="avatar-available-grid">
                 @foreach (var avatar in AvatarCatalog.All)
                 {
@@ -73,7 +81,7 @@ else
                     <article class="avatar-collectible @(selected ? "is-selected" : null) @(!owned ? "is-locked" : null)" data-avatar-id="@avatar.Id">
                         <button type="button" class="avatar-inspect" aria-label="@($"Se {avatar.Name}")" aria-pressed="@DemoWorld.Pressed(_previewId == avatar.Id)" @onclick="() => Preview(avatar.Id)">
                             <AvatarIcon AvatarId="@avatar.Id" Size="76" Decorative="true" />
-                            <strong>@avatar.Name</strong><span>@(selected ? "Din valgte figur" : owned ? "I din samling" : "Klar til at blive låst op")</span>
+                            <strong>@avatar.Name</strong><span>@(selected ? "Din valgte figur" : owned ? "I din samling" : World.CanUnlockAvatar(avatar.Id) ? "Klar til at blive låst op" : "Se krav for oplåsning")</span>
                         </button>
                         <div class="avatar-card-action">
                             @if (selected)
@@ -87,12 +95,30 @@ else
                             else
                             {
                                 <span class="avatar-requirement"><UiIcon Name="lock" /> Level @avatar.Level · @avatar.Cost guld</span>
+                                @if (avatar.UnlockRequirements.Count > 0)
+                                {
+                                    <ul class="avatar-unlock-requirements" aria-label="@($"Oplåsningskrav for {avatar.Name}")">
+                                        @foreach (var requirement in avatar.UnlockRequirements)
+                                        {
+                                            var progress = World.GetAvatarUnlockProgress(avatar.Id).First(value => value.RequirementId == requirement.Id);
+                                            <li class="@(progress.IsMet ? "is-met" : null)" data-requirement-id="@requirement.Id">
+                                                <span>@requirement.Description</span>
+                                                <strong role="status" data-testid="@($"requirement-progress-{avatar.Id}-{requirement.Id}")">@Math.Min(progress.Current, progress.Required) / @progress.Required @(requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients ? "forskellige brugere" : "") @(progress.IsMet ? "· Opfyldt" : "")</strong>
+                                                <progress max="@progress.Required" value="@Math.Min(progress.Current, progress.Required)" aria-label="@requirement.Description"></progress>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
                                 <button type="button" class="action" disabled="@(World.AvatarBusy || !World.CanUnlockAvatar(avatar.Id))" data-testid="@(avatar.Id == AvatarCatalog.Bip01Id ? "unlock-robot" : $"unlock-{avatar.Id}")" @onclick="() => Unlock(avatar.Id)">@(World.AvatarBusy ? "Gemmer…" : World.CanUnlockAvatar(avatar.Id) ? $"Lås op · {avatar.Cost} guld" : World.AvatarRequirementText(avatar.Id))</button>
                             }
                         </div>
                     </article>
                 }
             </div>
+            @if (HasChristmasGiftRequirement)
+            {
+                <p class="avatar-requirements-history">Gavens tema gemmes ved afsendelse. Ældre gaver uden gemt tema tæller ikke med i kravet.</p>
+            }
             @if (World.AvatarProfileError is not null)
             {
                 <div class="avatar-notice" role="alert"><p>@World.AvatarProfileError</p><button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="World.ReloadAvatarProfileAsync">Hent samlingen igen</button></div>
@@ -142,6 +168,8 @@ else
     private string? _actionAudioNotice;
     private int _audioVersion;
     private AvatarDefinition PreviewDefinition => AvatarCatalog.Find(_previewId) ?? AvatarCatalog.All[0];
+    private bool HasChristmasGiftRequirement => AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id)
+        && avatar.UnlockRequirements.Any(requirement => requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients && requirement.Target == "christmas"));
     private AvatarAction? PreviewAction => PreviewDefinition.Actions.FirstOrDefault(action => action.Id == _animation);
     private async Task Preview(string id)
     {
@@ -192,9 +220,17 @@ else
     protected override async Task OnInitializedAsync()
     {
         World.Changed += OnChanged;
+        Mailbox.GiftSent += OnGiftSent;
         await World.EnsureAsync();
         await World.BindAvatarProfileAsync(Auth.Subject);
     }
     private void OnChanged() { if (!_disposed) _ = InvokeAsync(StateHasChanged); }
-    public async ValueTask DisposeAsync() { _disposed = true; World.Changed -= OnChanged; await StopAudio(); }
+    private void OnGiftSent() { if (!_disposed) _ = InvokeAsync(RefreshRequirements); }
+    private async Task RefreshRequirements()
+    {
+        if (_disposed || !Auth.IsAuthenticated) return;
+        await World.BindAvatarProfileAsync(Auth.Subject);
+        if (!_disposed) await World.ReloadAvatarProfileAsync();
+    }
+    public async ValueTask DisposeAsync() { _disposed = true; World.Changed -= OnChanged; Mailbox.GiftSent -= OnGiftSent; await StopAudio(); }
 }

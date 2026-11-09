@@ -21,9 +21,11 @@ public sealed class DemoWorld
     private bool _hadSnapshot;
     private bool _legacyImported;
     private readonly HashSet<string> _ownedAvatarIds = [AvatarCatalog.StarterId];
+    private readonly Dictionary<(string AvatarId, string RequirementId), AvatarUnlockProgressDto> _avatarUnlockProgress = [];
     private bool _avatarProfileBound;
     private string? _avatarSubject;
     private Task? _avatarProfileLoading;
+    private Task<bool>? _avatarProfileMutation;
     private int _avatarProfileVersion;
     private CancellationTokenSource _avatarProfileCancellation = new();
     private long _avatarRevision = -1;
@@ -108,6 +110,7 @@ public sealed class DemoWorld
 
         _avatarProfileBound = true;
         _avatarSubject = subject;
+        _avatarProfileMutation = null;
         AvatarProfileReady = false;
         AvatarProfileError = null;
         AvatarBusy = subject is not null;
@@ -137,7 +140,9 @@ public sealed class DemoWorld
         if (!_avatarProfileBound)
             return BindAvatarProfileAsync(null);
         if (AvatarBusy)
-            return _avatarProfileLoading ?? Task.CompletedTask;
+            return _avatarProfileMutation is { IsCompleted: false } mutation
+                ? ReloadAfterAvatarMutationAsync(mutation, _avatarSubject, _avatarProfileVersion)
+                : _avatarProfileLoading ?? Task.CompletedTask;
 
         AvatarBusy = _avatarSubject is not null;
         AvatarProfileError = null;
@@ -150,6 +155,12 @@ public sealed class DemoWorld
         Changed?.Invoke();
         _ = CompleteAvatarProfileLoadAsync(_avatarSubject, version, _avatarProfileCancellation.Token, completion);
         return completion.Task;
+    }
+
+    private async Task ReloadAfterAvatarMutationAsync(Task<bool> mutation, string? subject, int version)
+    {
+        await mutation;
+        if (IsCurrentAvatarProfile(subject, version)) await ReloadAvatarProfileAsync();
     }
 
     // Keep local appearance/room choices from the earlier design without replacing an existing world.
@@ -198,7 +209,20 @@ public sealed class DemoWorld
         && AvatarCatalog.Find(id) is { } avatar
         && !OwnsAvatar(id)
         && CurrentLevel >= avatar.Level
-        && Gold >= avatar.Cost;
+        && Gold >= avatar.Cost
+        && GetAvatarUnlockProgress(id).All(progress => progress.IsMet);
+
+    public IReadOnlyList<AvatarUnlockProgressDto> GetAvatarUnlockProgress(string? id)
+    {
+        if (AvatarEconomy.FindAvatar(id) is not { Requirements: { } requirements } definition) return [];
+        return requirements.Select(requirement =>
+        {
+            if (_avatarUnlockProgress.TryGetValue((definition.Id, requirement.Id), out var progress)
+                && progress.Required == requirement.RequiredCount && progress.Current >= 0)
+                return progress with { IsMet = progress.IsMet && progress.Current >= requirement.RequiredCount };
+            return new AvatarUnlockProgressDto(definition.Id, requirement.Id, 0, requirement.RequiredCount, false);
+        }).ToArray();
+    }
 
     public string AvatarRequirementText(string? id)
     {
@@ -210,6 +234,8 @@ public sealed class DemoWorld
             return "Log ind for at låse op";
         if (CurrentLevel < avatar.Level)
             return $"Kræver level {avatar.Level}";
+        if (GetAvatarUnlockProgress(id).FirstOrDefault(progress => !progress.IsMet) is { } missing)
+            return $"Opfyld krav · {Math.Min(missing.Current, missing.Required)}/{missing.Required}";
         if (Gold < avatar.Cost)
             return $"Mangler {avatar.Cost - Gold} guld";
         return avatar.Cost == 0 ? "Gratis" : $"{avatar.Cost} guld";
@@ -505,6 +531,7 @@ public sealed class DemoWorld
 
     private void ResetAvatarProfile()
     {
+        _avatarUnlockProgress.Clear();
         _ownedAvatarIds.Clear();
         _ownedAvatarIds.Add(AvatarCatalog.StarterId);
         SelectedAvatarId = AvatarCatalog.StarterId;
@@ -524,6 +551,9 @@ public sealed class DemoWorld
         if (profile.Revision < _avatarRevision) return false;
         _avatarRevision = profile.Revision;
         ResetAvatarProfile();
+        foreach (var progress in profile.UnlockProgress ?? [])
+            if (progress is not null && AvatarEconomy.FindAvatar(progress.AvatarId)?.Requirements?.Any(requirement => requirement.Id == progress.RequirementId) == true)
+                _avatarUnlockProgress[(progress.AvatarId, progress.RequirementId)] = progress;
         foreach (var id in profile.OwnedAvatarIds ?? [])
             if (AvatarCatalog.Find(id) is not null) _ownedAvatarIds.Add(id);
         if (OwnsAvatar(profile.SelectedAvatarId)) SelectedAvatarId = profile.SelectedAvatarId;
@@ -626,7 +656,13 @@ public sealed class DemoWorld
         catch (JSException) { /* The API remains canonical if old browser storage cannot be removed. */ }
     }
 
-    private async Task<bool> MutateAvatarProfileAsync(Func<string, CancellationToken, Task<AvatarProfileDto>> operation, string area, string success)
+    private Task<bool> MutateAvatarProfileAsync(Func<string, CancellationToken, Task<AvatarProfileDto>> operation, string area, string success)
+    {
+        if (!CanMutateAvatarProfile()) return Task.FromResult(false);
+        return _avatarProfileMutation = RunAvatarProfileMutationAsync(operation, area, success);
+    }
+
+    private async Task<bool> RunAvatarProfileMutationAsync(Func<string, CancellationToken, Task<AvatarProfileDto>> operation, string area, string success)
     {
         if (!CanMutateAvatarProfile()) return false;
         var subject = _avatarSubject!;

@@ -8,7 +8,7 @@ hud, hår og tøj er erstattet af hele figurer, som låses op og vælges.
 - `starter`: gratis startfigur.
 - `bip01`: BIP-01, level 2 og 150 guld.
 - `raymond`: Raymond / Professor Codd, level 3 og 150 guld. Oplåsning vælger figuren med det samme.
-- `santa`: Julemanden, level 4 og 150 guld.
+- `santa`: Julemanden, level 4 og 150 guld samt julegaver sendt til mindst tre forskellige brugere.
 - Tolv felter med spørgsmålstegn viser kommende figurer. De er information,
   ikke købsknapper eller katalog-id'er, der kan låses op.
 
@@ -136,7 +136,13 @@ Raymonds ejerskab, valg og pris er uændret (level3,150guld). Eksisterende ejere
 
 ## Julemanden
 
-Julemanden har id `santa`, kræver level 4 og koster 150 guld. Oplåsning og valg bruger den eksisterende kontoprofil og følger med mellem computere. Santa kan ikke tildeles gennem gamle browserdata, og katalogtilføjelsen kræver ingen ny databasestruktur.
+Julemanden har id `santa`, kræver level 4, koster 150 guld og kræver gaver sendt i juletemaet til mindst tre forskellige brugere. Oplåsning og valg bruger den eksisterende kontoprofil og følger med mellem computere. Santa kan ikke tildeles gennem gamle browserdata. Allerede oplåste figurer bevares.
+
+Aktivitetskrav beskrives i `AvatarUnlockDefinition.Requirements` i den delte kontrakt, så nye figurer kan få andre krav. Serveren beregner `AvatarProfileDto.UnlockProgress` fra gemte aktiviteter og kontrollerer alle krav før betaling. Klienten kan vise fremskridt, men kan ikke tildele dem. Manglende fremskridtsdata giver ikke adgang til en figur med aktivitetskrav.
+
+Julegavekravet tæller unikke, andre modtager-id'er for den aktuelle afsender på tværs af hele gavehistorikken. Kun gaver med `Theme == "christmas"` tæller; modtageren behøver ikke åbne dem. Dubletter, gaver til én selv, andre afsendere og andre temaer tæller ikke. Temaet fastholdes ved første afsendelsesforsøg og gemmes i databasen, så et genforsøg ikke kan ommærke en eksisterende gave. Ældre gaver uden gemt tema migreres til `unknown` og giver ikke udokumenteret julegavefremskridt. Gavehistorikkens nye temafelt kræver en EF-migrering.
+
+Samlingen viser eksempelvis `2 / 3 forskellige brugere`, opdaterer efter en vellykket gaveafsendelse og har en manuel knap til at hente ny status fra en anden enhed. Et afvist oplåsningsforsøg ændrer hverken saldo, ejerskab, valg eller revisionsnummer.
 
 Pakken har samme 28 handlinger og 224 tegnede frames som BIP-01/Raymond, 28 originale lydeffekter, fem indtalte danske replikker, ansigtsikon og fire emojis. Stjerneskud, Gavegreb, Julefred, Kanesus og Julevarme er de fem evner; Den store gavefest har separate opladnings- og udløsningsark. Genstande, gyldne stjerner, magiske snebolde og effekter er selvstændige sprites. De kalibrerede hænder og projektilstartpunkter kommer fra Santas egne ark.
 

@@ -69,9 +69,11 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
             e.Property(x => x.RecipientName).HasMaxLength(120).IsRequired();
             e.Property(x => x.Kind).HasMaxLength(16).IsRequired();
             e.Property(x => x.Wrapping).HasMaxLength(16).IsRequired();
+            e.Property(x => x.Theme).HasMaxLength(16).IsRequired().HasDefaultValue("unknown");
             e.Property(x => x.Message).HasMaxLength(240).IsRequired();
             e.HasIndex(x => new { x.RecipientSub, x.CreatedAtUtc });
             e.HasIndex(x => new { x.SenderSub, x.CreatedAtUtc });
+            e.HasIndex(x => new { x.SenderSub, x.Theme, x.RecipientSub });
         });
         modelBuilder.Entity<Forloeb>(e =>
         {

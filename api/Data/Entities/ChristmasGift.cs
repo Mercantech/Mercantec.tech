@@ -9,6 +9,7 @@ public sealed class ChristmasGift
     public string RecipientName { get; set; } = "";
     public string Kind { get; set; } = "cheer";
     public string Wrapping { get; set; } = "berry";
+    public string Theme { get; set; } = "unknown";
     public string Message { get; set; } = "";
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? OpenedAtUtc { get; set; }

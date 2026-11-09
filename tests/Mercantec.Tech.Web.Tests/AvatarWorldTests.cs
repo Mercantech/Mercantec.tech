@@ -78,6 +78,7 @@ public class AvatarWorldTests
     public async Task Santa_is_bought_on_the_server_and_follows_selection_across_computers_and_accounts()
     {
         var api = new AvatarServer();
+        api.Profiles["student-a"] = Profile() with { UnlockProgress = [new(AvatarEconomy.SantaId, "christmas-gift-recipients", 3, 3, true)] };
         var browser = new AvatarStorage();
         var first = new DemoWorld(browser, api);
         await first.BindAvatarProfileAsync("student-a");

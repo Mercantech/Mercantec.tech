@@ -55,6 +55,12 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await db.Database.EnsureCreatedAsync();
             db.AvatarProfiles.AddRange(Profile(_alice, "bip01"), Profile(_bob, "raymond"));
+            for (var i = 0; i < 3; i++)
+                db.ChristmasGifts.Add(new ChristmasGift
+                {
+                    Id = Guid.NewGuid(), SenderSub = _alice, RecipientSub = Guid.NewGuid(),
+                    Theme = "christmas", CreatedAtUtc = DateTime.UtcNow
+                });
             await db.SaveChangesAsync();
         }
         await _app.StartAsync();
@@ -67,6 +73,24 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
         await _app.DisposeAsync();
         SqliteConnection.ClearAllPools();
         foreach (var suffix in new[] { "", "-wal", "-shm" }) File.Delete(_database + suffix);
+    }
+
+    [Fact]
+    public async Task ClientSuppliedRequirementProgressCannotUnlockSantaWithoutStoredChristmasGifts()
+    {
+        using var bob = Client(_bob);
+        var response = await bob.PostAsJsonAsync("/api/me/avatars/santa/unlock", new
+        {
+            ownedAvatarIds = new[] { "santa" },
+            unlockProgress = new[] { new { avatarId = "santa", requirementId = "christmas-gift-recipients", current = 3, required = 3, isMet = true } }
+        });
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("avatar_requirement_not_met", problem.RootElement.GetProperty("code").GetString());
+        var profile = await bob.GetFromJsonAsync<AvatarProfileDto>("/api/me/avatars");
+        Assert.DoesNotContain("santa", profile!.OwnedAvatarIds);
+        Assert.Equal(320, profile.Gold);
+        Assert.Equal(0, Assert.Single(profile.UnlockProgress!).Current);
     }
 
     [Fact]

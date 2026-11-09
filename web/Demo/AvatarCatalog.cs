@@ -1,3 +1,5 @@
+using Mercantec.Tech.Contracts;
+
 namespace Mercantec.Tech.Web.Demo;
 
 public static class AvatarCatalog
@@ -159,6 +161,7 @@ public sealed record AvatarDefinition(
     IReadOnlyList<AvatarCatchphrase> Catchphrases)
 {
     public string Edition { get; init; } = "Din startfigur";
+    public IReadOnlyList<AvatarUnlockRequirementDefinition> UnlockRequirements => AvatarEconomy.FindAvatar(Id)?.Requirements ?? [];
     public string? SpriteAssetRoot { get; init; }
     public bool SupportsWorldSprites { get; init; }
     public int SpriteRows { get; init; } = 2;

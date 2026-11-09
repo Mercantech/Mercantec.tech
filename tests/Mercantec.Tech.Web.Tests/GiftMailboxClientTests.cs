@@ -10,6 +10,60 @@ namespace Mercantec.Tech.Web.Tests;
 public sealed class GiftMailboxClientTests
 {
     [Fact]
+    public async Task Confirmed_send_notifies_avatar_progress_only_after_its_mailbox_refresh_finishes()
+    {
+        using var api = new Api { MailboxGate = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        await using var context = await LearningUiTestContext.CreateAsync(api);
+        var client = new GiftMailboxClient(context.Services.GetRequiredService<HttpClient>(), context.Auth, viewAs: context.ViewAs);
+        var notifications = 0;
+        client.GiftSent += () => notifications++;
+        var pending = client.SendAsync(new(Guid.NewGuid(), Guid.NewGuid(), "thanks", "pine", "Testhilsen", "christmas"), default);
+        await api.MailboxRequested.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.False(pending.IsCompleted);
+        Assert.Equal(0, notifications);
+
+        api.MailboxGate!.SetResult(true);
+        var sent = await pending;
+        Assert.Equal("christmas", sent.Theme);
+        Assert.Equal(LearningUiTestContext.AccountId.ToString(), Assert.Single(api.SendSubjects));
+        Assert.Equal(1, notifications);
+    }
+
+    [Fact]
+    public async Task Failed_send_does_not_notify_avatar_progress_or_refresh_the_mailbox()
+    {
+        using var api = new Api { SendFailure = true };
+        await using var context = await LearningUiTestContext.CreateAsync(api);
+        var client = new GiftMailboxClient(context.Services.GetRequiredService<HttpClient>(), context.Auth);
+        var notifications = 0;
+        client.GiftSent += () => notifications++;
+
+        await Assert.ThrowsAsync<GiftException>(() => client.SendAsync(new(Guid.NewGuid(), Guid.NewGuid(), "thanks", "pine", "Testhilsen", "christmas"), default));
+
+        Assert.Equal(0, notifications);
+        Assert.Equal(new[] { "POST gifts" }, api.Requests.ToArray());
+    }
+
+    [Fact]
+    public async Task A_send_confirmed_after_logout_cannot_notify_the_new_avatar_context()
+    {
+        using var api = new Api { SendGate = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        await using var context = await LearningUiTestContext.CreateAsync(api);
+        var client = new GiftMailboxClient(context.Services.GetRequiredService<HttpClient>(), context.Auth);
+        var notifications = 0;
+        client.GiftSent += () => notifications++;
+        var pending = client.SendAsync(new(Guid.NewGuid(), Guid.NewGuid(), "thanks", "pine", "Testhilsen", "christmas"), default);
+        await api.SendRequested.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await context.Auth.LogoutLocalAsync();
+        api.SendGate!.SetResult(true);
+
+        await Assert.ThrowsAsync<GiftException>(() => pending);
+
+        Assert.Equal(0, notifications);
+        Assert.Equal(new[] { "POST gifts" }, api.Requests.ToArray());
+    }
+
+    [Fact]
     public async Task A_direct_gift_link_reads_without_registration_mailbox_refresh_opening_or_invalidation()
     {
         using var api = new Api();
@@ -136,6 +190,9 @@ public sealed class GiftMailboxClientTests
     {
         public GiftMessage Gift { get; private set; } = new(Guid.NewGuid(), "Afsender", "Modtager", "thanks", "pine", "Privat hilsen", DateTime.UtcNow, null);
         public string? OpenFailure { get; init; }
+        public bool SendFailure { get; init; }
+        public TaskCompletionSource<bool>? SendGate { get; init; }
+        public TaskCompletionSource<bool> SendRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool>? ReadGate { get; init; }
         public TaskCompletionSource<bool>? OpenGate { get; init; }
         public TaskCompletionSource<bool>? MailboxGate { get; init; }
@@ -143,10 +200,20 @@ public sealed class GiftMailboxClientTests
         public TaskCompletionSource<bool> OpenRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> MailboxRequested { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public ConcurrentQueue<string> Requests { get; } = [];
+        public ConcurrentQueue<string?> SendSubjects { get; } = [];
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var path = request.RequestUri!.PathAndQuery["/api/".Length..];
             Requests.Enqueue(request.Method + " " + path);
+            if (request.Method == HttpMethod.Post && path == "gifts")
+            {
+                SendSubjects.Enqueue(request.Headers.TryGetValues("X-LUP-Gift-Subject", out var subjects) ? string.Join(",", subjects) : null);
+                SendRequested.TrySetResult(true);
+                if (SendGate is not null) await SendGate.Task.WaitAsync(cancellationToken);
+                if (SendFailure) return new(HttpStatusCode.ServiceUnavailable);
+                var draft = await request.Content!.ReadFromJsonAsync<GiftDraft>(cancellationToken) ?? throw new InvalidOperationException("No draft");
+                return Json(new GiftMessage(draft.Id, "Afsender", "Modtager", draft.Kind, draft.Wrapping, draft.Message, DateTime.UtcNow, null, draft.Theme));
+            }
             if (request.Method == HttpMethod.Get && path == $"gifts/{Gift.Id}")
             {
                 ReadRequested.TrySetResult(true);

@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Auth;
+using Mercantec.Tech.Api.Avatars;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Contracts;
@@ -27,11 +28,18 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
         if (avatar is null)
             return Task.FromResult<ActionResult<AvatarProfileDto>>(Failure(404, "avatar_not_found", "Avataren findes ikke."));
 
-        return ExecuteAsync(profile =>
+        return ExecuteAsync((profile, progress) =>
         {
             if (profile.Avatars.Any(owned => owned.AvatarId == id)) return Mutation.Unchanged;
             if (profile.Level < avatar.Level)
                 return Mutation.Fail(409, "level_required", $"Avataren kræver level {avatar.Level}.");
+            foreach (var requirement in avatar.Requirements ?? [])
+            {
+                var matching = progress.Where(item => item.AvatarId == id && item.RequirementId == requirement.Id).ToArray();
+                if (matching.Length != 1 || !matching[0].IsMet)
+                    return Mutation.Fail(409, "avatar_requirement_not_met",
+                        $"Kravet er ikke opfyldt: {requirement.Description} ({matching.FirstOrDefault()?.Current ?? 0}/{requirement.RequiredCount}).");
+            }
             if (profile.Gold < avatar.Cost)
                 return Mutation.Fail(409, "insufficient_gold", $"Du mangler {avatar.Cost - profile.Gold} guld.");
 
@@ -48,7 +56,7 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
         if (AvatarEconomy.FindAvatar(request.AvatarId) is null)
             return Task.FromResult<ActionResult<AvatarProfileDto>>(Failure(404, "avatar_not_found", "Avataren findes ikke."));
 
-        return ExecuteAsync(profile =>
+        return ExecuteAsync((profile, _) =>
         {
             if (!profile.Avatars.Any(owned => owned.AvatarId == request.AvatarId))
                 return Mutation.Fail(409, "avatar_not_owned", "Lås avataren op, før du vælger den.");
@@ -64,7 +72,7 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
         if (request.OwnedAvatarIds is null || request.OwnedAvatarIds.Count > 128)
             return Task.FromResult<ActionResult<AvatarProfileDto>>(Failure(400, "invalid_legacy_profile", "Den gemte avatarsamling kunne ikke læses."));
 
-        return ExecuteAsync(profile =>
+        return ExecuteAsync((profile, _) =>
         {
             if (!profile.LegacyImportAvailable)
                 return Mutation.Fail(409, "legacy_import_closed", "Din avatar er allerede gemt på kontoen. Genindlæs for at hente den seneste samling.");
@@ -93,7 +101,7 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
         if (item is null)
             return Task.FromResult<ActionResult<AvatarProfileDto>>(Failure(404, "item_not_found", "Møblet kan ikke købes her."));
 
-        return ExecuteAsync(profile =>
+        return ExecuteAsync((profile, _) =>
         {
             if (profile.Items.Any(owned => owned.ItemId == id)) return Mutation.Unchanged;
             if (profile.Level < item.Level)
@@ -112,7 +120,7 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
     }
 
     private async Task<ActionResult<AvatarProfileDto>> ExecuteAsync(
-        Func<AvatarProfile, Mutation>? mutate,
+        Func<AvatarProfile, IReadOnlyList<AvatarUnlockProgressDto>, Mutation>? mutate,
         CancellationToken ct)
     {
         var subject = UserClaims.GetSub(User);
@@ -141,7 +149,8 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
                     db.AvatarProfiles.Add(profile);
                 }
 
-                var mutation = mutate?.Invoke(profile!) ?? Mutation.Unchanged;
+                var progress = await AvatarRequirementEvaluator.EvaluateAsync(db, subject.Value, AvatarEconomy.Avatars, ct);
+                var mutation = mutate?.Invoke(profile!, progress) ?? Mutation.Unchanged;
                 if (mutation.Error is not null)
                     return Failure(mutation.Error.Status, mutation.Error.Code, mutation.Error.Detail);
 
@@ -158,7 +167,7 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
                 if (created || mutation.HasChanges || closesImport)
                     await db.SaveChangesAsync(ct);
 
-                return Ok(ToDto(profile!));
+                return Ok(ToDto(profile!, progress));
             }
             catch (Exception error) when (IsRetryableConflict(error))
             {
@@ -181,14 +190,15 @@ public sealed class AvatarsController(AppDbContext db) : ControllerBase
         return profile;
     }
 
-    private static AvatarProfileDto ToDto(AvatarProfile profile) => new(
+    private static AvatarProfileDto ToDto(AvatarProfile profile, IReadOnlyList<AvatarUnlockProgressDto> progress) => new(
         profile.SelectedAvatarId,
         profile.Avatars.Select(ownership => ownership.AvatarId).Order(StringComparer.Ordinal).ToArray(),
         profile.Gold,
         profile.Level,
         profile.Items.Select(ownership => ownership.ItemId).Order(StringComparer.Ordinal).ToArray(),
         profile.LegacyImportAvailable,
-        profile.Revision);
+        profile.Revision,
+        progress);
 
     private static bool IsRetryableConflict(Exception error)
     {

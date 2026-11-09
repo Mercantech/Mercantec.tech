@@ -7,7 +7,27 @@ public sealed record AvatarProfileDto(
     int Level,
     IReadOnlyList<string> OwnedItemIds,
     bool CanImportLegacy,
-    long Revision);
+    long Revision,
+    IReadOnlyList<AvatarUnlockProgressDto>? UnlockProgress = null);
+
+public sealed record AvatarUnlockProgressDto(
+    string AvatarId,
+    string RequirementId,
+    int Current,
+    int Required,
+    bool IsMet);
+
+public static class AvatarRequirementKinds
+{
+    public const string SentGiftsDistinctRecipients = "sent_gifts_distinct_recipients";
+}
+
+public sealed record AvatarUnlockRequirementDefinition(
+    string Id,
+    string Kind,
+    string Target,
+    int RequiredCount,
+    string Description);
 
 public sealed record AvatarSelectionRequest(string AvatarId);
 
@@ -33,7 +53,11 @@ public static class AvatarEconomy
             new(StarterId, "Din første avatar", 1, 0, LegacyImportEligible: true),
             new(Bip01Id, "BIP-01", 2, 150, LegacyImportEligible: true),
             new(RaymondId, "Raymond", 3, 150),
-            new(SantaId, "Julemanden", 4, 150)
+            new(SantaId, "Julemanden", 4, 150, Requirements:
+            [
+                new("christmas-gift-recipients", AvatarRequirementKinds.SentGiftsDistinctRecipients,
+                    "christmas", 3, "Send gaver i juletemaet til 3 forskellige brugere")
+            ])
         ]);
 
     public static IReadOnlyList<AvatarShopItemDefinition> Furniture { get; } =
@@ -65,7 +89,13 @@ public static class AvatarEconomy
 
 // Only avatars that existed before account-backed ownership can be migrated
 // from browser data. New catalog entries must be purchased on the server.
-public sealed record AvatarUnlockDefinition(string Id, string Name, int Level, int Cost, bool LegacyImportEligible = false);
+public sealed record AvatarUnlockDefinition(
+    string Id,
+    string Name,
+    int Level,
+    int Cost,
+    bool LegacyImportEligible = false,
+    IReadOnlyList<AvatarUnlockRequirementDefinition>? Requirements = null);
 
 public sealed record AvatarShopItemDefinition(
     string Id,

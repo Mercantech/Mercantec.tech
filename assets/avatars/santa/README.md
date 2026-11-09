@@ -50,7 +50,7 @@ Scripts i `scripts/` genskaber normalisering, WebP-preview, separate sprites, ik
 
 ## Platform og kontrol
 
-Avatar-id er `santa`, navn **Julemanden**, oplåsning **level4 /150guld**. Ejerskab og valg gemmes på brugerkontoen i databasen. Nye karakterer kan ikke importeres som gratis gamle browseroplåsninger. Arena har en selvstændig serverstyret julemandskampopsætning.
+Avatar-id er `santa`, navn **Julemanden**, oplåsning **level 4 / 150 guld samt gaver sendt i juletemaet til mindst tre forskellige brugere**. Kravet beregnes på serveren fra gemte gaver; gentagne modtagere tæller én gang, og ældre gaver uden gemt tema tæller ikke. Ejerskab og valg gemmes på brugerkontoen i databasen, og allerede oplåste figurer bevares. Nye karakterer kan ikke importeres som gratis gamle browseroplåsninger. Arena har en selvstændig serverstyret julemandskampopsætning.
 
 `validation.json` dokumenterer28/224 uden mangler, fejl eller advarsler. `qa/preview-report.json` dokumenterer alle224 canvasframes,33lydfiler, ultimate og de uafhængige lag. Sociale/bevægelsesrapporter findes under `qa/social/`, kampkildernes rapport i `combat-source-validation.json`, og platformens rapporter under `qa/platform/`. Ikonernes alfa kan inspiceres med `scripts/check-icons.cjs`; skjulte RGB-farver i fuldt transparente pixels er ikke en baggrund.
 

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
+using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -72,6 +73,7 @@ public sealed class AvatarProfileTests : IAsyncLifetime
     [Fact]
     public async Task SantaPurchaseAndSelectionPersistAcrossConnectionsWithoutLeakingToAnotherAccount()
     {
+        await SeedChristmasGifts(Alice);
         await using (var firstDevice = OpenDatabase())
         {
             var alice = As(firstDevice, Alice);
@@ -103,6 +105,7 @@ public sealed class AvatarProfileTests : IAsyncLifetime
     [Fact]
     public async Task SantaUsesDatabaseLevelAndWalletAndCannotBeGrantedByLegacyBrowserData()
     {
+        await SeedChristmasGifts(Alice);
         await using var db = OpenDatabase();
         var controller = As(db, Alice);
         var imported = Success(await controller.ImportLegacy(new(["starter", "santa"], "santa", 320), default));
@@ -124,6 +127,18 @@ public sealed class AvatarProfileTests : IAsyncLifetime
         var purchased = Success(await controller.Unlock(AvatarEconomy.SantaId, default));
         Assert.Equal(0, purchased.Gold);
         Assert.Equal(AvatarEconomy.SantaId, purchased.SelectedAvatarId);
+    }
+
+    private async Task SeedChristmasGifts(Guid sender)
+    {
+        await using var db = OpenDatabase();
+        for (var i = 0; i < 3; i++)
+            db.ChristmasGifts.Add(new ChristmasGift
+            {
+                Id = Guid.NewGuid(), SenderSub = sender, RecipientSub = Guid.NewGuid(),
+                SenderName = "Afsender", RecipientName = "Modtager", Theme = "christmas", CreatedAtUtc = DateTime.UtcNow
+            });
+        await db.SaveChangesAsync();
     }
 
     [Fact]

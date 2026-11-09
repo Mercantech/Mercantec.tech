@@ -144,6 +144,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<Guid>("SenderSub")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("unknown");
+
                     b.Property<string>("Wrapping")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -154,6 +161,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.HasIndex("RecipientSub", "CreatedAtUtc");
 
                     b.HasIndex("SenderSub", "CreatedAtUtc");
+
+                    b.HasIndex("SenderSub", "Theme", "RecipientSub");
 
                     b.ToTable("christmas_gifts", null, t =>
                         {

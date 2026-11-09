@@ -3,6 +3,7 @@
 @inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
 @inject IJSRuntime Js
+@using Mercantec.Tech.Web.Theming
 @implements IAsyncDisposable
 
 <button type="button" disabled="@(ViewAs.IsActive || _busy)" class="christmas-present gift-launcher" data-unread="@(Mailbox.Unread > 0 ? "true" : null)" @onclick="Show" aria-haspopup="dialog" aria-controls="lup-gift-dialog" aria-label="@(Mailbox.Unread > 0 ? $"Gaver, {Mailbox.Unread} uåbnede" : "Send eller åbn en gave")"><UiIcon Name="gift" />@if (Mailbox.Unread > 0) { <span class="gift-count">@Mailbox.Unread</span> }</button>
@@ -69,6 +70,7 @@
     private string? _notice, _error, _user, _focusSelector;
     private Guid? _recipient;
     private Guid _request = Guid.NewGuid();
+    private string? _requestTheme;
     private GiftMessage? _selected;
     private CancellationTokenSource? _session;
     private Task? _poll;
@@ -96,7 +98,7 @@
         var next = Auth.IsAuthenticated && !ViewAs.IsActive ? Auth.Subject : null;
         if (next == _user) return;
         _user = next; _selected = null; _open = _showDialog = _preview = false; _notice = _error = _focusSelector = null;
-        _recipient = null; _message = ""; _kind = "cheer"; _wrapping = "berry"; _request = Guid.NewGuid();
+        _recipient = null; _message = ""; _kind = "cheer"; _wrapping = "berry"; _request = Guid.NewGuid(); _requestTheme = null;
         await Js.InvokeVoidAsync("lupGiftUi.close", "lup-gift-dialog");
         Mailbox.Clear(); await StopPolling();
         if (next is not null) { _session = new(); _poll = Poll(_session.Token); }
@@ -110,7 +112,7 @@
     private async Task Show()
     {
         if (ViewAs.IsActive || _busy) return;
-        _request = Guid.NewGuid(); _open = _showDialog = true; _selected = null; _preview = false;
+        _request = Guid.NewGuid(); _requestTheme = null; _open = _showDialog = true; _selected = null; _preview = false;
         _tab = Mailbox.Unread > 0 ? "inbox" : "send"; _notice = _error = null;
         _focusSelector = Auth.IsAuthenticated ? _tab == "send" ? "#gift-compose-title" : "#gift-list-title" : "#gift-welcome-title";
         if (Auth.IsAuthenticated) await Reload();
@@ -160,14 +162,22 @@
         if (person is null) return;
         _busy = true; _error = _notice = null;
         var subject = Auth.Subject;
+        var requestId = _request;
         try
         {
-            await Mailbox.SendAsync(new(_request, recipient, _kind, _wrapping, _message), _session?.Token ?? default);
+            if (_requestTheme is null)
+            {
+                var theme = await Js.InvokeAsync<string>("lupTheme.get");
+                if (subject != Auth.Subject || ViewAs.IsActive || requestId != _request) return;
+                _requestTheme = ThemeCatalog.All.Any(candidate => candidate.Id == theme) ? theme : "unknown";
+            }
             if (subject != Auth.Subject || ViewAs.IsActive) return;
-            _request = Guid.NewGuid(); _message = ""; _selected = null; _preview = false; _tab = "sent";
+            await Mailbox.SendAsync(new(requestId, recipient, _kind, _wrapping, _message, _requestTheme == "unknown" ? null : _requestTheme), _session?.Token ?? default);
+            if (subject != Auth.Subject || ViewAs.IsActive) return;
+            _request = Guid.NewGuid(); _requestTheme = null; _message = ""; _selected = null; _preview = false; _tab = "sent";
             if (_open) { _notice = "Din gave er sendt til " + person.DisplayName + "."; _focusSelector = "#gift-feedback"; }
         }
-        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException)
+        catch (Exception ex) when (ex is GiftException or HttpRequestException or OperationCanceledException or JSException)
         {
             if (subject == Auth.Subject && !ViewAs.IsActive && _open)
             {

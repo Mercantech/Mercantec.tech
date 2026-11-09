@@ -24,7 +24,9 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   const avatarCatalog={starter:{level:1,cost:0},bip01:{level:2,cost:150},raymond:{level:3,cost:150},santa:{level:4,cost:150}};
   const clone=value=>JSON.parse(JSON.stringify(value));
   const profileFor=subject=>{
-    if(!profiles.has(subject))profiles.set(subject,{selectedAvatarId:'starter',ownedAvatarIds:['starter'],gold:320,level:7,ownedItemIds:['desk','bed','chair','plant','board'],canImportLegacy:true,revision:0});
+    // Full-pack playback QA uses a qualified Santa account. Separate focused
+    // requirement QA exercises real blocked/progress/third-recipient UI flows.
+    if(!profiles.has(subject))profiles.set(subject,{selectedAvatarId:'starter',ownedAvatarIds:['starter'],gold:320,level:7,ownedItemIds:['desk','bed','chair','plant','board'],canImportLegacy:true,revision:0,unlockProgress:[{avatarId:'santa',requirementId:'christmas-gift-recipients',current:subject===fullAvatarAccount?3:0,required:3,isMet:subject===fullAvatarAccount}]});
     return profiles.get(subject);
   };
   async function device(subject,oldProfile=null){
@@ -50,6 +52,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
           if(!avatar)return reply(404,{code:'avatar_not_found',detail:'Avataren findes ikke'});
           if(!state.ownedAvatarIds.includes(id)){
             if(state.level<avatar.level)return reply(409,{code:'level_required',detail:'Levelkravet er ikke opfyldt'});
+            if(id==='santa'&&!state.unlockProgress.some(p=>p.avatarId==='santa'&&p.requirementId==='christmas-gift-recipients'&&p.current>=3&&p.required===3&&p.isMet))return reply(409,{code:'avatar_requirement_not_met',detail:'Send julegaver til mindst tre forskellige brugere'});
             if(state.gold<avatar.cost)return reply(409,{code:'insufficient_gold',detail:'Ikke nok guld'});
             state.gold-=avatar.cost;state.ownedAvatarIds.push(id);state.selectedAvatarId=id;changed=true;
           }

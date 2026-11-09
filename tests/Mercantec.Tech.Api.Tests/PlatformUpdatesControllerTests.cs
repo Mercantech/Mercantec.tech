@@ -125,9 +125,13 @@ public sealed class PlatformUpdatesControllerTests
         const string prefix = "platform-updates/notes/";
         var embeddedIds = typeof(PlatformUpdatesFeed).Assembly.GetManifestResourceNames()
             .Where(name => name.StartsWith(prefix, StringComparison.Ordinal))
-            .Select(name => name[prefix.Length..^".json".Length]);
-        var publishedIds = updates.Select(update => update.Id)
-            .Except(PlatformUpdatesCatalog.Entries.Select(update => update.Id));
+            .Select(name => name[prefix.Length..^".json".Length]).ToArray();
+        // A release note can update the stable id of an existing feature. It
+        // must appear exactly once, rather than disappearing from coverage or
+        // producing a second card alongside the curated entry.
+        foreach (var id in embeddedIds) Assert.Single(updates, update => update.Id == id);
+        var publishedIds = updates.Where(update => embeddedIds.Contains(update.Id, StringComparer.Ordinal))
+            .Select(update => update.Id);
         Assert.Equal(embeddedIds.Order(StringComparer.Ordinal), publishedIds.Order(StringComparer.Ordinal));
     }
 

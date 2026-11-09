@@ -1,0 +1,8 @@
+{
+  "date": "2026-11-09",
+  "title": "Lås figurer op med guld og opgaver",
+  "description": "Din avatarsamling følger kontoen, og figurer kan nu have egne aktivitetskrav. Send gaver i juletemaet til tre forskellige brugere for at kunne låse Julemanden op; level 4 og 150 guld kræves også. Se dit fremskridt i samlingen. Flere gaver til samme person tæller kun én gang, og allerede oplåste figurer bevares. Raymond og Julemanden har hver 28 handlinger, 224 animationsbilleder og 33 lydklip.",
+  "authors": ["Kasper"],
+  "after": { "id": "avatar-unlock-requirements", "alt": "Avatarsamlingen viser Julemandens krav med julegaver sendt til to ud af tre forskellige brugere." },
+  "before": { "id": "avatar", "alt": "Den tidligere avatar-editor med udseendevalg og garderobe." }
+}
