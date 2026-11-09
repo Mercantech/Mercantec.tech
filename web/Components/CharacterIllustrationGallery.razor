@@ -16,7 +16,7 @@
                     <input id="character-illustration-search" type="search" value="@_query" @oninput="Search" placeholder="@SearchPlaceholder" aria-controls="character-illustration-items" />
                     <button type="button" @onclick="ResetFilters">Vis alle</button>
                 </div>
-                <div class="character-illustration-stages" role="group" aria-label="@(Items.Any(item => item.Objectives.Count > 0) ? "Hovedforløb" : "Emnegruppe")">
+                <div class="character-illustration-stages" role="group" aria-label="@(Stages.All(stage => stage is "H1" or "H2" or "H3" or "H4" or "H5" or "H6") ? "Hovedforløb" : "Emnegruppe")">
                     <button type="button" aria-pressed="@(_stage.Length == 0 ? "true" : "false")" @onclick="() => _stage = string.Empty">Alle</button>
                     @foreach (var stage in Stages)
                     {
@@ -51,7 +51,7 @@
                             <details class="character-illustration-explanation">
                                 <summary>Læs forklaringen: @item.Title</summary>
                                 @foreach (var paragraph in item.Explanation) { <p>@paragraph</p> }
-                                @if (!string.IsNullOrWhiteSpace(item.Sql)) { <pre><code>@item.Sql</code></pre> }
+                                @if (!string.IsNullOrWhiteSpace(item.Code)) { <pre><code>@item.Code</code></pre> }
                                 <div class="character-illustration-sources" aria-label="Faglige kilder">
                                     @foreach (var source in item.Sources)
                                     {
@@ -79,7 +79,12 @@
     [Parameter] public IReadOnlyList<CharacterIllustration> Items { get; set; } = [];
     private string _query = "", _stage = "";
     private string? _previousSlug;
-    private string SearchPlaceholder => CharacterSlug == "chameleon" ? "Emne, fx overfitting, features eller datadrift" : "Emne, fx JOIN, normalisering eller ORM";
+    private string SearchPlaceholder => CharacterSlug switch
+    {
+        "chameleon" => "Emne, fx overfitting, features eller datadrift",
+        "whale" => "Emne, fx Compose, logs eller rollback",
+        _ => "Emne, fx JOIN, normalisering eller ORM"
+    };
     private string[] Stages => Items.Select(item => item.Stage).OfType<string>().Distinct().Order().ToArray();
     private IReadOnlyList<CharacterIllustration> VisibleItems => Items.Where(item =>
         (_stage.Length == 0 || item.Stage == _stage) && MatchesQuery(item)).ToArray();

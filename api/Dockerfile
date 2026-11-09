@@ -23,6 +23,7 @@ COPY web/Demo/DemoCatalog.cs web/Demo/
 COPY web/Demo/LearningContent.cs web/Demo/
 COPY web/Characters/CharacterCatalog.cs web/Characters/
 COPY web/Characters/VatsonEmojiCatalog.cs web/Characters/
+COPY web/Characters/WhaleMaterials.cs web/Characters/
 WORKDIR /src/api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 

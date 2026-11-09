@@ -1342,5 +1342,389 @@
     "previewBytes": 74740,
     "originalSha256": "4627762f3747f6999fe5e23181fe054ca3ae19b391f522fda2fd32fb29fca682",
     "previewSha256": "7aa6a65d51469866e9938fadd5f5c2de4aed7bf6d236e9dce529c1cdf56385b1"
+  },
+  {
+    "image": "/images/characters/whale/reactions/hello.png",
+    "preview": "/images/characters/whale/reactions/hello.webp",
+    "originalBytes": 2334908,
+    "previewBytes": 93782,
+    "originalSha256": "4e22bc3f28cdbde6a22b6c64588b25ba408fb8c60bafc3c2367d3e830bfecfb9",
+    "previewSha256": "c2f540c38611bfc7fc1fddf7c939714f2eaf9ec784b798e4b40e7b08d63251b7"
+  },
+  {
+    "image": "/images/characters/whale/reactions/goodbye.png",
+    "preview": "/images/characters/whale/reactions/goodbye.webp",
+    "originalBytes": 2320437,
+    "previewBytes": 95754,
+    "originalSha256": "f9789f9820c024df9fff3ffdc10ca4fe3cef20a079b76dd11cdaa94408efbec4",
+    "previewSha256": "cdd86d20ad1a09bd1b507c53a25257599f3ff0581ca651efd4898c5ecd940ecd"
+  },
+  {
+    "image": "/images/characters/whale/reactions/good-morning.png",
+    "preview": "/images/characters/whale/reactions/good-morning.webp",
+    "originalBytes": 2470670,
+    "previewBytes": 105150,
+    "originalSha256": "a6f645590cab31290d554b057a632ab6a852ca7190e566444ec86f99e885114e",
+    "previewSha256": "39eb411903b943d8bd380a32a56e30b9d503e268e33e59ea2c1e8c51013e6746"
+  },
+  {
+    "image": "/images/characters/whale/reactions/happy.png",
+    "preview": "/images/characters/whale/reactions/happy.webp",
+    "originalBytes": 2813775,
+    "previewBytes": 114282,
+    "originalSha256": "e9559a418ff9676ee035f8a5b748ba37c166e13abee6ce242f6b9c6ca46004c1",
+    "previewSha256": "99d3fc8f6726368e2ddda1427136d52f83e368f90943e015cdd1bd0de0e71a1f"
+  },
+  {
+    "image": "/images/characters/whale/reactions/laughing.png",
+    "preview": "/images/characters/whale/reactions/laughing.webp",
+    "originalBytes": 2593362,
+    "previewBytes": 103110,
+    "originalSha256": "baccebd09872209302694a22ca0064febf246354e1c2ad6afb76fd75a976efa7",
+    "previewSha256": "45fdd6b2253c0c648debb5e428e35a264b6001b7a5040a0a70ec77def2b4db29"
+  },
+  {
+    "image": "/images/characters/whale/reactions/applause.png",
+    "preview": "/images/characters/whale/reactions/applause.webp",
+    "originalBytes": 2522775,
+    "previewBytes": 101264,
+    "originalSha256": "202a9a7665c635ad6224da5e2082260708627628ef003cf559d0ff0a8423e466",
+    "previewSha256": "5b923a1e85230c46ce3d3a46fe6da6d363db26c8822aa1310bd84f3bbb9fa105"
+  },
+  {
+    "image": "/images/characters/whale/reactions/celebration.png",
+    "preview": "/images/characters/whale/reactions/celebration.webp",
+    "originalBytes": 2452530,
+    "previewBytes": 106320,
+    "originalSha256": "cf533bbd70602e22ba3ffc87c2630e56fb4f90c2b47cb051a57859c36272530b",
+    "previewSha256": "b830e666c357cf9831f45c915764fa1404cb8dbc70ad0812dd46f22e9be112c5"
+  },
+  {
+    "image": "/images/characters/whale/reactions/proud.png",
+    "preview": "/images/characters/whale/reactions/proud.webp",
+    "originalBytes": 2459842,
+    "previewBytes": 93974,
+    "originalSha256": "5cebcf96ffc9f92e8dc4b2be4744029e8539e5a5af1fd51981defad0cedf6262",
+    "previewSha256": "a8eeb9994f226d940bc9767d052b9a2d6befa338905f2506a57b0e2b65ab20a9"
+  },
+  {
+    "image": "/images/characters/whale/reactions/thanks.png",
+    "preview": "/images/characters/whale/reactions/thanks.webp",
+    "originalBytes": 2449662,
+    "previewBytes": 101172,
+    "originalSha256": "f95c64697dd7a18f909b60519166d03bfcdb40ca3f364553340b65feb1a1d533",
+    "previewSha256": "f9779895404086efecfaf6d8669f5675ecff3ba8f6698cd36519893d0d447a14"
+  },
+  {
+    "image": "/images/characters/whale/reactions/thumbs-up.png",
+    "preview": "/images/characters/whale/reactions/thumbs-up.webp",
+    "originalBytes": 2390832,
+    "previewBytes": 101394,
+    "originalSha256": "822ce7eae81a8b2023ff19a784e015d7e9774f94ff2013e5a1a63a5d86064e46",
+    "previewSha256": "1b1625017087cb387e16c29e19bac610f9e960e713b708af86ceeec78867698d"
+  },
+  {
+    "image": "/images/characters/whale/reactions/thinking.png",
+    "preview": "/images/characters/whale/reactions/thinking.webp",
+    "originalBytes": 2458156,
+    "previewBytes": 95110,
+    "originalSha256": "00ea8cf66be1601d5cc63caa10f9a4ccb3c9c033d42a358426b3bca9131364e2",
+    "previewSha256": "ab6231fd06afbbf7ff24e8e629d23b5cf103bcfd31347a4e1013fbf1f585ec6f"
+  },
+  {
+    "image": "/images/characters/whale/reactions/curious.png",
+    "preview": "/images/characters/whale/reactions/curious.webp",
+    "originalBytes": 2649490,
+    "previewBytes": 102012,
+    "originalSha256": "809cda3e157350e55b49ddfa5b9f2254f53936c0ac7e9c38ca894aeb082468c8",
+    "previewSha256": "7fa2f43f70fdd6cd14f80cf5b26337fceb680432d2102004dd5fd776142999bc"
+  },
+  {
+    "image": "/images/characters/whale/reactions/confused.png",
+    "preview": "/images/characters/whale/reactions/confused.webp",
+    "originalBytes": 2312182,
+    "previewBytes": 93014,
+    "originalSha256": "a3845ec3df1d137777f80dbce6c08166e1d41137c2df78c4d8cb35e4297abe10",
+    "previewSha256": "4768c4768c05d78e1675aa12af2a75b938523071637f55c11a05fed3913c0cd6"
+  },
+  {
+    "image": "/images/characters/whale/reactions/surprised.png",
+    "preview": "/images/characters/whale/reactions/surprised.webp",
+    "originalBytes": 2476081,
+    "previewBytes": 94978,
+    "originalSha256": "0173f41b06ae92387eca9baf5d81750073c898ddb95232ace46502de61bffd12",
+    "previewSha256": "8599c975ae03f9de9b38240496bf9460e3ae74e8b588f381e8760b0d0a78d082"
+  },
+  {
+    "image": "/images/characters/whale/reactions/worried.png",
+    "preview": "/images/characters/whale/reactions/worried.webp",
+    "originalBytes": 2475635,
+    "previewBytes": 96574,
+    "originalSha256": "f05830c892c2e2389e695b3fbb03d54f4f6cf92f01912cfa3f84f8485ced4985",
+    "previewSha256": "960d7a358772ee9b62649a9b597e160d367c1185fbc98c8afe9d22ed5893051f"
+  },
+  {
+    "image": "/images/characters/whale/reactions/skeptical.png",
+    "preview": "/images/characters/whale/reactions/skeptical.webp",
+    "originalBytes": 2595753,
+    "previewBytes": 104476,
+    "originalSha256": "61b6f03e402fc3474e8870d865daff8e71a7b4f9a522bd94044242f976a3eda7",
+    "previewSha256": "a9b48948525912f2f57bcb330b3bd43f533c8480bd7f094833668a89754d0445"
+  },
+  {
+    "image": "/images/characters/whale/reactions/sleepy.png",
+    "preview": "/images/characters/whale/reactions/sleepy.webp",
+    "originalBytes": 2475921,
+    "previewBytes": 97148,
+    "originalSha256": "abd3f60ffec65349ede424670d57135a46b40aa580133ecceb196e9f14cc4069",
+    "previewSha256": "d286f65597185b24ce1bd86190e1109d738aa78d6396bde587578a27c99e69c1"
+  },
+  {
+    "image": "/images/characters/whale/reactions/calm.png",
+    "preview": "/images/characters/whale/reactions/calm.webp",
+    "originalBytes": 2392747,
+    "previewBytes": 93802,
+    "originalSha256": "4d1eab8d794feeb7c9c7525d078a5a9a34b075efa5b999f765396161bd170ab3",
+    "previewSha256": "618101474fcacf8e6b212ca5ae426c339154a616115e4acdcab3404f7e017138"
+  },
+  {
+    "image": "/images/characters/whale/reactions/listening.png",
+    "preview": "/images/characters/whale/reactions/listening.webp",
+    "originalBytes": 2553603,
+    "previewBytes": 102358,
+    "originalSha256": "5c50de25793ebb0d0280bbeb5f2af651650ed221149e020c1f84d7920c5b91c4",
+    "previewSha256": "587fff17fd9aa22ad7e82a39a7908a9fa04484cd66f2d0c4ccb1461b3af035e2"
+  },
+  {
+    "image": "/images/characters/whale/reactions/explaining.png",
+    "preview": "/images/characters/whale/reactions/explaining.webp",
+    "originalBytes": 2531558,
+    "previewBytes": 98348,
+    "originalSha256": "3a211c7b09c90ed430a8a01e74c2eb4629f54727c3ba89dfe038318e13531580",
+    "previewSha256": "2042f7869e3db4416ff91daeacf4ca5559bc6bcda9a680ff720c85554e9b0d8e"
+  },
+  {
+    "image": "/images/characters/whale/reactions/help.png",
+    "preview": "/images/characters/whale/reactions/help.webp",
+    "originalBytes": 2553951,
+    "previewBytes": 97952,
+    "originalSha256": "05e783a00454ad1b1530323e1cbf3e8f1828b2b077856e8c97ddd22c7c76c50a",
+    "previewSha256": "2cac38c658448066567b25899d3e57b70416c68c67a0701261a3bc2b7d379928"
+  },
+  {
+    "image": "/images/characters/whale/reactions/encouragement.png",
+    "preview": "/images/characters/whale/reactions/encouragement.webp",
+    "originalBytes": 2242718,
+    "previewBytes": 91678,
+    "originalSha256": "0644f2a73d73e9150b856a47c17f0b9517ebdcc7611f85aedbe3e01a530f1289",
+    "previewSha256": "f99cd1d08aa1864d646a193193d2685f0b7d30375e7c9b02f7619b049774f9e3"
+  },
+  {
+    "image": "/images/characters/whale/reactions/relieved.png",
+    "preview": "/images/characters/whale/reactions/relieved.webp",
+    "originalBytes": 2378837,
+    "previewBytes": 92426,
+    "originalSha256": "1318af387514083123db2156943d198b29af6bf664bd91954e85536464f0668a",
+    "previewSha256": "9c7c0471a85eeb715895578b30f9fdcd58adb94c85dd22a19c5e90c12ecb8067"
+  },
+  {
+    "image": "/images/characters/whale/reactions/coffee-break.png",
+    "preview": "/images/characters/whale/reactions/coffee-break.webp",
+    "originalBytes": 2531208,
+    "previewBytes": 96158,
+    "originalSha256": "4c072fa73c8da2375797b8c730d8f92f3fb77ba0e621c9a5e7809fb03dd34438",
+    "previewSha256": "5002419edb17713a43af73113fae67e92323a861c539daf944190573317ec418"
+  },
+  {
+    "image": "/images/characters/whale/reactions/dockerfile.png",
+    "preview": "/images/characters/whale/reactions/dockerfile.webp",
+    "originalBytes": 2464264,
+    "previewBytes": 94912,
+    "originalSha256": "9dc035047142e34a2189d36ebbcbc05d310431be968d7ac375a0b54895b5643a",
+    "previewSha256": "d5cb49fd8a081620d16ea95a49ccbb0343e0251fcd10a3bd71953b737854cfd6"
+  },
+  {
+    "image": "/images/characters/whale/reactions/build-image.png",
+    "preview": "/images/characters/whale/reactions/build-image.webp",
+    "originalBytes": 2638898,
+    "previewBytes": 102236,
+    "originalSha256": "9ca0f68f33243c40926aecd07639382b3572480e4862d0c7cb85fa1f72def667",
+    "previewSha256": "230fe80cd46fca0931ef4d216283a0a38b8854deb6b0ee34ee976e4838e1da1f"
+  },
+  {
+    "image": "/images/characters/whale/reactions/image-tag.png",
+    "preview": "/images/characters/whale/reactions/image-tag.webp",
+    "originalBytes": 2738665,
+    "previewBytes": 109000,
+    "originalSha256": "3a673532f3d6e518ab46708f647c503cb9f0cb761172f6de9940db2cb637e55a",
+    "previewSha256": "536d4386eab46be439bd2980d1f3024582e82ba33c3a56e72c02afa39349b077"
+  },
+  {
+    "image": "/images/characters/whale/reactions/registry.png",
+    "preview": "/images/characters/whale/reactions/registry.webp",
+    "originalBytes": 2534434,
+    "previewBytes": 100934,
+    "originalSha256": "c0324dc457c9089868347e8413afbaf77df863ed6ada92e22361ee3829d5aca1",
+    "previewSha256": "062d152a07aee3b2296d593b9c583ccf64b5b27113d15daf38a9590a07e71503"
+  },
+  {
+    "image": "/images/characters/whale/reactions/push.png",
+    "preview": "/images/characters/whale/reactions/push.webp",
+    "originalBytes": 2559071,
+    "previewBytes": 99158,
+    "originalSha256": "4314c92c931ae6b199f6c2b8ef60da359059e253526edb83fa244b07d3b717d1",
+    "previewSha256": "5db00d7464045d4a45df036639a4f2b04d7008f1e42fa318b0dadf620851ee97"
+  },
+  {
+    "image": "/images/characters/whale/reactions/pull.png",
+    "preview": "/images/characters/whale/reactions/pull.webp",
+    "originalBytes": 2370643,
+    "previewBytes": 96860,
+    "originalSha256": "f4cb899527c587b74b435b613ac2974c5c6f65e1bd07108976a785401cd07225",
+    "previewSha256": "86a448bce2660257d6582f0b60c68441f59cec9fea54f0e100e88fb021726fa7"
+  },
+  {
+    "image": "/images/characters/whale/reactions/container-run.png",
+    "preview": "/images/characters/whale/reactions/container-run.webp",
+    "originalBytes": 2598559,
+    "previewBytes": 100078,
+    "originalSha256": "725bfa12679d90bc1c3310df649bbcefec641779bc10947608ab0fb1920dace9",
+    "previewSha256": "9915517fe7aaa5c220e0d66a2f741bba6e0abf2e189e70fee73732fc55590bee"
+  },
+  {
+    "image": "/images/characters/whale/reactions/compose.png",
+    "preview": "/images/characters/whale/reactions/compose.webp",
+    "originalBytes": 2496055,
+    "previewBytes": 95072,
+    "originalSha256": "d55b4dd1ed02e5c033dc17cdad355a7240ca64b22c5ed6c992cca250e1592cd2",
+    "previewSha256": "7921f0cd62a4acbdd463cf1158c68dea74656d7fdb1ed834acf387c16610feb1"
+  },
+  {
+    "image": "/images/characters/whale/reactions/environment.png",
+    "preview": "/images/characters/whale/reactions/environment.webp",
+    "originalBytes": 2463391,
+    "previewBytes": 97324,
+    "originalSha256": "a072b5f1bba8c5410f0471e79477ff878cf3802cfba3681c84b0b5e74af5b67c",
+    "previewSha256": "a6adc099f906912ec5d16042ed6d71125fe1664dc3c65b9d74bbc9d2a41679f3"
+  },
+  {
+    "image": "/images/characters/whale/reactions/port-mapping.png",
+    "preview": "/images/characters/whale/reactions/port-mapping.webp",
+    "originalBytes": 2737047,
+    "previewBytes": 110240,
+    "originalSha256": "5ea3154132097964ae81fc8380073814f03ba99e4982b39eb0f1767d24bc5c0d",
+    "previewSha256": "17ef20745e5f775b383b88bde3df9d79767ea6523c29f74a1ad11f9282137b23"
+  },
+  {
+    "image": "/images/characters/whale/reactions/volume.png",
+    "preview": "/images/characters/whale/reactions/volume.webp",
+    "originalBytes": 2646894,
+    "previewBytes": 106310,
+    "originalSha256": "2945659cb65529850ce1c69525b61c0324b26139f73396f983658f05dad0935d",
+    "previewSha256": "4fd359f78ec3978216abfb6b0aca00f61075f06059db678c4526754c28c22e41"
+  },
+  {
+    "image": "/images/characters/whale/reactions/network.png",
+    "preview": "/images/characters/whale/reactions/network.webp",
+    "originalBytes": 2568906,
+    "previewBytes": 99880,
+    "originalSha256": "be4bededc825563be453f5c668ce958f35f8cd2aceb5602254ecb6b9d85fcf70",
+    "previewSha256": "b6cc91dabe0af4e3ce537ab312d5a5b02ce54be1f9347ced8fbe773e267d7e06"
+  },
+  {
+    "image": "/images/characters/whale/reactions/health-check.png",
+    "preview": "/images/characters/whale/reactions/health-check.webp",
+    "originalBytes": 2592999,
+    "previewBytes": 100900,
+    "originalSha256": "c577a3fa7d9b567978bf01c1a4a49efbdc1120126637e6b1a56941c606413ed4",
+    "previewSha256": "e2b9262aa0b4c1722ca61065fe7aa78cb3d0a73d22a33d9ebfe7e22de667d45c"
+  },
+  {
+    "image": "/images/characters/whale/reactions/logs.png",
+    "preview": "/images/characters/whale/reactions/logs.webp",
+    "originalBytes": 2739779,
+    "previewBytes": 105226,
+    "originalSha256": "f81817ec25a63b12a88382c4b9d0d4b3e8704ddfe7ba88a875240f2e2c1d9a06",
+    "previewSha256": "8e994ec423818df0993583d6e74d084155c6ca480445a19cb2e500c193ad3735"
+  },
+  {
+    "image": "/images/characters/whale/reactions/metrics.png",
+    "preview": "/images/characters/whale/reactions/metrics.webp",
+    "originalBytes": 2742004,
+    "previewBytes": 105954,
+    "originalSha256": "de4d0eadb6acf2b5167a6e9f7067d588339f5f8d42e1aefa6fd089f607460b13",
+    "previewSha256": "ed38afd317a22a34f072a1df27592075879baef6aabf220a12d4e4f94fd56360"
+  },
+  {
+    "image": "/images/characters/whale/reactions/ci-pipeline.png",
+    "preview": "/images/characters/whale/reactions/ci-pipeline.webp",
+    "originalBytes": 2501143,
+    "previewBytes": 98996,
+    "originalSha256": "9334990c971dc216019cbf342f9f2b4567bacc168687b505a75d86f9e60f236c",
+    "previewSha256": "ee1a05870d4ddaece61873bf539e8ca73e4a5dc8df3b98fb4fdfbbc374a4a8a2"
+  },
+  {
+    "image": "/images/characters/whale/reactions/staging.png",
+    "preview": "/images/characters/whale/reactions/staging.webp",
+    "originalBytes": 2693223,
+    "previewBytes": 110236,
+    "originalSha256": "d3ea6706789674f432f6b2fe30fd9d615acce862053cfdfdf2a22ccee0898d3b",
+    "previewSha256": "8440429137186a081186bcf608a843bbb617080aa4878efd2e789dc65cae7172"
+  },
+  {
+    "image": "/images/characters/whale/reactions/deploy.png",
+    "preview": "/images/characters/whale/reactions/deploy.webp",
+    "originalBytes": 2384852,
+    "previewBytes": 97786,
+    "originalSha256": "adf22ee7e2d2a8682919943a67b3a149fbaece19b82fc023b3dd4bfa4b4361e5",
+    "previewSha256": "97be108dd90c1d7c586894ba70be087f19f01094ec7250cbffd71fbd632e5d08"
+  },
+  {
+    "image": "/images/characters/whale/reactions/canary.png",
+    "preview": "/images/characters/whale/reactions/canary.webp",
+    "originalBytes": 2656223,
+    "previewBytes": 105372,
+    "originalSha256": "0447d7610aa00942ae1fdf16d48241ea8df3d2ec9c2533851e012b49c4e59b62",
+    "previewSha256": "43ef1b8416f66be8730c6ff42a575ee8b3b37aa535ed35331469a8fab3efb715"
+  },
+  {
+    "image": "/images/characters/whale/reactions/rollout.png",
+    "preview": "/images/characters/whale/reactions/rollout.webp",
+    "originalBytes": 2406769,
+    "previewBytes": 106986,
+    "originalSha256": "a7e376273f42eaca11defaaf19651402b7f47df6676e9ed0b5c7f59cb1382f19",
+    "previewSha256": "96bd1e9000cd7acade4f08f87aeca6d37b477d42eb99f316a340d4eb8ff70204"
+  },
+  {
+    "image": "/images/characters/whale/reactions/rollback.png",
+    "preview": "/images/characters/whale/reactions/rollback.webp",
+    "originalBytes": 2592648,
+    "previewBytes": 101174,
+    "originalSha256": "c2217fba5bf87ec917f46714013aa09119a4c746d881c59df7876cfb9cba0546",
+    "previewSha256": "89b3a2f9e24633acc7b25d5341391ffe6b1b7dfd4f56562ae41ee8c413aefd10"
+  },
+  {
+    "image": "/images/characters/whale/reactions/outage.png",
+    "preview": "/images/characters/whale/reactions/outage.webp",
+    "originalBytes": 2466449,
+    "previewBytes": 101340,
+    "originalSha256": "6d48d196ab718130e524f0ddc0c3228f8ab3666b13b66ec2da4404300f574760",
+    "previewSha256": "9a10f69c994acbff610c5e6ecf72e04235cd47f6f0a6af9e4bc81bd5105febf8"
+  },
+  {
+    "image": "/images/characters/whale/reactions/tugboat.png",
+    "preview": "/images/characters/whale/reactions/tugboat.webp",
+    "originalBytes": 2732622,
+    "previewBytes": 109502,
+    "originalSha256": "c614078084edc02a058383738875e9cf24544d5112abb245b8a70af1fe6f794b",
+    "previewSha256": "1be49f77bc10636e50de712b2a2e6e905555d4eda0f12104bb861d23e5142662"
+  },
+  {
+    "image": "/images/characters/whale/reactions/tide-log.png",
+    "preview": "/images/characters/whale/reactions/tide-log.webp",
+    "originalBytes": 2673257,
+    "previewBytes": 104168,
+    "originalSha256": "1bc6f9464167886f03b9bd7613e7a91aebb18cc1db9d31118685303fffb457a8",
+    "previewSha256": "c651b33cdffa31d9dd0f03533360662191f4ef7aac8332f5fa79753c0e486968"
   }
 ]

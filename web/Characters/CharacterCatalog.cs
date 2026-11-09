@@ -144,6 +144,34 @@ public static class CharacterCatalog
                 new("Læringsværkstedet", "/images/characters/chameleon/scenes/teaching-studio.png", "Kamæleonen forklarer grupper og mønstre med enkle farvede datapunkter i et lyst undervisningsstudie.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/teaching-studio.webp" }
             ]
         },
+        new("whale", "Docker", "Havnekaptajn · Underviser i DevNet og deployment", "Deploy or die · DevNet", false,
+            "Den gamle pukkelhval, der lærer dig at bygge, udrulle og holde øje med containerbaserede applikationer.",
+            "Docker har sejlet containerskibe i al slags vejr. Nu underviser den gamle havnekaptajn i Linux, API’er, netværk og udrulning med Docker Compose. Han fører stadig logbog i hånden. Hvis nogen siger »den er nok klar«, lægger han kaffen fra sig og beder om at se målingerne.",
+            ["Docker og Compose", "Deploy og drift", "Havnekaptajnen"],
+            [new("Havnekaptajnen", "/images/characters/whale/portrait.webp", "Den gamle pukkelhval Docker med sennepsgul hue, blå striktrøje, radio og tidevandsbog"),
+             new("På broen", "/images/characters/whale/broen.webp", "Docker holder udkig med en messingkikkert i sin striktrøje og sennepsgule hue"),
+             new("Med Kanarien", "/images/characters/whale/vaerksted.webp", "Docker viser sin hjemmelavede slæbebåd med den gule gummiand Kanarien"),
+             new("På nattevagt", "/images/characters/whale/natvagt.webp", "Docker holder øje med radioen med runde læsebriller og sin sennepsgule hue")],
+            [new("Lasten skal passe til skibet", "På kajen viser kaptajnen, hvordan en Dockerfile bliver til et image, og hvordan det samme image kan køres som en container flere steder. Med Compose samler han de tjenester, netværk og volumes, som applikationen skal bruge."),
+             new("Kanarien sejler først", "Han bygger fjernstyrede slæbebåde af sardindåser. Den gule gummiand Kanarien får den nye container først. Kaptajnen holder øje med, om båden holder kursen, før han sender resten af flåden af sted. Det er hans model for en canary-udrulning, hvor en lille del af trafikken prøver den nye version først."),
+             new("Ingen sejlads på mavefornemmelse", "Den grønne lampe er kun begyndelsen. Kaptajnen tjekker, om appen svarer som forventet, læser logs og holder øje med fejl og svartider. Hvis noget går galt, ved han, hvilken version der sidst virkede."),
+             new("En gammel sejler med faste vaner", "Han samler på tidevandstabeller, drikker kaffen af et bulet emaljekrus og har altid et stykke snor til en fortøjning. Hver ændring får en linje i logbogen, så den næste på vagt kan se, hvad der skete.")],
+            [new("Se Deploy or Die-forløbet", "/courses/template/deploy-or-die", false, false),
+             new("Se DevNet på Målpinde", "https://maalpinde.lup.dk/vuf/#deploy-or-die", true, false),
+             new("Læs om Docker Compose", "https://docs.docker.com/compose/", true, false),
+             new("Mød Raymond og databaserne", "/characters/raymond", false, false)])
+        {
+            Illustrations = WhaleMaterials.Illustrations,
+            IllustrationsLabel = "infografikker",
+            IllustrationsDescription = "16 infografikker fra Linux og API-kald til containere, Compose og sikker udrulning. Se koblingen til DevNets syv målpinde, åbn forklaringerne, eller hent billederne som PNG.",
+            AnimationSubject = "Docker og deployment",
+            Animations = WhaleMaterials.Animations,
+            Reactions = ReactionsFor("whale"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "48 transparente emojis med kaptajnen til hverdagen, en travl deploy og en tur på kajen. Søg efter et motiv, åbn originalen, eller hent en PNG.",
+            ScenesDescription = "Følg kaptajnen fra tidevandsbogen ved kajen til værkstedsbordet, badekarrets testhavn og en rigtig containerudrulning. Åbn billederne i fuld størrelse, eller hent dem som PNG.",
+            Scenes = WhaleMaterials.Scenes
+        },
         new("beaver", "Bæver", "Underviser i Sikkerhed og test · Blå team", "Sikkerhed og test", false,
             "Den rolige systembygger på blåt team: sikker kode, adgangskontrol, logs og tests, der holder løsningen robust.",
             "Bæver underviser i Sikkerhed og test fra det blå teams perspektiv. Med tablet og logbog undersøger Bæver, hvordan vi beskytter systemet, opdager fejl og gør rettelser holdbare. Arbejdet er roligt, grundigt og praktisk: forstå problemet, styrk løsningen, og skriv en test, der passer på den fremover.",
@@ -197,7 +225,7 @@ public static class CharacterCatalog
             Objectives = asset.Objectives,
             Summary = asset.Summary,
             Explanation = asset.Explanation,
-            Sql = asset.Sql,
+            Code = asset.Sql,
             Sources = asset.Sources.Select(source => new CharacterLink(source.Label, source.Href, true, false)).ToArray()
         }).ToArray();
 }
@@ -244,7 +272,7 @@ public sealed record CharacterIllustration(string Title, string Image, string Al
     public IReadOnlyList<int> Objectives { get; init; } = [];
     public string? Summary { get; init; }
     public IReadOnlyList<string> Explanation { get; init; } = [];
-    public string? Sql { get; init; }
+    public string? Code { get; init; }
     public IReadOnlyList<CharacterLink> Sources { get; init; } = [];
 }
 public sealed record CharacterAnimation(string Id, string Title, string Topic, string Description, string Image, string Poster, string Alt, int Width, int Height);

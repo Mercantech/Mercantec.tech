@@ -1,0 +1,615 @@
+[
+  {
+    "slug": "01-python-laeser-status",
+    "title": "Python læser status",
+    "alt": "Havnekaptajnen ved kajen med et diagram, hvor et Python-script henter HTTPS-status fra en tjeneste og aflæser statuskoden.",
+    "summary": "Brug Python til at lave et HTTPS-kald med en tidsgrænse og læse statuskoden.",
+    "explanation": [
+      "Start med et lille script, der gør én ting. Her åbner Python en HTTPS-forbindelse, venter højst fem sekunder på blokerende netværksoperationer og udskriver svarets statuskode. Udskift adressen med en rute på jeres egen testtjeneste.",
+      "urllib.request kan rejse HTTPError ved et HTTP-fejlsvar og URLError ved problemer med forbindelsen. Prøv begge situationer i et øvemiljø. Når kontrollen skal bruges i en pipeline, så giv den en tydelig exitkode og undgå at logge tokens."
+    ],
+    "stage": "DevNet",
+    "objectives": [
+      1,
+      3,
+      5
+    ],
+    "code": "from urllib.request import urlopen\n\nwith urlopen(\"https://example.com/\", timeout=5) as svar:\n    print(svar.status)",
+    "language": "python",
+    "sources": [
+      {
+        "title": "Python · urllib.request",
+        "href": "https://docs.python.org/3/library/urllib.request.html"
+      },
+      {
+        "title": "IETF · HTTP-semantik",
+        "href": "https://www.rfc-editor.org/rfc/rfc9110.html"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "01-python-laeser-status.png",
+    "preview": "01-python-laeser-status.webp",
+    "publicImage": "/images/characters/whale/infographics/01-python-laeser-status.png",
+    "publicPreview": "/images/characters/whale/infographics/01-python-laeser-status.webp"
+  },
+  {
+    "slug": "02-find-vej-i-linux",
+    "title": "Find vej i Linux",
+    "alt": "Havnekaptajnen ved sit værkstedsbord ved siden af et rutediagram, hvor pwd viser mappen, ls oplister den, cd skifter den og tail læser en log.",
+    "summary": "Orientér dig med pwd, ls og cd, og læs de seneste linjer i en lokal logfil.",
+    "explanation": [
+      "pwd viser din aktuelle arbejdsmappe, ls -la viser også skjulte filer, og cd flytter din skal til en ny mappe. I eksemplet er deploy en mappe i projektet. En forkert mappe kan få et ellers korrekt script til at læse en anden konfiguration.",
+      "tail -n 20 viser slutningen af en fil uden at ændre den. Se efter tidsstempler og den første fejl, der kan forklare de næste. Kør eksemplet mod en logfil, du har adgang til, og fjern følsomme værdier før deling."
+    ],
+    "stage": "DevNet",
+    "objectives": [
+      2
+    ],
+    "code": "pwd\nls -la\ncd deploy\ntail -n 20 service.log",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "GNU · shellværktøjer",
+        "href": "https://www.gnu.org/software/coreutils/manual/html_node/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "02-find-vej-i-linux.png",
+    "preview": "02-find-vej-i-linux.webp",
+    "publicImage": "/images/characters/whale/infographics/02-find-vej-i-linux.png",
+    "publicPreview": "/images/characters/whale/infographics/02-find-vej-i-linux.webp"
+  },
+  {
+    "slug": "03-request-og-response",
+    "title": "Fra request til response",
+    "alt": "Havnekaptajnen ved siden af et HTTP-diagram med en klient, et GET-kald til /status og et API, der svarer 200 med JSON.",
+    "summary": "Følg et GET-kald gennem HTTP og aflæs både statuskode og svarets JSON.",
+    "explanation": [
+      "En HTTP-forespørgsel har en metode og et mål. GET beder serveren om en repræsentation af ressourcen. Ruten /status er en aftale i jeres API. Accept kan fortælle serveren, hvilket format klienten kan bruge.",
+      "Serverens statuskode og svarindhold supplerer hinanden. 200 betyder, at denne forespørgsel lykkedes, mens f.eks. 404 viser, at ressourcen ikke blev fundet. Prøv både en kendt og en ukendt rute og forklar, hvor i forbindelsen hver fejl opstår."
+    ],
+    "stage": "DevNet",
+    "objectives": [
+      3,
+      4
+    ],
+    "code": "curl -i -H 'Accept: application/json' \\\n  http://localhost:8080/status",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "IETF · HTTP-semantik",
+        "href": "https://www.rfc-editor.org/rfc/rfc9110.html"
+      },
+      {
+        "title": "curl · kommandoer og flag",
+        "href": "https://curl.se/docs/manpage.html"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "03-request-og-response.png",
+    "preview": "03-request-og-response.webp",
+    "publicImage": "/images/characters/whale/infographics/03-request-og-response.png",
+    "publicPreview": "/images/characters/whale/infographics/03-request-og-response.webp"
+  },
+  {
+    "slug": "04-aftalen-om-api",
+    "title": "En fælles aftale om API’et",
+    "alt": "Havnekaptajnen ved siden af to services, klient og API, som bruger den samme OpenAPI-kontrakt med GET /status og et JSON-svar.",
+    "summary": "Brug OpenAPI til at beskrive en HTTP-rute og teste, at den virkelige tjeneste følger aftalen.",
+    "explanation": [
+      "En OpenAPI-beskrivelse gør en HTTP-grænseflade læsbar for både mennesker og værktøjer. Den kan beskrive metoder, ruter, parametre, svarkoder og skemaer for data. Det hjælper f.eks. to grupper, der udvikler klient og server hver for sig.",
+      "En beskrivelse garanterer ikke, at den kørende tjeneste følger kontrakten. Test et faktisk kald og sammenlign statuskode, indholdstype og JSON-felter med aftalen. Versionér ændringer, som eksisterende klienter ikke kan håndtere. I eksemplet er paths tom. Tilføj GET /status med forventet 200-svar som næste skridt."
+    ],
+    "stage": "DevNet",
+    "objectives": [
+      3,
+      4
+    ],
+    "code": "openapi: 3.1.1\ninfo:\n  title: Kajstatus API\n  version: 1.0.0\npaths: {}",
+    "language": "yaml",
+    "sources": [
+      {
+        "title": "OpenAPI Specification 3.1.1",
+        "href": "https://spec.openapis.org/oas/v3.1.1.html"
+      },
+      {
+        "title": "IETF · HTTP-semantik",
+        "href": "https://www.rfc-editor.org/rfc/rfc9110.html"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "04-aftalen-om-api.png",
+    "preview": "04-aftalen-om-api.webp",
+    "publicImage": "/images/characters/whale/infographics/04-aftalen-om-api.png",
+    "publicPreview": "/images/characters/whale/infographics/04-aftalen-om-api.webp"
+  },
+  {
+    "slug": "05-https-til-api",
+    "title": "Brug HTTPS til API’et",
+    "alt": "Havnekaptajnen ved siden af tre trin i et HTTPS-kald, hvor klienten validerer certifikatet før krypteret HTTP-trafik til API’et.",
+    "summary": "Lav et HTTPS-kald og forstå, hvad certifikatkontrol og kryptering hver især gør.",
+    "explanation": [
+      "TLS beskytter data under transport og lader klienten validere serverens certifikat. Et navn, der ikke matcher URL’en, eller et certifikat fra en ukendt udsteder skal undersøges. I et lokalt miljø kan en betroet lokal CA være en del af opsætningen.",
+      "HTTPS beskytter transporten, mens API’et selv skal afgøre, hvad en bruger har lov til. curl --fail gør HTTP-status fra 400 til en kommandofejl. Brug jeres eget HTTPS-endpoint og hold adgangstokens ude af delt terminalhistorik."
+    ],
+    "stage": "DevNet",
+    "objectives": [
+      4,
+      5
+    ],
+    "code": "curl --fail --show-error \\\n  https://api.example.com/status",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "IETF · TLS 1.3",
+        "href": "https://www.rfc-editor.org/rfc/rfc8446.html"
+      },
+      {
+        "title": "IETF · HTTP-semantik",
+        "href": "https://www.rfc-editor.org/rfc/rfc9110.html"
+      },
+      {
+        "title": "curl · kommandoer og flag",
+        "href": "https://curl.se/docs/manpage.html"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "05-https-til-api.png",
+    "preview": "05-https-til-api.webp",
+    "publicImage": "/images/characters/whale/infographics/05-https-til-api.png",
+    "publicPreview": "/images/characters/whale/infographics/05-https-til-api.webp"
+  },
+  {
+    "slug": "06-fra-dockerfile-til-container",
+    "title": "Fra Dockerfile til container",
+    "alt": "Havnekaptajnen ved siden af en grafisk kæde, hvor Dockerfile bygges til et image og startes som en container.",
+    "summary": "Skeln mellem instruktionerne til build, det færdige image og containeren, der kører appen.",
+    "explanation": [
+      "Dockerfile er opskriften. En build-kommando læser instruktionerne og skaber et image med filerne og indstillingerne til at starte en proces. Et image kan distribueres og genbruges på værter med en passende platform.",
+      "En container er en instans af imaget med en proces og et skrivbart lag. Flere containere kan starte fra samme image og få hver sin konfiguration. Når containeren erstattes, skal data med længere levetid ligge i et passende volume eller en separat tjeneste."
+    ],
+    "stage": "Docker",
+    "objectives": [
+      7
+    ],
+    "code": "docker build -t kajstatus:1.4.0 .\ndocker run --rm -p 127.0.0.1:8080:80 kajstatus:1.4.0",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Dockerfile-reference",
+        "href": "https://docs.docker.com/reference/dockerfile/"
+      },
+      {
+        "title": "Docker · hvad er en container?",
+        "href": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/"
+      },
+      {
+        "title": "Docker · image build",
+        "href": "https://docs.docker.com/reference/cli/docker/image/build/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "06-fra-dockerfile-til-container.png",
+    "preview": "06-fra-dockerfile-til-container.webp",
+    "publicImage": "/images/characters/whale/infographics/06-fra-dockerfile-til-container.png",
+    "publicPreview": "/images/characters/whale/infographics/06-fra-dockerfile-til-container.webp"
+  },
+  {
+    "slug": "07-byg-og-maerk-image",
+    "title": "Byg og mærk et image",
+    "alt": "Havnekaptajnen i værkstedet med tre billedlag, et build og mærker for kajstatus:1.4.0 og et uforanderligt digest.",
+    "summary": "Byg fra den rigtige kontekst, begræns filerne med .dockerignore og brug et versions-tag eller digest.",
+    "explanation": [
+      "Punktummet i kommandoen vælger den aktuelle mappe som build-kontekst. .dockerignore kan udelade f.eks. .git, lokale builds og hemmelige filer, inden konteksten sendes til byggeren. Gem credentials til build via egnede secret-mekanismer.",
+      "Et tag som 1.4.0 er et navn, der kan flyttes til et andet image. Et digest identificerer bestemt indhold. Brug tags til læsbare versioner, og gem det deployede digest, når du skal kunne genskabe det præcise build."
+    ],
+    "stage": "Docker",
+    "objectives": [
+      7
+    ],
+    "code": "docker build -t kajstatus:1.4.0 .\ndocker image inspect kajstatus:1.4.0",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · image build",
+        "href": "https://docs.docker.com/reference/cli/docker/image/build/"
+      },
+      {
+        "title": "Docker · image tag",
+        "href": "https://docs.docker.com/reference/cli/docker/image/tag/"
+      },
+      {
+        "title": "Dockerfile-reference",
+        "href": "https://docs.docker.com/reference/dockerfile/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "07-byg-og-maerk-image.png",
+    "preview": "07-byg-og-maerk-image.webp",
+    "publicImage": "/images/characters/whale/infographics/07-byg-og-maerk-image.png",
+    "publicPreview": "/images/characters/whale/infographics/07-byg-og-maerk-image.webp"
+  },
+  {
+    "slug": "08-image-til-registry",
+    "title": "Send image til et registry",
+    "alt": "Havnekaptajnen ved et diagram med buildmaskine, registry og deployserver, hvor image-transporten er markeret med push og pull.",
+    "summary": "Mærk et image med registry-adresse, publicér det fra buildmaskinen og hent samme version på serveren.",
+    "explanation": [
+      "Et image-navn kan pege på både registry, namespace, repository og tag. Med tag giver du et eksisterende image endnu et navn. Push publicerer til det angivne repository, når din konto har tilladelse til at skrive.",
+      "Deployserveren kan hente en godkendt pakke med en konto, der kun har den nødvendige læseadgang. Udskift eksempeldomænet med jeres registry og brug sikker login eller credentials fra jeres CI-system. Byg én gang og flyt samme image mellem miljøer."
+    ],
+    "stage": "Docker",
+    "objectives": [
+      7
+    ],
+    "code": "docker tag kajstatus:1.4.0 registry.example.com/kajstatus:1.4.0\ndocker push registry.example.com/kajstatus:1.4.0",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · image tag",
+        "href": "https://docs.docker.com/reference/cli/docker/image/tag/"
+      },
+      {
+        "title": "Docker · image push",
+        "href": "https://docs.docker.com/reference/cli/docker/image/push/"
+      },
+      {
+        "title": "Docker · Compose pull",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/pull/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "08-image-til-registry.png",
+    "preview": "08-image-til-registry.webp",
+    "publicImage": "/images/characters/whale/infographics/08-image-til-registry.png",
+    "publicPreview": "/images/characters/whale/infographics/08-image-til-registry.webp"
+  },
+  {
+    "slug": "09-compose-tjenester",
+    "title": "Én Compose-fil, flere tjenester",
+    "alt": "Havnekaptajnen med et diagram af compose.yaml, der knytter web, API og database sammen i et projekt.",
+    "summary": "Brug Compose til at beskrive en flertjeneste-app og kontrollere den færdige konfiguration.",
+    "explanation": [
+      "I compose.yaml beskriver services, hvilke processer der skal køre. En service kan pege på et publiceret image eller bygges fra kildekode. Netværk afgør, hvem tjenesterne kan nå, mens volumes giver et sted til data, der skal leve videre.",
+      "docker compose config samler konfigurationen og indsætter variabler. Flaget --quiet validerer uden at udskrive den fulde, opløste konfiguration. Læg konfigurationen under versionsstyring, og hold miljøafhængige værdier og hemmeligheder udenfor."
+    ],
+    "stage": "Compose",
+    "objectives": [
+      6,
+      7
+    ],
+    "code": "docker compose config --quiet\ndocker compose up -d\ndocker compose ps",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · Compose Quickstart",
+        "href": "https://docs.docker.com/compose/gettingstarted/"
+      },
+      {
+        "title": "Docker · Compose config",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/config/"
+      },
+      {
+        "title": "Docker · Compose up",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/up/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "09-compose-tjenester.png",
+    "preview": "09-compose-tjenester.webp",
+    "publicImage": "/images/characters/whale/infographics/09-compose-tjenester.png",
+    "publicPreview": "/images/characters/whale/infographics/09-compose-tjenester.webp"
+  },
+  {
+    "slug": "10-hvem-kan-naa-hvad",
+    "title": "Hvem kan nå hvad?",
+    "alt": "Havnekaptajnen med et netværkskort, hvor browseren når web, og kun web, API og database deler det interne netværk.",
+    "summary": "Skeln mellem en publiceret værtsport og forbindelser mellem services på Compose-netværket.",
+    "explanation": [
+      "På et delt Compose-netværk kan en service typisk findes med sit servicenavn. En API-container kan f.eks. bruge db:5432 til at forbinde til PostgreSQL. Brug serviceporten på det interne netværk og undgå at binde din app til en midlertidig container-IP. Eksemplet med getent forudsætter, at værktøjet findes i API-imaget.",
+      "En ports-regel publicerer en port på værten. Til lokal øvelse kan en binding til 127.0.0.1 begrænse porten til selve værten. I webeksemplet er databasen intern, og browserens trafik går via en webserver eller proxy."
+    ],
+    "stage": "Compose",
+    "objectives": [
+      6,
+      7
+    ],
+    "code": "docker compose ps\ndocker compose exec api getent hosts db",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · netværk i Compose",
+        "href": "https://docs.docker.com/compose/how-tos/networking/"
+      },
+      {
+        "title": "Docker · Compose ps",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/ps/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "10-hvem-kan-naa-hvad.png",
+    "preview": "10-hvem-kan-naa-hvad.webp",
+    "publicImage": "/images/characters/whale/infographics/10-hvem-kan-naa-hvad.png",
+    "publicPreview": "/images/characters/whale/infographics/10-hvem-kan-naa-hvad.webp"
+  },
+  {
+    "slug": "11-data-overlever-container",
+    "title": "Data der overlever containeren",
+    "alt": "Havnekaptajnen ved et diagram, hvor en databasecontainer erstattes, og et navngivet volume tilkobles igen med data intakte.",
+    "summary": "Forstå forskellen på containerens skrivbare lag og et navngivet volume til data.",
+    "explanation": [
+      "Data i containerens skrivbare lag følger den container. Et navngivet volume ligger separat og kan monteres igen, når tjenestens container erstattes. Mount-stien afhænger af det konkrete databaseimage og dets version.",
+      "Et volume gør data vedvarende på en vært. Tab af værten, sletning eller forkerte ændringer kan stadig ødelægge dem. Lav en databaseegnet backup, opbevar den separat og prøv at gendanne den i et øvemiljø."
+    ],
+    "stage": "Compose",
+    "objectives": [
+      7
+    ],
+    "code": "docker volume ls\ndocker volume inspect kajstatus_db",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · volumes",
+        "href": "https://docs.docker.com/engine/storage/volumes/"
+      },
+      {
+        "title": "Docker · Compose Quickstart",
+        "href": "https://docs.docker.com/compose/gettingstarted/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "11-data-overlever-container.png",
+    "preview": "11-data-overlever-container.webp",
+    "publicImage": "/images/characters/whale/infographics/11-data-overlever-container.png",
+    "publicPreview": "/images/characters/whale/infographics/11-data-overlever-container.webp"
+  },
+  {
+    "slug": "12-secrets-og-rettigheder",
+    "title": "Secrets og rettigheder",
+    "alt": "Havnekaptajnen med et adgangsdiagram, hvor kun API-tjenesten får en secret til databaseforbindelsen.",
+    "summary": "Hold credentials ude af images og Git, og giv kun de relevante services adgang til deres secrets.",
+    "explanation": [
+      "Placér ikke credentials i en Dockerfile eller et image-lag. I Compose kan et secret hentes fra en fil eller en understøttet miljøkilde og tildeles den service, som skal læse det. Appen skal derefter kunne læse værdien fra det monterede filsted. Føj udsnittet til en Compose-fil, hvor api allerede har et image eller en build-konfiguration.",
+      "Beskyt secret-kilden på værten. Begræns også databasebrugerens rettigheder, og vælg en appbruger med mindst mulig adgang i containeren. Skriv aldrig secret-værdier i logs, og udskift en credential, hvis den er blevet delt utilsigtet."
+    ],
+    "stage": "Compose",
+    "objectives": [
+      7
+    ],
+    "code": "services:\n  api:\n    secrets: [db_password]\nsecrets:\n  db_password:\n    file: ./local-secrets/db_password",
+    "language": "yaml",
+    "sources": [
+      {
+        "title": "Docker · secrets i Compose",
+        "href": "https://docs.docker.com/compose/how-tos/use-secrets/"
+      },
+      {
+        "title": "Docker · USER-instruktionen",
+        "href": "https://docs.docker.com/reference/dockerfile/#user"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "12-secrets-og-rettigheder.png",
+    "preview": "12-secrets-og-rettigheder.webp",
+    "publicImage": "/images/characters/whale/infographics/12-secrets-og-rettigheder.png",
+    "publicPreview": "/images/characters/whale/infographics/12-secrets-og-rettigheder.webp"
+  },
+  {
+    "slug": "13-saet-flaaden-i-soeen",
+    "title": "Sæt flåden i søen",
+    "alt": "Havnekaptajnen ved et diagram med version, kontrol af Compose, start af tjenester og afsluttende test af den offentlige indgang.",
+    "summary": "Brug en tydelig rækkefølge til at validere, hente, starte og kontrollere en Compose-udrulning.",
+    "explanation": [
+      "Vælg et image-tag eller digest, der allerede er bygget og testet. Kontrollér den konfiguration, der bliver brugt på værten, og hent imaget. Compose kan genoprette de services, hvis image eller konfiguration er ændret.",
+      "Med --wait venter Compose på, at services er kørende eller healthy, alt efter deres konfiguration. Det dækker ikke automatisk den rute, brugerne åbner. Kontrollér et lille relevant kald via appens normale indgang, og registrér den valgte version og resultatet."
+    ],
+    "stage": "Udrulning",
+    "objectives": [
+      7
+    ],
+    "code": "docker compose config --quiet\ndocker compose pull\ndocker compose up -d --wait\ncurl --fail https://app.example.com/health",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · Compose config",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/config/"
+      },
+      {
+        "title": "Docker · Compose pull",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/pull/"
+      },
+      {
+        "title": "Docker · Compose up",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/up/"
+      },
+      {
+        "title": "curl · kommandoer og flag",
+        "href": "https://curl.se/docs/manpage.html"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "13-saet-flaaden-i-soeen.png",
+    "preview": "13-saet-flaaden-i-soeen.webp",
+    "publicImage": "/images/characters/whale/infographics/13-saet-flaaden-i-soeen.png",
+    "publicPreview": "/images/characters/whale/infographics/13-saet-flaaden-i-soeen.webp"
+  },
+  {
+    "slug": "14-er-appen-klar",
+    "title": "Afgør om appen er klar",
+    "alt": "Havnekaptajnen ved et diagram med gul opstart, grøn healthcheck og et separat kald via den offentlige rute.",
+    "summary": "Skeln mellem processens tilstand, en intern healthcheck og en ekstern kontrol af tjenesten.",
+    "explanation": [
+      "En container kan være running, selv om appen stadig starter eller ikke kan bruge en vigtig afhængighed. En healthcheck kører en kommando i containeren og bruger exitkoden til at vurdere, om den er healthy. Startperiode og intervaller skal passe til appen. Eksemplet forudsætter, at curl findes i imaget, og at appen lytter på port 8080 inde i containeren.",
+      "I Compose kan depends_on med condition: service_healthy vente på en afhængighed under opstart. Det erstatter ikke appens egen håndtering af kortvarige forbindelsesproblemer. Kontrollér også den rute, brugerne faktisk bruger, fra et andet sted end selve containeren."
+    ],
+    "stage": "Udrulning",
+    "objectives": [
+      3,
+      7
+    ],
+    "code": "healthcheck:\n  test: [\"CMD\", \"curl\", \"-fsS\", \"http://localhost:8080/health\"]\n  interval: 10s\n  timeout: 3s\n  retries: 3",
+    "language": "yaml",
+    "sources": [
+      {
+        "title": "Docker · healthcheck i Compose",
+        "href": "https://docs.docker.com/reference/compose-file/services/#healthcheck"
+      },
+      {
+        "title": "Docker · opstartsrækkefølge i Compose",
+        "href": "https://docs.docker.com/compose/how-tos/startup-order/"
+      },
+      {
+        "title": "Docker · Compose up",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/up/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "14-er-appen-klar.png",
+    "preview": "14-er-appen-klar.webp",
+    "publicImage": "/images/characters/whale/infographics/14-er-appen-klar.png",
+    "publicPreview": "/images/characters/whale/infographics/14-er-appen-klar.webp"
+  },
+  {
+    "slug": "15-foelg-sporene-i-loggen",
+    "title": "Følg sporene i loggen",
+    "alt": "Havnekaptajnen med en logbog og en tidslinje fra normal start over timeout til en fejl i en afhængighed.",
+    "summary": "Brug Compose ps og logs til at afgrænse, hvilken service og hvilket tidspunkt du skal undersøge.",
+    "explanation": [
+      "docker compose ps viser de kørende containere og deres status. Tilføj --all, hvis du leder efter en service, der allerede er stoppet. Brug docker compose logs med et tidsvindue og et servicenavn til at indsnævre hændelsen.",
+      "Start med den tidligste relevante fejl og tjek, hvad der skete omkring den. En timeout i web kan f.eks. skyldes en afhængighed længere nede. Brug tidsstempler eller korrelations-id’er til at sammenholde spor og undlad at logge persondata og tokens."
+    ],
+    "stage": "Udrulning",
+    "objectives": [
+      2,
+      7
+    ],
+    "code": "docker compose ps --all\ndocker compose logs --since 10m --tail 50 api",
+    "language": "shell",
+    "sources": [
+      {
+        "title": "Docker · Compose ps",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/ps/"
+      },
+      {
+        "title": "Docker · Compose logs",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/logs/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "15-foelg-sporene-i-loggen.png",
+    "preview": "15-foelg-sporene-i-loggen.webp",
+    "publicImage": "/images/characters/whale/infographics/15-foelg-sporene-i-loggen.png",
+    "publicPreview": "/images/characters/whale/infographics/15-foelg-sporene-i-loggen.webp"
+  },
+  {
+    "slug": "16-kanarien-foerst",
+    "title": "Kanarien først",
+    "alt": "Havnekaptajnen ser Kanarien sejle med en lille del af trafikken; to måleudfald fører til enten udvidelse eller tilbage til den gamle version.",
+    "summary": "Afprøv en ny version med en lille del af trafikken. Planlæg rollback til den senest fungerende version.",
+    "explanation": [
+      "Ved en canary sender en proxy eller udrulningsplatform en lille del af trafikken til den nye version. Resten bliver på den kendte. Sammenlign f.eks. fejlraten og svartiden med den tidligere version i et aftalt tidsvindue. Docker Compose står for containere, mens trafikfordelingen kræver særskilt routing.",
+      "Øg trafikandelen i små trin, hvis signalerne holder sig inden for grænserne. Ved fejl kan du sende trafikken tilbage til den kendte version. Behold det godkendte image og planlæg bagudkompatible databaseændringer, så den tidligere app stadig kan læse de data, der er skrevet."
+    ],
+    "stage": "Udrulning",
+    "objectives": [
+      7
+    ],
+    "code": "Først: 5 % ny version, 95 % kendt version\nMål: 5xx-fejl og svartid for begge versioner\nVed fejl: send trafikken tilbage til kendt version",
+    "language": "text",
+    "sources": [
+      {
+        "title": "Google SRE Workbook · canary releases",
+        "href": "https://sre.google/workbook/canarying-releases/"
+      },
+      {
+        "title": "Docker · Compose up",
+        "href": "https://docs.docker.com/reference/cli/docker/compose/up/"
+      },
+      {
+        "title": "DevNet · fag 20738",
+        "href": "https://maalpinde.lup.dk/vuf/#deploy-or-die"
+      }
+    ],
+    "width": 1536,
+    "height": 1024,
+    "image": "16-kanarien-foerst.png",
+    "preview": "16-kanarien-foerst.webp",
+    "publicImage": "/images/characters/whale/infographics/16-kanarien-foerst.png",
+    "publicPreview": "/images/characters/whale/infographics/16-kanarien-foerst.webp"
+  }
+]

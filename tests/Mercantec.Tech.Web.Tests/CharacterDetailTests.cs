@@ -413,16 +413,42 @@ public sealed class CharacterDetailTests
     }
 
     [Fact]
-    public async Task OverviewIncludesAllFiveCharactersAndUsesStableAnimalRoutes()
+    public async Task OverviewIncludesAllSevenCharactersAndUsesStableAnimalRoutes()
     {
         using var api = new NoNetwork();
         using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<CharacterIndex>();
 
-        Assert.Equal(6, page.FindAll(".character-card").Count);
-        Assert.Equal(6, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
+        Assert.Equal(7, page.FindAll(".character-card").Count);
+        Assert.Equal(7, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
         Assert.Equal("Bæver", page.Find("a[href='/characters/beaver'] h2").TextContent);
         Assert.Equal("Ræv", page.Find("a[href='/characters/fox'] h2").TextContent);
+        Assert.Equal("Docker", page.Find("a[href='/characters/whale'] h2").TextContent);
+    }
+
+    [Fact]
+    public async Task WhaleProfileLinksAllDevNetObjectivesAndKeepsPortraitWhenFiltering()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "whale"));
+
+        Assert.Equal("Docker", page.Find("h1").TextContent);
+        Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);
+        Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
+        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(3, page.FindAll(".character-animation-card").Count);
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        Assert.Equal(Enumerable.Range(1, 7), CharacterCatalog.Find("whale")!.Illustrations
+            .SelectMany(item => item.Objectives).Distinct().Order());
+        Assert.Contains(page.FindAll(".character-links a"), link =>
+            link.GetAttribute("href") == "https://maalpinde.lup.dk/vuf/#deploy-or-die");
+
+        page.FindAll(".character-appearance-picker button")[2].Click();
+        page.Find("#character-illustration-search").Input("rollback");
+        Assert.NotEmpty(page.FindAll(".character-gallery figure"));
+        Assert.True(page.FindAll(".character-gallery figure").Count < 16);
+        Assert.EndsWith("/vaerksted.webp", page.Find(".character-main-art img").GetAttribute("src"));
     }
 
     [Fact]

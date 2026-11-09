@@ -1,0 +1,109 @@
+{
+  "scenes": [
+    {
+      "slug": "tidevandsbogen",
+      "title": "Tidevandsbogen ved kajen",
+      "alt": "Docker holder sin åbne tidevandsbog ved en gammel kaj. Bag ham ligger containerskibet i morgentågen.",
+      "description": "Kaptajnen fører log over tidevandet, mens det store containerskib venter ved kajen.",
+      "png": "tidevandsbogen.png",
+      "webp": "tidevandsbogen.webp",
+      "width": 1254,
+      "height": 1254,
+      "provenance": "Godkendt hobbyillustration fra .tools/havnekaptajnens-hobbier-20261109/01-tidevandsbogen.png",
+      "publicImage": "/images/characters/whale/scenes/tidevandsbogen.png",
+      "publicPreview": "/images/characters/whale/scenes/tidevandsbogen.webp"
+    },
+    {
+      "slug": "sardindaasens-slaebebaad",
+      "title": "Sardindåsen bliver en slæbebåd",
+      "alt": "Docker arbejder under en messinglampe på en lille fjernstyret slæbebåd med sardindåse som skrog. Kanarien venter på bordet.",
+      "description": "I værkstedet får en sardindåse motor, styrehus og en miniaturecontainer på agterdækket.",
+      "png": "sardindaasens-slaebebaad.png",
+      "webp": "sardindaasens-slaebebaad.webp",
+      "width": 1254,
+      "height": 1254,
+      "provenance": "Godkendt hobbyillustration fra .tools/havnekaptajnens-hobbier-20261109/02-sardindaasens-slaebebaad.png",
+      "publicImage": "/images/characters/whale/scenes/sardindaasens-slaebebaad.png",
+      "publicPreview": "/images/characters/whale/scenes/sardindaasens-slaebebaad.webp"
+    },
+    {
+      "slug": "kanariens-proevetur",
+      "title": "Kanarien på prøvetur",
+      "alt": "Kaptajnen styrer en lille sardindåsebåd med den gule gummiand Kanarien gennem badekarret, mens to både ligger fortøjet.",
+      "description": "Kanarien sejler først med den nye container. Resten af flåden venter på, at prøveturen går godt.",
+      "png": "kanariens-proevetur.png",
+      "webp": "kanariens-proevetur.webp",
+      "width": 1254,
+      "height": 1254,
+      "provenance": "Godkendt hobbyillustration fra .tools/havnekaptajnens-hobbier-20261109/03-kanariens-proevetur.png",
+      "publicImage": "/images/characters/whale/scenes/kanariens-proevetur.png",
+      "publicPreview": "/images/characters/whale/scenes/kanariens-proevetur.webp"
+    },
+    {
+      "slug": "kommandobroen",
+      "title": "Kommandobroen i blå time",
+      "alt": "Docker holder finnen over et grønt greb på containerskibets kommandobro. På dækket ligger rækker af containere.",
+      "description": "Tre grønne lamper fortæller kaptajnen, at skibet er klar til afgang. Han har logbogen klar til næste notat.",
+      "png": "kommandobroen.png",
+      "webp": "kommandobroen.webp",
+      "width": 1536,
+      "height": 1024,
+      "provenance": "Ny scene genereret med ImageGen fra det valgte kaptajnportræt.",
+      "publicImage": "/images/characters/whale/scenes/kommandobroen.png",
+      "publicPreview": "/images/characters/whale/scenes/kommandobroen.webp"
+    }
+  ],
+  "animations": [
+    {
+      "slug": "saml-stakken",
+      "title": "Saml stakken",
+      "alt": "Docker følger en havnekran, der stiller tre farvede containere for web, API og database på en fælles kaj og forbinder dem.",
+      "topic": "Docker Compose",
+      "description": "Tre tjenester får hver sin container. Docker Compose starter dem som en samlet applikation og giver dem et fælles netværk, så tjenesterne kan finde hinanden.",
+      "gif": "saml-stakken.gif",
+      "poster": "saml-stakken.webp",
+      "width": 512,
+      "height": 512,
+      "frameCount": 15,
+      "distinctFrameCount": 6,
+      "durationSeconds": 3.75,
+      "provenance": "Seks originale tegnede positurer i animations/saml-stakken-sheet.png. Samlet til GIF med FFmpeg.",
+      "publicGif": "/images/characters/whale/animations/saml-stakken.gif",
+      "publicPoster": "/images/characters/whale/animations/saml-stakken.webp"
+    },
+    {
+      "slug": "kanarien-forst",
+      "title": "Kanarien sejler først",
+      "alt": "Kanarien tager sin sardindåsebåd gennem badekarret. To andre både sejler først med, efter at lampen på kajen bliver grøn.",
+      "topic": "Canary deployment",
+      "description": "Send først en lille del af trafikken til den nye version. Hold øje med fejl og svartid, før du sender mere trafik over.",
+      "gif": "kanarien-forst.gif",
+      "poster": "kanarien-forst.webp",
+      "width": 512,
+      "height": 512,
+      "frameCount": 15,
+      "distinctFrameCount": 6,
+      "durationSeconds": 3.75,
+      "provenance": "Seks originale tegnede positurer i animations/kanarien-forst-sheet.png. Samlet til GIF med FFmpeg.",
+      "publicGif": "/images/characters/whale/animations/kanarien-forst.gif",
+      "publicPoster": "/images/characters/whale/animations/kanarien-forst.webp"
+    },
+    {
+      "slug": "tilbage-til-sikker-kurs",
+      "title": "Tilbage til sikker kurs",
+      "alt": "En rød lampe lyser over den nye container. Docker bruger et messinggreb til at skifte til den senest fungerende grønne container.",
+      "topic": "Rollback",
+      "description": "Når en ny version fejler, kan kaptajnen rulle tilbage til den senest fungerende version. Han tjekker igen, at tjenesten svarer som forventet.",
+      "gif": "tilbage-til-sikker-kurs.gif",
+      "poster": "tilbage-til-sikker-kurs.webp",
+      "width": 512,
+      "height": 512,
+      "frameCount": 15,
+      "distinctFrameCount": 6,
+      "durationSeconds": 3.75,
+      "provenance": "Seks originale tegnede positurer i animations/tilbage-til-sikker-kurs-sheet.png. Samlet til GIF med FFmpeg.",
+      "publicGif": "/images/characters/whale/animations/tilbage-til-sikker-kurs.gif",
+      "publicPoster": "/images/characters/whale/animations/tilbage-til-sikker-kurs.webp"
+    }
+  ]
+}

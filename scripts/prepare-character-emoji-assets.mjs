@@ -20,7 +20,7 @@ const previousByImage = new Map(previous.map(item => [item.image, item]));
 const lines = [];
 const report = [];
 for (const asset of catalog.entries) {
-    if (!/^\/images\/characters\/(raymond|beaver|fox|lupp|chameleon)\/reactions\/[a-z0-9-]+\.png(?:\?v=[a-f0-9]+)?$/.test(asset.image))
+    if (!/^\/images\/characters\/(raymond|beaver|fox|lupp|chameleon|whale)\/reactions\/[a-z0-9-]+\.png(?:\?v=[a-f0-9]+)?$/.test(asset.image))
         throw new Error(`Unexpected image path: ${asset.image}`);
     const input = path.join(root, 'web/wwwroot', asset.image.split('?')[0]);
     const output = input.replace(/\.png$/, '.webp');

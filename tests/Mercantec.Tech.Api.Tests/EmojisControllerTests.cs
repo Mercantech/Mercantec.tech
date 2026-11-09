@@ -213,10 +213,11 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     public async Task CharacterEmojisAreAvailableWithoutUploadsOrObjectStorage()
     {
         var items = ReadList(await As(_student, storage: new DisabledObjectStorage()).List(default));
-        Assert.Equal(168, items.Count);
+        Assert.Equal(216, items.Count);
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "lupp"));
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "raymond"));
         Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "chameleon"));
+        Assert.Equal(48, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "whale"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "beaver"));
         Assert.Equal(12, CharacterEmojiCatalog.All.Count(item => item.CharacterSlug == "fox"));
         Assert.Equal("Tænkepause", CharacterEmojiCatalog.All.Single(item => item.Name == "beaver_thinking").Title);
@@ -261,6 +262,11 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.Equal("smileys", items.Single(item => item.Name == "fox_idea").Category);
         Assert.Equal("technology", items.Single(item => item.Name == "chameleon_classify").Category);
         Assert.Equal("everyday", items.Single(item => item.Name == "chameleon_banjo").Category);
+        var compose = items.Single(item => item.Name == "whale_compose");
+        Assert.Equal("technology", compose.Category);
+        Assert.Contains("docker", compose.Keywords!);
+        Assert.Contains("deploy", compose.Keywords!);
+        Assert.Equal("everyday", items.Single(item => item.Name == "whale_tugboat").Category);
         Assert.Empty(await _db.CustomEmojis.ToListAsync());
         Assert.Empty(_storage.Objects);
     }
@@ -271,6 +277,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
     [InlineData("fox")]
     [InlineData("lupp")]
     [InlineData("chameleon")]
+    [InlineData("whale")]
     public async Task BuiltInCharacterEmojisCannotBeRenamedOrDeleted(string character)
     {
         var asset = CharacterEmojiCatalog.All.First(item => item.CharacterSlug == character);

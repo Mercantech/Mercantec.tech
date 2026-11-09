@@ -25,6 +25,7 @@
     <Compile Include="../web/Demo/LearningContent.cs" Link="References/Catalog/LearningContent.cs" />
     <Compile Include="../web/Characters/CharacterCatalog.cs" Link="References/Catalog/CharacterCatalog.cs" />
     <Compile Include="../web/Characters/VatsonEmojiCatalog.cs" Link="References/Catalog/VatsonEmojiCatalog.cs" />
+    <Compile Include="../web/Characters/WhaleMaterials.cs" Link="References/Catalog/WhaleMaterials.cs" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />

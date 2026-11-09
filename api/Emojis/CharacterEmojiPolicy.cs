@@ -17,12 +17,13 @@ public static class CharacterEmojiPolicy
 
     public static EmojiResolvedMetadata Resolve(CharacterEmojiAsset emoji)
     {
-        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", "chameleon" => "kamæleonen", _ => "raymond" };
+        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", "chameleon" => "kamæleonen", "whale" => "Docker", _ => "raymond" };
         var subject = emoji.CharacterSlug switch
         {
             "lupp" => new[] { "Game Design", "spil", "gameplay" },
             "raymond" => new[] { "SQL", "database" },
             "chameleon" => new[] { "Machine Learning", "machinelearning", "maskinlæring", "ML", "kamæleon", "kameleon", "data", "model" },
+            "whale" => new[] { "hval", "havnekaptajn", "DevNet", "Docker", "container", "Compose", "deploy", "deployment" },
             _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
         };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
@@ -48,6 +49,12 @@ public static class CharacterEmojiPolicy
                 or "data_cleaning" or "missing_data" or "explainability" or "privacy" or "tuning" or "baseline" or "processing"
                 when emoji.CharacterSlug == "chameleon" => "technology",
             "violin" or "banjo" when emoji.CharacterSlug == "chameleon" => "everyday",
+            "dockerfile" or "build_image" or "image_tag" or "registry" or "push" or "pull"
+                or "container_run" or "compose" or "environment" or "port_mapping" or "volume"
+                or "network" or "health_check" or "logs" or "metrics" or "ci_pipeline"
+                or "staging" or "deploy" or "canary" or "rollout" or "outage"
+                when emoji.CharacterSlug == "whale" => "technology",
+            "coffee_break" or "tugboat" or "tide_log" when emoji.CharacterSlug == "whale" => "everyday",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

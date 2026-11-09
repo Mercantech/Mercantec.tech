@@ -1,0 +1,29 @@
+{
+  "approach": "Originale diagrammer, sat med vektorformer og dansk tekst. Figurudsnit fra godkendte ImageGen-billeder.",
+  "sources": {
+    "portrait": {
+      "relative": "web/wwwroot/images/characters/whale/portrait.png",
+      "sha256": "55e83f885b45471148a1cffb80fdee32a1bc136817e3344e4e0edfc4b7d3205d"
+    },
+    "tide": {
+      "relative": "web/wwwroot/images/characters/whale/scenes/tidevandsbogen.png",
+      "sha256": "9780fe6f045d790cf0ffd5936f88ee24419783f667a49d4b2c53ea251ee68035"
+    },
+    "workshop": {
+      "relative": "web/wwwroot/images/characters/whale/scenes/sardindaasens-slaebebaad.png",
+      "sha256": "be842d835ebe635c4331fc264a1a34266a82cb08ac00e5db46f442c6b5ccc19a"
+    },
+    "bath": {
+      "relative": "web/wwwroot/images/characters/whale/scenes/kanariens-proevetur.png",
+      "sha256": "679a83aabaf623a38a6703b46974f1ea65ceb5a30f1f2e5b517bfb74af8efd2a"
+    }
+  },
+  "original": {
+    "width": 1536,
+    "height": 1024
+  },
+  "preview": {
+    "width": 1152,
+    "height": 768
+  }
+}

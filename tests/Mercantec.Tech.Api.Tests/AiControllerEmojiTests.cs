@@ -95,6 +95,7 @@ public sealed class AiControllerEmojiTests
     [InlineData("fox")]
     [InlineData("lupp")]
     [InlineData("chameleon")]
+    [InlineData("whale")]
     public async Task CharacterEmojiMetadataIsAuthoritativeAndKnownIdsSurviveSanitizing(string character)
     {
         SQLitePCL.Batteries_V2.Init();
