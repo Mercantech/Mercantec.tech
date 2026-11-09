@@ -1,0 +1,11 @@
+# Lokal renderkommando til undervisningsvideoer.
+services:
+  manim:
+    image: manimcommunity/manim:v0.22.1
+    working_dir: /manim
+    network_mode: none
+    volumes:
+      - ./tools/manim/scenes:/manim/scenes:ro
+      - ./tools/manim/manim.cfg:/manim/manim.cfg:ro
+      - ./.tools/manim:/manim/media
+    command: ["manim", "--config_file", "manim.cfg", "-ql", "scenes/lineaer_funktion.py", "LineaerFunktion"]

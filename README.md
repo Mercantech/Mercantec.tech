@@ -40,6 +40,8 @@ Det er UI-skabelonen til samarbejdet, ikke en erstatning for Blazor-/API-appen. 
 
 [Forløbseditor på `/notion`](obsidian/03-features/Forloebseditor.md) er en selvhostet testversion med BlockNote, Yjs, Hocuspocus og holdbaseret adgang. Dokumentationen beskriver opsætning, kommandoer og deployment.
 
+[Matematikvideoer med Manim](tools/manim/README.md) viser, hvordan du renderer grafer og formler som MP4 og lægger videoerne på en undervisningsside.
+
 [Min notesbog og logbog](obsidian/03-features/Logbog.md) på `/notebook` følger eleven på tværs af hold med noter, skabelonbaseret logbog, søgning, backlinks, graf og valgfri læsedeling. Alle undervisere kan læse og kommentere. Læreroversigten ligger på `/teacher/notebooks`, og det fælles skabelonbibliotek på `/teacher/notebook-templates`.
 
 **Stack:** .NET 10 — Blazor WebAssembly PWA (`web/`) + ASP.NET Core API med controllers (`api/`) + Postgres.
