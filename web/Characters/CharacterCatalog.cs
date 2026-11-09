@@ -63,12 +63,25 @@ public static class CharacterCatalog
              new("Fra viden til afprøvning", "Vatson viser vej mellem digitale værktøjer, undervisningsmaterialer og praktiske aktiviteter. I Virk som/lig hed hjælper han underviseren med at skabe fiktive virksomheder som ramme for elevernes faglige undersøgelser."),
              new("På besøg i LUP", "Her på LUP kan du møde Vatson som gæst og bruge hans emojis i tekst og callouts i editoren. Han kan vinke, få en idé og give en tommel op. Hans eget univers og værktøjer finder du hos VATek.")],
             [new("Besøg VATek.dk", "https://vatek.dk/", true, false),
-             new("Find materialer på Videnscenterportalen", "https://videnscenterportalen.dk/vat/", true, false)])
+             new("Find materialer på Videnscenterportalen", "https://videnscenterportalen.dk/vat/", true, false),
+             new("Mød Gummianden", "/characters/gummianden", false, false)])
         {
             Reactions = VatsonEmojiCatalog.All,
             LargeReactionPreviews = true,
             ReactionsDescription = "Alle Vatsons emojis i stor visning – fra vinken og kaffepause til PLC, VR og værkstedsbesøg. Åbn en original i fuld størrelse, eller hent den som PNG."
         },
+        new("gummianden", "Gummianden", "Talende AI-undervisningsmakker", "VATek · Eksternt værktøj", false,
+            "Den gule samtalemakker fra VATek, der lytter, spørger ind og giver små ledetråde, når du sidder fast.",
+            "Gummianden er en talende AI-undervisningsmakker udviklet af Videnscenter for Automation og Teknologi (VATek). Fortæl den, hvad du arbejder med, og hvor du er gået i stå. Anden stiller et spørgsmål ad gangen, så du kan finde dit næste skridt. Du møder den i VATeks eget værktøj.",
+            ["VATek", "Faglig sparring", "Fejlfinding", "Rubber duck debugging"],
+            [new("Portræt", "/images/characters/gummianden/portrait.png", "VATeks gule gummiand med orange næb og en lille tot på turkis baggrund")],
+            [new("Hvorfor en gummiand?", "Navnet kommer fra rubber duck debugging: Når du forklarer et problem højt trin for trin, kan du opdage den antagelse eller detalje, du overså. VATeks and kan også stille opfølgende spørgsmål, og metoden kan bruges i andre fag end programmering."),
+             new("Prøv det, når koden driller", "Hvis din løkke kører én gang for meget, så forklar, hvad du forventede, hvad programmet gjorde, og hvilken værdi tælleren havde i sidste omgang. En lille ledetråd kan være nok til, at du selv får øje på, hvornår betingelsen bliver falsk."),
+             new("Underviseren sætter rammen", "Underviseren vælger, hvad eleverne skal øve sig i, og hvordan anden skal spørge ind. Egne undervisningsmaterialer kan give den faglig kontekst. Underviseren kan afprøve samtalen og dele anden med eleverne via link eller pinkode.")],
+            [new("Åbn Gummianden hos VATek", "https://gummianden.vatek.dk/", true, false),
+             new("Sådan virker Gummianden", "https://gummianden.vatek.dk/info", true, false),
+             new("Besøg VATek.dk", "https://vatek.dk/", true, false),
+             new("Mød Vatson", "/characters/vatson", false, false)]),
         new("raymond", "Raymond", "Professor Codd · SQL-underviser", "SQL-H1", false,
             "Den blå elefantprofessor, der hjælper dig med SQL, relationer og databaser.",
             "Raymond hedder egentlig Raymond Stonebraker Codd, men du må gerne kalde ham Professor Codd. Han er den venlige SQL-underviser fra SQL-H1 og hjælper dig med at forstå databaser ét skridt ad gangen.",

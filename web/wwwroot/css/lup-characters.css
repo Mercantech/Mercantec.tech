@@ -7,6 +7,7 @@
 .lup .character-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
 .lup .character-lupp { --character-accent:#9368d7; }
 .lup .character-vatson { --character-accent:#c4934f; }
+.lup .character-gummianden { --character-accent:#23867d; }
 .lup .character-raymond { --character-accent:#548eb9; }
 .lup .character-chameleon { --character-accent:#6d8746; }
 .lup .character-whale { --character-accent:#ad792e; }

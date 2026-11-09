@@ -24,7 +24,7 @@ public sealed class LibraryCharactersTests
 
         Assert.Contains(page.FindAll(".library-categories button[aria-pressed='true']"),
             button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal));
-        Assert.Equal(7, page.FindAll("article.character-card").Count);
+        Assert.Equal(8, page.FindAll("article.character-card").Count);
         foreach (var character in CharacterCatalog.All)
         {
             var card = page.Find($".character-card.character-{character.Slug}");
@@ -101,7 +101,7 @@ public sealed class LibraryCharactersTests
 
         Assert.Equal("", page.Find("#library-search").GetAttribute("value"));
         Assert.Empty(page.FindAll(".library-search-results"));
-        Assert.Equal(7, page.FindAll(".character-card").Count);
+        Assert.Equal(8, page.FindAll(".character-card").Count);
         Assert.Contains(page.FindAll(".library-categories button[aria-pressed='true']"),
             button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal));
     }
@@ -123,6 +123,7 @@ public sealed class LibraryCharactersTests
     [InlineData("Vatson PLC", "/characters/vatson")]
     [InlineData("Docker rollback", "/characters/whale")]
     [InlineData("Docker Kanarien", "/characters/whale")]
+    [InlineData("Gummianden fejlfinding", "/characters/gummianden")]
     public void Public_search_finds_media_types_and_named_motifs(string query, string expectedPath)
     {
         var hit = Assert.Single(PublicCatalog.Search(query), hit => hit.Href == expectedPath);
