@@ -35,6 +35,20 @@ public sealed class EmojiClient(HttpClient http)
         finally { _listLock.Release(); }
     }
 
+    internal async Task<string?> TabIcon(CustomEmojiItem emoji, CancellationToken ct)
+    {
+        if (emoji.IsReadOnly && emoji.ContentUrl.StartsWith("/images/characters/", StringComparison.Ordinal))
+            return emoji.ContentUrl;
+
+        // Fetch account-protected images with the existing API authentication.
+        // The browser's favicon URL then contains only image bytes.
+        using var response = await Send(() => http.GetAsync($"emojis/{emoji.Id}/content", ct), ct);
+        var type = response.Content.Headers.ContentType?.MediaType;
+        if (type is not ("image/png" or "image/jpeg" or "image/gif" or "image/webp")) return null;
+        var bytes = await response.Content.ReadAsByteArrayAsync(ct);
+        return bytes.Length is > 0 and <= MaxBytes ? $"data:{type};base64,{Convert.ToBase64String(bytes)}" : null;
+    }
+
     public async Task<EmojiAnalysis> Analyze(Stream content, string fileName, CancellationToken ct = default)
     {
         using var form = new MultipartFormDataContent();

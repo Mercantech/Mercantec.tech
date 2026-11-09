@@ -2,6 +2,10 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
+<HeadContent>
+    <link rel="icon" type="image/png" href="favicon.png" />
+</HeadContent>
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">

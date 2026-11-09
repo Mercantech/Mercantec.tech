@@ -2,7 +2,7 @@
 @using Mercantec.Tech.Web.Notion
 @implements IAsyncDisposable
 
-<PageTitle>@(_current?.Title ?? "Holdets indhold") · LUP</PageTitle>
+<NotionTabTitle Title="@_current?.Title" />
 <NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
 <link rel="stylesheet" href="@EditorAssets.Style" />
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }

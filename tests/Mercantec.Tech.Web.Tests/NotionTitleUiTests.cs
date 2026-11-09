@@ -22,13 +22,17 @@ public sealed class NotionTitleUiTests
     [Fact]
     public async Task Picking_a_title_emoji_saves_its_shortcode_and_renders_it_in_toolbar_and_sidebar()
     {
-        var raymond = new CustomEmojiItem(Guid.NewGuid(), "raymond_applause", "image/png", 12,
-            DateTimeOffset.UtcNow, "/api/emojis/raymond", AltText: "Raymond klapper");
+        var raymond = new CustomEmojiItem(Guid.NewGuid(), "raymond_applause", "image/webp", 12,
+            DateTimeOffset.UtcNow, "/images/characters/raymond/reactions/applause.webp",
+            AltText: "Raymond klapper", IsReadOnly: true);
         using var api = new TitleApi { Title = "SQL 🐘", Emojis = [raymond] };
         using var context = await CreateContext(api);
         var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
+        var head = context.Render<HeadOutlet>();
+        context.Render<HeadContent>(p => p.AddChildContent("""<link rel="icon" href="favicon.png">"""));
         var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
+        Assert.Equal("SQL 🐘 · LUP", head.Find("title").TextContent);
         Assert.Equal(0, api.EmojiRequests);
 
         await Button(page, "Tilføj emoji til sidens titel").ClickAsync(new MouseEventArgs());
@@ -41,9 +45,39 @@ public sealed class NotionTitleUiTests
         Assert.Contains("SQL 🐘", page.Find(".notion-title-preview").TextContent);
         Assert.DoesNotContain(":raymond_applause:", page.Find(".notion-page.is-current").TextContent);
         Assert.Equal("SQL 🐘 :raymond_applause:", page.Find("#notion-title").GetAttribute("value"));
+        head.WaitForAssertion(() =>
+        {
+            Assert.Equal("SQL 🐘 · LUP", head.Find("title").TextContent);
+            Assert.Equal(raymond.ContentUrl, head.Find("link[rel=icon]").GetAttribute("href"));
+        }, Timeout);
+
+        page.Find("#notion-title").Input("SQL 🐘");
+        await page.Find("#notion-title").BlurAsync(new FocusEventArgs());
+        Assert.Equal("favicon.png", head.Find("link[rel=icon]").GetAttribute("href"));
         Assert.Equal(1, api.EmojiRequests);
         Assert.Equal(1, javascript.Editor.Mounts);
         Assert.Equal(0, javascript.Editor.Destroys);
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
+    public async Task An_uploaded_emoji_only_title_uses_alt_text_and_an_icon_without_the_download_ticket()
+    {
+        var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=");
+        var id = Guid.NewGuid();
+        var upload = new CustomEmojiItem(id, "egen_emoji", "image/png", png.Length,
+            DateTimeOffset.UtcNow, $"/api/emojis/{id}/content?ticket=private", AltText: "Vores emoji");
+        using var api = new TitleApi { Title = ":egen_emoji:", Emojis = [upload], EmojiPng = png };
+        using var context = await CreateContext(api);
+        var head = context.Render<HeadOutlet>();
+        context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
+
+        head.WaitForAssertion(() =>
+        {
+            Assert.Equal("Vores emoji · LUP", head.Find("title").TextContent);
+            Assert.Equal("data:image/png;base64," + Convert.ToBase64String(png),
+                head.Find("link[rel=icon]").GetAttribute("href"));
+        }, Timeout);
         Assert.Empty(api.Unexpected);
     }
 
@@ -268,6 +302,7 @@ public sealed class NotionTitleUiTests
         private Guid HoldId { get; } = Guid.NewGuid();
         public string Title { get; set; } = "Starttitel";
         public CustomEmojiItem[] Emojis { get; init; } = [];
+        public byte[]? EmojiPng { get; init; }
         public int EmojiRequests { get; private set; }
         public bool CanEdit { get; init; } = true;
         public DateTimeOffset? PublishedAt { get; set; }
@@ -302,6 +337,13 @@ public sealed class NotionTitleUiTests
             if (request.Method == HttpMethod.Get)
             {
                 if (path == "/api/emojis") { EmojiRequests++; return Json(Emojis); }
+                if (EmojiPng is not null && request.RequestUri.Query.Length == 0
+                    && Emojis.Any(emoji => path == $"/api/emojis/{emoji.Id}/content"))
+                {
+                    var content = new ByteArrayContent(EmojiPng);
+                    content.Headers.ContentType = new("image/png");
+                    return new(HttpStatusCode.OK) { Content = content };
+                }
                 object? body = path switch
                 {
                     "/api/notion/holds" => new[] { new NotionHold(HoldId, "Testhold", true) },

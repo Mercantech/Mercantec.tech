@@ -1,0 +1,64 @@
+@implements IDisposable
+@inject EmojiClient Emojis
+
+<PageTitle>@_label · LUP</PageTitle>
+@if (_icon is not null)
+{
+    <HeadContent>
+        <link rel="icon" href="@_icon" />
+    </HeadContent>
+}
+
+@code {
+    [Parameter] public string? Title { get; set; }
+
+    private string? _requestedTitle;
+    private string _label = "Holdets indhold";
+    private string? _icon;
+    private CancellationTokenSource? _load;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_requestedTitle == Title) return;
+        _requestedTitle = Title;
+        CancelLoad();
+        _label = Title ?? "Holdets indhold";
+        _icon = null;
+        if (Title?.Contains(':') != true) return;
+
+        _load = new CancellationTokenSource();
+        var token = _load.Token;
+        var title = Title;
+        try
+        {
+            var parts = EmojiTextParts.Split(title, await Emojis.List(ct: token));
+            if (token.IsCancellationRequested) return;
+            var emoji = parts.FirstOrDefault(part => part.Emoji is not null).Emoji;
+            if (emoji is null) return;
+
+            _label = string.Concat(parts.Select(part => part.Text)).Trim();
+            if (_label.Length == 0)
+                _label = string.IsNullOrWhiteSpace(emoji.AltText)
+                    ? emoji.Name.Replace('_', ' ').Replace('-', ' ')
+                    : emoji.AltText.Trim();
+
+            StateHasChanged();
+            var icon = await Emojis.TabIcon(emoji, token);
+            if (!token.IsCancellationRequested) _icon = icon;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (EmojiException)
+        {
+            // The readable title and app icon remain available when the image cannot be fetched.
+        }
+    }
+
+    private void CancelLoad()
+    {
+        _load?.Cancel();
+        _load?.Dispose();
+        _load = null;
+    }
+
+    public void Dispose() => CancelLoad();
+}
