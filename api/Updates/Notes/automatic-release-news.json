@@ -1,0 +1,6 @@
+{
+  "date": "2026-11-09",
+  "title": "Nyt i LUP følger nye udgivelser",
+  "description": "Nye udgivelser gennemgås automatisk, og relevante ændringer får en kort dansk nyhed. Billeder fra testvisninger kan sammenlignes før og efter. Nyhederne offentliggøres først, når den nye version er online; interne rettelser giver ikke unødige opslag.",
+  "after": { "id": "visual-updates", "alt": "Den billedbaserede ændringsoversigt Nyt i LUP." }
+}

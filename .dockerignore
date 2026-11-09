@@ -7,9 +7,11 @@
 **/*.md
 **/.vs
 **/.idea
+**/.data
 
 .tools
 web/wwwroot/image-tools
+web/wwwroot/notion-editor
 .env
 .env.*
 !.env.example

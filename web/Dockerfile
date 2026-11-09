@@ -1,3 +1,16 @@
+FROM node:22-alpine AS release-info
+WORKDIR /src
+COPY api/ api/
+COPY web/ web/
+COPY shared/ shared/
+COPY editor/ editor/
+COPY image-tools/ image-tools/
+COPY extensions/ extensions/
+COPY collaboration/ collaboration/
+COPY release-news/ release-news/
+COPY docker-compose.yml ./
+RUN node release-news/fingerprint.mjs /src /release.json
+
 FROM node:22-alpine AS editor-build
 WORKDIR /src/editor
 COPY editor/package.json editor/package-lock.json editor/.npmrc ./
@@ -29,5 +42,6 @@ RUN dotnet publish -c Release -o /app/publish
 FROM nginx:1.27-alpine AS final
 COPY web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
+COPY --from=release-info /release.json /usr/share/nginx/html/release.json
 EXPOSE 3000
 CMD ["nginx", "-g", "daemon off;"]

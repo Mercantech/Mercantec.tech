@@ -25,6 +25,13 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 
 builder.Services.AddControllers();
 builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.PlatformUpdatesFeed>();
+builder.Services.Configure<Mercantec.Tech.Api.Updates.Automation.PlatformUpdatesAutomationOptions>(
+    builder.Configuration.GetSection("PlatformUpdatesAutomation"));
+builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.Automation.IDeploymentRevision,
+    Mercantec.Tech.Api.Updates.Automation.DeploymentRevision>();
+builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.Automation.PlatformUpdatesAutomationStore>();
+builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.Automation.PlatformUpdatesAutomationKey>();
+builder.Services.AddScoped<Mercantec.Tech.Api.Updates.Automation.PlatformUpdatesAutomationAnalyzer>();
 builder.Services.AddNotionMcp();
 // Arena rooms and simulation share a single authoritative process.
 builder.Services.AddSingleton<Mercantec.Tech.Api.Arena.ArenaRoomService>();

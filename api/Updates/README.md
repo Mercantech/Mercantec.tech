@@ -1,6 +1,32 @@
 # Nyt i LUP
 
-Undervisernes ændringsoversigt ligger på `/teacher/updates`. Indgangen findes under avatarikonet. Katalog og billeder leveres fra `/api/platform-updates` og kræver en autentificeret underviser eller admin. De private billeder er indlejret i API'et.
+Undervisernes ændringsoversigt ligger på `/teacher/updates`. Indgangen findes under avatarikonet. Katalog og billeder leveres fra `/api/platform-updates` og kræver en autentificeret underviser eller admin. Historiske billeder er indlejret i API'et; automatiske billeder ligger på en privat, vedvarende Docker-volume og leveres gennem samme adgangskontrol.
+
+## Automatisk efter en udgivelse
+
+`release-news` følger de versioner, der faktisk er blevet udrullet fra `main`. Både web og API leverer en identitet beregnet fra de samme kildefiler og aktiver. Først når de to identiteter stemmer overens, finder observatøren den tilhørende Git-commit, gennemgår ændringerne siden sidste gennemgang og skriver relevante danske nyheder. Flere hurtige pushes kan blive samlet i én gennemgang af den version, der kom online. Et fejlet deploy offentliggør ingen nyhed.
+
+Ved første start gemmes den aktuelle version og dens testbilleder som udgangspunkt. Efterfølgende udgivelser har derfor et reelt førbillede fra den foregående gennemgåede version. Billeder tages af den faktiske frontend med fiktive API-svar, fast testidentitet og blokeret ekstern trafik. Der bruges aldrig rigtige elevkonti eller produktionsdata. `release-news/scenarios.json` beskriver de understøttede funktioner og fokuserede udsnit. En ny funktion kan få tekst uden billede, hvis den ikke har en gyldig optagelse; fejl- og loginvisninger bliver ikke udgivet som funktionsbilleder.
+
+AI-gennemgangen bruger API'ets eksisterende `OpenAI`-indstillinger. Nøglen forlader ikke API-containeren. Kun det begrænsede kodeudsnit, filnavne og eksisterende nyhedsbeskrivelser sendes til AI; testbilleder og brugerdata sendes ikke. Modellen vælger blandt kendte optagelser og får ingen adgang til shell, netværksværktøjer eller vilkårlige URL'er. Interne ændringer giver ingen automatisk nyhed, og beslægtede ændringer samles under et stabilt id. Menneskeskrevne noter bevares som grundlag for teksten.
+
+Publicering sker atomisk og kun én gang pr. commit. Billeder, opslag, sidste gennemgåede version og ventende arbejde bevares ved genstart. AI-svar gemmes, så en gentaget publicering ikke kræver et nyt AI-kald. Observatøren kontrollerer versionsidentiteten igen inden publicering og prøver senere, hvis et nyere deploy har overhalet arbejdet. Der pushes ingen genererede commits tilbage til GitHub, og der opstår derfor ingen deploy-løkke.
+
+Compose opretter selv en separat intern servicenøgle til nyhedsobservatøren. De interne skrive-/analyseendpoints er blokeret i den offentlige nginx-proxy; underviser- og elevtokens giver ingen skriveret til dem. Ingen GitHub Actions-hemmeligheder eller yderligere AI-nøgle kræves. Den offentlige, datatomme status `/api/platform-updates/deployment` kan bruges til at kontrollere versionsidentitet og om første billedgrundlag er klar. De private volumes `mercantec_updates_publications` og `mercantec_updates_capture` skal bevares og sikkerhedskopieres ved drift.
+
+Kontrol af automatikken:
+
+```text
+cd release-news
+npm ci --ignore-scripts
+npm test
+cd ..
+dotnet test tests/Mercantec.Tech.Api.Tests --filter FullyQualifiedName~PlatformUpdates
+dotnet test tests/Mercantec.Tech.Web.Tests --filter FullyQualifiedName~PlatformUpdates
+docker compose config --quiet
+```
+
+Testene bruger fiktive credentials og en simuleret AI-transport. En fejl i billedoptagelsen skjuler ikke nyhedsteksten, og et midlertidigt AI- eller netværksproblem bevarer det ventende arbejde til næste forsøg. Første deploy af automatikken initialiserer billedgrundlaget; senere succesfulde udgivelser udløser sammenligningen.
 
 ## Tilføj et opslag
 

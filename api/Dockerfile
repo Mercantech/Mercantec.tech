@@ -1,3 +1,16 @@
+FROM node:22-alpine AS release-info
+WORKDIR /src
+COPY api/ api/
+COPY web/ web/
+COPY shared/ shared/
+COPY editor/ editor/
+COPY image-tools/ image-tools/
+COPY extensions/ extensions/
+COPY collaboration/ collaboration/
+COPY release-news/ release-news/
+COPY docker-compose.yml ./
+RUN node release-news/fingerprint.mjs /src /release.json
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY shared/Mercantec.Tech.Contracts.csproj shared/
@@ -44,3 +57,4 @@ ENV PreviewWorker__Enabled=true
 ENV PreviewWorker__Only=true
 
 FROM final AS runtime
+COPY --from=release-info /release.json /app/release.json

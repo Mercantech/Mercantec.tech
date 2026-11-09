@@ -132,7 +132,11 @@ services:
       OpenAI__EditorMaxBatches: ${OPENAI_EDITOR_MAX_BATCHES:-128}
       OpenAI__EditorWorkerConcurrency: ${OPENAI_EDITOR_WORKER_CONCURRENCY:-2}
       OpenAI__EditorRetentionDays: ${OPENAI_EDITOR_RETENTION_DAYS:-30}
+      PlatformUpdatesAutomation__StoragePath: /var/lib/lup-updates
+      PlatformUpdatesAutomation__ServiceKeyFile: /run/lup-updates/service-key
     depends_on:
+      release-news-init:
+        condition: service_healthy
       notion-init:
         condition: service_healthy
       db:
@@ -145,6 +149,8 @@ services:
           - mercantec-tech-api
     volumes:
       - mercantec_notion_key:/run/notion:ro
+      - mercantec_updates_key:/run/lup-updates:ro
+      - mercantec_updates_publications:/var/lib/lup-updates
     restart: unless-stopped
 
   converter:
@@ -169,6 +175,71 @@ services:
     mem_limit: 2g
     cpus: 1.0
     pids_limit: 128
+    restart: unless-stopped
+
+  # The observer uses the existing API-side AI configuration. It receives only its own
+  # narrow service credential and sees fictional browser fixtures, never pupil accounts.
+  release-news-init:
+    build:
+      context: .
+      dockerfile: release-news/Dockerfile
+    command: ["node", "init-key.mjs"]
+    user: "0:0"
+    network_mode: none
+    volumes:
+      - mercantec_updates_key:/run/lup-updates
+      - mercantec_updates_capture:/data
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+    security_opt: ["no-new-privileges:true"]
+    labels:
+      - traefik.enable=false
+    healthcheck:
+      test: ["CMD", "node", "-e", "const fs=require('node:fs');if(fs.readFileSync('/run/lup-updates/service-key','utf8').trim().length<32)process.exit(1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  release-news:
+    build:
+      context: .
+      dockerfile: release-news/Dockerfile
+    init: true
+    environment:
+      LUP_UPDATES_API_BASE_URL: http://mercantec-tech-api:8080
+      LUP_UPDATES_WEB_BASE_URL: http://mercantec-tech-web:3000
+      LUP_UPDATES_DATA_DIR: /data
+      LUP_UPDATES_KEY_FILE: /run/lup-updates/service-key
+      LUP_UPDATES_POLL_SECONDS: "30"
+    depends_on:
+      release-news-init:
+        condition: service_healthy
+      web:
+        condition: service_started
+    volumes:
+      - mercantec_updates_key:/run/lup-updates:ro
+      - mercantec_updates_capture:/data
+    networks:
+      - default
+    labels:
+      - traefik.enable=false
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    shm_size: 256m
+    mem_limit: 2g
+    cpus: 1.0
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ["CMD", "node", "-e", "const fs=require('node:fs');if(Date.now()-fs.statSync('/data/heartbeat.json').mtimeMs>900000)process.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 600s
     restart: unless-stopped
 
   previews:
@@ -272,7 +343,9 @@ services:
       collaboration:
         condition: service_healthy
     networks:
-      - default
+      default:
+        aliases:
+          - mercantec-tech-web
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
@@ -291,6 +364,9 @@ services:
     restart: unless-stopped
 
 volumes:
+  mercantec_updates_key:
+  mercantec_updates_publications:
+  mercantec_updates_capture:
   mercantec_notion_key:
   mercantec_tech_pg:
   mercantec_tech_minio:

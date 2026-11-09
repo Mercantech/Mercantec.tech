@@ -24,10 +24,11 @@ public sealed class PlatformUpdatesClient(HttpClient http)
     {
         using var response = await http.GetAsync($"platform-updates/images/{Uri.EscapeDataString(id)}", ct);
         Check(response);
-        if (response.Content.Headers.ContentType?.MediaType != "image/webp")
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        if (contentType is not ("image/webp" or "image/png"))
             throw new PlatformUpdatesException("Billedet kunne ikke hentes.");
         var bytes = await response.Content.ReadAsByteArrayAsync(ct);
-        return "data:image/webp;base64," + Convert.ToBase64String(bytes);
+        return $"data:{contentType};base64," + Convert.ToBase64String(bytes);
     }
 
     private static void Check(HttpResponseMessage response)

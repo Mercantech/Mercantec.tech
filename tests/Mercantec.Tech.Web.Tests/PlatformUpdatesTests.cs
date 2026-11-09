@@ -67,6 +67,29 @@ public sealed class PlatformUpdatesTests
     }
 
     [Theory]
+    [InlineData("image/png", true)]
+    [InlineData("image/svg+xml", false)]
+    public async Task Automated_screenshots_accept_png_but_reject_other_media_types(string mediaType, bool accepted)
+    {
+        using var api = new UpdatesApi { ImageContentType = mediaType };
+        await using var context = await Context(api);
+        var page = context.Render<UpdatesPage>();
+        page.WaitForAssertion(() => Assert.Equal(2, page.FindAll("article.update-entry").Count));
+        if (accepted)
+        {
+            Assert.Equal(3, page.FindAll("article img").Count);
+            Assert.All(page.FindAll("article img"), image => Assert.StartsWith("data:image/png;base64,", image.GetAttribute("src")));
+            Assert.Empty(page.FindAll(".update-image-error"));
+        }
+        else
+        {
+            Assert.Empty(page.FindAll("article img"));
+            Assert.Equal(3, page.FindAll(".update-image-error").Count);
+        }
+        Assert.Empty(api.Unexpected);
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(true, true)]
     public async Task Student_and_teacher_in_student_preview_do_not_fetch_or_reveal_teacher_updates(bool teacher, bool preview)
@@ -210,6 +233,7 @@ public sealed class PlatformUpdatesTests
         public ConcurrentQueue<string> Requests { get; } = [];
         public ConcurrentQueue<string> Unexpected { get; } = [];
         public bool FailList { get; set; }
+        public string ImageContentType { get; init; } = "image/webp";
         public string? FailImage { get; set; }
         public TaskCompletionSource<bool>? ImageGate { get; init; }
         public TaskCompletionSource<bool> ImageResponsesReleased { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -248,7 +272,7 @@ public sealed class PlatformUpdatesTests
                 }
                 if (FailImage == id) return new(HttpStatusCode.ServiceUnavailable);
                 var content = new ByteArrayContent(Encoding.UTF8.GetBytes($"RIFF-test-{id}"));
-                content.Headers.ContentType = new MediaTypeHeaderValue("image/webp");
+                content.Headers.ContentType = new MediaTypeHeaderValue(ImageContentType);
                 return new(HttpStatusCode.OK) { Content = content };
             }
             Unexpected.Enqueue(path);
