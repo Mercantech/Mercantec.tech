@@ -453,6 +453,36 @@ public sealed class CharacterDetailTests
     }
 
     [Fact]
+    public async Task DuckProfileKeepsTheSelectedDuckWhileFindingAndPlayingDebuggingMaterials()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(parameters => parameters.Add(p => p.Slug, "gummianden"));
+
+        var appearances = page.FindAll(".character-appearance-picker button");
+        Assert.Equal(6, appearances.Count);
+        Assert.EndsWith("/lyttemakkeren.webp", page.Find(".character-main-art img").GetAttribute("src"));
+        appearances.Single(button => button.TextContent.Contains("Logvagten", StringComparison.Ordinal)).Click();
+
+        Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
+        page.Find("#character-illustration-search").Input("breakpoint");
+        Assert.InRange(page.FindAll(".character-gallery figure").Count, 1, 15);
+        Assert.Contains(page.FindAll(".character-gallery .character-illustration-explanation"), card =>
+            card.QuerySelector("code") is not null);
+
+        var animation = page.FindAll(".character-animation-card")[0];
+        var poster = animation.QuerySelector("img")!.GetAttribute("src");
+        var download = animation.QuerySelector("a[download]")!.GetAttribute("href");
+        Assert.EndsWith(".gif", download);
+        Assert.NotEqual(download, poster);
+        animation.QuerySelector("button")!.Click();
+        Assert.Equal(download, page.Find(".character-animation-card img").GetAttribute("src"));
+        page.Find(".character-animation-card button").Click();
+        Assert.Equal(poster, page.Find(".character-animation-card img").GetAttribute("src"));
+        Assert.EndsWith("/logvagten.webp", page.Find(".character-main-art img").GetAttribute("src"));
+    }
+
+    [Fact]
     public async Task UnknownProfileShowsTheReturnLinkAndRemovesPreviousProfileContent()
     {
         using var api = new NoNetwork();

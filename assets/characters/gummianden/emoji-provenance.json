@@ -1,0 +1,952 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "gummianden",
+  "source": "Separate sprite sheets referenced against the five approved Gummianden concepts.",
+  "preparation": "Transparent crops normalized onto 1254 × 1254 PNG canvases. The picker uses the existing WebP preparation step.",
+  "sheets": [
+    {
+      "file": "sheet-1.png",
+      "reference": "02-lyttemakkeren.png",
+      "sha256": "3d8d5e604c194e60d359dc2f8e4439c3a074b24884afee81c84a5a61bffed5cd",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck raises one wing in a big friendly greeting wave.\nTop-middle: duck cups a wing to side of head, listening attentively.\nTop-right: duck looks up thinking, wing tucked under bill.\nBottom-left: duck tilts head in confusion, one large teal question mark above shoulder.\nBottom-middle: duck raises wing in discovery beside one bright light bulb.\nBottom-right: duck speaks with both wings open, one cream speech bubble with no text.",
+      "entries": [
+        {
+          "id": "wave",
+          "title": "Hej",
+          "crop": {
+            "left": 68,
+            "top": 31,
+            "width": 395,
+            "height": 443
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            393,
+            441
+          ],
+          "transparentPixelsInCrop": 56549,
+          "pngSha256": "68dfb383762d7f51bba1f1ad94c5e7adfb3793d56770f86acc339cc7c6681326"
+        },
+        {
+          "id": "listening",
+          "title": "Lytter",
+          "crop": {
+            "left": 574,
+            "top": 30,
+            "width": 388,
+            "height": 441
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            385,
+            438
+          ],
+          "transparentPixelsInCrop": 58732,
+          "pngSha256": "475bad151584bd9fe15b06198bef92e00a7a9e69a91685af705b2c416c36bdf8"
+        },
+        {
+          "id": "thinking",
+          "title": "Tænker",
+          "crop": {
+            "left": 1085,
+            "top": 33,
+            "width": 352,
+            "height": 441
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            350,
+            439
+          ],
+          "transparentPixelsInCrop": 53973,
+          "pngSha256": "728ae458e8a06ab5d70bf539d3c3abf665d21a70b2edf30b847fa8f0e12fa200"
+        },
+        {
+          "id": "question",
+          "title": "Spørgsmål",
+          "crop": {
+            "left": 88,
+            "top": 529,
+            "width": 350,
+            "height": 440
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            347,
+            438
+          ],
+          "transparentPixelsInCrop": 50900,
+          "pngSha256": "43875bb18cf73f12b7ef7323f0715330333ff5fa6ed79b495d3fe249ee0d897d"
+        },
+        {
+          "id": "idea",
+          "title": "God idé",
+          "crop": {
+            "left": 555,
+            "top": 513,
+            "width": 407,
+            "height": 457
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            404,
+            455
+          ],
+          "transparentPixelsInCrop": 69808,
+          "pngSha256": "a890a7f61eed26d41b84ef36fdbde7ffe5dd37fc0dc652d8268f65a44c65b3df"
+        },
+        {
+          "id": "explaining",
+          "title": "Forklar det højt",
+          "crop": {
+            "left": 1011,
+            "top": 532,
+            "width": 483,
+            "height": 436
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            481,
+            434
+          ],
+          "transparentPixelsInCrop": 79796,
+          "pngSha256": "54b9079668b6c2b28dab8139c6bf9f4dff3803066064378552addffd5c33973d"
+        }
+      ]
+    },
+    {
+      "file": "sheet-2.png",
+      "reference": "02-lyttemakkeren.png",
+      "sha256": "3d749e1d7d2db16993dd13da41e4f4a40567fb2740433c69296a7b5e45fb4a94",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck laughs with eyes squeezed shut, head back, open orange bill.\nTop-middle: duck winks one eye, cheeky side smile, no props.\nTop-right: duck surprised with round wide eyes and open bill, both wings lifted.\nBottom-left: duck confused shrug with both wings turned up, lopsided eyebrows.\nBottom-middle: duck worried face with drooping eyebrows and wings drawn toward chest.\nBottom-right: duck big sleepy yawn, drooping head, one wing halfway over orange bill.",
+      "entries": [
+        {
+          "id": "laughing",
+          "title": "Griner",
+          "crop": {
+            "left": 77,
+            "top": 38,
+            "width": 398,
+            "height": 419
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            395,
+            417
+          ],
+          "transparentPixelsInCrop": 60948,
+          "pngSha256": "382ebc3e2c8169f419e1c3af59fd7011e6a4e61ce3aaaa6e0a67d874225c0d70"
+        },
+        {
+          "id": "wink",
+          "title": "Blinker",
+          "crop": {
+            "left": 591,
+            "top": 39,
+            "width": 327,
+            "height": 420
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            324,
+            418
+          ],
+          "transparentPixelsInCrop": 47771,
+          "pngSha256": "6e3ac03c875c09122fdc88a53548eb5bd697ac3119f58baf6867f2daa831d935"
+        },
+        {
+          "id": "surprised",
+          "title": "Hov!",
+          "crop": {
+            "left": 1052,
+            "top": 35,
+            "width": 395,
+            "height": 424
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            392,
+            422
+          ],
+          "transparentPixelsInCrop": 57810,
+          "pngSha256": "807388f52a11b7982cc615b51ca67af85315244c405f5519c35194a8e662473d"
+        },
+        {
+          "id": "confused",
+          "title": "Forvirret",
+          "crop": {
+            "left": 55,
+            "top": 544,
+            "width": 419,
+            "height": 426
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            416,
+            424
+          ],
+          "transparentPixelsInCrop": 71167,
+          "pngSha256": "b90bae1d2ef1cad819bd007be47b18a1d926b1f37e9f2c9fc8d11d5eca71967e"
+        },
+        {
+          "id": "concerned",
+          "title": "Noget driller",
+          "crop": {
+            "left": 586,
+            "top": 544,
+            "width": 328,
+            "height": 427
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            325,
+            424
+          ],
+          "transparentPixelsInCrop": 45932,
+          "pngSha256": "540e5011f011781e45b32edd5aa77aa7359da81c017173ba1d0fb561ff63c481"
+        },
+        {
+          "id": "sleepy",
+          "title": "Træt",
+          "crop": {
+            "left": 1054,
+            "top": 544,
+            "width": 414,
+            "height": 427
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            411,
+            425
+          ],
+          "transparentPixelsInCrop": 76236,
+          "pngSha256": "c3ccaad8cbc9186d5ec946b5164e6b0ae118547e672d43f9c1e2e8bc40bd995c"
+        }
+      ]
+    },
+    {
+      "file": "sheet-3.png",
+      "reference": "02-lyttemakkeren.png",
+      "sha256": "906f52279edb63e18b8864fa5031ec2384fb09a1338bf20f1ca1c389be00671e",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck claps two short wings together, with cheerful curved eyes and two short action marks.\nTop-middle: duck celebrates with both wings held high, three large colored confetti pieces close to head.\nTop-right: duck relieved closed eyes, wings lowered and one wing on chest, one little breath puff near the bill.\nBottom-left: duck proud head held high, wings at hips and broad smile, no props.\nBottom-middle: duck holds a large teal mug in both wings, soft steam one curl close to cup.\nBottom-right: duck turned almost away, looks back over shoulder with farewell wave.",
+      "entries": [
+        {
+          "id": "applause",
+          "title": "Klapsalver",
+          "crop": {
+            "left": 113,
+            "top": 36,
+            "width": 345,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            343,
+            444
+          ],
+          "transparentPixelsInCrop": 55759,
+          "pngSha256": "18cbb5682e54b9c3eab86ad6365e899eb0f0ff2f3050e6bdc62bc9ec4f0aa7b4"
+        },
+        {
+          "id": "celebration",
+          "title": "Fejrer løsningen",
+          "crop": {
+            "left": 554,
+            "top": 37,
+            "width": 397,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            394,
+            442
+          ],
+          "transparentPixelsInCrop": 55733,
+          "pngSha256": "bff5289e2887d7466afc298b5576a1a453f5d17243a2f20be3d983e992a881cc"
+        },
+        {
+          "id": "relieved",
+          "title": "Lettet",
+          "crop": {
+            "left": 1066,
+            "top": 39,
+            "width": 411,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            408,
+            443
+          ],
+          "transparentPixelsInCrop": 80455,
+          "pngSha256": "3c70f255118126dd5fb57b71c2ae2aea3eed6ac3288dccf46e2fa21316aad8cb"
+        },
+        {
+          "id": "proud",
+          "title": "Stolt",
+          "crop": {
+            "left": 64,
+            "top": 526,
+            "width": 387,
+            "height": 459
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            384,
+            457
+          ],
+          "transparentPixelsInCrop": 69348,
+          "pngSha256": "b79df648937425985345f86039a459371d3910fceff8a61667bae7f9fbb45755"
+        },
+        {
+          "id": "coffee",
+          "title": "Kaffepause",
+          "crop": {
+            "left": 581,
+            "top": 524,
+            "width": 346,
+            "height": 474
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            344,
+            471
+          ],
+          "transparentPixelsInCrop": 58597,
+          "pngSha256": "45c62da70d60b31eb36c246f81a27adc32bb43d6f9d0a4c5d86710d1b8f6ada2"
+        },
+        {
+          "id": "goodbye",
+          "title": "På gensyn",
+          "crop": {
+            "left": 1090,
+            "top": 542,
+            "width": 402,
+            "height": 453
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            399,
+            451
+          ],
+          "transparentPixelsInCrop": 69594,
+          "pngSha256": "b29105416ac92e1977969aa59b8434232283199a630078b9e342d9b306901169"
+        }
+      ]
+    },
+    {
+      "file": "sheet-4.png",
+      "reference": "01-spordetektiven.png",
+      "sha256": "9d1268010361155898917b8bf201379b19f1d1a31dd7a7f62cb0df34189ff5fe",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck holds round coral replay arrow enclosing tiny red error dot.\nTop-middle: duck points to the smallest of three teal cubes of increasing size.\nTop-right: duck compares two big cards, one green checkmark and one red X.\nBottom-left: duck uses brass magnifier on one distinct teal puzzle piece.\nBottom-middle: duck points to first red domino in compact row of three green and red tiles.\nBottom-right: duck holds teal note with a large orange question mark and an inquisitive gaze.",
+      "entries": [
+        {
+          "id": "reproduce",
+          "title": "Genskab fejlen",
+          "crop": {
+            "left": 48,
+            "top": 15,
+            "width": 415,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            412,
+            468
+          ],
+          "transparentPixelsInCrop": 63381,
+          "pngSha256": "e1aee66ab0e3461a4077fe9001952a305ac24670658f8aab7821f3a2ab65636d"
+        },
+        {
+          "id": "minimal-repro",
+          "title": "Mindste eksempel",
+          "crop": {
+            "left": 537,
+            "top": 16,
+            "width": 436,
+            "height": 469
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            433,
+            466
+          ],
+          "transparentPixelsInCrop": 73422,
+          "pngSha256": "1038ee2b9252367684f711605980fe607518342becfda9bc98e9a85488044934"
+        },
+        {
+          "id": "expected-actual",
+          "title": "Forventet og faktisk",
+          "crop": {
+            "left": 1057,
+            "top": 16,
+            "width": 415,
+            "height": 473
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            413,
+            470
+          ],
+          "transparentPixelsInCrop": 59032,
+          "pngSha256": "c5d7586ce82cd3dc40d44b5f3510016e9e732471cf52e5681df6569d02acd496"
+        },
+        {
+          "id": "isolate",
+          "title": "Isolér fejlen",
+          "crop": {
+            "left": 47,
+            "top": 523,
+            "width": 415,
+            "height": 479
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            412,
+            477
+          ],
+          "transparentPixelsInCrop": 59875,
+          "pngSha256": "fb4480fc083897869e13366c381bee5271781cea54fe0ab90e694f009d616ed7"
+        },
+        {
+          "id": "first-failure",
+          "title": "Første fejl",
+          "crop": {
+            "left": 524,
+            "top": 521,
+            "width": 454,
+            "height": 480
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            451,
+            478
+          ],
+          "transparentPixelsInCrop": 81548,
+          "pngSha256": "f10f49d2761bf664c94cafbd45caaf994b839d3bb74122e5dc88df5ef3261f33"
+        },
+        {
+          "id": "hypothesis",
+          "title": "Gæt og tjek",
+          "crop": {
+            "left": 1073,
+            "top": 525,
+            "width": 416,
+            "height": 476
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            413,
+            474
+          ],
+          "transparentPixelsInCrop": 58097,
+          "pngSha256": "57414c1b297afe2aa76cace3a63c36d2391edc490a4a39a89d2b844399066321"
+        }
+      ]
+    },
+    {
+      "file": "sheet-5.png",
+      "reference": "03-vaerkstedsanden.png",
+      "sha256": "26311ad9c35ad06718d667d654b2e39d9ddcd75545d1d0de7d061b19affe3054",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck points at red circular breakpoint to the left of three short dark code-line marks on a light card, exactly one red dot, no lettering.\nTop-middle: duck presses large green triangular play button on a small control box.\nTop-right: duck shows large blue curved arrow traveling over one tiny code cube.\nBottom-left: duck shows large blue downward arrow entering a small dark indigo code box.\nBottom-middle: duck raises a bright teal upward arrow emerging from a small orange code box.\nBottom-right: duck holds red circle beside a small geometric funnel icon.",
+      "entries": [
+        {
+          "id": "breakpoint",
+          "title": "Breakpoint",
+          "crop": {
+            "left": 45,
+            "top": 19,
+            "width": 437,
+            "height": 475
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            434,
+            473
+          ],
+          "transparentPixelsInCrop": 73139,
+          "pngSha256": "480ad02ecc7e177702e6a9393e671371cbc55a1d66ebe251aac7e575bf97e3c7"
+        },
+        {
+          "id": "continue",
+          "title": "Fortsæt",
+          "crop": {
+            "left": 553,
+            "top": 15,
+            "width": 395,
+            "height": 483
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            393,
+            481
+          ],
+          "transparentPixelsInCrop": 62553,
+          "pngSha256": "c37c06a388b41b136672df34fc93af691088ea4a2ee2cc3cb1df9871d39a851d"
+        },
+        {
+          "id": "step-over",
+          "title": "Step over",
+          "crop": {
+            "left": 1033,
+            "top": 20,
+            "width": 470,
+            "height": 475
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            467,
+            473
+          ],
+          "transparentPixelsInCrop": 92345,
+          "pngSha256": "8478e592f8d4fd517e7f4d0dbbb3e565551d27978b83d0ca8da0051c891587b9"
+        },
+        {
+          "id": "step-into",
+          "title": "Step into",
+          "crop": {
+            "left": 64,
+            "top": 523,
+            "width": 401,
+            "height": 476
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            398,
+            473
+          ],
+          "transparentPixelsInCrop": 57069,
+          "pngSha256": "39d02406908ca81dd8be4b705b3d4cc86ab31cba06a87f112eb3abb1e20e9f42"
+        },
+        {
+          "id": "step-out",
+          "title": "Step out",
+          "crop": {
+            "left": 556,
+            "top": 523,
+            "width": 405,
+            "height": 477
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            402,
+            474
+          ],
+          "transparentPixelsInCrop": 58265,
+          "pngSha256": "5303c20b2321b11ffe9665fd8d11d703fcfe51d0ebfbe20ce44620484c702ac4"
+        },
+        {
+          "id": "breakpoint-condition",
+          "title": "Betinget breakpoint",
+          "crop": {
+            "left": 1043,
+            "top": 528,
+            "width": 452,
+            "height": 471
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            449,
+            469
+          ],
+          "transparentPixelsInCrop": 77808,
+          "pngSha256": "3098e3c823d69232a250bfc1e775f2995c7375a3e37e82dd35dcb5179baff84e"
+        }
+      ]
+    },
+    {
+      "file": "sheet-6.png",
+      "reference": "05-logvagten.png",
+      "sha256": "6b6a1e745198ce725edd9ac3c5b30dd2809c9525f1b5d7bafdcf001a1d506388",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck looks into dark inset tray holding three neatly stacked colored blocks.\nTop-middle: duck observes a single green cube inside a rounded miniature window, one eye squints.\nTop-right: duck holds three stacked blue function cards, points to top card.\nBottom-left: duck unrolls a compact light scroll showing three indented dark marks and a red error dot, no text.\nBottom-middle: duck studies long narrow log receipt with teal, amber and coral lines in an upright silhouette.\nBottom-right: duck touches copper diamond log marker at left of three short dark line marks on a light card, no text.",
+      "entries": [
+        {
+          "id": "locals",
+          "title": "Lokale variabler",
+          "crop": {
+            "left": 96,
+            "top": 22,
+            "width": 356,
+            "height": 466
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            354,
+            464
+          ],
+          "transparentPixelsInCrop": 51664,
+          "pngSha256": "f97f182820d04155b1fca55c62fa81ff254e8dddfaffefbe12cfb67c1753c1a3"
+        },
+        {
+          "id": "watch",
+          "title": "Watch",
+          "crop": {
+            "left": 579,
+            "top": 22,
+            "width": 378,
+            "height": 469
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            376,
+            466
+          ],
+          "transparentPixelsInCrop": 58187,
+          "pngSha256": "5451fcf9fbf1cbb3fb4820e1b161f5f15013ba12cdb2642487b2482ee0472a43"
+        },
+        {
+          "id": "call-stack",
+          "title": "Call stack",
+          "crop": {
+            "left": 1101,
+            "top": 19,
+            "width": 368,
+            "height": 472
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            366,
+            469
+          ],
+          "transparentPixelsInCrop": 50975,
+          "pngSha256": "a5c5c732cd4471eb2ea2d6ef7dadb6b6777f9d2c025c6b9392e4f1f05b1f8fe1"
+        },
+        {
+          "id": "stack-trace",
+          "title": "Stack trace",
+          "crop": {
+            "left": 79,
+            "top": 536,
+            "width": 368,
+            "height": 472
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            366,
+            470
+          ],
+          "transparentPixelsInCrop": 54146,
+          "pngSha256": "7dbb85395ef16738053b33158c7f98dffb9e99b16cc716eb166baaa07c5100b7"
+        },
+        {
+          "id": "logs",
+          "title": "Læs loggen",
+          "crop": {
+            "left": 577,
+            "top": 532,
+            "width": 378,
+            "height": 477
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            375,
+            475
+          ],
+          "transparentPixelsInCrop": 57724,
+          "pngSha256": "b3eb7586a0ecee669622786d18c8d076f52797502afb74d7b4040ae0f15c45a6"
+        },
+        {
+          "id": "log-point",
+          "title": "Logpoint",
+          "crop": {
+            "left": 1085,
+            "top": 530,
+            "width": 388,
+            "height": 476
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            385,
+            474
+          ],
+          "transparentPixelsInCrop": 64315,
+          "pngSha256": "5fd2b1dc9b6386f7b34fcf05793922a22231ac7bdbf9246fcb0b9792a5177d79"
+        }
+      ]
+    },
+    {
+      "file": "sheet-7.png",
+      "reference": "04-graensetestpiloten.png",
+      "sha256": "069f75636d8508fd89f9bc898e4ef9374fd4f6ade90409ad574c88467ddec50f",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck holds a single clearly empty blue outline frame and looks through it.\nTop-middle: duck looks into a small transparent open cubby with nothing inside.\nTop-right: duck carefully balances a small red cube at edge of a small blue ledge.\nBottom-left: duck points to one extra coral tile apart from three joined blue tiles.\nBottom-middle: duck reacts to orange warning triangle with centered dark exclamation symbol.\nBottom-right: duck inspects a big teal hourglass almost out of sand, looks impatient.",
+      "entries": [
+        {
+          "id": "empty-input",
+          "title": "Tomt input",
+          "crop": {
+            "left": 45,
+            "top": 28,
+            "width": 444,
+            "height": 426
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            441,
+            423
+          ],
+          "transparentPixelsInCrop": 63011,
+          "pngSha256": "b673e5ebd5e8adb8a17609797615bfc4a75eb90c1e245784efab5fc9a93c48c2"
+        },
+        {
+          "id": "null-value",
+          "title": "Null-værdi",
+          "crop": {
+            "left": 544,
+            "top": 28,
+            "width": 391,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            388,
+            444
+          ],
+          "transparentPixelsInCrop": 57524,
+          "pngSha256": "fd11f1af3dbae166ff68992bc9555eee6c27d9906fcef6cd5f87a884e73789bc"
+        },
+        {
+          "id": "boundary",
+          "title": "Grænsetilfælde",
+          "crop": {
+            "left": 1016,
+            "top": 30,
+            "width": 482,
+            "height": 424
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            480,
+            422
+          ],
+          "transparentPixelsInCrop": 76827,
+          "pngSha256": "2b98251af531076eed52e8c3c1926f2dc921a18a1e7f4a603946c52fcf5d80ce"
+        },
+        {
+          "id": "off-by-one",
+          "title": "Én for meget",
+          "crop": {
+            "left": 22,
+            "top": 533,
+            "width": 452,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            450,
+            444
+          ],
+          "transparentPixelsInCrop": 76569,
+          "pngSha256": "73583d43fce2fa980d9a68becf39a5981d73cb4029224136f2a22b8e0d2a3970"
+        },
+        {
+          "id": "exception",
+          "title": "Exception",
+          "crop": {
+            "left": 503,
+            "top": 532,
+            "width": 479,
+            "height": 448
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            477,
+            445
+          ],
+          "transparentPixelsInCrop": 85645,
+          "pngSha256": "270b1a88bb30774bf121dbca6a73e73a27be00a19d0831568d0af0d817777fc5"
+        },
+        {
+          "id": "timeout",
+          "title": "Timeout",
+          "crop": {
+            "left": 1005,
+            "top": 553,
+            "width": 509,
+            "height": 431
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            507,
+            428
+          ],
+          "transparentPixelsInCrop": 71701,
+          "pngSha256": "058e343da669cb3a3347263ffe4a11c8989eef525b6ef2cbe7e7c82fc84bea75"
+        }
+      ]
+    },
+    {
+      "file": "sheet-8.png",
+      "reference": "03-vaerkstedsanden.png",
+      "sha256": "a8ca3402330f878479450c11c24ac58be8b824dce5d5f0171f6ca5f5269d2a31",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production emoji SPRITE ATLAS of exactly six isolated individual head and upper-body poses of the SAME established yellow rubber duck from reference, on a TRUE TRANSPARENT alpha background. This is a single rectangular landscape atlas, 3 columns x 2 rows. Three stickers on top, three on bottom. Center coordinates as fraction of canvas: (1/6, 1/4), (1/2, 1/4), (5/6, 1/4), then (1/6, 3/4), (1/2, 3/4), (5/6, 3/4). All equally sized, stay WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin every side, no overlap. No grid lines. Cropped bust, no feet. Each pose is ONE separate clean sticker silhouette, no shadows outside. Preserve character identity from the supplied single-role reference: bright lemon yellow softly textured rubber, broad orange duck bill, little two-point yellow forelock visible, simple dark oval bead eyes, at most two small wing flippers (no hands), painted handcrafted illustration. Copy the distinctive wardrobe role from reference but no props from reference unless listed for a cell. Changes only in pose, emotional expression and explicit icon prop. Keep accessories simple, large and readable at 48px. No background tile, scene, colored frame, typography, letters, labels, captions, gradients behind figures, watermark or checkerboard. Use a crisp alpha cutout, true alpha outside.\nTop-left: duck looks concerned at large red X on test card, clearly visible.\nTop-middle: duck smiles and holds up a large vivid green checkmark on test card.\nTop-right: duck holds one circular teal replay arrow enclosing green checkmark.\nBottom-left: duck tightens one loose screw on a small blue repair block with short screwdriver.\nBottom-middle: duck leans to explain a teal clue card to a tiny conventional baby rubber duck sitting close to elbow, no other background.\nBottom-right: duck gives an affirmative nod holding a gold shield with big green checkmark.",
+      "entries": [
+        {
+          "id": "red-test",
+          "title": "Testen fejler",
+          "crop": {
+            "left": 70,
+            "top": 13,
+            "width": 414,
+            "height": 475
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            412,
+            473
+          ],
+          "transparentPixelsInCrop": 66284,
+          "pngSha256": "3a1475e0c77a96c8b83c32fb0cd04003dc7863154b7f8cd554e5e99d22ab4a60"
+        },
+        {
+          "id": "green-test",
+          "title": "Testen består",
+          "crop": {
+            "left": 539,
+            "top": 15,
+            "width": 442,
+            "height": 473
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            440,
+            471
+          ],
+          "transparentPixelsInCrop": 65177,
+          "pngSha256": "87f4089315c5591821c39be97f486f8270fe1d8de16276b95313f8a8cd8f8d06"
+        },
+        {
+          "id": "regression-test",
+          "title": "Regressionstest",
+          "crop": {
+            "left": 1079,
+            "top": 12,
+            "width": 387,
+            "height": 479
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            385,
+            476
+          ],
+          "transparentPixelsInCrop": 60965,
+          "pngSha256": "2e8c89477d889ded1459f14cab78043acb286f2be4cef7a46b2a7a34757614c1"
+        },
+        {
+          "id": "fix",
+          "title": "Retter fejlen",
+          "crop": {
+            "left": 62,
+            "top": 508,
+            "width": 384,
+            "height": 497
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            382,
+            495
+          ],
+          "transparentPixelsInCrop": 56669,
+          "pngSha256": "c51c916825da6e37292e536c8881b84e5f3ef09ae5b034a9d92e9680568bbc14"
+        },
+        {
+          "id": "pair-debugging",
+          "title": "Fejlfinder sammen",
+          "crop": {
+            "left": 499,
+            "top": 522,
+            "width": 507,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            504,
+            468
+          ],
+          "transparentPixelsInCrop": 95874,
+          "pngSha256": "03f5deeb2aa6b40518e9e5538427673f11f010b6148d5575736e326088587523"
+        },
+        {
+          "id": "verified",
+          "title": "Løsningen er tjekket",
+          "crop": {
+            "left": 1071,
+            "top": 516,
+            "width": 407,
+            "height": 477
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            404,
+            475
+          ],
+          "transparentPixelsInCrop": 57714,
+          "pngSha256": "c74590d1d9bae718c24d5c0255fd08a61d5970934cae43373929a01efffd675f"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "generator": "builtin-imagegen",
+  "reference": "https://gummianden.vatek.dk/assets/assets/logo.png",
+  "prompts": "portrait-prompts.md",
+  "localOriginals": ".tools/gummianden-koncepter-20261109",
+  "entries": [
+    {
+      "original": "01-spordetektiven.png",
+      "originalSize": "1254x1254",
+      "originalSha256": "6711c347adcab4518f4528ce42969f5ac754e89f008747778ed8d41ea2f15471",
+      "preview": "/images/characters/gummianden/spordetektiven.webp",
+      "previewSize": "768x768",
+      "previewSha256": "8cb0dd5985abfad8b90398340741bb07071bde1194856e9f02464cd6f1ffdaf7"
+    },
+    {
+      "original": "02-lyttemakkeren.png",
+      "originalSize": "1254x1254",
+      "originalSha256": "113abff5b3d755e7fa8560e464ecbdb14296e6bfb1d9f2b1b0ce921e96cd59a3",
+      "preview": "/images/characters/gummianden/lyttemakkeren.webp",
+      "previewSize": "768x768",
+      "previewSha256": "2d1ca675308757ce35cd3127270ea5762d1936975fed9bcb97fa6518e59cca92"
+    },
+    {
+      "original": "03-vaerkstedsanden.png",
+      "originalSize": "1254x1254",
+      "originalSha256": "0303d9698c7ba20d21d26d342348cc2265730aba4aa06637020e40fd8a1609a2",
+      "preview": "/images/characters/gummianden/vaerkstedsanden.webp",
+      "previewSize": "768x768",
+      "previewSha256": "472af2d0f116bb7ade311181d18f10590932ae8ee0a0e9af47750b3b0ffa1cd1"
+    },
+    {
+      "original": "04-graensetestpiloten.png",
+      "originalSize": "1254x1254",
+      "originalSha256": "f11e98d4ee1ec2c865b2f33864569fad7e2113f031ecb293a6673255f0c8853e",
+      "preview": "/images/characters/gummianden/graensetestpiloten.webp",
+      "previewSize": "768x768",
+      "previewSha256": "983162e4555241a4a7582a5204f3905a2547b40822afbdbbea493577af8436a5"
+    },
+    {
+      "original": "05-logvagten.png",
+      "originalSize": "1254x1254",
+      "originalSha256": "55556239466d158e3da68ae616266fd9c0815f8a77b6001c197905a9670bab16",
+      "preview": "/images/characters/gummianden/logvagten.webp",
+      "previewSize": "768x768",
+      "previewSha256": "9b9478ed2e7a1147e6d4ad0bf436503104d6b2b3a22478c3e10841526338cb37"
+    }
+  ]
+}

@@ -1726,5 +1726,389 @@
     "previewBytes": 104168,
     "originalSha256": "1bc6f9464167886f03b9bd7613e7a91aebb18cc1db9d31118685303fffb457a8",
     "previewSha256": "c651b33cdffa31d9dd0f03533360662191f4ef7aac8332f5fa79753c0e486968"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/wave.png",
+    "preview": "/images/characters/gummianden/reactions/wave.webp",
+    "originalBytes": 2019050,
+    "previewBytes": 48696,
+    "originalSha256": "68dfb383762d7f51bba1f1ad94c5e7adfb3793d56770f86acc339cc7c6681326",
+    "previewSha256": "75c3ed1f08092cc481958f5dd23431db0ef37bb1c051c28dbc71a4164c03e37c"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/listening.png",
+    "preview": "/images/characters/gummianden/reactions/listening.webp",
+    "originalBytes": 1881543,
+    "previewBytes": 39016,
+    "originalSha256": "475bad151584bd9fe15b06198bef92e00a7a9e69a91685af705b2c416c36bdf8",
+    "previewSha256": "499f05369d4678ad4b54d64f1fcb4d53bad138c3b546b925e55fa847ab61b33d"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/thinking.png",
+    "preview": "/images/characters/gummianden/reactions/thinking.webp",
+    "originalBytes": 1688153,
+    "previewBytes": 36072,
+    "originalSha256": "728ae458e8a06ab5d70bf539d3c3abf665d21a70b2edf30b847fa8f0e12fa200",
+    "previewSha256": "6d55b8405d0a55a55b699256195c72e039bb1ab55b19bb1abe2d7889dff03d0c"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/question.png",
+    "preview": "/images/characters/gummianden/reactions/question.webp",
+    "originalBytes": 1756192,
+    "previewBytes": 41412,
+    "originalSha256": "43875bb18cf73f12b7ef7323f0715330333ff5fa6ed79b495d3fe249ee0d897d",
+    "previewSha256": "87da7ddd0ca31b16dfd1a355bfef0d7e30753c49041bf26e1e086acb3c89bcaa"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/idea.png",
+    "preview": "/images/characters/gummianden/reactions/idea.webp",
+    "originalBytes": 1895085,
+    "previewBytes": 50172,
+    "originalSha256": "a890a7f61eed26d41b84ef36fdbde7ffe5dd37fc0dc652d8268f65a44c65b3df",
+    "previewSha256": "e72c73ec8ed51c7d728177a5d994fd13b82feacfcc7ec8f8d52a0410c5c35376"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/explaining.png",
+    "preview": "/images/characters/gummianden/reactions/explaining.webp",
+    "originalBytes": 1795853,
+    "previewBytes": 45762,
+    "originalSha256": "54b9079668b6c2b28dab8139c6bf9f4dff3803066064378552addffd5c33973d",
+    "previewSha256": "9ce9e89c9bb4162ec3847ad1386e43dbc5a27c3e16f4a216512ea5459e264ae9"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/laughing.png",
+    "preview": "/images/characters/gummianden/reactions/laughing.webp",
+    "originalBytes": 1936189,
+    "previewBytes": 48678,
+    "originalSha256": "382ebc3e2c8169f419e1c3af59fd7011e6a4e61ce3aaaa6e0a67d874225c0d70",
+    "previewSha256": "f9045c48b33c377f530783425a0c921ff32e86f2ae5840853f86655c7a546e73"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/wink.png",
+    "preview": "/images/characters/gummianden/reactions/wink.webp",
+    "originalBytes": 1596034,
+    "previewBytes": 36216,
+    "originalSha256": "6e3ac03c875c09122fdc88a53548eb5bd697ac3119f58baf6867f2daa831d935",
+    "previewSha256": "5aba3335a4f919026751cc3258f81df974c83693661ce9c3a708ab0fe6280e24"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/surprised.png",
+    "preview": "/images/characters/gummianden/reactions/surprised.webp",
+    "originalBytes": 1934604,
+    "previewBytes": 48788,
+    "originalSha256": "807388f52a11b7982cc615b51ca67af85315244c405f5519c35194a8e662473d",
+    "previewSha256": "099f9d13978a31f9367081aeaf14936d7482174b3f84b99ef030b97ed9e98bba"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/confused.png",
+    "preview": "/images/characters/gummianden/reactions/confused.webp",
+    "originalBytes": 1878552,
+    "previewBytes": 46804,
+    "originalSha256": "b90bae1d2ef1cad819bd007be47b18a1d926b1f37e9f2c9fc8d11d5eca71967e",
+    "previewSha256": "058b36e3735be9021a0b6cc5a07c99117f2bae0d1840aafb731828f6e2ae5146"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/concerned.png",
+    "preview": "/images/characters/gummianden/reactions/concerned.webp",
+    "originalBytes": 1614049,
+    "previewBytes": 34768,
+    "originalSha256": "540e5011f011781e45b32edd5aa77aa7359da81c017173ba1d0fb561ff63c481",
+    "previewSha256": "62cf4da2f53ba6c55f9bef658c724b269059b44f7f8d39aba0b2248ba1c1b3cf"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/sleepy.png",
+    "preview": "/images/characters/gummianden/reactions/sleepy.webp",
+    "originalBytes": 1751341,
+    "previewBytes": 44330,
+    "originalSha256": "c3ccaad8cbc9186d5ec946b5164e6b0ae118547e672d43f9c1e2e8bc40bd995c",
+    "previewSha256": "179e6321e53bb7466248555e46e94fbf04e83b7da73992bc7a7e9cb022da2775"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/applause.png",
+    "preview": "/images/characters/gummianden/reactions/applause.webp",
+    "originalBytes": 1640043,
+    "previewBytes": 37614,
+    "originalSha256": "18cbb5682e54b9c3eab86ad6365e899eb0f0ff2f3050e6bdc62bc9ec4f0aa7b4",
+    "previewSha256": "d68f9e3530fa0105f413ece80e1f3f5d8bf8686fa5e3fd44cae9467f94517bb0"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/celebration.png",
+    "preview": "/images/characters/gummianden/reactions/celebration.webp",
+    "originalBytes": 2043575,
+    "previewBytes": 50602,
+    "originalSha256": "bff5289e2887d7466afc298b5576a1a453f5d17243a2f20be3d983e992a881cc",
+    "previewSha256": "2d33b181325729f337b36f00c41cf18b9771b8f7ae743fe73c190d5096cd6182"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/relieved.png",
+    "preview": "/images/characters/gummianden/reactions/relieved.webp",
+    "originalBytes": 1714101,
+    "previewBytes": 39776,
+    "originalSha256": "3c70f255118126dd5fb57b71c2ae2aea3eed6ac3288dccf46e2fa21316aad8cb",
+    "previewSha256": "af4a2d744164e616d8edeaf1a806c168bcd8187ba03a754454b23fd080e82694"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/proud.png",
+    "preview": "/images/characters/gummianden/reactions/proud.webp",
+    "originalBytes": 1724873,
+    "previewBytes": 39134,
+    "originalSha256": "b79df648937425985345f86039a459371d3910fceff8a61667bae7f9fbb45755",
+    "previewSha256": "f8878ce953030b87a248c1de28c649c7634bcbaaa5968e292ff04fd2ef712770"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/coffee.png",
+    "preview": "/images/characters/gummianden/reactions/coffee.webp",
+    "originalBytes": 1572358,
+    "previewBytes": 34180,
+    "originalSha256": "45c62da70d60b31eb36c246f81a27adc32bb43d6f9d0a4c5d86710d1b8f6ada2",
+    "previewSha256": "7423ea6cc5981142688f03fc310392468141bd10ba11081dc0427336bb2faa1b"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/goodbye.png",
+    "preview": "/images/characters/gummianden/reactions/goodbye.webp",
+    "originalBytes": 1835972,
+    "previewBytes": 46404,
+    "originalSha256": "b29105416ac92e1977969aa59b8434232283199a630078b9e342d9b306901169",
+    "previewSha256": "59d8973ec5995e93f52eed424f08eb8fd8328ac2962543da0ced1aabc6bd92ef"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/reproduce.png",
+    "preview": "/images/characters/gummianden/reactions/reproduce.webp",
+    "originalBytes": 2081508,
+    "previewBytes": 51138,
+    "originalSha256": "e1aee66ab0e3461a4077fe9001952a305ac24670658f8aab7821f3a2ab65636d",
+    "previewSha256": "64ce41c6742f67ee4b80212e3e1f9014f8fa15210842a49c0e2d9cfc75d0d5ac"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/minimal-repro.png",
+    "preview": "/images/characters/gummianden/reactions/minimal-repro.webp",
+    "originalBytes": 1990324,
+    "previewBytes": 47876,
+    "originalSha256": "1038ee2b9252367684f711605980fe607518342becfda9bc98e9a85488044934",
+    "previewSha256": "d420793eaf38b3ae1938932501ad0671246da46602c85ef87c63b36cc4a1de21"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/expected-actual.png",
+    "preview": "/images/characters/gummianden/reactions/expected-actual.webp",
+    "originalBytes": 2071190,
+    "previewBytes": 49732,
+    "originalSha256": "c5d7586ce82cd3dc40d44b5f3510016e9e732471cf52e5681df6569d02acd496",
+    "previewSha256": "97f1c1b360daad16d642344e11ee51fc5903cbd26962f32180cc3f28f97d55d6"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/isolate.png",
+    "preview": "/images/characters/gummianden/reactions/isolate.webp",
+    "originalBytes": 2122509,
+    "previewBytes": 50466,
+    "originalSha256": "fb4480fc083897869e13366c381bee5271781cea54fe0ab90e694f009d616ed7",
+    "previewSha256": "73870b95afe4292fa279ed8902bdc7c7640037d63de7e4b80eb8f23818afe293"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/first-failure.png",
+    "preview": "/images/characters/gummianden/reactions/first-failure.webp",
+    "originalBytes": 1973486,
+    "previewBytes": 47690,
+    "originalSha256": "f10f49d2761bf664c94cafbd45caaf994b839d3bb74122e5dc88df5ef3261f33",
+    "previewSha256": "ed62387241c06573ee471b355a2442e243a7559d61bae9d3141447f669454e7a"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/hypothesis.png",
+    "preview": "/images/characters/gummianden/reactions/hypothesis.webp",
+    "originalBytes": 2106620,
+    "previewBytes": 50076,
+    "originalSha256": "57414c1b297afe2aa76cace3a63c36d2391edc490a4a39a89d2b844399066321",
+    "previewSha256": "b10010c1d40d6720be754628744bd6d968b81c5fa6089e7d5bf94ae18f0aa6fe"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/breakpoint.png",
+    "preview": "/images/characters/gummianden/reactions/breakpoint.webp",
+    "originalBytes": 1944310,
+    "previewBytes": 43468,
+    "originalSha256": "480ad02ecc7e177702e6a9393e671371cbc55a1d66ebe251aac7e575bf97e3c7",
+    "previewSha256": "fa53102f04c89741213355e38e16236bf7ae7e0ed037a0c36ca87d722459f095"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/continue.png",
+    "preview": "/images/characters/gummianden/reactions/continue.webp",
+    "originalBytes": 1899833,
+    "previewBytes": 41326,
+    "originalSha256": "c37c06a388b41b136672df34fc93af691088ea4a2ee2cc3cb1df9871d39a851d",
+    "previewSha256": "203e13fb33c85d896ecd692a091ff18c16d0a12710410f50bfb2704a08ad228e"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/step-over.png",
+    "preview": "/images/characters/gummianden/reactions/step-over.webp",
+    "originalBytes": 2050074,
+    "previewBytes": 53370,
+    "originalSha256": "8478e592f8d4fd517e7f4d0dbbb3e565551d27978b83d0ca8da0051c891587b9",
+    "previewSha256": "91eb04164c8a75e53525acb5a774d705acd2ef0da99f6be20f79157876eb9d2d"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/step-into.png",
+    "preview": "/images/characters/gummianden/reactions/step-into.webp",
+    "originalBytes": 1992508,
+    "previewBytes": 45970,
+    "originalSha256": "39d02406908ca81dd8be4b705b3d4cc86ab31cba06a87f112eb3abb1e20e9f42",
+    "previewSha256": "48cf08185b2d6e6af45cacbdae322a82c285325f8f69408d96666c36cd9284c8"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/step-out.png",
+    "preview": "/images/characters/gummianden/reactions/step-out.webp",
+    "originalBytes": 1999168,
+    "previewBytes": 49982,
+    "originalSha256": "5303c20b2321b11ffe9665fd8d11d703fcfe51d0ebfbe20ce44620484c702ac4",
+    "previewSha256": "fe84d71e0fdb6ec1433e8a0b06944de7e48488019dd62b5b2de857d0d7e4200f"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/breakpoint-condition.png",
+    "preview": "/images/characters/gummianden/reactions/breakpoint-condition.webp",
+    "originalBytes": 2038497,
+    "previewBytes": 48232,
+    "originalSha256": "3098e3c823d69232a250bfc1e775f2995c7375a3e37e82dd35dcb5179baff84e",
+    "previewSha256": "46a3124bba64d8ea5d83d7752d34ad5092f9b006f82f538c0163af1812116383"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/locals.png",
+    "preview": "/images/characters/gummianden/reactions/locals.webp",
+    "originalBytes": 1580710,
+    "previewBytes": 32528,
+    "originalSha256": "f97f182820d04155b1fca55c62fa81ff254e8dddfaffefbe12cfb67c1753c1a3",
+    "previewSha256": "c316664243b8c90d95d1a3a64a22565dfb49d784792c3ea1ce240f79106a8705"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/watch.png",
+    "preview": "/images/characters/gummianden/reactions/watch.webp",
+    "originalBytes": 1624887,
+    "previewBytes": 33500,
+    "originalSha256": "5451fcf9fbf1cbb3fb4820e1b161f5f15013ba12cdb2642487b2482ee0472a43",
+    "previewSha256": "092a5f8112d7474087335b9e5eee1a409a0770aad5e900c6b0b70caa9e05d315"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/call-stack.png",
+    "preview": "/images/characters/gummianden/reactions/call-stack.webp",
+    "originalBytes": 1714359,
+    "previewBytes": 38338,
+    "originalSha256": "a5c5c732cd4471eb2ea2d6ef7dadb6b6777f9d2c025c6b9392e4f1f05b1f8fe1",
+    "previewSha256": "3a61ad32aa97a71ff778baf72a35cf597d3db4eecd5e2be28f11649b277681ee"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/stack-trace.png",
+    "preview": "/images/characters/gummianden/reactions/stack-trace.webp",
+    "originalBytes": 1648431,
+    "previewBytes": 34700,
+    "originalSha256": "7dbb85395ef16738053b33158c7f98dffb9e99b16cc716eb166baaa07c5100b7",
+    "previewSha256": "9941585725f74f245aca70ba1e21998dbecd8e9919a2a4b5111a984a8021b8eb"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/logs.png",
+    "preview": "/images/characters/gummianden/reactions/logs.webp",
+    "originalBytes": 1676098,
+    "previewBytes": 35900,
+    "originalSha256": "b3eb7586a0ecee669622786d18c8d076f52797502afb74d7b4040ae0f15c45a6",
+    "previewSha256": "b1864791e1f4178a167be9a52c0ca60ce041c79f5ab63d38027c2d52fa4f439d"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/log-point.png",
+    "preview": "/images/characters/gummianden/reactions/log-point.webp",
+    "originalBytes": 1604586,
+    "previewBytes": 33502,
+    "originalSha256": "5fd2b1dc9b6386f7b34fcf05793922a22231ac7bdbf9246fcb0b9792a5177d79",
+    "previewSha256": "eb2a322e3802b789c18ad76d58e43bbc06f6661c537ab760c76d01e415e92c9a"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/empty-input.png",
+    "preview": "/images/characters/gummianden/reactions/empty-input.webp",
+    "originalBytes": 2183514,
+    "previewBytes": 51950,
+    "originalSha256": "b673e5ebd5e8adb8a17609797615bfc4a75eb90c1e245784efab5fc9a93c48c2",
+    "previewSha256": "9212379c2368c8feb6e1bbc56c88f1fc52ddd1debb2d53f3915a9ec5af46a5ab"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/null-value.png",
+    "preview": "/images/characters/gummianden/reactions/null-value.webp",
+    "originalBytes": 1985945,
+    "previewBytes": 46538,
+    "originalSha256": "fd11f1af3dbae166ff68992bc9555eee6c27d9906fcef6cd5f87a884e73789bc",
+    "previewSha256": "a83df58c6ed25741fb4087628be456d7b8be86ba53299c99349e11edae8fb0b8"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/boundary.png",
+    "preview": "/images/characters/gummianden/reactions/boundary.webp",
+    "originalBytes": 1912316,
+    "previewBytes": 48848,
+    "originalSha256": "2b98251af531076eed52e8c3c1926f2dc921a18a1e7f4a603946c52fcf5d80ce",
+    "previewSha256": "11a328abef38202dd0ffabc41be1540f8d87d01558762794149a4bde9e804950"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/off-by-one.png",
+    "preview": "/images/characters/gummianden/reactions/off-by-one.webp",
+    "originalBytes": 2127560,
+    "previewBytes": 53362,
+    "originalSha256": "73583d43fce2fa980d9a68becf39a5981d73cb4029224136f2a22b8e0d2a3970",
+    "previewSha256": "f0288e162c28936e719b3cf412d780a93ec9a92370429a5b72f6e2841bf7893c"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/exception.png",
+    "preview": "/images/characters/gummianden/reactions/exception.webp",
+    "originalBytes": 1932851,
+    "previewBytes": 48752,
+    "originalSha256": "270b1a88bb30774bf121dbca6a73e73a27be00a19d0831568d0af0d817777fc5",
+    "previewSha256": "88671a97bcc3dee29237138f5aa0396dbc614e35cc8f3d6f8c645b1ec5be8afa"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/timeout.png",
+    "preview": "/images/characters/gummianden/reactions/timeout.webp",
+    "originalBytes": 2027352,
+    "previewBytes": 51470,
+    "originalSha256": "058e343da669cb3a3347263ffe4a11c8989eef525b6ef2cbe7e7c82fc84bea75",
+    "previewSha256": "0dcb9a838921cb4b83b727381310d62b11190564b53f37e6a9ba80456c7cbcd5"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/red-test.png",
+    "preview": "/images/characters/gummianden/reactions/red-test.webp",
+    "originalBytes": 1838081,
+    "previewBytes": 42274,
+    "originalSha256": "3a1475e0c77a96c8b83c32fb0cd04003dc7863154b7f8cd554e5e99d22ab4a60",
+    "previewSha256": "9898ab5bd4fc088d2167ae4e6f07ea33f26ff424ffc6de27f5e1e7c8737ae544"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/green-test.png",
+    "preview": "/images/characters/gummianden/reactions/green-test.webp",
+    "originalBytes": 2032120,
+    "previewBytes": 50048,
+    "originalSha256": "87f4089315c5591821c39be97f486f8270fe1d8de16276b95313f8a8cd8f8d06",
+    "previewSha256": "650851c0f98a3f721cf5adbba2173f205f76931a98c629ff04ffb7232e2838a0"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/regression-test.png",
+    "preview": "/images/characters/gummianden/reactions/regression-test.webp",
+    "originalBytes": 1735449,
+    "previewBytes": 40152,
+    "originalSha256": "2e8c89477d889ded1459f14cab78043acb286f2be4cef7a46b2a7a34757614c1",
+    "previewSha256": "fe2b33dd1a8cdb3eb82ffbfd82c61e3c1d7f6d799094e5a2992df9f3f521e3c7"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/fix.png",
+    "preview": "/images/characters/gummianden/reactions/fix.webp",
+    "originalBytes": 1858957,
+    "previewBytes": 42016,
+    "originalSha256": "c51c916825da6e37292e536c8881b84e5f3ef09ae5b034a9d92e9680568bbc14",
+    "previewSha256": "af2842782f7c00e369e22cd52182b1f561c09d3e963beb5a32af9bf017ca84c8"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/pair-debugging.png",
+    "preview": "/images/characters/gummianden/reactions/pair-debugging.webp",
+    "originalBytes": 1815709,
+    "previewBytes": 47906,
+    "originalSha256": "03f5deeb2aa6b40518e9e5538427673f11f010b6148d5575736e326088587523",
+    "previewSha256": "0047e3a41a92d86f98e7084b30bebf90dbf7bcee212d183510a287a2a1930af7"
+  },
+  {
+    "image": "/images/characters/gummianden/reactions/verified.png",
+    "preview": "/images/characters/gummianden/reactions/verified.webp",
+    "originalBytes": 1975349,
+    "previewBytes": 47386,
+    "originalSha256": "c74590d1d9bae718c24d5c0255fd08a61d5970934cae43373929a01efffd675f",
+    "previewSha256": "2948035b8c7f3389950889a37683b1f2fd8007693d17602c868d1de609826da2"
   }
 ]

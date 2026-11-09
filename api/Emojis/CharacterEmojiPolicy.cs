@@ -17,13 +17,23 @@ public static class CharacterEmojiPolicy
 
     public static EmojiResolvedMetadata Resolve(CharacterEmojiAsset emoji)
     {
-        var characterName = emoji.CharacterSlug switch { "lupp" => "LUPP", "beaver" => "bæver", "fox" => "ræv", "chameleon" => "kamæleonen", "whale" => "Docker", _ => "raymond" };
+        var characterName = emoji.CharacterSlug switch
+        {
+            "lupp" => "LUPP",
+            "beaver" => "bæver",
+            "fox" => "ræv",
+            "chameleon" => "kamæleonen",
+            "whale" => "Docker",
+            "gummianden" => "Gummianden",
+            _ => "raymond"
+        };
         var subject = emoji.CharacterSlug switch
         {
             "lupp" => new[] { "Game Design", "spil", "gameplay" },
             "raymond" => new[] { "SQL", "database" },
             "chameleon" => new[] { "Machine Learning", "machinelearning", "maskinlæring", "ML", "kamæleon", "kameleon", "data", "model" },
             "whale" => new[] { "hval", "havnekaptajn", "DevNet", "Docker", "container", "Compose", "deploy", "deployment" },
+            "gummianden" => new[] { "gummiand", "debugging", "fejlfinding", "rubber duck", "VATek" },
             _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
         };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
@@ -55,6 +65,14 @@ public static class CharacterEmojiPolicy
                 or "staging" or "deploy" or "canary" or "rollout" or "outage"
                 when emoji.CharacterSlug == "whale" => "technology",
             "coffee_break" or "tugboat" or "tide_log" when emoji.CharacterSlug == "whale" => "everyday",
+            "idea" or "explaining" or "hypothesis" or "pair_debugging"
+                when emoji.CharacterSlug == "gummianden" => "learning",
+            "reproduce" or "minimal_repro" or "expected_actual" or "isolate" or "first_failure"
+                or "breakpoint" or "continue" or "step_over" or "step_into" or "step_out" or "breakpoint_condition"
+                or "locals" or "watch" or "call_stack" or "stack_trace" or "logs" or "log_point"
+                or "empty_input" or "null_value" or "boundary" or "off_by_one" or "exception" or "timeout"
+                or "red_test" or "green_test" or "fix" or "verified"
+                when emoji.CharacterSlug == "gummianden" => "technology",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

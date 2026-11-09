@@ -1,0 +1,190 @@
+{
+  "approach": "16 originale danske undervisningsbilleder. De fem valgte gummiandeportrætter fungerer som stil- og figurerreferencer. Lærerens forklaring og kodeeksempler ligger i DuckTeachingMaterials.cs.",
+  "generator": "Indbygget ImageGen",
+  "characterConcepts": {
+    "documentation": "portrait-provenance.json",
+    "originals": [
+      {
+        "file": "01-spordetektiven.png",
+        "sha256": "6711c347adcab4518f4528ce42969f5ac754e89f008747778ed8d41ea2f15471"
+      },
+      {
+        "file": "02-lyttemakkeren.png",
+        "sha256": "113abff5b3d755e7fa8560e464ecbdb14296e6bfb1d9f2b1b0ce921e96cd59a3"
+      },
+      {
+        "file": "03-vaerkstedsanden.png",
+        "sha256": "0303d9698c7ba20d21d26d342348cc2265730aba4aa06637020e40fd8a1609a2"
+      },
+      {
+        "file": "04-graensetestpiloten.png",
+        "sha256": "f11e98d4ee1ec2c865b2f33864569fad7e2113f031ecb293a6673255f0c8853e"
+      },
+      {
+        "file": "05-logvagten.png",
+        "sha256": "55556239466d158e3da68ae616266fd9c0815f8a77b6001c197905a9670bab16"
+      }
+    ]
+  },
+  "output": {
+    "folder": "web/wwwroot/images/characters/gummianden/infographics",
+    "original": {
+      "format": "png",
+      "width": 1536,
+      "height": 1024
+    },
+    "preview": {
+      "format": "webp",
+      "width": 768,
+      "height": 512
+    }
+  },
+  "commonPrompt": "Create a polished Danish educational infographic about debugging for teen and adult C# learners, exactly 1536×1024 landscape 3:2. Use the attached character concept as visual identity: genuine molded lemon-yellow rubber duck with broad apricot-orange bill, glossy black oval eyes, two-lobe tuft and two short wing flippers. Keep the recognizable garment, material, and colors from the reference. Do not copy the pose or background. Left third contains the character in a lively upper-body or full-body pose interacting with the core diagram. Right two thirds is a carefully organized diagram, on off-white panels with legible large black or deep ink typography. Warm cream paper, a restrained dark ink and teal base, orange/amber and restrained red/green accents for meaning. Text above panels must have generous margins. Preserve exact spellings and numbers when text is specified, no extra microtext or decorative fake code. Never show false code or fabricated IDE screenshots. No logos, no watermark. Deliver one cohesive infographic, distinct from a UI screenshot, clear even as a small card.",
+  "illustrations": [
+    {
+      "slug": "01-forklar-fejlen",
+      "pngSha256": "c3bac7431a8fcbacfd2f13fec2b54fd8028c06067443f20c3b5c511ab399a967",
+      "pngBytes": 2300555,
+      "previewSha256": "669737c1e1004b21d725d94c4064ebb0db1e6b76ff11cd03fb3a8bbd9c9827f1",
+      "previewBytes": 48314,
+      "reference": "02-lyttemakkeren.png",
+      "prompt": "Title exactly 'Forklar fejlen højt'. Show the duck cupping a wing attentively, listening to a blank speech bubble leading toward three large illustrated cue cards with one small icon each. Cards in descending order have exactly 'Forventet', 'Faktisk', 'Første forskel'. Dotted line connects them. A small pencil and one teal mug evoke the listener without adding clutter."
+    },
+    {
+      "slug": "02-genskab-fejlen",
+      "pngSha256": "e2585f2447fbca191af6f7484a30a6fe06bbfff1dba109e7c2965fa4ba819a3b",
+      "pngBytes": 2521039,
+      "previewSha256": "6e5367e8dfbdea182399b30098dba6802e5d1b7e90e0aad1bbd33d0cefe3f9b7",
+      "previewBytes": 59296,
+      "reference": "01-spordetektiven.png",
+      "prompt": "Title exactly 'Genskab fejlen'. The detective duck places a translucent magnifier over a three-step evidence trail, depicted as numbered paper evidence tabs, which reads 'Samme input', 'Samme trin', 'Samme fejl'. A curved return arrow around the three tabs signifies repeating the experiment. Use a controlled teal and amber color rhythm."
+    },
+    {
+      "slug": "03-forventet-og-faktisk",
+      "pngSha256": "52825930bbb9f81ef6f28adc81a8999c2063488bec9ff78dc70854534877cc94",
+      "pngBytes": 2232474,
+      "previewSha256": "990fbb632bf6c0befab889a150ec4c2ea6a47a8249915438e3525305326f5b6d",
+      "previewBytes": 37020,
+      "reference": "02-lyttemakkeren.png",
+      "prompt": "Title exactly 'Forventet og faktisk'. The listening duck points to two large scorecards with exactly 'Forventet: 6' on left and 'Faktisk: 9' on right. A single matching input token underneath is stamped 'Input: 3'. Show the contrast with two columns and no red X on the input. No other labels."
+    },
+    {
+      "slug": "04-mindste-eksempel",
+      "pngSha256": "d3ae5eb6d9772780124549b1b046e35157860a87039d13e8674a9dbee4621d10",
+      "pngBytes": 2450920,
+      "previewSha256": "7b1aa85fa12b68688e739374cfade44a0a2c3bd808882d9add7497d994257dac",
+      "previewBytes": 62708,
+      "reference": "03-vaerkstedsanden.png",
+      "prompt": "Title exactly 'Det mindste eksempel'. The mechanic duck removes unnecessary nested parts from a friendly illustrated bench. A three-step visual of a crowded mechanical assembly, then a few parts, then just a single offending red switch that remains in view throughout. Labels exactly 'Hele appen', 'Færre dele', 'Samme fejl'."
+    },
+    {
+      "slug": "05-laes-fejlbeskeden",
+      "pngSha256": "71c6212725bb3c968a3f5c2985c5de5d680e1f497a2e76fd3cf3f51861c01da6",
+      "pngBytes": 2547976,
+      "previewSha256": "e8f255197e97ed16d679901d0a33cd21a280ac85eaa72297b54259d0a7d6a931",
+      "previewBytes": 53698,
+      "reference": "01-spordetektiven.png",
+      "prompt": "Title exactly 'Læs fejlbeskeden'. Detective duck inspecting a large incident card with three rows labeled 'Type', 'Besked' and 'Sted', with abstract iconography: warning triangle, speech bubble and document pin. Use distinctive vertical scan from first row to last. Do not write exception names or other filler."
+    },
+    {
+      "slug": "06-saet-et-breakpoint",
+      "pngSha256": "8ffea03ace971d3f25bc454626401a381ea11ea17cb39bf0bd4187f358cb5f6b",
+      "pngBytes": 2326972,
+      "previewSha256": "07732048da117aaaab05901be4ae5a07eba489278c6315f8bafd8f3ef0355894",
+      "previewBytes": 38288,
+      "reference": "04-graensetestpiloten.png",
+      "prompt": "Title exactly 'Sæt et breakpoint'. Pilot duck lightly touches the red dot in a simplified code editor gutter. Three wide horizontal code-shaped teal strokes only, no words inside code area. A large RED DOT in the LEFT margin on the middle row, an amber arrow and soft highlight on that exact SAME row to indicate execution is paused there. Along the bottom three clear labels 'Sæt stop', 'Kør', 'Undersøg'. No depiction of a real product."
+    },
+    {
+      "slug": "07-betinget-breakpoint",
+      "pngSha256": "607ad26f2c7a5b18536e7e815c1aa92d484c8381c694445dad966250146ec64a",
+      "pngBytes": 2237482,
+      "previewSha256": "9517785108956feb8680102dbc03df7491dab8de13fa6446f0dd51c04bfe70f2",
+      "previewBytes": 44382,
+      "reference": "04-graensetestpiloten.png",
+      "prompt": "Title exactly 'Betinget breakpoint'. The pilot duck at a loop track with four large ordered tiles 'i = 0', 'i = 1', 'i = 2', 'i = 3'. First three are unobstructed, an amber pause marker and red breakpoint dot mark only the fourth tile. A rule card above reads 'Stop når i == 3'. Maintain the C# double-equals as written."
+    },
+    {
+      "slug": "08-locals-og-watch",
+      "pngSha256": "c8d1486a300e78c43a3794c500346525a35aa0a2b968a813e739a74c7a5f07ee",
+      "pngBytes": 2213542,
+      "previewSha256": "fda38edf847f0ca56b8402c59dbba8147b3ee7bd86430d0f927828a7512db49d",
+      "previewBytes": 35912,
+      "reference": "05-logvagten.png",
+      "prompt": "Title exactly 'Locals og Watch'. The observant duck with tiny round reading glasses looks at two separate simplified debugger inspection cards. Left card title 'Locals', with one large 'i = 2'. Right card title 'Watch', with one large 'i + 1 = 3'. A thin horizontal connector conveys that the expression derives from the current value. No actual editor screenshot."
+    },
+    {
+      "slug": "09-step-into-over-out",
+      "pngSha256": "f4a95da457c0827d2956aa0da7c231fb8c4ec157ded75a5f1a7297af07b7edc6",
+      "pngBytes": 2380747,
+      "previewSha256": "ea8f14699778cff17a5866865c8eb529f6da7fa2e47e04cb6afa7fe76aef6c81",
+      "previewBytes": 57434,
+      "reference": "04-graensetestpiloten.png",
+      "prompt": "Title exactly 'Step Into, Over og Out'. The pilot duck stands beside a stylized three-lane flight diagram built from three clean boxes side by side. First label 'Into' with path entering an inset box, second label 'Over' with path continuing past the closed box, third label 'Out' with path rising and exiting an inset box. Arrow direction must communicate enter, next at the same level, and leave. No commands or keys in the image."
+    },
+    {
+      "slug": "10-call-stack",
+      "pngSha256": "9a58fce4baed61b451df8a844dfc4bf4949e2c76547f6904492ab843a62066a4",
+      "pngBytes": 2558848,
+      "previewSha256": "6305c54f6556f5717cec5ecdbc459a9cc0b6590c1694f68a5199a4a7064bbea3",
+      "previewBytes": 51750,
+      "reference": "01-spordetektiven.png",
+      "prompt": "Title exactly 'Læs Call Stack'. The detective duck investigates three large stacked tracing cards like evidence files. Label the TOP card 'HentPris', the MIDDLE card 'BeregnTotal' and the BOTTOM card 'Main'. Visually highlight the TOP card as current, with a small amber pointer and no other text. The stack should read from most recent call on top to original caller below."
+    },
+    {
+      "slug": "11-foelg-loggen",
+      "pngSha256": "5eeea34bb2780a60cac3bf5df2d70a84effe8b93150c56eb5f3a416d2f3732f2",
+      "pngBytes": 2269324,
+      "previewSha256": "90d563ce1e61c8f7a4fe81898f90eecd4ab5f4a0879bf4e48da0ba609def661a",
+      "previewBytes": 61852,
+      "reference": "05-logvagten.png",
+      "prompt": "Title exactly 'Følg loggen'. Night-watch duck shines a warm tiny desk lamp on three paper timeline entries. Labels exactly 'Start', 'Input', 'Fejl' in clear order, with only the last event accented in red. Small consistent teal event-tag badges to suggest correlating a single run. No timestamps or numbers. Use an intimate dusk-blue accent against cream."
+    },
+    {
+      "slug": "12-off-by-one",
+      "pngSha256": "95572f42a5c753ed456ba077a0b6616ad00d12cd65a63bbdb844fb6e0309db30",
+      "pngBytes": 2284015,
+      "previewSha256": "e4c4deb53fd35db1e48def7897d6a7684e4bc741f28e8608eebaef885b8d7d92",
+      "previewBytes": 65906,
+      "reference": "03-vaerkstedsanden.png",
+      "prompt": "Title exactly 'Én plads for langt'. The mechanic duck is reaching toward a row of THREE yellow index bins labeled in order '0', '1', '2'. Then leave a visible gap and show an outline-only crossed red fourth position labeled '3'. No extra bins. Draw a bracket only under the three valid bins, label it 'Gyldige indeks'. The contrast is visual, clear and mathematically precise."
+    },
+    {
+      "slug": "13-null-og-graenser",
+      "pngSha256": "896ca920f6ea2523d98b1a7562d2eba182e39eb65ee51eb145334e392e3fc94f",
+      "pngBytes": 2383686,
+      "previewSha256": "ae373e2837d08bcef6429282f046c25ddb1527428ba911331dcd462bec3b2478",
+      "previewBytes": 49822,
+      "reference": "04-graensetestpiloten.png",
+      "prompt": "Title exactly 'Prøv grænserne'. The pilot duck points to three separate illustrated input trays representing absence, empty value, and a value with something in it. Labels exactly 'null', 'Tom streng', 'Én værdi'. Absence represented by a dashed silhouette, empty string by a real open empty tray, one value by tray holding one blue bead. Keep the three visually distinct."
+    },
+    {
+      "slug": "14-hypotese-og-test",
+      "pngSha256": "ab110ac0670a34d161c08f9c22c01a78ed48855a5c107638e9377694da5fa294",
+      "pngBytes": 2267594,
+      "previewSha256": "3aa682395b49669dce45a30ba01d25daee7ae7dcd85fe38e2d42f6b1bbba2f4b",
+      "previewBytes": 49918,
+      "reference": "03-vaerkstedsanden.png",
+      "prompt": "Title exactly 'Test én hypotese'. The mechanic duck turns exactly one of three adjacent dials, while two others remain visibly fixed. Show a neat before/after visual of the one variable that changed. Two small notes labeled exactly 'Hypotese' and 'Observation' sit above. Clear hands-on connection, no other labels.",
+      "revisionPrompt": "Precise editorial text-only correction of this exact existing Danish infographic. Preserve all the artwork, character, composition, three instrument dials and colors. Remove the body text below \"Hypotese\" and \"Observation\" and keep only those two heading words. Widen each heading pill modestly to visually anchor its column with the additional blank space removed. Do not add any replacement explanatory text. Exactly and only these words and numbers may appear: title \"Test én hypotese\", panel headings \"Hypotese\" and \"Observation\", bottom reading \"Før\" with \"5\", and \"Efter\" with \"7\". The dials and all the original linework can stay. Preserve 1536 × 1024 (3:2) landscape and legibility."
+    },
+    {
+      "slug": "15-regressionstest",
+      "pngSha256": "bebef5f47683ed0a8c4a863e29662766a8d8bd3b7a06074445802cf8da4e262b",
+      "pngBytes": 2449923,
+      "previewSha256": "35167e7f68163583dcae883fc318822c4a274465693403a9dd3ceca8479414ad",
+      "previewBytes": 50660,
+      "reference": "03-vaerkstedsanden.png",
+      "prompt": "Title exactly 'Lås rettelsen med en test'. Mechanic duck with indigo apron sealing a three-column test sequence with a small green check stamp. First column reads 'Rød' with fail icon, middle reads 'Ret' with wrench icon, third reads 'Grøn' with pass icon. Show exactly one test card carried across all three columns, conveying that the same test first catches the bug and then passes."
+    },
+    {
+      "slug": "16-skriv-en-fejlrapport",
+      "pngSha256": "f52f2ceca124cf75d074e83e4203edcc5e8184ff1f9fd4f911d39f8119107599",
+      "pngBytes": 2635426,
+      "previewSha256": "9a9f4b42e13ed0e761d7a3755635fcff106c266b28f064a51980156190d3e50f",
+      "previewBytes": 71610,
+      "reference": "01-spordetektiven.png",
+      "prompt": "Title exactly 'Skriv en fejlrapport'. Detective duck at a tidy desk carefully slides an incident form toward another learner off-screen. Four large grouped fields read exactly 'Miljø', 'Trin', 'Forventet' and 'Faktisk'. Clear hierarchical layout with small icon each, no fake fine print, paper corners and modest teal accents. The report is legible, friendly and inviting."
+    }
+  ]
+}

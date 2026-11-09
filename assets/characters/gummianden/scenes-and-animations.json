@@ -1,0 +1,90 @@
+{
+  "generator": "ImageGen",
+  "referenceSet": "De fem første Gummianden-koncepter, 9. november 2026",
+  "scenes": [
+    {
+      "id": "detektivens-sporvaeg",
+      "title": "Detektivens sporvæg",
+      "referenceFile": "01-spordetektiven.png",
+      "width": 1536,
+      "height": 1024,
+      "image": "/images/characters/gummianden/scenes/detektivens-sporvaeg.png",
+      "preview": "/images/characters/gummianden/scenes/detektivens-sporvaeg.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\nExactly one full-width HORIZONTAL landscape editorial scene (wide 3:2). Detailed atmospheric storybook art with large recognisable whole character, located in an inviting Danish learning space, no cuts or frames. Make props and teaching gesture read at thumbnail size. Use three-quarter composition with grounded perspective and warm hand-painted textures.\nThe Gummianden detective in herringbone cap, charcoal coat, brown checked scarf and teal notebook, in a compact attic investigation room full of autumn afternoon light. On the right a wooden pinboard contains three sparse oversized colored input cards arranged in time order, pinned above a repeated red failure mark. The duck crouches on a stool and uses the magnifying glass to study the second card, comparing a trail of three experiment cards. Coffee steam, fern silhouette, weathered wood, subtle paper grain. Understated warm sienna, forest teal, and muted gold. Sparse readable large focal shapes, nostalgic investigative atmosphere, no crime or alarming symbols, no text."
+    },
+    {
+      "id": "lyttemakkerens-studie",
+      "title": "Tænk højt hos Lyttemakkeren",
+      "referenceFile": "02-lyttemakkeren.png",
+      "width": 1536,
+      "height": 1024,
+      "image": "/images/characters/gummianden/scenes/lyttemakkerens-studie.png",
+      "preview": "/images/characters/gummianden/scenes/lyttemakkerens-studie.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\nExactly one full-width HORIZONTAL landscape editorial scene (wide 3:2). Detailed atmospheric storybook art with large recognisable whole character, located in an inviting Danish learning space, no cuts or frames. Make props and teaching gesture read at thumbnail size. Use three-quarter composition with grounded perspective and warm hand-painted textures.\nThe Gummianden wearing the burnt-orange wool cardigan and wood button, matching the reference, sits on the right at a cozy low oak study table with turquoise mug and closed forest notebook. Its wing is cupped up to its head as it listens and its head is tilted attentively towards a carefully simplified open laptop and a notebook at left. A diagonal pool of warm sunshine crosses the pale windowsill. Two or three bright squares stand for steps in an explanation, with no written marks. Warm small inviting study corner, balanced understated ochre, forest and cream, open gentle expression. No people, no other characters, no readable text."
+    },
+    {
+      "id": "testpilotens-graensebane",
+      "title": "Testpilotens grænsebane",
+      "referenceFile": "04-graensetestpiloten.png",
+      "width": 1536,
+      "height": 1024,
+      "image": "/images/characters/gummianden/scenes/testpilotens-graensebane.png",
+      "preview": "/images/characters/gummianden/scenes/testpilotens-graensebane.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\nExactly one full-width HORIZONTAL landscape editorial scene (wide 3:2). Detailed atmospheric storybook art with large recognisable whole character, located in an inviting Danish learning space, no cuts or frames. Make props and teaching gesture read at thumbnail size. Use three-quarter composition with grounded perspective and warm hand-painted textures.\nA lively painted tabletop test track built in a warm retro workshop. Gummianden test pilot in the raspberry aviator cap, round goggles and red flowing scarf from the reference leans across a sturdy industrial control lever. To the right there are three miniature parallel tracks with brass barriers and distinctly different tiny cargo loads: an empty tray, a one-block load, and a full load of many blocks. Small isolated indicator lamps compare green, green and red; the red lamp is visible alongside the full lane. Gummianden tests the boundary, focused and delighted. Warm workshop light, red-plum accents, aged metal, moss green and natural plywood. No plane, writing or captions."
+    },
+    {
+      "id": "logvagtens-natbord",
+      "title": "Logvagtens natbord",
+      "referenceFile": "05-logvagten.png",
+      "width": 1536,
+      "height": 1024,
+      "image": "/images/characters/gummianden/scenes/logvagtens-natbord.png",
+      "preview": "/images/characters/gummianden/scenes/logvagtens-natbord.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\nExactly one full-width HORIZONTAL landscape editorial scene (wide 3:2). Detailed atmospheric storybook art with large recognisable whole character, located in an inviting Danish learning space, no cuts or frames. Make props and teaching gesture read at thumbnail size. Use three-quarter composition with grounded perspective and warm hand-painted textures.\nCozy late night monitoring booth in deep marine blues and warm amber, yellow Gummianden Logvagten wears round bronze reading glasses low on its orange bill and navy wool watch coat from the reference. It leans over an amber illuminated long paper log strip unrolling over a timber desk. Instead of text the strip has a short distinct orderly sequence of green and orange marks, then a first red mark next to the tip of its raised wing. A silent row of tiny status lights and starry navy window in the back. The duck is calm and dryly amused, not alarmed. The desk area and face stay clearly lit against dark atmospheric surroundings, no readable letters or numbers."
+    }
+  ],
+  "animations": [
+    {
+      "id": "stop-ved-breakpoint",
+      "title": "Stop ved et breakpoint",
+      "referenceFile": "01-spordetektiven.png",
+      "sourceSheet": "animations/stop-ved-breakpoint-sheet.png",
+      "width": 512,
+      "height": 512,
+      "frameCount": 16,
+      "distinctFrameCount": 4,
+      "durationSeconds": 4,
+      "gif": "/images/characters/gummianden/animations/stop-ved-breakpoint.gif",
+      "poster": "/images/characters/gummianden/animations/stop-ved-breakpoint.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\n2x2 contact sheet for an educational ANIMATED GIF, SQUARE 1:1 output. Exactly four separate SQUARE equal cells, flush at exact half width and half height, no gutters, no borders, no panel outline, no dividers. Read left-to-right top-to-bottom. Each cell repeats exactly the same camera locked framing, world layout, colors, illumination, character position, size and costume, with only slight pose and task-specific state changes. No text. Each cell is complete and is a close medium shot of character and very clearly visible large teaching prop, inset with safe margin, with warm pale cream background on edges, never across edges. Prefer stable, graphic shapes. Four unique animation frames, deliberately matching keyframe sprite production.\nThe duck detective stands on the left in exactly the reference tweed coat, teal notebook and magnifying glass, and on the right is a giant upright stylized code editor board with five rows of navy strokes representing code, a slim gutter, a single vivid solid red breakpoint dot alongside the third row in ALL four frames, and an upper green play circle. Freeze all object positions through the four cells. Frame 1 top left: editor active, pale yellow progress highlight on row 1, duck holds magnifier low. Frame 2 top right: editor pauses, golden highlight exactly on row 3 next to the red dot, duck lifts magnifier towards that row. Frame 3 bottom left: still paused on row 3, same red dot, a small cyan variables panel showing three tidy blue/teal value marks opens at board bottom right, duck peers closely. Frame 4 bottom right: editor running again, highlight is now on row 5, cyan variables panel closes and duck relaxes. Use only nonverbal graphical code-line shapes, no digits or words."
+    },
+    {
+      "id": "trin-for-trin",
+      "title": "Trin for trin i debuggeren",
+      "referenceFile": "03-vaerkstedsanden.png",
+      "sourceSheet": "animations/trin-for-trin-sheet.png",
+      "width": 512,
+      "height": 512,
+      "frameCount": 16,
+      "distinctFrameCount": 4,
+      "durationSeconds": 4,
+      "gif": "/images/characters/gummianden/animations/trin-for-trin.gif",
+      "poster": "/images/characters/gummianden/animations/trin-for-trin.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\n2x2 contact sheet for an educational ANIMATED GIF, SQUARE 1:1 output. Exactly four separate SQUARE equal cells, flush at exact half width and half height, no gutters, no borders, no panel outline, no dividers. Read left-to-right top-to-bottom. Each cell repeats exactly the same camera locked framing, world layout, colors, illumination, character position, size and costume, with only slight pose and task-specific state changes. No text. Each cell is complete and is a close medium shot of character and very clearly visible large teaching prop, inset with safe margin, with warm pale cream background on edges, never across edges. Prefer stable, graphic shapes. Four unique animation frames, deliberately matching keyframe sprite production.\nThe duck mechanic from the reference in denim apron, brass goggles on forehead and visible yellow tuft stands on the LEFT. On the RIGHT a fixed three-row tall navy mechanical training board inspired by a code debugger. The first, second, and third row each contains one identical thin beige code-like stroke. A single narrow glowing yellow row highlight and a separate value meter consisting of small discrete cyan bulbs to the right of the panel. Four cells show this progression, with clear motion of a brass right-hand lever next to the board: frame 1 top left highlight on first row, one meter bulb glows; frame 2 top right highlight on second row, two meter bulbs glow; frame 3 bottom left highlight on third row, three meter bulbs glow; frame 4 bottom right glow on the whole meter only and duck smiling with lever released. Preserve same composition and exposure across all four. The board is big enough to see its highlights and meter. No readable text, digits, or symbols apart from illuminated marks."
+    },
+    {
+      "id": "goer-fejlen-mindre",
+      "title": "Gør fejlen mindre",
+      "referenceFile": "04-graensetestpiloten.png",
+      "sourceSheet": "animations/goer-fejlen-mindre-sheet.png",
+      "width": 512,
+      "height": 512,
+      "frameCount": 16,
+      "distinctFrameCount": 4,
+      "durationSeconds": 4,
+      "gif": "/images/characters/gummianden/animations/goer-fejlen-mindre.gif",
+      "poster": "/images/characters/gummianden/animations/goer-fejlen-mindre.webp",
+      "prompt": "Use case: polished editorial illustration for an educational debugging mascot website. Reference image gives the exact Gummianden mascot design: glossy sunshine-yellow molded rubber skin with restrained real vinyl highlights, a broad apricot-orange rubber bill, solid charcoal oval eyes, short two-lobed yellow forehead tuft, small orange webbed feet, and yellow wing flippers. Match that character's proportions and costume. NOT a real bird, feathered creature, duck person, plush toy, or new design. Detailed warm gouache and tactile storybook painting, lovely credible materials, readable shapes, expressive restrained faces, no caption, watermark, logos, signature, or readable text.\n2x2 contact sheet for an educational ANIMATED GIF, SQUARE 1:1 output. Exactly four separate SQUARE equal cells, flush at exact half width and half height, no gutters, no borders, no panel outline, no dividers. Read left-to-right top-to-bottom. Each cell repeats exactly the same camera locked framing, world layout, colors, illumination, character position, size and costume, with only slight pose and task-specific state changes. No text. Each cell is complete and is a close medium shot of character and very clearly visible large teaching prop, inset with safe margin, with warm pale cream background on edges, never across edges. Prefer stable, graphic shapes. Four unique animation frames, deliberately matching keyframe sprite production.\nThe duck test pilot from the reference with raspberry aviator cap and goggles on its forehead, matching raspberry scarf, appears on the LEFT at a workbench. On the RIGHT a wide tabletop with three distinct input blocks at exactly fixed positions: teal cylinder, blue cube, and distinct mustard striped wedge. Behind blocks a small dark tester panel with ONE bold red lamp and a pause/play switch. Illustrate the repeated bug while reducing the number of inputs, via these four cells: frame 1 top left all three blocks on tabletop, red lamp lit brightly, duck leaning in; frame 2 top right teal cylinder removed, only blue cube and mustard wedge left, same red lamp lit brightly, duck's wing points at them; frame 3 bottom left blue cube also removed, only mustard wedge left in same position, red lamp still lit brightly; frame 4 bottom right still only mustard wedge and same red lamp, duck points at the wedge with a delighted eureka expression and one little amber glint near its head. All cameras/framing matched. No writing."
+    }
+  ]
+}

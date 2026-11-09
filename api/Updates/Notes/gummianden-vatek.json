@@ -1,6 +1,6 @@
 {
   "date": "2026-11-09",
-  "title": "Mød Gummianden fra VATek",
-  "description": "Gummianden har fået sin egen profil i karakterbiblioteket. Se, hvordan du kan komme videre ved at forklare et problem højt, og åbn VATeks talende undervisningsmakker fra profilen.",
+  "title": "Find fejlen sammen med Gummianden",
+  "description": "Gummiandens profil har fået 16 infografikker med C#-eksempler og tre GIF’er om fejlfinding. Se, hvordan du sætter et breakpoint og følger en variabel, vælg mellem fem nye portrætter, og brug Gummiandens 48 emojis i editoren.",
   "authors": ["Mathias"]
 }

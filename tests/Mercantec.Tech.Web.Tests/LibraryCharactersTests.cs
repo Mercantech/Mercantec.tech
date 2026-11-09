@@ -62,7 +62,11 @@ public sealed class LibraryCharactersTests
             ("whale", "character-reactions-title", "48 emojis"),
             ("whale", "character-scenes-title", "4 miljøer"),
             ("whale", "character-animations-title", "3 GIF-animationer"),
-            ("whale", "character-gallery-title", "16 infografikker")
+            ("whale", "character-gallery-title", "16 infografikker"),
+            ("gummianden", "character-reactions-title", "48 emojis"),
+            ("gummianden", "character-scenes-title", "4 miljøer"),
+            ("gummianden", "character-animations-title", "3 GIF-animationer"),
+            ("gummianden", "character-gallery-title", "16 infografikker")
         };
         foreach (var (slug, section, label) in expected)
         {
@@ -86,7 +90,7 @@ public sealed class LibraryCharactersTests
 
         page.Find("#library-search").Input("emojis");
         var results = page.FindAll(".library-search-character");
-        Assert.Equal(7, results.Count);
+        Assert.Equal(8, results.Count);
         Assert.All(results, result =>
         {
             var path = result.GetAttribute("href");
@@ -94,7 +98,7 @@ public sealed class LibraryCharactersTests
             Assert.Equal(character.Appearances[0].Image, result.QuerySelector("img")!.GetAttribute("src"));
         });
         page.FindAll(".library-categories button").Single(button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal)).Click();
-        Assert.Equal(7, page.FindAll(".library-search-character").Count);
+        Assert.Equal(8, page.FindAll(".library-search-character").Count);
         Assert.Contains("i Karakterer", page.Find(".library-section-heading [role='status']").TextContent);
 
         page.Find(".library-search button").Click();
@@ -124,6 +128,7 @@ public sealed class LibraryCharactersTests
     [InlineData("Docker rollback", "/characters/whale")]
     [InlineData("Docker Kanarien", "/characters/whale")]
     [InlineData("Gummianden fejlfinding", "/characters/gummianden")]
+    [InlineData("Gummianden breakpoint", "/characters/gummianden")]
     public void Public_search_finds_media_types_and_named_motifs(string query, string expectedPath)
     {
         var hit = Assert.Single(PublicCatalog.Search(query), hit => hit.Href == expectedPath);
