@@ -9,6 +9,7 @@ import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/pro
 import { OutgoingMessage } from '@hocuspocus/server';
 import { createCollaborationServer } from '../src/server.mjs';
 import { fingerprintHash } from '../src/fingerprint.mjs';
+import { collaborationUrl } from '../../editor/src/collaboration-url.mjs';
 
 const id = '11111111-2222-4333-8444-555555555555';
 const documentName = `notion:${id}`;
@@ -92,13 +93,16 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     await new Promise(resolve => http.close(resolve));
   });
 
-  const connect = (accessToken, name = documentName, schemaVersion = '8') => {
+  const connect = (accessToken, name = documentName, schemaVersion) => {
     const doc = new Y.Doc();
     const messages = [];
     let denied = false;
     let denialReason;
+    const url = new URL(collaborationUrl({ protocol: 'http:', host: `127.0.0.1:${server.address.port}` }));
+    if (schemaVersion === null) url.searchParams.delete('schemaVersion');
+    else if (schemaVersion !== undefined) url.searchParams.set('schemaVersion', schemaVersion);
     const websocket = new HocuspocusProviderWebsocket({
-      url: `ws://127.0.0.1:${server.address.port}/collaboration${schemaVersion === null ? '' : '?schemaVersion=' + encodeURIComponent(schemaVersion)}`,
+      url: url.href,
       WebSocketPolyfill: WebSocket, autoConnect: false, maxAttempts: 1,
     });
     const provider = new HocuspocusProvider({
@@ -230,12 +234,16 @@ test('notebook rooms require canonical lowercase namespace and UUID before autho
 test('missing or incompatible editor schemas are rejected before authorization and document loading', async t => {
   const f = await fixture(t);
   const accessToken = token('teacher');
-  f.grants.set(accessToken, new Set([documentName]));
+  const drawingName = `drawing:${id}`;
+  f.grants.set(accessToken, new Set([documentName, drawingName]));
   for (const version of [null, '1', '2', '3', '4', '5', '6', '999']) {
     const editor = f.connect(accessToken, documentName, version);
     await waitFor(() => editor.denied, 'incompatible editor rejected');
     assert.match(editor.denialReason, /editor_version_mismatch/);
   }
+  const drawing = f.connect(accessToken, drawingName, '7');
+  await waitFor(() => drawing.denied, 'outdated drawing editor rejected');
+  assert.match(drawing.denialReason, /editor_version_mismatch/);
   assert.equal(f.state.authorizations, 0);
   assert.equal(f.state.loads, 0);
   assert.equal(f.state.saves, 0);

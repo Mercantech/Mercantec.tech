@@ -2,6 +2,7 @@ import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import type { AppState, BinaryFileData, BinaryFiles, ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type { OrderedExcalidrawElement } from '@excalidraw/excalidraw/element/types';
+import { collaborationUrl } from './collaboration-url.mjs';
 import { canonicalFingerprint } from './persistence.mjs';
 import { applyLocalDrawing, drawingElementComparisonKey, readDrawingScene, validateDrawingImage } from './drawing-state.mjs';
 import { DrawingApiError, drawingRequest, requestDrawingContext, uploadDrawingFile, type DrawingContext, type DrawingEnvironment, type DrawingFile, type DrawingPublicationRequest } from './drawing-api';
@@ -118,7 +119,7 @@ export class DrawingController {
     if (this.env.presentation || this.context?.snapshotId || this.provider) return;
     this.status = 'Forbinder…';
     this.provider = new HocuspocusProvider({
-      url: (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + '/collaboration?schemaVersion=7',
+      url: collaborationUrl(location),
       name: 'drawing:' + this.id.toLowerCase(), document: this.doc,
       token: async () => { const token = await this.env.getToken(); return token.startsWith('Bearer ') ? token.slice(7) : token; },
       onStatus: ({ status }) => {
@@ -140,7 +141,16 @@ export class DrawingController {
         }
         this.emit();
       },
-      onAuthenticationFailed: () => { this.permissionToEdit = false; this.error = 'Du har ikke længere skriveadgang til tegningen.'; this.emit(); },
+      onAuthenticationFailed: ({ reason }) => {
+        this.permissionToEdit = false;
+        this.connected = false;
+        this.synced = false;
+        this.status = 'Ikke forbundet';
+        this.error = reason.includes('editor_version_mismatch')
+          ? 'Editoren er opdateret. Genindlæs siden for at åbne tegningen med den nye version.'
+          : 'Du har ikke længere adgang til tegningen, eller dit login er udløbet. Log ind igen.';
+        this.emit();
+      },
       onStateless: ({ payload }) => { void this.receiveStatus(payload); },
     });
     this.provider.awareness?.setLocalStateField('user', { name: this.env.userName, id: this.env.userSub });
