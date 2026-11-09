@@ -8,7 +8,6 @@ COPY image-tools/ image-tools/
 COPY extensions/ extensions/
 COPY collaboration/ collaboration/
 COPY release-news/ release-news/
-COPY docker-compose.yml ./
 RUN node release-news/fingerprint.mjs /src /release.json
 
 FROM node:22-alpine AS editor-build

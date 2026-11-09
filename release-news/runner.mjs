@@ -239,7 +239,7 @@ export async function git(args, { timeout = 120_000, maxBuffer = 4 * 1024 * 1024
 
 export function repositoryDependencies({ dataDir, fingerprint, executeGit = git }) {
   const repo = path.join(path.resolve(dataDir), 'repo');
-  const cacheFile = path.join(path.resolve(dataDir), 'commit-fingerprints.json');
+  const cacheFile = path.join(path.resolve(dataDir), 'commit-fingerprints-v2.json');
   async function prepare() {
     await fs.mkdir(dataDir, { recursive: true, mode: 0o700 });
     try { await fs.access(path.join(repo, '.git')); }

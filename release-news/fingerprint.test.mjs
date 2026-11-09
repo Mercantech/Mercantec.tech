@@ -16,6 +16,10 @@ test('release identity detects code and binary changes, excludes docs/builds/sec
     const original = await fingerprint(root);
     await writeFile(code, 'linje et\r\nlinje to\r\n');
     assert.equal(await fingerprint(root), original);
+    await writeFile(path.join(root, 'docker-compose.yml'), 'services:\n  web: {image: local}\n');
+    assert.equal(await fingerprint(root), original);
+    await writeFile(path.join(root, 'docker-compose.yml'), '# Dokploy rewrites domains/formatting before a build\nservices: {web: {image: local, labels: [generated]}}\n');
+    assert.equal(await fingerprint(root), original);
     await writeFile(path.join(root, 'web', '.env.local'), 'fake ignored configuration');
     await writeFile(path.join(root, 'web', 'README.md'), 'documentation');
     await mkdir(path.join(root, 'web', 'obj'));

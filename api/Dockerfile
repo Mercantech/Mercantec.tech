@@ -8,7 +8,6 @@ COPY image-tools/ image-tools/
 COPY extensions/ extensions/
 COPY collaboration/ collaboration/
 COPY release-news/ release-news/
-COPY docker-compose.yml ./
 RUN node release-news/fingerprint.mjs /src /release.json
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build

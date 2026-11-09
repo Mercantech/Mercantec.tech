@@ -3,8 +3,9 @@ import { readFile, readdir, lstat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-// Both Docker images and the observer hash the SAME build inputs. No .git or credentials
-// enter the Docker images. Build outputs and the .dockerignore exclusions are omitted.
+// Both Docker images and the observer hash the SAME source inputs. Dokploy rewrites
+// docker-compose.yml before building, so orchestration files cannot identify Git code.
+// No .git or credentials enter the images. Build outputs/ignored files are omitted.
 const roots = ['api', 'web', 'shared', 'editor', 'image-tools', 'extensions', 'collaboration', 'release-news'];
 const ignored = new Set(['bin', 'obj', '.git', 'node_modules', 'obsidian', '.obsidian', '.vs', '.idea', '.data']);
 export function ignoredInput(relative) {
@@ -27,8 +28,8 @@ export async function fingerprint(root) {
       for (const entry of (await readdir(absolute)).sort()) await visit(`${relative}/${entry}`);
     } else if (stat.isFile()) files.push(relative);
   }
-  for (const relative of [...roots, 'docker-compose.yml']) await visit(relative);
-  const digest = createHash('sha256').update('lup-build-inputs-v1\0');
+  for (const relative of roots) await visit(relative);
+  const digest = createHash('sha256').update('lup-build-inputs-v2\0');
   for (const relative of files.sort()) {
     let content = await readFile(path.join(root, ...relative.split('/')));
     // Git normalizes source text differently on Windows and Linux; binary assets remain exact.
@@ -43,7 +44,7 @@ export async function fingerprint(root) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const revision = await fingerprint(path.resolve(process.argv[2] || '.'));
-  const json = JSON.stringify({ schemaVersion: 1, revision }) + '\n';
+  const json = JSON.stringify({ schemaVersion: 2, revision }) + '\n';
   if (process.argv[3]) await writeFile(process.argv[3], json);
   else process.stdout.write(json);
 }
