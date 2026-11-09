@@ -43,14 +43,14 @@ public partial class Arena
     private string _screen = "main", _settingsReturn = "main", _rosterReturn = "main";
     private bool IsBattle => _screen == "battle";
     private string FighterName(string id) => id == "starter" ? "Din avatar" : AvatarCatalog.Find(id)?.Name ?? "Avatar";
-    private static string Portrait(string id) => "/assets/arena/v2/portrait-" + id + ".webp";
+    private static string Portrait(string id) => AvatarCatalog.Find(id)?.FaceImage ?? "/assets/arena/v2/portrait-starter.webp";
     private static string StageArt(string id) => "/assets/arena/v2/stage-" + id + ".webp";
     private string AccountName => Auth.IsAuthenticated ? Auth.DisplayName ?? "Spiller" : "Gæst";
     private bool IsHost => _room?.HostId == _playerId;
     private bool SettingsDisabled => _practice || _playing || (_room is not null && (!IsHost || _phase != "lobby"));
     private ArenaStage SelectedStage => ArenaCatalog.FindStage(_stageId);
     private string WinnerName => _result?.Fighters.FirstOrDefault(f => f.Id == _result.WinnerId)?.Name ?? "Ingen";
-    private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", _ => "Energipuls & himmelspring" };
+    private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", "santa" => "Stjerneskud & kanesus", _ => "Energipuls & himmelspring" };
     private static string FighterRole(string id) => ArenaMoveSets.Find(id)?.Role ?? "Alsidig";
     private bool Owns(string id) => id == "starter" || World.OwnsAvatar(id);
 
@@ -65,7 +65,7 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=4");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=5");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _reference = DotNetObjectReference.Create(this);
             _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });

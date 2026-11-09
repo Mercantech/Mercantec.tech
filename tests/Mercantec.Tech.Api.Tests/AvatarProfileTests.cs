@@ -70,6 +70,63 @@ public sealed class AvatarProfileTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task SantaPurchaseAndSelectionPersistAcrossConnectionsWithoutLeakingToAnotherAccount()
+    {
+        await using (var firstDevice = OpenDatabase())
+        {
+            var alice = As(firstDevice, Alice);
+            Failure(await alice.Select(new(AvatarEconomy.SantaId), default), 409, "avatar_not_owned");
+            var purchased = Success(await alice.Unlock(AvatarEconomy.SantaId, default));
+            Assert.Equal(170, purchased.Gold);
+            Assert.Equal(AvatarEconomy.SantaId, purchased.SelectedAvatarId);
+            var retry = Success(await alice.Unlock(AvatarEconomy.SantaId, default));
+            Assert.Equal(purchased.Revision, retry.Revision);
+            Assert.Equal(purchased.Gold, retry.Gold);
+        }
+        await using (var secondDevice = OpenDatabase())
+        {
+            var restored = Success(await As(secondDevice, Alice).Get(default));
+            Assert.Equal(AvatarEconomy.SantaId, restored.SelectedAvatarId);
+            Assert.Contains(AvatarEconomy.SantaId, restored.OwnedAvatarIds);
+            var bob = As(secondDevice, Bob);
+            Assert.DoesNotContain(AvatarEconomy.SantaId, Success(await bob.Get(default)).OwnedAvatarIds);
+            Failure(await bob.Select(new(AvatarEconomy.SantaId), default), 409, "avatar_not_owned");
+            Success(await As(secondDevice, Alice).Select(new(AvatarEconomy.StarterId), default));
+        }
+        await using var thirdDevice = OpenDatabase();
+        var final = Success(await As(thirdDevice, Alice).Get(default));
+        Assert.Equal(AvatarEconomy.StarterId, final.SelectedAvatarId);
+        Assert.Equal(170, final.Gold);
+        Assert.Single(await thirdDevice.AvatarOwnerships.Where(x => x.UserSub == Alice && x.AvatarId == AvatarEconomy.SantaId).ToListAsync());
+    }
+
+    [Fact]
+    public async Task SantaUsesDatabaseLevelAndWalletAndCannotBeGrantedByLegacyBrowserData()
+    {
+        await using var db = OpenDatabase();
+        var controller = As(db, Alice);
+        var imported = Success(await controller.ImportLegacy(new(["starter", "santa"], "santa", 320), default));
+        Assert.Equal(AvatarEconomy.StarterId, imported.SelectedAvatarId);
+        Assert.DoesNotContain(AvatarEconomy.SantaId, imported.OwnedAvatarIds);
+        Assert.Equal(320, imported.Gold);
+        var stored = await db.AvatarProfiles.SingleAsync(x => x.UserSub == Alice);
+        stored.Level = 3;
+        await db.SaveChangesAsync();
+        Failure(await controller.Unlock(AvatarEconomy.SantaId, default), 409, "level_required");
+        stored = await db.AvatarProfiles.SingleAsync(x => x.UserSub == Alice);
+        stored.Level = 4;
+        stored.Gold = 149;
+        await db.SaveChangesAsync();
+        Failure(await controller.Unlock(AvatarEconomy.SantaId, default), 409, "insufficient_gold");
+        stored = await db.AvatarProfiles.SingleAsync(x => x.UserSub == Alice);
+        stored.Gold = 150;
+        await db.SaveChangesAsync();
+        var purchased = Success(await controller.Unlock(AvatarEconomy.SantaId, default));
+        Assert.Equal(0, purchased.Gold);
+        Assert.Equal(AvatarEconomy.SantaId, purchased.SelectedAvatarId);
+    }
+
+    [Fact]
     public async Task PrivacyExportIncludesOnlyTheSignedInUsersStoredAvatarData()
     {
         await using var db = OpenDatabase();

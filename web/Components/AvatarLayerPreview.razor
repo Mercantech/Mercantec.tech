@@ -20,9 +20,9 @@ else
                 <label>Genstand<select @bind="_item" disabled="@(!_enabled)">
                     @foreach (var item in Items) { <option value="@item.Id">@item.Label</option> }
                 </select></label>
-                <label>Projektil<select @bind="_projectile" disabled="@(!_enabled)"><option value="pulse_blue">Blå puls</option><option value="pulse_gold">Gylden puls</option></select></label>
+                <label>Projektil<select @bind="_projectile" disabled="@(!_enabled)"><option value="pulse_blue">@(Definition.Id == AvatarCatalog.SantaId ? "Stjerneskud" : "Blå puls")</option><option value="pulse_gold">@(Definition.Id == AvatarCatalog.SantaId ? "Magisk snebold" : "Gylden puls")</option></select></label>
             </div>
-            <p>Prøv Saml op eller Snabelpuls. Afspil igen for at sende det valgte projektil afsted.</p>
+            <p>Prøv Saml op eller @(Definition.Actions.FirstOrDefault(action => action.Id == "ability_1_pulse")?.Label ?? "dit projektilangreb"). Afspil igen for at sende det valgte projektil afsted.</p>
             @if (_error is not null) { <p class="avatar-layer-error" role="status">@_error</p> }
         </div>
     </div>
@@ -60,7 +60,7 @@ else
         var optionsKey = OptionsKey;
         try
         {
-            _module ??= await Js.InvokeAsync<IJSObjectReference>("import", _life.Token, "./js/avatar-layer-preview.js?v=1");
+            _module ??= await Js.InvokeAsync<IJSObjectReference>("import", _life.Token, "./js/avatar-layer-preview.js?v=2");
             if (_disposed) return;
             if (!_mounted)
             {

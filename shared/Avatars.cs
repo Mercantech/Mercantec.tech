@@ -23,6 +23,7 @@ public static class AvatarEconomy
     public const string StarterId = "starter";
     public const string Bip01Id = "bip01";
     public const string RaymondId = "raymond";
+    public const string SantaId = "santa";
     public const int InitialGold = 320;
     public const int InitialLevel = 7;
 
@@ -31,7 +32,8 @@ public static class AvatarEconomy
         [
             new(StarterId, "Din første avatar", 1, 0, LegacyImportEligible: true),
             new(Bip01Id, "BIP-01", 2, 150, LegacyImportEligible: true),
-            new(RaymondId, "Raymond", 3, 150)
+            new(RaymondId, "Raymond", 3, 150),
+            new(SantaId, "Julemanden", 4, 150)
         ]);
 
     public static IReadOnlyList<AvatarShopItemDefinition> Furniture { get; } =

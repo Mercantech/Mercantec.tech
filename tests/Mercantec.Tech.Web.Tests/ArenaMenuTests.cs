@@ -49,10 +49,13 @@ public sealed class ArenaMenuTests
         page.WaitForAssertion(() => Assert.False(page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("Din avatar")).HasAttribute("disabled")));
         var fighters = page.FindAll(".arena-fighter");
 
-        Assert.Equal(3, fighters.Count);
+        Assert.Equal(4, fighters.Count);
         Assert.False(fighters.Single(x => x.TextContent.Contains("Din avatar")).HasAttribute("disabled"));
         Assert.True(fighters.Single(x => x.TextContent.Contains("BIP-01")).HasAttribute("disabled"));
         Assert.True(fighters.Single(x => x.TextContent.Contains("Raymond")).HasAttribute("disabled"));
+        var santa = fighters.Single(x => x.TextContent.Contains("Julemanden"));
+        Assert.True(santa.HasAttribute("disabled"));
+        Assert.Equal("/assets/avatars/santa/face.png", santa.QuerySelector("img")!.GetAttribute("src"));
         Assert.Equal("true", fighters.Single(x => x.TextContent.Contains("Din avatar")).GetAttribute("aria-pressed"));
         Assert.Empty(api.Requests);
     }
@@ -139,6 +142,11 @@ public sealed class ArenaMenuTests
         Assert.Contains("Den store JOIN", help.Markup);
         Assert.DoesNotContain("Kerneoverload", help.Markup);
         Assert.Contains("Skjold", help.Find("p").TextContent);
+        help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.SantaId));
+        Assert.Contains("Gavegreb", help.Markup);
+        Assert.Contains("Den store gavefest", help.Markup);
+        Assert.Contains("Julemagi", help.Find("p").TextContent);
+        Assert.DoesNotContain("Den store JOIN", help.Markup);
         help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.StarterId));
         Assert.Empty(help.FindAll("details"));
     }

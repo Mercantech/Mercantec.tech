@@ -6,7 +6,7 @@ tags: [games, avatars, multiplayer]
 
 # LUP Arena
 
-LUPs eget platformskampspil ligger på `/arena` (og `/games/arena`). Der er links fra profil, kontomenu og spiloversigt. Spillet bruger den valgte profilavatar som udgangspunkt: startfiguren, BIP-01 eller Raymond. Kun kontoens oplåste avatarer kan vælges til onlinekampe.
+LUPs eget platformskampspil ligger på `/arena` (og `/games/arena`). Der er links fra profil, kontomenu og spiloversigt. Spillet bruger den valgte profilavatar som udgangspunkt: startfiguren, BIP-01, Raymond eller Julemanden. Kun kontoens oplåste avatarer kan vælges til onlinekampe.
 
 ## Grafik og hovedmenu
 
@@ -19,6 +19,8 @@ BIP-01 og Raymond har hver deres serverberegnede kampsæt. De eksisterende sprit
 BIP-01 er en hurtig tekniker med en energimåler. Pulsbolten flyver hurtigt; Magnetgreb trækker fjender ind og opsamler fjendtlige projektiler som energi. Bobleskjold reflekterer projektiler i de første seks frames. Raketryk er et kort, hurtigt angreb med beskyttet afsæt, og Rakethop giver et stejlt redningsløft. Reparationsfelt bruger energi på en kort, afbrydelig heling. Kerneoverload kræver fuld evnemåler, rammer omkring BIP og tømmer energien.
 
 Raymond er en tung kontrollør med større rækkevidde og langsommere, stærkere projektiler. Relationsgreb fastholder én modstander; retning og U/J kaster. Gentagne hop kan bryde grebet, og en tredje spillers træffer kan frigøre den fangede. Tryghedsskjold absorberer projektiler og lader evnemåleren. Elefantstorm varer længere og kan modstå én træffer med reduceret skade. Snabelløft er et tungere, bredt redningsangreb. Gendannelse bruger skjold på en langsommere, afbrydelig heling. Den store JOIN sender en komet, som trækker fjender sammen og eksploderer.
+
+Julemanden bruger sin egen julemagi, som gendannes med 6 pr. sekund. Stjerneskud koster 14 magi og flyver i en let bue; Gavegreb koster 20 og løfter gennem skjold uden fastholdelse. Julefred absorberer projektiler til 10 magi. Kanesus er et svævende ryk til 22 magi, mens Skorstensspring bruger 16 på redningsløftet. Julevarme koster 45 magi og heler 12 skade samt 12 skjold efter en afbrydelig pause på 0,8 sekunder. Den store gavefest bruger fuld evnemåler og sender tre selvstændige magiske snebolde i en vifte; opladningen kan afbrydes, og cooldown er 11 sekunder. Computerstyringen bruger samme serverkontrakt og ressourcekrav. Santa-grafik indlæses fra de originale avatarark; ti separate Arena-effekter/projektilstrimler ligger sammen med de andre karakterers v3-art.
 
 Træffere lader de store evner; heling og passiv ventetid gør ikke. Evnerne har separate cooldowns. KO, udmeldelse og kampnulstilling frigør greb og rydder aktive evnetilstande. Genforbindelse nulstiller inputsekvensen uden at genopfylde ressourcer. Lokal træning starter med fuld evnemåler; onlinekampe starter tomme, og klienten kan ikke tilvælge træningsressourcer.
 

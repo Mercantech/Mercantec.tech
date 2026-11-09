@@ -9,11 +9,11 @@ const art=await import('data:text/javascript;base64,'+Buffer.from(source).toStri
 
 test('original fighters load each battle action from its own eight-frame sprite sheet',async()=>{
  const assets=art.originalAvatarAssets();
- assert.equal(assets.length,34);
- assert.equal(new Set(assets.map(([key])=>key)).size,34);
+ assert.equal(assets.length,51);
+ assert.equal(new Set(assets.map(([key])=>key)).size,51);
  for(const [key,url] of assets){
-  assert.match(key,/^avatar-(bip01|raymond)-/);
-  assert.match(url,/^\/assets\/avatars\/(bip-01|raymond)\/sprites\/[^/]+\.png$/);
+  assert.match(key,/^avatar-(bip01|raymond|santa)-/);
+  assert.match(url,/^\/assets\/avatars\/(bip-01|raymond|santa)\/sprites\/[^/]+\.png$/);
   assert.doesNotMatch(url,/arena\/v2/);
   const file=path.join(root,'web/wwwroot',url);
   assert.ok((await stat(file)).size>0);
@@ -23,8 +23,8 @@ test('original fighters load each battle action from its own eight-frame sprite 
  }
 });
 
-test('every authored attack and ultimate frame is preserved for both original fighters',()=>{
- for(const avatarId of ['bip01','raymond'])for(const action of ['ability_1_pulse','ability_2_magnet','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release']){
+test('every authored attack and ultimate frame is preserved for every original fighter',()=>{
+ for(const avatarId of ['bip01','raymond','santa'])for(const action of ['ability_1_pulse','ability_2_magnet','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release']){
   const timeline=new Map();const frames=[];
   for(let phase=0;phase<8;phase++){const actual=art.originalAvatarFrame({id:'p1',avatarId,action,actionFrame:phase},1000+phase*17,timeline);frames.push(actual.frame);assert.equal(actual.action,action);assert.equal(actual.columns,4);assert.equal(actual.rows,2);assert.equal(actual.originY,224/256);}
   assert.deepEqual(frames,[0,1,2,3,4,5,6,7]);

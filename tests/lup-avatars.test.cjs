@@ -39,15 +39,15 @@ test('legacy migration reads only the current account and removes only its recor
     assert.equal(api.set, undefined, 'new choices must never be written to browser storage');
 });
 
-test('both complete avatar packs allow their exact 28 effects and five spoken files', async () => {
+test('all complete avatar packs allow their exact 28 effects and five spoken files', async () => {
     const { api, audio } = setup();
     const actions = ['idle','blink','wave','think','talk','point','celebrate','encourage','surprised','unlock','walk','run','jump','land','sit','sleep','pickup','interact','hit','knockout','respawn','ability_1_pulse','ability_2_magnet','ability_3_shield','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release'];
     const phrases = ['phrase_1_welcome','phrase_2_start','phrase_3_success','phrase_4_retry','phrase_5_milestone'];
-    for (const avatar of ['bip-01', 'raymond']) {
+    for (const avatar of ['bip-01', 'raymond', 'santa']) {
         for (const id of [...actions, ...phrases])
             assert.equal(await api.play(`/assets/avatars/${avatar}/audio/${id}.wav`), true, avatar + '/' + id);
     }
-    assert.equal(audio.length, 66);
+    assert.equal(audio.length, 99);
     assert.ok(audio.slice(0, -1).every(clip => clip.paused && clip.currentTime === 0));
     assert.equal(audio.at(-1).paused, false);
 });

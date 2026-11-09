@@ -8,6 +8,7 @@ hud, hår og tøj er erstattet af hele figurer, som låses op og vælges.
 - `starter`: gratis startfigur.
 - `bip01`: BIP-01, level 2 og 150 guld.
 - `raymond`: Raymond / Professor Codd, level 3 og 150 guld. Oplåsning vælger figuren med det samme.
+- `santa`: Julemanden, level 4 og 150 guld.
 - Tolv felter med spørgsmålstegn viser kommende figurer. De er information,
   ikke købsknapper eller katalog-id'er, der kan låses op.
 
@@ -131,3 +132,14 @@ Raymond har nu samme komplette28-handlingspakke som robotten: otte fuldkropsfram
 Ansigtsikon og fire reaktioner eksporteres som transparente512px-PNG fra den eksisterende karaktergrafik. Hele grafik- og lydleverancen, prompter og kontrolmetode er beskrevet i [grafikdokumentationen](../../assets/avatars/raymond/README.md). Den komplette lokale ZIP indeholder også højopløste masterark, kilder,28animeredeWebP'er, standalone-preview og audio-demo.
 
 Raymonds ejerskab, valg og pris er uændret (level3,150guld). Eksisterende ejere får den udvidede pakke uden en ny betaling. Ingen schema-migrering er nødvendig. Legacyimport kan fortsat kun tildele starter/BIP-01. Store offentlige avatarfiler hentes ved brug og kan derefter bruges offline fra assetcache; personlige API-profiler caches aldrig.
+
+
+## Julemanden
+
+Julemanden har id `santa`, kræver level 4 og koster 150 guld. Oplåsning og valg bruger den eksisterende kontoprofil og følger med mellem computere. Santa kan ikke tildeles gennem gamle browserdata, og katalogtilføjelsen kræver ingen ny databasestruktur.
+
+Pakken har samme 28 handlinger og 224 tegnede frames som BIP-01/Raymond, 28 originale lydeffekter, fem indtalte danske replikker, ansigtsikon og fire emojis. Stjerneskud, Gavegreb, Julefred, Kanesus og Julevarme er de fem evner; Den store gavefest har separate opladnings- og udløsningsark. Genstande, gyldne stjerner, magiske snebolde og effekter er selvstændige sprites. De kalibrerede hænder og projektilstartpunkter kommer fra Santas egne ark.
+
+Runtime ligger under `web/wwwroot/assets/avatars/santa/`. Den komplette lokale pakke ligger i `design/santa-avatar-v1/` ved siden af repositoryet. Lydkilder og den faktiske lokale talestemme er dokumenteret i `assets/avatars/santa/AUDIO.md`. Lyd kræver et eksplicit klik i avatarsamlingen.
+
+Den fælles browserkontrol kan køres mod Santa med `LUP_QA_AVATAR=santa`; uden parameter kontrollerer den fortsat Raymond. Begge forløb indeholder de eksisterende robot- og kontokontroller.

@@ -197,7 +197,7 @@ public sealed class ArenaSimulation
                 Round(f.ChannelTicks * Dt), f.ArmorHits > 0, f.CapturedBy?.Id, ActiveAbility(f)))).ToArray(),
         projectiles.Select(p => new ArenaProjectileSnapshot(p.Id, p.Owner.Id, Round(p.X),
             Round(p.Y), Round(p.Vx), Round(p.Vy), p.Radius, p.Kind == "join" ? "#ffd56b" : p.Kind == "reflected" ? "#5ee8ff" :
-                p.SourceAvatarId == AvatarEconomy.Bip01Id ? "#5ee8ff" : p.SourceAvatarId == AvatarEconomy.RaymondId ? "#65a7ff" : p.Owner.Color,
+                p.SourceAvatarId == AvatarEconomy.Bip01Id ? "#5ee8ff" : p.SourceAvatarId == AvatarEconomy.RaymondId ? "#65a7ff" : p.SourceAvatarId == AvatarEconomy.SantaId ? "#f2d177" : p.Owner.Color,
             p.Kind, p.SourceAvatarId, p.Reflections > 0)).ToArray(),
         events.ToArray(), winnerId, suddenDeath);
 
@@ -205,7 +205,8 @@ public sealed class ArenaSimulation
     private static double Round(double value) => Math.Round(value, 2);
     private static bool IsBip(Fighter f) => f.AvatarId == AvatarEconomy.Bip01Id;
     private static bool IsRay(Fighter f) => f.AvatarId == AvatarEconomy.RaymondId;
-    private static bool HasKit(Fighter f) => IsBip(f) || IsRay(f);
+    private static bool IsSanta(Fighter f) => f.AvatarId == AvatarEconomy.SantaId;
+    private static bool HasKit(Fighter f) => IsBip(f) || IsRay(f) || IsSanta(f);
     private static double Approach(double current, double target, double amount) =>
         current < target ? Math.Min(current + amount, target) : Math.Max(current - amount, target);
 
@@ -374,7 +375,10 @@ public sealed class ArenaSimulation
                     : IsBip(fighter)
                         ? MakeAttack(fighter, aerial ? "aerial" : "normal", 3, aerial ? 5 : 3, 12,
                             aerial ? 8 : 6, aerial ? 300 : 240, aerial ? 88 : 78)
-                        : MakeAttack(fighter, aerial ? "aerial" : "normal",
+                        : IsSanta(fighter)
+                            ? MakeAttack(fighter, aerial ? "aerial" : "normal", 6, 5, 18,
+                                aerial ? 9 : 8, aerial ? 315 : 285, 98)
+                            : MakeAttack(fighter, aerial ? "aerial" : "normal",
                             aerial ? 5 : 4, aerial ? 6 : 4, aerial ? 16 : 14,
                             aerial ? 9 : 7, aerial ? 325 : 270, aerial ? 88 : 82);
                 SetAction(fighter, "ability_1_pulse", AttackDuration(fighter.Attack));
@@ -390,10 +394,10 @@ public sealed class ArenaSimulation
         else if (fighter.ChannelTicks > 0 || fighter.CapturedTarget is not null || fighter.FieldTicks > 0)
             fighter.Vx = Approach(fighter.Vx, 0, 3500 * Dt);
         else if (fighter.DashTicks > 0)
-            fighter.Vx = fighter.Facing * (IsRay(fighter) ? 465 : 860);
+            fighter.Vx = fighter.Facing * (IsSanta(fighter) ? 650 : IsRay(fighter) ? 465 : 860);
         else if (fighter.ActionTicks == 0 || fighter.DodgeInvulnerability == 0)
         {
-            var speed = fighter.AvatarId == AvatarEconomy.RaymondId ? 305 : fighter.AvatarId == AvatarEconomy.Bip01Id ? 350 : 330;
+            var speed = IsSanta(fighter) ? 320 : IsRay(fighter) ? 305 : IsBip(fighter) ? 350 : 330;
             var target = fighter.Shielding ? 0 : fighter.Input.Horizontal * speed;
             if (fighter.Attack is not null) target *= .35;
             if (fighter.ChargeTicks > 0) target = 0;
@@ -494,6 +498,17 @@ public sealed class ArenaSimulation
             return;
         }
         if (fighter.GrabCooldown > 0) return;
+        if (IsSanta(fighter))
+        {
+            if (!SpendEnergy(fighter, 20)) return;
+            fighter.GrabCooldown = 110;
+            fighter.Attack = MakeAttack(fighter, "gift-grab", 6, 5, 24, 5, 340, 112);
+            fighter.Ability = "gift-grab";
+            fighter.Invulnerability = 0;
+            SetAction(fighter, "ability_2_magnet", 35);
+            Emit("gift-grab", fighter.X + fighter.Facing * 65, fighter.Y - 35, fighter.Id);
+            return;
+        }
         if (IsBip(fighter))
         {
             if (!SpendEnergy(fighter, 18)) return;
@@ -517,6 +532,7 @@ public sealed class ArenaSimulation
     private void Special(Fighter fighter)
     {
         if (!HasKit(fighter)) { LegacySpecial(fighter); return; }
+        if (IsSanta(fighter)) { SantaSpecial(fighter); return; }
         if (fighter.Input.Vertical < -.5)
         {
             if (fighter.UsedRecovery || fighter.RecoveryCooldown > 0 || IsBip(fighter) && !SpendEnergy(fighter, 15)) return;
@@ -595,6 +611,75 @@ public sealed class ArenaSimulation
         fighter.Invulnerability = 0;
     }
 
+    // Santa trades energy for arcing stars, a shield-bypassing lift and a
+    // gliding dash. His kit has independent costs/timings, not starter defaults.
+    private void SantaSpecial(Fighter fighter)
+    {
+        if (fighter.Input.Vertical < -.5)
+        {
+            if (fighter.UsedRecovery || fighter.RecoveryCooldown > 0 || !SpendEnergy(fighter, 16)) return;
+            fighter.UsedRecovery = true;
+            fighter.RecoveryCooldown = 55;
+            fighter.Vy = -830;
+            fighter.Vx = fighter.Input.Horizontal * 260;
+            fighter.Grounded = false;
+            fighter.Attack = MakeAttack(fighter, "recovery", 5, 12, 22, 8, 355, 94);
+            fighter.Attack.OffsetY = -75;
+            fighter.Attack.DirectionX = fighter.Facing * .3;
+            fighter.Attack.DirectionY = -1;
+            fighter.Ability = "recovery";
+            SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
+            Emit("recovery", fighter.X, fighter.Y, fighter.Id);
+        }
+        else if (fighter.Input.Vertical > .5)
+        {
+            if (fighter.RepairCooldown > 0 || !fighter.Grounded || fighter.Damage <= 0 || !SpendEnergy(fighter, 45)) return;
+            fighter.RepairCooldown = 480;
+            fighter.ChannelTicks = fighter.ChannelTotal = 48;
+            fighter.Channel = fighter.Ability = "repair";
+            fighter.ActionTicks = 48;
+            fighter.Vx = 0;
+            SetAction(fighter, "ability_5_repair", 48);
+            Emit("repair-start", fighter.X, fighter.Y - 35, fighter.Id);
+        }
+        else if (Math.Abs(fighter.Input.Horizontal) > .5)
+        {
+            if (fighter.DashCooldown > 0 || !fighter.Grounded && fighter.UsedAirSpecial || !SpendEnergy(fighter, 22)) return;
+            fighter.UsedAirSpecial = true;
+            fighter.DashCooldown = 96;
+            fighter.DashTicks = 18;
+            fighter.Vx = fighter.Facing * 650;
+            fighter.Vy = Math.Min(fighter.Vy, -110);
+            fighter.Attack = MakeAttack(fighter, "dash", 4, 14, 20, 11, 365, 94);
+            fighter.Ability = "sleigh";
+            SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
+        }
+        else
+        {
+            if (fighter.PulseCooldown > 0 || !SpendEnergy(fighter, 14)) return;
+            fighter.PulseCooldown = 48;
+            fighter.ActionTicks = 26;
+            fighter.Ability = "star";
+            fighter.PendingStarTicks = 13; // authored release frame4 of the26-tick action
+            SetAction(fighter, "ability_1_pulse", 26);
+        }
+        fighter.Invulnerability = 0;
+    }
+
+    private void ReleaseSantaStar(Fighter fighter)
+    {
+        if (!IsSanta(fighter) || !fighter.Connected || fighter.Stocks <= 0 || fighter.RespawnTicks > 0 ||
+            fighter.Hitstun > 0 || fighter.Action != "ability_1_pulse" || fighter.Ability != "star") return;
+        projectiles.Add(new Projectile
+        {
+            Id = ++projectileId, Owner = fighter, SourceAvatarId = fighter.AvatarId, Kind = "star",
+            X = fighter.X + fighter.Facing * 48, Y = fighter.Y - 44,
+            Vx = fighter.Facing * 590, Vy = -70, Gravity = 140,
+            Radius = 16, Damage = 9, Force = 295, Life = 78
+        });
+        Emit("projectile", fighter.X, fighter.Y - 44, fighter.Id);
+    }
+
     private void LegacySpecial(Fighter fighter)
     {
         if (fighter.Input.Vertical < -.5)
@@ -670,11 +755,12 @@ public sealed class ArenaSimulation
     }
 
     private static string? ActiveAbility(Fighter f) => f.CapturedBy is not null ? "captured" :
-        f.Shielding && IsBip(f) ? "reflect-shield" : f.Shielding && IsRay(f) ? "brace-shield" :
+        f.Shielding && IsBip(f) ? "reflect-shield" : f.Shielding && IsRay(f) ? "brace-shield" : f.Shielding && IsSanta(f) ? "peace-shield" :
         f.ChannelTicks > 0 || f.FieldTicks > 0 || f.CapturedTarget is not null || f.Attack is not null || f.ActionTicks > 0 ? f.Ability : null;
 
     private void StepKitTimers(Fighter fighter)
     {
+        if (fighter.PendingStarTicks > 0 && --fighter.PendingStarTicks == 0) ReleaseSantaStar(fighter);
         fighter.PulseCooldown = Math.Max(0, fighter.PulseCooldown - 1);
         fighter.GrabCooldown = Math.Max(0, fighter.GrabCooldown - 1);
         fighter.DashCooldown = Math.Max(0, fighter.DashCooldown - 1);
@@ -684,21 +770,22 @@ public sealed class ArenaSimulation
         fighter.FieldTicks = Math.Max(0, fighter.FieldTicks - 1);
         fighter.DashTicks = Math.Max(0, fighter.DashTicks - 1);
         if (fighter.DashTicks == 0) fighter.ArmorHits = 0;
-        if (IsBip(fighter) && fighter.Channel != "repair") fighter.Energy = Math.Min(100, fighter.Energy + 9 * Dt);
+        if ((IsBip(fighter) || IsSanta(fighter)) && fighter.Channel != "repair")
+            fighter.Energy = Math.Min(100, fighter.Energy + (IsSanta(fighter) ? 6 : 9) * Dt);
     }
 
     private void BeginUltimate(Fighter fighter)
     {
         if (!HasKit(fighter) || fighter.Ultimate < 100 || fighter.UltimateCooldown > 0) return;
         fighter.Ultimate = 0;
-        fighter.UltimateCooldown = 600;
-        fighter.ChannelTicks = fighter.ChannelTotal = 36;
-        fighter.Channel = IsBip(fighter) ? "overload" : "join";
-        fighter.Ability = IsBip(fighter) ? "overload-charge" : "join-charge";
-        fighter.ActionTicks = 36;
+        fighter.UltimateCooldown = IsSanta(fighter) ? 660 : 600;
+        fighter.ChannelTicks = fighter.ChannelTotal = IsSanta(fighter) ? 48 : 36;
+        fighter.Channel = IsSanta(fighter) ? "gift-fest" : IsBip(fighter) ? "overload" : "join";
+        fighter.Ability = fighter.Channel + "-charge";
+        fighter.ActionTicks = fighter.ChannelTicks;
         fighter.Vx = 0;
         fighter.Invulnerability = 0;
-        SetAction(fighter, "ultimate_charge", 36);
+        SetAction(fighter, "ultimate_charge", fighter.ChannelTicks);
         Emit("ultimate-charge", fighter.X, fighter.Y - 35, fighter.Id);
     }
 
@@ -722,8 +809,9 @@ public sealed class ArenaSimulation
         fighter.ActionTicks = 0;
         if (channel == "repair")
         {
-            var healed = Math.Min(fighter.Damage, IsBip(fighter) ? 8 : 14);
+            var healed = Math.Min(fighter.Damage, IsSanta(fighter) ? 12 : IsBip(fighter) ? 8 : 14);
             fighter.Damage = Math.Max(0, fighter.Damage - healed);
+            if (IsSanta(fighter)) fighter.Shield = Math.Min(100, fighter.Shield + 12);
             fighter.Ability = null;
             Emit("repair", fighter.X, fighter.Y - 35, fighter.Id, strength: healed);
         }
@@ -737,6 +825,21 @@ public sealed class ArenaSimulation
             fighter.Attack.OffsetY = -35;
             SetAction(fighter, "ultimate_release", 36);
             Emit("overload", fighter.X, fighter.Y - 35, fighter.Id, strength: 2.2);
+        }
+        else if (channel == "gift-fest")
+        {
+            fighter.Ability = "gift-fest";
+            fighter.ActionTicks = 40;
+            SetAction(fighter, "ultimate_release", 40);
+            for (var index = -1; index <= 1; index++)
+                projectiles.Add(new Projectile
+                {
+                    Id = ++projectileId, Owner = fighter, SourceAvatarId = fighter.AvatarId, Kind = "gift",
+                    X = fighter.X + fighter.Facing * 56, Y = fighter.Y - 48 + index * 22,
+                    Vx = fighter.Facing * 480 * Math.Cos(index * .32), Vy = 480 * Math.Sin(index * .32),
+                    Gravity = 70, Radius = 18, Damage = 11, Force = 430, Life = 90
+                });
+            Emit("gift-fest", fighter.X + fighter.Facing * 56, fighter.Y - 48, fighter.Id, strength: 2);
         }
         else if (channel == "join")
         {
@@ -757,6 +860,7 @@ public sealed class ArenaSimulation
     {
         if (fighter.Channel == "repair") Emit("repair-cancel", fighter.X, fighter.Y - 35, fighter.Id);
         fighter.Channel = null;
+        fighter.PendingStarTicks = 0;
         fighter.ChannelTicks = fighter.ChannelTotal = 0;
         fighter.FieldTicks = fighter.DashTicks = fighter.ArmorHits = 0;
         fighter.Ability = null;
@@ -911,10 +1015,10 @@ public sealed class ArenaSimulation
                     Capture(attacker, target);
                     break;
                 }
-                else if (attack.Kind == "grab")
+                else if (attack.Kind is "grab" or "gift-grab")
                 {
-                    var directionY = attacker.Input.Vertical < -.5 ? -1 : attacker.Input.Vertical > .5 ? .7 : -.4;
-                    Strike(attacker, target, attack.Damage, attack.Force, attacker.Facing * .9, directionY, true);
+                    var directionY = attack.Kind == "gift-grab" ? -1 : attacker.Input.Vertical < -.5 ? -1 : attacker.Input.Vertical > .5 ? .7 : -.4;
+                    Strike(attacker, target, attack.Damage, attack.Force, attacker.Facing * (attack.Kind == "gift-grab" ? .3 : .9), directionY, true);
                     Emit("throw", target.X, target.Y - 35, attacker.Id, target.Id, 1.2);
                 }
                 else
@@ -960,7 +1064,7 @@ public sealed class ArenaSimulation
         target.Shielding = false;
         target.Damage = Math.Min(999, target.Damage + damage);
         AwardCombatDamage(attacker, target, damage);
-        var weight = target.AvatarId == AvatarEconomy.RaymondId ? 1.10 : target.AvatarId == AvatarEconomy.Bip01Id ? .95 : 1;
+        var weight = IsSanta(target) ? 1.03 : IsRay(target) ? 1.10 : IsBip(target) ? .95 : 1;
         var launch = (force + target.Damage * (force / 145)) / weight;
         var length = Math.Sqrt(directionX * directionX + directionY * directionY);
         if (length < .001) { directionX = attacker.Facing; directionY = -.45; length = Math.Sqrt(1.2025); }
@@ -1008,6 +1112,7 @@ public sealed class ArenaSimulation
         foreach (var projectile in projectiles.ToArray())
         {
             if (!projectiles.Contains(projectile)) continue;
+            projectile.Vy += projectile.Gravity * Dt;
             projectile.X += projectile.Vx * Dt;
             projectile.Y += projectile.Vy * Dt;
             if (--projectile.Life <= 0 || projectile.X < stage.Left || projectile.X > stage.Right)
@@ -1042,8 +1147,18 @@ public sealed class ArenaSimulation
                     projectile.Vx = -projectile.Vx;
                     projectile.Vy = -projectile.Vy;
                     projectile.X = target.X + Math.Sign(projectile.Vx) * (HalfWidth + projectile.Radius + 4);
-                    if (projectile.Kind != "join") projectile.Kind = "reflected";
+                    if (projectile.Kind is not ("join" or "gift")) projectile.Kind = "reflected";
                     Emit("reflect", projectile.X, projectile.Y, target.Id);
+                    if (target.Shield <= 0) BreakShield(target);
+                    break;
+                }
+                if (target.Shielding && IsSanta(target))
+                {
+                    target.Shield = Math.Max(0, target.Shield - projectile.Damage * 2.3);
+                    target.Energy = Math.Min(100, target.Energy + 10);
+                    target.Hitstop = 2;
+                    Emit("absorb", projectile.X, projectile.Y, target.Id, projectile.Owner.Id, projectile.Damage);
+                    projectiles.Remove(projectile);
                     if (target.Shield <= 0) BreakShield(target);
                     break;
                 }
@@ -1251,30 +1366,32 @@ public sealed class ArenaSimulation
         var jump = recovering && bot.JumpsUsed < 2 && bot.Vy > 20 && frame % 12 == 0 ||
             dy < -75 && bot.JumpsUsed < 2 && frame % 38 == 0;
         if (recovering && bot.JumpsUsed >= 2 && bot.Vy > 20 && !bot.UsedRecovery && bot.RecoveryCooldown == 0 &&
-            (!IsBip(bot) || bot.Energy >= 15))
+            (IsSanta(bot) ? bot.Energy >= 16 : !IsBip(bot) || bot.Energy >= 15))
             return new(sequence, horizontal, -1, jump, Special: frame % 7 == 0);
         var nearby = Math.Abs(dx) < (IsRay(bot) ? 132 : 100) && Math.Abs(dy) < 90;
         var incoming = projectiles.Any(p => p.Owner != bot && Math.Abs(p.X - bot.X) < 90 &&
             Math.Abs(p.Y - (bot.Y - 35)) < 75 && (p.X - bot.X) * p.Vx < 0);
         if (bot.Grounded && (incoming || nearby && target.Attack is not null && frame % 70 < 25))
             return new(sequence, Shield: true);
-        if (bot.Ultimate >= 100 && bot.UltimateCooldown == 0 && Math.Abs(dy) < 110 && Math.Abs(dx) < (IsBip(bot) ? 195 : 520))
+        if (bot.Ultimate >= 100 && bot.UltimateCooldown == 0 && Math.Abs(dy) < 110 && Math.Abs(dx) < (IsSanta(bot) ? 420 : IsBip(bot) ? 195 : 520))
             return new(sequence, Smash: true);
-        var safeRepair = bot.Grounded && Math.Abs(dx) > 300 && bot.Damage >= (IsBip(bot) ? 10 : 16) &&
-            bot.RepairCooldown == 0 && (IsBip(bot) ? bot.Energy >= 55 : bot.Shield >= 70);
+        var safeRepair = bot.Grounded && Math.Abs(dx) > 300 && bot.Damage >= (IsSanta(bot) ? 12 : IsBip(bot) ? 10 : 16) &&
+            bot.RepairCooldown == 0 && (IsSanta(bot) ? bot.Energy >= 60 : IsBip(bot) ? bot.Energy >= 55 : bot.Shield >= 70);
         if (safeRepair && frame % 20 == 0) return new(sequence, Vertical: 1, Special: true);
         if (IsBip(bot) && bot.Energy >= 30 && bot.GrabCooldown == 0 && Math.Abs(dx) is > 105 and < 205 && Math.Abs(dy) < 90 && frame % 32 == 0)
+            return new(sequence, horizontal, Grab: true);
+        if (IsSanta(bot) && nearby && bot.Energy >= 20 && bot.GrabCooldown == 0 && frame % 43 == 0)
             return new(sequence, horizontal, Grab: true);
         if (IsRay(bot) && nearby && bot.GrabCooldown == 0 && frame % 58 == 0)
             return new(sequence, horizontal, Grab: true);
         if (bot.DashCooldown == 0 && Math.Abs(dx) is > 155 and < 330 && Math.Abs(dy) < 65 &&
-            (!IsBip(bot) || bot.Energy >= 40) && frame % 79 == 0)
+            (IsSanta(bot) ? bot.Energy >= 35 : !IsBip(bot) || bot.Energy >= 40) && frame % 79 == 0)
             return new(sequence, Math.Sign(dx), Special: true);
         if (!nearby && Math.Abs(dx) < 650 && Math.Abs(dy) < 85 && bot.PulseCooldown == 0 &&
-            (!IsBip(bot) || bot.Energy >= 25) && frame % 37 == 0)
+            (!(IsBip(bot) || IsSanta(bot)) || bot.Energy >= 25) && frame % 37 == 0)
             return new(sequence, Special: true);
         return new(sequence, horizontal, nearby && dy < -35 ? -1 : 0, jump,
-            Attack: nearby && frame % (IsBip(bot) ? 20 : 35) == 0);
+            Attack: nearby && frame % (IsSanta(bot) ? 28 : IsBip(bot) ? 20 : 35) == 0);
     }
 
     private static string DisplayAction(Fighter fighter)
@@ -1327,6 +1444,7 @@ public sealed class ArenaSimulation
         public double ExternalVx, ExternalVy;
         public double Energy = 100, Ultimate;
         public int PulseCooldown, GrabCooldown, DashCooldown, RecoveryCooldown, RepairCooldown, UltimateCooldown;
+        public int PendingStarTicks;
         public int FieldTicks, DashTicks, ArmorHits, ChannelTicks, ChannelTotal;
         public string? Channel, Ability;
         public Fighter? CapturedBy, CapturedTarget;
@@ -1363,7 +1481,7 @@ public sealed class ArenaSimulation
         public required Fighter Owner;
         public string SourceAvatarId = AvatarEconomy.StarterId;
         public string Kind = "pulse";
-        public double X, Y, Vx, Vy, Radius, Damage, Force;
+        public double X, Y, Vx, Vy, Radius, Damage, Force, Gravity;
         public int Life, Reflections;
     }
 }

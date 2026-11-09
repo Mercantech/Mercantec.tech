@@ -8,11 +8,12 @@ test('effects load original per-character layers and four-frame projectiles with
     const calls = [];
     const art = new ArenaEffectArt((key, url) => { calls.push({ key, url }); return Promise.resolve(); }, new Map());
     await art.preload();
-    assert.equal(calls.length, 20);
-    assert.equal(new Set(calls.map(call => call.url)).size, 20);
+    assert.equal(calls.length, 30);
+    assert.equal(new Set(calls.map(call => call.url)).size, 30);
     assert.ok(calls.every(call => call.url.startsWith('/assets/arena/v3/effects/')));
     assert.ok(calls.some(call => call.url.endsWith('bip01-pulse_cyan.webp')));
     assert.ok(calls.some(call => call.url.endsWith('raymond-pulse_blue.webp')));
+    assert.ok(calls.some(call => call.url.endsWith('santa-pulse_blue.webp')));
     assert.ok(calls.every(call => !call.url.includes('effects-atlas')));
 });
 
@@ -22,6 +23,8 @@ test('the two avatars select their own neutral and charged projectile artwork', 
     assert.equal(art.projectileId('bip01', true), 'pulse_amber');
     assert.equal(art.projectileId('raymond'), 'pulse_blue');
     assert.equal(art.projectileId('raymond', true), 'pulse_gold');
+    assert.equal(art.projectileId('santa'), 'pulse_blue');
+    assert.equal(art.projectileId('santa', true), 'pulse_gold');
 });
 
 test('projectile drawing preserves the full guarded source tile and restores canvas state', () => {
@@ -125,4 +128,19 @@ test('invalid optional effect geometry is ignored rather than poisoning canvas s
     art.draw(context, 'bip01', 'shield', 0, Infinity, 0, 100);
     art.draw(context, 'bip01', 'shield', 0, 0, 0, 100, 0, NaN);
     art.draw(context, 'bip01', 'shield', 0, 0, 0, 100, 0, 1, 'screen', Infinity);
+});
+
+
+test('Santa keeps its own star and snowball textures even after a robot reflects a gift', () => {
+    const fighters = new Map([['santa', { avatarId: 'santa' }], ['robot', { avatarId: 'bip01' }]]);
+    assert.deepEqual(projectileArtFor({ ownerId: 'santa', sourceAvatarId: 'santa', kind: 'star' }, fighters),
+        { avatarId: 'santa', id: 'pulse_blue', reflected: false });
+    assert.deepEqual(projectileArtFor({ ownerId: 'robot', sourceAvatarId: 'santa', kind: 'gift', reflected: true }, fighters),
+        { avatarId: 'santa', id: 'pulse_gold', reflected: true });
+    assert.equal(effectAvatarForEvent({ type: 'gift-fest', actorId: 'santa', targetId: 'robot' }, fighters), 'santa');
+    assert.equal(combatStatusFor({ avatarId: 'santa', combat: { activeAbility: 'gift-fest-charge', channelRemaining: .8 } }), 'Lader gavefest · 0.8s');
+    assert.equal(combatStatusFor({ avatarId: 'santa', combat: { activeAbility: 'repair', channelRemaining: .6 } }), 'Julevarme 0.6s');
+    const santa = { avatarId: 'santa', damage: 20, grounded: true, shield: 100, combat: { energy: 44 } };
+    assert.equal(repairReadinessFor(santa), '45M');
+    assert.equal(repairReadinessFor({ ...santa, combat: { energy: 45 } }), 'klar');
 });

@@ -284,7 +284,7 @@ public sealed class ArenaRoomService(IServiceScopeFactory scopes, ILogger<ArenaR
                             if (GetBool(message, "add"))
                             {
                                 if (room.Players.Count == 4) throw Error(409, "room_full", "Der er allerede fire spillere.");
-                                var ids = new[] { "starter", "bip01", "raymond" };
+                                var ids = new[] { "starter", "bip01", "raymond", "santa" };
                                 room.Players.Add(new Player(Guid.NewGuid().ToString("N"), null, "Træningsbot", ids[room.Players.Count % ids.Length], AvailableColor(room), true));
                             }
                             else

@@ -5,6 +5,7 @@ public static class AvatarCatalog
     public const string StarterId = "starter";
     public const string Bip01Id = "bip01";
     public const string RaymondId = "raymond";
+    public const string SantaId = "santa";
 
     private static readonly AvatarAction[] CommonActions =
     [
@@ -48,6 +49,17 @@ public static class AvatarCatalog
         "ability_5_repair" => action with { Label = "Gendannelse", Description = "Han vender håndfladerne op og samler kræfterne igen." },
         "ultimate_charge" => action with { Label = "Den store JOIN · opladning", Description = "Raymond samler al sin koncentration i én stor forbindelse." },
         "ultimate_release" => action with { Label = "Den store JOIN · udløsning", Description = "Den store forbindelse åbner sig, og den samlede kraft slippes fri." },
+        _ => action
+    }).ToArray());
+    private static readonly IReadOnlyList<AvatarAction> SantaActions = Array.AsReadOnly(CommonActions.Select(action => action.Id switch
+    {
+        "ability_1_pulse" => action with { Label = "Stjerneskud", Description = "Julemanden sender et stjerneskud afsted fra den åbne hånd." },
+        "ability_2_magnet" => action with { Label = "Gavegreb", Description = "Et præcist greb løfter modstanderen med et lille strejf af julemagi." },
+        "ability_3_shield" => action with { Label = "Julefred", Description = "Han åbner armene og beskytter sig med rolig julemagi." },
+        "ability_4_dash" => action with { Label = "Kanesus", Description = "Julemanden glider fremad med et hurtigt, svævende afsæt." },
+        "ability_5_repair" => action with { Label = "Julevarme", Description = "En varm, rolig gestus samler kræfterne igen." },
+        "ultimate_charge" => action with { Label = "Den store gavefest · opladning", Description = "Han samler al julemagien mellem sine hænder.", Fps = 5 },
+        "ultimate_release" => action with { Label = "Den store gavefest · udløsning", Description = "Julemagien slippes fri i en fest af magiske snebolde.", Fps = 5 },
         _ => action
     }).ToArray());
     private static readonly IReadOnlyList<string> AnimationIds = Array.AsReadOnly(CommonActions.Select(action => action.Id).ToArray());
@@ -109,6 +121,29 @@ public static class AvatarCatalog
                 new("laugh", "Griner", "/assets/avatars/raymond/emoji-laugh.png"),
                 new("think", "Tænksom", "/assets/avatars/raymond/emoji-think.png"),
                 new("celebrate", "Jubel", "/assets/avatars/raymond/emoji-celebrate.png")])
+        },
+        new(SantaId, "Julemanden", "En varm og eventyrlysten julemand med julemagi i hænderne, glimt i øjet og plads til alle på den gode liste.", 4, 150,
+            Array.AsReadOnly<AvatarCatchphrase>(
+            [
+                new("santa-greeting", "greeting", "Ho ho ho! Er du klar til lidt julemagi?"),
+                new("santa-start", "start", "Selv den største opgave løses ét skridt ad gangen."),
+                new("santa-success", "success", "Godt klaret! Det fortjener en plads på den gode liste."),
+                new("santa-retry", "retry", "En lille pause, og så prøver vi igen."),
+                new("santa-unlock", "unlock", "Sammen får vi magien til at virke!")
+            ]))
+        {
+            Edition = "Julemagi",
+            SpriteAssetRoot = "/assets/avatars/santa",
+            SupportsWorldSprites = true,
+            FaceImage = "/assets/avatars/santa/face.png",
+            Animations = AnimationIds,
+            Actions = SantaActions,
+            AudioFiles = PhraseFiles,
+            Emojis = Array.AsReadOnly<AvatarEmoji>([
+                new("happy", "Glad", "/assets/avatars/santa/emoji-happy.png"),
+                new("laugh", "Griner", "/assets/avatars/santa/emoji-laugh.png"),
+                new("think", "Tænksom", "/assets/avatars/santa/emoji-think.png"),
+                new("celebrate", "Jubel", "/assets/avatars/santa/emoji-celebrate.png")])
         }
     ]);
 

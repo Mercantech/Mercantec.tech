@@ -75,6 +75,55 @@ public class AvatarWorldTests
     }
 
     [Fact]
+    public async Task Santa_is_bought_on_the_server_and_follows_selection_across_computers_and_accounts()
+    {
+        var api = new AvatarServer();
+        var browser = new AvatarStorage();
+        var first = new DemoWorld(browser, api);
+        await first.BindAvatarProfileAsync("student-a");
+        Assert.False(await first.SelectAvatarAsync(AvatarEconomy.SantaId));
+        Assert.True(await first.TryUnlockAvatarAsync(AvatarEconomy.SantaId));
+        Assert.Equal(170, first.Gold);
+        Assert.Equal(AvatarEconomy.SantaId, first.SelectedAvatarId);
+        var second = new DemoWorld(new AvatarStorage(), api);
+        await second.BindAvatarProfileAsync("student-a");
+        Assert.Equal(AvatarEconomy.SantaId, second.SelectedAvatarId);
+        Assert.True(await second.SelectAvatarAsync(AvatarEconomy.StarterId));
+        await first.ReloadAvatarProfileAsync();
+        Assert.Equal(AvatarEconomy.StarterId, first.SelectedAvatarId);
+        Assert.True(first.OwnsAvatar(AvatarEconomy.SantaId));
+        api.Subject = "student-b";
+        await second.BindAvatarProfileAsync("student-b");
+        Assert.False(second.OwnsAvatar(AvatarEconomy.SantaId));
+        Assert.False(await second.SelectAvatarAsync(AvatarEconomy.SantaId));
+        Assert.Equal(1, api.UnlockCount);
+        Assert.DoesNotContain("lupAvatars.set", browser.Calls);
+    }
+
+    [Fact]
+    public void Santa_catalog_matches_the_server_and_has_a_complete_distinct_character_contract()
+    {
+        var santa = AvatarCatalog.Find(AvatarEconomy.SantaId)!;
+        var economy = AvatarEconomy.FindAvatar(santa.Id)!;
+        Assert.Equal("Julemanden", santa.Name);
+        Assert.Equal(4, economy.Level);
+        Assert.Equal(economy.Level, santa.Level);
+        Assert.Equal(150, economy.Cost);
+        Assert.Equal(economy.Cost, santa.Cost);
+        Assert.False(economy.LegacyImportEligible);
+        Assert.Equal(28, santa.Actions.Count);
+        Assert.Equal(224, santa.Actions.Sum(action => action.Frames));
+        Assert.Equal(AvatarCatalog.Find(AvatarCatalog.RaymondId)!.Animations, santa.Animations);
+        Assert.Equal("Stjerneskud", santa.Actions.Single(action => action.Id == "ability_1_pulse").Label);
+        Assert.Equal("Den store gavefest · udløsning", santa.Actions.Single(action => action.Id == "ultimate_release").Label);
+        Assert.Equal(5, santa.Catchphrases.Count);
+        Assert.Equal(5, santa.AudioFiles.Count);
+        Assert.Equal(4, santa.Emojis.Count);
+        Assert.Equal("/assets/avatars/santa/face.png", santa.FaceImage);
+        Assert.True(santa.SupportsWorldSprites);
+    }
+
+    [Fact]
     public async Task Failed_purchase_does_not_spend_gold_or_claim_ownership_and_retry_fetches_the_server()
     {
         var api = new AvatarServer();

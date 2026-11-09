@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../web/wwwroot/js/avatar-layer-preview.js'),'utf8');
 
-function setup(action='pickup'){
+function setup(action='pickup',avatarId='raymond'){
     let nextRaf=1;const frames=new Map(),listeners=new Map(),mediaListeners=new Set();
     class Element{
         constructor(tag='div'){this.tag=tag;this.dataset={};this.style={};this.children=[];this.isConnected=true;}
@@ -18,18 +18,19 @@ function setup(action='pickup'){
     const media={matches:false,addEventListener(name,fn){mediaListeners.add(fn);},removeEventListener(name,fn){mediaListeners.delete(fn);}};
     const document={hidden:false,createElement:tag=>new Element(tag),addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);},removeEventListener(name,fn){listeners.get(name)?.delete(fn);}};
     const assets={schemaVersion:1,frameSize:{width:512,height:512},items:['book','coin'].map(id=>({id,standalone:`items/${id}.png`,naturalSize:{width:32,height:32},pivot:{x:.5,y:.5},gripOffset:{x:0,y:-12}})),projectiles:[{id:'pulse_blue',standalone:'projectiles/pulse_blue.png',animationFrames:4,fps:12,width:64,height:64,speed:230,lifetimeMs:1400,pivot:{x:.5,y:.5}}],effects:[{id:'shield',standalone:'effects/shield.png',naturalSize:{width:512,height:512},pivot:{x:.5,y:.7},durationMs:850,attachment:'follow_anchor'}]};
-    const events={schemaVersion:1,avatarId:'raymond',coordinateSystem:{width:256,height:256,origin:{x:128,y:224}},defaultAnchors:{root:{samples:[{frame:0,x:128,y:224}]}},actions:{
+    const events={schemaVersion:1,avatarId,coordinateSystem:{width:256,height:256,origin:{x:128,y:224}},defaultAnchors:{root:{samples:[{frame:0,x:128,y:224}]}},actions:{
         pickup:{anchors:{right_hand:{interpolation:'linear',samples:Array.from({length:8},(_,frame)=>({frame,x:150+frame*2,y:210-frame*5}))}},events:[{frame:4,type:'attach_item',payload:{anchor:'right_hand'}}]},
         ability_1_pulse:{anchors:{muzzle:{samples:[{frame:4,x:215.5,y:74}]}},events:[{frame:4,type:'spawn_projectile',payload:{anchor:'muzzle'}}]},
         ability_3_shield:{events:[{frame:3,type:'spawn_effect',payload:{anchor:'root',effectSlot:'shield',attachment:'follow_anchor'}}]}
     }};
     const context={document,matchMedia:()=>media,AbortController,fetch:async url=>({ok:true,json:async()=>url.endsWith('external-assets.json')?assets:events}),requestAnimationFrame:fn=>{const id=nextRaf++;frames.set(id,fn);return id;},cancelAnimationFrame:id=>frames.delete(id),console};
     vm.createContext(context);vm.runInContext(source.replace(/^export /gm,'')+'\nglobalThis.api={mount,update,dispose,frameAt,sampleAnchor,safeAsset};',context);
-    const options={instanceId:'test',assetRoot:'/assets/avatars/raymond',avatarId:'raymond',action,replayKey:0,paused:false,size:256,enabled:true,itemId:'book',projectileId:'pulse_blue'};
+    const options={instanceId:'test',assetRoot:'/assets/avatars/'+avatarId,avatarId,action,replayKey:0,paused:false,size:256,enabled:true,itemId:'book',projectileId:'pulse_blue'};
     return{api:context.api,host,actor,overlay,options,frames,listeners,mediaListeners,document,media,
         step(wall,actorTime){animation.currentTime=actorTime;const work=[...frames.values()];frames.clear();for(const fn of work)fn(wall);},
         entities(role){return overlay.children.filter(node=>node.dataset.layer===role);},
-        update(change){Object.assign(options,change);context.api.update(host,{...options});},
+        update(change){Object.assign(options,change);return context.api.update(host,{...options});},
+        nativeReady(promise){animation.ready=promise;},
         restart(){animation={currentTime:0};}
     };
 }
@@ -92,4 +93,44 @@ test('only curated local image paths are accepted',()=>{
     const {api}=setup();assert.equal(api.safeAsset('/assets/avatars/raymond','items/book.png'),'/assets/avatars/raymond/items/book.png');
     for(const file of ['https://example.com/a.png','items/../book.png','items/book.png?x=1','items/book.png\r','items/book.png\n','/items/book.png'])assert.equal(api.safeAsset('/assets/avatars/raymond',file),null);
     assert.equal(api.safeAsset('https://example.com','items/book.png'),null);
+});
+
+
+test('Santa has independent item and projectile lifetimes through the same safe layer contract',async()=>{
+    const env=setup('ability_1_pulse','santa');
+    assert.equal(await env.api.mount(env.host,env.options),true);
+    assert.equal(env.api.safeAsset('/assets/avatars/santa','projectiles/pulse_blue.png'),'/assets/avatars/santa/projectiles/pulse_blue.png');
+    env.step(0,0);env.step(500,500);
+    assert.equal(env.entities('projectile').length,1);
+    const initialX=Number(env.entities('projectile')[0].dataset.worldX);
+    env.step(1100,1100);
+    assert.equal(env.entities('projectile').length,1);
+    assert.ok(Number(env.entities('projectile')[0].dataset.worldX)>initialX);
+    assert.equal(env.actor.style.backgroundImage,'url(original-character-sheet.png)');
+    env.api.dispose('test');assert.equal(env.frames.size,0);
+});
+
+
+test('pause waits for the native CSS hold time before acknowledging and swapping attachments',async()=>{
+    const env=setup();await env.api.mount(env.host,env.options);env.step(0,0);env.step(500,500);
+    let release;env.nativeReady(new Promise(resolve=>{release=resolve;}));
+    const pause=env.update({paused:true});
+    assert.equal(env.host.dataset.layerPaused,'pending');assert.equal(env.frames.size,0);
+    // The native browser can advance its hold time once before pause commits.
+    env.step(516,516);release();await pause;
+    assert.equal(env.host.dataset.layerPaused,'true');
+    const book=env.entities('item')[0];const point={x:book.dataset.worldX,y:book.dataset.worldY};
+    await env.update({itemId:'coin'});const coin=env.entities('item')[0];
+    assert.deepEqual({x:coin.dataset.worldX,y:coin.dataset.worldY},point);
+    env.api.dispose('test');
+});
+
+test('a superseded pending pause cannot stop a newer resume or render after disposal',async()=>{
+    const env=setup();await env.api.mount(env.host,env.options);env.step(0,0);env.step(500,500);
+    let release;env.nativeReady(new Promise(resolve=>{release=resolve;}));
+    const pause=env.update({paused:true});await env.update({paused:false});release();await pause;
+    assert.equal(env.host.dataset.layerPaused,'false');assert.ok(env.frames.size>0);
+    let finish;env.nativeReady(new Promise(resolve=>{finish=resolve;}));
+    const disposedPause=env.update({paused:true});env.api.dispose('test');finish();await disposedPause;
+    assert.equal(env.overlay.children.length,0);assert.equal(env.frames.size,0);
 });

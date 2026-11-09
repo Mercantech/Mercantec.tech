@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 1,
+  "avatarId": "santa",
+  "coordinateSystem": {
+    "units": "frame-pixels",
+    "width": 256,
+    "height": 256,
+    "origin": {
+      "x": 128,
+      "y": 224
+    }
+  },
+  "defaultAnchors": {
+    "root": {
+      "status": "calibrated",
+      "units": "frame-pixels",
+      "interpolation": "hold",
+      "samples": [
+        {
+          "frame": 0,
+          "x": 128,
+          "y": 224
+        }
+      ],
+      "notes": "Shared output world origin; all eight frames retain one source origin. Runtime coordinates are half of the512px master coordinates."
+    }
+  },
+  "externalAssets": [
+    {
+      "id": "energy_cube",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "book",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "key",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "gear",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "gem",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "coin",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "crate",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "scroll",
+      "role": "item",
+      "sheet": "items/items.png",
+      "optional": true
+    },
+    {
+      "id": "pulse_blue",
+      "role": "projectile",
+      "sheet": "projectiles/projectiles.png",
+      "optional": true
+    },
+    {
+      "id": "pulse_gold",
+      "role": "projectile",
+      "sheet": "projectiles/projectiles.png",
+      "optional": true
+    },
+    {
+      "id": "shield",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "magnet_field",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "dash_trail",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "repair_field",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "ultimate_charge",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "ultimate_release",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "unlock",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    },
+    {
+      "id": "impact",
+      "role": "effect",
+      "sheet": "effects/effects.png",
+      "optional": true
+    }
+  ],
+  "actions": {
+    "pickup": {
+      "runtimeInputs": [
+        "itemId",
+        "itemTransform"
+      ],
+      "anchors": {
+        "right_hand": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "linear",
+          "samples": [
+            {
+              "frame": 0,
+              "x": 178.5,
+              "y": 161
+            },
+            {
+              "frame": 1,
+              "x": 173,
+              "y": 166
+            },
+            {
+              "frame": 2,
+              "x": 178,
+              "y": 180
+            },
+            {
+              "frame": 3,
+              "x": 188,
+              "y": 195.5
+            },
+            {
+              "frame": 4,
+              "x": 188.5,
+              "y": 202.5
+            },
+            {
+              "frame": 5,
+              "x": 182.5,
+              "y": 167.5
+            },
+            {
+              "frame": 6,
+              "x": 178.5,
+              "y": 161.5
+            },
+            {
+              "frame": 7,
+              "x": 176.5,
+              "y": 159.5
+            }
+          ],
+          "notes": "Measured on final512px Santa pickup frames0–7. Tracks the same screen-right mitten throughout; item identity/scale/grip offset are runtime inputs. Runtime coordinates are half of the512px master coordinates."
+        }
+      },
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "attach_item",
+          "payload": {
+            "anchor": "right_hand",
+            "runtimeInputs": [
+              "itemId",
+              "itemTransform"
+            ],
+            "attachment": "follow_anchor",
+            "identityOwner": "game"
+          }
+        }
+      ]
+    },
+    "interact": {
+      "runtimeInputs": [
+        "targetEntityId"
+      ],
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "activate_target",
+          "payload": {
+            "runtimeInputs": [
+              "targetEntityId"
+            ],
+            "identityOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ability_1_pulse": {
+      "runtimeInputs": [
+        "projectileId",
+        "aimDirection",
+        "projectileSpeed"
+      ],
+      "anchors": {
+        "muzzle": {
+          "status": "calibrated",
+          "units": "frame-pixels",
+          "interpolation": "none",
+          "samples": [
+            {
+              "frame": 4,
+              "x": 217.5,
+              "y": 111
+            }
+          ],
+          "notes": "Front edge of Santa outstretched empty mitten at release frame4 in final512px master. Projectile is independently spawned and simulated. Runtime coordinates are half of the512px master coordinates."
+        }
+      },
+      "events": [
+        {
+          "frame": 4,
+          "at": 0.5,
+          "type": "spawn_projectile",
+          "payload": {
+            "anchor": "muzzle",
+            "runtimeInputs": [
+              "projectileId",
+              "aimDirection",
+              "projectileSpeed"
+            ],
+            "attachment": "spawn_once",
+            "identityOwner": "game",
+            "motionOwner": "game"
+          }
+        }
+      ]
+    },
+    "ability_2_magnet": {
+      "runtimeInputs": [
+        "effectId",
+        "targetEntityId"
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 2,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "magnet_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ability_3_shield": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 3,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "shield",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ability_4_dash": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 4,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "dash_trail",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ability_5_repair": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "activate_ability",
+          "payload": {
+            "slot": 5,
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 3,
+          "at": 0.375,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "repair_field",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ultimate_charge": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "at": 0,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_charge",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "ultimate_release": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "activate_ability",
+          "payload": {
+            "slot": "ultimate",
+            "runtimeInputs": [
+              "abilityId",
+              "aimDirection"
+            ],
+            "identityOwner": "game"
+          }
+        },
+        {
+          "frame": 2,
+          "at": 0.25,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "ultimate_release",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "spawn_once",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    },
+    "unlock": {
+      "runtimeInputs": [
+        "effectId"
+      ],
+      "events": [
+        {
+          "frame": 0,
+          "at": 0,
+          "type": "spawn_effect",
+          "payload": {
+            "anchor": "root",
+            "effectSlot": "unlock",
+            "runtimeInputs": [
+              "effectId"
+            ],
+            "attachment": "follow_anchor",
+            "lifetimeOwner": "game"
+          }
+        }
+      ],
+      "anchors": {}
+    }
+  }
+}

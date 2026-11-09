@@ -1,7 +1,7 @@
 /* Separate preview entities. The actor's existing CSS clock owns pose timing. */
 const states = new WeakMap();
 const instances = new Map();
-const roots = new Set(['/assets/avatars/raymond']);
+const roots = new Set(['/assets/avatars/raymond', '/assets/avatars/santa']);
 const visibleEvents = new Set(['attach_item', 'spawn_projectile', 'spawn_effect']);
 const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const bounded = (value, min, max, fallback) => Math.min(max, Math.max(min, number(value, fallback)));
@@ -232,7 +232,7 @@ export async function mount(host, options) {
     const state = { id: options.instanceId, host, overlay, options: { ...options }, ready: false, disposed: false,
         abort: new AbortController(), raf: 0, lastWall: null, world: 0, entities: [], item: null, actor: null, cycle: -1, fired: new Set(), media: matchMedia('(prefers-reduced-motion: reduce)') };
     states.set(host, state); instances.set(state.id, state);
-    host.dataset.layerStatus = 'loading'; host.dataset.layerRunning = 'false';
+    host.dataset.layerStatus = 'loading'; host.dataset.layerRunning = 'false'; host.dataset.layerPaused = String(options.paused);
     state.onVisibility = () => { stopFrame(state); if (!document.hidden) { skipPastTransientEvents(state); schedule(state); } };
     state.onMedia = () => { reset(state); if (!state.media.matches) { skipPastTransientEvents(state); schedule(state); } };
     document.addEventListener('visibilitychange', state.onVisibility);
@@ -245,7 +245,7 @@ export async function mount(host, options) {
             || !Array.isArray(assets.items) || !Array.isArray(assets.projectiles) || !Array.isArray(assets.effects)) throw new Error('Invalid layer metadata');
         state.assets = assets; state.events = events; state.coordinateSize = bounded(events.coordinateSystem?.width ?? assets.frameSize?.width, 64, 2048, 512);
         state.ready = true; host.dataset.layerStatus = 'ready';
-        update(host, state.options);
+        await update(host, state.options);
         return true;
     } catch {
         if (!state.disposed) { host.dataset.layerStatus = 'error'; stopFrame(state); }
@@ -253,21 +253,35 @@ export async function mount(host, options) {
     }
 }
 
-export function update(host, options) {
+export async function update(host, options) {
     const state = lookup(host) ?? lookup(options?.instanceId);
     if (!state || state.disposed || !validOptions(options)) return;
+    const revision = state.updateRevision = (state.updateRevision ?? 0) + 1;
     const previous = state.options;
     const changed = signature(previous) !== signature(options);
     state.options = { ...options, size: bounded(options.size, 24, 512, 248) };
+    state.host.dataset.layerPaused = options.paused ? "pending" : "false";
     if (changed) reset(state);
     if (!state.ready) return;
-    if (!options.enabled || state.media.matches) { reset(state); return; }
-    const phase = getClock(state);
+    if (!options.enabled || state.media.matches) { reset(state); state.host.dataset.layerPaused = String(options.paused); return; }
+    let phase = getClock(state);
+    if (options.paused)
+    {
+        stopFrame(state);
+        // CSS pause is committed asynchronously by the browser. Read the final
+        // hold time after ready resolves, so an item swap cannot move its hand.
+        if (phase?.animation?.ready)
+        {
+            try { await phase.animation.ready; } catch { /* A replaced animation may be cancelled. */ }
+            if (state.disposed || revision !== state.updateRevision || !state.options.paused) return;
+            phase = getClock(state);
+        }
+    }
     if (!previous.enabled && options.enabled && !changed) skipPastTransientEvents(state);
     if (phase && state.item && previous.itemId !== options.itemId) {
         const attached = state.item.attached; ensureItem(state, attached); renderEntities(state, phase);
     }
-    if (options.paused) { stopFrame(state); if (phase) renderEntities(state, phase); return; }
+    if (options.paused) { if (phase) renderEntities(state, phase); state.host.dataset.layerPaused = "true"; return; }
     schedule(state);
 }
 

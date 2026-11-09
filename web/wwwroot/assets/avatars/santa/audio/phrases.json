@@ -1,0 +1,62 @@
+[
+  {
+    "id": "phrase_1_welcome",
+    "event": "welcome",
+    "text": "Ho ho ho! Er du klar til lidt julemagi?",
+    "language": "da-DK",
+    "file": "phrase_1_welcome.wav",
+    "path": "audio/phrase_1_welcome.wav",
+    "available": true,
+    "duration": 4.4149,
+    "durationSeconds": 4.4149,
+    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+  },
+  {
+    "id": "phrase_2_start",
+    "event": "start",
+    "text": "Selv den største opgave løses ét skridt ad gangen.",
+    "language": "da-DK",
+    "file": "phrase_2_start.wav",
+    "path": "audio/phrase_2_start.wav",
+    "available": true,
+    "duration": 3.5657,
+    "durationSeconds": 3.5657,
+    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+  },
+  {
+    "id": "phrase_3_success",
+    "event": "success",
+    "text": "Godt klaret! Det fortjener en plads på den gode liste.",
+    "language": "da-DK",
+    "file": "phrase_3_success.wav",
+    "path": "audio/phrase_3_success.wav",
+    "available": true,
+    "duration": 4.827,
+    "durationSeconds": 4.827,
+    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+  },
+  {
+    "id": "phrase_4_retry",
+    "event": "retry",
+    "text": "En lille pause, og så prøver vi igen.",
+    "language": "da-DK",
+    "file": "phrase_4_retry.wav",
+    "path": "audio/phrase_4_retry.wav",
+    "available": true,
+    "duration": 3.296,
+    "durationSeconds": 3.296,
+    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+  },
+  {
+    "id": "phrase_5_milestone",
+    "event": "milestone",
+    "text": "Sammen får vi magien til at virke!",
+    "language": "da-DK",
+    "file": "phrase_5_milestone.wav",
+    "path": "audio/phrase_5_milestone.wav",
+    "available": true,
+    "duration": 2.343,
+    "durationSeconds": 2.343,
+    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+  }
+]

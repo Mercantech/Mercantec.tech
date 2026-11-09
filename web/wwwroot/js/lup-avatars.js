@@ -12,7 +12,7 @@
         stop,
         async play(file) {
             if (typeof file !== "string") return false;
-            const match = /^\/assets\/avatars\/(bip-01|raymond)\/audio\/([a-z0-9_]+)\.wav$/.exec(file);
+            const match = /^\/assets\/avatars\/(bip-01|raymond|santa)\/audio\/([a-z0-9_]+)\.wav$/.exec(file);
             if (!match || match[0] !== file || (!actions.has(match[2]) && !phrases.has(match[2]))) return false;
             stop();
             currentAudio = new Audio(file); currentAudio.volume = .65;

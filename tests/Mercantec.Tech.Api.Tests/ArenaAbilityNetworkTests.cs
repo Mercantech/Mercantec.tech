@@ -70,6 +70,28 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task PurchasedSantaEntersOnlineArenaAndBothClientsReceiveTheActualArcingStar()
+    {
+        using var alice = Client(_alice);
+        var purchase = await alice.PostAsJsonAsync("/api/me/avatars/santa/unlock", new { });
+        purchase.EnsureSuccessStatusCode();
+        await using var match = await StartMatch(firstAvatar: AvatarEconomy.SantaId);
+        var initial = await match.First.WaitState(state => state.Phase == "playing" && state.Tick >= 216);
+        Assert.Equal(AvatarEconomy.SantaId, Fighter(initial, match.FirstId).AvatarId);
+        await match.First.Input(special: true);
+        var fired = await match.First.WaitState(state => state.Tick > initial.Tick && state.Projectiles.Any(projectile => projectile.SourceAvatarId == "santa"));
+        var star = Assert.Single(fired.Projectiles);
+        Assert.Equal("star", star.Kind);
+        Assert.Equal(match.FirstId, star.OwnerId);
+        Assert.Equal(16, star.Radius);
+        Assert.True(star.Vy < 0);
+        Assert.InRange(Fighter(fired, match.FirstId).ActionFrame, 4, 5);
+        Assert.InRange(Fighter(fired, match.FirstId).Combat!.Energy, 85, 90);
+        Assert.True(Fighter(fired, match.FirstId).Combat!.Cooldowns.Pulse > 0);
+        await AssertSharedState(match.Second, fired);
+    }
+
+    [Fact]
     public async Task BothClientsSeeDifferentProjectilePhysicsAndActualCombatDamage()
     {
         await using var match = await StartMatch();
@@ -237,13 +259,13 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
         await AssertSharedState(replacement, moved);
     }
 
-    private async Task<Match> StartMatch(bool requestTraining = false)
+    private async Task<Match> StartMatch(bool requestTraining = false, string firstAvatar = "bip01")
     {
         using var alice = Client(_alice);
         using var bob = Client(_bob);
         var created = await alice.PostAsJsonAsync("/api/arena/rooms", new
         {
-            avatarId = "bip01", stageId = "rooftops", stocks = 3, minutes = 1, training = requestTraining
+            avatarId = firstAvatar, stageId = "rooftops", stocks = 3, minutes = 1, training = requestTraining
         });
         created.EnsureSuccessStatusCode();
         var host = (await created.Content.ReadFromJsonAsync<ArenaAdmission>())!;

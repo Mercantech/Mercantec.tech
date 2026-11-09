@@ -1,6 +1,6 @@
 const EFFECT_ROOT = '/assets/arena/v3/effects/';
 const EFFECT_IDS = ['shield', 'magnet_field', 'dash_trail', 'repair_field', 'ultimate_charge', 'ultimate_release', 'impact', 'unlock'];
-const PROJECTILES = { bip01: ['pulse_cyan', 'pulse_amber'], raymond: ['pulse_blue', 'pulse_gold'] };
+const PROJECTILES = { bip01: ['pulse_cyan', 'pulse_amber'], raymond: ['pulse_blue', 'pulse_gold'], santa: ['pulse_blue', 'pulse_gold'] };
 const valid = image => Boolean(image?.complete && image.naturalWidth && !image.failed);
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const resource = value => Math.max(0, Math.min(100, finite(value)));
@@ -10,9 +10,10 @@ const resource = value => Math.max(0, Math.min(100, finite(value)));
 export function projectileArtFor(projectile, fighters) {
     const source = projectile.sourceAvatarId || fighters.get(projectile.ownerId)?.avatarId || 'starter';
     const avatarId = projectile.kind === 'join' ? 'raymond' : source;
+    const palette = PROJECTILES[avatarId] || PROJECTILES.bip01;
     return {
         avatarId,
-        id: projectile.kind === 'join' ? 'pulse_gold' : PROJECTILES[avatarId === 'raymond' ? 'raymond' : 'bip01'][0],
+        id: projectile.kind === 'join' || projectile.kind === 'gift' ? palette[1] : palette[0],
         reflected: projectile.reflected === true || projectile.kind === 'reflected'
     };
 }
@@ -20,7 +21,7 @@ export function projectileArtFor(projectile, fighters) {
 // Older snapshots and menu previews have no combat resources. Keep their HUD
 // unchanged; authoritative resource values never come from an animation frame.
 export function combatPresentation(fighter) {
-    if (!fighter.combat || !['bip01', 'raymond'].includes(fighter.avatarId)) return null;
+    if (!fighter.combat || !['bip01', 'raymond', 'santa'].includes(fighter.avatarId)) return null;
     const combat = fighter.combat;
     const cooldowns = Object.fromEntries(['pulse', 'grab', 'dash', 'recovery', 'repair', 'ultimate']
         .map(id => [id, Math.max(0, finite(combat.cooldowns?.[id]))]));
@@ -41,8 +42,9 @@ export function combatStatusFor(fighter, combat = combatPresentation(fighter)) {
     const remaining = combat.channelRemaining > 0 ? ' · ' + combat.channelRemaining.toFixed(1) + 's' : '';
     if (combat.activeAbility === 'overload-charge') return 'Lader Kerneoverload' + remaining;
     if (combat.activeAbility === 'join-charge') return 'Lader JOIN' + remaining;
+    if (combat.activeAbility === 'gift-fest-charge') return 'Lader gavefest' + remaining;
     if (combat.activeAbility === 'repair' && combat.channelRemaining > 0) {
-        return (fighter.avatarId === 'bip01' ? 'Reparerer ' : 'Gendanner ') + combat.channelRemaining.toFixed(1) + 's';
+        return (fighter.avatarId === 'santa' ? 'Julevarme ' : fighter.avatarId === 'bip01' ? 'Reparerer ' : 'Gendanner ') + combat.channelRemaining.toFixed(1) + 's';
     }
     return combat.armored ? 'Panser' : combat.activeAbility === 'magnet' ? 'Magnet' : null;
 }
@@ -52,8 +54,10 @@ export function repairReadinessFor(fighter, combat = combatPresentation(fighter)
     if (combat.cooldowns.repair > 0) return combat.cooldowns.repair.toFixed(1) + 's';
     if (fighter.damage <= 0) return 'fuldt';
     if (!fighter.grounded) return 'land';
-    const energy = fighter.avatarId === 'bip01';
-    if ((energy ? combat.energy : resource(fighter.shield)) < 40) return energy ? '40E' : '40L';
+    const magic = fighter.avatarId === 'santa';
+    const energy = magic || fighter.avatarId === 'bip01';
+    const cost = magic ? 45 : 40;
+    if ((energy ? combat.energy : resource(fighter.shield)) < cost) return magic ? '45M' : energy ? '40E' : '40L';
     return 'klar';
 }
 
@@ -71,7 +75,7 @@ export class ArenaEffectArt {
         await Promise.all(requests);
     }
     key(avatar, id) { return 'original-effect:' + avatar + ':' + id; }
-    avatar(id) { return id === 'raymond' ? 'raymond' : 'bip01'; }
+    avatar(id) { return Object.hasOwn(PROJECTILES, id) ? id : 'bip01'; }
     projectileId(avatarId, charged = false) { return PROJECTILES[this.avatar(avatarId)][charged ? 1 : 0]; }
     draw(context, avatarId, id, frame, x, y, size, rotation = 0, opacity = 1, blend = 'source-over', heightScale = 1) {
         const avatar = this.avatar(avatarId);
