@@ -1,6 +1,6 @@
 {
   "date": "2026-11-09",
   "title": "Genkend dine noter i browserfanen",
-  "description": "Sidens første billedemoji vises som faneikon. Almindelige Unicode-emojier vises direkte i fanens titel.",
+  "description": "Sidens første billedemoji vises som faneikon. Hvis titlen kun består af billedemojier, hedder fanen LUP. Almindelige Unicode-emojier vises direkte i fanens titel.",
   "authors": ["Mathias"]
 }

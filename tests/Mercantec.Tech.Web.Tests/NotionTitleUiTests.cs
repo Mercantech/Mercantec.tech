@@ -61,7 +61,7 @@ public sealed class NotionTitleUiTests
     }
 
     [Fact]
-    public async Task An_uploaded_emoji_only_title_uses_alt_text_and_an_icon_without_the_download_ticket()
+    public async Task An_uploaded_emoji_only_title_uses_the_image_as_tab_icon_and_preserves_alt_text_on_the_page()
     {
         var png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=");
         var id = Guid.NewGuid();
@@ -70,14 +70,16 @@ public sealed class NotionTitleUiTests
         using var api = new TitleApi { Title = ":egen_emoji:", Emojis = [upload], EmojiPng = png };
         using var context = await CreateContext(api);
         var head = context.Render<HeadOutlet>();
-        context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
+        var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
 
         head.WaitForAssertion(() =>
         {
-            Assert.Equal("Vores emoji · LUP", head.Find("title").TextContent);
+            Assert.Equal("LUP", head.Find("title").TextContent);
             Assert.Equal("data:image/png;base64," + Convert.ToBase64String(png),
                 head.Find("link[rel=icon]").GetAttribute("href"));
         }, Timeout);
+        page.WaitForAssertion(() => Assert.Equal(upload.AltText,
+            page.Find(".notion-title-preview img").GetAttribute("alt")), Timeout);
         Assert.Empty(api.Unexpected);
     }
 

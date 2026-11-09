@@ -1,7 +1,7 @@
 @implements IDisposable
 @inject EmojiClient Emojis
 
-<PageTitle>@_label · LUP</PageTitle>
+<PageTitle>@(_label.Length == 0 ? "LUP" : $"{_label} · LUP")</PageTitle>
 @if (_icon is not null)
 {
     <HeadContent>
@@ -37,10 +37,6 @@
             if (emoji is null) return;
 
             _label = string.Concat(parts.Select(part => part.Text)).Trim();
-            if (_label.Length == 0)
-                _label = string.IsNullOrWhiteSpace(emoji.AltText)
-                    ? emoji.Name.Replace('_', ' ').Replace('-', ' ')
-                    : emoji.AltText.Trim();
 
             StateHasChanged();
             var icon = await Emojis.TabIcon(emoji, token);
