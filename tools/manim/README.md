@@ -26,6 +26,22 @@ Med [Manim Community 0.22.1 og LaTeX installeret lokalt](https://docs.manim.comm
 python -m manim --config_file tools/manim/manim.cfg --media_dir .tools/manim tools/manim/scenes/lineaer_funktion.py LineaerFunktion
 ```
 
+## Lineær regression: boligpriser
+
+Scenen [`lineaer_regression.py`](scenes/lineaer_regression.py) følger fem fiktive boligsalg fra datapunkter til en regressionslinje. Den viser residualer, middelkvadratfejl (MSE), et prisbud på 90 m² og en test på et nyt salg. Til sidst er der en kort regneopgave med facit.
+
+```sh
+docker compose -f docker-compose.manim.yml run --rm manim manim --config_file manim.cfg scenes/lineaer_regression.py LineaerRegression
+```
+
+Videoen har danske undertekster i selve billedet. For også at rendere med speak skal de ti WAV-klip fra [manuskriptet](regression-speak.json) ligge i `.tools/manim/regression-audio/` som `01.wav` til `10.wav`. Den indtalte udgave bruger [Pipers danske stemme](https://huggingface.co/rhasspy/piper-voices/blob/2b1eb66029b7a525aa9aaa7532433f00549e95b1/da/da_DK/talesyntese/medium/MODEL_CARD).
+
+```sh
+docker compose -f docker-compose.manim.yml run --rm -e MANIM_REGRESSION_AUDIO_DIR=/manim/media/regression-audio manim manim --config_file manim.cfg scenes/lineaer_regression.py LineaerRegression
+```
+
+Ved lokal render sættes `MANIM_REGRESSION_AUDIO_DIR` til den lokale WAV-mappe. Den færdige video ligger i `.tools/manim/videos/lineaer_regression/1080p30/LineaerRegression.mp4`.
+
 ## Læg videoen på en undervisningsside
 
 1. Åbn **Notesbøger** i LUP (`/notion`), og redigér den ønskede undervisningsside.

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "01",
+    "text": "Hvad vil en bolig på halvfems kvadratmeter koste? Vi kender priserne på fem andre boliger. Med lineær regression bruger vi dem til at lave et bud."
+  },
+  {
+    "id": "02",
+    "text": "Hver prik er en bolig. På den vandrette akse har vi boligens areal. På den lodrette har vi salgsprisen i millioner kroner. Det er opdigtede tal til øvelsen."
+  },
+  {
+    "id": "03",
+    "text": "Vi prøver at beskrive mønsteret med en ret linje. Alfa er linjens skæring med y-aksen. Beta er hældningen: hvor meget den forventede pris ændrer sig, når arealet stiger med én kvadratmeter."
+  },
+  {
+    "id": "04",
+    "text": "En bolig på tres kvadratmeter blev solgt for én komma tre millioner. Vores første linje siger én komma seks. Den lodrette forskel er minus nul komma tre millioner. Den forskel kalder vi et residual."
+  },
+  {
+    "id": "05",
+    "text": "Nogle residualer er positive, andre negative. Vi kvadrerer dem, så plus og minus ikke ophæver hinanden. Gennemsnittet af kvadraterne hedder middelkvadratfejlen, også kaldet M S E."
+  },
+  {
+    "id": "06",
+    "text": "Mindste kvadraters metode finder den linje, hvor middelkvadratfejlen er mindst på træningsdataene. Når vi drejer linjen her, falder fejlen fra nul komma nul fem seks til nul komma nul to syv to."
+  },
+  {
+    "id": "07",
+    "text": "Nu indsætter vi halvfems kvadratmeter. Modellen giver et bud på to komma elleve millioner kroner. Det er en forudsigelse, som vi kan sammenligne med en salgspris."
+  },
+  {
+    "id": "08",
+    "text": "Lad os teste med en ny bolig, som ikke var med i træningen. Hvis den faktisk blev solgt for to komma tre millioner, var vores bud hundrede og halvfems tusind kroner for lavt."
+  },
+  {
+    "id": "09",
+    "text": "En lav fejl på træningsdata betyder ikke, at modellen virker lige så godt på nye data. Hold derfor testdata adskilt fra træningen, og test på flere boliger."
+  },
+  {
+    "id": "10",
+    "text": "Prøv selv: Hvad forudsiger modellen for hundrede kvadratmeter? Indsæt hundrede i formlen. Sæt eventuelt videoen på pause, før du ser svaret."
+  }
+]
