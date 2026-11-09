@@ -10,7 +10,9 @@ internal static class PlatformUpdatesObserver
     { "idle", "polling", "state", "resolving-source", "capturing", "analyzing", "publishing", "recording" };
     private static readonly HashSet<string> Errors = new(StringComparer.Ordinal)
     { "git_index_locked", "git_network", "browser_cache_not_writable", "browser_launch_failed",
-      "service_auth_failed", "source_not_found", "capture_failed", "endpoint_unreachable", "worker_error" };
+      "service_auth_failed", "source_not_found", "capture_failed", "endpoint_unreachable",
+      "web_metadata_unavailable", "api_metadata_unavailable", "request_bad_request", "request_forbidden",
+      "request_not_found", "request_server_error", "response_not_json", "request_redirected", "worker_error" };
     private static readonly PlatformUpdatesObserverSnapshot Empty = new(null, null, null);
 
     public static PlatformUpdatesObserverSnapshot Read(string? path)

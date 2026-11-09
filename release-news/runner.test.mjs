@@ -340,11 +340,17 @@ test('runtime protocol uses /automation/state, keys only internal endpoints and 
   assert.deepEqual(await deps.getDeployment(), { revision: RA });
   await deps.getAutomationState();
   await deps.recordAutomationState({ baselineRecorded: true });
+  await deps.analyze({ commit: A });
+  await deps.publish({ commit: A });
   const stateCalls = calls.filter(call => call.url.endsWith('/automation/state'));
   assert.equal(stateCalls.length, 2);
   assert.deepEqual(stateCalls.map(call => call.options.method), ['GET', 'POST']);
   assert.ok(stateCalls.every(call => call.options.headers['X-LUP-Updates-Key']));
+  assert.ok(calls.filter(call => call.url.endsWith('/deployment')).every(call => call.url === 'http://web.example/api/platform-updates/deployment'));
   assert.ok(calls.filter(call => call.url.includes('web.example')).every(call => !call.options.headers['X-LUP-Updates-Key']));
+  assert.ok(calls.filter(call => call.options.headers['X-LUP-Updates-Key']).every(call => call.url.startsWith('http://api.example/api/platform-updates/automation/')));
+  assert.ok(calls.some(call => call.url === 'http://api.example/api/platform-updates/automation/analyze'));
+  assert.ok(calls.some(call => call.url === 'http://api.example/api/platform-updates/automation/publish'));
   assert.ok(calls.every(call => call.options.redirect === 'error'));
 });
 
@@ -449,10 +455,15 @@ test('diagnostics classify failures into fixed codes without returning sensitive
   const secret = 'secret-value https://private.example/path /private/directory';
   const cases = [
     [{ status: 401, message: secret }, undefined, 'service_auth_failed'],
+    ...[[400, 'request_bad_request'], [403, 'request_forbidden'], [404, 'request_not_found'], [502, 'request_server_error']]
+      .map(([status, expected]) => [{ status, message: secret }, 'polling', expected]),
     [{ stderr: `fatal: /data/repo/.git/index.lock exists ${secret}` }, 'resolving-source', 'git_index_locked'],
     [{ message: `Could not resolve host ${secret}` }, 'resolving-source', 'git_network'],
     [{ message: secret, cause: { code: 'ECONNREFUSED' } }, 'polling', 'endpoint_unreachable'],
     [{ message: secret, cause: { code: 'ENOTFOUND' } }, 'state', 'endpoint_unreachable'],
+    [{ message: secret, cause: { code: 'EAI_AGAIN' } }, 'polling', 'endpoint_unreachable'],
+    [{ message: secret, cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } }, 'polling', 'endpoint_unreachable'],
+    [{ message: 'fetch failed', cause: { message: `unexpected redirect ${secret}` } }, 'polling', 'request_redirected'],
     [{ message: `browserType.launch: crashpad requires database EACCES ${secret}` }, 'capturing', 'browser_cache_not_writable'],
     [{ message: `browserType.launch: process exited ${secret}` }, 'capturing', 'browser_launch_failed'],
     [{ message: 'Deployed revision is not in the bounded source history.' }, undefined, 'source_not_found'],
@@ -463,6 +474,24 @@ test('diagnostics classify failures into fixed codes without returning sensitive
     const code = classifyWorkerError(error, phase);
     assert.equal(code, expected);
     assert.doesNotMatch(code, /secret-value|private/);
+  }
+});
+
+test('public metadata failures provide safe HTTP/JSON/network classifications and source fallback', async t => {
+  const dataDir = await temporary(t);
+  for (const [source, response, expected] of [
+    ['web', () => Response.json({}, { status: 404 }), 'request_not_found'],
+    ['api', () => new Response('<html>private upstream</html>'), 'response_not_json'],
+    ['web', () => { throw new TypeError('private diagnostic'); }, 'web_metadata_unavailable'],
+    ['api', () => { throw Object.assign(new TypeError('private diagnostic'), { code: 'UNMAPPED_PRIVATE_ERROR' }); }, 'api_metadata_unavailable'],
+    ['api', () => { throw new TypeError('fetch failed', { cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } }); }, 'endpoint_unreachable'],
+  ]) {
+    const deps = await runtimeDependencies({ dataDir, webBaseUrl: 'https://web.example', apiBaseUrl: 'http://private-api' }, {
+      fingerprint: async () => RA, captureScenarios: async () => ({}),
+      fetchImpl: async url => (source === 'web' ? url.endsWith('/release.json') : url.endsWith('/deployment'))
+        ? response() : Response.json({ revision: RA }),
+    });
+    await assert.rejects(deps.getDeployment(), error => classifyWorkerError(error, 'polling') === expected);
   }
 });
 

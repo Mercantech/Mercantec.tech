@@ -33,9 +33,15 @@ export async function writeJson(file, value, { mode = 0o600 } = {}) {
 export function classifyWorkerError(error, phase) {
   const text = [error?.message, error?.stderr, error?.code, error?.cause?.message, error?.cause?.code].filter(value => typeof value === 'string').join('\n');
   if (error?.status === 401) return 'service_auth_failed';
+  if (error?.status === 400) return 'request_bad_request';
+  if (error?.status === 403) return 'request_forbidden';
+  if (error?.status === 404) return 'request_not_found';
+  if (error?.status >= 500 && error?.status <= 599) return 'request_server_error';
   if (/index\.lock/i.test(text)) return 'git_index_locked';
   if ((phase === 'resolving-source' || /git/i.test(text)) && /ENOTFOUND|EAI_AGAIN|ETIMEDOUT|could not resolve|name or service not known|network is unreachable|connection timed out/i.test(text)) return 'git_network';
-  if (/ECONNREFUSED|ENOTFOUND|ETIMEDOUT/.test(text)) return 'endpoint_unreachable';
+  if (/ECONNREFUSED|ENOTFOUND|ETIMEDOUT|EAI_AGAIN|UND_ERR_CONNECT_TIMEOUT|EHOSTUNREACH|ENETUNREACH|ECONNRESET/.test(text)) return 'endpoint_unreachable';
+  if (/redirect/i.test(text)) return 'request_redirected';
+  if (error?.code === 'response_not_json') return 'response_not_json';
   if (/browserType\.launch|chromium\.launch|crashpad/i.test(text)) {
     if (/crashpad|read.only|EACCES|not writable|permission denied/i.test(text)) return 'browser_cache_not_writable';
     return 'browser_launch_failed';
@@ -43,6 +49,8 @@ export function classifyWorkerError(error, phase) {
   if (error?.code === 'browser_cache_not_writable' || error?.code === 'browser_launch_failed') return error.code;
   if (/bounded source history|source commit was not found/i.test(text)) return 'source_not_found';
   if (/No valid screenshots|Capture did not complete/i.test(text)) return 'capture_failed';
+  if (error?.code === 'web_metadata_unavailable' || error?.code === 'api_metadata_unavailable') return error.code;
+  if (error?.metadataSource === 'web' || error?.metadataSource === 'api') return `${error.metadataSource}_metadata_unavailable`;
   return 'worker_error';
 }
 

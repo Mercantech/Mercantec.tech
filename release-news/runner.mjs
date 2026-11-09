@@ -243,7 +243,7 @@ function endpointBase(value) {
 export function configuration(env = process.env) {
   return {
     dataDir: env.LUP_UPDATES_DATA_DIR || '/data',
-    webBaseUrl: endpointBase(env.LUP_UPDATES_WEB_BASE_URL || 'http://mercantec-tech-web:3000'),
+    webBaseUrl: endpointBase(env.LUP_UPDATES_WEB_BASE_URL || 'https://lup.dk'),
     apiBaseUrl: endpointBase(env.LUP_UPDATES_API_BASE_URL || 'http://mercantec-tech-api:8080'),
     keyFile: env.LUP_UPDATES_KEY_FILE || '/run/lup-updates/service-key',
     pollIntervalMs: Math.max(5, Math.min(300, Number(env.LUP_UPDATES_POLL_SECONDS) || 30)) * 1000,
@@ -338,15 +338,24 @@ export async function runtimeDependencies(config, { fingerprint, captureScenario
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), redirect: 'error', signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) { const error = new Error('Worker API request failed.'); error.status = response.status; throw error; }
     if (response.status === 204) return null;
-    return response.json();
+    try { return await response.json(); }
+    catch (cause) { const error = new Error('Worker response was not JSON.', { cause }); error.code = 'response_not_json'; throw error; }
   }
   const automation = `${config.apiBaseUrl}/api/platform-updates/automation`;
+  async function metadata(url, source) {
+    try { return await request(url); }
+    catch (error) {
+      error.metadataSource = source;
+      if (!error.code) error.code = `${source}_metadata_unavailable`;
+      throw error;
+    }
+  }
   return {
     ...repositoryDependencies({ dataDir: config.dataDir, fingerprint }), captureScenarios,
     async getDeployment() {
       const [web, api] = await Promise.all([
-        request(`${config.webBaseUrl}/release.json`),
-        request(`${config.apiBaseUrl}/api/platform-updates/deployment`),
+        metadata(`${config.webBaseUrl}/release.json`, 'web'),
+        metadata(`${config.webBaseUrl}/api/platform-updates/deployment`, 'api'),
       ]);
       return REVISION.test(web?.revision) && web.revision === api?.revision ? { revision: web.revision } : null;
     },

@@ -211,7 +211,7 @@ services:
     init: true
     environment:
       LUP_UPDATES_API_BASE_URL: http://mercantec-tech-api:8080
-      LUP_UPDATES_WEB_BASE_URL: http://mercantec-tech-web:3000
+      LUP_UPDATES_WEB_BASE_URL: https://lup.dk
       LUP_UPDATES_DATA_DIR: /data
       LUP_UPDATES_KEY_FILE: /run/lup-updates/service-key
       LUP_UPDATES_POLL_SECONDS: "30"
