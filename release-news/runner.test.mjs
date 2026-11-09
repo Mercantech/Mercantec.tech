@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { ReleaseNewsWorker, repositoryDependencies, runtimeDependencies, configuration, runForever } from './runner.mjs';
-import { readJson, writeJson, isReviewableFile, redactSecrets, canonicalAuthors, normalizeEntries, publicationImage, truncateUtf8, pruneCaches } from './runner-core.mjs';
+import { readJson, writeJson, isReviewableFile, redactSecrets, canonicalAuthors, normalizeEntries, publicationImage, truncateUtf8, pruneCaches, classifyWorkerError } from './runner-core.mjs';
 
 const A = 'a'.repeat(40), B = 'b'.repeat(40), C = 'c'.repeat(40);
 const RA = '1'.repeat(64), RB = '2'.repeat(64), RC = '3'.repeat(64);
@@ -443,4 +443,49 @@ test('cleanup failure is generic and cannot abort an already durably recorded ba
   assert.equal((await f.state()).remoteSyncPending, false);
   assert.equal(f.calls.publish.length, 1);
   assert.deepEqual(warnings, ['Release news cache cleanup will retry.', 'Release news cache cleanup will retry.']);
+});
+
+test('diagnostics classify failures into fixed codes without returning sensitive exception details', () => {
+  const secret = 'secret-value https://private.example/path /private/directory';
+  const cases = [
+    [{ status: 401, message: secret }, undefined, 'service_auth_failed'],
+    [{ stderr: `fatal: /data/repo/.git/index.lock exists ${secret}` }, 'resolving-source', 'git_index_locked'],
+    [{ message: `Could not resolve host ${secret}` }, 'resolving-source', 'git_network'],
+    [{ message: secret, cause: { code: 'ECONNREFUSED' } }, 'polling', 'endpoint_unreachable'],
+    [{ message: secret, cause: { code: 'ENOTFOUND' } }, 'state', 'endpoint_unreachable'],
+    [{ message: `browserType.launch: crashpad requires database EACCES ${secret}` }, 'capturing', 'browser_cache_not_writable'],
+    [{ message: `browserType.launch: process exited ${secret}` }, 'capturing', 'browser_launch_failed'],
+    [{ message: 'Deployed revision is not in the bounded source history.' }, undefined, 'source_not_found'],
+    [{ message: 'No valid screenshots were captured.' }, undefined, 'capture_failed'],
+    [{ message: secret }, undefined, 'worker_error'],
+  ];
+  for (const [error, phase, expected] of cases) {
+    const code = classifyWorkerError(error, phase);
+    assert.equal(code, expected);
+    assert.doesNotMatch(code, /secret-value|private/);
+  }
+});
+
+test('heartbeat preserves active progress and failed phase, clears on recovery, and shares only safe metadata', async t => {
+  const f = await fixture(t), worker = f.worker(), phases = [];
+  const heartbeat = () => readJson(path.join(f.dataDir, 'heartbeat.json'));
+  for (const [method, expected] of [['getAutomationState', 'state'], ['resolveCommit', 'resolving-source'],
+    ['captureScenarios', 'capturing'], ['recordAutomationState', 'recording'], ['analyze', 'analyzing'], ['publish', 'publishing']]) {
+    const original = f.dependencies[method];
+    f.dependencies[method] = async (...args) => { assert.equal((await heartbeat()).phase, expected); phases.push(expected); return original(...args); };
+  }
+  await worker.tick();
+  await worker.heartbeat('capturing');
+  await worker.heartbeat();
+  assert.equal((await heartbeat()).phase, 'capturing');
+  f.control.revision = RB;
+  f.control.captureOverride = () => ({ page: { ok: false, reason: 'browser_cache_not_writable' } });
+  await assert.rejects(worker.tick());
+  assert.deepEqual(await heartbeat(), { updatedAtUtc: TIME, phase: 'capturing', errorCode: 'browser_cache_not_writable' });
+  f.control.captureOverride = null;
+  await worker.tick();
+  assert.deepEqual(await heartbeat(), { updatedAtUtc: TIME, phase: 'idle', errorCode: null });
+  assert.ok(phases.includes('publishing'));
+  if (process.platform !== 'win32') assert.equal((await fs.stat(path.join(f.dataDir, 'heartbeat.json'))).mode & 0o777, 0o644);
+  if (process.platform !== 'win32') assert.equal((await fs.stat(path.join(f.dataDir, 'state.json'))).mode & 0o777, 0o600);
 });

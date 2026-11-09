@@ -12,12 +12,13 @@ export async function readJson(file) {
   catch (error) { if (error.code === 'ENOENT') return null; throw new Error('Persistent worker data could not be read.'); }
 }
 
-export async function writeJson(file, value) {
+export async function writeJson(file, value, { mode = 0o600 } = {}) {
   await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const temporary = `${file}.${randomUUID()}.tmp`;
   let handle;
   try {
-    handle = await fs.open(temporary, 'wx', 0o600);
+    handle = await fs.open(temporary, 'wx', mode);
+    await handle.chmod(mode);
     await handle.writeFile(JSON.stringify(value));
     await handle.sync();
     await handle.close(); handle = null;
@@ -26,6 +27,23 @@ export async function writeJson(file, value) {
     await handle?.close().catch(() => {});
     await fs.unlink(temporary).catch(() => {});
   }
+}
+
+/** Only fixed, public-safe diagnostics leave the private observer volume. */
+export function classifyWorkerError(error, phase) {
+  const text = [error?.message, error?.stderr, error?.code, error?.cause?.message, error?.cause?.code].filter(value => typeof value === 'string').join('\n');
+  if (error?.status === 401) return 'service_auth_failed';
+  if (/index\.lock/i.test(text)) return 'git_index_locked';
+  if ((phase === 'resolving-source' || /git/i.test(text)) && /ENOTFOUND|EAI_AGAIN|ETIMEDOUT|could not resolve|name or service not known|network is unreachable|connection timed out/i.test(text)) return 'git_network';
+  if (/ECONNREFUSED|ENOTFOUND|ETIMEDOUT/.test(text)) return 'endpoint_unreachable';
+  if (/browserType\.launch|chromium\.launch|crashpad/i.test(text)) {
+    if (/crashpad|read.only|EACCES|not writable|permission denied/i.test(text)) return 'browser_cache_not_writable';
+    return 'browser_launch_failed';
+  }
+  if (error?.code === 'browser_cache_not_writable' || error?.code === 'browser_launch_failed') return error.code;
+  if (/bounded source history|source commit was not found/i.test(text)) return 'source_not_found';
+  if (/No valid screenshots|Capture did not complete/i.test(text)) return 'capture_failed';
+  return 'worker_error';
 }
 
 export function truncateUtf8(text, limit) {

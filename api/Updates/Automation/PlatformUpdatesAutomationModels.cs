@@ -8,6 +8,7 @@ public sealed class PlatformUpdatesAutomationOptions
     public const string SectionName = "PlatformUpdatesAutomation";
     public string StoragePath { get; set; } = ".data/platform-updates";
     public string ServiceKeyFile { get; set; } = "/run/lup-updates/service-key";
+    public string ObserverHeartbeatPath { get; set; } = "";
 }
 
 public sealed record PlatformUpdatesAutomationState(string? Commit = null, string? Revision = null,

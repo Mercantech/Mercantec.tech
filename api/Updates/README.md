@@ -16,6 +16,8 @@ Publicering sker atomisk og kun én gang pr. commit. Billeder, opslag, sidste ge
 
 Compose opretter selv en separat intern servicenøgle til nyhedsobservatøren. De interne skrive-/analyseendpoints er blokeret i den offentlige nginx-proxy; underviser- og elevtokens giver ingen skriveret til dem. Ingen GitHub Actions-hemmeligheder eller yderligere AI-nøgle kræves. Den offentlige, datatomme status `/api/platform-updates/deployment` kan bruges til at kontrollere versionsidentitet og om første billedgrundlag er klar. De private volumes `mercantec_updates_publications` og `mercantec_updates_capture` skal bevares og sikkerhedskopieres ved drift.
 
+Status viser også observatørens faste trin-/fejlkoder og seneste heartbeat. Rå fejl, stier, URL'er, kodeudsnit og nøgler offentliggøres aldrig. API'et har kun læseadgang til denne lille statusfil i optagelsesvolumen. Browserens midlertidige HOME-/XDG-cache ligger på `/tmp`-tmpfs, mens selve containerfilsystemet er skrivebeskyttet.
+
 Kontrol af automatikken:
 
 ```text

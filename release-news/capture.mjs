@@ -21,6 +21,13 @@ class CaptureFailure extends Error {
   constructor(code) { super(code); this.code = code; }
 }
 
+/** Inspect launch diagnostics locally; return only an allowlisted code, never the diagnostic itself. */
+export function browserLaunchFailure(error) {
+  const message = typeof error?.message === 'string' ? error.message : '';
+  return /\b(?:EACCES|EROFS)\b|read[- ]only|not writable|crashpad/i.test(message)
+    ? 'browser_cache_not_writable' : 'browser_launch_failed';
+}
+
 export function captureBase(value) {
   let url;
   try { url = new URL(value); } catch { throw new TypeError('A capture base must be an HTTP origin.'); }
@@ -284,8 +291,10 @@ export async function captureScenarios({ baseUrl, outputDir, scenarioIds } = {})
     const directory = await realpath(outputDir);
     const module = process.env.PLAYWRIGHT_MODULE
       ? await import(pathToFileURL(path.resolve(process.env.PLAYWRIGHT_MODULE)).href) : await import('playwright');
-    browser = await module.chromium.launch({ headless: true, args: ['--no-proxy-server'],
-      ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
+    try {
+      browser = await module.chromium.launch({ headless: true, args: ['--no-proxy-server'],
+        ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
+    } catch (error) { throw new CaptureFailure(browserLaunchFailure(error)); }
     const readStatic = createStaticReader(base);
     let next = 0;
     const run = async () => {
@@ -297,7 +306,10 @@ export async function captureScenarios({ baseUrl, outputDir, scenarioIds } = {})
       }
     };
     await Promise.all([run(), run()]);
-  } catch { /* Global setup failures return the explicit failed results; they never create a false "after" image. */ }
+  } catch (error) {
+    const reason = ['browser_cache_not_writable', 'browser_launch_failed'].includes(error?.code) ? error.code : 'capture_unavailable';
+    for (const scenario of selected) if (result[scenario.id].reason === 'capture_unavailable') result[scenario.id] = { ok: false, reason };
+  }
   finally { await boundedClose(browser); }
   return result;
 }

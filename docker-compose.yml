@@ -134,6 +134,7 @@ services:
       OpenAI__EditorRetentionDays: ${OPENAI_EDITOR_RETENTION_DAYS:-30}
       PlatformUpdatesAutomation__StoragePath: /var/lib/lup-updates
       PlatformUpdatesAutomation__ServiceKeyFile: /run/lup-updates/service-key
+      PlatformUpdatesAutomation__ObserverHeartbeatPath: /var/lib/lup-updates-observer/heartbeat.json
     depends_on:
       release-news-init:
         condition: service_healthy
@@ -151,6 +152,7 @@ services:
       - mercantec_notion_key:/run/notion:ro
       - mercantec_updates_key:/run/lup-updates:ro
       - mercantec_updates_publications:/var/lib/lup-updates
+      - mercantec_updates_capture:/var/lib/lup-updates-observer:ro
     restart: unless-stopped
 
   converter:

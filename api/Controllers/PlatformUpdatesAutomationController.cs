@@ -15,8 +15,10 @@ public sealed class PlatformUpdatesAutomationController(PlatformUpdatesAutomatio
         NoStore();
         var state = store.ReadState();
         var revision = deployment.Read();
+        var heartbeat = store.ReadObserver();
         return Ok(new { revision, automationReady = revision is not null && state.BaselineRecorded && state.Revision == revision,
-            captureSuccessCount = state.CaptureSuccessCount, scenarioCount = state.ScenarioCount });
+            captureSuccessCount = state.CaptureSuccessCount, scenarioCount = state.ScenarioCount,
+            observer = new { phase = heartbeat.Phase, errorCode = heartbeat.ErrorCode, lastSeenUtc = heartbeat.LastSeenUtc } });
     }
 
     [HttpGet("automation/state")]

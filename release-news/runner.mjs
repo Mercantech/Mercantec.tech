@@ -8,7 +8,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import {
   COMMIT, REVISION, MAX_DIFF_BYTES, readJson, writeJson, truncateUtf8,
   isReviewableFile, isBinaryFile, redactSecrets, canonicalAuthors,
-  normalizeEntries, publicationImage, validCursor, pruneCaches,
+  normalizeEntries, publicationImage, validCursor, pruneCaches, classifyWorkerError,
 } from './runner-core.mjs';
 
 const exec = promisify(execFile);
@@ -33,8 +33,12 @@ export class ReleaseNewsWorker {
 
   file(...segments) { return path.join(this.dataDir, ...segments); }
 
-  async heartbeat(phase) {
-    await writeJson(this.file('heartbeat.json'), { updatedAtUtc: this.now(), phase });
+  async heartbeat(phase, errorCode = null) {
+    if (phase !== undefined) { this.phase = phase; this.errorCode = errorCode; }
+    const value = { updatedAtUtc: this.now(), phase: this.phase ?? 'idle', errorCode: this.errorCode ?? null };
+    this.heartbeatWrites = (this.heartbeatWrites ?? Promise.resolve()).catch(() => {}).then(() =>
+      writeJson(this.file('heartbeat.json'), value, { mode: 0o644 }));
+    await this.heartbeatWrites;
   }
 
   async deploymentIs(revision) {
@@ -58,6 +62,7 @@ export class ReleaseNewsWorker {
   }
 
   async captures(revision, { refresh = false } = {}) {
+    await this.heartbeat('capturing');
     const directory = this.file('captures', revision);
     const manifestPath = path.join(directory, '.runner-manifest.json');
     const previous = await readJson(manifestPath);
@@ -77,7 +82,12 @@ export class ReleaseNewsWorker {
       const capture = result[scenario.id];
       if (await publicationImage(capture, directory)) items[scenario.id] = capture;
     }
-    if (this.scenarios.length && !Object.keys(items).length) throw new Error('No valid screenshots were captured.');
+    if (this.scenarios.length && !Object.keys(items).length) {
+      const error = new Error('No valid screenshots were captured.');
+      error.code = Object.values(result).map(item => item?.reason)
+        .find(reason => ['browser_cache_not_writable', 'browser_launch_failed'].includes(reason));
+      throw error;
+    }
     const capturedAtUtc = this.now();
     await writeJson(manifestPath, { revision, capturedAtUtc, items });
     return { directory, items, capturedAtUtc };
@@ -97,6 +107,7 @@ export class ReleaseNewsWorker {
   async syncRemote(state) {
     if (!state.remoteSyncPending || !await this.deploymentIs(state.cursor.revision)) return;
     const { commit, revision, capturedAtUtc, captureSuccessCount, scenarioCount } = state.cursor;
+    await this.heartbeat('recording');
     try {
       await this.deps.recordAutomationState({ commit, revision, capturedAtUtc, status: 'ready', baselineRecorded: true,
         lastProcessedCommit: commit, lastProcessedRevision: revision, captureSuccessCount, scenarioCount });
@@ -124,14 +135,19 @@ export class ReleaseNewsWorker {
     let heartbeat;
     try {
       await this.heartbeat('polling');
-      heartbeat = setInterval(() => { void this.heartbeat('working').catch(() => {}); }, 20_000);
+      heartbeat = setInterval(() => { void this.heartbeat().catch(() => {}); }, 20_000);
       heartbeat.unref();
-      return await this.process();
+      const result = await this.process();
+      await this.heartbeat('idle');
+      return result;
+    }
+    catch (error) {
+      await this.heartbeat(this.phase ?? 'polling', classifyWorkerError(error, this.phase));
+      throw error;
     }
     finally {
       clearInterval(heartbeat);
       this.running = false;
-      await this.heartbeat('idle');
     }
   }
 
@@ -139,6 +155,7 @@ export class ReleaseNewsWorker {
     const deployment = await this.deps.getDeployment();
     if (!deployment || !REVISION.test(deployment.revision)) return { status: 'waiting-for-matching-deployment' };
     const revision = deployment.revision;
+    await this.heartbeat('state');
     let state = await this.state();
     if (state?.remoteSyncPending) await this.syncRemote(state);
     if (state?.cursor.revision === revision && state.cursor.capturesDir) {
@@ -146,6 +163,7 @@ export class ReleaseNewsWorker {
       return { status: 'unchanged' };
     }
 
+    await this.heartbeat('resolving-source');
     const commit = await this.deps.resolveCommit(revision);
     if (!COMMIT.test(commit)) throw new Error('Deployed source commit was not found.');
     const candidate = { revision, commit };
@@ -174,6 +192,7 @@ export class ReleaseNewsWorker {
       const analysisPath = this.file('analysis', `${beforeCommit}-${commit}.json`);
       let analysis = await readJson(analysisPath);
       if (!analysis) {
+        await this.heartbeat('analyzing');
         const changes = await this.deps.collectChanges(beforeCommit, commit);
         if (!await this.deploymentIs(revision)) return { status: 'stale' };
         const response = changes.changedFiles.length
@@ -205,6 +224,7 @@ export class ReleaseNewsWorker {
     }
     if (!await this.deploymentIs(revision)) return { status: 'stale' };
     if (!outbox.deliveryAcknowledged) {
+      await this.heartbeat('publishing');
       if (outbox.payload.entries.length) await this.deps.publish(outbox.payload);
       outbox.deliveryAcknowledged = true;
       await writeJson(outboxPath, outbox);
@@ -350,6 +370,11 @@ export async function runForever(worker, { pollIntervalMs = 30_000, signal, logg
 }
 
 export async function main() {
+  // Chrome's profile/crash cache must be writable even though the image itself is read-only.
+  if (process.env.HOME === '/tmp/lup-release-news') {
+    for (const directory of ['', '/cache', '/config', '/runtime'])
+      await fs.mkdir('/tmp/lup-release-news' + directory, { recursive: true, mode: 0o700 });
+  }
   const config = configuration();
   const { fingerprint } = await import('./fingerprint.mjs');
   const { captureScenarios, scenarios } = await import('./capture.mjs');

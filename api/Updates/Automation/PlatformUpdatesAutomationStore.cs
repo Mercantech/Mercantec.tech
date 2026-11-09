@@ -9,14 +9,18 @@ public sealed class PlatformUpdatesAutomationStore
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private readonly string _root;
+    private readonly string _observerHeartbeatPath;
     private readonly ILogger<PlatformUpdatesAutomationStore> _logger;
 
     public PlatformUpdatesAutomationStore(IOptions<PlatformUpdatesAutomationOptions> options,
         ILogger<PlatformUpdatesAutomationStore> logger)
     {
         _root = Path.GetFullPath(options.Value.StoragePath);
+        _observerHeartbeatPath = options.Value.ObserverHeartbeatPath;
         _logger = logger;
     }
+
+    public PlatformUpdatesObserverSnapshot ReadObserver() => PlatformUpdatesObserver.Read(_observerHeartbeatPath);
 
     public IReadOnlyList<PlatformUpdate> Entries => ReadPublications()
         .OrderByDescending(publication => publication.CapturedAtUtc).ThenByDescending(publication => publication.Commit, StringComparer.Ordinal)

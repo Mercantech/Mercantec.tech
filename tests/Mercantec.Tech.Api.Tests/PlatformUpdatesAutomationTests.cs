@@ -46,8 +46,43 @@ public sealed class PlatformUpdatesAutomationTests
         var json = JsonSerializer.SerializeToElement(response.Value);
         Assert.Equal(Revision, json.GetProperty("revision").GetString());
         Assert.False(json.GetProperty("automationReady").GetBoolean());
-        Assert.Equal(4, json.EnumerateObject().Count());
+        Assert.Equal(5, json.EnumerateObject().Count());
         Assert.Equal("no-store", controller.Response.Headers.CacheControl);
+    }
+
+    [Fact]
+    public void ObserverHeartbeatExposesOnlyKnownCodesAndNeverCopiesRawFields()
+    {
+        using var fixture = new Fixture();
+        const string secret = "do-not-expose-this-test-secret";
+        const string rawMessage = "private failure at /private/captures/account";
+        File.WriteAllText(fixture.HeartbeatFile, JsonSerializer.Serialize(new
+        {
+            updatedAtUtc = "2026-11-09T12:00:00Z", phase = "capturing", errorCode = "capture_failed",
+            secret, message = rawMessage, path = "/private/service-key"
+        }));
+        var json = JsonSerializer.SerializeToElement(Assert.IsType<OkObjectResult>(fixture.Controller(null).Deployment()).Value);
+        var observer = json.GetProperty("observer");
+        Assert.Equal(3, observer.EnumerateObject().Count());
+        Assert.Equal("capturing", observer.GetProperty("phase").GetString());
+        Assert.Equal("capture_failed", observer.GetProperty("errorCode").GetString());
+        Assert.Equal(DateTimeOffset.Parse("2026-11-09T12:00:00Z"), observer.GetProperty("lastSeenUtc").GetDateTimeOffset());
+        Assert.DoesNotContain(secret, json.GetRawText());
+        Assert.DoesNotContain(rawMessage, json.GetRawText());
+        Assert.DoesNotContain("/private/service-key", json.GetRawText());
+
+        File.WriteAllText(fixture.HeartbeatFile, JsonSerializer.Serialize(new
+        { updatedAtUtc = "not-a-date", phase = secret, errorCode = rawMessage, arbitrary = secret }));
+        json = JsonSerializer.SerializeToElement(Assert.IsType<OkObjectResult>(fixture.Controller(null).Deployment()).Value);
+        observer = json.GetProperty("observer");
+        Assert.Equal(JsonValueKind.Null, observer.GetProperty("phase").ValueKind);
+        Assert.Equal(JsonValueKind.Null, observer.GetProperty("errorCode").ValueKind);
+        Assert.Equal(JsonValueKind.Null, observer.GetProperty("lastSeenUtc").ValueKind);
+        Assert.DoesNotContain(secret, json.GetRawText());
+        Assert.DoesNotContain(rawMessage, json.GetRawText());
+
+        File.WriteAllText(fixture.HeartbeatFile, new string(' ', 4097));
+        Assert.Null(fixture.Store.ReadObserver().Phase);
     }
 
     [Fact]
@@ -267,6 +302,7 @@ public sealed class PlatformUpdatesAutomationTests
         public const string Secret = "test-only-updates-service-key-with-48-characters";
         public string Directory { get; } = Path.Combine(Path.GetTempPath(), "lup-updates-tests-" + Guid.NewGuid().ToString("N"));
         public string KeyFile => Path.Combine(Directory, "service-key");
+        public string HeartbeatFile => Path.Combine(Directory, "heartbeat.json");
         public RevisionStub Deployment { get; } = new();
         public ResponseHandler Handler { get; } = new();
         private readonly HttpClient _client;
@@ -276,7 +312,8 @@ public sealed class PlatformUpdatesAutomationTests
         {
             System.IO.Directory.CreateDirectory(Directory);
             File.WriteAllText(KeyFile, Secret);
-            _options = Options.Create(new PlatformUpdatesAutomationOptions { StoragePath = Path.Combine(Directory, "data"), ServiceKeyFile = KeyFile });
+            _options = Options.Create(new PlatformUpdatesAutomationOptions { StoragePath = Path.Combine(Directory, "data"),
+                ServiceKeyFile = KeyFile, ObserverHeartbeatPath = HeartbeatFile });
             Store = NewStore();
             _client = new HttpClient(Handler) { BaseAddress = new Uri("https://api.openai.com/v1/") };
         }

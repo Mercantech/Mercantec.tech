@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { browserSeed, fixtureResponse, ids, FIXED_TIME } from './fixtures.mjs';
 import { captureBase, classifyCaptureRequest, createCaptureRouteHandler, createStaticReader, captureBounds,
   pngDimensions, captureScenarios, scenarios, VIEWPORT, MAX_IMAGE_BYTES } from './capture.mjs';
@@ -136,6 +139,38 @@ test('unknown scenario IDs never launch a browser, leak an error, write a file o
   assert.equal(Object.getPrototypeOf(result), null);
   for (const value of Object.values(result)) assert.deepEqual(value, { ok: false, reason: 'unsupported_scenario' });
   assert.equal(Object.values(result).some(value => value.path), false);
+});
+
+test('browser launch failures return safe codes for every selected scenario without leaking raw diagnostics', async () => {
+  const temporaryRoot = path.resolve(tmpdir());
+  const directory = await mkdtemp(path.join(temporaryRoot, 'lup-capture-launch-'));
+  const previous = process.env.PLAYWRIGHT_MODULE;
+  const secret = 'canary-service-key-that-must-never-leak';
+  try {
+    const cases = [
+      [`browserType.launch: EACCES read-only file system /private/home/${secret}`, 'browser_cache_not_writable'],
+      [`browserType.launch: chrome_crashpad_handler: --database is required ${secret}`, 'browser_cache_not_writable'],
+      [`browserType.launch: executable missing /private/browser/${secret}`, 'browser_launch_failed']
+    ];
+    for (const [index, [message, reason]] of cases.entries()) {
+      const moduleFile = path.join(directory, `launcher-${index}.mjs`);
+      await writeFile(moduleFile, `export const chromium={launch:async()=>{throw new Error(${JSON.stringify(message)});}};`);
+      process.env.PLAYWRIGHT_MODULE = moduleFile;
+      const outputDir = path.join(directory, `images-${index}`);
+      const result = await captureScenarios({ baseUrl: base, outputDir, scenarioIds: ['library', 'editor', 'unknown'] });
+      assert.deepEqual(result.library, { ok: false, reason });
+      assert.deepEqual(result.editor, { ok: false, reason });
+      assert.deepEqual(result.unknown, { ok: false, reason: 'unsupported_scenario' });
+      const serialized = JSON.stringify(result);
+      for (const raw of [secret, message, '/private/', 'browserType.launch', 'stack']) assert.equal(serialized.includes(raw), false);
+      assert.deepEqual(await readdir(outputDir), []);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.PLAYWRIGHT_MODULE; else process.env.PLAYWRIGHT_MODULE = previous;
+    assert.equal(path.dirname(path.resolve(directory)), temporaryRoot);
+    assert.ok(path.basename(directory).startsWith('lup-capture-launch-'));
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test('fixtures and metadata use matching hold/workspace IDs and safe stable filenames', () => {
