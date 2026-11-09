@@ -783,5 +783,148 @@
     "sourceSha256": "b22bbf406b76133701fa8dca621dd7d1bf3e3f7e6ea39504a1b56f6206fb1291",
     "capturedOn": "2026-11-08",
     "note": "Den faktiske Blazor-app fra ec330aa med fiktiv underviser, hold, teorinotesbog og personlige noter i isoleret loopback-fixture. Ingen produktionsdata."
+  },
+  "lup-arena": {
+    "source": ".tools/updates-nov09-assets/lup-arena-training.png",
+    "crop": [
+      0,
+      54,
+      1440,
+      946
+    ],
+    "size": [
+      1280,
+      793
+    ],
+    "bytes": 107884,
+    "sourceSha256": "ce7f6d796f6365fe07f6da0bedaae54e32f8ebbb1d05d5bf0345f4616743913d",
+    "sourceRevision": "7241311",
+    "note": "Faktisk gæstetræning på lup.dk/arena. Spillerens standardavatar møder den computerstyrede Raymond på tagbanen. Ingen konti eller persondata.",
+    "capturedOn": "2026-11-09"
+  },
+  "machine-learning-chameleon": {
+    "source": ".tools/updates-nov09-assets/chameleon-machine-learning.png",
+    "crop": [
+      146,
+      88,
+      1294,
+      736
+    ],
+    "size": [
+      1148,
+      648
+    ],
+    "bytes": 60538,
+    "sourceSha256": "f0135517d001367c9d7ee23fed153da11b2f10a096893d17a71d1c1b9bedbbd7",
+    "sourceRevision": "7241311",
+    "note": "Faktisk offentlig karakterprofil på lup.dk/characters/chameleon. Hovedportræt og de fire portrætvalg er indlæst.",
+    "capturedOn": "2026-11-09"
+  },
+  "notebook-title-emojis": {
+    "source": ".tools/notion-title-emojis-20261108/.tools/notion-title-emojis-live.png",
+    "crop": [
+      0,
+      64,
+      1000,
+      389
+    ],
+    "size": [
+      1000,
+      325
+    ],
+    "bytes": 10290,
+    "sourceSha256": "cdca2430180e938a849e426b827171cb94905973e4ade0434fb6c5c9eafe4ad2",
+    "capturedOn": "2026-11-08",
+    "sourceRevision": "708d4c1",
+    "note": "Den faktiske editor på en demonstrationskladde. Beskæringen viser titel-emojis i sidemenu, værktøjslinje og et internt dokumentlink. Kontoavatar og øvrig navigation er beskåret væk."
+  },
+  "notebook-codex-mcp": {
+    "source": ".tools/lup-mcp-release-20261108/.tools/mcp-live-review.png",
+    "crop": [
+      224,
+      126,
+      1312,
+      618
+    ],
+    "size": [
+      1088,
+      492
+    ],
+    "bytes": 29306,
+    "sourceSha256": "3b6ff7b5922b48e0864e049130037a415df6e5046a1784d053c14a9e3c0fb994",
+    "capturedOn": "2026-11-08",
+    "note": "Reel live-test på lup.dk med en midlertidig ændring på en demoside. Viser historikkens før/efter og knappen Fortryd ændring."
+  },
+  "notebook-editor-workspace": {
+    "source": ".tools/ide-toolbar-release-20261108/.tools/ide-toolbar-qa/compact-desktop-block-controls.png",
+    "crop": [
+      0,
+      65,
+      1440,
+      1000
+    ],
+    "size": [
+      1280,
+      831
+    ],
+    "bytes": 64188,
+    "sourceSha256": "3e7a557532d28eb5d23aec9b8553bc9c97aee93c9d613e0b952fa73544199603",
+    "capturedOn": "2026-11-08",
+    "sourceRevision": "9c8f8d0",
+    "note": "Den faktiske editor i en isoleret browser-fixture med fiktivt undervisningsmateriale, testnavne og lokale AI-forslag. Viser kompakt værktøjslinje, blokværktøjer og tre kolonner."
+  },
+  "editor-ai-workspace": {
+    "source": ".tools/ai-drawer-release-20261108/.tools/ai-drawer-qa/live-ai-drawer-focus.png",
+    "crop": [
+      260,
+      66,
+      1510,
+      786
+    ],
+    "size": [
+      1250,
+      720
+    ],
+    "bytes": 27486,
+    "sourceSha256": "a28d66f84ce3a07e4650ec544c52932c1bf42c472c3e11dae9a4e2dd9ea47f25",
+    "capturedOn": "2026-11-08",
+    "sourceRevision": "081ce50",
+    "note": "Den faktiske editor på lup.dk med en demokladde og det udvidede AI-panel. Kontoavatar og topnavigation er beskåret væk."
+  },
+  "raymond-sql-infographics": {
+    "source": ".tools/updates-nov09-assets/raymond-sql-infographics-live-20261108.jpg",
+    "crop": [
+      58,
+      84,
+      1192,
+      845
+    ],
+    "size": [
+      1134,
+      761
+    ],
+    "bytes": 107136,
+    "sourceSha256": "d8ce9767f7cd9757dd89ca0c668e4f8d49450cad4e89c0d192b0efed47d8f26e",
+    "sourceRevision": "f660530",
+    "note": "Tidligere browserkontrol af Raymonds offentlige galleri på lup.dk/characters/raymond. Søgning, H1-H3-filtre og de første to SQL-infografikker vises.",
+    "capturedOn": "2026-11-08"
+  },
+  "notebook-graph-controls": {
+    "source": ".tools/connections-release-20261108/.tools/connections-browser-qa/connections-desktop.png",
+    "crop": [
+      18,
+      230,
+      1423,
+      1240
+    ],
+    "size": [
+      1280,
+      920
+    ],
+    "bytes": 47970,
+    "sourceSha256": "66ac7145b3723fcbe70025c2118356f91971d241986aea1acce6a3ea59f58283",
+    "capturedOn": "2026-11-08",
+    "sourceRevision": "55a9f82",
+    "note": "Browser-QA af den faktiske Forbindelser-side med fiktivt SQL-indhold, lokal API-fixture og blokeret ekstern trafik. Visningspanelet er åbent, og de valgte forbindelser er fremhævet."
   }
 }

@@ -1,14 +1,266 @@
 {
   "schemaVersion": 1,
-  "reviewedOn": "2026-11-08",
+  "reviewedOn": "2026-11-09",
   "repository": "Mercantech/Mercantec.tech",
-  "baselineCommit": "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f",
+  "baselineCommit": "72413112fd17be2db0ea2796e0e808000ab6da74",
   "fullHistory": true,
   "firstHistoryDate": "2026-10-22",
-  "totalCommits": 215,
-  "catalogEntries": 54,
+  "totalCommits": 240,
+  "catalogEntries": 62,
   "scope": "All user-facing changes through the reviewed baseline, grouped by related feature. Internal-only changes and duplicate merges carry explicit exclusion reasons. Screenshots use isolated test data.",
   "entries": [
+    {
+      "id": "lup-arena",
+      "date": "2026-11-09",
+      "commits": [
+        "72413112fd17be2db0ea2796e0e808000ab6da74",
+        "28f0f46ac12dd7f5c0d259c0abe2fbc2ce42ab37",
+        "c72f960fad239cea06bf951637dba2be5f509dca",
+        "a20ebde0f177996e6811323c65d06e41f2c798f3"
+      ],
+      "changes": [
+        "BIP-01 og Raymond får hver deres evner, ressourcer, specialangreb og oversigt over styringen.",
+        "Arena åbner for træning og onlinekampe med avatarer fra profilen.",
+        "Spillets startmenu, kæmpervalg og træningsopsætning får nye visuelle miljøer.",
+        "De oprindelige avatarangreb vises igen uden rektangulære kampeffekter."
+      ],
+      "evidence": [
+        "web/Pages/Arena.razor",
+        "web/Components/ArenaMoveList.razor",
+        "shared/ArenaMoveSets.cs"
+      ],
+      "caveats": [],
+      "authors": [
+        "Kasper"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Kasper",
+          "commits": [
+            "72413112fd17be2db0ea2796e0e808000ab6da74",
+            "28f0f46ac12dd7f5c0d259c0abe2fbc2ce42ab37",
+            "c72f960fad239cea06bf951637dba2be5f509dca",
+            "a20ebde0f177996e6811323c65d06e41f2c798f3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "machine-learning-chameleon",
+      "date": "2026-11-08",
+      "commits": [
+        "ae1356bb48a3085df26d1a7e43a6bc5606f070a4",
+        "661bf275e28f6733693796415d068992fc46139a"
+      ],
+      "changes": [
+        "Kamæleonen får egen profil, 16 undervisningsillustrationer, tre GIF'er og 48 emojis, der også kan bruges i editoren.",
+        "Kamæleonens farvetema vises straks i browseren."
+      ],
+      "evidence": [
+        "web/Pages/Characters/Detail.razor",
+        "shared/ChameleonInfographicCatalog.cs",
+        "shared/CharacterEmojiCatalog.cs",
+        "web/wwwroot/index.html"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "ae1356bb48a3085df26d1a7e43a6bc5606f070a4",
+            "661bf275e28f6733693796415d068992fc46139a"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notebook-title-emojis",
+      "date": "2026-11-08",
+      "commits": [
+        "708d4c14671bc82d44c55a8b6c93a38ab02b9233"
+      ],
+      "changes": [
+        "Sidens valgte titel-emoji vises i navigation, søgning, sideomtaler og backlinks."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Index.razor",
+        "web/Components/EmojiText.razor",
+        "web/Components/ReferenceBacklinks.razor"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "708d4c14671bc82d44c55a8b6c93a38ab02b9233"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notebook-codex-mcp",
+      "date": "2026-11-08",
+      "commits": [
+        "ab54558723a20f713d4e6f8eb7e0231b11d05c20",
+        "ad8bf76c3fb656e8874aaeee68b7e07cd2333da1",
+        "ec61fa41ac1a6c5e3ae86fbf59a15a9f3ec05cbd"
+      ],
+      "changes": [
+        "Codex kan redigere autoriserede kladder med en ændringshistorik og konfliktbeskyttet fortrydelse i LUP.",
+        "Codex kan indsætte emojis i noteteksten med samme formatering som editoren.",
+        "Codex kan oprette en kladdeunderside og genoptage samme oprettelse uden dubletter."
+      ],
+      "evidence": [
+        "docs/lup-mcp.md",
+        "api/Mcp/NotionMcpService.cs",
+        "web/Components/NotionCodexChanges.razor"
+      ],
+      "caveats": [
+        "Kræver en tilsluttet Codex-klient og underviserens redigeringsadgang til hold- eller teorisiden."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "ab54558723a20f713d4e6f8eb7e0231b11d05c20",
+            "ad8bf76c3fb656e8874aaeee68b7e07cd2333da1",
+            "ec61fa41ac1a6c5e3ae86fbf59a15a9f3ec05cbd"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notebook-editor-workspace",
+      "date": "2026-11-08",
+      "commits": [
+        "23010df182788706130ace0d1ede1b97c90a73a1",
+        "bd592083296008f105f6c31a63f00d4aa864f4ab",
+        "9c8f8d03194ee681a3f176a44091c72bcec9179e",
+        "55b72f5f16f8a76cc948b7152f0eec5084c2ffef",
+        "5bf754715efb6071b5e7434205022b0fdb49d307"
+      ],
+      "changes": [
+        "Tre justerbare kolonner samler navigation, dokument og AI-skrivepartner.",
+        "Dokumenteditoren udnytter skærmens plads i arbejdsfladen.",
+        "En samlet værktøjslinje frigør plads til dokumentet.",
+        "Fokusvisning giver læsero ved skjulte sidekolonner.",
+        "Tekstfokus viser dokumentet på en centreret papirflade."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Index.razor",
+        "web/Pages/Notion/Index.razor.css",
+        "editor/src/editor.css"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "23010df182788706130ace0d1ede1b97c90a73a1",
+            "bd592083296008f105f6c31a63f00d4aa864f4ab",
+            "9c8f8d03194ee681a3f176a44091c72bcec9179e",
+            "55b72f5f16f8a76cc948b7152f0eec5084c2ffef",
+            "5bf754715efb6071b5e7434205022b0fdb49d307"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "editor-ai-workspace",
+      "date": "2026-11-08",
+      "commits": [
+        "081ce50715d8bf0c537d8b685a01094afe0f7915"
+      ],
+      "changes": [
+        "AI-skrivepartneren får et justerbart panel til højre, som bevarer instruktioner og gennemgang ved lukning."
+      ],
+      "evidence": [
+        "editor/src/ai-native-panel.tsx",
+        "editor/src/editor.tsx",
+        "editor/src/editor.css"
+      ],
+      "caveats": [
+        "Kræver konfigureret AI-adgang."
+      ],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "081ce50715d8bf0c537d8b685a01094afe0f7915"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raymond-sql-infographics",
+      "date": "2026-11-08",
+      "commits": [
+        "f660530ea4ff512cdae0ee586a877140a21c8641"
+      ],
+      "changes": [
+        "Raymonds profil og bibliotek viser 16 infografikker til alle 24 SQL-målpinde med forklaringer, kilder og PNG-download."
+      ],
+      "evidence": [
+        "shared/CharacterInfographicCatalog.cs",
+        "web/Components/CharacterIllustrationGallery.razor",
+        "web/Pages/Characters/Detail.razor"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "f660530ea4ff512cdae0ee586a877140a21c8641"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notebook-graph-controls",
+      "date": "2026-11-08",
+      "commits": [
+        "55a9f829a9fd5b0b2ea93fc892efe2f994ccfdc2"
+      ],
+      "changes": [
+        "Graf og søgning fokuserer på notesider, og gemte filtre, tekststørrelse og fremhævning gør forbindelser lettere at følge."
+      ],
+      "evidence": [
+        "web/Pages/Notion/Connections.razor",
+        "web/Components/ReferenceGraphView.razor",
+        "web/wwwroot/js/notion-graph.js",
+        "api/References/ReferenceIndex.cs"
+      ],
+      "caveats": [],
+      "authors": [
+        "Mathias"
+      ],
+      "authorEvidence": [
+        {
+          "author": "Mathias",
+          "commits": [
+            "55a9f829a9fd5b0b2ea93fc892efe2f994ccfdc2"
+          ]
+        }
+      ]
+    },
     {
       "id": "editor-ai-native",
       "date": "2026-11-08",
@@ -4092,8 +4344,244 @@
         "editor-ai-native"
       ],
       "reason": "Nummererede lister bevarer korrekt nummerering i AI-forhåndsvisningen."
+    },
+    {
+      "commit": "470218eca80b5ea4bd72f5eb2dbe92e759cb6d52",
+      "date": "2026-11-08",
+      "subject": "Hold Nyt i LUP ajour med de seneste features",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Vedligeholder den eksisterende ændringsoversigt og dens billedgrundlag."
+    },
+    {
+      "commit": "55a9f829a9fd5b0b2ea93fc892efe2f994ccfdc2",
+      "date": "2026-11-08",
+      "subject": "Gør forbindelsesgrafen mere overskuelig og tilpasbar",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-graph-controls"
+      ],
+      "reason": "Graf og søgning fokuserer på notesider, og gemte filtre, tekststørrelse og fremhævning gør forbindelser lettere at følge."
+    },
+    {
+      "commit": "f660530ea4ff512cdae0ee586a877140a21c8641",
+      "date": "2026-11-08",
+      "subject": "Gør SQL visuelt med Raymond",
+      "classification": "user_facing",
+      "entryIds": [
+        "raymond-sql-infographics"
+      ],
+      "reason": "Raymonds profil og bibliotek viser 16 infografikker til alle 24 SQL-målpinde med forklaringer, kilder og PNG-download."
+    },
+    {
+      "commit": "081ce50715d8bf0c537d8b685a01094afe0f7915",
+      "date": "2026-11-08",
+      "subject": "Giv AI-skrivepartneren mere plads og ro",
+      "classification": "user_facing",
+      "entryIds": [
+        "editor-ai-workspace"
+      ],
+      "reason": "AI-skrivepartneren får et justerbart panel til højre, som bevarer instruktioner og gennemgang ved lukning."
+    },
+    {
+      "commit": "23010df182788706130ace0d1ede1b97c90a73a1",
+      "date": "2026-11-08",
+      "subject": "Giv dokumenteditoren tre justerbare kolonner",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-editor-workspace"
+      ],
+      "reason": "Tre justerbare kolonner samler navigation, dokument og AI-skrivepartner."
+    },
+    {
+      "commit": "eb980ca0e3be1fde45256e6b945c189064988049",
+      "date": "2026-11-08",
+      "subject": "Hent nye layoutstyles efter kolonneopdateringen",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Opdaterer cacheversionen for de styles, der leverer editorens allerede beskrevne kolonner."
+    },
+    {
+      "commit": "bd592083296008f105f6c31a63f00d4aa864f4ab",
+      "date": "2026-11-08",
+      "subject": "Udnyt hele skærmen i dokumenteditoren",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-editor-workspace"
+      ],
+      "reason": "Dokumenteditoren udnytter skærmens plads i arbejdsfladen."
+    },
+    {
+      "commit": "9c8f8d03194ee681a3f176a44091c72bcec9179e",
+      "date": "2026-11-08",
+      "subject": "Giv dokumentet mere plads med en samlet værktøjslinje",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-editor-workspace"
+      ],
+      "reason": "En samlet værktøjslinje frigør plads til dokumentet."
+    },
+    {
+      "commit": "55b72f5f16f8a76cc948b7152f0eec5084c2ffef",
+      "date": "2026-11-08",
+      "subject": "Giv dokumentet læsero når sidekolonnerne er skjult",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-editor-workspace"
+      ],
+      "reason": "Fokusvisning giver læsero ved skjulte sidekolonner."
+    },
+    {
+      "commit": "5bf754715efb6071b5e7434205022b0fdb49d307",
+      "date": "2026-11-08",
+      "subject": "Giv tekstfokus en rolig Notion-lignende papirflade",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-editor-workspace"
+      ],
+      "reason": "Tekstfokus viser dokumentet på en centreret papirflade."
+    },
+    {
+      "commit": "ab54558723a20f713d4e6f8eb7e0231b11d05c20",
+      "date": "2026-11-08",
+      "subject": "Lad Codex redigere LUP-kladder sikkert gennem MCP",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-codex-mcp"
+      ],
+      "reason": "Codex kan redigere autoriserede kladder med en ændringshistorik og konfliktbeskyttet fortrydelse i LUP."
+    },
+    {
+      "commit": "c9e45429b4d58ff4ba8da39b556f54f442cd4ee5",
+      "date": "2026-11-08",
+      "subject": "Sikr kompatible MCP-værktøjsskemaer",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Tilpasser MCP-værktøjsskemaer til klientens validering."
+    },
+    {
+      "commit": "f8943e43eae59960461809d60655ae6f0ff7956f",
+      "date": "2026-11-08",
+      "subject": "Gør Codex-historikken kompatibel med PostgreSQL",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Retter lagringen af Codex-historikken i PostgreSQL."
+    },
+    {
+      "commit": "7f49fbb1b9a325b4a1c7d29b1562116211cf93d1",
+      "date": "2026-11-08",
+      "subject": "Dokumentér afprøvet Codex-forbindelse og fortrydelse",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Dokumenterer afprøvningen af Codex-forbindelsen og fortrydelsen."
+    },
+    {
+      "commit": "28f0f46ac12dd7f5c0d259c0abe2fbc2ce42ab37",
+      "date": "2026-11-08",
+      "subject": "Add LUP Arena with profile avatars and authoritative multiplayer",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-arena"
+      ],
+      "reason": "Arena åbner for træning og onlinekampe med avatarer fra profilen."
+    },
+    {
+      "commit": "e8df35273b87d5d9cf005d5a92aa13847e2a33eb",
+      "date": "2026-11-08",
+      "subject": "Include shared arena simulation in web Docker build",
+      "classification": "excluded_non_user_facing",
+      "entryIds": [],
+      "reason": "Inkluderer den fælles Arena-simulering i web-containerens build."
+    },
+    {
+      "commit": "c72f960fad239cea06bf951637dba2be5f509dca",
+      "date": "2026-11-08",
+      "subject": "Rebuild LUP Arena menus with generated cinematic game assets",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-arena"
+      ],
+      "reason": "Spillets startmenu, kæmpervalg og træningsopsætning får nye visuelle miljøer."
+    },
+    {
+      "commit": "ad8bf76c3fb656e8874aaeee68b7e07cd2333da1",
+      "date": "2026-11-08",
+      "subject": "Lad MCP indsætte ægte emojis i noteteksten",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-codex-mcp"
+      ],
+      "reason": "Codex kan indsætte emojis i noteteksten med samme formatering som editoren."
+    },
+    {
+      "commit": "ec61fa41ac1a6c5e3ae86fbf59a15a9f3ec05cbd",
+      "date": "2026-11-08",
+      "subject": "Lad MCP oprette kladdeundersider uden dubletter",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-codex-mcp"
+      ],
+      "reason": "Codex kan oprette en kladdeunderside og genoptage samme oprettelse uden dubletter."
+    },
+    {
+      "commit": "708d4c14671bc82d44c55a8b6c93a38ab02b9233",
+      "date": "2026-11-08",
+      "subject": "Vis titel-emojis i navigation og mentions",
+      "classification": "user_facing",
+      "entryIds": [
+        "notebook-title-emojis"
+      ],
+      "reason": "Sidens valgte titel-emoji vises i navigation, søgning, sideomtaler og backlinks."
+    },
+    {
+      "commit": "ae1356bb48a3085df26d1a7e43a6bc5606f070a4",
+      "date": "2026-11-08",
+      "subject": "Giv Machine Learning sin egen underviser",
+      "classification": "user_facing",
+      "entryIds": [
+        "machine-learning-chameleon"
+      ],
+      "reason": "Kamæleonen får egen profil, 16 undervisningsillustrationer, tre GIF'er og 48 emojis, der også kan bruges i editoren."
+    },
+    {
+      "commit": "661bf275e28f6733693796415d068992fc46139a",
+      "date": "2026-11-08",
+      "subject": "Hent kamæleonens farvetema med det samme",
+      "classification": "user_facing",
+      "entryIds": [
+        "machine-learning-chameleon"
+      ],
+      "reason": "Kamæleonens farvetema vises straks i browseren."
+    },
+    {
+      "commit": "a20ebde0f177996e6811323c65d06e41f2c798f3",
+      "date": "2026-11-08",
+      "subject": "Restore original avatar attacks and remove rectangular combat effects",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-arena"
+      ],
+      "reason": "De oprindelige avatarangreb vises igen uden rektangulære kampeffekter."
+    },
+    {
+      "commit": "7e2246e759aea1186b685ea3b711be0bdc08f91a",
+      "date": "2026-11-08",
+      "subject": "Merge remote-tracking branch 'origin/main' into codex/lup-arena-character-fx",
+      "classification": "merge_only",
+      "entryIds": [],
+      "reason": "Samler Arena-grenen og main. De synlige ændringer er dækket af de oprindelige commits."
+    },
+    {
+      "commit": "72413112fd17be2db0ea2796e0e808000ab6da74",
+      "date": "2026-11-09",
+      "subject": "Add distinct server-authoritative combat kits for BIP-01 and Raymond",
+      "classification": "user_facing",
+      "entryIds": [
+        "lup-arena"
+      ],
+      "reason": "BIP-01 og Raymond får hver deres evner, ressourcer, specialangreb og oversigt over styringen."
     }
   ],
-  "authorshipReviewedOn": "2026-11-08",
-  "authorshipBaselineCommit": "ec330aa1ba3bd6f679b4671e1fb2329e11247d7f"
+  "authorshipReviewedOn": "2026-11-09",
+  "authorshipBaselineCommit": "72413112fd17be2db0ea2796e0e808000ab6da74"
 }
