@@ -1,0 +1,31 @@
+@using Mercantec.Tech.Web.Characters
+
+<div class="about-character-browser" aria-label="Bladr mellem karaktererne">
+    <ul id="about-character-page" class="character-browser-list">
+        @for (var slot = 0; slot < PageSize; slot++)
+        {
+            var index = _page * PageSize + slot;
+            @if (index < CharacterCatalog.All.Count)
+            {
+                var character = CharacterCatalog.All[index];
+                <li @key="character.Slug"><a href="@character.Path"><img src="@AboutCharacterVisuals.Image(character)" alt="" width="160" height="160" loading="lazy" decoding="async" /><span class="character-browser-copy"><strong>@character.Name</strong><small>@character.Role</small><span>@character.Home</span></span></a></li>
+            }
+            else
+            {
+                <li class="character-browser-placeholder" aria-hidden="true"></li>
+            }
+        }
+    </ul>
+    <nav class="character-browser-controls" aria-label="Karakteroversigt">
+        <button type="button" aria-label="Vis forrige karakterer" aria-controls="about-character-page" disabled="@(PageCount <= 1)" @onclick="() => Move(-1)">‹ <span>Forrige</span></button>
+        <p role="status">@(_page * PageSize + 1)–@Math.Min((_page + 1) * PageSize, CharacterCatalog.All.Count) af @CharacterCatalog.All.Count</p>
+        <button type="button" aria-label="Vis næste karakterer" aria-controls="about-character-page" disabled="@(PageCount <= 1)" @onclick="() => Move(1)"><span>Næste</span> ›</button>
+    </nav>
+</div>
+
+@code {
+    private const int PageSize = 3;
+    private int _page;
+    private static int PageCount => (CharacterCatalog.All.Count + PageSize - 1) / PageSize;
+    private void Move(int direction) => _page = (_page + direction + PageCount) % PageCount;
+}

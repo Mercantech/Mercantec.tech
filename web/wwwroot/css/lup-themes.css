@@ -25,10 +25,9 @@ html[data-theme="christmas"] .christmas-lights { display:flex; }
 .christmas-lights span:nth-child(4n) { background:#a5bfdc; box-shadow:0 2px 9px #a5bfdc80; }
 html[data-theme="christmas"] .christmas-corner { display:flex; }
 .christmas-corner { position:fixed; right:22px; bottom:calc(16px + var(--lup-footer-clearance, 0px)); align-items:center; gap:8px; z-index:45; }
-.christmas-present,.snow-toggle { border:1px solid #5a6b51; border-radius:9px; background:#173a31; color:#f2cd83; display:flex; align-items:center; justify-content:center; cursor:pointer; min-height:42px; padding:9px 12px; font:500 12px 'DM Sans',sans-serif; }
+.christmas-present { border:1px solid #5a6b51; border-radius:9px; background:#173a31; color:#f2cd83; display:flex; align-items:center; justify-content:center; cursor:pointer; min-height:42px; padding:9px 12px; font:500 12px 'DM Sans',sans-serif; }
 .christmas-present .ui-icon { width:25px; height:25px; }
 .christmas-present:hover { background:#264e3f; transform:rotate(-5deg); }
-.snow-toggle { gap:7px; }
 .christmas-note { position:absolute; right:0; bottom:56px; background:#1b4034; border:1px solid #63765a; color:#f6f4e9; border-radius:12px; width:min(290px,calc(100vw - 36px)); padding:20px; box-shadow:0 10px 35px #0005; font:14px/1.65 'DM Sans',sans-serif; }
 .christmas-note p { font-size:13px; color:#c0d1c7; margin:6px 0 0; }
 .christmas-corner button:focus-visible { outline:3px solid #f2cd83; outline-offset:3px; }
@@ -46,7 +45,7 @@ html[data-theme="hacker"] .lup .panel,html[data-theme="hacker"] .lup .article,ht
 html[data-theme="hacker"] .lup .v3-next { background:#132f24; border:1px solid #345d43; }
 html[data-theme="hacker"] .lup .page-title h1:before { content:'~/ '; font-size:.7em; color:#79b98e; }
 html[data-theme="hacker"] .lup .v2-avatar-stage { background-color:#0d2119; background-image:linear-gradient(#29513a40 1px,transparent 1px),linear-gradient(90deg,#29513a40 1px,transparent 1px); background-size:24px 24px; }
-@media(max-width:620px) { .christmas-corner { right:12px; bottom:calc(12px + var(--lup-footer-clearance, 0px)); } .snow-toggle span { display:none; } .christmas-lights span:nth-child(even) { display:none; } }
+@media(max-width:620px) { .christmas-corner { right:12px; bottom:calc(12px + var(--lup-footer-clearance, 0px)); } .christmas-lights span:nth-child(even) { display:none; } }
 @media(prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } .christmas-present:hover { transform:none; } }
 
 .ui-icon { width:18px; height:18px; flex-shrink:0; display:inline-block; vertical-align:middle; }
@@ -55,14 +54,3 @@ html[data-theme="hacker"] .lup .v2-avatar-stage { background-color:#0d2119; back
 #lup-snow-host { display:none; }
 html[data-theme="christmas"] #lup-snow-host { display:block; }
 html[data-theme="hacker"] .lup .body { background-image:linear-gradient(#85db9c05 1px,transparent 1px),linear-gradient(90deg,#85db9c05 1px,transparent 1px); background-size:32px 32px; }
-
-
-.snow-controls { display:flex; position:relative; border:1px solid #5a6b51; border-radius:9px; background:#173a31; }
-.snow-controls .snow-toggle { border:0; background:transparent; }
-.snow-settings>summary { color:#f2cd83; list-style:none; cursor:pointer; display:grid; place-items:center; width:28px; min-height:42px; border-left:1px solid #5a6b51; font:16px 'DM Sans',sans-serif; }
-.snow-settings>summary::-webkit-details-marker { display:none; }
-.snow-panel { position:absolute; right:0; bottom:calc(100% + 10px); width:min(310px,calc(100vw - 24px)); padding:20px; border:1px solid #63765a; border-radius:12px; background:#173a31; color:#f6f4e9; box-shadow:0 10px 35px #0005; font:13px/1.6 'DM Sans',sans-serif; }
-.snow-panel h2 { margin:0 0 15px; font:600 18px 'Space Grotesk',sans-serif; }
-.snow-panel p { color:#c0d1c7; margin:12px 0 0; font-size:12px; }
-.snow-panel select { display:block; margin-top:6px; width:100%; padding:10px; border:1px solid #63765a; border-radius:7px; color:#f6f4e9; background:#102c24; font:inherit; }
-.snow-settings>summary:focus-visible { outline:3px solid #f2cd83; outline-offset:3px; }

@@ -1,8 +1,0 @@
-.snow-preferences { margin-top:16px; padding-top:16px; border-top:1px solid var(--rule); }
-.snow-preferences h3 { margin:0 0 10px; color:var(--ink); font:600 16px/1.3 'Space Grotesk',sans-serif; letter-spacing:-.3px; }
-.snow-preferences label { display:block; margin-bottom:6px; color:var(--ink); font-size:12px; font-weight:600; }
-.snow-preferences select { display:block; width:100%; min-height:44px; border:1px solid var(--rule); border-radius:8px; padding:8px 10px; background:var(--paper); color:var(--ink); font:400 14px 'DM Sans',sans-serif; }
-.snow-preferences select:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
-.snow-preferences select:disabled { opacity:.6; }
-.snow-preferences p { margin:9px 0 0; color:var(--muted); font-size:11px; line-height:1.5; }
-@media(pointer:coarse) { .snow-preferences select { font-size:16px; } }

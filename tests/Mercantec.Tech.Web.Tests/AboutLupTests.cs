@@ -9,7 +9,7 @@ public sealed class AboutLupTests
     [Fact]
     public void About_can_be_read_without_auth_services_and_explains_both_audiences()
     {
-        using var context = new BunitContext();
+        using var context = BrowserContext();
         var page = context.Render<AboutLup>();
 
         Assert.Equal("Om LUP", Assert.Single(page.FindAll("h1")).TextContent);
@@ -20,18 +20,14 @@ public sealed class AboutLupTests
         Assert.Contains("Saml dit forløb", teacher.TextContent);
         Assert.Contains("giv feedback", teacher.TextContent);
         Assert.Contains("Kasper og Mathias", page.Markup);
-        foreach (var roleLink in page.FindAll(".about-role-links a"))
-        {
-            var href = roleLink.GetAttribute("href")!;
-            Assert.StartsWith("/sources#", href); // A bare fragment resolves against the app’s / base, away from Om LUP.
-            Assert.Single(page.FindAll(href[href.IndexOf('#')..]));
-        }
+        Assert.Empty(page.FindAll(".about-role-links"));
+        Assert.DoesNotContain(page.FindAll("a"), a => a.TextContent is "Jeg er elev" or "Jeg underviser");
     }
 
     [Fact]
     public void Overview_and_login_links_offer_a_way_forward_without_replacing_existing_routes()
     {
-        using var context = new BunitContext();
+        using var context = BrowserContext();
         var page = context.Render<AboutLup>();
 
         Assert.Contains("Oversigt", page.Find("a[href='/library']").TextContent);
@@ -42,21 +38,22 @@ public sealed class AboutLupTests
     }
 
     [Fact]
-    public void Character_links_use_existing_profiles_and_the_lupp_visual_has_an_accessible_description()
+    public void The_character_spotlight_and_manual_browser_use_the_existing_public_profiles()
     {
-        using var context = new BunitContext();
+        using var context = BrowserContext();
         var page = context.Render<AboutLup>();
 
-        Assert.Contains("LUPP", page.Find(".about-mascot img").GetAttribute("alt"));
-        foreach (var profile in new[] { "lupp", "raymond", "bee", "beaver", "fox" })
-            Assert.Single(page.FindAll($"a[href='/characters/{profile}']"));
-        Assert.All(page.FindAll(".about-character-list img"), image => Assert.Equal("lazy", image.GetAttribute("loading")));
+        Assert.Single(page.FindComponents<AboutCharacterSpotlight>());
+        Assert.Single(page.FindComponents<AboutCharacterBrowser>());
+        Assert.Contains("LUPP", page.Find(".spotlight-portrait img").GetAttribute("alt"));
+        Assert.Equal("/characters/lupp", page.Find(".spotlight-profile").GetAttribute("href"));
+        Assert.All(page.FindAll(".character-browser-list img"), image => Assert.Equal("lazy", image.GetAttribute("loading")));
     }
 
     [Fact]
     public void The_name_explanations_share_the_footer_catalogue_and_keep_the_original_attribution()
     {
-        using var context = new BunitContext();
+        using var context = BrowserContext();
         var page = context.Render<AboutLup>();
 
         var explanations = page.Find(".about-expansions");
@@ -70,5 +67,14 @@ public sealed class AboutLupTests
         Assert.Contains("github.com/git/git/", attribution.GetAttribute("href"));
         Assert.Equal("noopener", attribution.GetAttribute("rel"));
         Assert.Single(page.FindAll("a[href='https://github.com/Mercantech/Mercantec.tech']"));
+    }
+
+    private static BunitContext BrowserContext()
+    {
+        var context = new BunitContext();
+        var module = context.JSInterop.SetupModule(AboutCharacterSpotlight.ModulePath);
+        module.Setup<int>("observe", _ => true).SetResult(1);
+        module.SetupVoid("unobserve", _ => true).SetVoidResult();
+        return context;
     }
 }

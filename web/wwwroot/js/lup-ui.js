@@ -3,7 +3,6 @@
     const read = (key, fallback = null) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
     const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* Themes also work without storage. */ } };
     const normalize = value => themes.has(value) ? value : "light";
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
 
     let dockFrame = 0, dockFooter, dockObserver, dockClearance = -1;
     function updateSeasonalDock() {
@@ -38,17 +37,6 @@
 
     let canvas, context, frame = 0, flakes = [], previous = 0, wind = 0, pointerX = -1000, pointerY = -1000;
     let width = 0, height = 0;
-    const snowMode = () => {
-        const mode = read("lup-snow-mode");
-        return ["auto", "on", "off"].includes(mode) ? mode : read("lup-snow-paused", "false") === "true" ? "off" : "auto";
-    };
-    const snowPaused = () => snowMode() === "off" || (snowMode() === "auto" && motion.matches);
-    const snowState = () => ({ mode: snowMode(), paused: snowPaused(), reducedMotion: motion.matches, hidden: document.hidden });
-    const snowObservers = new Map();
-    let snowObserverId = 0;
-    function notifySnow() {
-        for (const [id, observer] of snowObservers) observer.invokeMethodAsync("SnowChanged", snowState()).catch(() => snowObservers.delete(id));
-    }
     function resize() {
         if (!canvas) return;
         width = innerWidth; height = innerHeight;
@@ -59,38 +47,34 @@
             x: Math.random() * width, y: Math.random() * height, r: 1 + Math.random() * 2.2,
             speed: 12 + Math.random() * 28, phase: Math.random() * Math.PI * 2
         }));
-        draw(0, true);
+        syncSnow();
     }
-    function draw(time, still = false) {
+    function draw(time) {
         const step = previous ? Math.min((time - previous) / 1000, .04) : 0;
         previous = time;
         context.clearRect(0, 0, width, height);
         context.fillStyle = "#e8fff6";
         for (const flake of flakes) {
-            if (!still) {
-                const dx = flake.x - pointerX, dy = flake.y - pointerY;
-                const distance = Math.hypot(dx, dy);
-                const push = distance > 0 && distance < 110 ? (110 - distance) * .8 : 0;
-                flake.x += (wind * 18 + Math.sin(time / 1800 + flake.phase) * 9 + (dx / (distance || 1)) * push) * step;
-                flake.y += (flake.speed + (dy / (distance || 1)) * push) * step;
-                if (flake.y > height + 5) { flake.y = -5; flake.x = Math.random() * width; }
-                if (flake.x > width + 5) flake.x = -5;
-                if (flake.x < -5) flake.x = width + 5;
-            }
+            const dx = flake.x - pointerX, dy = flake.y - pointerY;
+            const distance = Math.hypot(dx, dy);
+            const push = distance > 0 && distance < 110 ? (110 - distance) * .8 : 0;
+            flake.x += (wind * 18 + Math.sin(time / 1800 + flake.phase) * 9 + (dx / (distance || 1)) * push) * step;
+            flake.y += (flake.speed + (dy / (distance || 1)) * push) * step;
+            if (flake.y > height + 5) { flake.y = -5; flake.x = Math.random() * width; }
+            if (flake.x > width + 5) flake.x = -5;
+            if (flake.x < -5) flake.x = width + 5;
             context.globalAlpha = .28 + flake.r / 8;
             context.beginPath(); context.arc(flake.x, flake.y, flake.r, 0, Math.PI * 2); context.fill();
         }
         context.globalAlpha = 1;
-        if (!still) frame = requestAnimationFrame(draw);
+        frame = requestAnimationFrame(draw);
     }
     function syncSnow() {
         cancelAnimationFrame(frame); frame = 0; previous = 0;
-        notifySnow();
         if (!canvas) return;
         context.clearRect(0, 0, width, height);
         if (document.documentElement.dataset.theme !== "christmas" || document.hidden) return;
-        if (snowPaused()) draw(0, true);
-        else frame = requestAnimationFrame(draw);
+        frame = requestAnimationFrame(draw);
     }
     window.lupTheme = {
         get() {
@@ -114,20 +98,9 @@
             const host = document.getElementById("lup-snow-host");
             if (!host || canvas?.isConnected) return;
             canvas = document.createElement("canvas"); context = canvas.getContext("2d");
-            if (!context) return;
-            host.appendChild(canvas); resize(); syncSnow();
-        },
-        snowPaused,
-        snowState,
-        observeSnow(observer) { const id = ++snowObserverId; snowObservers.set(id, observer); return id; },
-        unobserveSnow(id) { snowObservers.delete(id); },
-        setSnowMode(mode) {
-            save("lup-snow-mode", ["auto", "on", "off"].includes(mode) ? mode : "auto");
-            save("lup-snow-paused", "false");
-            syncSnow();
-            return snowState();
-        },
-        toggleSnow() { this.setSnowMode(snowPaused() ? "on" : "off"); return snowPaused(); }
+            if (!context) { canvas = undefined; return; }
+            host.appendChild(canvas); resize();
+        }
     };
     addEventListener("scroll", scheduleSeasonalDock, { passive: true });
     addEventListener("resize", scheduleSeasonalDock, { passive: true });
@@ -138,7 +111,6 @@
     }, { passive: true });
     addEventListener("pointerout", event => { if (!event.relatedTarget) { pointerX = -1000; pointerY = -1000; } }, { passive: true });
     document.addEventListener("visibilitychange", syncSnow);
-    motion.addEventListener("change", syncSnow);
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
         if (window.lupTheme.get() === "system") window.lupTheme.apply("system");
     });

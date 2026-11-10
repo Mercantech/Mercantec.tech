@@ -32,6 +32,7 @@ public sealed class MainLayoutEditorShellTests
         var layout = context.Render<MainLayout>(parameters => parameters.Add(x => x.Body, (RenderFragment)(builder => builder.AddContent(0, "Dokumentets indhold"))));
 
         Assert.Equal(expected, layout.Find(".lup").ClassList.Contains("notion-ide-shell"));
+        Assert.Equal(!authenticated, layout.Find(".lup").ClassList.Contains("public-shell"));
         Assert.Contains("Dokumentets indhold", layout.Find("#main-content").TextContent);
     }
 

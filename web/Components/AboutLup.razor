@@ -10,15 +10,8 @@
                 <a class="about-primary" href="/library">Gå til Oversigt</a>
                 <a class="about-secondary" href="/login">Log ind i LUP</a>
             </div>
-            <nav class="about-role-links" aria-label="Hvad får du ud af LUP?">
-                <a href="/sources#for-elever">Jeg er elev</a>
-                <a href="/sources#for-undervisere">Jeg underviser</a>
-            </nav>
         </div>
-        <figure class="about-mascot">
-            <img src="/images/about/lupp.webp" alt="LUPP, den lilla Game Design-figur, med sin store gule blyant" width="1280" height="1280" fetchpriority="high" />
-            <figcaption><a href="/characters/lupp">Mød LUPP</a><span>Din makker i Game Design.</span></figcaption>
-        </figure>
+        <AboutCharacterSpotlight />
     </header>
 
     <div class="about-audiences">
@@ -49,12 +42,7 @@
             <div><h2 id="about-characters-title">Faglighed med et ansigt</h2><p>Du møder flere hjælpere undervejs. De har hver deres fag og måde at undersøge tingene på.</p></div>
             <a class="about-text-link" href="/characters">Mød alle karaktererne</a>
         </div>
-        <ul class="about-character-list">
-            <li><a href="/characters/raymond"><img src="/images/characters/raymond/neutral.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Raymond</strong><small>SQL og databaser</small></span></a></li>
-            <li><a href="/characters/bee"><img src="/images/characters/bee/portrait.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Cyberbien</strong><small>Cybersikkerhed</small></span></a></li>
-            <li><a href="/characters/beaver"><img src="/images/about/beaver.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Bæver</strong><small>Sikker kode og test</small></span></a></li>
-            <li><a href="/characters/fox"><img src="/images/about/fox.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Ræv</strong><small>Etisk sikkerhedstest</small></span></a></li>
-        </ul>
+        <AboutCharacterBrowser />
     </section>
 
     <section class="about-name" aria-labelledby="about-name-title">

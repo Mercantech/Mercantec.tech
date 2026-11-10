@@ -5,71 +5,103 @@ const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../web/wwwroot/js/lup-ui.js'), 'utf8');
 
-function scene(reducedMotion, saved = {}) {
+function scene(reducedMotion, saved = {}, options = {}) {
     const storage = new Map(Object.entries(saved));
     const pending = new Map();
     const events = new Map();
-    let nextFrame = 0, arcs = [];
+    const globalEvents = new Map();
+    let nextFrame = 0, arcs = [], canvasCount = 0;
     const context = { setTransform() {}, clearRect() { arcs = []; }, beginPath() {}, fill() {}, arc(x, y) { arcs.push([x, y]); } };
     const canvas = { getContext: () => context, isConnected: false };
-    const host = { appendChild() { canvas.isConnected = true; } };
+    const host = { appendChild() { canvas.isConnected = true; canvasCount++; } };
     const motion = { matches: reducedMotion, addEventListener() {} };
     const document = {
-        hidden: false, documentElement: { dataset: { theme: 'christmas' } },
+        hidden: options.hidden ?? false, documentElement: { dataset: { theme: options.theme ?? 'christmas' } },
         getElementById: id => id === 'lup-snow-host' ? host : null,
         createElement: () => canvas, addEventListener: (name, fn) => events.set(name, fn)
     };
     const window = {};
-    vm.runInNewContext(source, {
+    const environment = {
         window, document, localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, val) => storage.set(key, val) },
-        sessionStorage: { getItem: () => null }, innerWidth: 1440, innerHeight: 900, devicePixelRatio: 1,
+        sessionStorage: { getItem: () => null }, innerWidth: options.width ?? 1440, innerHeight: options.height ?? 900, devicePixelRatio: options.ratio ?? 1,
         matchMedia: query => query.includes('reduced-motion') ? motion : { matches: false, addEventListener() {} },
-        addEventListener() {}, dispatchEvent() {}, requestAnimationFrame: fn => { pending.set(++nextFrame, fn); return nextFrame; },
+        addEventListener(name, fn) { if (!globalEvents.has(name)) globalEvents.set(name, []); globalEvents.get(name).push(fn); },
+        dispatchEvent() {}, requestAnimationFrame: fn => { pending.set(++nextFrame, fn); return nextFrame; },
         cancelAnimationFrame: id => pending.delete(id)
-    });
+    };
+    vm.runInNewContext(source, environment);
     window.lupTheme.mount();
-    return { theme: window.lupTheme, document, storage, pending,
+    return { theme: window.lupTheme, document, storage, pending, canvas,
+        get canvasCount() { return canvasCount; },
         frame(time) { const callbacks = [...pending.values()]; pending.clear(); callbacks.forEach(fn => fn(time)); return arcs.map(a => [...a]); },
-        visibility(hidden) { document.hidden = hidden; events.get('visibilitychange')(); }
+        visibility(hidden) { document.hidden = hidden; events.get('visibilitychange')(); },
+        resize(width, height) { environment.innerWidth = width; environment.innerHeight = height; globalEvents.get('resize').forEach(fn => fn()); }
     };
 }
 
-test('Start snow overrides reduced motion, moves flakes, and Pause stops the loop', () => {
-    const app = scene(true);
-    assert.equal(app.theme.snowPaused(), true);
-    assert.equal(app.pending.size, 0);
-    assert.equal(app.theme.toggleSnow(), false);
-    assert.equal(app.storage.get('lup-snow-mode'), 'on');
-    assert.equal(app.pending.size, 1);
-    const first = app.frame(1000);
-    const second = app.frame(1040);
-    assert.equal(second.length, 90);
-    assert.notEqual(first[0][1], second[0][1]);
-    assert.equal(app.theme.toggleSnow(), true);
-    assert.equal(app.pending.size, 0);
+test('Christmas snow always moves despite reduced-motion and legacy pause preferences', () => {
+    for (const reducedMotion of [false, true]) {
+        for (const saved of [{}, { 'lup-snow-paused': 'true' }, { 'lup-snow-mode': 'off' }, { 'lup-snow-mode': 'auto', 'lup-snow-paused': 'true' }]) {
+            const app = scene(reducedMotion, saved);
+            assert.equal(app.pending.size, 1);
+            const first = app.frame(1000);
+            const second = app.frame(1040);
+            assert.equal(second.length, 90);
+            assert.notEqual(first[0][1], second[0][1]);
+            assert.equal(app.pending.size, 1);
+            const reloaded = scene(reducedMotion, Object.fromEntries(app.storage));
+            assert.equal(reloaded.pending.size, 1);
+        }
+    }
 });
 
-test('Legacy pause can be resumed and the new mode survives remounting', () => {
-    const app = scene(true, { 'lup-snow-paused': 'true' });
-    assert.equal(app.theme.snowState().mode, 'off');
-    app.theme.toggleSnow();
-    const reloaded = scene(true, Object.fromEntries(app.storage));
-    assert.equal(reloaded.theme.snowPaused(), false);
-    assert.equal(reloaded.pending.size, 1);
-});
-
-test('System mode respects motion preference and hidden tabs never animate', () => {
-    const app = scene(true, { 'lup-snow-mode': 'on' });
-    app.theme.setSnowMode('auto');
-    assert.equal(app.pending.size, 0);
-    app.theme.setSnowMode('on');
-    app.visibility(true);
+test('Hidden tabs stop snow and resume it only when Christmas is visible', () => {
+    const app = scene(true, { 'lup-snow-mode': 'off' }, { hidden: true });
     assert.equal(app.pending.size, 0);
     app.visibility(false);
     assert.equal(app.pending.size, 1);
-    app.theme.set('hacker');
+    assert.equal(app.frame(1000).length, 90);
+    app.visibility(true);
     assert.equal(app.pending.size, 0);
-    assert.equal(scene(false).pending.size, 1);
+    assert.deepEqual(app.frame(1040), []);
+    app.theme.set('hacker');
+    app.visibility(false);
+    assert.equal(app.pending.size, 0);
+    app.theme.set('christmas');
+    assert.equal(app.pending.size, 1);
+    assert.equal(app.frame(1080).length, 90);
+});
+
+test('Leaving Christmas clears the canvas, including when the viewport changes', () => {
+    const app = scene(false);
+    assert.equal(app.frame(1000).length, 90);
+    for (const theme of ['light', 'dark', 'newyear', 'hacker', 'system']) {
+        app.theme.set(theme);
+        assert.equal(app.pending.size, 0);
+        assert.deepEqual(app.frame(1040), []);
+        app.resize(800, 600);
+        app.frame(1080); // The seasonal dock may request one geometry update.
+        assert.equal(app.pending.size, 0);
+        assert.deepEqual(app.frame(1120), []);
+    }
+    app.theme.set('christmas');
+    assert.equal(app.pending.size, 1);
+});
+
+test('Remounts and resize retain one canvas and one snow loop with bounded rendering', () => {
+    const app = scene(true, {}, { width: 2000, height: 1000, ratio: 4 });
+    assert.equal(app.canvas.width, 4000);
+    assert.equal(app.canvas.height, 2000);
+    for (let i = 0; i < 5; i++) { app.theme.mount(); app.theme.apply('christmas'); }
+    assert.equal(app.canvasCount, 1);
+    assert.equal(app.pending.size, 1);
+    assert.equal(app.frame(1000).length, 90);
+    app.resize(260, 740);
+    assert.equal(app.frame(1040).length, 20);
+    assert.equal(app.canvas.width, 520);
+    assert.equal(app.canvas.height, 1480);
+    assert.equal(app.canvasCount, 1);
+    assert.equal(app.pending.size, 1);
 });
 
 test('courseCode.copy writes via clipboard API', async () => {

@@ -66,3 +66,9 @@ LUP-shell og global søgning er separate implementeringsopgaver; der introducere
 Den offentlige topbar følger det valgte tema via de fælles farvetokens. Forsiden åbnes via LUP-navnet, så det tidligere Undervisning-link er fjernet fra desktop og mobil. Oversigt er det nye navn for den eksisterende `/library`-side; kategori- og planparametre samt gamle links er bevaret.
 
 Om LUP på `/sources` bruger `AboutLup.razor` med særskilte afsnit for elever og undervisere, eksisterende karakterer og genveje til Oversigt og login. Fortolkningerne af LUP ligger i `Branding/LupIdentity.cs` og deles med footeren. De fleste besøg viser det officielle navn; enkelte viser en af de humoristiske varianter. Valget foretages én gang pr. layoutbesøg og ændres ikke ved navigation, temaskift eller periodiske opdateringer. Footerens tekstfelt har fast bredde og én linje, så varianterne ikke ændrer højden.
+
+## Stabil placering og karaktervisning · 10. november 2026
+
+Offentlige sider bruger en fælles indholdsramme på 1320 px med de samme sideindryk som topbaren. Scrollbarplads reserveres på normale sider, så sider med forskellig højde ikke flytter header og indhold. Notion-editoren bevarer sin egen kant-til-kant-arbejdsflade.
+
+Øverst på Om LUP skifter karaktervisningen automatisk mellem karaktererne med faste intervaller. Nederst kan man selv bladre gennem karaktererne. De tidligere elev-/underviser-genveje i introduktionen er fjernet; de to beskrivende afsnit er bevaret.

@@ -1,4 +1,11 @@
 main { flex:1; }
+/* Public pages share the same content rail as their header. */
+.lup.public-shell { --lup-page-width:1320px; --lup-page-gutter:27px; }
+.lup.public-shell .body { box-sizing:border-box; max-width:calc(var(--lup-page-width) + 2 * var(--lup-page-gutter)); padding-inline:var(--lup-page-gutter); }
+.lup.public-shell .footer { padding-inline:max(var(--lup-page-gutter),calc((100% - var(--lup-page-width)) / 2)); }
+.lup.public-shell ::deep .characters { max-width:none; margin:0; padding-top:5px; }
+@media(max-width:620px) { .lup.public-shell { --lup-page-gutter:16px; } }
+
 .lup.notion-ide-shell{height:100dvh;min-height:0}
 .lup.notion-ide-shell .app{height:100%;min-height:0;border-radius:0;overflow:hidden}
 .lup.notion-ide-shell .body{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;width:100%;max-width:none;margin:0;padding:0;overflow:auto}
@@ -6,7 +13,7 @@ main { flex:1; }
 .lup.notion-ide-shell .lup-header:has(details[open]){z-index:100}
 .lup.notion-ide-shell .footer{display:none}
 @media print{.lup.notion-ide-shell,.lup.notion-ide-shell .app{height:auto;overflow:visible}.lup.notion-ide-shell .body{display:block;overflow:visible}.lup.notion-ide-shell .lup-header{position:static}}
-.lup-header.public-header { background:var(--paper); border-bottom:1px solid var(--rule); padding-left:max(27px,calc((100% - 1320px) / 2)); padding-right:max(27px,calc((100% - 1320px) / 2)); }
+.lup-header.public-header { background:var(--paper); border-bottom:1px solid var(--rule); padding-left:max(var(--lup-page-gutter),calc((100% - var(--lup-page-width)) / 2)); padding-right:max(var(--lup-page-gutter),calc((100% - var(--lup-page-width)) / 2)); }
 .lup-header.public-header .brand { color:var(--blue); font-size:29px; }
 .lup-header.public-header .mainnav { background:transparent; border:0; }
 .lup-header.public-header ::deep .public-nav a { color:var(--ink); font-size:14px; padding:16px 0 14px; }
@@ -16,7 +23,7 @@ main { flex:1; }
 .lup-header.public-header .lup-account>summary,.lup-header.public-header .lup-mobile-nav>summary { color:var(--ink); }
 .lup-header.public-header ::deep .lup-mobile-menu a { color:var(--ink); }
 .lup-header.public-header ::deep .v3-menu { color:var(--ink); }
-@media(max-width:620px) { .lup-header.public-header { padding-left:16px; padding-right:16px; } .lup-header.public-header .brand { font-size:25px; } }
+@media(max-width:620px) { .lup-header.public-header { padding-left:var(--lup-page-gutter); padding-right:var(--lup-page-gutter); } .lup-header.public-header .brand { font-size:25px; } }
 
 @media(max-width:900px) {
     .lup-header.public-header .public-nav { display:none; }
@@ -29,7 +36,7 @@ main { flex:1; }
 @media(max-width:900px) { .lup-header.member-header .member-nav { display:none; } .lup-header.member-header .lup-mobile-nav { display:block; } }
 
 @media(max-width:480px) {
-    .lup-header.public-header,.lup-header.member-header { padding-left:12px; padding-right:12px; gap:10px; }
+    .lup-header.public-header,.lup-header.member-header { padding-left:var(--lup-page-gutter,12px); padding-right:var(--lup-page-gutter,12px); gap:10px; }
     .lup-header .lup-tools { gap:6px; }
     .lup-header .brand { font-size:25px; }
     .lup-header .lup-search-link { min-width:28px; justify-content:center; }

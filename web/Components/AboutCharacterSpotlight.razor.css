@@ -1,0 +1,25 @@
+.about-character-spotlight { position:relative; width:100%; margin:0; padding:8px 10px 0; isolation:isolate; color:var(--ink); }
+.about-character-spotlight::before { content:""; position:absolute; inset:5% 0 34%; z-index:-1; background:var(--tint); border-radius:48% 48% 38% 38%; }
+.spotlight-portrait { width:100%; height:300px; display:grid; place-items:center; }
+.spotlight-portrait img { display:block; width:100%; height:100%; max-width:340px; object-fit:contain; }
+.spotlight-caption { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:4px; height:100px; padding-top:9px; text-align:center; }
+.spotlight-profile { max-width:100%; font:600 18px/1.3 'Space Grotesk',sans-serif; }
+.spotlight-role { max-width:36ch; color:var(--muted); font-size:12px; line-height:1.4; }
+.spotlight-caption small { max-width:40ch; color:var(--muted); font-size:11px; line-height:1.4; }
+.spotlight-controls { display:flex; align-items:center; justify-content:center; gap:6px; min-height:40px; }
+.spotlight-controls button { min-height:36px; border:1px solid var(--rule); border-radius:7px; background:var(--paper); color:var(--ink); cursor:pointer; }
+.spotlight-controls button:hover { background:var(--tint); }
+.spotlight-controls button:focus-visible,.spotlight-profile:focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
+.spotlight-step { display:grid; place-items:center; width:36px; padding:0; font-size:23px!important; line-height:1; }
+.spotlight-count { min-width:53px; font-size:12px; text-align:center; font-variant-numeric:tabular-nums; color:var(--muted); }
+.spotlight-pause { margin-left:5px; min-width:57px; padding:6px 10px; font-size:12px!important; }
+.spotlight-pause[aria-pressed=true] { border-color:var(--blue); color:var(--blue); background:var(--tint); }
+.spotlight-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(max-width:680px) {
+    .about-character-spotlight { width:min(290px,100%); margin:0 auto; padding-top:0; }
+    .spotlight-portrait { height:210px; }
+    .spotlight-portrait img { max-width:240px; }
+    .spotlight-caption { height:100px; }
+    .spotlight-controls button { min-height:40px; }
+    .spotlight-step { width:40px; }
+}

@@ -13,7 +13,7 @@ Dette er det fælles overblik over platformens udseender. Nye temaer registreres
 | `system` | System | Følger enhedens lyse eller mørke farveskema. |
 | `light` | Lyst | Platformens lyse grundtema. |
 | `dark` | Mørkt | Platformens mørke grundtema. |
-| `christmas` | Jul | Julelys, gaver og sne med bevægelsesvalg under Tema → Jul. |
+| `christmas` | Jul | Julelys, gaver og fast bevægelig sne uden indstillinger. |
 | `newyear` | Nytår | Nytår med midnatsblå, champagneguld, fyrværkerimotiver og et frivilligt programmeringsspil med boosts. |
 | `hacker` | Hacker | Grøn terminalpalet og monospace-overskrifter. |
 
@@ -21,7 +21,7 @@ Rainbow er udgået. Ukendte eller tidligere temaværdier falder tilbage til Lyst
 
 ## Temavælger i topbaren
 
-Knappen **Tema** er synlig for gæster og indloggede brugere. Menuen viser alle seks valg med beskrivelse, tydeligt flueben og markeret valgt tilstand. Valget gemmes i browseren. Menuen kan lukkes med Escape eller et klik udenfor og tilpasser sig mobilbredden. `ThemePicker.razor` deler visning og tilgængelighedsmarkering mellem de to topbarer. Gæsternes topbar bruger også temafarverne. Når Jul er valgt, viser menuen indstillingen for sne: Følg systemet, Bevægelig sne eller Stille sne. Der er ingen fast Pause/Start sne-knap nederst; gaveknappen er bevaret.
+Knappen **Tema** er synlig for gæster og indloggede brugere. Menuen viser alle seks valg med beskrivelse, tydeligt flueben og markeret valgt tilstand. Valget gemmes i browseren. Menuen kan lukkes med Escape eller et klik udenfor og tilpasser sig mobilbredden. `ThemePicker.razor` deler visning og tilgængelighedsmarkering mellem de to topbarer. Gæsternes topbar bruger også temafarverne. Når Jul er valgt, bevæger sneen sig hele tiden. Der er ingen sneindstillinger eller Pause/Start-knap. Tidligere bevægelsesvalg ignoreres; gaveknappen er bevaret.
 
 ## Nytårstema
 

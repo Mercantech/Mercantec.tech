@@ -1,0 +1,111 @@
+@using Mercantec.Tech.Web.Characters
+@inject IJSRuntime Js
+@implements IAsyncDisposable
+
+<figure class="about-character-spotlight" aria-label="Mød karaktererne i LUP" aria-roledescription="karrusel" @ref="_element" @onmouseenter="() => SetHovered(true)" @onmouseleave="() => SetHovered(false)">
+    <div class="spotlight-portrait"><img src="@AboutCharacterVisuals.Image(Current)" alt="@AboutCharacterVisuals.Alt(Current)" width="360" height="360" fetchpriority="high" /></div>
+    <figcaption class="spotlight-caption" aria-live="off">
+        <a class="spotlight-profile" href="@Current.Path">Mød @Current.Name</a>
+        <span class="spotlight-role">@Current.Role</span>
+        <small>@Current.Home</small>
+    </figcaption>
+    <div class="spotlight-controls" aria-label="Skift karakter">
+        <button type="button" class="spotlight-step" aria-label="Vis forrige karakter" @onclick="() => Step(-1)">‹</button>
+        <span class="spotlight-count" aria-label="@($"Figur {_index + 1} af {CharacterCatalog.All.Count}")">@(_index + 1) / @CharacterCatalog.All.Count</span>
+        <button type="button" class="spotlight-step" aria-label="Vis næste karakter" @onclick="() => Step(1)">›</button>
+        <button type="button" class="spotlight-pause" aria-pressed="@(_paused ? "true" : "false")" aria-label="@(_paused ? "Start automatisk figurskift" : "Pause automatisk figurskift")" @onclick="TogglePause">@(_paused ? "Start" : "Pause")</button>
+    </div>
+    <span class="spotlight-announcement" role="status">@_announcement</span>
+</figure>
+
+@code {
+    public const string ModulePath = "/js/about-characters.js?v=1";
+    private static readonly TimeSpan RotationInterval = TimeSpan.FromSeconds(6);
+    [Parameter] public TimeProvider Clock { get; set; } = TimeProvider.System;
+
+    private int _index, _observerId;
+    private bool _paused, _hovered, _focusWithin, _pageVisible = true;
+    private volatile bool _disposed;
+    private string _announcement = "";
+    private ITimer? _timer;
+    private ElementReference _element;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<AboutCharacterSpotlight>? _reference;
+    private Task? _observerTask;
+    private CharacterProfile Current => CharacterCatalog.All[_index];
+
+    protected override void OnInitialized() => _timer = Clock.CreateTimer(Tick, null, RotationInterval, RotationInterval);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) { _observerTask = ObserveBrowser(); await _observerTask; }
+    }
+
+    private async Task ObserveBrowser()
+    {
+        try
+        {
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            if (_disposed || _module is null) return;
+            _reference = DotNetObjectReference.Create(this);
+            _observerId = await _module.InvokeAsync<int>("observe", _reference, _element);
+        }
+        catch (JSException) { }
+    }
+
+    private void Tick(object? state)
+    {
+        if (_disposed) return;
+        _ = InvokeAsync(() =>
+        {
+            if (_disposed || _paused || _hovered || _focusWithin || !_pageVisible) return;
+            _index = (_index + 1) % CharacterCatalog.All.Count;
+            StateHasChanged();
+        });
+    }
+
+    private void Step(int direction)
+    {
+        _index = (_index + direction + CharacterCatalog.All.Count) % CharacterCatalog.All.Count;
+        _announcement = $"{Current.Name}. Figur {_index + 1} af {CharacterCatalog.All.Count}.";
+        RestartCountdown();
+    }
+
+    private void TogglePause() { _paused = !_paused; RestartCountdown(); }
+    private void SetHovered(bool hovered) { _hovered = hovered; if (!hovered) RestartCountdown(); }
+    private void RestartCountdown() { if (!_disposed) _timer?.Change(RotationInterval, RotationInterval); }
+
+    [JSInvokable]
+    public Task SetPageVisible(bool visible) => _disposed ? Task.CompletedTask : InvokeAsync(() =>
+    {
+        if (_disposed) return;
+        _pageVisible = visible;
+        if (visible) RestartCountdown();
+    });
+
+    [JSInvokable]
+    public Task SetFocusWithin(bool focused) => _disposed ? Task.CompletedTask : InvokeAsync(() =>
+    {
+        if (_disposed) return;
+        _focusWithin = focused;
+        if (!focused) RestartCountdown();
+    });
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        if (_timer is not null) await _timer.DisposeAsync();
+        try
+        {
+            if (_observerTask is not null) await _observerTask;
+            if (_module is not null)
+            {
+                if (_observerId != 0) await _module.InvokeVoidAsync("unobserve", _observerId);
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSException) { }
+        finally { _reference?.Dispose(); }
+    }
+}

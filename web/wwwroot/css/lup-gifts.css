@@ -1,6 +1,5 @@
 /* Gift wrapping uses the same pine, berry and warm gold as the Christmas theme. */
 .christmas-corner:has(.gift-launcher[data-unread=true]) { display:flex; }
-html:not([data-theme="christmas"]) .christmas-corner .snow-controls { display:none; }
 .gift-launcher { position:relative; }
 .gift-count { position:absolute; top:-7px; right:-7px; background:#c74354; color:#fff; border:2px solid #173a31; border-radius:30px; padding:1px 5px; font:700 11px 'DM Sans',sans-serif; }
 .gift-dialog { --gift-bg:light-dark(#fff,#14342d); --gift-ink:light-dark(#17243b,#f6f4e9); --gift-muted:light-dark(#62716c,#b4c9bf); --gift-rule:light-dark(#dce5df,#34544a); --gift-tint:light-dark(#eef5ef,#1d4437); --gift-accent:light-dark(#275c43,#f2cd83); --gift-on:light-dark(#fff,#292211); width:min(640px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); border:1px solid var(--gift-rule); border-radius:18px; padding:0; background:var(--gift-bg); color:var(--gift-ink); box-shadow:0 24px 90px #0005; font:14px/1.6 'DM Sans',sans-serif; overflow-y:auto; }

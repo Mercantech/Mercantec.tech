@@ -14,7 +14,7 @@
 
 <ThemeDecorations />
 <a class="skip-link" href="@SkipToContentHref">Spring til indhold</a>
-<div class="lup @(IsNotionEditor ? "notion-ide-shell" : null)">
+<div class="lup @(!Auth.IsAuthenticated ? "public-shell" : null) @(IsNotionEditor ? "notion-ide-shell" : null)">
     <div class="app">
         <ViewAsStudentBanner />
         <header class="lup-header @(Auth.IsAuthenticated ? "member-header" : "public-header")">
