@@ -290,6 +290,7 @@ public sealed class EmojisControllerTests : IAsyncLifetime
         Assert.Equal("technology", idempotency.Category);
         Assert.Contains("backend", idempotency.Keywords!);
         Assert.Contains("idempotency", idempotency.Keywords!);
+        Assert.Contains("idempotens", idempotency.Keywords!);
         Assert.Equal("everyday", items.Single(item => item.Name == "bilbo_jam").Category);
         Assert.Empty(await _db.CustomEmojis.ToListAsync());
         Assert.Empty(_storage.Objects);
