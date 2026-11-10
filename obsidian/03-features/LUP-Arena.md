@@ -55,6 +55,14 @@ Træning er tilgængelig uden login og kører samme C#-motor i Blazor WASM. Inge
 
 Touchknapper inkluderer retning, hop, angreb, special, skjold, undvigelse, greb og kraftslag. Lyd kan slås til; fuld skærm åbnes fra kampbanens værktøjslinje.
 
+## Lyd
+
+Lyd er som standard slået til. Browserens AudioContext oprettes og genoptages direkte i et betroet klik eller tastetryk før Blazor-interoperabilitet. Lydknapperne i toppen og i Indstillinger gemmer valget lokalt og stopper igangværende klip ved mute. Skjult fane pauser lyden; en ny interaktion kan genaktivere den.
+
+BIP-01, Raymond og Julemanden bruger deres egne originale WAV-klip for bevægelse, træffere og evner. Kun kampens relevante klip indlæses efter aktivering. Startfiguren og manglende lydfiler har en lokal syntetiseret reserve. Lyden bruger en fælles volumenbegrænser, maksimalt 12 samtidige stemmer og ingen gentagen lyd for kontinuerlige trækfelter. Afbrudt heling og opladning stopper deres klip.
+
+16 Node-tests dækker browseraktivering, optagede klip, reserver, mute, samtidighed, ejerskab og oprydning. Reel browserkontrol har dekodet 39 originale kampklip og målt ikke-nul lydoutput for alle tre figurpakker og startfiguren; mute giver nul output.
+
 ## Onlineflow
 
 1. Vælg en oplåst figur og bane. Vælg liv, minutter og eventuelt et offentligt rum.

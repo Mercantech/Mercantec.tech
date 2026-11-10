@@ -196,7 +196,7 @@ export class ArenaRenderer {
             this.seenEvents.add(event.id);
             if (this.seenEvents.size > 600) this.seenEvents.delete(this.seenEvents.values().next().value);
             if (event.tick < this.currentTick - 90) continue;
-            this.cue(event.type, event.strength);
+            this.cue(event.type, event.strength, event);
             const strength = clamp(event.strength || 1, .5, 2);
             const effect = { x: event.x, y: event.y, age: 0, rotation: 0, strength, type: event.type, actorId: event.actorId, targetId: event.targetId };
             switch (event.type) {

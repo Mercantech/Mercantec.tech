@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Bunit;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
@@ -87,12 +88,72 @@ public sealed class ArenaMenuTests
         Assert.DoesNotContain("Øvelse gør mester", page.Markup);
         await Button(page, "Indstillinger").ClickAsync(new MouseEventArgs());
         Assert.Single(page.FindAll(".arena-controls-detail"));
-        await page.FindAll(".arena-settings-options button").Single(x => x.TextContent.Contains("Lyd")).ClickAsync(new MouseEventArgs());
-        Assert.True(javascript.Module.SoundEnabled);
+        var sound = page.Find(".arena-settings-options [data-arena-sound-toggle]");
+        Assert.Equal("true", sound.GetAttribute("aria-pressed"));
+        Assert.Equal("Til", sound.QuerySelector("strong")!.TextContent);
+        await sound.ClickAsync(new MouseEventArgs());
+        Assert.False(javascript.Module.SoundEnabled);
+        Assert.Equal("false", page.Find(".arena-settings-options [data-arena-sound-toggle]").GetAttribute("aria-pressed"));
+        Assert.Equal("Fra", page.Find(".arena-settings-options [data-arena-sound-toggle] strong").TextContent);
         await Button(page, "Tilbage").ClickAsync(new MouseEventArgs());
         Assert.Single(page.FindAll("nav[aria-label='Spilmenu']"));
         Assert.Empty(page.FindAll(".arena-controls-detail"));
         Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public async Task Sound_starts_enabled_and_topbar_can_disable_and_reenable_it_without_remounting()
+    {
+        using var api = new NoNetworkApi();
+        var javascript = new MenuJavascript();
+        await using var context = await CreateContext(api, javascript);
+        var page = context.Render<Arena>();
+        page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.MountCount));
+
+        Assert.Equal("./js/arena-client.js?v=6", javascript.ImportPath);
+        Assert.Equal(new[] { "soundPreference", "mount" }, javascript.Module.Calls.Take(2));
+        Assert.True(javascript.Module.MountedSound);
+        var sound = page.Find(".arena-topbar [data-arena-sound-toggle]");
+        Assert.Equal("true", sound.GetAttribute("aria-pressed"));
+        Assert.Equal("Slå lyd fra", sound.GetAttribute("aria-label"));
+
+        await sound.ClickAsync(new MouseEventArgs());
+        Assert.False(javascript.Module.SoundEnabled);
+        Assert.Equal("false", page.Find(".arena-topbar [data-arena-sound-toggle]").GetAttribute("aria-pressed"));
+        Assert.Equal("Slå lyd til", page.Find(".arena-topbar [data-arena-sound-toggle]").GetAttribute("aria-label"));
+        await page.Find(".arena-topbar [data-arena-sound-toggle]").ClickAsync(new MouseEventArgs());
+        Assert.True(javascript.Module.SoundEnabled);
+        Assert.Equal("true", page.Find(".arena-topbar [data-arena-sound-toggle]").GetAttribute("aria-pressed"));
+        Assert.Equal(new[] { false, true }, javascript.Module.SoundChanges);
+        Assert.Equal(1, javascript.Module.MountCount);
+        Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public async Task Muted_sound_preference_is_restored_before_the_game_is_remounted()
+    {
+        var javascript = new MenuJavascript();
+        using var firstApi = new NoNetworkApi();
+        await using (var firstContext = await CreateContext(firstApi, javascript))
+        {
+            var firstPage = firstContext.Render<Arena>();
+            firstPage.WaitForAssertion(() => Assert.Equal(1, javascript.Module.MountCount));
+            await firstPage.Find(".arena-topbar [data-arena-sound-toggle]").ClickAsync(new MouseEventArgs());
+            Assert.False(javascript.Module.SoundPreference);
+        }
+
+        using var secondApi = new NoNetworkApi();
+        await using var secondContext = await CreateContext(secondApi, javascript);
+        var secondPage = secondContext.Render<Arena>();
+        secondPage.WaitForAssertion(() => Assert.Equal(2, javascript.Module.MountCount));
+        Assert.False(javascript.Module.MountedSound);
+        Assert.False(javascript.Module.SoundEnabled);
+        Assert.Equal("false", secondPage.Find(".arena-topbar [data-arena-sound-toggle]").GetAttribute("aria-pressed"));
+        Assert.Equal("Slå lyd til", secondPage.Find(".arena-topbar [data-arena-sound-toggle]").GetAttribute("aria-label"));
+        await Button(secondPage, "Indstillinger").ClickAsync(new MouseEventArgs());
+        Assert.Equal("Fra", secondPage.Find(".arena-settings-options [data-arena-sound-toggle] strong").TextContent);
+        Assert.Empty(firstApi.Requests);
+        Assert.Empty(secondApi.Requests);
     }
 
     [Fact]
@@ -172,22 +233,39 @@ public sealed class ArenaMenuTests
     private sealed class MenuJavascript : IJSRuntime
     {
         public MenuModule Module { get; init; } = new();
+        public string? ImportPath { get; private set; }
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
-            => ValueTask.FromResult(identifier == "import" ? (TValue)(object)Module : default!);
+        {
+            if (identifier != "import") return ValueTask.FromResult(default(TValue)!);
+            ImportPath = (string)args![0]!;
+            return ValueTask.FromResult((TValue)(object)Module);
+        }
     }
     private sealed class MenuModule : IJSObjectReference
     {
         public bool Ready { get; init; } = true;
         public int MountCount { get; private set; }
+        public bool SoundPreference { get; private set; } = true;
+        public bool MountedSound { get; private set; }
         public bool SoundEnabled { get; private set; }
+        public List<bool> SoundChanges { get; } = [];
+        public List<string> Calls { get; } = [];
         public ArenaState? LastState { get; private set; }
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
-            if (identifier == "mount") { MountCount++; return ValueTask.FromResult((TValue)(object)Ready); }
+            Calls.Add(identifier);
+            if (identifier == "soundPreference") return ValueTask.FromResult((TValue)(object)SoundPreference);
+            if (identifier == "mount")
+            {
+                MountCount++;
+                MountedSound = JsonSerializer.SerializeToElement(args![2]).GetProperty("soundEnabled").GetBoolean();
+                SoundEnabled = MountedSound;
+                return ValueTask.FromResult((TValue)(object)Ready);
+            }
             if (identifier == "pushState") LastState = (ArenaState)args![0]!;
-            if (identifier == "sound") SoundEnabled = (bool)args![0]!;
+            if (identifier == "sound") { SoundEnabled = SoundPreference = (bool)args![0]!; SoundChanges.Add(SoundEnabled); }
             return ValueTask.FromResult(default(TValue)!);
         }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;

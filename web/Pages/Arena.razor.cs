@@ -38,7 +38,8 @@ public partial class Arena
     private ArenaAppearance CurrentAppearance => ArenaAppearance.Sanitize(new(World.Skin, World.Hair, World.HairStyle, World.OutfitColor));
     private int _stocks = 3;
     private int _minutes = 5;
-    private bool _busy, _practice, _playing, _ready, _sound, _isPublic, _copied, _roomsLoaded, _reconnecting, _disposed;
+    private bool _busy, _practice, _playing, _ready, _isPublic, _copied, _roomsLoaded, _reconnecting, _disposed;
+    private bool _sound = true;
     private bool _loading = true, _practicePaused, _artReady;
     private string _screen = "main", _settingsReturn = "main", _rosterReturn = "main";
     private bool IsBattle => _screen == "battle";
@@ -65,10 +66,12 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=5");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=6");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
+            _sound = await _module.InvokeAsync<bool>("soundPreference");
+            if (_disposed) return;
             _reference = DotNetObjectReference.Create(this);
-            _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });
+            _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, soundEnabled = _sound, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });
             if (_disposed) return;
             var query = new Uri(Nav.Uri).Query;
             var invitation = query.TrimStart('?').Split('&').Select(p => p.Split('=', 2)).FirstOrDefault(p => p.Length == 2 && p[0] == "room");
