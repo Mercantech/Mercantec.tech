@@ -40,7 +40,6 @@ html[data-theme="hacker"] .lup {
 }
 html[data-theme="hacker"] .lup :is(h1,h2,h3,.brand,.lup-wallet,.pill,.context) { font-family:'Cascadia Code','Consolas',monospace; letter-spacing:-.6px; }
 html[data-theme="hacker"] .lup .lup-header { border-bottom:1px solid #426e50; }
-html[data-theme="hacker"] .lup .brand:before { content:'>_'; font-size:16px; margin-right:8px; color:#76b68b; letter-spacing:-3px; }
 html[data-theme="hacker"] .lup .panel,html[data-theme="hacker"] .lup .article,html[data-theme="hacker"] .lup .tile,html[data-theme="hacker"] .lup .v4-product { border-radius:5px; }
 html[data-theme="hacker"] .lup .v3-next { background:#132f24; border:1px solid #345d43; }
 html[data-theme="hacker"] .lup .page-title h1:before { content:'~/ '; font-size:.7em; color:#79b98e; }

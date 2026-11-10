@@ -18,7 +18,14 @@
     <div class="app">
         <ViewAsStudentBanner />
         <header class="lup-header @(Auth.IsAuthenticated ? "member-header" : "public-header")">
-            <a class="brand @(HomeIsCurrent ? "is-current" : null)" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform" aria-current="@(HomeIsCurrent ? "page" : null)">LUP</a>
+            <a class="brand @(HomeIsCurrent ? "is-current" : null)" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform" aria-current="@(HomeIsCurrent ? "page" : null)">
+                <svg class="brand-mark" viewBox="0 0 10 10" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+                    <path class="brand-mark-l" d="M0 0h2v8h6v2H0z" />
+                    <path class="brand-mark-u" d="M8 0h2v10H8z" />
+                    <path class="brand-mark-p" d="M2 0h4v6H2V4h2V2H2z" />
+                </svg>
+                <span>LUP</span>
+            </a>
             @if (Auth.IsAuthenticated)
             {
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
