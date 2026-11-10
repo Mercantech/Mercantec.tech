@@ -84,6 +84,7 @@
         "chameleon" => "Emne, fx overfitting, features eller datadrift",
         "whale" => "Emne, fx Compose, logs eller rollback",
         "gummianden" => "Emne, fx breakpoint, call stack eller regressionstest",
+        "bee" => "Emne, fx honeypot, phishing eller cloud",
         _ => "Emne, fx JOIN, normalisering eller ORM"
     };
     private string[] Stages => Items.Select(item => item.Stage).OfType<string>().Distinct().Order().ToArray();

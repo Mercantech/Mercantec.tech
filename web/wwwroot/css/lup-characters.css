@@ -11,6 +11,7 @@
 .lup .character-raymond { --character-accent:#548eb9; }
 .lup .character-chameleon { --character-accent:#6d8746; }
 .lup .character-whale { --character-accent:#ad792e; }
+.lup .character-bee { --character-accent:#cb8913; }
 .lup .character-beaver { --character-accent:#426fa8; }
 .lup .character-fox { --character-accent:#b44d42; }
 .lup .character-card { display:flex; flex-direction:column; min-width:0; border:1px solid var(--rule); background:var(--paper); border-radius:16px; overflow:hidden; color:var(--ink); transition:border-color .15s,box-shadow .15s; }

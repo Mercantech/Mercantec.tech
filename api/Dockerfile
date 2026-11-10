@@ -26,6 +26,8 @@ COPY web/Characters/VatsonEmojiCatalog.cs web/Characters/
 COPY web/Characters/WhaleMaterials.cs web/Characters/
 COPY web/Characters/DuckTeachingMaterials.cs web/Characters/
 COPY web/Characters/DuckMotionMaterials.cs web/Characters/
+COPY web/Characters/BeeTeachingMaterials.cs web/Characters/
+COPY web/Characters/BeeMotionMaterials.cs web/Characters/
 WORKDIR /src/api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 

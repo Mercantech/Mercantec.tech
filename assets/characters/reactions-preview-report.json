@@ -2110,5 +2110,389 @@
     "previewBytes": 47386,
     "originalSha256": "c74590d1d9bae718c24d5c0255fd08a61d5970934cae43373929a01efffd675f",
     "previewSha256": "2948035b8c7f3389950889a37683b1f2fd8007693d17602c868d1de609826da2"
+  },
+  {
+    "image": "/images/characters/bee/reactions/wave.png",
+    "preview": "/images/characters/bee/reactions/wave.webp",
+    "originalBytes": 1641839,
+    "previewBytes": 45958,
+    "originalSha256": "78fe440a43d93493a325a7c8dd11eec3accdf50353c2fc10695357ef1a74ea00",
+    "previewSha256": "4ad43a630888dc1550db87fa8117775237952dbfc4e63ffae434caf1ef058934"
+  },
+  {
+    "image": "/images/characters/bee/reactions/thumbs-up.png",
+    "preview": "/images/characters/bee/reactions/thumbs-up.webp",
+    "originalBytes": 1569232,
+    "previewBytes": 42752,
+    "originalSha256": "6d05f5ee3a522f68fe6601c35fd255bbbfcbb40fc2812abec4c3cc3181022bd6",
+    "previewSha256": "26b71ce3118e72edec49743b770fc453ccf2d5dfe40dcdce2c1f5ee54b0d8706"
+  },
+  {
+    "image": "/images/characters/bee/reactions/thinking.png",
+    "preview": "/images/characters/bee/reactions/thinking.webp",
+    "originalBytes": 1496931,
+    "previewBytes": 41736,
+    "originalSha256": "77927877bd89cc471cb8165e6e897e2c4582a3cba6707f62d0a7d6b775addea6",
+    "previewSha256": "0699a247a04cc845cfc130bc9256bb37de52bfa61b4a073bc4cf6762c5434794"
+  },
+  {
+    "image": "/images/characters/bee/reactions/listening.png",
+    "preview": "/images/characters/bee/reactions/listening.webp",
+    "originalBytes": 1608106,
+    "previewBytes": 48096,
+    "originalSha256": "ab89647ae34f845f839f171d3c94653019738dc244c33110955ca628629c6a3a",
+    "previewSha256": "2be36bf62e90ab88ce128db81625679a9914f6c91691bcb1216760f0c8776095"
+  },
+  {
+    "image": "/images/characters/bee/reactions/idea.png",
+    "preview": "/images/characters/bee/reactions/idea.webp",
+    "originalBytes": 1737614,
+    "previewBytes": 51702,
+    "originalSha256": "5ad9f83acd1c1af8861d9c57fc35ec34eccff1468cc751f165285f05c2a1ec92",
+    "previewSha256": "7f682797075f51121e3647876e4b37ebe37cd0819e1c09cebf0f4fa9d3640796"
+  },
+  {
+    "image": "/images/characters/bee/reactions/question.png",
+    "preview": "/images/characters/bee/reactions/question.webp",
+    "originalBytes": 1567362,
+    "previewBytes": 47574,
+    "originalSha256": "f647f3cbd7f0aaa8c023e9ab8a710b3a8a70bea868950dc1bb7077d43d81b8e7",
+    "previewSha256": "ba6258dacab65acee394c46256b355dcf132f665de5409410ed24326184e1ca3"
+  },
+  {
+    "image": "/images/characters/bee/reactions/laughing.png",
+    "preview": "/images/characters/bee/reactions/laughing.webp",
+    "originalBytes": 1498512,
+    "previewBytes": 41500,
+    "originalSha256": "00aac23a1b76d46c9f6d522b1193735d7e45f05d010fdc4cd0344e08fd1d6999",
+    "previewSha256": "a9dfaa604d49673288f3be1ae07172171abedd8241377ccdf607b869ede43587"
+  },
+  {
+    "image": "/images/characters/bee/reactions/wink.png",
+    "preview": "/images/characters/bee/reactions/wink.webp",
+    "originalBytes": 1544013,
+    "previewBytes": 42506,
+    "originalSha256": "4d9f192e8f9b4cdaac877262d30e02b8edb7b70047fbddd4a7d2562c28a022b3",
+    "previewSha256": "32aaafd6321649ed71785aa86154bb91b37258af46da440a22215951688fafe4"
+  },
+  {
+    "image": "/images/characters/bee/reactions/surprised.png",
+    "preview": "/images/characters/bee/reactions/surprised.webp",
+    "originalBytes": 1520075,
+    "previewBytes": 45578,
+    "originalSha256": "4ea094d7e749c6a06f850046cd21468b83d0ed735c78912c4875c3fcdb9f145e",
+    "previewSha256": "96d343e91b8b1226e711d977185bce3fc398b0e2a173dba6c3d79b124b608ea5"
+  },
+  {
+    "image": "/images/characters/bee/reactions/skeptical.png",
+    "preview": "/images/characters/bee/reactions/skeptical.webp",
+    "originalBytes": 1465180,
+    "previewBytes": 40478,
+    "originalSha256": "c5b0818925b4c3e3f1eb951f5c73dec0ad903a1fb8eeed9886059af0bad35b01",
+    "previewSha256": "704b797347e1350dccd2a1b2ffbf2a10e3030217938ccc1d2c74e3c620777b01"
+  },
+  {
+    "image": "/images/characters/bee/reactions/focused.png",
+    "preview": "/images/characters/bee/reactions/focused.webp",
+    "originalBytes": 1433492,
+    "previewBytes": 39856,
+    "originalSha256": "b02f11a1ef819b13c7db8713d6ffec3bf26749d8990603280630e3d6b4f92bc7",
+    "previewSha256": "c52d1668176cc31eb93e72c6fb4f16be99c45953eb502dca92dc8af50476867f"
+  },
+  {
+    "image": "/images/characters/bee/reactions/relieved.png",
+    "preview": "/images/characters/bee/reactions/relieved.webp",
+    "originalBytes": 1436713,
+    "previewBytes": 41842,
+    "originalSha256": "6d8ae3ae7932150c6e2d188b02727ecc5cbdf66bab08774029879373a0698592",
+    "previewSha256": "a0755f905e6b804e3c4813811574ca986817dd262912e279be3af87040958b33"
+  },
+  {
+    "image": "/images/characters/bee/reactions/applause.png",
+    "preview": "/images/characters/bee/reactions/applause.webp",
+    "originalBytes": 1589101,
+    "previewBytes": 44948,
+    "originalSha256": "0d7f2bcba6523a9f4f28577dbdb0eb108a945e9f277c04f10153b7ffccf8674e",
+    "previewSha256": "469b30b851ee236750fc3231c61927a1948f46033a66e9804df98a1ee093e3a8"
+  },
+  {
+    "image": "/images/characters/bee/reactions/celebration.png",
+    "preview": "/images/characters/bee/reactions/celebration.webp",
+    "originalBytes": 1733395,
+    "previewBytes": 50578,
+    "originalSha256": "5c64da744dcb8c55b01b05fa66b8e106d22e06af560f489147c2697c8e748f36",
+    "previewSha256": "73c01447496c8ac0af3f9cdc1974a27bafe0a3c403b4e51dfbf1457854dc75cc"
+  },
+  {
+    "image": "/images/characters/bee/reactions/help.png",
+    "preview": "/images/characters/bee/reactions/help.webp",
+    "originalBytes": 1704654,
+    "previewBytes": 45480,
+    "originalSha256": "803ebe09c434599e7b1b0178242eb3095e7db2529dd87bd3133488162eaaa985",
+    "previewSha256": "bc46fbc514aae9ed5d97712d64a3c9a212731b4f786f2a04a9ec86f991df81d3"
+  },
+  {
+    "image": "/images/characters/bee/reactions/coffee.png",
+    "preview": "/images/characters/bee/reactions/coffee.webp",
+    "originalBytes": 1601238,
+    "previewBytes": 42300,
+    "originalSha256": "e5179763998196b7093a63258bf612eae08296c2b0ddd04575bc2102a5f68449",
+    "previewSha256": "ef4f559275fdb96c6a52085d22d449bdb02b7b1470a4dd4c7a9d97a101cbe7d7"
+  },
+  {
+    "image": "/images/characters/bee/reactions/sleepy.png",
+    "preview": "/images/characters/bee/reactions/sleepy.webp",
+    "originalBytes": 1519159,
+    "previewBytes": 43220,
+    "originalSha256": "3f47930964951410dfdb9d26e116479aaaa4d1aa692b4ca0d298146b6c2070dc",
+    "previewSha256": "143bcbcf375a0dc0b78cd1829b44852a5ff9232e363099d2384c941027e9df7e"
+  },
+  {
+    "image": "/images/characters/bee/reactions/goodbye.png",
+    "preview": "/images/characters/bee/reactions/goodbye.webp",
+    "originalBytes": 1580881,
+    "previewBytes": 45578,
+    "originalSha256": "557481999dfcac1177b96d6f3573c8b379f2162e1daaa668d73e743bae234b24",
+    "previewSha256": "8cf0b6f0677591de0fcd3245caa67e0406c48dc9b7ca900da56264f4424eda32"
+  },
+  {
+    "image": "/images/characters/bee/reactions/honeypot.png",
+    "preview": "/images/characters/bee/reactions/honeypot.webp",
+    "originalBytes": 1666814,
+    "previewBytes": 49864,
+    "originalSha256": "e8ad8ec6c95089cefa34e1729327146ae0dfab98230fccc8ea853c9d06b3b196",
+    "previewSha256": "7a2817028a88d292771cccd3c7263fa12770b15cff6dd38b2384e0a9e7bcf4fa"
+  },
+  {
+    "image": "/images/characters/bee/reactions/decoy-service.png",
+    "preview": "/images/characters/bee/reactions/decoy-service.webp",
+    "originalBytes": 1683608,
+    "previewBytes": 45562,
+    "originalSha256": "c4b1be9e7c56dd72be810a57634dd21ded623bf9aeabfbe55057deceb2812efe",
+    "previewSha256": "adfc2ce8d43b795c06b4db8a58ea95db5632b134bca1eecab67370193856a22b"
+  },
+  {
+    "image": "/images/characters/bee/reactions/isolation.png",
+    "preview": "/images/characters/bee/reactions/isolation.webp",
+    "originalBytes": 1709260,
+    "previewBytes": 46218,
+    "originalSha256": "1f37e503fa4b6b132bdecbff29179e1a6dbaa9cf4406ed0e69bcc8fc7a9f6abe",
+    "previewSha256": "ff9e0f557bf2ccbbb45f7d9d4559da107c0e99909f0e1d77aba7778fa11c3d60"
+  },
+  {
+    "image": "/images/characters/bee/reactions/honeytoken.png",
+    "preview": "/images/characters/bee/reactions/honeytoken.webp",
+    "originalBytes": 1793836,
+    "previewBytes": 51774,
+    "originalSha256": "2b20326ab2cb80f2b600ffbf80c2d1d1f00b7b07d5bb88d0216ab9656e28a68c",
+    "previewSha256": "1eecab0c69f0e9cfc5d47de1e31f744a582006e7e98920825a40a012197e28cb"
+  },
+  {
+    "image": "/images/characters/bee/reactions/alert.png",
+    "preview": "/images/characters/bee/reactions/alert.webp",
+    "originalBytes": 1690424,
+    "previewBytes": 49910,
+    "originalSha256": "99c7458e7e19702b0a29f8a12c549ed8242d9310c331df333472b13b5905abeb",
+    "previewSha256": "99e7133615d174b1b8a3733120a0bde8368b7912799ff7d491be04ccd7cbacce"
+  },
+  {
+    "image": "/images/characters/bee/reactions/observe.png",
+    "preview": "/images/characters/bee/reactions/observe.webp",
+    "originalBytes": 1813837,
+    "previewBytes": 54394,
+    "originalSha256": "ceca378167b3edc93dae76430c5ecf7d659dd9599c42acd92f8ea86f7f1a5991",
+    "previewSha256": "2bf1ee2be5420d15f5e287de37087d6679b6fe480579039f5e225fc2cfb4f928"
+  },
+  {
+    "image": "/images/characters/bee/reactions/phishing.png",
+    "preview": "/images/characters/bee/reactions/phishing.webp",
+    "originalBytes": 1712247,
+    "previewBytes": 46346,
+    "originalSha256": "6a943ccd8db710de38101fa92cd1c53e72619672f3c97aaa05759f8333850739",
+    "previewSha256": "841234ce66d3c464f22f892318c5660bdac3d0c36d022af6684e648238d9c503"
+  },
+  {
+    "image": "/images/characters/bee/reactions/mfa.png",
+    "preview": "/images/characters/bee/reactions/mfa.webp",
+    "originalBytes": 1789973,
+    "previewBytes": 49940,
+    "originalSha256": "80c0a9eb2ec3c894f570e33135e9d3904cb1270aeca66487fb15476a6420239f",
+    "previewSha256": "9072b61d57a3c34cab47e087e903f7dcc8365f097f7d29d33f34e788ae21418f"
+  },
+  {
+    "image": "/images/characters/bee/reactions/password-manager.png",
+    "preview": "/images/characters/bee/reactions/password-manager.webp",
+    "originalBytes": 1814447,
+    "previewBytes": 48112,
+    "originalSha256": "42aadb68eca2678bf190cc05b41149f9e3fda8fcb4acacd4fe15f2943a7971a5",
+    "previewSha256": "7874dc8bf518c59e829a60991eba4abae9f2d6a2eafa94b52dfdfc6a482e80b7"
+  },
+  {
+    "image": "/images/characters/bee/reactions/access-control.png",
+    "preview": "/images/characters/bee/reactions/access-control.webp",
+    "originalBytes": 1885471,
+    "previewBytes": 51114,
+    "originalSha256": "ae04e8897bbb60dc46e23b3712ed11a16fcbf0f17efbfdb6b22a1e91b6212130",
+    "previewSha256": "89d552b51181af30a1058392e0465907b156e142651090e9798572bc55430346"
+  },
+  {
+    "image": "/images/characters/bee/reactions/least-privilege.png",
+    "preview": "/images/characters/bee/reactions/least-privilege.webp",
+    "originalBytes": 1902119,
+    "previewBytes": 56112,
+    "originalSha256": "34f67781ce4c0e2c75b1e6b14296b420ae54d1151d936f593d431e8fdaad430d",
+    "previewSha256": "e506b38119b0364bf4f33dab06e6a2288b889a8a1edb0d33427386c102c22982"
+  },
+  {
+    "image": "/images/characters/bee/reactions/revoke-access.png",
+    "preview": "/images/characters/bee/reactions/revoke-access.webp",
+    "originalBytes": 1643924,
+    "previewBytes": 47422,
+    "originalSha256": "a01e19076633c7d3b9383997e44b577f13e97d1de96adfed168f9297b194ff4d",
+    "previewSha256": "058aa481fe0f163a3501849992b66daa3fc515ac136b574fb96ffdc89759968e"
+  },
+  {
+    "image": "/images/characters/bee/reactions/network-segmentation.png",
+    "preview": "/images/characters/bee/reactions/network-segmentation.webp",
+    "originalBytes": 1531617,
+    "previewBytes": 42576,
+    "originalSha256": "ab2f3ded0aed244ceebd9b42ffc1b6f8a1436f818875952ef8641b52a74c57a2",
+    "previewSha256": "792bbdcb88f55ea3d8fc7b95fd6b339407f21c3b7d84e23205b84480b7e97890"
+  },
+  {
+    "image": "/images/characters/bee/reactions/firewall.png",
+    "preview": "/images/characters/bee/reactions/firewall.webp",
+    "originalBytes": 1581625,
+    "previewBytes": 44258,
+    "originalSha256": "965bfd23dd9cd2381df3592f5b93c2fadf411fee1efecab52bf3faf6a0c4fc6c",
+    "previewSha256": "01905ade869acea0eebbb4f31af3ae7c8a4004d9f08ddea1b7efe3795b580142"
+  },
+  {
+    "image": "/images/characters/bee/reactions/patch.png",
+    "preview": "/images/characters/bee/reactions/patch.webp",
+    "originalBytes": 1504701,
+    "previewBytes": 42146,
+    "originalSha256": "0432497fa9162953c90aad9ff3f09abbec4375e1ef07325148b06e9221d5dd30",
+    "previewSha256": "ee997280d109a09bb531e0d023354604bb5145ec406877a8464b23905c85e51c"
+  },
+  {
+    "image": "/images/characters/bee/reactions/secure-config.png",
+    "preview": "/images/characters/bee/reactions/secure-config.webp",
+    "originalBytes": 1508226,
+    "previewBytes": 44342,
+    "originalSha256": "671d862db3c4b1d55a6050b70eab35d7311ce370bdfd77a1f533cc49ae8b0854",
+    "previewSha256": "69c5e9773efd0257f9e1a4d53493d832e2f09a8cef6e6b7afaddbd41780e1bbf"
+  },
+  {
+    "image": "/images/characters/bee/reactions/backup.png",
+    "preview": "/images/characters/bee/reactions/backup.webp",
+    "originalBytes": 1499933,
+    "previewBytes": 43184,
+    "originalSha256": "7f2121357f2d23a01b361929c4ca39dfe574e87ebc6421e9d76a61dcf6e2d178",
+    "previewSha256": "82122142e5ec433686279110ccfac5c77df88963758beb8dee11da2033d73d63"
+  },
+  {
+    "image": "/images/characters/bee/reactions/restore.png",
+    "preview": "/images/characters/bee/reactions/restore.webp",
+    "originalBytes": 1553539,
+    "previewBytes": 44176,
+    "originalSha256": "306f49c232e4bdabec867577547262bbf5e6ee05cd197f1426d693f349ad5b7b",
+    "previewSha256": "eb555d9819ce19fef1de3de82b48b0ba4490ff7fb348e9c3eaf9b62f2432e7de"
+  },
+  {
+    "image": "/images/characters/bee/reactions/log-review.png",
+    "preview": "/images/characters/bee/reactions/log-review.webp",
+    "originalBytes": 1528388,
+    "previewBytes": 44432,
+    "originalSha256": "72f558c769e216ce69bf4360c3d1da8e9ec8a3104ae95fe188d2e12fc3f77bb7",
+    "previewSha256": "259446bf8b3f377b4442385b84b165c0366952bab80f4c7b02219828c54c3d46"
+  },
+  {
+    "image": "/images/characters/bee/reactions/anomaly.png",
+    "preview": "/images/characters/bee/reactions/anomaly.webp",
+    "originalBytes": 1653632,
+    "previewBytes": 44498,
+    "originalSha256": "21ddf4fd882d9ecfbb429c3f6c271149afcfd87afcb599c6c38cb36ec6366cfc",
+    "previewSha256": "2f9d99ee0cdcaa9d008339da27f8e1cd10b6e9e6ea2bc261d8a252cefa6f6032"
+  },
+  {
+    "image": "/images/characters/bee/reactions/timeline.png",
+    "preview": "/images/characters/bee/reactions/timeline.webp",
+    "originalBytes": 1554162,
+    "previewBytes": 42966,
+    "originalSha256": "39affc8b455e19176777cc138ba2b2e7fa402ff81933d57b7bd4b4e361fd47f2",
+    "previewSha256": "9c11f883b883e319de884f3a04e1d8e1ca241394802bc876943f29443777712e"
+  },
+  {
+    "image": "/images/characters/bee/reactions/correlate.png",
+    "preview": "/images/characters/bee/reactions/correlate.webp",
+    "originalBytes": 1563378,
+    "previewBytes": 43278,
+    "originalSha256": "1d863474b6e1a6bb2fca65702c2ac247b1918753a962e46dcf099d2385bc4c0d",
+    "previewSha256": "ecec2ba2c33b05a3e0a5e74593963f414e79bfa4974418cbab7e6e5e266016f9"
+  },
+  {
+    "image": "/images/characters/bee/reactions/false-positive.png",
+    "preview": "/images/characters/bee/reactions/false-positive.webp",
+    "originalBytes": 1602280,
+    "previewBytes": 48026,
+    "originalSha256": "2d5e61fefd6123a08d0c087b1ba65b71121507eb906f2861377eadba8d89998d",
+    "previewSha256": "07ceff89beb4b0d8ae6390a1d7fb10a3a22a5398f9a458b4bc4c033ea72c646c"
+  },
+  {
+    "image": "/images/characters/bee/reactions/scan.png",
+    "preview": "/images/characters/bee/reactions/scan.webp",
+    "originalBytes": 1670592,
+    "previewBytes": 46628,
+    "originalSha256": "25de3b75438c18b7b611d4898cec0a0228f82e9ed6eed80407aac52acc01bbbe",
+    "previewSha256": "c5db573e761afc9ebb274ee824150e138ba5891543869129d43c5c9aa0a4a7a5"
+  },
+  {
+    "image": "/images/characters/bee/reactions/triage.png",
+    "preview": "/images/characters/bee/reactions/triage.webp",
+    "originalBytes": 1557198,
+    "previewBytes": 42582,
+    "originalSha256": "998c93673d8c44434b37c55380fb5c860766a0dbb12d5311c0ffbc84f4534866",
+    "previewSha256": "48c8142d0fb2872d34bdb511becfe414b61495b14fc36706dfda7f70f972a065"
+  },
+  {
+    "image": "/images/characters/bee/reactions/containment.png",
+    "preview": "/images/characters/bee/reactions/containment.webp",
+    "originalBytes": 1513949,
+    "previewBytes": 40628,
+    "originalSha256": "4590602d47e23cc0c64977c2aedec72eee579ffbb2492d7e8e00e079a00e5e0f",
+    "previewSha256": "45564c344520160c6d5d5c0254cef65db0d9f17ea788469f6dd875a191249d3c"
+  },
+  {
+    "image": "/images/characters/bee/reactions/incident-report.png",
+    "preview": "/images/characters/bee/reactions/incident-report.webp",
+    "originalBytes": 1515061,
+    "previewBytes": 44056,
+    "originalSha256": "03b305e03d18ef5c6d50e333ab6a7bc359594b823dfa4a952ba2f8953e65187a",
+    "previewSha256": "665ea99ff46af63f75cb765b1111030645c495fdc89a875cd67c1dc67b1dc654"
+  },
+  {
+    "image": "/images/characters/bee/reactions/escalate.png",
+    "preview": "/images/characters/bee/reactions/escalate.webp",
+    "originalBytes": 1702995,
+    "previewBytes": 53640,
+    "originalSha256": "6c110396228e06b6ac1c2e0135ac66b38b55852b99f0defbef8662d6c616c41a",
+    "previewSha256": "b43bad120eaac7ad3bd8c3fa7eeb262775457dd1b8e17bff22cb9582ba573b3f"
+  },
+  {
+    "image": "/images/characters/bee/reactions/all-clear.png",
+    "preview": "/images/characters/bee/reactions/all-clear.webp",
+    "originalBytes": 1495083,
+    "previewBytes": 42294,
+    "originalSha256": "3a154aae8a7eecf80ae78107a75c18055db8d38129600e90f2cb667a73ecd92e",
+    "previewSha256": "d7459d26abadc4d4378540209e433f53a2134ca9db9db8a1a152d18c3ed44fbf"
+  },
+  {
+    "image": "/images/characters/bee/reactions/teamwork.png",
+    "preview": "/images/characters/bee/reactions/teamwork.webp",
+    "originalBytes": 1422620,
+    "previewBytes": 45890,
+    "originalSha256": "89fa641f08feb9fa21c5d7bf6d2624ceac7804a8461c8e91a0a23c3f77ef8bdc",
+    "previewSha256": "c11b6eff6678502f011109934f45cb5e7e331c9541aced649c83310131b8f63d"
   }
 ]

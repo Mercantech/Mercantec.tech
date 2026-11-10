@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "source": "Vedhæftet konceptark fra brugeren",
+  "referenceSha256": "1bfa5418c3479caa3f6f48a6998890b62064323f0269f7fefc40cfa67af45959",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "imagePrompt": "Make ONE polished 3:2 wide Danish educational cybersecurity infographic for LUP about the exact teaching point below. The uploaded character sheet is the sole character reference: reproduce only its cheerful yellow bee with charcoal hoodie and gold trim, yellow-tipped antennae, white insect wings, and cyan-lensed forehead goggles with code and lock symbols. Friendly confident teacher or examiner with a lively pose and recognizable bee silhouette. Do not copy the character sheet grid or figures. Polished tactile 3D illustration, navy and slate lab background with amber and cyan highlights, strong visual hierarchy, crisp readable bold type, abundant padding and simple teaching diagram distinct from the bee. Mid-to-wide framing. Use only the given short headline and callouts in Danish, exact spelling with Æ Ø Å intact. No invented UI text, code or logos, no violent / threatening imagery. At 768px width the lesson must still be readable. Deliver 1536x1024 or the nearest native landscape 3:2 resolution. One concept, one frame.",
+  "png": {
+    "width": 1536,
+    "height": 1024,
+    "derivation": "Uændret godkendt output fra ImageGen"
+  },
+  "webp": {
+    "width": 768,
+    "height": 512,
+    "derivation": "FFmpeg libwebp, Lanczos, kvalitet 86"
+  },
+  "files": [
+    {
+      "id": "01-trusselsmodel",
+      "title": "Tegn trusselsmodellen",
+      "prompt": "Headline exactly: Tegn trusselsmodellen\nCallouts exactly: Værdi | Trussel | Værn\nDiagram: Bee maps one school service in a glass hive diagram; a document at the center, one visible incoming risk path and a boundary checkpoint. Threat and safeguards occupy separate layers. Tiny three icons for confidentiality, integrity and availability near asset, no extra labels.",
+      "generation": "exec-c2edd1f4-b6d0-4229-ae48-908eb10c1c73.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/01-trusselsmodel.png",
+        "sha256": "3c565d0aef277c33301376c137b5ab654cc7090af6c4d18bf35b482f6e49b3e5",
+        "bytes": 1976956
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/01-trusselsmodel.webp",
+        "sha256": "aeee5675cb2bd833ae33de0c09b020939b23a0404ae1ea76eada2c5c96172450",
+        "bytes": 70860
+      }
+    },
+    {
+      "id": "02-phishing",
+      "title": "Stop phishing",
+      "prompt": "Headline exactly: Stop phishing\nCallouts exactly: Stop | Tjek | Meld\nDiagram: Bee examines a suspicious mail envelope with a lookalike sender on a fictional schematic, authentic separate verified channel represented by an independent phone, and a reporting mailbox. Use three numbered visual steps without extra words.",
+      "generation": "exec-b2990284-e09f-411c-a654-caf3f1a3cc0e.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/02-phishing.png",
+        "sha256": "e071d443c5e91584bec50f91ec749d25500e23a19b603a8d47787d99fe691c81",
+        "bytes": 1837387
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/02-phishing.webp",
+        "sha256": "ffff5ad409158790d13a7fcb74be9682322c99bcf6d619fadb1f3c370aff0078",
+        "bytes": 66496
+      }
+    },
+    {
+      "id": "03-ransomware-backup",
+      "title": "Gendan efter ransomware",
+      "prompt": "Headline exactly: Gendan efter ransomware\nCallouts exactly: Isolér | Sikkerhedskopi | Gendan\nDiagram: A yellow lock flashes on a workstation separated from the network; Bee carefully restores clean files from a visibly disconnected backup vault into a fresh system. Show isolation before restore and verification with a check mark.",
+      "generation": "exec-ca987cdd-1fc8-44be-9e57-4096cc293081.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/03-ransomware-backup.png",
+        "sha256": "df893598155a8856caa8a21f1f2e0b31647f9828c93d0dcd847d5a8c3f55dda2",
+        "bytes": 1885536
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/03-ransomware-backup.webp",
+        "sha256": "c8b12cba02fe9c6ad2d450c301e8edc7a358a236361823edde93817b98c5f813",
+        "bytes": 69352
+      }
+    },
+    {
+      "id": "04-adgangskoder-mfa",
+      "title": "Beskyt dit login",
+      "prompt": "Headline exactly: Beskyt dit login\nCallouts exactly: Kodeord | Sikkerhedsnøgle | Adgang\nDiagram: Bee shows password as one key and a physical security key as independent factor at an entry gate; the two combine to enable access. Small blocked lock path for a password alone; don't depict biometric as mandatory.",
+      "generation": "exec-b8ca4557-db9f-4015-988b-fe2d56490c59.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/04-adgangskoder-mfa.png",
+        "sha256": "cb12544cf8b876c1d6a0327f7c263263df2818189aa2b66f369ffe6d6080eae9",
+        "bytes": 1953914
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/04-adgangskoder-mfa.webp",
+        "sha256": "1e3bf6053e15335bf39846902868c762fdf640c56bfec80f5ef9c58de54c9ace",
+        "bytes": 68654
+      }
+    },
+    {
+      "id": "05-iam-rbac-aaa",
+      "title": "Giv mindst mulig adgang",
+      "prompt": "Headline exactly: Giv mindst mulig adgang\nCallouts exactly: Identitet | Rolle | Handling\nDiagram: Bee stamps separate builder and viewer role cards; viewer points only to read access, builder to allowed writes, an admin key is set aside in a protected slot. One audit receipt glyph, no actual user data.",
+      "generation": "exec-264d9c3d-6e2f-484c-a8da-37b1c918ff1f.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/05-iam-rbac-aaa.png",
+        "sha256": "8e2e882cb55e2e83d7f14c700b85d5f29b8f5754fd763934404cf6804c7876e0",
+        "bytes": 1985665
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/05-iam-rbac-aaa.webp",
+        "sha256": "92dc7983764e2393f6d3384ef7320df1702c79a1de065db02d7ab279bfda27b7",
+        "bytes": 75170
+      }
+    },
+    {
+      "id": "06-haerd-serveren",
+      "title": "Hærd serveren",
+      "prompt": "Headline exactly: Hærd serveren\nCallouts exactly: Luk | Begræns | Kontrollér\nDiagram: Bee operates a compact server rack checklist with one closed unused service port, restricted administrator key, and verified secure baseline. Single clear sequence. No product logos.",
+      "generation": "exec-5c65fb4a-2def-4d8e-b28e-e22d43d17c63.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/06-haerd-serveren.png",
+        "sha256": "5d8115aacc37c14c7abb710f2df0eb9fc8d3ca46a21094a2cfe81f21f69f0007",
+        "bytes": 1835370
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/06-haerd-serveren.webp",
+        "sha256": "2d735eb8574a84a05f3947faba3e37573d74a405f5777d2ae9ffccbfc1438128",
+        "bytes": 60136
+      }
+    },
+    {
+      "id": "07-segmentering",
+      "title": "Del netværket op",
+      "prompt": "Headline exactly: Del netværket op\nCallouts exactly: Gæster | Drift | Servere\nDiagram: Bee watches three distinct isolated zones divided by physical boundaries; only explicit narrow paths through a controlled gateway, no free bridge between zones. Wi-Fi radio for guest area and switch in drift area. Simple consistent color encoding.",
+      "generation": "exec-3c99bc1e-2a10-4d0a-a93a-cfd2fae7cb65.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/07-segmentering.png",
+        "sha256": "b46a85650a0242647146594c06eab493ad3ed5c4221073d1fed5efbd0ab0d2ea",
+        "bytes": 1992143
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/07-segmentering.webp",
+        "sha256": "f93986488ad1c785ea0bc01afd65d6bab928034c91ca19af0638321d7a9bd4af",
+        "bytes": 66396
+      }
+    },
+    {
+      "id": "08-firewall-vpn-ddos",
+      "title": "Styr trafikken",
+      "prompt": "Headline exactly: Styr trafikken\nCallouts exactly: Firewall | VPN | DDoS-værn\nDiagram: Bee observes an edge gateway. Authorized remote traffic goes into a clearly encrypted tunnel, excess traffic is diverted to a distinct upstream protection stage. Avoid implying a VPN blocks DDoS; show independent mechanisms.",
+      "generation": "exec-b9be221a-3b76-42eb-bc51-95df7be78a0e.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/08-firewall-vpn-ddos.png",
+        "sha256": "4430ed578d8147620ff9d993b6c45d104682e606060ae1ebc52b6247676ac91b",
+        "bytes": 1856904
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/08-firewall-vpn-ddos.webp",
+        "sha256": "76a005b4e7dbcd0ffaf75e3733d6ebc258aa8c69d0a691a11edf832fc297fb85",
+        "bytes": 65474
+      }
+    },
+    {
+      "id": "09-ids-ips",
+      "title": "Alarm eller blokering?",
+      "prompt": "Headline exactly: Alarm eller blokering?\nCallouts exactly: IDS: Alarm | IPS: Blokering\nDiagram: Bee compares two parallel paths; IDS watches a mirrored copy and flags an alert while traffic continues, IPS is inline and rejects a suspicious packet. Two paths must be clear and distinct.",
+      "generation": "exec-8dc05aa0-71ec-4fbe-a51a-e27e9821db28.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/09-ids-ips.png",
+        "sha256": "e466051fcd1efd44875497c50f0087b5b49e32beb558605f033bb3aef05252f7",
+        "bytes": 1866714
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/09-ids-ips.webp",
+        "sha256": "12367263aa776a9388b09b8121e955d1da52c25a9e905f16834b660a6f18babf",
+        "bytes": 61986
+      }
+    },
+    {
+      "id": "10-logs-og-tid",
+      "title": "Følg sporet i loggen",
+      "prompt": "Headline exactly: Følg sporet i loggen\nCallouts exactly: Fælles tid | Saml logs | Undersøg\nDiagram: Three local devices send safe synthetic event glyphs to one central log with a synchronized clock. Bee matches the same event across rows using colored symbols. No personal data, no actual timestamps required.",
+      "generation": "exec-02f59f09-ea62-412e-8140-07be65e86c61.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/10-logs-og-tid.png",
+        "sha256": "1700352e45573d9cbff5ea12d32998151b5b39be792559a6d35eb7c76f345dbd",
+        "bytes": 1936625
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/10-logs-og-tid.webp",
+        "sha256": "1ba89fed28e1478b7c57defe4908b037139845235783dfa128413635002776b4",
+        "bytes": 66452
+      }
+    },
+    {
+      "id": "11-honeypot",
+      "title": "En lokkedåse til angreb",
+      "prompt": "Headline exactly: En lokkedåse til angreb\nCallouts exactly: Lokkemål | Isolér | Log\nDiagram: Bee places a honey jar acting as a deliberately fake digital service inside a separate contained lab net. It records a tap on the fake door. A hard wall separates it from the real hive and from all outbound targets; only small one-way log arrow to the defender. Do not depict literal insects or an attack tutorial.",
+      "generation": "exec-4ac463cf-8f28-4a3c-a424-bb9e6ebb0bef.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/11-honeypot.png",
+        "sha256": "b900c58377f0e4946b906417847c3cc64a4189b229ffabeaa2d4be86b38052fc",
+        "bytes": 1897391
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/11-honeypot.webp",
+        "sha256": "4c0fd994c9656c69b4246b2eca1ce9096b78834ba88e0ad70869f94acdaeb9c0",
+        "bytes": 67040
+      }
+    },
+    {
+      "id": "12-beredskab",
+      "title": "Når alarmen går",
+      "prompt": "Headline exactly: Når alarmen går\nCallouts exactly: Opdag | Inddæm | Gendan\nDiagram: Bee working a simulated incident desk with an alert bell, one isolated machine and a clean recovery state. A retained evidence folder sits beside the alert, clear that real public systems are not involved.",
+      "generation": "exec-238c179e-21b1-41c1-aa99-48cb6b2a12a5.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/12-beredskab.png",
+        "sha256": "7ab58f39a0b753ccf3506d03fb79f8d16aecf8aa3fe0da05e085a827c1c568cf",
+        "bytes": 1938229
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/12-beredskab.webp",
+        "sha256": "17c9a156c00b22c82ed957e39ece61bfd8e9472c37d105c62a62e4bc59479eb2",
+        "bytes": 74128
+      }
+    },
+    {
+      "id": "13-tls-og-certifikater",
+      "title": "TLS sikrer forbindelsen",
+      "prompt": "Headline exactly: TLS sikrer forbindelsen\nCallouts exactly: Klient | Certifikat | Server\nDiagram: Bee compares the certificate's server name with its destination before a closed cyan tunnel links client and server. A little broken chain for an invalid identity, not on the valid path. Emphasize data in transit.",
+      "generation": "exec-ca63fc93-7796-4846-8c80-0c02e0d9b10d.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/13-tls-og-certifikater.png",
+        "sha256": "9fcfedc041dc97aa0bed7c19f7eae96ea38554dc5c4447ce4dc6f4b2be786200",
+        "bytes": 1887808
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/13-tls-og-certifikater.webp",
+        "sha256": "45aabd76244389aa3435d64d5f0658c4f749dd858c9e4d869e38003784c41f1b",
+        "bytes": 71828
+      }
+    },
+    {
+      "id": "14-hash-og-kryptering",
+      "title": "Hash eller kryptering?",
+      "prompt": "Headline exactly: Hash eller kryptering?\nCallouts exactly: Hash: Én vej | Kryptering: Med nøgle\nDiagram: Bee contrasts two distinct small paths: data to a fixed fingerprint with no return arrow, versus ciphertext to plaintext through an authorized key. No algorithm names in image. Clearly mark irreversible versus reversible with key.",
+      "generation": "exec-63fcc0c0-c7a5-40c1-98a7-416fcf1b6a4d.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/14-hash-og-kryptering.png",
+        "sha256": "75949e82d692d78e3a61087b92cdc1e28e53aeb1f50d3103a1c011e2c5d07905",
+        "bytes": 1842848
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/14-hash-og-kryptering.webp",
+        "sha256": "dcd0581a91e6ec0f374e7d8a0fe16b9bde2ce2db9c2e44aa1ee122e5796b665c",
+        "bytes": 65198
+      }
+    },
+    {
+      "id": "15-noegler-og-secrets",
+      "title": "Hold nøgler ude af koden",
+      "prompt": "Headline exactly: Hold nøgler ude af koden\nCallouts exactly: Kode | Nøgleboks | Kort levetid\nDiagram: Bee removes a yellow key from a dark source-code folder and stores it in an access-controlled vault. A short-lived key is passed only to one authorized service. No actual keys, passwords or code.",
+      "generation": "exec-80d5092a-51e5-4c7a-9752-183b9b2e6ce6.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/15-noegler-og-secrets.png",
+        "sha256": "e6f4c39a33ea9807e05581e59a290721e0b8ae83047856de8b0d939dc7b48f58",
+        "bytes": 1849244
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/15-noegler-og-secrets.webp",
+        "sha256": "927f89794136bb6a03f6e7cc71853fa524641a9f19f364d0ec51f7efe6a65674",
+        "bytes": 59618
+      }
+    },
+    {
+      "id": "16-sql-injection",
+      "title": "Hold data ude af SQL-koden",
+      "prompt": "Headline exactly: Hold data ude af SQL-koden\nCallouts exactly: SQL-skabelon | Parameter | Database\nDiagram: Bee separates a rigid query-template track from a separate blue user-data capsule; they enter the database driver through separate ports. Database role only accesses its own small set of rows. No attack payload or pseudo-code.",
+      "generation": "exec-16ca82b8-579c-4177-905d-dbdb9104443f.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/16-sql-injection.png",
+        "sha256": "27f5df14e01b9fc9e103800bfa562215ea173fef493ea3e978c659f5608d7c60",
+        "bytes": 1897915
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/16-sql-injection.webp",
+        "sha256": "32e4e58e822311a107ebd857eb235032099323e2144025665f0789200f17791d",
+        "bytes": 63182
+      }
+    },
+    {
+      "id": "17-xss-csrf",
+      "title": "Beskyt browseren",
+      "prompt": "Headline exactly: Beskyt browseren\nCallouts exactly: XSS | CSRF | Sikker visning\nDiagram: Bee stands between two contrasting schematic browser panes, showing untrusted text safely rendered as text in one and an unsolicited request checked against a token in the other. Avoid depicting a single magical shield as fixing both.",
+      "revision": {
+        "replaced": "exec-6f7d824d-24ff-4331-9ff7-a1557a61f365.png",
+        "prompt": "Precisely correct two diagrams on the supplied Danish cybersecurity infographic. Preserve the same Cyberbien character appearance and pose, aspect ratio 3:2, navy/cyan/gold palette, typography, composition, header \"Beskyt browseren\" and bottom labels \"XSS\" and \"CSRF\". Preserve the three chips at top XSS | CSRF | Sikker visning. Change ONLY text and icons inside the two browser panels. Left browser panel has exactly two text lines in separate large stacked chips: \"Ubetroet tekst\" followed by a down arrow to \"Vis som tekst\". Use a small plain-text document glyph and a green check on the lower chip. Remove all code strings and all HTML-looking text or tags. Right browser panel has exactly three lines in separate large stacked chips: \"Uønsket anmodning\", \"Mangler token\", and a down arrow to the red outcome \"Afvis\". Red X on the lower chip, no green check or token code. The right panel represents rejecting a CSRF request without a valid token, so there must be no wording that the token matched or that the request succeeded. Keep all typography legible, preserve exact Danish letters and spelling. No other changes, no other added text."
+      },
+      "generation": "exec-76ef47b6-dcdd-4854-ac92-1313e907dac3.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/17-xss-csrf.png",
+        "sha256": "bf01d66c65abcefedf3d6ea71e14d625bd67191599e3da1925980a7f7d19ffbb",
+        "bytes": 1838053
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/17-xss-csrf.webp",
+        "sha256": "0c0db2da0a32eceb5bcd7b971e83edb1b6914e128d4c4145cba3b805eebd20aa",
+        "bytes": 73472
+      }
+    },
+    {
+      "id": "18-api-adgang",
+      "title": "Hvem må se objektet?",
+      "prompt": "Headline exactly: Hvem må se objektet?\nCallouts exactly: Identitet | Ejerskab | Svar\nDiagram: Bee checks two colored identity cards against ownership of two records in a small API diagram. One allowed response and one blocked access after the ownership check, even though both identities have logged in.",
+      "generation": "exec-f7e2defb-1008-40a4-b7ec-ee2e6c96c9a6.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/18-api-adgang.png",
+        "sha256": "dcac1c7f432309bd42f2c82da6aeeba421c6ccffa257540137c2be2eef4775ae",
+        "bytes": 1879575
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/18-api-adgang.webp",
+        "sha256": "241a83c339ed75c838d6533ef2445e72a55bc3caf0d7d5d74fd3484710535781",
+        "bytes": 59878
+      }
+    },
+    {
+      "id": "19-sikkerhedstest",
+      "title": "Test i et aftalt miljø",
+      "prompt": "Headline exactly: Test i et aftalt miljø\nCallouts exactly: Aftal | Test | Gentest\nDiagram: Bee and two abstract lab workstations; a signed scope card gates access to a small sandbox, a benign scripted checklist produces a finding, and a repaired version has a passing verification marker. No pen-testing attack commands or external targets.",
+      "generation": "exec-55d7a1af-d9ea-49da-b42f-a089c7d73112.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/19-sikkerhedstest.png",
+        "sha256": "387ca50132e4c6aa03786ffab79bf2f3e8e7bfc7da950713e6ed21ef4226df01",
+        "bytes": 1912162
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/19-sikkerhedstest.webp",
+        "sha256": "f423ebc7a878a7991beb0c6e3fc4788f1565fa544dd02f5b4d881068219e3f3a",
+        "bytes": 71662
+      }
+    },
+    {
+      "id": "20-opdateringer-og-sbom",
+      "title": "Opdatér med overblik",
+      "prompt": "Headline exactly: Opdatér med overblik\nCallouts exactly: Find | Prioritér | Opdatér\nDiagram: Bee inspects a component inventory for a vulnerable part; separates severity from reachability with two visual cues and verifies a fixed component before rolling out. Supply-chain assembly path, no real package or tool logos.",
+      "generation": "exec-c075532b-b272-4036-bae2-eab5ebb02110.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/20-opdateringer-og-sbom.png",
+        "sha256": "8a97da26ec76de5ef119ecd37a45435fd255ca4625b68fceab4d1236db7e21de",
+        "bytes": 1915519
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/20-opdateringer-og-sbom.webp",
+        "sha256": "c6e89a45c90e0c550b70af1758accb8c6ab0485eb6a8d98dde5eae07ae7cbb52",
+        "bytes": 74496
+      }
+    },
+    {
+      "id": "21-cloud-ansvar",
+      "title": "Hvem sikrer hvad i cloud?",
+      "prompt": "Headline exactly: Hvem sikrer hvad i cloud?\nCallouts exactly: IaaS | PaaS | SaaS\nDiagram: Bee points at three recognizable cloud service stacks labeled IaaS PaaS SaaS. Show responsibility changing as provider-managed lower blocks increase, with customer identity and data safeguards still visible at the top. No cloud provider logos. Avoid detailed textual matrix.",
+      "generation": "exec-41d45641-0579-4121-a9d9-168f0cbdfe19.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/21-cloud-ansvar.png",
+        "sha256": "4fc05fdbcfe635407d053ab16415eeb4d3dfad9e3979b09541856956ade6dc10",
+        "bytes": 1838883
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/21-cloud-ansvar.webp",
+        "sha256": "a671f37d9264ec682561be9d7a408df4d8ce16a2db01bdf98869e6ef772c0e35",
+        "bytes": 70242
+      }
+    },
+    {
+      "id": "22-iot-og-firmware",
+      "title": "Beskyt IoT-enheden",
+      "prompt": "Headline exactly: Beskyt IoT-enheden\nCallouts exactly: Enhedsidentitet | Firmware | Netværk\nDiagram: Bee pairs a uniquely identified sensor in an isolated IoT segment; signs off on a verified firmware update passing a trust seal, then observes one authorized telemetry route. No representation of flashing real devices or credentials.",
+      "generation": "exec-a925dfb6-11f3-4afa-8ffa-84a50783cf84.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/22-iot-og-firmware.png",
+        "sha256": "88ff88dc853251aa10fbba0150df26ef56247d3fd0abcc87f17c93a18006404d",
+        "bytes": 1825604
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/22-iot-og-firmware.webp",
+        "sha256": "1c724f27a4f296edec129c3c366d95c0efa120d3b76456f60c85d9b1d9ad155f",
+        "bytes": 61304
+      }
+    },
+    {
+      "id": "23-standarder-og-regler",
+      "title": "Styr sikkerheden",
+      "prompt": "Headline exactly: Styr sikkerheden\nCallouts exactly: NIS2 | CRA | ISO 27001\nDiagram: Bee organizes three distinct files on a desk: business security and incident preparation, secure digital product lifecycle, and information-security management. Ensure the three abbreviated labels appear in this order. Do not imply identical legal scope or universal compliance.",
+      "generation": "exec-ad10844e-ea97-4d60-855a-1e95ea911536.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/23-standarder-og-regler.png",
+        "sha256": "97f83d85411abcf21ae4047e7582bfc9cc04bd63c78bceacddf23da59c0ebf3a",
+        "bytes": 1919188
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/23-standarder-og-regler.webp",
+        "sha256": "ec66a8596d3b378acea20a3df68153bb8257f6e08d6fe1711675c16b3c537225",
+        "bytes": 75576
+      }
+    },
+    {
+      "id": "24-fysisk-sikkerhed",
+      "title": "Beskyt det fysiske rum",
+      "prompt": "Headline exactly: Beskyt det fysiske rum\nCallouts exactly: Zone | Adgang | Registrér\nDiagram: Bee checks a visitor at a clearly marked equipment room boundary, two different badge roles at entry, one escorted access path and a privacy-conscious access log. No surveillance of faces or biometric identification.",
+      "generation": "exec-50b39a9d-3dec-4875-aaf6-d8d54ee4af2e.png",
+      "png": {
+        "path": "/images/characters/bee/infographics/24-fysisk-sikkerhed.png",
+        "sha256": "3bd8e579cb181029c220aadc59818da2828fd224f99db9d808e412ad20d14fcc",
+        "bytes": 1917665
+      },
+      "webp": {
+        "path": "/images/characters/bee/infographics/24-fysisk-sikkerhed.webp",
+        "sha256": "02c7d0466a0524f8a1e8f2e7c3d2396e08657b77affdebf8b1fb11fb679a463f",
+        "bytes": 76040
+      }
+    }
+  ]
+}

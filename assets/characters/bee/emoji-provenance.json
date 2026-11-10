@@ -1,0 +1,952 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "bee",
+  "source": "Separate sprite sheets referenced against the approved Cyberbien character reference.",
+  "preparation": "Transparent crops normalized onto 1254 × 1254 PNG canvases. The picker uses the existing WebP preparation step.",
+  "sheets": [
+    {
+      "file": "sheet-1.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "dadc24f3646f689bf9991d7b971dad74be3fd1109e0bec18d1f485ca57eef854",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien waves one open gloved hand hello with a friendly smile.\nTop-middle: Cyberbien gives one large thumbs-up with a confident smile.\nTop-right: Cyberbien looks up thoughtfully with a gloved finger under chin.\nBottom-left: Cyberbien cups one gloved hand beside ear and listens attentively.\nBottom-middle: Cyberbien gets an idea and raises one finger beside a glowing yellow light bulb.\nBottom-right: Cyberbien tilts head with a curious expression below one clear cyan question mark.",
+      "entries": [
+        {
+          "id": "wave",
+          "title": "Hej",
+          "crop": {
+            "left": 59,
+            "top": 31,
+            "width": 387,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            384,
+            443
+          ],
+          "transparentPixelsInCrop": 53575,
+          "pngSha256": "78fe440a43d93493a325a7c8dd11eec3accdf50353c2fc10695357ef1a74ea00"
+        },
+        {
+          "id": "thumbs-up",
+          "title": "Tommel op",
+          "crop": {
+            "left": 569,
+            "top": 30,
+            "width": 373,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            371,
+            444
+          ],
+          "transparentPixelsInCrop": 54085,
+          "pngSha256": "6d05f5ee3a522f68fe6601c35fd255bbbfcbb40fc2812abec4c3cc3181022bd6"
+        },
+        {
+          "id": "thinking",
+          "title": "Tænker",
+          "crop": {
+            "left": 1089,
+            "top": 27,
+            "width": 382,
+            "height": 450
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            380,
+            448
+          ],
+          "transparentPixelsInCrop": 57555,
+          "pngSha256": "77927877bd89cc471cb8165e6e897e2c4582a3cba6707f62d0a7d6b775addea6"
+        },
+        {
+          "id": "listening",
+          "title": "Lytter",
+          "crop": {
+            "left": 52,
+            "top": 540,
+            "width": 411,
+            "height": 451
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            409,
+            449
+          ],
+          "transparentPixelsInCrop": 63698,
+          "pngSha256": "ab89647ae34f845f839f171d3c94653019738dc244c33110955ca628629c6a3a"
+        },
+        {
+          "id": "idea",
+          "title": "En idé",
+          "crop": {
+            "left": 543,
+            "top": 544,
+            "width": 421,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            418,
+            444
+          ],
+          "transparentPixelsInCrop": 61392,
+          "pngSha256": "5ad9f83acd1c1af8861d9c57fc35ec34eccff1468cc751f165285f05c2a1ec92"
+        },
+        {
+          "id": "question",
+          "title": "Spørgsmål",
+          "crop": {
+            "left": 1069,
+            "top": 538,
+            "width": 405,
+            "height": 452
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            402,
+            450
+          ],
+          "transparentPixelsInCrop": 62470,
+          "pngSha256": "f647f3cbd7f0aaa8c023e9ab8a710b3a8a70bea868950dc1bb7077d43d81b8e7"
+        }
+      ]
+    },
+    {
+      "file": "sheet-2.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "22bcece53c8f29fb2bd9933a48129a5a3bd6fd524a7298f5444b30d485ef8fdb",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien laughs out loud, squeezed-shut happy eyes, open mouth, both hands lifted.\nTop-middle: Cyberbien winks one eye with a cheeky sideways smile, no props.\nTop-right: Cyberbien surprised round wide eyes and little open mouth, both hands near cheeks.\nBottom-left: Cyberbien skeptical side-eye and raised brow with arms folded, no props.\nBottom-middle: Cyberbien concentrated gaze down at a small navy open laptop with a cyan lock emblem.\nBottom-right: Cyberbien relieved closed eyes and hand on chest, one tiny breath puff near face.",
+      "entries": [
+        {
+          "id": "laughing",
+          "title": "Griner",
+          "crop": {
+            "left": 77,
+            "top": 19,
+            "width": 397,
+            "height": 462
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            395,
+            459
+          ],
+          "transparentPixelsInCrop": 63184,
+          "pngSha256": "00aac23a1b76d46c9f6d522b1193735d7e45f05d010fdc4cd0344e08fd1d6999"
+        },
+        {
+          "id": "wink",
+          "title": "Blinker",
+          "crop": {
+            "left": 560,
+            "top": 20,
+            "width": 372,
+            "height": 463
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            370,
+            461
+          ],
+          "transparentPixelsInCrop": 51846,
+          "pngSha256": "4d9f192e8f9b4cdaac877262d30e02b8edb7b70047fbddd4a7d2562c28a022b3"
+        },
+        {
+          "id": "surprised",
+          "title": "Overrasket",
+          "crop": {
+            "left": 1053,
+            "top": 17,
+            "width": 388,
+            "height": 465
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            385,
+            463
+          ],
+          "transparentPixelsInCrop": 59358,
+          "pngSha256": "4ea094d7e749c6a06f850046cd21468b83d0ed735c78912c4875c3fcdb9f145e"
+        },
+        {
+          "id": "skeptical",
+          "title": "Skeptisk",
+          "crop": {
+            "left": 92,
+            "top": 525,
+            "width": 369,
+            "height": 466
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            367,
+            464
+          ],
+          "transparentPixelsInCrop": 54223,
+          "pngSha256": "c5b0818925b4c3e3f1eb951f5c73dec0ad903a1fb8eeed9886059af0bad35b01"
+        },
+        {
+          "id": "focused",
+          "title": "Koncentreret",
+          "crop": {
+            "left": 561,
+            "top": 527,
+            "width": 412,
+            "height": 468
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            410,
+            466
+          ],
+          "transparentPixelsInCrop": 66931,
+          "pngSha256": "b02f11a1ef819b13c7db8713d6ffec3bf26749d8990603280630e3d6b4f92bc7"
+        },
+        {
+          "id": "relieved",
+          "title": "Lettet",
+          "crop": {
+            "left": 1066,
+            "top": 525,
+            "width": 393,
+            "height": 465
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            391,
+            462
+          ],
+          "transparentPixelsInCrop": 63528,
+          "pngSha256": "6d8ae3ae7932150c6e2d188b02727ecc5cbdf66bab08774029879373a0698592"
+        }
+      ]
+    },
+    {
+      "file": "sheet-3.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "d6c8ae6b22fd6d5f0ca2f4fa590173263f1560e0a32b8c75a20ffbf4ae881a12",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien claps two dark gloved hands together with cheerful closed eyes.\nTop-middle: Cyberbien celebrates with both hands up, three chunky colorful confetti shapes above shoulders.\nTop-right: Cyberbien offers one open gloved palm toward viewer with a supportive smile.\nBottom-left: Cyberbien warms both hands around one teal coffee mug with a single close steam curl.\nBottom-middle: Cyberbien yawns sleepily with a gloved hand halfway over mouth and one tiny sleep swirl.\nBottom-right: Cyberbien turned almost away, looking back over one shoulder and waving goodbye.",
+      "entries": [
+        {
+          "id": "applause",
+          "title": "Klapsalver",
+          "crop": {
+            "left": 90,
+            "top": 31,
+            "width": 384,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            382,
+            443
+          ],
+          "transparentPixelsInCrop": 58828,
+          "pngSha256": "0d7f2bcba6523a9f4f28577dbdb0eb108a945e9f277c04f10153b7ffccf8674e"
+        },
+        {
+          "id": "celebration",
+          "title": "Fejrer",
+          "crop": {
+            "left": 565,
+            "top": 25,
+            "width": 404,
+            "height": 448
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            401,
+            445
+          ],
+          "transparentPixelsInCrop": 58622,
+          "pngSha256": "5c64da744dcb8c55b01b05fa66b8e106d22e06af560f489147c2697c8e748f36"
+        },
+        {
+          "id": "help",
+          "title": "Hjælper",
+          "crop": {
+            "left": 1059,
+            "top": 32,
+            "width": 368,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            365,
+            444
+          ],
+          "transparentPixelsInCrop": 50503,
+          "pngSha256": "803ebe09c434599e7b1b0178242eb3095e7db2529dd87bd3133488162eaaa985"
+        },
+        {
+          "id": "coffee",
+          "title": "Kaffepause",
+          "crop": {
+            "left": 76,
+            "top": 540,
+            "width": 388,
+            "height": 456
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            386,
+            454
+          ],
+          "transparentPixelsInCrop": 55374,
+          "pngSha256": "e5179763998196b7093a63258bf612eae08296c2b0ddd04575bc2102a5f68449"
+        },
+        {
+          "id": "sleepy",
+          "title": "Træt",
+          "crop": {
+            "left": 580,
+            "top": 538,
+            "width": 386,
+            "height": 457
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            383,
+            454
+          ],
+          "transparentPixelsInCrop": 59975,
+          "pngSha256": "3f47930964951410dfdb9d26e116479aaaa4d1aa692b4ca0d298146b6c2070dc"
+        },
+        {
+          "id": "goodbye",
+          "title": "På gensyn",
+          "crop": {
+            "left": 1076,
+            "top": 539,
+            "width": 414,
+            "height": 450
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            412,
+            448
+          ],
+          "transparentPixelsInCrop": 74288,
+          "pngSha256": "557481999dfcac1177b96d6f3573c8b379f2162e1daaa668d73e743bae234b24"
+        }
+      ]
+    },
+    {
+      "file": "sheet-4.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "0e7ceb3512240fdcc972cf26c92248c522894565f7470eb14796b6046deae200",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien shows one transparent glass honey jar with a simple glowing cyan radar ripple above it, warm honey and tiny antenna on the lid.\nTop-middle: Cyberbien points to one small standing server enclosure with one amber honey droplet on it.\nTop-right: Cyberbien sets a small honey jar inside a clearly bounded transparent cyan containment cube.\nBottom-left: Cyberbien holds up a single golden access card with small cyan radar beacon icon.\nBottom-middle: Cyberbien reacts to a prominent amber flashing beacon with two bright motion rays.\nBottom-right: Cyberbien uses cyan-rimmed magnifying glass to inspect a single mark beside a small honey jar.",
+      "entries": [
+        {
+          "id": "honeypot",
+          "title": "Honeypot",
+          "crop": {
+            "left": 60,
+            "top": 22,
+            "width": 403,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            401,
+            459
+          ],
+          "transparentPixelsInCrop": 66042,
+          "pngSha256": "e8ad8ec6c95089cefa34e1729327146ae0dfab98230fccc8ea853c9d06b3b196"
+        },
+        {
+          "id": "decoy-service",
+          "title": "Lokketjeneste",
+          "crop": {
+            "left": 554,
+            "top": 29,
+            "width": 415,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            412,
+            444
+          ],
+          "transparentPixelsInCrop": 64550,
+          "pngSha256": "c4b1be9e7c56dd72be810a57634dd21ded623bf9aeabfbe55057deceb2812efe"
+        },
+        {
+          "id": "isolation",
+          "title": "Isolér lokkemiljøet",
+          "crop": {
+            "left": 1066,
+            "top": 24,
+            "width": 399,
+            "height": 448
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            397,
+            446
+          ],
+          "transparentPixelsInCrop": 59971,
+          "pngSha256": "1f37e503fa4b6b132bdecbff29179e1a6dbaa9cf4406ed0e69bcc8fc7a9f6abe"
+        },
+        {
+          "id": "honeytoken",
+          "title": "Honeytoken",
+          "crop": {
+            "left": 52,
+            "top": 536,
+            "width": 424,
+            "height": 443
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            421,
+            441
+          ],
+          "transparentPixelsInCrop": 64938,
+          "pngSha256": "2b20326ab2cb80f2b600ffbf80c2d1d1f00b7b07d5bb88d0216ab9656e28a68c"
+        },
+        {
+          "id": "alert",
+          "title": "Alarm",
+          "crop": {
+            "left": 544,
+            "top": 538,
+            "width": 420,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            417,
+            442
+          ],
+          "transparentPixelsInCrop": 71625,
+          "pngSha256": "99c7458e7e19702b0a29f8a12c549ed8242d9310c331df333472b13b5905abeb"
+        },
+        {
+          "id": "observe",
+          "title": "Observer aktiviteten",
+          "crop": {
+            "left": 1042,
+            "top": 536,
+            "width": 443,
+            "height": 436
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            440,
+            434
+          ],
+          "transparentPixelsInCrop": 73629,
+          "pngSha256": "ceca378167b3edc93dae76430c5ecf7d659dd9599c42acd92f8ea86f7f1a5991"
+        }
+      ]
+    },
+    {
+      "file": "sheet-5.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "46df8b9b280f30b1b37e48c300c58cd8a511ae579c608064674ab30c3c8da4d8",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien holds a white envelope with a clearly visible red fishing hook dangling from it, suspicious expression.\nTop-middle: Cyberbien shows two clearly distinct objects side by side, a cyan-screen phone with checkmark and a gold physical key.\nTop-right: Cyberbien opens one small teal key vault with two brass keys neatly inside.\nBottom-left: Cyberbien presents a gold badge beside one small closed door with a dark lock symbol.\nBottom-middle: Cyberbien carefully chooses one brass key from a small bunch of keys.\nBottom-right: Cyberbien holds a credential card bearing a big red X, firm focused expression.",
+      "entries": [
+        {
+          "id": "phishing",
+          "title": "Phishing",
+          "crop": {
+            "left": 60,
+            "top": 29,
+            "width": 406,
+            "height": 452
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            404,
+            450
+          ],
+          "transparentPixelsInCrop": 60974,
+          "pngSha256": "6a943ccd8db710de38101fa92cd1c53e72619672f3c97aaa05759f8333850739"
+        },
+        {
+          "id": "mfa",
+          "title": "MFA",
+          "crop": {
+            "left": 560,
+            "top": 30,
+            "width": 391,
+            "height": 453
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            389,
+            451
+          ],
+          "transparentPixelsInCrop": 54039,
+          "pngSha256": "80c0a9eb2ec3c894f570e33135e9d3904cb1270aeca66487fb15476a6420239f"
+        },
+        {
+          "id": "password-manager",
+          "title": "Passwordmanager",
+          "crop": {
+            "left": 1058,
+            "top": 28,
+            "width": 405,
+            "height": 451
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            403,
+            449
+          ],
+          "transparentPixelsInCrop": 58169,
+          "pngSha256": "42aadb68eca2678bf190cc05b41149f9e3fda8fcb4acacd4fe15f2943a7971a5"
+        },
+        {
+          "id": "access-control",
+          "title": "Adgangskontrol",
+          "crop": {
+            "left": 37,
+            "top": 533,
+            "width": 455,
+            "height": 459
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            453,
+            457
+          ],
+          "transparentPixelsInCrop": 62464,
+          "pngSha256": "ae04e8897bbb60dc46e23b3712ed11a16fcbf0f17efbfdb6b22a1e91b6212130"
+        },
+        {
+          "id": "least-privilege",
+          "title": "Mindste privilegium",
+          "crop": {
+            "left": 557,
+            "top": 533,
+            "width": 402,
+            "height": 460
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            400,
+            458
+          ],
+          "transparentPixelsInCrop": 50171,
+          "pngSha256": "34f67781ce4c0e2c75b1e6b14296b420ae54d1151d936f593d431e8fdaad430d"
+        },
+        {
+          "id": "revoke-access",
+          "title": "Fjern adgang",
+          "crop": {
+            "left": 1057,
+            "top": 536,
+            "width": 401,
+            "height": 457
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            399,
+            455
+          ],
+          "transparentPixelsInCrop": 55209,
+          "pngSha256": "a01e19076633c7d3b9383997e44b577f13e97d1de96adfed168f9297b194ff4d"
+        }
+      ]
+    },
+    {
+      "file": "sheet-6.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "f359a2396abb85eb586060c0a6fdede2a3c87d554d1c1cf404c9b1431633b4d4",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien shows a compact diagram with two groups of cyan dots, separated by a vertical dark divider, no text.\nTop-middle: Cyberbien holds a miniature orange brick wall with a small red stop circle, no writing.\nTop-right: Cyberbien applies an amber square patch with a cyan checkmark to a small server box.\nBottom-left: Cyberbien flips one prominent toggle on a compact blue settings box with a tiny lock.\nBottom-middle: Cyberbien places a second small data tile next to an identical tile in a teal storage box.\nBottom-right: Cyberbien pulls one golden data tile from a teal storage box marked with a curved cyan return arrow.",
+      "entries": [
+        {
+          "id": "network-segmentation",
+          "title": "Netværkssegmentering",
+          "crop": {
+            "left": 77,
+            "top": 19,
+            "width": 376,
+            "height": 463
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            374,
+            460
+          ],
+          "transparentPixelsInCrop": 51665,
+          "pngSha256": "ab2f3ded0aed244ceebd9b42ffc1b6f8a1436f818875952ef8641b52a74c57a2"
+        },
+        {
+          "id": "firewall",
+          "title": "Firewall",
+          "crop": {
+            "left": 558,
+            "top": 17,
+            "width": 397,
+            "height": 469
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            394,
+            466
+          ],
+          "transparentPixelsInCrop": 59124,
+          "pngSha256": "965bfd23dd9cd2381df3592f5b93c2fadf411fee1efecab52bf3faf6a0c4fc6c"
+        },
+        {
+          "id": "patch",
+          "title": "Opdatering",
+          "crop": {
+            "left": 1052,
+            "top": 17,
+            "width": 392,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            389,
+            467
+          ],
+          "transparentPixelsInCrop": 60628,
+          "pngSha256": "0432497fa9162953c90aad9ff3f09abbec4375e1ef07325148b06e9221d5dd30"
+        },
+        {
+          "id": "secure-config",
+          "title": "Sikker konfiguration",
+          "crop": {
+            "left": 64,
+            "top": 525,
+            "width": 396,
+            "height": 476
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            393,
+            474
+          ],
+          "transparentPixelsInCrop": 63798,
+          "pngSha256": "671d862db3c4b1d55a6050b70eab35d7311ce370bdfd77a1f533cc49ae8b0854"
+        },
+        {
+          "id": "backup",
+          "title": "Backup",
+          "crop": {
+            "left": 554,
+            "top": 526,
+            "width": 384,
+            "height": 478
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            382,
+            476
+          ],
+          "transparentPixelsInCrop": 57695,
+          "pngSha256": "7f2121357f2d23a01b361929c4ca39dfe574e87ebc6421e9d76a61dcf6e2d178"
+        },
+        {
+          "id": "restore",
+          "title": "Gendan",
+          "crop": {
+            "left": 1052,
+            "top": 523,
+            "width": 407,
+            "height": 481
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            404,
+            479
+          ],
+          "transparentPixelsInCrop": 64990,
+          "pngSha256": "306f49c232e4bdabec867577547262bbf5e6ee05cd197f1426d693f349ad5b7b"
+        }
+      ]
+    },
+    {
+      "file": "sheet-7.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "834218ee4eab57f9459308955c5b492fc3967c4b867a96be497b15ac9047622b",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien reads a narrow paper receipt showing three colored log stripes, no letters.\nTop-middle: Cyberbien points to a single amber spike in a simple cyan line graph.\nTop-right: Cyberbien traces a single row of three connected event dots on a small teal card.\nBottom-left: Cyberbien joins two large interlocking evidence pieces in cyan and amber.\nBottom-middle: Cyberbien examines an orange warning triangle paired with a gray minus sign, puzzled expression.\nBottom-right: Cyberbien scans one tiny navy device with a handheld teal scanner, one simple beam line.",
+      "entries": [
+        {
+          "id": "log-review",
+          "title": "Læser logs",
+          "crop": {
+            "left": 55,
+            "top": 18,
+            "width": 407,
+            "height": 466
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            405,
+            463
+          ],
+          "transparentPixelsInCrop": 66643,
+          "pngSha256": "72f558c769e216ce69bf4360c3d1da8e9ec8a3104ae95fe188d2e12fc3f77bb7"
+        },
+        {
+          "id": "anomaly",
+          "title": "Ser en afvigelse",
+          "crop": {
+            "left": 549,
+            "top": 25,
+            "width": 412,
+            "height": 462
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            409,
+            460
+          ],
+          "transparentPixelsInCrop": 62981,
+          "pngSha256": "21ddf4fd882d9ecfbb429c3f6c271149afcfd87afcb599c6c38cb36ec6366cfc"
+        },
+        {
+          "id": "timeline",
+          "title": "Tidslinje",
+          "crop": {
+            "left": 1061,
+            "top": 22,
+            "width": 404,
+            "height": 464
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            402,
+            462
+          ],
+          "transparentPixelsInCrop": 62619,
+          "pngSha256": "39affc8b455e19176777cc138ba2b2e7fa402ff81933d57b7bd4b4e361fd47f2"
+        },
+        {
+          "id": "correlate",
+          "title": "Sammenholder spor",
+          "crop": {
+            "left": 54,
+            "top": 537,
+            "width": 400,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            397,
+            459
+          ],
+          "transparentPixelsInCrop": 57514,
+          "pngSha256": "1d863474b6e1a6bb2fca65702c2ac247b1918753a962e46dcf099d2385bc4c0d"
+        },
+        {
+          "id": "false-positive",
+          "title": "Falsk alarm",
+          "crop": {
+            "left": 548,
+            "top": 528,
+            "width": 426,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            424,
+            468
+          ],
+          "transparentPixelsInCrop": 72673,
+          "pngSha256": "2d5e61fefd6123a08d0c087b1ba65b71121507eb906f2861377eadba8d89998d"
+        },
+        {
+          "id": "scan",
+          "title": "Scanner",
+          "crop": {
+            "left": 1048,
+            "top": 537,
+            "width": 423,
+            "height": 458
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            421,
+            455
+          ],
+          "transparentPixelsInCrop": 72910,
+          "pngSha256": "25de3b75438c18b7b611d4898cec0a0228f82e9ed6eed80407aac52acc01bbbe"
+        }
+      ]
+    },
+    {
+      "file": "sheet-8.png",
+      "reference": "Cyberbien-reference.png.png",
+      "sha256": "96918a7726436ec5ce0206552db200d8b3cbe957ca7cff92f55eb4825fc6a301",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate illustrations of the SAME established Cyberbien cyber security bee from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each well inside its own invisible square cell with at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines, or source collage. Cropped head and torso bust plus gestures and explicitly listed icon prop, no feet. One clean distinct silhouette each, soft polished dimensional 3D character art. Preserve the source's bright golden rounded bee face, TWO short black antennae with round warm yellow tips fully visible, eyes with white sclera and dark irises, chunky goggles resting above eyes with cyan coding bracket icon in left lens and padlock icon in right lens, dark navy hoodie with yellow drawstrings and shield emblem, black gloves, hints of pale wing shapes behind shoulders. Only expression, pose and explicit prop vary. Hold props close to body, keep symbols simple and readable at 48px. Small highlights should stay within objects. No words, labels, captions, backgrounds, shadows on the ground, color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Cyberbien selects the red marker on a compact card with three large red amber and green markers.\nTop-middle: Cyberbien holds a simple vertical cyan barrier between a red node and a green node.\nTop-right: Cyberbien writes on a small navy clipboard with three dark lines and a shield emblem, no text.\nBottom-left: Cyberbien raises a bold amber upward arrow beside one small red incident dot.\nBottom-middle: Cyberbien smiles holding a large cyan shield with a green checkmark inside.\nBottom-right: Cyberbien does a friendly fist bump against one extra dark gloved hand entering just beside them, no second character.",
+      "entries": [
+        {
+          "id": "triage",
+          "title": "Prioriter hændelsen",
+          "crop": {
+            "left": 81,
+            "top": 20,
+            "width": 366,
+            "height": 464
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            364,
+            462
+          ],
+          "transparentPixelsInCrop": 55229,
+          "pngSha256": "998c93673d8c44434b37c55380fb5c860766a0dbb12d5311c0ffbc84f4534866"
+        },
+        {
+          "id": "containment",
+          "title": "Begræns hændelsen",
+          "crop": {
+            "left": 574,
+            "top": 17,
+            "width": 355,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            353,
+            468
+          ],
+          "transparentPixelsInCrop": 51582,
+          "pngSha256": "4590602d47e23cc0c64977c2aedec72eee579ffbb2492d7e8e00e079a00e5e0f"
+        },
+        {
+          "id": "incident-report",
+          "title": "Hændelsesrapport",
+          "crop": {
+            "left": 1063,
+            "top": 22,
+            "width": 373,
+            "height": 467
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            370,
+            465
+          ],
+          "transparentPixelsInCrop": 57993,
+          "pngSha256": "03b305e03d18ef5c6d50e333ab6a7bc359594b823dfa4a952ba2f8953e65187a"
+        },
+        {
+          "id": "escalate",
+          "title": "Send videre",
+          "crop": {
+            "left": 63,
+            "top": 534,
+            "width": 413,
+            "height": 460
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            411,
+            457
+          ],
+          "transparentPixelsInCrop": 67650,
+          "pngSha256": "6c110396228e06b6ac1c2e0135ac66b38b55852b99f0defbef8662d6c616c41a"
+        },
+        {
+          "id": "all-clear",
+          "title": "Alt er i orden",
+          "crop": {
+            "left": 551,
+            "top": 527,
+            "width": 367,
+            "height": 481
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            365,
+            479
+          ],
+          "transparentPixelsInCrop": 58585,
+          "pngSha256": "3a154aae8a7eecf80ae78107a75c18055db8d38129600e90f2cb667a73ecd92e"
+        },
+        {
+          "id": "teamwork",
+          "title": "Samarbejde",
+          "crop": {
+            "left": 1018,
+            "top": 542,
+            "width": 500,
+            "height": 453
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            498,
+            451
+          ],
+          "transparentPixelsInCrop": 107662,
+          "pngSha256": "89fa641f08feb9fa21c5d7bf6d2624ceac7804a8461c8e91a0a23c3f77ef8bdc"
+        }
+      ]
+    }
+  ]
+}

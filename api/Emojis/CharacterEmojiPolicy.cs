@@ -25,6 +25,7 @@ public static class CharacterEmojiPolicy
             "chameleon" => "kamæleonen",
             "whale" => "Docker",
             "gummianden" => "Gummianden",
+            "bee" => "Cyberbien",
             _ => "raymond"
         };
         var subject = emoji.CharacterSlug switch
@@ -34,6 +35,7 @@ public static class CharacterEmojiPolicy
             "chameleon" => new[] { "Machine Learning", "machinelearning", "maskinlæring", "ML", "kamæleon", "kameleon", "data", "model" },
             "whale" => new[] { "hval", "havnekaptajn", "DevNet", "Docker", "container", "Compose", "deploy", "deployment" },
             "gummianden" => new[] { "gummiand", "debugging", "fejlfinding", "rubber duck", "VATek" },
+            "bee" => new[] { "cyber", "cybersikkerhed", "sikkerhed", "security", "bi" },
             _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
         };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
@@ -73,6 +75,14 @@ public static class CharacterEmojiPolicy
                 or "empty_input" or "null_value" or "boundary" or "off_by_one" or "exception" or "timeout"
                 or "red_test" or "green_test" or "fix" or "verified"
                 when emoji.CharacterSlug == "gummianden" => "technology",
+            "idea" when emoji.CharacterSlug == "bee" => "learning",
+            "teamwork" when emoji.CharacterSlug == "bee" => "gestures",
+            "honeypot" or "decoy_service" or "isolation" or "honeytoken" or "alert" or "observe"
+                or "phishing" or "mfa" or "password_manager" or "access_control" or "least_privilege" or "revoke_access"
+                or "network_segmentation" or "firewall" or "patch" or "secure_config"
+                or "log_review" or "anomaly" or "timeline" or "correlate" or "false_positive" or "scan"
+                or "triage" or "containment" or "incident_report" or "escalate" or "all_clear"
+                when emoji.CharacterSlug == "bee" => "technology",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

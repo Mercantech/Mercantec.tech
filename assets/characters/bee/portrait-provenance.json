@@ -1,0 +1,53 @@
+{
+  "generator": "builtin-imagegen",
+  "reference": "reference-sheet.png",
+  "referenceSha256": "1bfa5418c3479caa3f6f48a6998890b62064323f0269f7fefc40cfa67af45959",
+  "prompts": "portrait-prompts.md",
+  "entries": [
+    {
+      "image": "/images/characters/bee/portrait.png",
+      "preview": "/images/characters/bee/portrait.webp",
+      "originalSha256": "eabb4b0716d58faa43bbbb7119b1da2003d8d95d554335d38b728600d3a58def",
+      "previewSha256": "8cecede2b65b30a1a2a7a985398d59a2928691e02c7bdbdd83438c3fcc7d4b44",
+      "width": 1254,
+      "height": 1254,
+      "previewSize": 768
+    },
+    {
+      "image": "/images/characters/bee/honeypot.png",
+      "preview": "/images/characters/bee/honeypot.webp",
+      "originalSha256": "979862239a7caf87c6980dc00d8c61c187d679195811a7ba325595cb85188669",
+      "previewSha256": "22004042b20f939458d8e0403d7c57dcd49c657ff217bc00b15b5ee3e6924158",
+      "width": 1254,
+      "height": 1254,
+      "previewSize": 768
+    },
+    {
+      "image": "/images/characters/bee/logvagt.png",
+      "preview": "/images/characters/bee/logvagt.webp",
+      "originalSha256": "c58a6ff0b3edc3b53d4986daaba5d4927dcd7c76b2e00379477e8677b3e9bfcf",
+      "previewSha256": "97bdb826a4a0df9c3630a448e54c3c22b9360622194476962c86011094330346",
+      "width": 1254,
+      "height": 1254,
+      "previewSize": 768
+    },
+    {
+      "image": "/images/characters/bee/feltarbejde.png",
+      "preview": "/images/characters/bee/feltarbejde.webp",
+      "originalSha256": "4c7b2cb7361685627fd4fbb60bd74ff3ce7b88a66e142328871bc4810f5eed78",
+      "previewSha256": "2b9a4ea482890a92664f9235351c1c272e6b4a4d8e180c7d48c083ec660b431d",
+      "width": 1254,
+      "height": 1254,
+      "previewSize": 768
+    },
+    {
+      "image": "/images/characters/bee/sikkerhedsoevning.png",
+      "preview": "/images/characters/bee/sikkerhedsoevning.webp",
+      "originalSha256": "838511c15a80a585379c7fb060b9e1c5b91f40c10b60f93d4b7b90eb66a367d0",
+      "previewSha256": "5b41b3cacafbd30165b27b09353c9df04e462dbd9a23432477b5c74b1c4513b1",
+      "width": 1254,
+      "height": 1254,
+      "previewSize": 768
+    }
+  ]
+}

@@ -205,6 +205,38 @@ public static class CharacterCatalog
             ScenesDescription = "Følg kaptajnen fra tidevandsbogen ved kajen til værkstedsbordet, badekarrets testhavn og en rigtig containerudrulning. Åbn billederne i fuld størrelse, eller hent dem som PNG.",
             Scenes = WhaleMaterials.Scenes
         },
+        new("bee", "Cyberbien", "Underviser i cybersikkerhed", "Cybersikkerhed · Fra forebyggelse til respons", false,
+            "Cyberbien viser, hvordan du beskytter konti, kode og netværk, og hvad du gør, når en alarm går.",
+            "Cyberbien underviser i cybersikkerhed fra den første risikovurdering til arbejdet efter en hændelse. Han bygger miniaturebistader af gamle netværksswitche, og i hans øvelsesnet står der altid et glas lokkehonning. Rører nogen det, vil han vide, hvad der skete, før han beslutter, hvad han gør.",
+            ["Cybersikkerhed", "Honeypots", "Sikker software", "Netværk og cloud", "Hændelser og respons"],
+            [new("Cyberbien", "/images/characters/bee/portrait.webp", "En gul bi i marineblå hættetrøje med gule snore, cyanglødende kodebriller og en tommel i vejret"),
+             new("Lokkehonningen", "/images/characters/bee/honeypot.webp", "Cyberbien bærer et glas lokkehonning i en gennemsigtig boks med statuslys"),
+             new("På vagt", "/images/characters/bee/logvagt.webp", "Cyberbien holder en tablet og gransker en alarm"),
+             new("På sporet", "/images/characters/bee/feltarbejde.webp", "Cyberbien læner sig frem med en lille lup for at undersøge et spor"),
+             new("Klar til øvelse", "/images/characters/bee/sikkerhedsoevning.webp", "Cyberbien står med et gennemsigtigt cyanblåt skjold med hængelås")],
+            [new("Et glas lokkehonning", "En honeypot efterligner noget, der kan tiltrække uønsket aktivitet. I biens isolerede øvelsesnet er det en lokketjeneste uden rigtige data. Når nogen rører den, kan eleverne undersøge, hvad loggen viser, og afgøre, om der er noget at reagere på."),
+             new("Byg flere lag af forsvar", "Begynd med at beslutte, hvad du vil beskytte. Giv hver konto de rettigheder, den skal bruge, adskil dele af netværket, og brug logs og alarmer til at se, om forsvaret virker. Øv også, hvordan du gendanner systemet, hvis noget går galt."),
+             new("Når noget summer forkert", "En alarm er anledning til at undersøge. Cyberbien samler spor, afgrænser hændelsen og vælger sammen med holdet, hvad de skal isolere, rette og gendanne. Bagefter gennemgår de, hvad de vil ændre, før det sker igen."),
+             new("Tre forskellige roller", "Bæver bygger og tester det blå forsvar. Ræv undersøger svagheder med aftalt tilladelse. Cyberbien samler arbejdet med risiko, forebyggelse, overvågning og håndtering af hændelser i samme øvelse.")],
+            [new("Se undervisningsbillederne", "/characters/bee#character-gallery-title", false, false),
+             new("Se animationerne", "/characters/bee#character-animations-title", false, false),
+             new("Se fagene på Målpinde", "https://maalpinde.lup.dk/", true, false),
+             new("Sikkerhed og test", "https://testing.mercantec.tech/", true, false),
+             new("Informationssikkerhed og awareness", "https://maalpinde.lup.dk/vuf/#deploy-or-die", true, false),
+             new("Mød Bæver", "/characters/beaver", false, false),
+             new("Mød Ræv", "/characters/fox", false, false)])
+        {
+            Illustrations = BeeTeachingMaterials.Illustrations,
+            IllustrationsLabel = "infografikker",
+            IllustrationsDescription = "Fra phishing, adgang og sikker kode til netværk, cloud, honeypots og hændelseshåndtering. Vælg et emne, læs forklaringen og prøv øvelsen med dit hold.",
+            AnimationSubject = "cybersikkerhed",
+            Animations = BeeMotionMaterials.Animations,
+            Reactions = ReactionsFor("bee"),
+            LargeReactionPreviews = true,
+            ReactionsDescription = "Cyberbien tjekker en mistænkelig mail, sætter en honeypot ud og fejrer, når testen går grøn. Søg efter et motiv, hent en transparent PNG, eller brug emojierne i LUPs editor.",
+            ScenesDescription = "Se Cyberbien ved lokkeserveren, på nattevagt, i testlaboratoriet og under en hændelsesøvelse. Åbn et billede i fuld størrelse, eller hent det som PNG.",
+            Scenes = BeeMotionMaterials.Scenes
+        },
         new("beaver", "Bæver", "Underviser i Sikkerhed og test · Blå team", "Sikkerhed og test", false,
             "Den rolige systembygger på blåt team: sikker kode, adgangskontrol, logs og tests, der holder løsningen robust.",
             "Bæver underviser i Sikkerhed og test fra det blå teams perspektiv. Med tablet og logbog undersøger Bæver, hvordan vi beskytter systemet, opdager fejl og gør rettelser holdbare. Arbejdet er roligt, grundigt og praktisk: forstå problemet, styrk løsningen, og skriv en test, der passer på den fremover.",
@@ -212,7 +244,8 @@ public static class CharacterCatalog
             [new("Portræt", "/images/characters/beaver/portrait.png", "Bæver, en venlig brun bæver med tydelig flad hale, blå underviserjakke og en tablet med logs")],
             [new("Hvorfor en bæver?", "Bæverens byggeri og vedligeholdelse er en god metafor for robuste systemer. Det handler om at bygge med omtanke, holde øje med svage steder og forstærke løsningen, når forholdene ændrer sig."),
              new("Sikkerhed, der kan efterprøves", "Bæver arbejder med sikre standardindstillinger, adgangskontrol, logging og automatiserede regressionstests. Når Ræv finder en svaghed, undersøger de sammen årsagen og kontrollerer, at rettelsen virker.")],
-            [new("Mød Ræv på rødt team", "/characters/fox", false, false)])
+            [new("Mød Ræv på rødt team", "/characters/fox", false, false),
+             new("Se Cyberbiens undervisning", "/characters/bee", false, false)])
         {
             Reactions = ReactionsFor("beaver"),
             LargeReactionPreviews = true,
@@ -225,7 +258,8 @@ public static class CharacterCatalog
             [new("Portræt", "/images/characters/fox/portrait.png", "Ræv, en venlig rødbrun ræv med busket hale, røde tøjdetaljer og en notesbog med testskitser")],
             [new("Hvorfor en ræv?", "Ræven repræsenterer opfindsomhed og evnen til at undersøge alternative veje. Det er en god metafor for etisk sikkerhedstest: at udfordre antagelser og finde grænsetilfælde, som den første løsning måske har overset."),
              new("Find svagheden, og del forståelsen", "Ræv arbejder med angrebsflader, uventede input og afprøvning af rettigheder. Ræv og Bæver er kolleger: De deler fund, styrker løsningen og skriver tests, der viser, om forbedringen holder.")],
-            [new("Mød Bæver på blåt team", "/characters/beaver", false, false)])
+            [new("Mød Bæver på blåt team", "/characters/beaver", false, false),
+             new("Se Cyberbiens undervisning", "/characters/bee", false, false)])
         {
             Reactions = ReactionsFor("fox"),
             LargeReactionPreviews = true,
