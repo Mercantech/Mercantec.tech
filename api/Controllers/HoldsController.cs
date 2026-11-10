@@ -1,6 +1,8 @@
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Learning;
+using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +14,96 @@ namespace Mercantec.Tech.Api.Controllers;
 [Authorize]
 public class HoldsController(AppDbContext db) : ControllerBase
 {
+    private readonly CourseAccess access = new(db);
+
+    [HttpGet("mine"), ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> Mine([FromQuery] Guid? asUser, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid subject || subject == Guid.Empty)
+            return Unauthorized();
+
+        var teacher = UserClaims.IsTeacher(User);
+        if (asUser.HasValue && !teacher)
+            return Forbid();
+        if (asUser == Guid.Empty)
+            return BadRequest(new { error = "invalid_user" });
+
+        var canManage = teacher && !asUser.HasValue;
+        var holds = access.AccessibleHolds(User, manageOnly: teacher).AsNoTracking();
+        if (asUser is Guid pupil)
+            holds = holds.Where(h => h.Memberships.Any(member => member.UserSub == pupil));
+
+        var cards = await holds.OrderBy(h => h.Name).ThenBy(h => h.Id)
+            .Select(h => new
+            {
+                h.Id,
+                h.ForloebId,
+                HoldName = h.Name,
+                ForloebName = h.Forloeb.Name,
+                h.Forloeb.Description,
+                h.CreatedAtUtc,
+                MemberCount = canManage ? h.Memberships.Count : 0,
+                UnlinkedMemberCount = canManage ? h.Memberships.Count(member => member.UserSub == null) : 0,
+                PrimaryLectioKey = h.LectioHoldKey,
+                Sources = h.LectioSources.OrderBy(source => source.LectioHoldKey)
+                    .Select(source => new HoldLectioBadge(source.LectioHoldKey, source.LectioHoldName)).ToArray(),
+                IsFavorite = !asUser.HasValue && db.HoldFavorites.Any(f => f.UserSub == subject && f.HoldId == h.Id)
+            })
+            .ToArrayAsync(ct);
+
+        return Ok(cards.Select(card =>
+        {
+            var sources = card.Sources;
+            if (card.PrimaryLectioKey is { Length: > 0 } primary &&
+                !sources.Any(source => string.Equals(source.Key, primary, StringComparison.OrdinalIgnoreCase)))
+                sources = [new HoldLectioBadge(primary, null), .. sources];
+
+            return new MyHoldCard(card.Id, card.ForloebId, card.HoldName, card.ForloebName,
+                card.Description, card.CreatedAtUtc, card.MemberCount, card.UnlinkedMemberCount,
+                sources, canManage, card.IsFavorite);
+        }).ToArray());
+    }
+
+    [HttpPatch("{id:guid}/name")]
+    public async Task<IActionResult> Rename(Guid id, RenameHold input, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid subject || subject == Guid.Empty)
+            return Unauthorized();
+
+        var name = input.Name?.Trim();
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 200 || name.Any(char.IsControl))
+            return BadRequest(new { error = "invalid_name" });
+
+        var updated = await access.AccessibleHolds(User, manageOnly: true).Where(h => h.Id == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(h => h.Name, name), ct);
+        return updated == 0 ? NotFound() : NoContent();
+    }
+
+    [HttpPut("{id:guid}/favorite")]
+    public async Task<IActionResult> AddFavorite(Guid id, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid subject || subject == Guid.Empty)
+            return Unauthorized();
+        if (!await access.CanAccessAsync(id, User, ct))
+            return NotFound();
+
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO hold_favorites (\"UserSub\", \"HoldId\") VALUES ({subject}, {id}) ON CONFLICT (\"UserSub\", \"HoldId\") DO NOTHING", ct);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/favorite")]
+    public async Task<IActionResult> RemoveFavorite(Guid id, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid subject || subject == Guid.Empty)
+            return Unauthorized();
+        if (!await access.CanAccessAsync(id, User, ct))
+            return NotFound();
+
+        await db.HoldFavorites.Where(f => f.UserSub == subject && f.HoldId == id).ExecuteDeleteAsync(ct);
+        return NoContent();
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<object>> Get(Guid id, CancellationToken ct)
     {

@@ -4,9 +4,11 @@ using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Integrations.Lectio;
+using Mercantec.Tech.Api.Learning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Mercantec.Tech.Api.Controllers;
 
@@ -117,21 +119,29 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
     {
         if (!UserClaims.IsTeacher(User))
             return Forbid();
+        if (UserClaims.GetSub(User) is not Guid subject || subject == Guid.Empty)
+            return Unauthorized();
 
-        var forloeb = await db.Forloeb.Include(f => f.Hold).FirstOrDefaultAsync(f => f.Id == id, ct);
+        var manageableHold = new CourseAccess(db).AccessibleHolds(User, manageOnly: true).Where(h => h.ForloebId == id);
+        var forloeb = await db.Forloeb.FirstOrDefaultAsync(f => f.Id == id && manageableHold.Any(), ct);
         if (forloeb is null)
             return NotFound();
 
         var name = (body.Name ?? "").Trim();
-        if (string.IsNullOrWhiteSpace(name) || name.Length > 200)
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 200 || name.Any(char.IsControl))
             return BadRequest(new { error = "invalid_name" });
 
+        var previousName = forloeb.Name;
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
         forloeb.Name = name;
         forloeb.Description = string.IsNullOrWhiteSpace(body.Description) ? null : body.Description.Trim();
-        if (forloeb.Hold is not null && string.IsNullOrWhiteSpace(forloeb.Hold.LectioHoldKey))
-            forloeb.Hold.Name = name;
-
         await db.SaveChangesAsync(ct);
+
+        // Preserve a display name set independently on the hold.
+        await manageableHold.Where(h => h.Name == previousName && (h.LectioHoldKey == null || h.LectioHoldKey.Trim() == "")
+                && !h.LectioSources.Any())
+            .ExecuteUpdateAsync(setters => setters.SetProperty(h => h.Name, name), ct);
+        await transaction.CommitAsync(ct);
 
         var updated = await db.Forloeb
             .AsNoTracking()
@@ -146,7 +156,8 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
         string? LectioHoldKey,
         List<string>? LectioHoldKeys,
         string? Name,
-        string? Description);
+        string? Description,
+        string? HoldName = null);
 
     /// <summary>
     /// Opret forløb + hold fra ét eller flere Lectio-Collector-hold (samles til én elevliste).
@@ -161,6 +172,10 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
         var sub = UserClaims.GetSub(User);
         if (sub is null)
             return Unauthorized(new { error = "missing_sub" });
+
+        var requestedHoldName = body.HoldName?.Trim();
+        if (requestedHoldName is not null && (requestedHoldName.Length is 0 or > 200 || requestedHoldName.Any(char.IsControl)))
+            return BadRequest(new { error = "invalid_name" });
 
         var keys = new List<string>();
         if (body.LectioHoldKeys is { Count: > 0 })
@@ -177,38 +192,8 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
         if (keys.Count == 0)
             return BadRequest(new { error = "missing_lectio_hold_key" });
 
-        var already = await db.HoldLectioSources.AsNoTracking()
-            .Where(s => keys.Contains(s.LectioHoldKey))
-            .Select(s => new { s.LectioHoldKey, s.HoldId, forloebId = s.Hold.ForloebId })
-            .ToListAsync(ct);
-
-        // Bagudkompatibilitet: ældre import uden HoldLectioSource
-        var legacy = await db.Hold.AsNoTracking()
-            .Where(h => h.LectioHoldKey != null && keys.Contains(h.LectioHoldKey))
-            .Select(h => new { LectioHoldKey = h.LectioHoldKey!, h.Id, forloebId = h.ForloebId })
-            .ToListAsync(ct);
-
-        var conflicts = already
-            .Select(a => (a.LectioHoldKey, a.HoldId, a.forloebId))
-            .Concat(legacy.Select(l => (l.LectioHoldKey, HoldId: l.Id, l.forloebId)))
-            .GroupBy(x => x.LectioHoldKey, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First())
-            .ToList();
-
-        if (conflicts.Count > 0)
-        {
-            return Conflict(new
-            {
-                error = "already_imported",
-                message = "Ét eller flere Lectio-hold er allerede koblet til et forløb.",
-                conflicts = conflicts.Select(c => new
-                {
-                    lectioHoldKey = c.LectioHoldKey,
-                    holdId = c.HoldId,
-                    forloebId = c.forloebId
-                })
-            });
-        }
+        if (await ExistingLectioImportAsync(keys, ct) is { } alreadyImported)
+            return alreadyImported;
 
         string bearer;
         try
@@ -237,23 +222,37 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
                     body = ex.Body
                 });
             }
-
-            var lectioName = GetString(lectioHold, "name") ?? key;
-            var members = new List<(string LectioId, string DisplayName)>();
-            if (lectioHold.TryGetProperty("members", out var memArr) && memArr.ValueKind == JsonValueKind.Array)
+            catch (JsonException)
             {
-                foreach (var m in memArr.EnumerateArray())
-                {
-                    var elevId = GetString(m, "studentLectioId");
-                    if (string.IsNullOrWhiteSpace(elevId))
-                        continue;
-                    var display = GetString(m, "studentName") ?? elevId;
-                    members.Add((elevId, display));
-                }
+                return InvalidLectioRoster(key);
             }
 
-            fetched.Add((key, lectioName, members));
+            if (!TryReadRoster(lectioHold, out var details, out var roster))
+                return InvalidLectioRoster(key);
+
+            var canonicalKey = GetString(details, "lectioHoldKey") ?? GetString(lectioHold, "lectioHoldKey");
+            if (string.IsNullOrWhiteSpace(canonicalKey))
+                canonicalKey = key;
+            var lectioName = GetString(details, "name") ?? GetString(lectioHold, "name") ?? key;
+            var members = new List<(string LectioId, string DisplayName)>();
+            foreach (var member in roster.EnumerateArray())
+            {
+                var elevId = GetString(member, "studentLectioId") ?? GetString(member, "lectioId");
+                if (string.IsNullOrWhiteSpace(elevId))
+                    return InvalidLectioRoster(key);
+                var display = GetString(member, "studentName") ?? GetString(member, "name") ?? elevId;
+                members.Add((elevId, display));
+            }
+
+            fetched.Add((canonicalKey, lectioName, members));
         }
+
+        fetched = fetched.DistinctBy(source => source.Key, StringComparer.OrdinalIgnoreCase).ToList();
+        var canonicalKeys = fetched.Select(source => source.Key).ToList();
+        if (!keys.SequenceEqual(canonicalKeys, StringComparer.OrdinalIgnoreCase)
+            && await ExistingLectioImportAsync(canonicalKeys, ct) is { } canonicalConflict)
+            return canonicalConflict;
+        keys = canonicalKeys;
 
         var allMembers = fetched.SelectMany(f => f.Members).ToList();
         IReadOnlyDictionary<string, Guid> links;
@@ -290,7 +289,7 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
         {
             Id = Guid.NewGuid(),
             ForloebId = forloeb.Id,
-            Name = holdDisplayName,
+            Name = requestedHoldName ?? holdDisplayName,
             LectioHoldKey = keys[0],
             CreatedAtUtc = now
         };
@@ -334,7 +333,19 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
         db.Hold.Add(hold);
         db.HoldLectioSources.AddRange(sources);
         db.Memberships.AddRange(memberships);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException exception) when (IsDuplicateLectioSource(exception))
+        {
+            // Another import may commit after the preflight check. The unique index rolls back
+            // this request's hold and roster, then the same conflict response identifies the winner.
+            db.ChangeTracker.Clear();
+            if (await ExistingLectioImportAsync(keys, ct) is { } conflict)
+                return conflict;
+            throw;
+        }
 
         return CreatedAtAction(nameof(Get), new { id = forloeb.Id }, new
         {
@@ -364,6 +375,60 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
             }
         });
     }
+
+    private async Task<ConflictObjectResult?> ExistingLectioImportAsync(List<string> keys, CancellationToken ct)
+    {
+        var lookupKeys = keys.Select(key => key.ToLowerInvariant()).ToArray();
+        var sources = await db.HoldLectioSources.AsNoTracking()
+            .Where(source => lookupKeys.Contains(source.LectioHoldKey.ToLower()))
+            .Select(source => new { source.LectioHoldKey, source.HoldId, source.Hold.ForloebId })
+            .ToListAsync(ct);
+        var legacy = await db.Hold.AsNoTracking()
+            .Where(hold => hold.LectioHoldKey != null && lookupKeys.Contains(hold.LectioHoldKey.ToLower()))
+            .Select(hold => new { LectioHoldKey = hold.LectioHoldKey!, HoldId = hold.Id, hold.ForloebId })
+            .ToListAsync(ct);
+        var conflicts = sources.Concat(legacy)
+            .DistinctBy(source => source.LectioHoldKey, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        if (conflicts.Length == 0)
+            return null;
+
+        var conflictHoldIds = conflicts.Select(source => source.HoldId).ToArray();
+        var accessibleHoldIds = await new CourseAccess(db).AccessibleHolds(User)
+            .Where(hold => conflictHoldIds.Contains(hold.Id))
+            .Select(hold => hold.Id).ToArrayAsync(ct);
+        return Conflict(new
+        {
+            error = "already_imported",
+            message = "Ét eller flere Lectio-hold er allerede koblet til et forløb.",
+            conflicts = conflicts.Where(source => accessibleHoldIds.Contains(source.HoldId))
+        });
+    }
+
+    private static bool IsDuplicateLectioSource(DbUpdateException exception) =>
+        exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "IX_hold_lectio_sources_LectioHoldKey"
+        }
+        || exception.InnerException?.Message.Contains(
+            "UNIQUE constraint failed: hold_lectio_sources.LectioHoldKey", StringComparison.Ordinal) == true;
+
+    private static bool TryReadRoster(JsonElement hold, out JsonElement details, out JsonElement roster)
+    {
+        details = hold;
+        roster = default;
+        if (hold.ValueKind != JsonValueKind.Object)
+            return false;
+        if (hold.TryGetProperty("members", out roster) && roster.ValueKind == JsonValueKind.Array)
+            return true;
+        if (!hold.TryGetProperty("hold", out details) || details.ValueKind != JsonValueKind.Object)
+            return false;
+        return details.TryGetProperty("members", out roster) && roster.ValueKind == JsonValueKind.Array;
+    }
+
+    private ObjectResult InvalidLectioRoster(string key) =>
+        StatusCode(StatusCodes.Status502BadGateway, new { error = "invalid_lectio_roster", lectioHoldKey = key });
 
     /// <summary>Fælles præfiks før / (fx dt3H2602/pro + dt3H2602/proEA → dt3H2602).</summary>
     internal static string SuggestForloebName(IReadOnlyList<string> holdNames)
@@ -424,7 +489,9 @@ public class ForloebController(AppDbContext db, LectioCollectorClient lectio) : 
     };
 
     private static string? GetString(JsonElement el, string name) =>
-        el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
+        el.ValueKind == JsonValueKind.Object && el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String
+            ? p.GetString()
+            : null;
 
     private string RequireBearer()
     {

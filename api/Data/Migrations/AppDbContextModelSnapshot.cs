@@ -1190,6 +1190,21 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("hold_calendar_events", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldFavorite", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("HoldId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserSub", "HoldId");
+
+                    b.HasIndex("HoldId");
+
+                    b.ToTable("hold_favorites", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldLectioSource", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2782,6 +2797,15 @@ namespace Mercantec.Tech.Api.Data.Migrations
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldCalendarEvent", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
+                        .WithMany()
+                        .HasForeignKey("HoldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.HoldFavorite", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
                         .WithMany()

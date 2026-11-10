@@ -12,6 +12,8 @@ tags: [feature, navigation, search, design]
 
 Profilmenuen samler Min profil, Mit univers, Indstillinger og Log ud. Underviserværktøjer vises kun til undervisere. Indstillinger samler tema og kontotilknytning. Biblioteket samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav; eksempelforløb er en særskilt foldet sektion for loggede ind. Mit univers samler progression, badges, egne projekter, avatar, lejlighed, butik og spil.
 
+På **Underviserværktøjer** er genvejene grupperet under **Undervisning**, **Elever og opfølgning** og **Opsætning**. Vælg et hold under **Holdværktøjer** for at gå direkte til dets forløb, quests, afleveringer til vurdering, kalender, grupper, materialer, afstemninger og indstillinger. Samme område har genveje til grupperoulette, sidegraf, Mine hold og oprettelse fra Lectio. Holdvælgeren viser de hold, underviseren kan administrere.
+
 ## Holdets navigation
 
 Holdcentralen har fem hovedfaner: **Overblik, Undervisning, Opgaver, Kalender og Klassen**. Undervisning har Forløb, Materialer og Afstemninger. Undervisere finder Til vurdering under Opgaver og Holdindstillinger under Klassen. Afstemninger oprettes og besvares på det valgte hold; de har fortsat HoldId som adgangsgrænse. De gamle direkte afstemningslinks virker fortsat.
