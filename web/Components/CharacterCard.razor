@@ -3,7 +3,7 @@
 <article class="character-card character-@Character.Slug">
     <a class="character-card-profile" href="@Character.Path">
         <div class="character-art">
-            @if (Character.Appearances.FirstOrDefault() is { } portrait)
+            @if (Character.DisplayPortrait is { } portrait)
             {
                 <img src="@portrait.Image" alt="@portrait.Alt" width="320" height="320" loading="lazy" decoding="async" />
             }

@@ -108,7 +108,7 @@ else
     private CharacterProfile? _character;
     private int _appearanceIndex;
     private string? _handledLocation, _pendingSection;
-    private CharacterAppearance? SelectedAppearance => _character?.Appearances.ElementAtOrDefault(_appearanceIndex);
+    private CharacterAppearance? SelectedAppearance => _appearanceIndex == 0 ? _character?.DisplayPortrait : _character?.Appearances.ElementAtOrDefault(_appearanceIndex);
 
     protected override void OnParametersSet()
     {

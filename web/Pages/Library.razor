@@ -46,7 +46,7 @@
                                 {
                                     var character = hit.Kind == "Karakter" ? CharacterCatalog.All.FirstOrDefault(item => item.Path == hit.Href) : null;
                                     <li><a class="@(character is not null ? "library-search-character" : null)" href="@hit.Href">
-                                        @if (character?.Appearances.FirstOrDefault() is { } portrait)
+                                        @if (character?.DisplayPortrait is { } portrait)
                                         {
                                             <img src="@portrait.Image" alt="" width="56" height="56" loading="lazy" decoding="async" />
                                         }

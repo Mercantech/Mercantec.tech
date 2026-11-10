@@ -37,24 +37,7 @@
         </section>
     </div>
 
-    <section class="about-characters" aria-labelledby="about-characters-title">
-        <div class="about-section-heading">
-            <div><h2 id="about-characters-title">Faglighed med et ansigt</h2><p>Du møder flere hjælpere undervejs. De har hver deres fag og måde at undersøge tingene på.</p></div>
-            <a class="about-text-link" href="/characters">Mød alle karaktererne</a>
-        </div>
-        <AboutCharacterBrowser />
-    </section>
-
-    <section class="about-name" aria-labelledby="about-name-title">
-        <div class="about-name-intro"><h2 id="about-name-title">Hvad står LUP for?</h2><p>Det kommer an på, hvordan dagen går.</p></div>
-        <ul class="about-expansions">
-            @foreach (var expansion in LupIdentity.Expansions)
-            {
-                <li class="@(expansion.IsOfficial ? "is-official" : null)"><strong>@expansion.Name.</strong><span>@expansion.Description</span></li>
-            }
-        </ul>
-        <p class="about-attribution">Med et nik til <a href="https://github.com/git/git/blob/e83c5163316f89bfbde7d9ab23ca2e25604af290/README#L1-L11" target="_blank" rel="noopener">Gits første README</a>.</p>
-    </section>
+    <AboutName />
 
     <section class="about-people" aria-labelledby="about-people-title">
         <div><h2 id="about-people-title">Bygget tæt på undervisningen</h2><p>Kasper og Mathias underviser på forløbene. LUP vokser med det, elever og undervisere arbejder med, og de idéer, der opstår undervejs.</p></div>

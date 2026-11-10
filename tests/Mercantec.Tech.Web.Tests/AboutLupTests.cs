@@ -38,16 +38,17 @@ public sealed class AboutLupTests
     }
 
     [Fact]
-    public void The_character_spotlight_and_manual_browser_use_the_existing_public_profiles()
+    public void Characters_appear_only_in_the_hero_with_a_link_to_the_full_catalogue()
     {
         using var context = BrowserContext();
         var page = context.Render<AboutLup>();
 
         Assert.Single(page.FindComponents<AboutCharacterSpotlight>());
-        Assert.Single(page.FindComponents<AboutCharacterBrowser>());
+        Assert.Single(page.FindAll(".about-character-spotlight"));
+        Assert.Empty(page.FindAll(".about-character-browser, .about-characters"));
         Assert.Contains("LUPP", page.Find(".spotlight-portrait img").GetAttribute("alt"));
         Assert.Equal("/characters/lupp", page.Find(".spotlight-profile").GetAttribute("href"));
-        Assert.All(page.FindAll(".character-browser-list img"), image => Assert.Equal("lazy", image.GetAttribute("loading")));
+        Assert.Equal("/characters", page.Find(".spotlight-all").GetAttribute("href"));
     }
 
     [Fact]

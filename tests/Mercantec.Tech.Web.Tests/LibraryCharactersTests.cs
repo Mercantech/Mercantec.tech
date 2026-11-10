@@ -31,7 +31,7 @@ public sealed class LibraryCharactersTests
             Assert.Equal(character.Path, card.QuerySelector("a.character-card-profile")!.GetAttribute("href"));
             Assert.Equal(character.Name, card.QuerySelector("h3")!.TextContent);
             Assert.Contains(character.Role, card.TextContent);
-            Assert.Equal(character.Appearances[0].Image, card.QuerySelector(".character-art img")!.GetAttribute("src"));
+            Assert.Equal(character.DisplayPortrait!.Image, card.QuerySelector(".character-art img")!.GetAttribute("src"));
             Assert.False(string.IsNullOrWhiteSpace(card.QuerySelector(".character-art img")!.GetAttribute("alt")));
         }
         Assert.Empty(page.FindAll(".character-card a a"));
@@ -129,7 +129,7 @@ public sealed class LibraryCharactersTests
         {
             var path = result.GetAttribute("href");
             var character = Assert.Single(CharacterCatalog.All, character => character.Path == path);
-            Assert.Equal(character.Appearances[0].Image, result.QuerySelector("img")!.GetAttribute("src"));
+            Assert.Equal(character.DisplayPortrait!.Image, result.QuerySelector("img")!.GetAttribute("src"));
         });
         page.FindAll(".library-categories button").Single(button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal)).Click();
         Assert.Equal(11, page.FindAll(".library-search-character").Count);

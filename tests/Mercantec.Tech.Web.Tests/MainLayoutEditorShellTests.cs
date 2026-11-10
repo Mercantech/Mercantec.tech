@@ -93,6 +93,24 @@ public sealed class MainLayoutEditorShellTests
         layout.WaitForAssertion(() => Assert.Equal(first, layout.Find(".footer-brand").TextContent));
     }
 
+    [Fact]
+    public async Task The_LUP_home_link_is_marked_only_when_its_home_page_is_current()
+    {
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api);
+        await context.Auth.LogoutLocalAsync();
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/");
+        var layout = context.Render<MainLayout>();
+        Assert.Equal("page", layout.Find("a.brand").GetAttribute("aria-current"));
+        Assert.Contains("is-current", layout.Find("a.brand").ClassList);
+        navigation.NavigateTo("/sources");
+        layout.WaitForAssertion(() => Assert.Null(layout.Find("a.brand").GetAttribute("aria-current")));
+        Assert.DoesNotContain("is-current", layout.Find("a.brand").ClassList);
+        navigation.NavigateTo("/?from=overview");
+        layout.WaitForAssertion(() => Assert.Equal("page", layout.Find("a.brand").GetAttribute("aria-current")));
+    }
+
     private static async Task<LearningUiTestContext> CreateContext(LayoutApi api, bool teacher = true)
     {
         var context = await LearningUiTestContext.CreateAsync(api, teacher: teacher, configure: services =>

@@ -3,18 +3,19 @@
 @implements IAsyncDisposable
 
 <figure class="about-character-spotlight" aria-label="Mød karaktererne i LUP" aria-roledescription="karrusel" @ref="_element" @onmouseenter="() => SetHovered(true)" @onmouseleave="() => SetHovered(false)">
-    <div class="spotlight-portrait"><img src="@AboutCharacterVisuals.Image(Current)" alt="@AboutCharacterVisuals.Alt(Current)" width="360" height="360" fetchpriority="high" /></div>
+    <div class="spotlight-portrait">@if (Current.DisplayPortrait is { } portrait) { <img src="@portrait.Image" alt="@portrait.Alt" width="360" height="360" fetchpriority="high" /> }</div>
     <figcaption class="spotlight-caption" aria-live="off">
         <a class="spotlight-profile" href="@Current.Path">Mød @Current.Name</a>
         <span class="spotlight-role">@Current.Role</span>
         <small>@Current.Home</small>
     </figcaption>
     <div class="spotlight-controls" aria-label="Skift karakter">
-        <button type="button" class="spotlight-step" aria-label="Vis forrige karakter" @onclick="() => Step(-1)">‹</button>
+        <button type="button" class="spotlight-step" aria-label="Vis forrige karakter" title="Forrige karakter" @onclick="() => Step(-1)">‹</button>
         <span class="spotlight-count" aria-label="@($"Figur {_index + 1} af {CharacterCatalog.All.Count}")">@(_index + 1) / @CharacterCatalog.All.Count</span>
-        <button type="button" class="spotlight-step" aria-label="Vis næste karakter" @onclick="() => Step(1)">›</button>
-        <button type="button" class="spotlight-pause" aria-pressed="@(_paused ? "true" : "false")" aria-label="@(_paused ? "Start automatisk figurskift" : "Pause automatisk figurskift")" @onclick="TogglePause">@(_paused ? "Start" : "Pause")</button>
+        <button type="button" class="spotlight-step" aria-label="Vis næste karakter" title="Næste karakter" @onclick="() => Step(1)">›</button>
+        <button type="button" class="spotlight-pause" aria-pressed="@(_paused ? "true" : "false")" aria-label="@(_paused ? "Start automatisk figurskift" : "Pause automatisk figurskift")" title="@(_paused ? "Start figurskift" : "Pause figurskift")" @onclick="TogglePause"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">@if (_paused) { <path d="M5 3.5 12 8 5 12.5Z" /> } else { <rect x="4" y="3" width="2.5" height="10" rx=".6" /><rect x="9.5" y="3" width="2.5" height="10" rx=".6" /> }</svg></button>
     </div>
+    <a class="spotlight-all" href="/characters">Mød alle karaktererne</a>
     <span class="spotlight-announcement" role="status">@_announcement</span>
 </figure>
 

@@ -1,7 +1,8 @@
 .about-lup { max-width:none; margin:0; padding:0 0 30px; color:var(--ink); }
 .about-lup a:focus-visible { outline:3px solid var(--blue); outline-offset:5px; }
 .about-lup :is(h1,h2,p) { margin:0; }
-.about-opening { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.85fr); gap:clamp(26px,5vw,76px); align-items:start; padding:5px 0 58px; }
+.about-opening { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.85fr); gap:clamp(26px,5vw,76px); align-items:start; padding:5px 0 40px; }
+.about-introduction { min-width:0; }
 .about-introduction h1 { font-size:clamp(34px,4vw,50px); line-height:1.1; letter-spacing:-1.8px; }
 .about-lead { max-width:17ch; margin-top:20px!important; font:600 clamp(30px,3.4vw,43px)/1.15 'Space Grotesk',sans-serif; letter-spacing:-1.5px; text-wrap:balance; }
 .about-description { max-width:57ch; margin-top:21px!important; color:var(--muted); font-size:16px; line-height:1.8; }
@@ -19,24 +20,18 @@
 .about-benefits span { color:var(--muted); font-size:13px; line-height:1.7; }
 .about-text-link { display:inline-block; min-height:26px; font-size:13px; font-weight:600; text-decoration:underline!important; text-underline-offset:4px; }
 .about-teacher { border-left:1px solid var(--rule); padding-left:clamp(28px,4vw,48px); }
-.about-characters { padding:48px 0 41px; }
 .about-section-heading { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px 32px; }
-.about-section-heading h2,.about-name h2,.about-people h2 { font-size:27px; line-height:1.25; letter-spacing:-.8px; }
+.about-section-heading h2,.about-people h2 { font-size:27px; line-height:1.25; letter-spacing:-.8px; }
 .about-section-heading p { max-width:61ch; margin-top:10px; font-size:14px; color:var(--muted); line-height:1.7; }
-.about-name { padding:32px 0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); display:grid; grid-template-columns:minmax(200px,.7fr) minmax(0,1.3fr); gap:20px 45px; }
-.about-name-intro p { margin-top:11px; color:var(--muted); font-size:14px; line-height:1.7; }
-.about-expansions { list-style:none; margin:0; padding:0; display:grid; gap:19px; }
-.about-expansions li { display:grid; gap:4px; max-width:65ch; font-size:13px; line-height:1.65; }
-.about-expansions strong { font-size:14px; font-weight:600; }
-.about-expansions span { color:var(--muted); }
-.about-expansions .is-official strong { color:var(--blue); }
-.about-attribution { grid-column:2; color:var(--muted); font-size:11px; }
 .about-people { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:22px 35px; padding:36px 0 0; }
 .about-people p { max-width:66ch; margin-top:12px; color:var(--muted); font-size:14px; line-height:1.8; }
 .about-people>.about-text-link { margin-top:7px; }
 @media(max-width:1000px) {
     .about-audiences { padding:30px 28px; gap:30px; }
     .about-teacher { padding-left:28px; }
+}
+@media(max-width:800px) {
+    .about-opening { grid-template-columns:minmax(0,1fr); gap:25px; }
 }
 @media(max-width:680px) {
     .about-lup { padding-top:0; }
@@ -50,9 +45,6 @@
     .about-audiences h2 { font-size:25px; }
     .about-teacher { border-left:0; border-top:1px solid var(--rule); padding:28px 0 0; }
     .about-benefits { margin-top:20px; gap:16px; }
-    .about-characters { padding:33px 0; }
-    .about-section-heading h2,.about-name h2,.about-people h2 { font-size:25px; }
-    .about-name { grid-template-columns:1fr; gap:24px; padding:28px 0; }
-    .about-attribution { grid-column:auto; }
+    .about-section-heading h2,.about-people h2 { font-size:25px; }
     .about-people { padding-top:29px; gap:14px; }
 }

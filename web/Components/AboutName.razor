@@ -1,0 +1,24 @@
+@using Mercantec.Tech.Web.Branding
+
+<section class="about-name" aria-labelledby="about-name-title">
+    <header class="about-name-heading">
+        <h2 id="about-name-title">Hvad står LUP for?</h2>
+        <p>Ét navn. Flere forklaringer, alt efter hvordan dagen går.</p>
+    </header>
+    <ul class="about-expansions">
+        @foreach (var expansion in LupIdentity.Expansions)
+        {
+            <li class="@(expansion.IsOfficial ? "is-official" : "")">
+                @if (expansion.IsOfficial)
+                {
+                    <span class="about-name-mark" aria-hidden="true">LUP</span>
+                }
+                <div class="about-expansion-copy">
+                    <h3>@expansion.Name</h3>
+                    <p>@expansion.Description</p>
+                </div>
+            </li>
+        }
+    </ul>
+    <p class="about-attribution">Med et nik til <a href="https://github.com/git/git/blob/e83c5163316f89bfbde7d9ab23ca2e25604af290/README#L1-L11" target="_blank" rel="noopener">Gits første README</a>.</p>
+</section>

@@ -21,6 +21,7 @@ public static class CharacterCatalog
              new("Åbn Game Design i Notion", "https://app.notion.com/p/Game-Design-3c6123f464aa8158906ae7c7a3643328", true, false),
              new("Åbn Notion-editoren", "/notion", false, true), new("Vælg nytårstema", "/settings", false, true)])
         {
+            Portrait = new("Game Design", "/images/about/lupp.webp", "LUPP, en lilla lerfigur med store øjne og en blyant, klar til at undervise i Game Design"),
             Reactions = ReactionsFor("lupp"),
             LargeReactionPreviews = true,
             ReactionsDescription = "LUPPs reaktioner fra Game Design: fra den første spilidé og skitse til playtest, feedback og et nyt forsøg. Find et motiv, åbn originalen, eller hent den som transparent PNG.",
@@ -97,6 +98,7 @@ public static class CharacterCatalog
              new("Besøg VATek.dk", "https://vatek.dk/", true, false),
              new("Mød Vatson", "/characters/vatson", false, false)])
         {
+            Portrait = new("Lyttemakkeren", "/images/characters/gummianden/portrait-transparent.webp", "En rund gul gummiand med orange næb, terrakottafarvet cardigan og en vinge løftet til hovedet for at lytte"),
             Illustrations = DuckTeachingMaterials.Illustrations,
             IllustrationsLabel = "infografikker",
             IllustrationsDescription = "Følg en fejl fra det første symptom til en test, der kan fange den næste gang. Find en infografik om fx breakpoints, variabler eller logs, og fold forklaringen ud for at prøve eksemplet i C#.",
@@ -193,6 +195,7 @@ public static class CharacterCatalog
             [new("Se billeder og materialer i Oversigt", "/library?category=characters", false, false),
              new("Mød Raymond og databaserne", "/characters/raymond", false, false)])
         {
+            Portrait = new("Violinbygger", "/images/characters/chameleon/portrait-transparent.webp", "Kamæleonen med grønne skæl, orange kam, brunt læderforklæde, ufærdig violin og stemmegaffel"),
             Illustrations = InfographicsFor("chameleon"),
             IllustrationsLabel = "infografikker",
             IllustrationsDescription = "16 infografikker om Machine Learning: fra data, features og træning til generalisering, evaluering, datadrift og ansvarlig brug. Søg efter et emne, læs forklaringen med faglige kilder, eller hent den originale PNG.",
@@ -238,6 +241,7 @@ public static class CharacterCatalog
              new("Læs om Docker Compose", "https://docs.docker.com/compose/", true, false),
              new("Mød Raymond og databaserne", "/characters/raymond", false, false)])
         {
+            Portrait = new("Havnekaptajnen", "/images/characters/whale/portrait-transparent.webp", "Den gamle pukkelhval Docker med sennepsgul hue, blå striktrøje, radio og tidevandsbog"),
             Illustrations = WhaleMaterials.Illustrations,
             IllustrationsLabel = "infografikker",
             IllustrationsDescription = "16 infografikker fra Linux og API-kald til containere, Compose og sikker udrulning. Se koblingen til DevNets syv målpinde, åbn forklaringerne, eller hent billederne som PNG.",
@@ -327,6 +331,7 @@ public static class CharacterCatalog
             [new("Mød Ræv på rødt team", "/characters/fox", false, false),
              new("Se Cyberbiens undervisning", "/characters/bee", false, false)])
         {
+            Portrait = new("Portræt", "/images/about/beaver.webp", "Bæver, en venlig brun bæver med tydelig flad hale, blå underviserjakke og en tablet med logs"),
             Reactions = ReactionsFor("beaver"),
             LargeReactionPreviews = true,
             ReactionsDescription = "Bævers reaktioner fra det blå team: rolige forklaringer, opmuntring, adgangskontrol, logs og tests. Åbn en original i fuld størrelse, eller hent en transparent PNG.",
@@ -344,6 +349,7 @@ public static class CharacterCatalog
             [new("Mød Bæver på blåt team", "/characters/beaver", false, false),
              new("Se Cyberbiens undervisning", "/characters/bee", false, false)])
         {
+            Portrait = new("Portræt", "/images/about/fox.webp", "Ræv, en venlig rødbrun ræv med busket hale, røde tøjdetaljer og en notesbog med testskitser"),
             Reactions = ReactionsFor("fox"),
             LargeReactionPreviews = true,
             ReactionsDescription = "Rævs reaktioner fra det røde team: nysgerrige spørgsmål, nye idéer, undersøgende tests og fund, der deles med kollegerne. Åbn en original i fuld størrelse, eller hent en transparent PNG.",
@@ -400,6 +406,8 @@ public sealed record CharacterProfile(string Slug, string Name, string Role, str
     IReadOnlyList<CharacterFeature> Features, IReadOnlyList<CharacterLink> Links)
 {
     public string Path => "/characters/" + Slug;
+    public CharacterAppearance? Portrait { get; init; }
+    public CharacterAppearance? DisplayPortrait => Portrait ?? Appearances.FirstOrDefault();
     public IReadOnlyList<CharacterIllustration> Illustrations { get; init; } = [];
     public string IllustrationsLabel { get; init; } = "illustrationer";
     public string IllustrationsDescription { get; init; } = "Åbn en illustration i fuld størrelse, eller hent originalen som PNG.";

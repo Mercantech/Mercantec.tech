@@ -79,24 +79,21 @@ public sealed class AboutCharacterTests
     }
 
     [Fact]
-    public void Manual_browser_reaches_every_existing_character_without_automatically_advancing()
+    public void Manual_spotlight_controls_reach_every_existing_character()
     {
-        using var context = new BunitContext();
-        var browser = context.Render<AboutCharacterBrowser>();
+        using var context = BrowserContext();
+        var spotlight = context.Render<AboutCharacterSpotlight>();
         var reached = new HashSet<string>();
-        var pages = (CharacterCatalog.All.Count + 2) / 3;
-        for (var page = 0; page < pages; page++)
+        for (var index = 0; index < CharacterCatalog.All.Count; index++)
         {
-            foreach (var link in browser.FindAll(".character-browser-list a")) reached.Add(link.GetAttribute("href")!);
-            Assert.Equal(3, browser.FindAll(".character-browser-list li").Count);
-            browser.Find("button[aria-label='Vis næste karakterer']").Click();
+            AssertProfile(spotlight, CharacterCatalog.All[index]);
+            reached.Add(spotlight.Find(".spotlight-profile").GetAttribute("href")!);
+            spotlight.Find("button[aria-label='Vis næste karakter']").Click();
         }
         Assert.Equal(CharacterCatalog.All.Select(character => character.Path).Order(), reached.Order());
-        Assert.Equal(CharacterCatalog.All[0].Path, browser.Find(".character-browser-list a").GetAttribute("href"));
-        browser.Find("button[aria-label='Vis forrige karakterer']").Click();
-        Assert.Contains($"af {CharacterCatalog.All.Count}", browser.Find("[role='status']").TextContent);
-        Assert.Contains(browser.FindAll(".character-browser-list a"), a => a.GetAttribute("href") == CharacterCatalog.All[^1].Path);
-        Assert.All(browser.FindAll(".character-browser-list img"), image => Assert.Equal("lazy", image.GetAttribute("loading")));
+        AssertProfile(spotlight, CharacterCatalog.All[0]);
+        Assert.Single(spotlight.FindAll(".spotlight-pause svg[aria-hidden='true']"));
+        Assert.Equal("Pause automatisk figurskift", spotlight.Find(".spotlight-pause").GetAttribute("aria-label"));
     }
 
     private static void AssertProfile(IRenderedComponent<AboutCharacterSpotlight> spotlight, CharacterProfile character)
@@ -105,6 +102,13 @@ public sealed class AboutCharacterTests
         Assert.Contains(character.Name, spotlight.Find("figcaption").TextContent);
         Assert.Contains(character.Role, spotlight.Find("figcaption").TextContent);
         Assert.Contains(character.Home, spotlight.Find("figcaption").TextContent);
+        if (character.DisplayPortrait is { } portrait)
+        {
+            var image = Assert.Single(spotlight.FindAll(".spotlight-portrait img"));
+            Assert.Equal(portrait.Image, image.GetAttribute("src"));
+            Assert.Equal(portrait.Alt, image.GetAttribute("alt"));
+        }
+        else Assert.Empty(spotlight.FindAll(".spotlight-portrait img"));
     }
 
     private static BunitContext BrowserContext()

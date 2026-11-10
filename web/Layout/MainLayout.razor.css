@@ -49,3 +49,7 @@ main { flex:1; }
 .lup-header:has(details[open]) { z-index:50; }
 
 .footer-brand { display:block; flex:0 1 220px; max-width:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.lup-header .brand { position:relative; text-decoration:none; }
+.lup-header .brand.is-current::after { content:""; position:absolute; left:0; right:0; bottom:-12px; height:2px; background:var(--blue); }
+@media(max-width:620px) { .lup-header .brand.is-current::after { bottom:-10px; } }

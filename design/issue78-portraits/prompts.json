@@ -1,0 +1,29 @@
+[
+  {
+    "character": "gummianden",
+    "tool": "built-in image_gen",
+    "use_case": "background-extraction",
+    "source": "web/wwwroot/images/characters/gummianden/lyttemakkeren.webp",
+    "output": "web/wwwroot/images/characters/gummianden/portrait-transparent.webp",
+    "transparent_background": true,
+    "prompt": "Use case: background-extraction. Edit target: the supplied existing LUP character portrait. Remove ONLY the backdrop and ground/sea plane, including background cast shadows. Preserve the yellow duck, knitted rust-orange cardigan with button, both hands, orange beak and feet, and the small foreground book, pencil, teal mug and rising steam. Preserve the existing character design, pose, proportions, facial expression, colors, materials, fine painted/knitted textures, original composition and all foreground details. Do not restyle, redraw, change lettering or add anything. Keep precisely the foreground character and its listed props as a clean alpha cutout. Output a genuinely transparent background, with clean antialiased edges and no pale fringe, colored rectangle, checkerboard drawing, glow, border, or new shadow. Do not invent off-frame body parts."
+  },
+  {
+    "character": "chameleon",
+    "tool": "built-in image_gen",
+    "use_case": "background-extraction",
+    "source": "web/wwwroot/images/characters/chameleon/portrait.webp",
+    "output": "web/wwwroot/images/characters/chameleon/portrait-transparent.webp",
+    "transparent_background": true,
+    "prompt": "Use case: background-extraction. Edit target: the supplied existing LUP character portrait. Remove ONLY the backdrop and ground/sea plane, including background cast shadows. Preserve the green chameleon, facial expression, curled tail, ochre crest, leather apron and trousers, tuning fork and wooden string instrument held in its hands. Preserve the existing character design, pose, proportions, facial expression, colors, materials, fine painted/knitted textures, original composition and all foreground details. Do not restyle, redraw, change lettering or add anything. Keep precisely the foreground character and its listed props as a clean alpha cutout. Output a genuinely transparent background, with clean antialiased edges and no pale fringe, colored rectangle, checkerboard drawing, glow, border, or new shadow. Do not invent off-frame body parts."
+  },
+  {
+    "character": "whale",
+    "tool": "built-in image_gen",
+    "use_case": "background-extraction",
+    "source": "web/wwwroot/images/characters/whale/portrait.webp",
+    "output": "web/wwwroot/images/characters/whale/portrait-transparent.webp",
+    "transparent_background": true,
+    "prompt": "Use case: background-extraction. Edit target: the supplied existing LUP character portrait. Remove ONLY the backdrop and ground/sea plane, including background cast shadows. Preserve Docker the dark blue smiling whale, existing visible silhouette and crop, mustard knitted hat, navy sweater, radio, open logbook and its tiny diagrams, green control panel, small container ship and containers, rope and lights, and the small spout. Preserve the existing character design, pose, proportions, facial expression, colors, materials, fine painted/knitted textures, original composition and all foreground details. Do not restyle, redraw, change lettering or add anything. Keep precisely the foreground character and its listed props as a clean alpha cutout. Output a genuinely transparent background, with clean antialiased edges and no pale fringe, colored rectangle, checkerboard drawing, glow, border, or new shadow. Do not invent off-frame body parts."
+  }
+]

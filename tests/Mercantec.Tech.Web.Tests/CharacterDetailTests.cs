@@ -212,7 +212,7 @@ public sealed class CharacterDetailTests
         page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
 
         Assert.Equal("LUPP", page.Find("h1").TextContent);
-        Assert.EndsWith("/lupp-game-design.png", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(CharacterCatalog.Find("lupp")!.DisplayPortrait!.Image, page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(2, page.FindAll(".character-appearance-picker button").Count);
         Assert.Equal("Vælg udtryk for LUPP", page.Find(".character-appearance-picker").GetAttribute("aria-label"));
 
@@ -235,7 +235,7 @@ public sealed class CharacterDetailTests
 
         Assert.Equal(name, page.Find("h1").TextContent);
         Assert.Contains(team, page.Find(".character-subtitle").TextContent);
-        Assert.Equal($"/images/characters/{slug}/portrait.png", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(CharacterCatalog.Find(slug)!.DisplayPortrait!.Image, page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Contains(explanation, page.Find(".character-features").TextContent, StringComparison.OrdinalIgnoreCase);
         Assert.Empty(page.FindAll(".character-gallery, .character-status"));
         Assert.Equal(12, page.FindAll(".character-reactions figure").Count);
@@ -292,7 +292,7 @@ public sealed class CharacterDetailTests
 
         page.Render(parameters => parameters.Add(p => p.Slug, "fox"));
         Assert.Empty(page.FindAll(".character-gallery, .character-appearance-picker"));
-        Assert.Equal("/images/characters/fox/portrait.png", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(CharacterCatalog.Find("fox")!.DisplayPortrait!.Image, page.Find(".character-main-art img").GetAttribute("src"));
     }
 
     [Fact]
@@ -468,7 +468,7 @@ public sealed class CharacterDetailTests
 
         var appearances = page.FindAll(".character-appearance-picker button");
         Assert.Equal(6, appearances.Count);
-        Assert.EndsWith("/lyttemakkeren.webp", page.Find(".character-main-art img").GetAttribute("src"));
+        Assert.Equal(CharacterCatalog.Find("gummianden")!.DisplayPortrait!.Image, page.Find(".character-main-art img").GetAttribute("src"));
         appearances.Single(button => button.TextContent.Contains("Logvagten", StringComparison.Ordinal)).Click();
 
         Assert.Equal(16, page.FindAll(".character-gallery figure").Count);

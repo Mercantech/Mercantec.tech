@@ -71,4 +71,10 @@ Om LUP på `/sources` bruger `AboutLup.razor` med særskilte afsnit for elever o
 
 Offentlige sider bruger en fælles indholdsramme på 1320 px med de samme sideindryk som topbaren. Scrollbarplads reserveres på normale sider, så sider med forskellig højde ikke flytter header og indhold. Notion-editoren bevarer sin egen kant-til-kant-arbejdsflade.
 
-Øverst på Om LUP skifter karaktervisningen automatisk mellem karaktererne med faste intervaller. Nederst kan man selv bladre gennem karaktererne. De tidligere elev-/underviser-genveje i introduktionen er fjernet; de to beskrivende afsnit er bevaret.
+Øverst på Om LUP skifter karaktervisningen automatisk mellem karaktererne med faste intervaller. Karaktererne vises kun øverst, med diskrete manuelle pile og pauseknap. De tidligere elev-/underviser-genveje i introduktionen er fjernet; de to beskrivende afsnit er bevaret.
+
+## Fælles portrætter og forsideindikator
+
+Om LUP og Karakterer-siden bruger begge `CharacterCatalog.All`. Det valgfrie `CharacterProfile.Portrait` samler fritlagte og optimerede portrætter i kataloget; `DisplayPortrait` falder tilbage til første optræden for nye karakterer. Hero, karakterkort, profilsidens standardbillede og søgning bruger samme portrætvalg. Om LUP har ingen særskilt liste over figurer eller billedstier.
+
+Gummianden, Kamæleonen og Docker har fået transparente portrætter. Originalerne er bevaret i billedgallerierne. LUP-forklaringerne ligger i `AboutName.razor`, mens forside-linket i topbaren får understregning og `aria-current=page`, når den relevante forside er aktiv.

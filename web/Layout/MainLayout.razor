@@ -18,7 +18,7 @@
     <div class="app">
         <ViewAsStudentBanner />
         <header class="lup-header @(Auth.IsAuthenticated ? "member-header" : "public-header")">
-            <a class="brand" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform">LUP</a>
+            <a class="brand @(HomeIsCurrent ? "is-current" : null)" href="@HomeHref" aria-label="LUP – Lokal UndervisningsPlatform" aria-current="@(HomeIsCurrent ? "page" : null)">LUP</a>
             @if (Auth.IsAuthenticated)
             {
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
@@ -105,6 +105,7 @@
         }
     }
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
+    private bool HomeIsCurrent => string.Equals(CurrentPath, HomeHref, StringComparison.OrdinalIgnoreCase);
     private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
     private bool HoldsIsCurrent => CurrentPath is "/courses" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
     private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
