@@ -31,7 +31,7 @@ public sealed class CharacterDetailTests
         page.FindAll(".character-appearance-picker button")[2].Click();
 
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
-        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(6, page.FindAll(".character-scenes figure").Count);
         var artworks = CharacterCatalog.Find("raymond")!.Reactions.Concat(CharacterCatalog.Find("raymond")!.Scenes).ToArray();
         var figures = page.FindAll(".character-artwork-gallery figure");
         Assert.Equal(artworks.Length, figures.Count);
@@ -55,7 +55,7 @@ public sealed class CharacterDetailTests
         }
         Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);
-        Assert.Equal(52, page.FindAll(".character-artwork-preview").Select(link => link.GetAttribute("href")).Distinct().Count());
+        Assert.Equal(54, page.FindAll(".character-artwork-preview").Select(link => link.GetAttribute("href")).Distinct().Count());
     }
 
     [Fact]
@@ -67,20 +67,24 @@ public sealed class CharacterDetailTests
         Assert.Equal(2, page.FindAll(".character-artwork-gallery").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "lupp"));
-        Assert.Single(page.FindAll(".character-artwork-gallery"));
-        Assert.Empty(page.FindAll(".character-scenes, .character-animation-card"));
+        Assert.Equal(2, page.FindAll(".character-artwork-gallery").Count);
+        Assert.Empty(page.FindAll(".character-animation-card"));
+        Assert.Equal(2, page.FindAll(".character-scenes figure").Count);
+        Assert.All(page.FindAll(".character-scenes img"), image => Assert.StartsWith("/images/characters/lupp/scenes/", image.GetAttribute("src")));
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/lupp/", image.GetAttribute("src")));
         Assert.Equal(24, page.FindAll(".character-gallery figure").Count);
 
         page.Render(parameters => parameters.Add(p => p.Slug, "vatson"));
-        Assert.Empty(page.FindAll(".character-scenes, .character-gallery"));
+        Assert.Empty(page.FindAll(".character-gallery"));
+        Assert.Equal(2, page.FindAll(".character-scenes figure").Count);
+        Assert.All(page.FindAll(".character-scenes img"), image => Assert.StartsWith("/images/characters/vatson/scenes/", image.GetAttribute("src")));
         Assert.Equal(63, page.FindAll(".character-reactions figure").Count);
         Assert.All(page.FindAll(".character-reactions img"), image => Assert.StartsWith("/images/characters/vatson/", image.GetAttribute("src")));
 
         page.Render(parameters => parameters.Add(p => p.Slug, "raymond"));
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
-        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(6, page.FindAll(".character-scenes figure").Count);
         Assert.EndsWith("/neutral.webp", page.Find(".character-main-art img").GetAttribute("src"));
     }
 
@@ -374,7 +378,7 @@ public sealed class CharacterDetailTests
         }
         Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
-        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(6, page.FindAll(".character-scenes figure").Count);
         Assert.Equal(3, page.FindAll(".character-animation-card").Count);
     }
 
@@ -439,7 +443,7 @@ public sealed class CharacterDetailTests
         Assert.Equal("Docker", page.Find("h1").TextContent);
         Assert.Equal(4, page.FindAll(".character-appearance-picker button").Count);
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
-        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(6, page.FindAll(".character-scenes figure").Count);
         Assert.Equal(3, page.FindAll(".character-animation-card").Count);
         Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
         Assert.Equal(Enumerable.Range(1, 7), CharacterCatalog.Find("whale")!.Illustrations

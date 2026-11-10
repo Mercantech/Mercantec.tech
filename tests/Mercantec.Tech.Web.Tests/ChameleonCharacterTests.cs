@@ -24,7 +24,7 @@ public sealed class ChameleonCharacterTests
         Assert.Equal(4, character.Appearances.Count);
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Equal(16, page.FindAll(".character-gallery figure").Count);
-        Assert.Equal(4, page.FindAll(".character-scenes figure").Count);
+        Assert.Equal(6, page.FindAll(".character-scenes figure").Count);
         Assert.Equal(3, page.FindAll(".character-animation-card").Count);
         Assert.Contains("Machine Learning", page.Find(".character-animations h2").TextContent);
         Assert.DoesNotContain("databaser", page.Find(".character-animations header").TextContent);

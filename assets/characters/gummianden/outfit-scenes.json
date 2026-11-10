@@ -1,0 +1,35 @@
+{
+  "generator": "ImageGen",
+  "reference": "web/wwwroot/images/characters/gummianden/lyttemakkeren.webp",
+  "referenceSha256": "2d1ca675308757ce35cd3127270ea5762d1936975fed9bcb97fa6518e59cca92",
+  "scenes": [
+    {
+      "theme": "fancy-friday",
+      "title": "Fancy Friday med Gummianden",
+      "alt": "Gummianden i turkis fløjlsjakke og butterfly lytter med en vinge ved kinden i en lampelyst bogstue.",
+      "image": "/images/characters/gummianden/scenes/fancy-friday.png",
+      "preview": "/images/characters/gummianden/scenes/fancy-friday.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "eb79b96e6514fd450c754446bab7e20ca7ecc9724405da192e11eb4275aba310",
+      "previewSha256": "3c933acde6cb7d0911767542218171bd1894f8ef28d058522c70f28985e99d59",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nGummianden, the same round molded YELLOW PLASTIC bath rubber duck with slightly glossy vinyl (absolutely no feathers, fur, or pores), solid oval black bead eyes, same broad apricot-orange flattened molded bill, tiny two-lobed raised yellow tuft, two short yellow wing flippers, round belly and small orange webbed feet. Keep unchanged duck proportions and calm attentive expression, not a human person, no fingers, no sculptural pedestal. Clothes replace only the reference cardigan.\n\nAn intimate book-lined lounge, lamplight from a brass table lamp reflected in the warm round molded yellow plastic. Gummianden is dressed for an unusually elegant Friday in a deep teal VELVET dinner jacket with satin shawl collar, white bib of a crisp dress shirt and a very clear plum bow tie. Jacket leaves glossy yellow head, orange bill, feet and much of yellow belly visible, as tiny personified toy. Seated at a round dark wood café table, raising the same single flipper to its cheek as it listens with great seriousness to an unseen programmer's explanation, looking toward an empty other chair. Two blank index cards with unlettered colored marks and a closed notebook on the tabletop, one small frosted glass of sparkling water to catch the light. Heavy fabrics, low amber pools of light, inviting, warm and slightly deadpan."
+    },
+    {
+      "theme": "hawaii-onsdag",
+      "title": "Hawaii-onsdag med Gummianden",
+      "alt": "Gummianden i koralfarvet hawaiiskjorte sidder i en fletstol på en veranda med udsigt over havet.",
+      "image": "/images/characters/gummianden/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/gummianden/scenes/hawaii-onsdag.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "7b5ce4da908a6d0ddedd1596ba202e20a8bf2c783112382bb4beb085f6231d0f",
+      "previewSha256": "d2721a4feb961dfd2a70552c6ef37b543f3445157f7f149ffecf3c9b0962a0b3",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nGummianden, the same round molded YELLOW PLASTIC bath rubber duck with slightly glossy vinyl (absolutely no feathers, fur, or pores), solid oval black bead eyes, same broad apricot-orange flattened molded bill, tiny two-lobed raised yellow tuft, two short yellow wing flippers, round belly and small orange webbed feet. Keep unchanged duck proportions and calm attentive expression, not a human person, no fingers, no sculptural pedestal. Clothes replace only the reference cardigan.\n\nSun-bright breezy seaside veranda by an azure bay, painted full-body rubber duck listening in a tiny woven patio chair, its head tilted as it lifts one short flipper to its cheek. Distinct coral-red aloha shirt with a bold scattered pattern of cream and turquoise tropical leaves, clear short sleeve and open collar, most of its plastic yellow body and wide orange bill visible. Small notebook beside a clear citrus drink on a little wood table, while a blank page lifts gently in the sea breeze. Beyond, sunny rolling ocean and a few softly painted palm leaves frame the open view. Playful, warm, relaxed; grounded vacation setting, no people and no ceremonial costume."
+    }
+  ]
+}

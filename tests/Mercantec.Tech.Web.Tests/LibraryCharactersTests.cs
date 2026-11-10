@@ -47,32 +47,36 @@ public sealed class LibraryCharactersTests
         var expected = new[]
         {
             ("vatson", "character-reactions-title", "63 emojis"),
+            ("vatson", "character-scenes-title", "2 miljøer"),
             ("raymond", "character-reactions-title", "48 emojis"),
             ("beaver", "character-reactions-title", "12 emojis"),
+            ("beaver", "character-scenes-title", "2 miljøer"),
             ("fox", "character-reactions-title", "12 emojis"),
+            ("fox", "character-scenes-title", "2 miljøer"),
             ("lupp", "character-reactions-title", "48 emojis"),
-            ("raymond", "character-scenes-title", "4 miljøer"),
+            ("lupp", "character-scenes-title", "2 miljøer"),
+            ("raymond", "character-scenes-title", "6 miljøer"),
             ("raymond", "character-animations-title", "3 GIF-animationer"),
             ("raymond", "character-gallery-title", "16 infografikker"),
             ("lupp", "character-gallery-title", "24 illustrationer"),
             ("chameleon", "character-reactions-title", "48 emojis"),
-            ("chameleon", "character-scenes-title", "4 miljøer"),
+            ("chameleon", "character-scenes-title", "6 miljøer"),
             ("chameleon", "character-animations-title", "3 GIF-animationer"),
             ("chameleon", "character-gallery-title", "16 infografikker"),
             ("whale", "character-reactions-title", "48 emojis"),
-            ("whale", "character-scenes-title", "4 miljøer"),
+            ("whale", "character-scenes-title", "6 miljøer"),
             ("whale", "character-animations-title", "3 GIF-animationer"),
             ("whale", "character-gallery-title", "16 infografikker"),
             ("gummianden", "character-reactions-title", "48 emojis"),
-            ("gummianden", "character-scenes-title", "4 miljøer"),
+            ("gummianden", "character-scenes-title", "6 miljøer"),
             ("gummianden", "character-animations-title", "3 GIF-animationer"),
             ("gummianden", "character-gallery-title", "16 infografikker"),
             ("bee", "character-reactions-title", "48 emojis"),
-            ("bee", "character-scenes-title", "4 miljøer"),
+            ("bee", "character-scenes-title", "6 miljøer"),
             ("bee", "character-animations-title", "3 GIF-animationer"),
             ("bee", "character-gallery-title", "24 infografikker"),
             ("bat", "character-reactions-title", "48 emojis"),
-            ("bat", "character-scenes-title", "4 miljøer"),
+            ("bat", "character-scenes-title", "6 miljøer"),
             ("bat", "character-animations-title", "3 GIF-animationer"),
             ("bat", "character-gallery-title", "16 infografikker")
         };
@@ -87,6 +91,24 @@ public sealed class LibraryCharactersTests
         Assert.Equal(2, page.FindAll(".character-beaver .character-card-materials, .character-fox .character-card-materials").Count);
         Assert.DoesNotContain(page.FindAll(".character-card-materials img"),
             image => image.GetAttribute("src")!.EndsWith(".gif", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData("Fancy Friday", "fancy-friday")]
+    [InlineData("Hawaii onsdag", "hawaii-onsdag")]
+    public void Both_outfit_themes_are_searchable_for_every_character(string query, string file)
+    {
+        var results = PublicCatalog.Search(query).Where(hit => hit.Kind == "Karakter").ToArray();
+
+        Assert.Equal(CharacterCatalog.All.Count, results.Length);
+        foreach (var character in CharacterCatalog.All)
+        {
+            Assert.Contains(results, hit => hit.Href == character.Path);
+            var path = $"/images/characters/{character.Slug}/scenes/{file}";
+            var scene = Assert.Single(character.Scenes, item => item.Image == path + ".png");
+            Assert.Equal(path + ".webp", scene.Preview);
+            Assert.False(string.IsNullOrWhiteSpace(scene.Alt));
+        }
     }
 
     [Fact]

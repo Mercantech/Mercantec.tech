@@ -1,0 +1,35 @@
+{
+  "generator": "ImageGen",
+  "reference": "web/wwwroot/images/characters/whale/portrait.png",
+  "referenceSha256": "55e83f885b45471148a1cffb80fdee32a1bc136817e3344e4e0edfc4b7d3205d",
+  "scenes": [
+    {
+      "theme": "fancy-friday",
+      "title": "Fancy Friday med Docker",
+      "alt": "Docker i mørk jakke, bordeaux butterfly og gul hue løfter et glas i skibets salon med havnen bag koøjet.",
+      "image": "/images/characters/whale/scenes/fancy-friday.png",
+      "preview": "/images/characters/whale/scenes/fancy-friday.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "3758d335ee33b3fde60c3d2ad4d5b2a108e7c4942714c45934a80ec7da55db38",
+      "previewSha256": "076bfb4066b49003ff10fdc6209ae37d061260b34e6be19fa76fff9a82d512ad",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nDocker the exact old seafaring anthropomorphic humpback whale captain, unusually large robust blue-gray mottled, weathered humpback head, long cream pleated underside with distinct throat grooves, fine dots on his whale snout, amber expressive eye, long pectoral fins and elegant rounded tail fluke, the same compact mustard-yellow ribbed beanie. Keep all species-specific features prominent, no human face, teeth, legs or hands, no long bottlenose dolphin muzzle. Patterned or tailored garment should fit his huge whale shape across the torso with the pleated throat in view. He is thoughtful, seasoned and capable.\n\nDocker hosts a small formal captain's Friday supper in the handsome interior of an old ship's dining saloon. He wears a midnight-blue tailored double-breasted dinner jacket with broad silky lapels, restrained small brass buttons, crisp cream tuxedo shirt front and a burgundy bow tie, plus the familiar tiny mustard knit beanie, all readable at thumbnail size. His immense cream throat grooves and gray-blue humpback snout and flipper stay very visible. A brass porthole behind him frames a darkening harbor. The confident whale captain gently balances a small sparkling toast glass against the curved tip of his pectoral fin beside a laid table with ivory linen. The ship's little unmarked brass clock and one neatly folded white napkin are the only further details in focus. Deep ink blues and brass candlelight, elegant but quietly humorous."
+    },
+    {
+      "theme": "hawaii-onsdag",
+      "title": "Hawaii-onsdag med Docker",
+      "alt": "Docker i blå hawaiiskjorte med orange blomster og gul hue skubber et miniaturefragtskib gennem det lave vand ved en træbro.",
+      "image": "/images/characters/whale/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/whale/scenes/hawaii-onsdag.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "16cddb6c52ef68139f8ae59e106bf8bd255a126d0671a68bb7db5bab9436ceb9",
+      "previewSha256": "719639717b5ce9dde52db7409b697bd3c48fdcada1764e92e97ba5669509f402",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nDocker the exact old seafaring anthropomorphic humpback whale captain, unusually large robust blue-gray mottled, weathered humpback head, long cream pleated underside with distinct throat grooves, fine dots on his whale snout, amber expressive eye, long pectoral fins and elegant rounded tail fluke, the same compact mustard-yellow ribbed beanie. Keep all species-specific features prominent, no human face, teeth, legs or hands, no long bottlenose dolphin muzzle. Patterned or tailored garment should fit his huge whale shape across the torso with the pleated throat in view. He is thoughtful, seasoned and capable.\n\nDocker finally takes a Wednesday off in a warm tropical bay by a low black lava-rock breakwater, half-floating in shallow clear turquoise water with full head, upper body, side flipper and handsome rear tail fluke visible. The clearly visible airy camp-collar Hawaiian shirt is vivid ocean-blue with oversized orange hibiscus and palm-leaf motifs, open at the throat so pale pleats show. Same tiny mustard knit captain cap so he's unmistakable. He pushes a little hand-carved toy cargo vessel out from a sandy wooden dock with his curved fin while enjoying the warm surf. Gentle shore breeze, sail-like shirt folds, glints on water, layered teal-to-blue horizon and warm golden afternoon, painted detail of the whale's skin and wet fabric. Cheerful leisure without crowds, tourism clichés, hula or props of ceremonial dress."
+    }
+  ]
+}

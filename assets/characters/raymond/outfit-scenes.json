@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "character": "raymond",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "preview": "FFmpeg libwebp, Lanczos, kvalitet 86",
+  "scenes": [
+    {
+      "id": "fancy-friday",
+      "alt": "Raymond i mørk smoking og bronzebriller løfter en espressokop i et varmt oplyst bibliotek.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nRaymond, the familiar warm hand-painted blue elephant from the first image, with expressive brown eyes, round thin bronze glasses, short blue tuft, wide drooping ears, rounded trunk curled upward and adult professor proportions. Use the second reference's dark tailored three-piece tuxedo with white shirt, black bow tie, burgundy pocket square and small gold fob chain. Friday evening in the wood-paneled library after a talk. He has his navy cloth-bound book tucked under one arm and lifts a white espresso cup with the other hand, a small amused look on his face. A side table with cream saucer, table lamp and open book, rain-beaded tall windows and muted bookshelves, oak floor, golden pool of light, indigo night. Make both outfit and face clear. Editorial storybook gouache, not photoreal.",
+      "referenceFiles": [
+        {
+          "repository": "SQL-H1",
+          "path": "assets/mascot/candidates/01-sql-underviseren.png",
+          "sha256": "d3ab188d89e2adebffa041ad133eaf8985c4e669fd5f1bcb6445871be96b2603"
+        },
+        {
+          "repository": "SQL-H1",
+          "path": "assets/mascot/professor-pack/fancy.png",
+          "sha256": "aced6182d2b5d657254d6d0e65037ffa6010c1b42ba2e5bc16e7f5be3f4a57d4"
+        }
+      ],
+      "generation": "exec-5548abb7-3bc1-4f3d-87a6-8789421f043e.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/raymond/scenes/fancy-friday.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2684894,
+        "sha256": "f5004a71b300f7f1c2bcc7decf2f34af5a4bf8056ca142061aa3f6dddc8ed51d"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/raymond/scenes/fancy-friday.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 98886,
+        "sha256": "b193ac51d9e92e91f1b4eb6ed0b65409b4a3fd204782a04f0db5e61096607769"
+      }
+    },
+    {
+      "id": "hawaii-onsdag",
+      "alt": "Raymond i bladtrykt skjorte og bronzebriller holder sin stråhat på en veranda ved havet.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nRaymond the same friendly blue elephant professor, rounded curled trunk, short tuft, large ears, warm brown eyes and round bronze glasses from reference one. Adapt the cream and sea-green leaf-print short-sleeve shirt, sand-colored shorts and brown sandals from reference two. A breezy Hawaiian coastal veranda with palm-frond shadows, turquoise water, pale morning clouds, flowering tropical greenery and a weathered wooden floor. Mid-step in a genuine wind gust he holds the brim of his straw hat with one hand while his other secures his favorite navy book, whose two or three pages the wind is catching. This is a relaxed seaside day, no cultural costume or caricature. Clear fitted summer clothes, painterly warm editorial texture, bright daylight with muted colors and spacious horizon.",
+      "referenceFiles": [
+        {
+          "repository": "SQL-H1",
+          "path": "assets/mascot/candidates/01-sql-underviseren.png",
+          "sha256": "d3ab188d89e2adebffa041ad133eaf8985c4e669fd5f1bcb6445871be96b2603"
+        },
+        {
+          "repository": "SQL-H1",
+          "path": "assets/mascot/professor-pack/summer-holiday.png",
+          "sha256": "a2b2dc7dc4b9fb3bea7b2eb517ece85bcf063f70d16e9c024f5a75e34b7b8b86"
+        }
+      ],
+      "generation": "exec-8fd6fcad-8c4e-4f01-bb9d-203b66741fcf.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/raymond/scenes/hawaii-onsdag.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 3269309,
+        "sha256": "943c7803e5b4554a4cc0478228100041775a3a096e3a5c2e17232c701dec96da"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/raymond/scenes/hawaii-onsdag.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 134230,
+        "sha256": "6415fa4e41b9333638e45de3caaca697af90e425b845bdf038a42d04ec1ad693"
+      }
+    }
+  ]
+}

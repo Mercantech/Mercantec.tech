@@ -24,6 +24,9 @@ public static class CharacterCatalog
             Reactions = ReactionsFor("lupp"),
             LargeReactionPreviews = true,
             ReactionsDescription = "LUPPs reaktioner fra Game Design: fra den første spilidé og skitse til playtest, feedback og et nyt forsøg. Find et motiv, åbn originalen, eller hent den som transparent PNG.",
+            Scenes = OutfitScenes("lupp",
+                "LUPP i mørk smoking og lilla butterfly ved premieren på et spil.",
+                "LUPP i turkis blomsterskjorte tegner en spilbane i sandet med sin gule blyant på en veranda ved havet."),
             IllustrationsDescription = "Illustrationer fra Game Design-forløbet og Rune Run, hvor den lilla figur afprøver spillets regler. Åbn et billede i fuld størrelse, eller hent originalen som PNG.",
             Illustrations =
             [
@@ -68,7 +71,10 @@ public static class CharacterCatalog
         {
             Reactions = VatsonEmojiCatalog.All,
             LargeReactionPreviews = true,
-            ReactionsDescription = "Alle Vatsons emojis i stor visning – fra vinken og kaffepause til PLC, VR og værkstedsbesøg. Åbn en original i fuld størrelse, eller hent den som PNG."
+            ReactionsDescription = "Alle Vatsons emojis i stor visning – fra vinken og kaffepause til PLC, VR og værkstedsbesøg. Åbn en original i fuld størrelse, eller hent den som PNG.",
+            Scenes = OutfitScenes("vatson",
+                "Vatson svæver ved en oplyst disk i marineblå smokingvest og turkis butterfly og løfter den ene griber til hilsen.",
+                "Vatson svæver i en koralfarvet blomsterskjorte på en veranda med havudsigt. Hans turkise ringbind står på en stol.")
         },
         new("gummianden", "Gummianden", "Talende undervisningsmakker · Debugging", "VATek · Fejlfinding", false,
             "Den gule gummiand, der lytter, når koden driller, og hjælper dig med at finde, hvor den går galt.",
@@ -100,7 +106,9 @@ public static class CharacterCatalog
             LargeReactionPreviews = true,
             ReactionsDescription = "Gummiandens reaktioner, fra det første »hmm« til testen, der endelig går grøn. Søg efter et motiv, åbn originalen, eller hent den som transparent PNG. Du finder også emojierne i LUPs editor.",
             ScenesDescription = "Besøg lyttekammeratens studie, detektivens sporvæg, testpilotens prøvebane og logvagtens natbord. Åbn et billede i fuld størrelse, eller hent det som PNG.",
-            Scenes = DuckMotionMaterials.Scenes
+            Scenes = [..DuckMotionMaterials.Scenes, ..OutfitScenes("gummianden",
+                "Gummianden i turkis fløjlsjakke og butterfly lytter med en vinge ved kinden i en lampelyst bogstue.",
+                "Gummianden i koralfarvet hawaiiskjorte sidder i en fletstol på en veranda med udsigt over havet.")]
         },
         new("raymond", "Raymond", "Professor Codd · SQL-underviser", "SQL-H1", false,
             "Den blå elefantprofessor, der hjælper dig med SQL, relationer og databaser.",
@@ -134,7 +142,10 @@ public static class CharacterCatalog
                 new("Biblioteket", "/images/characters/raymond/scenes/library.png", "Raymond læser i et hyggeligt træbibliotek med bøger og varmt lampelys.", 1536, 1024),
                 new("Kodecaféen", "/images/characters/raymond/scenes/cafe.png", "Raymond arbejder med sin laptop og kaffe ved et cafévindue på en regnfuld aften.", 1536, 1024),
                 new("Databaseobservatoriet", "/images/characters/raymond/scenes/observatory.png", "Raymond undersøger stjernehimlen fra et fantasifuldt rumobservatorium med teleskop og datakonstellationer.", 1536, 1024),
-                new("Mysteriet om den tabte række", "/images/characters/raymond/scenes/detective-study.png", "Raymond undersøger et ufarligt SQL-mysterium med lup, sagsmappe og et opslag med spor.", 1536, 1024)
+                new("Mysteriet om den tabte række", "/images/characters/raymond/scenes/detective-study.png", "Raymond undersøger et ufarligt SQL-mysterium med lup, sagsmappe og et opslag med spor.", 1536, 1024),
+                ..OutfitScenes("raymond",
+                    "Raymond i mørk smoking og bronzebriller løfter en espressokop i et varmt oplyst bibliotek.",
+                    "Raymond i bladtrykt skjorte og bronzebriller holder sin stråhat på en veranda ved havet.")
             ]
         },
         new("chameleon", "Kamæleonen", "Ekspert og underviser i Machine Learning", "Machine Learning · Data og modeller", false,
@@ -174,7 +185,10 @@ public static class CharacterCatalog
                 new("Violinbyggerens værksted", "/images/characters/chameleon/scenes/workshop.png", "Kamæleonen bygger en violin i et varmt italiensk håndværkerværksted.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/workshop.webp" },
                 new("Banjo i aftensolen", "/images/characters/chameleon/scenes/banjo-evening.png", "Kamæleonen spiller banjo i en rolig stund ved solnedgang.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/banjo-evening.webp" },
                 new("Data i drivhuset", "/images/characters/chameleon/scenes/data-garden.png", "Kamæleonen undersøger planter og eksempler med sin notesbog i et lyst drivhus.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/data-garden.webp" },
-                new("Læringsværkstedet", "/images/characters/chameleon/scenes/teaching-studio.png", "Kamæleonen forklarer grupper og mønstre med enkle farvede datapunkter i et lyst undervisningsstudie.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/teaching-studio.webp" }
+                new("Læringsværkstedet", "/images/characters/chameleon/scenes/teaching-studio.png", "Kamæleonen forklarer grupper og mønstre med enkle farvede datapunkter i et lyst undervisningsstudie.", 1536, 1024) { Preview = "/images/characters/chameleon/scenes/teaching-studio.webp" },
+                ..OutfitScenes("chameleon",
+                    "Kamæleonen i flaskegrøn fløjlsjakke og kobberfarvet butterfly stemmer sin banjo i en lille koncertsal.",
+                    "Kamæleonen i en koralfarvet blomsterskjorte spiller banjo på en træterrasse ved havet.")
             ]
         },
         new("whale", "Docker", "Havnekaptajn · Underviser i DevNet og deployment", "Deploy or die · DevNet", false,
@@ -203,7 +217,9 @@ public static class CharacterCatalog
             LargeReactionPreviews = true,
             ReactionsDescription = "48 transparente emojis med kaptajnen til hverdagen, en travl deploy og en tur på kajen. Søg efter et motiv, åbn originalen, eller hent en PNG.",
             ScenesDescription = "Følg kaptajnen fra tidevandsbogen ved kajen til værkstedsbordet, badekarrets testhavn og en rigtig containerudrulning. Åbn billederne i fuld størrelse, eller hent dem som PNG.",
-            Scenes = WhaleMaterials.Scenes
+            Scenes = [..WhaleMaterials.Scenes, ..OutfitScenes("whale",
+                "Docker i mørk jakke, bordeaux butterfly og gul hue løfter et glas i skibets salon med havnen bag koøjet.",
+                "Docker i blå hawaiiskjorte med orange blomster og gul hue skubber et miniaturefragtskib gennem det lave vand ved en træbro.")]
         },
         new("bee", "Cyberbien", "Underviser i cybersikkerhed", "Cybersikkerhed · Fra forebyggelse til respons", false,
             "Cyberbien viser, hvordan du beskytter konti, kode og netværk, og hvad du gør, når en alarm går.",
@@ -235,7 +251,9 @@ public static class CharacterCatalog
             LargeReactionPreviews = true,
             ReactionsDescription = "Cyberbien tjekker en mistænkelig mail, sætter en honeypot ud og fejrer, når testen går grøn. Søg efter et motiv, hent en transparent PNG, eller brug emojierne i LUPs editor.",
             ScenesDescription = "Se Cyberbien ved lokkeserveren, på nattevagt, i testlaboratoriet og under en hændelsesøvelse. Åbn et billede i fuld størrelse, eller hent det som PNG.",
-            Scenes = BeeMotionMaterials.Scenes
+            Scenes = [..BeeMotionMaterials.Scenes, ..OutfitScenes("bee",
+                "Cyberbien i marineblå smoking med gylden butterfly præsenterer sit miniaturebistade på en aftenudstilling.",
+                "Cyberbien i turkis blomsterskjorte lader en gul drage flyve på en solrig kyststi.")]
         },
         new("bat", "Næsebladet", "Underviser i IoT og embedded", "IoT · Fra signal til handling", false,
             "Næsebladet sender et signal ud og kræver bevis for, at det rigtige svar kom tilbage. Følg målingen fra sensor og firmware til netværk og Linux.",
@@ -265,7 +283,9 @@ public static class CharacterCatalog
             LargeReactionPreviews = true,
             ReactionsDescription = "Næsebladet lytter, måler, finder støj og sender beskeder med MQTT. Hent emojierne som transparente PNG’er, eller brug dem i LUPs editor.",
             ScenesDescription = "Besøg parkeringskælderen, målebænken, drivhuset og scenen, hvor Næsebladet præsenterer sit teskealbum. Åbn billederne i fuld størrelse, eller hent dem som PNG.",
-            Scenes = BatMotionMaterials.Scenes
+            Scenes = [..BatMotionMaterials.Scenes, ..OutfitScenes("bat",
+                "Næsebladet i brokadevest og butterfly står på et dirigentpodie i et tomt teater og løfter en teske som taktstok.",
+                "Næsebladet i grøn hawaiiskjorte med orange blomster holder øje med en optager, en teske og et glas lemonade på en terrasse ved havet.")]
         },
         new("beaver", "Bæver", "Underviser i Sikkerhed og test · Blå team", "Sikkerhed og test", false,
             "Den rolige systembygger på blåt team: sikker kode, adgangskontrol, logs og tests, der holder løsningen robust.",
@@ -279,7 +299,10 @@ public static class CharacterCatalog
         {
             Reactions = ReactionsFor("beaver"),
             LargeReactionPreviews = true,
-            ReactionsDescription = "Bævers reaktioner fra det blå team: rolige forklaringer, opmuntring, adgangskontrol, logs og tests. Åbn en original i fuld størrelse, eller hent en transparent PNG."
+            ReactionsDescription = "Bævers reaktioner fra det blå team: rolige forklaringer, opmuntring, adgangskontrol, logs og tests. Åbn en original i fuld størrelse, eller hent en transparent PNG.",
+            Scenes = OutfitScenes("beaver",
+                "Bæver retter sin gyldne butterfly ved et klaver. Han har blå fløjlssmoking og briller, og den brede, flade hale ligger på gulvet.",
+                "Bæver har en blå blomsterskjorte på og holder fast i en flettet parasol på en træbro ved havet. Hans flade hale hviler på broen.")
         },
         new("fox", "Ræv", "Underviser i Sikkerhed og test · Rød team", "Sikkerhed og test", false,
             "Den nysgerrige sikkerhedstester på rødt team: undersøger angrebsflader, uventede input og systemets rettigheder.",
@@ -293,12 +316,27 @@ public static class CharacterCatalog
         {
             Reactions = ReactionsFor("fox"),
             LargeReactionPreviews = true,
-            ReactionsDescription = "Rævs reaktioner fra det røde team: nysgerrige spørgsmål, nye idéer, undersøgende tests og fund, der deles med kollegerne. Åbn en original i fuld størrelse, eller hent en transparent PNG."
+            ReactionsDescription = "Rævs reaktioner fra det røde team: nysgerrige spørgsmål, nye idéer, undersøgende tests og fund, der deles med kollegerne. Åbn en original i fuld størrelse, eller hent en transparent PNG.",
+            Scenes = OutfitScenes("fox",
+                "Ræv står i en teaterfoyer i bordeaux fløjlsjakke og sort butterfly med notesbogen åben og den buskede hale synlig.",
+                "Ræv står i rød blomsterskjorte på en træbro ved et vandfald og holder notesbogen åben ved rækværket.")
         }
     ];
 
     public static CharacterProfile? Find(string? slug) =>
         All.FirstOrDefault(character => string.Equals(character.Slug, slug, StringComparison.OrdinalIgnoreCase));
+
+    private static CharacterIllustration[] OutfitScenes(string slug, string fancyFridayAlt, string hawaiiAlt) =>
+    [
+        OutfitScene(slug, "fancy-friday", "Fancy Friday", fancyFridayAlt),
+        OutfitScene(slug, "hawaii-onsdag", "Hawaii-onsdag", hawaiiAlt)
+    ];
+
+    private static CharacterIllustration OutfitScene(string slug, string file, string title, string alt)
+    {
+        var path = $"/images/characters/{slug}/scenes/{file}";
+        return new(title, path + ".png", alt, 1536, 1024) { Preview = path + ".webp" };
+    }
 
     private static CharacterIllustration RuneRun(string file, string title, string alt, int width = 1536, int height = 1024) =>
         new(title, $"/images/characters/lupp/rune-run/{file}.png", alt, width, height)

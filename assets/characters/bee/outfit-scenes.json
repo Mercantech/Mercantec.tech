@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "character": "bee",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "preview": "FFmpeg libwebp, Lanczos, kvalitet 86",
+  "scenes": [
+    {
+      "id": "fancy-friday",
+      "alt": "Cyberbien i marineblå smoking med gylden butterfly præsenterer sit miniaturebistade på en aftenudstilling.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nUse the exact friendly bee identity from the supplied portrait, soft polished tactile 3D mascot rendering, yellow face with large brown eyes, two dark antennae with yellow ends, two pairs of cream translucent veined wings, black and yellow striped abdomen and distinct chunky dark goggles with cyan code and padlock symbols up on the forehead leaving eyes fully visible. Dress him in a sharply tailored midnight-navy mini tuxedo with satin trim, amber bow tie, white shirt and black-and-amber formal shoes. A low-key Friday evening exhibition in an indoor museum-like atrium, brushed brass and walnut pedestal, warm pendant light, on which he proudly reveals a miniature hexagonal beehive made from repurposed plain unbranded network switches. One welcoming hand gesture, body and suit unobstructed. Warm lamps and restrained cyan details, no printed labels or extra characters.",
+      "referenceFiles": [
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/bee/portrait.png",
+          "sha256": "eabb4b0716d58faa43bbbb7119b1da2003d8d95d554335d38b728600d3a58def"
+        }
+      ],
+      "generation": "exec-475e9178-5e20-4e4b-bad6-ef8092a46176.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bee/scenes/fancy-friday.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2453260,
+        "sha256": "7d07c993f661bbb1d295fe794e7cdb99a9f7a80eeb17f2d2c11031a5d6254279"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bee/scenes/fancy-friday.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 86842,
+        "sha256": "a2f11d20a548fa85de460fc67cfbb5bdb0a3fc7b6f079dce3d603a762eb2a393"
+      }
+    },
+    {
+      "id": "hawaii-onsdag",
+      "alt": "Cyberbien i turkis blomsterskjorte lader en gul drage flyve på en solrig kyststi.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nUse the exact recognizable bee from the supplied portrait with rounded golden yellow face, big friendly brown eyes, two yellow-tipped black antennae, familiar dark goggles perched above eyes with cyan code and lock icons, striped yellow/black abdomen, two pairs of cream translucent veined wings and same proportions. Light tropical short-sleeve turquoise aloha-style shirt with small yellow and off-white floral print, casual dark cuffed shorts and open dark sandals with gold accents. A breezy Hawaiian coast in midday, palm shadows, pale sea spray and distant turquoise ocean. He is on a sunlit sandy coastal path holding a wooden spool with one uncomplicated, clearly attached line leading to a small honey-yellow hexagon kite in the breeze. His goggle lenses catch the light; eyes remain visible. Scene rendered in his signature polished tactile 3D style. Kind everyday holiday, no cultural caricature, no headwear covering antennae.",
+      "referenceFiles": [
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/bee/portrait.png",
+          "sha256": "eabb4b0716d58faa43bbbb7119b1da2003d8d95d554335d38b728600d3a58def"
+        }
+      ],
+      "generation": "exec-c259fe59-9927-4457-94f8-4e6eca3f775e.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bee/scenes/hawaii-onsdag.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2579397,
+        "sha256": "fe8b44d865c03e7a80e04b7a20c34e4e520823abd9a99eaaebd5872fde09b60c"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bee/scenes/hawaii-onsdag.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 112274,
+        "sha256": "cde9ac120e36200b0aa94c210917a48cea5824501c1c06c59fd33c754d2de2a4"
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "character": "chameleon",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "preview": "FFmpeg libwebp, Lanczos, kvalitet 86",
+  "scenes": [
+    {
+      "id": "fancy-friday",
+      "alt": "Kamæleonen i flaskegrøn fløjlsjakke og kobberfarvet butterfly stemmer sin banjo i en lille koncertsal.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nThe same male artisan chameleon, exact leaf-green and fine yellow-green scales, orange crest, golden-brown turret eyes, sturdy build and complete curled tail from the reference. Fancy Friday as a small after-hours chamber concert inside an Italian luthier's warm workshop concert room. He has traded his apron for a tailored deep bottle-green velvet dinner jacket, white shirt, copper bow tie, dark tapered pants and a small tuning-fork tie pin. He listens with one eyebrow raised while tuning his polished five-string banjo, one hand holding the neck near the tuners, the other calmly near the strings; his violin waits in a small open case on a stool to the side. Keep his curled tail visible. Soft amber stage light, dim blurred seating and walnut panels, matching painterly finely textured illustrations. Exactly one hand at each place, believable instrument anatomy.",
+      "referenceFiles": [
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/chameleon/portrait.png",
+          "sha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936"
+        },
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/chameleon/banjo.png",
+          "sha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3"
+        }
+      ],
+      "generation": "exec-646b10d2-7b51-4271-b16e-5c7773afeb63.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/chameleon/scenes/fancy-friday.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 2550024,
+        "sha256": "ab9e9761b868a06cb0944301b97ad25a5fefb377955c546b83f495e527bc65b4"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/chameleon/scenes/fancy-friday.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 96564,
+        "sha256": "e0e4fd72615fc87d0596d312b7a3400a7f45c4bc522b62082b56feb6a2a27004"
+      }
+    },
+    {
+      "id": "hawaii-onsdag",
+      "alt": "Kamæleonen i en koralfarvet blomsterskjorte spiller banjo på en træterrasse ved havet.",
+      "prompt": "Create one standalone, landscape 3:2, ideally 1536 by 1024, illustrated character outfit scene for the LUP mascot library. The character is the focal point, full body or near full body with breathing room, natural anatomy, a readable face and an unmistakably visible themed outfit. Use the provided images as identity and craft references. Place the character in a coherent fully illustrated environment with foreground, middle ground, atmospheric depth and grounded shadows. A new composition, spontaneous narrative action, generous crop safety, rich restrained craft, intentional color. Opaque scene. No lettering, signage, brand logos, watermarks, layouts, caption boxes or typographic elements. Any literal line icons already on the bee's goggles are his character features.\n\nThe same familiar green chameleon luthier, with amber expressive turret eyes, fine scales, orange edging to crest, sturdy proportions and a visible curled tail. He's sitting comfortably at the open edge of a breezy sunlit timber terrace looking out toward Hawaiian surf and a distant green ridge, softly playing his favorite five-string banjo in an easy informal pose. Short-sleeved washed coral linen shirt with spare cream floral pattern, open collar and pale linen shorts. Ocean light, wild green foliage and woven straw shade, a tiny unlettered notebook next to him. Use his own warm gouache and fine-scale style, believable banjo proportions and correct limb count. Respectful ordinary leisure, no costume, no caricature.",
+      "referenceFiles": [
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/chameleon/portrait.png",
+          "sha256": "78a410962bf9f01f8eda28e8451bc8295a7d43785d1e7e13e42d669dcbd6c936"
+        },
+        {
+          "repository": "Mercantec.tech",
+          "path": "web/wwwroot/images/characters/chameleon/banjo.png",
+          "sha256": "1d30ff747a63b2a25e653bb7280413f977d0277d264ff363b4d596f32ac0e5c3"
+        }
+      ],
+      "generation": "exec-8c49a1e6-5b96-48b4-a045-978bde20134b.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/chameleon/scenes/hawaii-onsdag.png",
+        "width": 1536,
+        "height": 1024,
+        "bytes": 3364520,
+        "sha256": "5e56914307d09b96cc32cb8745bee7162e86df21580d7d5c868ddf2e2e964b77"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/chameleon/scenes/hawaii-onsdag.webp",
+        "width": 768,
+        "height": 512,
+        "bytes": 141252,
+        "sha256": "4141563bf0abe3f3d8ff98eb3adf027ff73cabc5095a19e85ed70951aa86526f"
+      }
+    }
+  ]
+}

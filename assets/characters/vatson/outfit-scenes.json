@@ -1,0 +1,42 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "vatson",
+  "reference": "web/wwwroot/images/characters/vatson/vatson.webp",
+  "referenceSha256": "1e0e087fb2a56c6e0a018d893f1c95b75c37599687d57df55d6066165ced0c4f",
+  "entries": [
+    {
+      "id": "fancy-friday",
+      "title": "Fancy Friday",
+      "alt": "Vatson svæver ved en oplyst disk i marineblå smokingvest og turkis butterfly og løfter den ene griber til hilsen.",
+      "image": "/images/characters/vatson/scenes/fancy-friday.png",
+      "preview": "/images/characters/vatson/scenes/fancy-friday.webp",
+      "sourceArtifact": "exec-2d290a88-22e8-4dae-ad9c-ba107d6276ae.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "5807187b4effb912c88b662fc76cc18b5018de2dc64d301b36413ff9b1638e7e",
+      "previewSha256": "3a0139c36db6d1e5e5648b7cb512743f01b0b51a18a889accad33fa7fefe3e59",
+      "originalBytes": 2369222,
+      "previewBytes": 100848,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nUse the attached reference ONLY for Vatson's exact robot identity: compact floating white rounded rectangular monitor with grey side clips, black glass screen and smiling cyan dot matrix face, single black spring antenna with a white round tip, polished white tapered hover pod torso with tiny cyan underside light, two short black corrugated hose arms, small simple silver grippers, NO legs, NO feet. The face, antenna, proportions and hover body are exactly recognizable. Dress the original compact robot body in a neat tiny navy velvet tuxedo vest, soft ivory shirt front and cyan satin bow tie fastened just under the screen, keeping the hovering base and upper limbs visible. Show Vatson full height, floating a few inches above the floor behind the end of a compact walnut welcome desk rather than hidden by it, one gripper offering a greeting, his familiar teal three-ring binder open at the desk's corner. A stylish Friday evening reception in a warmly lit maker studio, amber desk lamp, few background decorative bulbs, glass window into soft blue twilight and out-of-focus simple workshop silhouettes. Elegant but playful and distinctly tech creative studio, no legged robot, no humans. Smooth softly modeled painted 3D surfaces for Vatson, editorial warm interior light."
+    },
+    {
+      "id": "hawaii-onsdag",
+      "title": "Hawaii-onsdag",
+      "alt": "Vatson svæver i en koralfarvet blomsterskjorte på en veranda med havudsigt. Hans turkise ringbind står på en stol.",
+      "image": "/images/characters/vatson/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/vatson/scenes/hawaii-onsdag.webp",
+      "sourceArtifact": "exec-2b939e10-9154-43d0-8f79-659c05961c9b.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "b8cced1d5f7f4ee780bb32382f594e7cc508875b47125e45413aa0123c50ec1c",
+      "previewSha256": "3fb92e8e8b5ebc5027dc1fcf68b261a67a2563d3bbe91e2dd752522cec96d317",
+      "originalBytes": 2707058,
+      "previewBytes": 130628,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nUse the attached reference ONLY for Vatson's exact robot identity: compact floating white rounded rectangular monitor with grey side clips, black glass screen and smiling cyan dot matrix face, single black spring antenna with a white round tip, polished white tapered hover pod torso with tiny cyan underside light, two short black corrugated hose arms, small simple silver grippers, NO legs, NO feet. Wrap an airy coral-and-teal button-up aloha shirt with simple ivory botanical leaf print directly around the original tapered robot torso, petite sleeves ending before the black hose arms and shirt stopping above the hover light. His monitor face, antenna and actual hover pod silhouette stay fully visible. Gentle, low-key midweek tropical leisure on an open timber seaside veranda, turquoise sea and distant volcanic coast softly visible between palms, golden warm daylight and airy side breeze lightly lifting the shirt hem. Vatson floats beside a simple chair with his recognizable teal three-ring binder propped on the seat, one gripper following the swaying leaf just above the railing. Full body with negative space below the hover light. Warm painted 3D character feel and realistic outdoor bounce light. No humans, caricatures, body paint or logos."
+    }
+  ]
+}

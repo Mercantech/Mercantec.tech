@@ -1,0 +1,42 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "fox",
+  "reference": "web/wwwroot/images/characters/fox/portrait.png",
+  "referenceSha256": "01509b739eec882ee2cd876aeb023b2a0e2a548aad5cb9750500a41871abc2b9",
+  "entries": [
+    {
+      "id": "fancy-friday",
+      "title": "Fancy Friday",
+      "alt": "Ræv står i en teaterfoyer i bordeaux fløjlsjakke og sort butterfly med notesbogen åben og den buskede hale synlig.",
+      "image": "/images/characters/fox/scenes/fancy-friday.png",
+      "preview": "/images/characters/fox/scenes/fancy-friday.webp",
+      "sourceArtifact": "exec-3beeb38f-2a43-4be2-80b6-f18d6f5c7868.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "5901827a6458e5ecb9aa47f1b78e3ae31889d4589aa1adab599fd1f5983fbf2f",
+      "previewSha256": "f92406aeaec7a8b1f6ab4638436746e51d49d4a0736e82fde29dda359fb96404",
+      "originalBytes": 2425842,
+      "previewBytes": 97806,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nUse the attached portrait for the EXACT same adult anthropomorphic red fox: slender build, russet orange coat with creamy-white muzzle, cheeks and throat, upright tall ears with dark outer tips, dark paw markings, amber eyes, playful clever sidelong smile, and a huge thick bushy orange tail with a pale cream tip. Same face, ear profile and tail volume. For Fancy Friday put him in a rich burgundy velvet evening jacket with charcoal silk lapels, cream shirt, black bow tie, tailored dark trousers and soft polished brown shoes. He has just noticed a detail in his little paper notebook and pencils a tiny diagram during an indoor theatre intermission; place him three-quarter full figure leaning against a brass railing in an elegant amber and burgundy theatre foyer, small shaded lamp, hazy stair, velvet curtains, slate shadows. Show the complete bushy tail arcing to the far side as a recognisable part of the pose with the cream tip unobscured, expressive ears and eyes, outfit clear. Warm editorial painterly rendering like the reference, cinematic but uncluttered. No text or realistic people, no logos."
+    },
+    {
+      "id": "hawaii-onsdag",
+      "title": "Hawaii-onsdag",
+      "alt": "Ræv står i rød blomsterskjorte på en træbro ved et vandfald og holder notesbogen åben ved rækværket.",
+      "image": "/images/characters/fox/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/fox/scenes/hawaii-onsdag.webp",
+      "sourceArtifact": "exec-76d3b64d-c77c-46f6-b0a7-4b763696a026.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "487a6b6975f81f272c16a9dac136974bc6a11fd4293d2dd1e1d780d19d0728f2",
+      "previewSha256": "e53e2f38923628ea4f262b385bb79be9fb96e929292f12b3a69b8a21b6ed5a77",
+      "originalBytes": 3464910,
+      "previewBytes": 176308,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nUse the attached portrait for the EXACT same adult anthropomorphic red fox: slender build, russet orange coat with creamy-white muzzle, cheeks and throat, upright tall ears with dark outer tips, dark paw markings, amber eyes, playful clever sidelong smile, and a huge thick bushy orange tail with a pale cream tip. Preserve those key traits and proportions. For a tropical Hawaii Wednesday put him in a loose rich red-and-cream aloha shirt with a clear simple hibiscus and leaf print, casual rolled light trousers, no headwear to obscure his ears. A quiet tropical afternoon on a small wooden footbridge overlooking a blue-green stream and distant waterfall, leafy ferns and lush plants softly frame him. He pauses three-quarter full figure, one hip against rail, to sketch a winding route in his familiar notebook with a pencil, a gentle breeze lifting the shirt edge. The full fluffy orange tail with cream tip flows out across a deliberately open part of the composition, not hidden by railing or foliage. Readable bright muted tropical palette and layered painterly texture matching the reference. No logos, no words, no background people or cultural costume."
+    }
+  ]
+}

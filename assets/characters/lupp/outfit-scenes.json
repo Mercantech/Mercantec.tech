@@ -1,0 +1,32 @@
+{
+  "generator": "Built-in ImageGen",
+  "character": "lupp",
+  "reference": "web/wwwroot/images/characters/lupp/lupp-game-design.png",
+  "referenceSha256": "00ec8dcd805bdff2c695ddd38c1e8fc34804f57efb79d435f1a2e5352dea54a5",
+  "images": [
+    {
+      "theme": "fancy-friday",
+      "original": "fancy-friday.png",
+      "preview": "fancy-friday.webp",
+      "sha256": "2def0e093cd6543cdbf36c0eb33b42eed7855eaab0f4f61fb4e070e03c6a3e45",
+      "previewSha256": "b7410c60143b687cab5fc03dcc17aaf082bf9062dba8415e01f47cb223366120",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "prompt": "Create one polished widescreen 3:2 environment illustration, landscape 1536×1024, of the exact reference mascot LUPP for a website's character scenes gallery. Preserve the large rounded-square monolithic purple clay body, two huge cream eyeballs with round black pupils, clay surface, no visible mouth, no human head, no ears, no elongated torso, no added feet/legs. Put the small clay-clothing outfit on the lower third of the cube-body as front drapery, leaving the exact purple cube silhouette, purple corners and eyes clear. Preserve his chunky yellow pencil with silver band and pink eraser nearby. Friendly warm handmade high-end stop-motion claymation miniature set with tactile surfaces, lovely lighting and pleasing intentional composition. The main mascot fills at least half of the image height. Single coherent scene, no panels, no typography, no watermarks, no logos.\nFancy Friday outfit: tailored midnight-blue formal dinner-jacket front with satin lapels, off-white shirtfront and lavender bow tie, fitted to LUPP's purple cube shape like a miniature vest, one tiny folded pocket square. He is the host of a game prototype premiere. He stands prominently on a polished stage under an amber spotlight, pencil upright nearby like a conductor's baton, a simple clay game controller and a few abstract gameplay pieces on a small presentation plinth beside him. Curved dark theater curtain, small round lights behind him, amber violet and midnight palette. Mid-wide eye-level scene with no other character."
+    },
+    {
+      "theme": "hawaii-onsdag",
+      "original": "hawaii-onsdag.png",
+      "preview": "hawaii-onsdag.webp",
+      "sha256": "1245f818e612c50db535cb44141d6e6288873b7a641c8d21f6708d3a6313ba8e",
+      "previewSha256": "1bc13ea04ecce09bbe9761b9d6136b00420d3bb1075551459de227a9a22e7af9",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "prompt": "Create one polished widescreen 3:2 environment illustration, landscape 1536×1024, of the exact reference mascot LUPP for a website's character scenes gallery. Preserve the large rounded-square monolithic purple clay body, two huge cream eyeballs with round black pupils, clay surface, no visible mouth, no human head, no ears, no elongated torso, no added feet/legs. Put the small clay-clothing outfit on the lower third of the cube-body as front drapery, leaving the exact purple cube silhouette, purple corners and eyes clear. Preserve his chunky yellow pencil with silver band and pink eraser nearby. Friendly warm handmade high-end stop-motion claymation miniature set with tactile surfaces, lovely lighting and pleasing intentional composition. The main mascot fills at least half of the image height. Single coherent scene, no panels, no typography, no watermarks, no logos.\nHawaii Wednesday outfit: turquoise aloha-shirt front wrapped neatly around the purple cube's lower portion, clearly visible open collar and ivory/coral hibiscus print. He is outdoors on a shaded seaside porch, using his signature oversized yellow pencil to draft a board game level in a shallow tray of sand. A small beach-themed clay game controller and a few colorful path tiles beside him. Shimmering sea and lush coastal plants in the background, bright cyan morning and soft coral colors, natural relaxed summer styling. Focus on LUPP and the recognizable patterned collared aloha shirt. No other characters."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "beaver",
+  "reference": "web/wwwroot/images/characters/beaver/portrait.png",
+  "referenceSha256": "06f8d79d325707cd36dca2022c0d58e354a0248c7b2b0f2245035c8436c0ff37",
+  "entries": [
+    {
+      "id": "fancy-friday",
+      "title": "Fancy Friday",
+      "alt": "Bæver retter sin gyldne butterfly ved et klaver. Han har blå fløjlssmoking og briller, og den brede, flade hale ligger på gulvet.",
+      "image": "/images/characters/beaver/scenes/fancy-friday.png",
+      "preview": "/images/characters/beaver/scenes/fancy-friday.webp",
+      "sourceArtifact": "exec-7e717342-0b00-43ab-8c68-d2ea3630a1ff.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "63271aeb7b93760e93159fe512926d5959556dd50908612c54e7a1e0ac948dd8",
+      "previewSha256": "384523be0f1ca826ce8ccb39600de47cfd008caac669199632e7d659bea2e672",
+      "originalBytes": 2635410,
+      "previewBytes": 114182,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nThe attached portrait is the exact identity reference for the same friendly anthropomorphic adult beaver: compact sturdy build, warm chestnut brown fur, rounded beaver ears, tan muzzle with two large centered incisors, familiar brown slightly squared rectangular eyeglasses, broad flat dark brown scaly paddle tail with crosshatch texture, thick paws. Keep the recognisable face and relative proportions. On Fancy Friday he wears a beautifully fitted midnight blue velvet dinner jacket, cream shirt, subtle honey-gold bow tie and tailored taupe trousers. The full or nearly full figure stands beside the end of a compact dark piano in an intimate indoor lounge, making a last adjustment to the collar before the evening, with small brass lamp on the piano, warm parquet floor, amber wall lamps and dark blue window beyond. Body in three-quarter turn so the broad tail lays diagonally into clear foreground space behind him and is recognisable, both glasses and two incisors sharply visible. Rich textured painterly 3D illustration matching reference, quietly pleased smile, warm inviting Friday light. No other people, no brand, no printed text."
+    },
+    {
+      "id": "hawaii-onsdag",
+      "title": "Hawaii-onsdag",
+      "alt": "Bæver har en blå blomsterskjorte på og holder fast i en flettet parasol på en træbro ved havet. Hans flade hale hviler på broen.",
+      "image": "/images/characters/beaver/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/beaver/scenes/hawaii-onsdag.webp",
+      "sourceArtifact": "exec-754d2412-d466-4fac-a161-25030a5b0e13.png",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "originalSha256": "394b765f7fe7674229198bd40d53a6b0b716878d1a5fd1486b4be333d21915ed",
+      "previewSha256": "679813854ffaee8a0a7c82eb8ca0af391e38ff9857171b33586c7a3b5a4a8ecd",
+      "originalBytes": 3380584,
+      "previewBytes": 164008,
+      "prompt": "Create ONE original finished 3:2 landscape editorial illustration, intended as a character website scene. Generous framing so all character-defining parts are inside the canvas, no panels or collage. Character is prominent, dominant at center with environment on both sides. Rich detailed painterly soft dimensional illustration, original character identity from reference. No visible text, signs with letters, captions, branding, signatures or watermarks.\nThe attached portrait is the exact identity reference for the same friendly anthropomorphic adult beaver: compact sturdy build, warm chestnut brown fur, rounded beaver ears, tan muzzle with two large centered incisors, familiar brown slightly squared rectangular eyeglasses, broad flat dark brown scaly paddle tail with crosshatch texture, thick paws. Dress him in a breezy deep ocean-blue aloha shirt with a few stylized ivory and sage botanical flowers, sandy cuffed shorts and simple walking sandals. His small Wednesday delight is testing the shade of a just-repaired little woven parasol on a low wooden boardwalk beside a turquoise tropical inlet, holding a handle or resting one paw at the rail while admiring the tide. Full three-quarter figure in warm clean morning light, clear outline of broad flat tail extending to one side across pale planks, palms softly frame distant shallow water and dark lava rocks. Welcoming expression, eyebrows and original glasses fully visible. Lived-in environment, gentle wind in the shirt, hand-painted reference-like rendering with layered fur, not a studio or collage. No other people, no logos, no cultural costume."
+    }
+  ]
+}

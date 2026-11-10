@@ -1,0 +1,35 @@
+{
+  "generator": "ImageGen",
+  "reference": "web/wwwroot/images/characters/bat/portrait.png",
+  "referenceSha256": "c7c0e00179cf289a8b434285ee1e96c426319742fb3f683dbba4a2fb7c6adada",
+  "scenes": [
+    {
+      "theme": "fancy-friday",
+      "title": "Fancy Friday med Næsebladet",
+      "alt": "Næsebladet i brokadevest og butterfly står på et dirigentpodie i et tomt teater og løfter en teske som taktstok.",
+      "image": "/images/characters/bat/scenes/fancy-friday.png",
+      "preview": "/images/characters/bat/scenes/fancy-friday.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "fb36545c88020f686d71b668bf5c92766f3026e7137333af842127a148cedfdc",
+      "previewSha256": "77ceb10798900640625a6ea9e3fb701d9a455b17a8c71ee4c061eccd7333cd05",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nNæsebladet the SAME broad upright, compact leaf-nosed bat. Preserve the disproportionately broad hunched shoulders, tapered short body, dark plum and rust-orange fine fur, precise pink leaf-shaped nose, narrowed warm amber eyes and proud stern suspicious expression, huge fan ears with the same visible notch high in the ear on the viewer's right, small claw feet, and deep plum angular umbrella wings folded at his sides. Garment should be tailored for a bat with wing openings, wings show their exact recognizable folded triangular shapes, only two integrated bat wings, no human arms or legs.\n\nNæsebladet is the guest conductor in a candle-warm Art Deco music hall on a formal Friday. He wears a sharp tailored charcoal dinner vest with subtle gold brocade, crisp small ivory collar and clearly visible burgundy bow tie. Dramatic wing silhouette and nose, ears and face stay unchanged; bat wings emerge directly from shoulders through the tailored vest. At a raised varnished conductor's podium, he lifts one small silver teaspoon as a baton using the natural little claw at the folded wing's edge, with a stern look as if someone ruined the opening note. Glowing brass footlights, warm red velvet seats empty behind, honey-color parquet, and a dark ochre stage wall with tasteful abstract gold deco lines. No music notes, conductor's staff, readable text or extra arms. Distinctly dressed-up and knowingly theatrical."
+    },
+    {
+      "theme": "hawaii-onsdag",
+      "title": "Hawaii-onsdag med Næsebladet",
+      "alt": "Næsebladet i grøn hawaiiskjorte med orange blomster holder øje med en optager, en teske og et glas lemonade på en terrasse ved havet.",
+      "image": "/images/characters/bat/scenes/hawaii-onsdag.png",
+      "preview": "/images/characters/bat/scenes/hawaii-onsdag.webp",
+      "width": 1536,
+      "height": 1024,
+      "previewWidth": 768,
+      "previewHeight": 512,
+      "sha256": "a6fc69d5512b139cf139883a82910536fecc77da3ff54ad718dba9645a456c9a",
+      "previewSha256": "4101c942e63ddf4a819729219211fb6b2018df0809cdf41419c9dadbfe6c7366",
+      "prompt": "Create one original finished widescreen landscape environmental storybook illustration, exact 3:2 aspect ratio (1536 by 1024 preferred), with one recognizable featured character. Attached artwork is the exact character design reference, not an image to reproduce compositionally. Hand-painted gouache and colored-pencil premium editorial illustration, palpable surfaces, warm chiaroscuro, aesthetically consistent with the reference, meticulous fur/plastic/skin and fabric textures. Compose full or three-quarter featured character in a single cohesive scene, larger than 45% of image height, entire face, signature anatomy and outfit clearly visible. Generous frame margins and grounded depth. Put the character's role and habits in the scene with one action and at most three relevant props. No writing, letters, numbers, screens with words, captions, signature, watermark, corporate logos or typography. No caricature or stereotyped props.\n\nNæsebladet the SAME broad upright, compact leaf-nosed bat. Preserve the disproportionately broad hunched shoulders, tapered short body, dark plum and rust-orange fine fur, precise pink leaf-shaped nose, narrowed warm amber eyes and proud stern suspicious expression, huge fan ears with the same visible notch high in the ear on the viewer's right, small claw feet, and deep plum angular umbrella wings folded at his sides. Garment should be tailored for a bat with wing openings, wings show their exact recognizable folded triangular shapes, only two integrated bat wings, no human arms or legs.\n\nA broad, stern and very committed holiday sound designer bat on an open-sided tropical terrace late in sunny afternoon. Dress the exact bat in a wing-adapted airy moss-green and mango-orange floral aloha shirt with an unmistakable open camp collar and a clear woven leaf-and-hibiscus print. Wing pleats spread at his sides as in the reference, head and amber skeptical eyes large and clear. Beside him on a low rough wood table, the familiar portable recorder points at his very same small silver teaspoon resting against the lip of a cool lemonade glass, ready to record its sound in the sea breeze. One far palm silhouette and soft distant volcanic shoreline, turquoise sea, no additional characters. Visual humor comes from the character's solemn concentration contrasting with the sunny bright color and shirt. Respectful casual coastal vacation setting."
+    }
+  ]
+}
