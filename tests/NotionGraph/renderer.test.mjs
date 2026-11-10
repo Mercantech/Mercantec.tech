@@ -100,6 +100,29 @@ test('text size and weight redraw measured labels without moving nodes or reheat
   assert.equal(f.context.texts.some(label => label.font.includes('12px')), false);
 });
 
+test('titles stay readable near 0.2 zoom by default and respect a higher saved threshold', t => {
+  const f = fixture(t, { nodes: [{ id: 'a', title: 'Klasser og interfaces' }, { id: 'b', title: 'Løs kobling' }] });
+  assert.equal(graph.readSettings().labelThreshold, 0.2);
+  // Nine 0.8× zoom steps take this graph from 1.45× to about 0.195×.
+  for (let step = 0; step < 9; step++) graph.zoom(f.host, -1);
+  f.flush();
+  assert.equal(f.context.texts.length, 2);
+  const above = f.context.texts.find(label => label.text === 'Klasser og interfaces');
+  const below = f.context.texts.find(label => label.text === 'Løs kobling');
+  assert.ok(above.y < f.context.fills[0].y && above.alpha > 0.5);
+  assert.ok(below.y > f.context.fills[1].y && below.alpha > 0.5);
+  assert.ok(below.y - above.y >= 16);
+  f.canvas.dispatch('dblclick', { clientX: above.x, clientY: above.y });
+  assert.deepEqual(f.callbacks.filter(call => call[0] === 'OnGraphOpen'), [['OnGraphOpen', 'a']]);
+
+  graph.saveSettings({ labelThreshold: 0.8 });
+  graph.configure(f.host, graph.readSettings()); f.flush();
+  assert.equal(f.context.texts.length, 0);
+
+  graph.configure(f.host, graph.resetSettings()); f.flush();
+  assert.equal(f.context.texts.length, 2);
+});
+
 test('selected neighborhoods highlight while dimming can be independently disabled', t => {
   const f = fixture(t, { options: { activeId: 'a', labelThreshold: 0.2 } });
   assert.deepEqual(f.context.fills.map(point => Number(point.alpha.toFixed(2))), [1, 1, 0.21]);

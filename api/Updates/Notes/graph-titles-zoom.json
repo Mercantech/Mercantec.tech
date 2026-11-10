@@ -1,0 +1,6 @@
+{
+  "date": "2026-11-10",
+  "title": "Se flere sidetitler i grafen",
+  "description": "Grafen viser som standard titler ved 0,2× zoom. Når pladsen under et punkt er optaget, kan titlen vises over punktet. Du kan stadig vælge din egen zoomgrænse i visningsindstillingerne.",
+  "authors": ["Mathias"]
+}

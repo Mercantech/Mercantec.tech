@@ -9,7 +9,7 @@ const defaults = {
     labelWeight: 500,
     highlightConnections: true,
     dimUnrelated: true,
-    labelThreshold: 0.8,
+    labelThreshold: 0.2,
     nodeSize: 1,
     linkThickness: 1,
     centerForce: 1,
@@ -523,6 +523,7 @@ function create(host, dotnet, payload) {
         for (const point of nodes) if (point !== hovered) point.labelRect = null;
         const priority = new Set([selected, root, emphasis, ...(emphasis?.neighbors ?? []), ...labels]);
         const fontSize = 12 * settings.labelSize;
+        const sides = [1, -1];
         for (const point of priority) {
             if (!point?.visible || point === hovered) continue;
             const active = point === selected || point === root;
@@ -536,18 +537,21 @@ function create(host, dotnet, payload) {
             ctx.font = font;
             if (point.label?.font !== font) point.label = { ...shortenedTitle(ctx, point.title, 176 * settings.labelSize), font };
             const x = point.sx;
-            const y = point.sy + point.sr + 5 + fontSize / 2;
             const half = point.label.width / 2 + 4;
             const halfHeight = fontSize / 2 + 2;
-            const rect = { left: x - half, right: x + half, top: y - halfHeight, bottom: y + halfHeight };
-            if (rect.right < 0 || rect.left > width || rect.top > height ||
-                occupied.some(other => rect.left < other.right && rect.right > other.left &&
-                    rect.top < other.bottom && rect.bottom > other.top)) continue;
-            occupied.push(rect);
-            point.labelRect = { left: -half, right: half, top: rect.top - point.sy, bottom: rect.bottom - point.sy };
-            ctx.globalAlpha = opacity;
-            ctx.strokeText(point.label.text, x, y);
-            ctx.fillText(point.label.text, x, y);
+            for (const side of sides) {
+                const y = point.sy + side * (point.sr + 5 + fontSize / 2);
+                const rect = { left: x - half, right: x + half, top: y - halfHeight, bottom: y + halfHeight };
+                if (rect.right < 0 || rect.left > width || rect.top > height || rect.bottom < 0 ||
+                    occupied.some(other => rect.left < other.right && rect.right > other.left &&
+                        rect.top < other.bottom && rect.bottom > other.top)) continue;
+                occupied.push(rect);
+                point.labelRect = { left: -half, right: half, top: rect.top - point.sy, bottom: rect.bottom - point.sy };
+                ctx.globalAlpha = opacity;
+                ctx.strokeText(point.label.text, x, y);
+                ctx.fillText(point.label.text, x, y);
+                break;
+            }
         }
     }
 

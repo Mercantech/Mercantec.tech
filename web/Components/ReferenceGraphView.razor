@@ -75,7 +75,7 @@
     [Parameter] public string? ScopeKind { get; set; }
     [Parameter] public string? ScopeId { get; set; }
     [Parameter] public bool PublishedOnly { get; set; }
-    private const string ModulePath = "/js/notion-graph.js?v=connections-20261108";
+    private const string ModulePath = "/js/notion-graph.js?v=connections-20261110";
     private readonly string _settingsId = "reference-graph-settings-" + Guid.NewGuid().ToString("N");
     private string? _scope;
     private EntityReference? _focus;
@@ -244,13 +244,15 @@
     }
     public sealed class GraphSettings
     {
+        private const double DefaultLabelThreshold = .2;
+
         public bool ShowLabels { get; set; } = true;
         public bool ShowArrows { get; set; }
         public double NodeSize { get; set; } = 1;
         public double LabelSize { get; set; } = 1;
         public int LabelWeight { get; set; } = 500;
         public double LinkThickness { get; set; } = 1;
-        public double LabelThreshold { get; set; } = .8;
+        public double LabelThreshold { get; set; } = DefaultLabelThreshold;
         public bool HighlightConnections { get; set; } = true;
         public bool DimUnrelated { get; set; } = true;
         public double CenterForce { get; set; } = 1;
@@ -260,7 +262,7 @@
         public void Normalize()
         {
             NodeSize = Bound(NodeSize, .2, 3, 1); LabelSize = Bound(LabelSize, .6, 2, 1); LinkThickness = Bound(LinkThickness, .2, 3, 1);
-            LabelThreshold = Bound(LabelThreshold, .2, 3, .8); CenterForce = Bound(CenterForce, 0, 3, 1); RepelForce = Bound(RepelForce, 0, 3, 1);
+            LabelThreshold = Bound(LabelThreshold, .2, 3, DefaultLabelThreshold); CenterForce = Bound(CenterForce, 0, 3, 1); RepelForce = Bound(RepelForce, 0, 3, 1);
             LinkDistance = Bound(LinkDistance, .2, 3, 1); LinkForce = Bound(LinkForce, 0, 3, 1);
             LabelWeight = LabelWeight < 450 ? 400 : LabelWeight >= 600 ? 700 : 500;
         }

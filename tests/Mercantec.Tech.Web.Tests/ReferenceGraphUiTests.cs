@@ -105,12 +105,13 @@ public sealed class ReferenceGraphUiTests
         {
             var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
             javascript = new GraphJavascript(original);
-            javascript.Module.StoredSettings = """{"nodeSize":2,"labelSize":1.4,"labelWeight":700,"linkThickness":1.8,"showLabels":false,"activeId":"person:private","query":"private search"}""";
+            javascript.Module.StoredSettings = """{"nodeSize":2,"labelSize":1.4,"labelWeight":700,"linkThickness":1.8,"showLabels":false,"labelThreshold":1.2,"activeId":"person:private","query":"private search"}""";
             services.AddSingleton<IJSRuntime>(javascript);
         });
         var page = context.Render<ReferenceGraphView>();
         page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
         Assert.Equal(2, javascript!.Module.Payload!.Value.GetProperty("options").GetProperty("nodeSize").GetDouble());
+        Assert.Equal(1.2, javascript.Module.Payload.Value.GetProperty("options").GetProperty("labelThreshold").GetDouble());
         Assert.Equal("1.4", page.Find("input[aria-label='Tekststørrelse']").GetAttribute("value"));
         Assert.Equal("700", page.Find(".reference-weight select").GetAttribute("value"));
         Assert.True(page.Find(".reference-settings").HasAttribute("hidden"));
@@ -127,6 +128,8 @@ public sealed class ReferenceGraphUiTests
         Assert.Single(api.GraphRequests);
         page.Find(".reference-reset").Click();
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.Options!.Value.GetProperty("labelSize").GetDouble()));
+        Assert.Equal(0.2, javascript.Module.Options!.Value.GetProperty("labelThreshold").GetDouble());
+        Assert.Equal("0,2×", page.Find("input[aria-label='Titler fra zoom']").ParentElement!.QuerySelector("output")!.TextContent);
         Assert.Equal(1, javascript.Module.Resets);
         Assert.Single(api.GraphRequests);
     }
