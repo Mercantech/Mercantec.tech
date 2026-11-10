@@ -2878,5 +2878,389 @@
     "previewBytes": 57182,
     "originalSha256": "5de8fef3227179ddf25960e0821132cf22cf5e865367abe1f4c1795cc8e06cb4",
     "previewSha256": "bbaf675950a8b51063dd28e89eb07855413781660ec5ee2129b01094a9fd6cca"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/wave.png",
+    "preview": "/images/characters/bilbo/reactions/wave.webp",
+    "originalBytes": 2519834,
+    "previewBytes": 73688,
+    "originalSha256": "d7639cb0a5a4b52b16c937e70a2ec6b256dec1c9be297972b6bb92e3635b3806",
+    "previewSha256": "287f360d9406aeadc6aedb7da42733ae91d0fded65000ea157d1e3f68455b50b"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/thumbs-up.png",
+    "preview": "/images/characters/bilbo/reactions/thumbs-up.webp",
+    "originalBytes": 2379618,
+    "previewBytes": 67344,
+    "originalSha256": "eafe34cd4836ea5fd660ca97b791ec1d17ae0d6c0bf55e30204922633ce97fa8",
+    "previewSha256": "ce2df0bdf96fdc25555bdf60f1edc7f0d1762b50f94232fc24d5340c247e8cd8"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/thinking.png",
+    "preview": "/images/characters/bilbo/reactions/thinking.webp",
+    "originalBytes": 2355911,
+    "previewBytes": 64714,
+    "originalSha256": "033dfca688ea0798fe7c150707c04613600b0b65a1e33008962f274da8ef2658",
+    "previewSha256": "c31bb9950d72311fb049d55aeb13a3fca2e58faea4096f5009c6d2e71e995469"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/listening.png",
+    "preview": "/images/characters/bilbo/reactions/listening.webp",
+    "originalBytes": 2491351,
+    "previewBytes": 69368,
+    "originalSha256": "8e710c7999ae670d2a2ee60dd80a6cfd67ac15023c70e807ddc159d91073696d",
+    "previewSha256": "a6f63a3a745677c1bc33a1b3072dd0b964409f2847881d1a48d58fcdc7452315"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/idea.png",
+    "preview": "/images/characters/bilbo/reactions/idea.webp",
+    "originalBytes": 2544483,
+    "previewBytes": 79386,
+    "originalSha256": "a1ee5208b94c92a81fe4e14bab5b0fe5c7a7cff10ec9c1a7563732b4e023a2ab",
+    "previewSha256": "fc797eb039a1fcdd75bdb5a9351a718914da480fbee9985f17b803d9d7359658"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/question.png",
+    "preview": "/images/characters/bilbo/reactions/question.webp",
+    "originalBytes": 2431450,
+    "previewBytes": 72164,
+    "originalSha256": "0899e2a409fa4c8361d5319efa71ea660d07d69479941d9e1c6641a9240b8829",
+    "previewSha256": "69d1410450ca4d5e40d22ba49fdf5d0beae73622283f05b76c589e5d89adfa8e"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/laughing.png",
+    "preview": "/images/characters/bilbo/reactions/laughing.webp",
+    "originalBytes": 2421020,
+    "previewBytes": 65042,
+    "originalSha256": "e6bd232146d6b91c878acedf3cbb25bcffb2dc583e0ecb568ef558d59ff32593",
+    "previewSha256": "e17e9657e0e915af7220777b4b39aebe5c660bfd5761bf25e851df5979d3d452"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/wink.png",
+    "preview": "/images/characters/bilbo/reactions/wink.webp",
+    "originalBytes": 2369137,
+    "previewBytes": 68780,
+    "originalSha256": "de2e64e6bf7ac2ab78d65225afdbbee05d3358fa949bd1ff7e7f088011e27a38",
+    "previewSha256": "85acf634a2638b8db8ff0aef3f1a78b4d6727ec7f97aa431c12bbc6724cbac2d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/surprised.png",
+    "preview": "/images/characters/bilbo/reactions/surprised.webp",
+    "originalBytes": 2434850,
+    "previewBytes": 64868,
+    "originalSha256": "90322e63b205a25b324c6448aa24acdef1b306a64f38a2102c6373f862dbecfb",
+    "previewSha256": "4512d94016ae5224f2987ce87f571979bb00b0135dc8be17cb176427222ec177"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/skeptical.png",
+    "preview": "/images/characters/bilbo/reactions/skeptical.webp",
+    "originalBytes": 2357117,
+    "previewBytes": 63292,
+    "originalSha256": "4547ea064270481fdf1411bac2f08c97365629bac12133001546e32c85ea105a",
+    "previewSha256": "041f3ebc63a63aed2f8705e9f49dcc64e0703dbc20f39ecae78277a02871e5ba"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/focused.png",
+    "preview": "/images/characters/bilbo/reactions/focused.webp",
+    "originalBytes": 2661336,
+    "previewBytes": 72824,
+    "originalSha256": "ed20455e8d4e052502f7ffb18f3ee5e841ea45f81b0aa8bbfdcc6b9f6a68628f",
+    "previewSha256": "d383ee6a2f157e12ff93defb9d41a4506cade677d3279bd5ebef741d7ef380e1"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/relieved.png",
+    "preview": "/images/characters/bilbo/reactions/relieved.webp",
+    "originalBytes": 2412014,
+    "previewBytes": 68058,
+    "originalSha256": "3963ab69d33971bf2c910611458f5a16ad54af8f9544e7604410e56c5e0c3c34",
+    "previewSha256": "0d998014662cc6e2f4d6e7ede1b67f36c864cd69796913c65551aefe1cefb5af"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/applause.png",
+    "preview": "/images/characters/bilbo/reactions/applause.webp",
+    "originalBytes": 2385642,
+    "previewBytes": 67258,
+    "originalSha256": "e0f9c828e497b81bb6d406655eab6cf19603abee0fa8dd799813900779a08729",
+    "previewSha256": "deeb15b358971b5daea7582f649b969af32e3ca0d17a506dfd459c4a3886c9cb"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/celebration.png",
+    "preview": "/images/characters/bilbo/reactions/celebration.webp",
+    "originalBytes": 2375285,
+    "previewBytes": 73958,
+    "originalSha256": "0f279b3201225d5a6e2631efcdd47a255d1594979aeb56d8123c403e561abc2f",
+    "previewSha256": "66ee499233a2f93744a7aa8e8710f153184ee586c4c464eb531f1a4361c7819d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/help.png",
+    "preview": "/images/characters/bilbo/reactions/help.webp",
+    "originalBytes": 2380372,
+    "previewBytes": 66748,
+    "originalSha256": "322b9a548d0ab4d6a0430864893c189540d2e0323d623545890e8c0bb485df23",
+    "previewSha256": "f2fc7123c7aa6ba054648a045181f62d2b49931ab5f5abb0ac429cddc4f0bc1d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/coffee.png",
+    "preview": "/images/characters/bilbo/reactions/coffee.webp",
+    "originalBytes": 2541615,
+    "previewBytes": 73092,
+    "originalSha256": "460e93ca3173e72b11a81c98fed6b58abd794fe3d0d3b4d4fa25d0db85cb7774",
+    "previewSha256": "a6c489ed88be9e9d91f1a939f407fc0a48e1adbd71489e9f9b2f3b881f2856a5"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/jam.png",
+    "preview": "/images/characters/bilbo/reactions/jam.webp",
+    "originalBytes": 2760973,
+    "previewBytes": 78418,
+    "originalSha256": "cb1c02d63b9f5b457c71645469441bc61f2416c022ccef4bc183bebb7495553a",
+    "previewSha256": "86e75ce1d34617e100ed7c63dc98f393aaf6eb4ebd3f0430070cc1a706f5117a"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/jam-tasting.png",
+    "preview": "/images/characters/bilbo/reactions/jam-tasting.webp",
+    "originalBytes": 2616291,
+    "previewBytes": 74000,
+    "originalSha256": "d9d7c1c40d82b94e0bd34b911060560e4520dbb43e8f00aee19e70e47d665ce2",
+    "previewSha256": "fb2fc5f4ace2ba3bed4914ba736a075cda63435c0427468ae742c79d544f9714"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-get.png",
+    "preview": "/images/characters/bilbo/reactions/http-get.webp",
+    "originalBytes": 2563156,
+    "previewBytes": 72488,
+    "originalSha256": "e49e7effd1751d0e9b630aac80a0cd24cdb0eb1a8060f5920dbc2e06cfb42868",
+    "previewSha256": "4e66e22c55a122fb28595e3c3c467baaf6f3873f5b34d3ecf0403c1b6acb09f6"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-post.png",
+    "preview": "/images/characters/bilbo/reactions/http-post.webp",
+    "originalBytes": 2743727,
+    "previewBytes": 81080,
+    "originalSha256": "f1e4791323d6057a07c57c2f7b1ee092c6af895bb10a8bd679b610f2aeeb9aff",
+    "previewSha256": "3ce6a1f3cc0681bbf7e1b862c2508393eaafb404f37675f7ec5ee35735c80d27"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-created.png",
+    "preview": "/images/characters/bilbo/reactions/http-created.webp",
+    "originalBytes": 2561215,
+    "previewBytes": 71776,
+    "originalSha256": "317f391dab3f9cad7d76a228973b08349e302636387f34cbafe6666e5767fdbc",
+    "previewSha256": "f43f0b71b397cb61efbc607893ffe12f737ec3ccaae7885dc03267b166c3e119"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-bad-request.png",
+    "preview": "/images/characters/bilbo/reactions/http-bad-request.webp",
+    "originalBytes": 2623497,
+    "previewBytes": 72698,
+    "originalSha256": "631979ee904a52ffd859b4da0ef590b12b89c064552b423c87476e432af0aee2",
+    "previewSha256": "827e09cad15e4147aff0c0cd0bb22e0b00d883e87f85618cf30a9229837e0341"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-not-found.png",
+    "preview": "/images/characters/bilbo/reactions/http-not-found.webp",
+    "originalBytes": 2519052,
+    "previewBytes": 69676,
+    "originalSha256": "3e74e161d00103e148bd442ef2fec3173d5a920e4cbeef25570495ea34b9d9bc",
+    "previewSha256": "063eedcc5344ba3dc969242611fd423dfa826f2520887a32aad8eda1b1ce6a57"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/http-server-error.png",
+    "preview": "/images/characters/bilbo/reactions/http-server-error.webp",
+    "originalBytes": 2327509,
+    "previewBytes": 66876,
+    "originalSha256": "9ebaf2f1adcf9170b9eaca5e3e16d4e978499f0b2a24e0a6e3787ef08102d3de",
+    "previewSha256": "255d8e738a28388b5ac5df0e9b07679886209113d09728514dff324f93d2f0bc"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/validation.png",
+    "preview": "/images/characters/bilbo/reactions/validation.webp",
+    "originalBytes": 2477513,
+    "previewBytes": 66242,
+    "originalSha256": "91b9dbdafd3bc60fced5a5675707c9cd77945a1535c7f3d654ebf254c380f794",
+    "previewSha256": "6396017f847b9faab79c5577cf5e3a09c3cee7eef8f5844f77103ebcc8bb6ee9"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/json-payload.png",
+    "preview": "/images/characters/bilbo/reactions/json-payload.webp",
+    "originalBytes": 2432322,
+    "previewBytes": 63190,
+    "originalSha256": "7c17f4a99c166485261d70741588f7112ce1a655ec99d0c2d3d485d375600118",
+    "previewSha256": "e49c7179537bbd30ea890ea1573a2d666c2325033e20bfabeb5ecc3967b30121"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/model-binding.png",
+    "preview": "/images/characters/bilbo/reactions/model-binding.webp",
+    "originalBytes": 2465490,
+    "previewBytes": 66288,
+    "originalSha256": "d6f1636047b0c0577b5faa85d8677e23ceba96ca57b878729e3cfe590cd6c873",
+    "previewSha256": "0271883594a25eb24014f88e2306875c96c77f6e97dca2884ec4f93695f77705"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/auth.png",
+    "preview": "/images/characters/bilbo/reactions/auth.webp",
+    "originalBytes": 2662782,
+    "previewBytes": 75316,
+    "originalSha256": "1cd685ba8809ebf6eeda0b6dd6fd886ccbb82fc52765647913b38c286683e5f6",
+    "previewSha256": "fe105b49dbf2a6265d9cf8e7e7d9d2ea23387c1d60d706dd8ecdb30d24996f87"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/authorization.png",
+    "preview": "/images/characters/bilbo/reactions/authorization.webp",
+    "originalBytes": 2441404,
+    "previewBytes": 64604,
+    "originalSha256": "c94e798e9dd535574598c90d8aeb840ba1c23b5ddffa79ef94044867d53faa41",
+    "previewSha256": "996a6f7ebc1fd2a7867d6d45a0fede03b2da293a9ff51a80045da2c3dc55729f"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/idempotency.png",
+    "preview": "/images/characters/bilbo/reactions/idempotency.webp",
+    "originalBytes": 2455162,
+    "previewBytes": 63594,
+    "originalSha256": "b9fba839287a4b21a430b32e7476757bc55d0ddf8e6fa5f6217a3048130c5d62",
+    "previewSha256": "76ce5c9ac70149bb3078e6421aea1c756834e17408e7dcb77cc12cb794fe3271"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/ef-core.png",
+    "preview": "/images/characters/bilbo/reactions/ef-core.webp",
+    "originalBytes": 2485152,
+    "previewBytes": 67874,
+    "originalSha256": "0626ac8d4b60304ae64a61063d40c655bf3f403d02b5c166e53a17c97c30d5b7",
+    "previewSha256": "0a03de835ef8735ef5fc78e50996d070a2942a8d51a72dd2da0e6ed74e1d660d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/dbcontext.png",
+    "preview": "/images/characters/bilbo/reactions/dbcontext.webp",
+    "originalBytes": 2446267,
+    "previewBytes": 66778,
+    "originalSha256": "8a2f02845f10ca9e18327dddd6fa40907dde5e2f1d27930d8c2ebc32c1a6b407",
+    "previewSha256": "cc3ad659d6e42018d50e11e35e6e2bdf8fb64897640c6312b43802d8a84daf72"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/linq.png",
+    "preview": "/images/characters/bilbo/reactions/linq.webp",
+    "originalBytes": 2526324,
+    "previewBytes": 70166,
+    "originalSha256": "110e68c85c4015a80e8903eaec046dff7a3d8d3d233e5a7c607bb447db58f386",
+    "previewSha256": "f989990e610dfa252015128eb1e27da1ed0c326a11f96d42e4545d7c9958b3a7"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/relations.png",
+    "preview": "/images/characters/bilbo/reactions/relations.webp",
+    "originalBytes": 2579973,
+    "previewBytes": 71492,
+    "originalSha256": "b47ab474e4211571325705151fda1e01c852484d48f27360de57dffee30121bc",
+    "previewSha256": "4b539213e7bdd5cf1dec5ddb736439e10c2a63984cf11d31981d168384450c51"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/migration.png",
+    "preview": "/images/characters/bilbo/reactions/migration.webp",
+    "originalBytes": 2537424,
+    "previewBytes": 67472,
+    "originalSha256": "9e69662445fb9964ec9dcf3a626a9882f3c0e61f803ad94df5e2b56bf343822d",
+    "previewSha256": "8be363d5432f6d74e1c1e5b2c899501ca37deb5116d60483ca2211dc6865ac53"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/save-changes.png",
+    "preview": "/images/characters/bilbo/reactions/save-changes.webp",
+    "originalBytes": 2422198,
+    "previewBytes": 66410,
+    "originalSha256": "e2fb77e78cbf5aadeaaf4b71dbbaab206d8aef120e32e19940265c27ff3fcb8b",
+    "previewSha256": "6b779fee4e25a29ec2cc48962125d8208e5d0e8a9a5f44a9d328c31d3f0c4b25"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/transaction.png",
+    "preview": "/images/characters/bilbo/reactions/transaction.webp",
+    "originalBytes": 2599573,
+    "previewBytes": 71490,
+    "originalSha256": "56d5b1c5f7b5ca739cb9c1638bf580d5d7db3d8a2b450c5b4cac55957ec062c7",
+    "previewSha256": "74c1a3af2281aab446ba9a0483b26863bdcdbee96190f47615fcc5c7accd9048"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/commit.png",
+    "preview": "/images/characters/bilbo/reactions/commit.webp",
+    "originalBytes": 2496697,
+    "previewBytes": 67284,
+    "originalSha256": "7ceff6fb74b7acc2094699654282eb5a90698c09c58001f3cc0c8dd800b977b5",
+    "previewSha256": "ced7d296653955abd4346df9013075e33a11a112f2e30a9abb9cbfb475f5acc1"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/rollback.png",
+    "preview": "/images/characters/bilbo/reactions/rollback.webp",
+    "originalBytes": 2611651,
+    "previewBytes": 75484,
+    "originalSha256": "1cce4200f0a748ce69e25c38688f0334ffb9e15e18d56dc44233c023385d3dec",
+    "previewSha256": "92c07390c16129381772435265de87416dbeaee8820461953b982ac52b5b3e3d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/concurrency.png",
+    "preview": "/images/characters/bilbo/reactions/concurrency.webp",
+    "originalBytes": 2712110,
+    "previewBytes": 86138,
+    "originalSha256": "760583e07931160fe014f68e5a4351f362988f588523e6fa67b98b0ccbba6e1e",
+    "previewSha256": "29d8643e51bd4eee87744f3c6d5cdb29fc834394e45d198885512489fb872e46"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/conflict.png",
+    "preview": "/images/characters/bilbo/reactions/conflict.webp",
+    "originalBytes": 2481474,
+    "previewBytes": 68070,
+    "originalSha256": "f082f0d67b7ae864b220eab03c9f1ac65dfa090fe822470363263f9b22e25d78",
+    "previewSha256": "7baf6c8be9aa2ed0a894a482d894fc32f3497e0e921ed31270739abdc09921a4"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/unique-constraint.png",
+    "preview": "/images/characters/bilbo/reactions/unique-constraint.webp",
+    "originalBytes": 2821536,
+    "previewBytes": 74696,
+    "originalSha256": "81315533cd555e938ad9395c6368df55dad7f4acc3367a827217a3e8f9243a0a",
+    "previewSha256": "a787f7257a15c36f0b65f1e89e91413840dd5e1526671b418dcc2e75748d5b2d"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/log-review.png",
+    "preview": "/images/characters/bilbo/reactions/log-review.webp",
+    "originalBytes": 2520985,
+    "previewBytes": 68458,
+    "originalSha256": "540a21bbde3646d321a56936e34cd6f86b143bd2e8e05708958a1587e727f87f",
+    "previewSha256": "b8d252fdc9a3d371d1f96279a7e67f122bfce2a25dad642593a010129e996c97"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/unit-test.png",
+    "preview": "/images/characters/bilbo/reactions/unit-test.webp",
+    "originalBytes": 2628427,
+    "previewBytes": 78270,
+    "originalSha256": "b0578fe9c5cb2ea084917307892fbbdcf703e9bbbdc63262996981df678e099c",
+    "previewSha256": "e43b82ca60e086a2b40f76a78beed9451137f005cac8e6ad426b67d1facdc00e"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/integration-test.png",
+    "preview": "/images/characters/bilbo/reactions/integration-test.webp",
+    "originalBytes": 2424649,
+    "previewBytes": 66942,
+    "originalSha256": "44591e71e0ecbe3add8d8c6ecf3f079b2337b81dcf53239879c8792a14f45117",
+    "previewSha256": "6e0add10d626460b5ec787e2b126693c3b4b3b8cf3d258056a9b8f083b740c45"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/regression-test.png",
+    "preview": "/images/characters/bilbo/reactions/regression-test.webp",
+    "originalBytes": 2634166,
+    "previewBytes": 77890,
+    "originalSha256": "7d535f51ff992ed48f5e78f7506617da61c6696753e08ba5e412a08940c905e5",
+    "previewSha256": "24ab073df569e59787bfe469a0952d727764af8fa2a6a5d4bce80ada0ef166ca"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/debugging.png",
+    "preview": "/images/characters/bilbo/reactions/debugging.webp",
+    "originalBytes": 2644945,
+    "previewBytes": 72188,
+    "originalSha256": "5e9ab4286b3e83812c0207f0916c4ffc2d01efcefb698ea04e1896ff1c086e9e",
+    "previewSha256": "54c7f4625a91de509c8c880ed4bfdceae125c55ee5defe90c86d1b8451d1264e"
+  },
+  {
+    "image": "/images/characters/bilbo/reactions/teamwork.png",
+    "preview": "/images/characters/bilbo/reactions/teamwork.webp",
+    "originalBytes": 2462521,
+    "previewBytes": 68776,
+    "originalSha256": "e66197696d8e5316e542b08889b5f8c7bb0bce4af281f769e1c74ad335353588",
+    "previewSha256": "61fbb7aa3f446f542c3ae10aba91b1879e387f541dbfd59fdd975e8c009e53e0"
   }
 ]

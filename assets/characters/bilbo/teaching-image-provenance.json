@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 1,
+  "source": "Valgt konceptstudie · Bilbo Backend, Bodmesteren fra Herredet",
+  "referenceFile": "06-bodmesteren-herredet.png",
+  "referenceSha256": "7b161b70d0dfff5dd94ff79b2405f5c62e29fed0043c82630c35267550ddacb6",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "imagePrompt": "Make exactly one original 3:2 landscape 1536×1024 Danish illustrated teaching card for LUP's Bilbo Backend series. The attached chosen Bodmesteren illustration is the only character reference. Preserve the exact friendly short stocky halfling face, dark chestnut curls and sideburns, distinctive small chin beard, rosy round nose and brown eyes, pointed ears, deep moss-green velvet vest with brass buttons over cream rolled sleeves, brown rolled trousers, and unmistakable bare furry feet. Show character full body or seated three-quarter with unobstructed bare feet, one coherent workshop action and one very readable teaching relationship. Original cozy illustrated jam cellar, warm gouache and finely painted storybook texture, Shire-like round green doorway, glowing amber lanterns, blackberry jars, oak table and natural wax and paper texture. Depict software exclusively as simple paper diagrams, icons or a notebook/laptop when appropriate. No physical servers, datacenter, branded icons, watermarks, decorative logos, media characters, invented code, fake type or excessive decorations. One large clearly readable exact headline and only exact short Danish callouts given below. Big letters, preserve Æ/Ø/Å, clear reading order and legibility at 768px wide. Color-code paths only as meaningful accent. Rich depth, scene continuity, generous edge clearance. 3:2 and opaque.",
+  "png": {
+    "width": 1536,
+    "height": 1024,
+    "derivation": "Uændret godkendt output fra ImageGen"
+  },
+  "webp": {
+    "width": 768,
+    "height": 512,
+    "derivation": "FFmpeg libwebp, Lanczos, kvalitet 86"
+  },
+  "files": [
+    {
+      "id": "01-http-og-status",
+      "title": "HTTP fra ordre til svar",
+      "prompt": "Exact headline: HTTP fra ordre til svar\nExact callouts: Anmodning | Svar\nScene: Bilbo follows one cream order card from a round order hatch to a compact example of three possible responses on a second board; success shown with a jar and green receipt, invalid input with a returned paper and amber mark, missing order as an empty shelf and muted red search mark. Use only the given short words as text.",
+      "generation": "exec-59d22d37-6bc5-42bc-8748-74043939239d.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/01-http-og-status.png",
+        "bytes": 3249681,
+        "sha256": "2f491af4fdc1cf09d16d05976e2184d5def03a766aa35b4454f8478e447d18df"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/01-http-og-status.webp",
+        "bytes": 150562,
+        "sha256": "71c9de541ea0eef63ddd5a8c9d847216399a195c4671b078e436ceea9063cc71"
+      }
+    },
+    {
+      "id": "02-ruter-og-endpoints",
+      "title": "Find den rette rute",
+      "prompt": "Exact headline: Find den rette rute\nExact callouts: Metode | Rute | Handler\nScene: Bilbo sorts two incoming order slips using method and route as an illustrated fork to two different handlers; one side hands back an order from the ledger, the other makes a new receipt. A simple route paper on the rustic wall with small arrow icons. A tidy clear branching layout beside the character.",
+      "generation": "exec-e0c88a3d-494b-419b-800e-2d38ccc77d57.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/02-ruter-og-endpoints.png",
+        "bytes": 3483948,
+        "sha256": "4f8edfc4d034e8745a3f0e3d8ba68ef6121669da13cb3ea080ce40f432514832"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/02-ruter-og-endpoints.webp",
+        "bytes": 157308,
+        "sha256": "fdec36f5e2fc8bfdf2b9ef32648849ecb417799eb1497986bbd4ce2e19ba209e"
+      }
+    },
+    {
+      "id": "03-dto-og-validering",
+      "title": "Tjek ordren ved døren",
+      "prompt": "Exact headline: Tjek ordren ved døren\nExact callouts: Input | Validering | Fejl\nScene: Bilbo stands by the door checking the few lines on an input slip. A simple intake funnel leads to a checklist, a short corrected slip, or an invalid card turned back. Use berries and a tally mark to imply quantity without digits. Make data entering and error returning clearly opposite directions.",
+      "generation": "exec-e46e61b8-fa4c-4ed0-9753-380b9b05d02e.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/03-dto-og-validering.png",
+        "bytes": 3362223,
+        "sha256": "b10e99e0d60d1eb6f2c9b7f1a073ce768584e0168826d9c7c920468218e8e05b"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/03-dto-og-validering.webp",
+        "bytes": 157482,
+        "sha256": "c2636b5f14d86fca72e08389af4254afc543f2662fb695bd40490b971148e686"
+      }
+    },
+    {
+      "id": "04-di-og-dbcontext",
+      "title": "Giv hver ordre sin egen kontekst",
+      "prompt": "Exact headline: Giv hver ordre sin egen kontekst\nExact callouts: Anmodning | Kontekst | Anmodning\nScene: Two parallel independent request workspaces on one wide desk, each with its own small marked context notebook and separate colored incoming paper slip. Both can access the same distant shared ledger shelf through distinct lines. Bilbo keeps the two work trays apart. Only the three specified exact labels; no extra case letters or IDs.",
+      "generation": "exec-581372d4-86b8-4f88-92f2-fc263ff2a362.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/04-di-og-dbcontext.png",
+        "bytes": 3173816,
+        "sha256": "a456f9ff7956baf9a7f2d1c76cd81208df9f740588326bc9df4053c0422a753f"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/04-di-og-dbcontext.webp",
+        "bytes": 143784,
+        "sha256": "7ccb4a0325c4ead35a3d45068e898d8f093a06dea066d2eed48d31e8ff9f3366"
+      }
+    },
+    {
+      "id": "05-async-og-cancellation",
+      "title": "Vent uden at blokere",
+      "prompt": "Exact headline: Vent uden at blokere\nExact callouts: Start | Vent | Afbryd\nScene: Bilbo starts an archive search on one order ticket. While a separate little hourglass indicates waiting, he can take another ticket at the same desk. An unobtrusive dashed cancel path returns from the waiting slip and stops only that workflow. Show calm progress, no physical server.",
+      "generation": "exec-7a5fdede-3aac-4c6a-b807-b6e559f94ac6.png",
+      "edit": {
+        "referenceGeneration": "exec-f221c31a-a184-4964-8707-7c2040b5168f.png",
+        "prompt": "Edit this landscape LUP teaching card in place, maintaining 1536×1024, same illustrated Bilbo face and outfit, workshop, pose, feet, lighting, desk, all background, title and normal lower green line. Fix only the middle of the chalkboard to clarify async cancellation. In the top row the normal GREEN path must flow left to right through Start → Vent → a green checkmark with one UNINTERRUPTED green arrow from Vent to the green checkmark. The separate RED dotted cancellation path branches UPWARD from Vent into the label Afbryd and ends at a small RED X ABOVE the top row immediately to the right of Afbryd, well away from the green line. Remove the old red X between Vent and the green checkmark and remove the red dashed section that originally starts above Start. The bottom green row with Start and the green checkmark remains separate and unchanged. Use only the exact Danish headline and those existing words Start, Vent and Afbryd. Nothing else changes. Check diagram spatial separation carefully, keep green and red paths unmistakably distinct."
+      },
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/05-async-og-cancellation.png",
+        "bytes": 2741712,
+        "sha256": "eda2a9c87adae1effabcd6d023bb398c202507edaca901f1b60b77cdcc20b315"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/05-async-og-cancellation.webp",
+        "bytes": 127372,
+        "sha256": "f99e908e9ac4b2326e1f6f9466489044d20f33891269f5763a940c98998b3ffd"
+      }
+    },
+    {
+      "id": "06-ef-model-og-relationer",
+      "title": "Bind ordre og marmelade sammen",
+      "prompt": "Exact headline: Bind ordre og marmelade sammen\nExact callouts: Marmelade | Ordrer\nScene: Bilbo sketches a relationship linking one blackberry jam catalog card on left to three small order cards on right. Clear lines that each terminate in an order, physical jars as analogies behind the sketch, Bilbo holds one order slip. No numerical or extra text in the diagram.",
+      "generation": "exec-4cefdbe7-bccc-459a-bf88-675a269d2b3b.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/06-ef-model-og-relationer.png",
+        "bytes": 3369210,
+        "sha256": "15c76b6de2f68129c6bcbc9358b9466110994ced13d97d2f48f93b27f16f3023"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/06-ef-model-og-relationer.webp",
+        "bytes": 155802,
+        "sha256": "c5d4ce2b96b21f23d723cf7d1f557982951d9c584cd9c0f7aebfe4a741a1b925"
+      }
+    },
+    {
+      "id": "07-migrations",
+      "title": "Flyt skemaet ét trin ad gangen",
+      "prompt": "Exact headline: Flyt skemaet ét trin ad gangen\nExact callouts: Før | Migration | Efter\nScene: Bilbo spreads two neatly aligned database schema pages on a workbench. An amber migration scroll with an arrow in center. The after grid clearly has one new column, existing marks remain. Old page not destroyed, he inspects the planned change with a quill and lamp.",
+      "generation": "exec-5bc1d29c-7dcc-44b0-a297-156ffeed7042.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/07-migrations.png",
+        "bytes": 3218632,
+        "sha256": "11cb0058e711b4c385d53ef7c44aaafcd511581743a2e7a06002ce45d566ffbb"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/07-migrations.webp",
+        "bytes": 151584,
+        "sha256": "cdc6796392e03818d275fa493cbd93f2066b9077d7054bcee6fb5d50e114d589"
+      }
+    },
+    {
+      "id": "08-linq-og-paginering",
+      "title": "Hent kun den næste side",
+      "prompt": "Exact headline: Hent kun den næste side\nExact callouts: Sortér | Vælg | Næste\nScene: Bilbo pulls a few consecutive entries from a long paper ledger already in sorted order, peels a selected subset of columns into a compact list, and marks the end with a colored page ribbon for next page. Show two visually distinct pages and a clear continuation arrow, no numerals.",
+      "generation": "exec-968e824b-14db-4427-8adb-276753f45295.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/08-linq-og-paginering.png",
+        "bytes": 3371458,
+        "sha256": "fc496f4b601302bef1404262b4f9d8df5ac5c6b3174b63eaa7a69f7a647b4693"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/08-linq-og-paginering.webp",
+        "bytes": 152440,
+        "sha256": "d9c1cb61c4d13160ceb2420cc612e0a2a56bc5565c390081474d3852121a2070"
+      }
+    },
+    {
+      "id": "09-crud",
+      "title": "Opret, læs, ret og slet",
+      "prompt": "Exact headline: Opret, læs, ret og slet\nExact callouts: Opret | Læs | Ret | Slet\nScene: Four clear small adjacent stations on a paper schema: add a jam catalog card, look at it, edit it with a pencil, retire it to an archive tray. Bilbo updating the card, with a few jars and the cozy round door behind him. No printed words apart from exact title and labels.",
+      "generation": "exec-e307b750-5016-4b01-9da2-8ae72dd9688f.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/09-crud.png",
+        "bytes": 3525407,
+        "sha256": "46c8198a0520f784a18dd7b33c4ab2cacd991adb7e21c83ca872b73723143380"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/09-crud.webp",
+        "bytes": 164944,
+        "sha256": "612534de2f99c181845e6b644d6ad0c5e730d3988d4c420bec4b8ba45136e9ef"
+      }
+    },
+    {
+      "id": "10-atomisk-ordre",
+      "title": "Gem ordre og lager sammen",
+      "prompt": "Exact headline: Gem ordre og lager sammen\nExact callouts: Ordre | Lager | Gem\nScene: Bilbo holds one signed order slip and one stock tally slip. Both travel into a single save seal together, illustrated by a linked pair with one wax stamp. Small subtle rollback ghost path if either sheet is invalid, with no new label. Do not depict unrelated physical database or loose arrows.",
+      "generation": "exec-4a2e4197-1b0b-4bd6-9463-35562561982d.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/10-atomisk-ordre.png",
+        "bytes": 3162443,
+        "sha256": "09d2bbeb74af04b431d4a8051525b967606af7c94664986656534300c9b22f93"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/10-atomisk-ordre.webp",
+        "bytes": 144082,
+        "sha256": "fce166142490edf5182606954b60c0e351c478a48b608a92be41837c79c4afb2"
+      }
+    },
+    {
+      "id": "11-optimistisk-samtidighed",
+      "title": "Når to ordrer rammer samme lager",
+      "prompt": "Exact headline: Når to ordrer rammer samme lager\nExact callouts: Læs | Gem | Konflikt\nScene: One last jar and two clearly different incoming order slips. Both see the same original stock, the green save path claims one jar and the other branches into an amber conflict notification. Bilbo has a focused face, no frustrated crowd. Keep diagram accurate with two distinct paths and no duplicated stock.",
+      "generation": "exec-b45a1cbe-daad-44e6-bb56-34698f4b6506.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/11-optimistisk-samtidighed.png",
+        "bytes": 3199961,
+        "sha256": "63db3d6cc7f4f0cd39e39e9668028f095718cd84aef7dafffae5c3b691246934"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/11-optimistisk-samtidighed.webp",
+        "bytes": 142374,
+        "sha256": "6b0c2ffc679f418e59cae407df63832ffb7a2836b7f7b60c2ded79162202de73"
+      }
+    },
+    {
+      "id": "12-unik-noegle-og-gentagelser",
+      "title": "Samme nøgle, samme ordre",
+      "prompt": "Exact headline: Samme nøgle, samme ordre\nExact callouts: Nøgle | Gentag | Kvittering\nScene: Bilbo puts a repeat delivery slip with the same unusual wax imprint beside an earlier slip. Both match to one and the same existing receipt, illustrated by converging arrows and one jar; no duplicate jar or duplicate receipt, no new printed IDs.",
+      "generation": "exec-39d6fa6e-ccbd-41c7-a2d8-595daf6a0aa9.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/12-unik-noegle-og-gentagelser.png",
+        "bytes": 3303774,
+        "sha256": "413ee2dbbb9186e61cb63eed0113c1aa071a1dce0a3cf211993ccb5bfd463e53"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/12-unik-noegle-og-gentagelser.webp",
+        "bytes": 150996,
+        "sha256": "5aa5043a3f938cc21a3d9fb804a63cb7a1b6446d856655d55eca7ee7c9076c6a"
+      }
+    },
+    {
+      "id": "13-identitet-og-adgang",
+      "title": "Tjek identitet og adgang",
+      "prompt": "Exact headline: Tjek identitet og adgang\nExact callouts: Identitet | Adgang | Ordre\nScene: Two-step logical check drawn as two small checkpoint boards at a ticket window, first identifies customer with personal token, second compares order owner stamp before showing one receipt. Bilbo checks from inside with the round door in soft background. Avoid key ring or visual symbols implying passwords visible.",
+      "generation": "exec-75e02fb6-ae01-4cd8-b4a3-84a64aaf6cd3.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/13-identitet-og-adgang.png",
+        "bytes": 3305461,
+        "sha256": "fbf867fe5f359e2ba42adc7b255edae6ed1bfd10eac4c73168e93f44eabfd9a9"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/13-identitet-og-adgang.webp",
+        "bytes": 159528,
+        "sha256": "43a05464dadb68fe69c7c85b0f4cc9592af2c08932ca399fe6e42b51e739d567"
+      }
+    },
+    {
+      "id": "14-logs-og-fejl",
+      "title": "Skriv logs, du kan følge",
+      "prompt": "Exact headline: Skriv logs, du kan følge\nExact callouts: Hændelse | Spor | Udfald\nScene: Bilbo at a cozy writing station links three structured log slips using the same blue wax trace mark. A connected trail follows received, stored and failed events as alternate examples, enough spacing for clear labels. No actual customer data, fake text, digits or secrets.",
+      "generation": "exec-66150ca7-e249-4841-a4b2-e7d07741c403.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/14-logs-og-fejl.png",
+        "bytes": 3423283,
+        "sha256": "9362c123b6cfafaf9b57f6caac2e7e5697a09c86304d31cadf15d123085d7224"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/14-logs-og-fejl.webp",
+        "bytes": 156950,
+        "sha256": "a13e079955357d2c898c5881d2994f2f608a0c48cebdf5a20636b968e69a2619"
+      }
+    },
+    {
+      "id": "15-integrationstest",
+      "title": "Test hele ordren gennem API'et",
+      "prompt": "Exact headline: Test hele ordren gennem API'et\nExact callouts: Send | Svar | Kontrollér\nScene: Bilbo sets up a small test counter that uses a paper request slip, a real response receipt and two assertion checks for one resulting order and expected remaining jars. Shelf tags are icon-only. Test receipt and stored count are visibly separate checks, no digits or other words.",
+      "generation": "exec-05f97cbf-db66-433b-911e-4c5ff1b2c0d2.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/15-integrationstest.png",
+        "bytes": 3270735,
+        "sha256": "1a1d387e4121bcf8f9f15cdc745d37ebf9d8c642a4b958eefa9dfafd0a13bf14"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/15-integrationstest.webp",
+        "bytes": 150520,
+        "sha256": "3a9b1afe90015eacdde738301fbfc09aec1f3e87f9f3451a2f9857f356f6d6dc"
+      }
+    },
+    {
+      "id": "16-saml-ordre-api",
+      "title": "Følg ordren hele vejen",
+      "prompt": "Exact headline: Følg ordren hele vejen\nExact callouts: Modtag | Gem | Svar\nScene: Bilbo presents one clear complete end-to-end story in the jam cellar, from order card at the left window, to validation and single saved pair of order/stock slips at center, to a sealed customer receipt on the right. Include the software metaphor of repeated request returning to the same receipt using one restrained dashed line. Confident friendly face, no extra labels.",
+      "generation": "exec-7b6e5f66-aa69-4328-bd6f-f311fdf0be35.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/16-saml-ordre-api.png",
+        "bytes": 3398034,
+        "sha256": "a3d9c076fc8edf0e25160631b9e84c140fe9b3f2509c680263cced05bff0d3c5"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bilbo/infographics/16-saml-ordre-api.webp",
+        "bytes": 154406,
+        "sha256": "01c15bef4e33bca415108a9871f5ab6ca7f280208676a3c273a9c24282811dc9"
+      }
+    }
+  ]
+}

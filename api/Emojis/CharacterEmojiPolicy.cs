@@ -27,6 +27,7 @@ public static class CharacterEmojiPolicy
             "gummianden" => "Gummianden",
             "bee" => "Cyberbien",
             "bat" => "Næsebladet",
+            "bilbo" => "Bilbo Backend",
             _ => "raymond"
         };
         var subject = emoji.CharacterSlug switch
@@ -38,6 +39,7 @@ public static class CharacterEmojiPolicy
             "gummianden" => new[] { "gummiand", "debugging", "fejlfinding", "rubber duck", "VATek" },
             "bee" => new[] { "cyber", "cybersikkerhed", "sikkerhed", "security", "bi" },
             "bat" => new[] { "flagermus", "IoT", "Internet of Things", "sensor", "signal" },
+            "bilbo" => new[] { "backend", "API", "EF Core", "C#" },
             _ => new[] { "sikkerhed", "test", emoji.CharacterSlug == "beaver" ? "blåt team" : "rødt team" }
         };
         var keywords = EmojiMetadataPolicy.Keywords(new[] { characterName, emoji.CharacterSlug, emoji.Title, "emoji", "reaktion" }
@@ -94,6 +96,14 @@ public static class CharacterEmojiPolicy
                 or "mqtt_publish" or "mqtt_subscribe" or "mqtt_broker" or "topic" or "offline" or "no_reply"
                 or "log_review" or "packet_loss" or "battery_low" or "overload" or "fixed"
                 when emoji.CharacterSlug == "bat" => "technology",
+            "idea" when emoji.CharacterSlug == "bilbo" => "learning",
+            "teamwork" when emoji.CharacterSlug == "bilbo" => "gestures",
+            "jam" or "jam_tasting" when emoji.CharacterSlug == "bilbo" => "everyday",
+            "http_get" or "http_post" or "http_created" or "http_bad_request" or "http_not_found" or "http_server_error"
+                or "validation" or "json_payload" or "model_binding" or "auth" or "authorization" or "idempotency"
+                or "ef_core" or "dbcontext" or "linq" or "relations" or "migration" or "save_changes"
+                or "concurrency" or "conflict" or "unique_constraint" or "log_review" or "unit_test" or "integration_test"
+                when emoji.CharacterSlug == "bilbo" => "technology",
             _ => "smileys"
         };
         return new(EmojiMetadataPolicy.CleanText(emoji.Alt, EmojiMetadataPolicy.MaxAltText), category, keywords);

@@ -30,6 +30,8 @@ COPY web/Characters/BeeTeachingMaterials.cs web/Characters/
 COPY web/Characters/BeeMotionMaterials.cs web/Characters/
 COPY web/Characters/BatTeachingMaterials.cs web/Characters/
 COPY web/Characters/BatMotionMaterials.cs web/Characters/
+COPY web/Characters/BilboTeachingMaterials.cs web/Characters/
+COPY web/Characters/BilboMotionMaterials.cs web/Characters/
 WORKDIR /src/api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 

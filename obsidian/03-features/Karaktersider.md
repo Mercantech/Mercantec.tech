@@ -10,6 +10,7 @@ tags:
 
 Offentlig oversigt på `/characters` med egne undersider:
 
+- `/characters/bilbo` viser **Bilbo Backend**, bodmesteren fra Herredet, der underviser i C#, ASP.NET Core og EF Core gennem ét bestillings-API. Profilen har fem portrætter, 48 emojis, seks miljøer inklusive Fancy Friday og Hawaii-onsdag, tre GIF’er og 16 infografikker. Se undervisningsforløb og billedkilder i `assets/characters/bilbo/`.
 - `/characters/bat` viser **Næsebladet**, flagermusen og lyddesigneren, der underviser i IoT og embedded. Profilen har fem portrætter, 48 emojis, fire miljøer, tre GIF’er og 16 infografikker. Hans teskeoptagelser bruges til at undersøge ekko, støj og gentagne målinger. Se pensumkobling og billedkilder i `assets/characters/bat/`.
 - `/characters/bee` viser **Cyberbien**, som underviser i cybersikkerhed fra forebyggelse til hændelseshåndtering. Profilen har fem portrætter, 48 emojier til profil og editor, fire miljøer, tre GIF’er og 24 infografikker. Han bruger et isoleret øvelsesnet og lokkehonning til at forklare honeypots. Se koblingen til målpindene og billedproveniens i `assets/characters/bee/`.
 - `/characters/gummianden` viser **Gummianden**, VATeks talende undervisningsmakker. Vælg mellem fem portrætter fra LUP og VATeks originale ikon. Profilen har 16 infografikker med C#-eksempler om fejlfinding, 48 emojis, fire miljøer og tre GIF’er. Biblioteket linker til hvert galleri, og emojierne findes også i editoren. Se kilde til ikonet i `web/wwwroot/images/characters/gummianden/README.md` og billedproveniens i `assets/characters/gummianden/`.

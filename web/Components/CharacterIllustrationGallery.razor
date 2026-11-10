@@ -86,6 +86,7 @@
         "gummianden" => "Emne, fx breakpoint, call stack eller regressionstest",
         "bee" => "Emne, fx honeypot, phishing eller cloud",
         "bat" => "Emne, fx ekko, MQTT eller Linux",
+        "bilbo" => "Emne, fx LINQ, migrationer eller lager",
         _ => "Emne, fx JOIN, normalisering eller ORM"
     };
     private string[] Stages => Items.Select(item => item.Stage).OfType<string>().Distinct().Order().ToArray();

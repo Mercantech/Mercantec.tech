@@ -32,6 +32,8 @@
     <Compile Include="../web/Characters/BeeMotionMaterials.cs" Link="References/Catalog/BeeMotionMaterials.cs" />
     <Compile Include="../web/Characters/BatTeachingMaterials.cs" Link="References/Catalog/BatTeachingMaterials.cs" />
     <Compile Include="../web/Characters/BatMotionMaterials.cs" Link="References/Catalog/BatMotionMaterials.cs" />
+    <Compile Include="../web/Characters/BilboTeachingMaterials.cs" Link="References/Catalog/BilboTeachingMaterials.cs" />
+    <Compile Include="../web/Characters/BilboMotionMaterials.cs" Link="References/Catalog/BilboMotionMaterials.cs" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <ProjectReference Include="../shared/Mercantec.Tech.Contracts.csproj" />

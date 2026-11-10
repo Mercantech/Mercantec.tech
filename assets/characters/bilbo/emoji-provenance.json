@@ -1,0 +1,952 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "bilbo",
+  "source": "Separate sprite sheets referenced against the approved Bilbo Backend character reference.",
+  "preparation": "Transparent crops normalized onto 1254 × 1254 PNG canvases. The picker uses the existing WebP preparation step.",
+  "sheets": [
+    {
+      "file": "sheet-1.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "69edc491ac207310f3965a860d4001ce6cf31aef7a5a09f891252e7dbd65575a",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo waves one open hand with the warm tooth-gap smile.\nTop-middle: Bilbo gives a big thumbs-up with a crooked grin.\nTop-right: Bilbo glances upward, one hand under chin, pensive brows.\nBottom-left: Bilbo cups one hand behind pointed ear and listens attentively.\nBottom-middle: Bilbo raises one index finger beneath a tiny glowing lightbulb, delighted smile.\nBottom-right: Bilbo tilts head under one clearly formed teal question mark, raised brow.",
+      "entries": [
+        {
+          "id": "wave",
+          "title": "Hej",
+          "crop": {
+            "left": 40,
+            "top": 19,
+            "width": 468,
+            "height": 470
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            466,
+            468
+          ],
+          "transparentPixelsInCrop": 74121,
+          "pngSha256": "d7639cb0a5a4b52b16c937e70a2ec6b256dec1c9be297972b6bb92e3635b3806"
+        },
+        {
+          "id": "thumbs-up",
+          "title": "Tommel op",
+          "crop": {
+            "left": 564,
+            "top": 13,
+            "width": 431,
+            "height": 474
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            428,
+            471
+          ],
+          "transparentPixelsInCrop": 64812,
+          "pngSha256": "eafe34cd4836ea5fd660ca97b791ec1d17ae0d6c0bf55e30204922633ce97fa8"
+        },
+        {
+          "id": "thinking",
+          "title": "Tænker",
+          "crop": {
+            "left": 1087,
+            "top": 14,
+            "width": 405,
+            "height": 474
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            403,
+            471
+          ],
+          "transparentPixelsInCrop": 57455,
+          "pngSha256": "033dfca688ea0798fe7c150707c04613600b0b65a1e33008962f274da8ef2658"
+        },
+        {
+          "id": "listening",
+          "title": "Lytter",
+          "crop": {
+            "left": 34,
+            "top": 523,
+            "width": 471,
+            "height": 484
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            469,
+            482
+          ],
+          "transparentPixelsInCrop": 75057,
+          "pngSha256": "8e710c7999ae670d2a2ee60dd80a6cfd67ac15023c70e807ddc159d91073696d"
+        },
+        {
+          "id": "idea",
+          "title": "En idé",
+          "crop": {
+            "left": 549,
+            "top": 514,
+            "width": 461,
+            "height": 492
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            458,
+            490
+          ],
+          "transparentPixelsInCrop": 67943,
+          "pngSha256": "a1ee5208b94c92a81fe4e14bab5b0fe5c7a7cff10ec9c1a7563732b4e023a2ab"
+        },
+        {
+          "id": "question",
+          "title": "Spørgsmål",
+          "crop": {
+            "left": 1057,
+            "top": 522,
+            "width": 440,
+            "height": 486
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            438,
+            483
+          ],
+          "transparentPixelsInCrop": 65703,
+          "pngSha256": "0899e2a409fa4c8361d5319efa71ea660d07d69479941d9e1c6641a9240b8829"
+        }
+      ]
+    },
+    {
+      "file": "sheet-2.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "55878f5d4eebc9c894a56c724660313436a202b86680ef33e170b8a60814bf70",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo laughs warmly with both eyes squeezed shut and one hand on chest.\nTop-middle: Bilbo winks one eye with a mischievous smile, no props.\nTop-right: Bilbo opens his eyes wide, little round mouth, both hands by cheeks.\nBottom-left: Bilbo skeptical sideways glance with one eyebrow raised, arms folded.\nBottom-middle: Bilbo leans forward and studies a small parchment card with three simple connected boxes.\nBottom-right: Bilbo closes eyes and breathes out with a small breath puff, palm over vest.",
+      "entries": [
+        {
+          "id": "laughing",
+          "title": "Griner",
+          "crop": {
+            "left": 70,
+            "top": 26,
+            "width": 405,
+            "height": 456
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            402,
+            453
+          ],
+          "transparentPixelsInCrop": 56172,
+          "pngSha256": "e6bd232146d6b91c878acedf3cbb25bcffb2dc583e0ecb568ef558d59ff32593"
+        },
+        {
+          "id": "wink",
+          "title": "Blinker",
+          "crop": {
+            "left": 580,
+            "top": 24,
+            "width": 382,
+            "height": 456
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            380,
+            453
+          ],
+          "transparentPixelsInCrop": 48743,
+          "pngSha256": "de2e64e6bf7ac2ab78d65225afdbbee05d3358fa949bd1ff7e7f088011e27a38"
+        },
+        {
+          "id": "surprised",
+          "title": "Overrasket",
+          "crop": {
+            "left": 1088,
+            "top": 24,
+            "width": 386,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            384,
+            459
+          ],
+          "transparentPixelsInCrop": 45881,
+          "pngSha256": "90322e63b205a25b324c6448aa24acdef1b306a64f38a2102c6373f862dbecfb"
+        },
+        {
+          "id": "skeptical",
+          "title": "Skeptisk",
+          "crop": {
+            "left": 69,
+            "top": 533,
+            "width": 399,
+            "height": 469
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            397,
+            466
+          ],
+          "transparentPixelsInCrop": 55275,
+          "pngSha256": "4547ea064270481fdf1411bac2f08c97365629bac12133001546e32c85ea105a"
+        },
+        {
+          "id": "focused",
+          "title": "Koncentreret",
+          "crop": {
+            "left": 534,
+            "top": 529,
+            "width": 467,
+            "height": 468
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            464,
+            466
+          ],
+          "transparentPixelsInCrop": 65368,
+          "pngSha256": "ed20455e8d4e052502f7ffb18f3ee5e841ea45f81b0aa8bbfdcc6b9f6a68628f"
+        },
+        {
+          "id": "relieved",
+          "title": "Lettet",
+          "crop": {
+            "left": 1074,
+            "top": 530,
+            "width": 406,
+            "height": 469
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            403,
+            467
+          ],
+          "transparentPixelsInCrop": 54931,
+          "pngSha256": "3963ab69d33971bf2c910611458f5a16ad54af8f9544e7604410e56c5e0c3c34"
+        }
+      ]
+    },
+    {
+      "file": "sheet-3.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "d21fd6b7093a06dda299d4379e96b34a6d3760dbfb3465f2516ffbd72955a256",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo claps with cheerful eyes and a big warm smile.\nTop-middle: Bilbo celebrates with both hands raised under three chunky muted colorful confetti shapes.\nTop-right: Bilbo reaches out with one open hand and a reassuring smile.\nBottom-left: Bilbo holds one handmade cream ceramic mug with simple blackberry motif, slight steam curl.\nBottom-middle: Bilbo shows off one small handmade glass jar of deep purple blackberry jam with an ivory fabric cap, proud smile.\nBottom-right: Bilbo tastes deep purple blackberry jam from one small wooden spoon, eyes closed appreciatively.",
+      "entries": [
+        {
+          "id": "applause",
+          "title": "Klapsalver",
+          "crop": {
+            "left": 81,
+            "top": 17,
+            "width": 387,
+            "height": 477
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            384,
+            475
+          ],
+          "transparentPixelsInCrop": 48797,
+          "pngSha256": "e0f9c828e497b81bb6d406655eab6cf19603abee0fa8dd799813900779a08729"
+        },
+        {
+          "id": "celebration",
+          "title": "Fejrer",
+          "crop": {
+            "left": 542,
+            "top": 16,
+            "width": 449,
+            "height": 479
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            446,
+            477
+          ],
+          "transparentPixelsInCrop": 74719,
+          "pngSha256": "0f279b3201225d5a6e2631efcdd47a255d1594979aeb56d8123c403e561abc2f"
+        },
+        {
+          "id": "help",
+          "title": "Hjælper",
+          "crop": {
+            "left": 1096,
+            "top": 22,
+            "width": 418,
+            "height": 473
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            415,
+            471
+          ],
+          "transparentPixelsInCrop": 61190,
+          "pngSha256": "322b9a548d0ab4d6a0430864893c189540d2e0323d623545890e8c0bb485df23"
+        },
+        {
+          "id": "coffee",
+          "title": "Kaffepause",
+          "crop": {
+            "left": 40,
+            "top": 523,
+            "width": 435,
+            "height": 481
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            433,
+            479
+          ],
+          "transparentPixelsInCrop": 61582,
+          "pngSha256": "460e93ca3173e72b11a81c98fed6b58abd794fe3d0d3b4d4fa25d0db85cb7774"
+        },
+        {
+          "id": "jam",
+          "title": "Marmelade",
+          "crop": {
+            "left": 543,
+            "top": 518,
+            "width": 448,
+            "height": 488
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            446,
+            486
+          ],
+          "transparentPixelsInCrop": 55230,
+          "pngSha256": "cb1c02d63b9f5b457c71645469441bc61f2416c022ccef4bc183bebb7495553a"
+        },
+        {
+          "id": "jam-tasting",
+          "title": "Smagsprøve",
+          "crop": {
+            "left": 1062,
+            "top": 519,
+            "width": 454,
+            "height": 486
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            452,
+            484
+          ],
+          "transparentPixelsInCrop": 65137,
+          "pngSha256": "d9d7c1c40d82b94e0bd34b911060560e4520dbb43e8f00aee19e70e47d665ce2"
+        }
+      ]
+    },
+    {
+      "file": "sheet-4.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "9a7832e2fee51e813917427281daa1a3f86a0f4f1c6b956829198831dbc0a6ef",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo hands a small blackberry jam jar outward with one clear muted teal outward arrow, no lettering.\nTop-middle: Bilbo receives a small incoming parchment order card, with one tightly grouped jam jar and an inward arrow.\nTop-right: Bilbo holds a new sealed jam jar with one distinct large green checkmark on a small tag, smile, no numbers.\nBottom-left: Bilbo holds an invalid parchment order slip with a single large red X and a concerned expression, no numbers.\nBottom-middle: Bilbo looks through a small empty wooden cubby with a rounded brass magnifying glass, puzzled face, no numbers.\nBottom-right: Bilbo looks worried at one small cabinet with a prominent red warning beacon, no numbers.",
+      "entries": [
+        {
+          "id": "http-get",
+          "title": "HTTP GET",
+          "crop": {
+            "left": 49,
+            "top": 24,
+            "width": 446,
+            "height": 460
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            444,
+            458
+          ],
+          "transparentPixelsInCrop": 69144,
+          "pngSha256": "e49e7effd1751d0e9b630aac80a0cd24cdb0eb1a8060f5920dbc2e06cfb42868"
+        },
+        {
+          "id": "http-post",
+          "title": "HTTP POST",
+          "crop": {
+            "left": 528,
+            "top": 27,
+            "width": 464,
+            "height": 455
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            462,
+            452
+          ],
+          "transparentPixelsInCrop": 62941,
+          "pngSha256": "f1e4791323d6057a07c57c2f7b1ee092c6af895bb10a8bd679b610f2aeeb9aff"
+        },
+        {
+          "id": "http-created",
+          "title": "201 · Oprettet",
+          "crop": {
+            "left": 1074,
+            "top": 22,
+            "width": 409,
+            "height": 468
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            406,
+            466
+          ],
+          "transparentPixelsInCrop": 51342,
+          "pngSha256": "317f391dab3f9cad7d76a228973b08349e302636387f34cbafe6666e5767fdbc"
+        },
+        {
+          "id": "http-bad-request",
+          "title": "400 · Ugyldig bestilling",
+          "crop": {
+            "left": 43,
+            "top": 534,
+            "width": 415,
+            "height": 464
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            412,
+            462
+          ],
+          "transparentPixelsInCrop": 50008,
+          "pngSha256": "631979ee904a52ffd859b4da0ef590b12b89c064552b423c87476e432af0aee2"
+        },
+        {
+          "id": "http-not-found",
+          "title": "404 · Ikke fundet",
+          "crop": {
+            "left": 494,
+            "top": 544,
+            "width": 502,
+            "height": 429
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            500,
+            427
+          ],
+          "transparentPixelsInCrop": 54114,
+          "pngSha256": "3e74e161d00103e148bd442ef2fec3173d5a920e4cbeef25570495ea34b9d9bc"
+        },
+        {
+          "id": "http-server-error",
+          "title": "500 · Serverfejl",
+          "crop": {
+            "left": 1007,
+            "top": 544,
+            "width": 518,
+            "height": 438
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            515,
+            435
+          ],
+          "transparentPixelsInCrop": 70806,
+          "pngSha256": "9ebaf2f1adcf9170b9eaca5e3e16d4e978499f0b2a24e0a6e3787ef08102d3de"
+        }
+      ]
+    },
+    {
+      "file": "sheet-5.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "6aaa9f0289e4427c7c0394dde67839dde1dbd84746fc76f444c1d53c51d6dc61",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo compares two clearly distinct parchment order slips, one green check and one red X.\nTop-middle: Bilbo holds a small parchment card with only two clear matching curly braces { } and a purple dot.\nTop-right: Bilbo points to a small card with a simple arrow between an order slip and a three-slot form icon, no letters.\nBottom-left: Bilbo presents a single antique bronze key beside a compact locked wooden chest.\nBottom-middle: Bilbo checks a little golden credential card beside a small closed door with a padlock symbol.\nBottom-right: Bilbo holds one small parchment placard showing TWO matching tiny order cards feeding via arrows into ONE single purple jam jar icon, no text, keep composition clean.",
+      "entries": [
+        {
+          "id": "validation",
+          "title": "Validering",
+          "crop": {
+            "left": 17,
+            "top": 15,
+            "width": 474,
+            "height": 468
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            471,
+            465
+          ],
+          "transparentPixelsInCrop": 72375,
+          "pngSha256": "91b9dbdafd3bc60fced5a5675707c9cd77945a1535c7f3d654ebf254c380f794"
+        },
+        {
+          "id": "json-payload",
+          "title": "JSON",
+          "crop": {
+            "left": 537,
+            "top": 11,
+            "width": 458,
+            "height": 474
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            456,
+            472
+          ],
+          "transparentPixelsInCrop": 67700,
+          "pngSha256": "7c17f4a99c166485261d70741588f7112ce1a655ec99d0c2d3d485d375600118"
+        },
+        {
+          "id": "model-binding",
+          "title": "Model binding",
+          "crop": {
+            "left": 1033,
+            "top": 16,
+            "width": 482,
+            "height": 466
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            480,
+            464
+          ],
+          "transparentPixelsInCrop": 68969,
+          "pngSha256": "d6f1636047b0c0577b5faa85d8677e23ceba96ca57b878729e3cfe590cd6c873"
+        },
+        {
+          "id": "auth",
+          "title": "Autentificering",
+          "crop": {
+            "left": 17,
+            "top": 514,
+            "width": 483,
+            "height": 483
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            480,
+            480
+          ],
+          "transparentPixelsInCrop": 70102,
+          "pngSha256": "1cd685ba8809ebf6eeda0b6dd6fd886ccbb82fc52765647913b38c286683e5f6"
+        },
+        {
+          "id": "authorization",
+          "title": "Adgangskontrol",
+          "crop": {
+            "left": 514,
+            "top": 519,
+            "width": 494,
+            "height": 478
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            492,
+            475
+          ],
+          "transparentPixelsInCrop": 79261,
+          "pngSha256": "c94e798e9dd535574598c90d8aeb840ba1c23b5ddffa79ef94044867d53faa41"
+        },
+        {
+          "id": "idempotency",
+          "title": "Idempotency",
+          "crop": {
+            "left": 1033,
+            "top": 514,
+            "width": 486,
+            "height": 487
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            484,
+            485
+          ],
+          "transparentPixelsInCrop": 79319,
+          "pngSha256": "b9fba839287a4b21a430b32e7476757bc55d0ddf8e6fa5f6217a3048130c5d62"
+        }
+      ]
+    },
+    {
+      "file": "sheet-6.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "995baa78691ddbc002fc540edb0a9441b6f79a7c3262b7763d39fb66217dd4d9",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo uses one short gold connector between a small parchment order tile and a small muted teal database cylinder, no letters.\nTop-middle: Bilbo opens a tiny dark green binder containing two simple table cards and a single small bronze database cylinder badge.\nTop-right: Bilbo holds a small bronze sieve above three blackberries as a playful metaphor for a query filter.\nBottom-left: Bilbo holds up one small card showing two compact teal-and-amber grid boxes connected by a single line, no text.\nBottom-middle: Bilbo uses a quill to add a rightmost golden highlighted column on a simple parchment table grid, no text.\nBottom-right: Bilbo presses a round green approval stamp with clear checkmark on a parchment order slip.",
+      "entries": [
+        {
+          "id": "ef-core",
+          "title": "EF Core",
+          "crop": {
+            "left": 30,
+            "top": 12,
+            "width": 481,
+            "height": 485
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            479,
+            483
+          ],
+          "transparentPixelsInCrop": 79108,
+          "pngSha256": "0626ac8d4b60304ae64a61063d40c655bf3f403d02b5c166e53a17c97c30d5b7"
+        },
+        {
+          "id": "dbcontext",
+          "title": "DbContext",
+          "crop": {
+            "left": 537,
+            "top": 12,
+            "width": 456,
+            "height": 486
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            454,
+            483
+          ],
+          "transparentPixelsInCrop": 70893,
+          "pngSha256": "8a2f02845f10ca9e18327dddd6fa40907dde5e2f1d27930d8c2ebc32c1a6b407"
+        },
+        {
+          "id": "linq",
+          "title": "LINQ",
+          "crop": {
+            "left": 1032,
+            "top": 13,
+            "width": 479,
+            "height": 484
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            477,
+            482
+          ],
+          "transparentPixelsInCrop": 77041,
+          "pngSha256": "110e68c85c4015a80e8903eaec046dff7a3d8d3d233e5a7c607bb447db58f386"
+        },
+        {
+          "id": "relations",
+          "title": "Relationer",
+          "crop": {
+            "left": 27,
+            "top": 521,
+            "width": 471,
+            "height": 489
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            468,
+            487
+          ],
+          "transparentPixelsInCrop": 67264,
+          "pngSha256": "b47ab474e4211571325705151fda1e01c852484d48f27360de57dffee30121bc"
+        },
+        {
+          "id": "migration",
+          "title": "Migration",
+          "crop": {
+            "left": 527,
+            "top": 516,
+            "width": 478,
+            "height": 494
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            475,
+            491
+          ],
+          "transparentPixelsInCrop": 75636,
+          "pngSha256": "9e69662445fb9964ec9dcf3a626a9882f3c0e61f803ad94df5e2b56bf343822d"
+        },
+        {
+          "id": "save-changes",
+          "title": "Gem ændringer",
+          "crop": {
+            "left": 1034,
+            "top": 515,
+            "width": 481,
+            "height": 495
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            479,
+            493
+          ],
+          "transparentPixelsInCrop": 81031,
+          "pngSha256": "e2fb77e78cbf5aadeaaf4b71dbbaab206d8aef120e32e19940265c27ff3fcb8b"
+        }
+      ]
+    },
+    {
+      "file": "sheet-7.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "3522d80da983b299bfc7d38b2d9f6a81c2fbf67d3985afcda3ef84725d102ffc",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo ties two small purple jam jars tightly together with one thick twine ribbon and looks focused, no other objects.\nTop-middle: Bilbo applies a visible round golden wax seal with a simple checkmark to one folded parchment order, calm smile.\nTop-right: Bilbo returns one small blackberry jam jar toward his chest with a clearly drawn amber curved backwards arrow.\nBottom-left: Bilbo juggles two simple parchment order cards arriving from opposite sides, energetic raised brows.\nBottom-middle: Bilbo holds a compact card showing two muted red arrows converging on one final dark purple jam jar icon, uneasy expression.\nBottom-right: Bilbo sets a distinct gold key tag into the only matching empty slot of a small wooden organizer, thoughtful face.",
+      "entries": [
+        {
+          "id": "transaction",
+          "title": "Transaktion",
+          "crop": {
+            "left": 29,
+            "top": 25,
+            "width": 459,
+            "height": 458
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            456,
+            455
+          ],
+          "transparentPixelsInCrop": 72338,
+          "pngSha256": "56d5b1c5f7b5ca739cb9c1638bf580d5d7db3d8a2b450c5b4cac55957ec062c7"
+        },
+        {
+          "id": "commit",
+          "title": "Commit",
+          "crop": {
+            "left": 539,
+            "top": 27,
+            "width": 466,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            463,
+            459
+          ],
+          "transparentPixelsInCrop": 75079,
+          "pngSha256": "7ceff6fb74b7acc2094699654282eb5a90698c09c58001f3cc0c8dd800b977b5"
+        },
+        {
+          "id": "rollback",
+          "title": "Rollback",
+          "crop": {
+            "left": 1072,
+            "top": 29,
+            "width": 435,
+            "height": 460
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            433,
+            458
+          ],
+          "transparentPixelsInCrop": 61869,
+          "pngSha256": "1cce4200f0a748ce69e25c38688f0334ffb9e15e18d56dc44233c023385d3dec"
+        },
+        {
+          "id": "concurrency",
+          "title": "Samtidige bestillinger",
+          "crop": {
+            "left": 26,
+            "top": 533,
+            "width": 480,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            478,
+            458
+          ],
+          "transparentPixelsInCrop": 60363,
+          "pngSha256": "760583e07931160fe014f68e5a4351f362988f588523e6fa67b98b0ccbba6e1e"
+        },
+        {
+          "id": "conflict",
+          "title": "Konflikt",
+          "crop": {
+            "left": 531,
+            "top": 527,
+            "width": 466,
+            "height": 473
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            464,
+            470
+          ],
+          "transparentPixelsInCrop": 74570,
+          "pngSha256": "f082f0d67b7ae864b220eab03c9f1ac65dfa090fe822470363263f9b22e25d78"
+        },
+        {
+          "id": "unique-constraint",
+          "title": "Unik værdi",
+          "crop": {
+            "left": 1031,
+            "top": 536,
+            "width": 480,
+            "height": 459
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            478,
+            456
+          ],
+          "transparentPixelsInCrop": 54568,
+          "pngSha256": "81315533cd555e938ad9395c6368df55dad7f4acc3367a827217a3e8f9243a0a"
+        }
+      ]
+    },
+    {
+      "file": "sheet-8.png",
+      "reference": "06-bodmesteren-herredet.png.png",
+      "sha256": "72332daafc15428715120db9773c61e2aef6071d6a2de75e948a5c5d6c8b80df",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established character Bilbo Backend from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell with at least 10% empty transparent safety margin on all sides. No panels, overlap, grid lines, floor or shop background. Crop to head and upper torso with gestures and explicitly listed compact prop, no legs or feet. One clear distinct silhouette each, warm rich hand-painted gouache and slightly textured digital storybook illustration, brushwork and soft natural light like the reference, not glossy render or generic icon. Preserve the reference's round adult small-folk shopkeeper face, abundant dark chestnut bouncy curls with warm highlights, big rounded rosy nose and cheeks, thick dark brows and friendly brown eyes, softly pointed ears, short sideburns and distinct tiny chin tuft, and signature small central tooth gap visible whenever he smiles. Preserve his recognizable deep moss-green textured buttoned vest with brass buttons and ivory rolled-sleeve shirt. Only expression, pose and explicit compact prop vary. Keep props and graphics close and readable at 48px, in muted teal/amber/berry palette. No text, letters or numbers except explicitly requested simple symbol, no badges with logos, no background, hard shadows, giant halo, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Bilbo looks at a short ivory log receipt with three boldly separated colored horizontal lines, no letters.\nTop-middle: Bilbo studies one small teal puzzle piece with a large distinct green checkmark beside it.\nTop-right: Bilbo holds one compact card showing a single box linked to a teal database cylinder with a checkmark above the connector.\nBottom-left: Bilbo checks the same small order slip again, with one looping teal arrow near a green checkmark.\nBottom-middle: Bilbo examines one small red dot and one dark line on an ivory order slip with a bronze magnifying glass.\nBottom-right: Bilbo brings together two interlocking large teal and amber puzzle pieces, a welcoming smile.",
+      "entries": [
+        {
+          "id": "log-review",
+          "title": "Læser logs",
+          "crop": {
+            "left": 38,
+            "top": 20,
+            "width": 435,
+            "height": 459
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            433,
+            456
+          ],
+          "transparentPixelsInCrop": 58140,
+          "pngSha256": "540a21bbde3646d321a56936e34cd6f86b143bd2e8e05708958a1587e727f87f"
+        },
+        {
+          "id": "unit-test",
+          "title": "Enhedstest",
+          "crop": {
+            "left": 526,
+            "top": 22,
+            "width": 433,
+            "height": 460
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            430,
+            458
+          ],
+          "transparentPixelsInCrop": 55013,
+          "pngSha256": "b0578fe9c5cb2ea084917307892fbbdcf703e9bbbdc63262996981df678e099c"
+        },
+        {
+          "id": "integration-test",
+          "title": "Integrationstest",
+          "crop": {
+            "left": 1026,
+            "top": 16,
+            "width": 479,
+            "height": 467
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            477,
+            464
+          ],
+          "transparentPixelsInCrop": 76084,
+          "pngSha256": "44591e71e0ecbe3add8d8c6ecf3f079b2337b81dcf53239879c8792a14f45117"
+        },
+        {
+          "id": "regression-test",
+          "title": "Regressionstest",
+          "crop": {
+            "left": 19,
+            "top": 525,
+            "width": 457,
+            "height": 471
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            455,
+            468
+          ],
+          "transparentPixelsInCrop": 60430,
+          "pngSha256": "7d535f51ff992ed48f5e78f7506617da61c6696753e08ba5e412a08940c905e5"
+        },
+        {
+          "id": "debugging",
+          "title": "Fejlfinder",
+          "crop": {
+            "left": 521,
+            "top": 528,
+            "width": 452,
+            "height": 467
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            450,
+            464
+          ],
+          "transparentPixelsInCrop": 59201,
+          "pngSha256": "5e9ab4286b3e83812c0207f0916c4ffc2d01efcefb698ea04e1896ff1c086e9e"
+        },
+        {
+          "id": "teamwork",
+          "title": "Samarbejde",
+          "crop": {
+            "left": 1021,
+            "top": 521,
+            "width": 485,
+            "height": 476
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            482,
+            473
+          ],
+          "transparentPixelsInCrop": 81070,
+          "pngSha256": "e66197696d8e5316e542b08889b5f8c7bb0bce4af281f769e1c74ad335353588"
+        }
+      ]
+    }
+  ]
+}

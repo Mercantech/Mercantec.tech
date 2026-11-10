@@ -1,0 +1,79 @@
+{
+  "generator": "Built-in ImageGen",
+  "reference": "web/wwwroot/images/characters/bilbo/scenes/bodmesteren.png",
+  "referenceSha256": "7b161b70d0dfff5dd94ff79b2405f5c62e29fed0043c82630c35267550ddacb6",
+  "transparentBackground": true,
+  "portraits": [
+    {
+      "id": "portrait",
+      "title": "Bodmesteren",
+      "png": "web/wwwroot/images/characters/bilbo/portrait.png",
+      "preview": "web/wwwroot/images/characters/bilbo/portrait.webp",
+      "width": 1199,
+      "height": 1312,
+      "sha256": "543df68c9301eddabd6ddf6418341777589196c350cc1e3a87a72ebaed6f6e53",
+      "previewSha256": "5a27013e1d2232b5513138a5eeac8e558c831bd6a181c5709716bb7a0422c1ce",
+      "prompt": "Use case: identity-preserve. Make a single square 1:1 full-body transparent PNG portrait for the LUP character profile. Use the supplied Bilbo Backend Bodmesteren artwork strictly as identity and hand-painted storybook style reference. Keep the exact original round cheerful adult male face, rosy cheeks, pointed ears, swept dark chestnut curls, same friendly brown eyes, slight upper-tooth gap, tiny chin tuft, compact pear-shaped body, moss-green velvet vest with brass buttons over oatmeal rolled-up sleeves, brown trousers with cuffs above his ankles. Both feet entirely visible. Bare, slightly large and convincingly hairy hobbit feet with distinctly defined toes, short curly hair on top. Match his warm gouache brush texture and wood-toned palette. Friendly, shrewd backend programmer, owner of a jam stand in the Shire. Full figure with clean silhouette, neutral soft warm directional lighting and comfortable empty margin; objects held only when specified. Genuine completely transparent background, no scenery, no floor or rectangular shadow, no words, typography, captions, multiple characters, logos, watermark, film actor likeness or physical server hardware.\nMain profile portrait. Bilbo stands in a friendly three-quarter stance, looking towards the reader with the original crooked grin. He holds one squat sealed glass jar filled with glossy blackberry jam with a simple blackberry motif on the little paper label, and a cream order slip with a small green checkmark in the other hand. Clear both hands and fully visible hairy feet.",
+      "editPrompts": [
+        "Use case: precise-object-edit. Polish this exact already-painted Bilbo Backend transparent cutout. Preserve Bilbo's round smiling face, hair, warm storybook brush texture, all clothing, pose, expression, hand props and colours exactly as they are. Repair just the very end of both bare hobbit feet: each foot has exactly five toes: one large big toe and four progressively smaller toes, with exactly one nail on each toe. The smaller outer toes are gently foreshortened in the same three-quarter view. Preserve the original barefoot furry look, with curly dark hair on tops of the feet. Please carefully count one big and four smaller per foot. Fit the complete figure and all hair and toes with clear padding above and below on a square canvas, surrounded by genuine transparency. Remove small isolated colored speckles around the silhouette while preserving the textured contour. No lettering, no background or shadow. Preserve all other elements exactly.",
+        "Use case: precise-object-edit. First input is the Bilbo Backend cutout to edit, second input is the exact approved design reference. Keep the head, hands, jam jar, green waistcoat, pose and all colours of the first image. In the cutout only, replace both feet below the trouser cuffs with the two feet from the approved second picture, preserving their natural shape and outlines precisely. The foot on the viewer's left points forward and has the big toe and exactly four smaller toes. The foot on the viewer's right turns outward in three-quarter view with the same natural proportions as the approved art. Keep the distinct dense curly brown hair on each foot. Do not trace or clone small extra toes from the first image. Give the whole figure 6% padding on top and bottom. Keep genuine transparent background, no floor, no background, no shadow, no text. Match the amber painted style and character identity exactly."
+      ]
+    },
+    {
+      "id": "ordresedlen",
+      "title": "Ordresedlen",
+      "png": "web/wwwroot/images/characters/bilbo/ordresedlen.png",
+      "preview": "web/wwwroot/images/characters/bilbo/ordresedlen.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bb17505ef17824322a670117e58e64db131143df9cefc36ef81ba905d3661266",
+      "previewSha256": "a7acf507081d4e63c4b8512a8f7bdac2e989876bb98056a751cd677c7f037ba5",
+      "prompt": "Use case: identity-preserve. Make a single square 1:1 full-body transparent PNG portrait for the LUP character profile. Use the supplied Bilbo Backend Bodmesteren artwork strictly as identity and hand-painted storybook style reference. Keep the exact original round cheerful adult male face, rosy cheeks, pointed ears, swept dark chestnut curls, same friendly brown eyes, slight upper-tooth gap, tiny chin tuft, compact pear-shaped body, moss-green velvet vest with brass buttons over oatmeal rolled-up sleeves, brown trousers with cuffs above his ankles. Both feet entirely visible. Bare, slightly large and convincingly hairy hobbit feet with distinctly defined toes, short curly hair on top. Match his warm gouache brush texture and wood-toned palette. Friendly, shrewd backend programmer, owner of a jam stand in the Shire. Full figure with clean silhouette, neutral soft warm directional lighting and comfortable empty margin; objects held only when specified. Genuine completely transparent background, no scenery, no floor or rectangular shadow, no words, typography, captions, multiple characters, logos, watermark, film actor likeness or physical server hardware.\nBilbo reviews a partly filled order slip with blank checkbox outlines and uses a chunky pencil to point at one empty checkbox. He raises one eyebrow knowingly with the same face and proportions, and the green velvet vest stays visible. No other props.",
+      "editPrompts": [
+        "Use case: precise-object-edit. Polish this exact already-painted Bilbo Backend transparent cutout. Preserve Bilbo's round smiling face, hair, warm storybook brush texture, all clothing, pose, expression, hand props and colours exactly as they are. Repair just the very end of both bare hobbit feet: each foot has exactly five toes: one large big toe and four progressively smaller toes, with exactly one nail on each toe. The smaller outer toes are gently foreshortened in the same three-quarter view. Preserve the original barefoot furry look, with curly dark hair on tops of the feet. Please carefully count one big and four smaller per foot. Fit the complete figure and all hair and toes with clear padding above and below on a square canvas, surrounded by genuine transparency. Remove small isolated colored speckles around the silhouette while preserving the textured contour. No lettering, no background or shadow. Preserve all other elements exactly."
+      ]
+    },
+    {
+      "id": "datamodellen",
+      "title": "Datamodellen",
+      "png": "web/wwwroot/images/characters/bilbo/datamodellen.png",
+      "preview": "web/wwwroot/images/characters/bilbo/datamodellen.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9362685fba5215ecd39572305000f056b233f36c623a53f52e128b5ae467dbd5",
+      "previewSha256": "66cea80e43757cbf2cffcea67cecc7646b9af910b425ac01a7bc3217e54c2db0",
+      "prompt": "Use case: identity-preserve. Make a single square 1:1 full-body transparent PNG portrait for the LUP character profile. Use the supplied Bilbo Backend Bodmesteren artwork strictly as identity and hand-painted storybook style reference. Keep the exact original round cheerful adult male face, rosy cheeks, pointed ears, swept dark chestnut curls, same friendly brown eyes, slight upper-tooth gap, tiny chin tuft, compact pear-shaped body, moss-green velvet vest with brass buttons over oatmeal rolled-up sleeves, brown trousers with cuffs above his ankles. Both feet entirely visible. Bare, slightly large and convincingly hairy hobbit feet with distinctly defined toes, short curly hair on top. Match his warm gouache brush texture and wood-toned palette. Friendly, shrewd backend programmer, owner of a jam stand in the Shire. Full figure with clean silhouette, neutral soft warm directional lighting and comfortable empty margin; objects held only when specified. Genuine completely transparent background, no scenery, no floor or rectangular shadow, no words, typography, captions, multiple characters, logos, watermark, film actor likeness or physical server hardware.\nBilbo holds a small unfolded cream parchment showing three simple connected boxes, each with a single miniature drawn symbol: a jar, a receipt and one item. No text. He proudly presents the miniature entity relationship sketch and smiles at the reader. Keep green velvet waistcoat and full silhouette visible.",
+      "editPrompts": [
+        "Use case: precise-object-edit. Polish this exact already-painted Bilbo Backend transparent cutout. Preserve Bilbo's round smiling face, hair, warm storybook brush texture, all clothing, pose, expression, hand props and colours exactly as they are. Repair just the very end of both bare hobbit feet: each foot has exactly five toes: one large big toe and four progressively smaller toes, with exactly one nail on each toe. The smaller outer toes are gently foreshortened in the same three-quarter view. Preserve the original barefoot furry look, with curly dark hair on tops of the feet. Please carefully count one big and four smaller per foot. Fit the complete figure and all hair and toes with clear padding above and below on a square canvas, surrounded by genuine transparency. Remove small isolated colored speckles around the silhouette while preserving the textured contour. No lettering, no background or shadow. Preserve all other elements exactly."
+      ]
+    },
+    {
+      "id": "lagerkonflikt",
+      "title": "Lagerkonflikten",
+      "png": "web/wwwroot/images/characters/bilbo/lagerkonflikt.png",
+      "preview": "web/wwwroot/images/characters/bilbo/lagerkonflikt.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ee5a02b1a3a5c12b4d60c34e38de9c6d1981b7a80ca29f887ba52ff470b7acd6",
+      "previewSha256": "1f2fd801b5e9e8fa9d46cff8657a9cac8cab7d91807f3c00e6c73453bfe482cb",
+      "prompt": "Use case: identity-preserve. Make a single square 1:1 full-body transparent PNG portrait for the LUP character profile. Use the supplied Bilbo Backend Bodmesteren artwork strictly as identity and hand-painted storybook style reference. Keep the exact original round cheerful adult male face, rosy cheeks, pointed ears, swept dark chestnut curls, same friendly brown eyes, slight upper-tooth gap, tiny chin tuft, compact pear-shaped body, moss-green velvet vest with brass buttons over oatmeal rolled-up sleeves, brown trousers with cuffs above his ankles. Both feet entirely visible. Bare, slightly large and convincingly hairy hobbit feet with distinctly defined toes, short curly hair on top. Match his warm gouache brush texture and wood-toned palette. Friendly, shrewd backend programmer, owner of a jam stand in the Shire. Full figure with clean silhouette, neutral soft warm directional lighting and comfortable empty margin; objects held only when specified. Genuine completely transparent background, no scenery, no floor or rectangular shadow, no words, typography, captions, multiple characters, logos, watermark, film actor likeness or physical server hardware.\nBilbo carefully balances exactly one last ruby blackberry jam jar in his left hand and two overlapping small order slips in his right. He gives a slightly worried yet comic expression as he notices two orders want the last jar. Keep the same warm proportions, curls, cheeks, brows and green waistcoat. Both hairy feet readable.",
+      "editPrompts": [
+        "Use case: precise-object-edit. Polish this exact already-painted Bilbo Backend transparent cutout. Preserve Bilbo's round smiling face, hair, warm storybook brush texture, all clothing, pose, expression, hand props and colours exactly as they are. Repair just the very end of both bare hobbit feet: each foot has exactly five toes: one large big toe and four progressively smaller toes, with exactly one nail on each toe. The smaller outer toes are gently foreshortened in the same three-quarter view. Preserve the original barefoot furry look, with curly dark hair on tops of the feet. Please carefully count one big and four smaller per foot. Fit the complete figure and all hair and toes with clear padding above and below on a square canvas, surrounded by genuine transparency. Remove small isolated colored speckles around the silhouette while preserving the textured contour. No lettering, no background or shadow. Preserve all other elements exactly."
+      ]
+    },
+    {
+      "id": "fejlspor",
+      "title": "Fejlsporet",
+      "png": "web/wwwroot/images/characters/bilbo/fejlspor.png",
+      "preview": "web/wwwroot/images/characters/bilbo/fejlspor.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "74b3cf9436c31ed88723e83c56a76308ba47f2fb4c2696ab9f2b9cc191c35675",
+      "previewSha256": "cdce49b13858284fc8657e8ff03877c468633187fce93dd8939eea523e6845ed",
+      "prompt": "Use case: identity-preserve. Make a single square 1:1 full-body transparent PNG portrait for the LUP character profile. Use the supplied Bilbo Backend Bodmesteren artwork strictly as identity and hand-painted storybook style reference. Keep the exact original round cheerful adult male face, rosy cheeks, pointed ears, swept dark chestnut curls, same friendly brown eyes, slight upper-tooth gap, tiny chin tuft, compact pear-shaped body, moss-green velvet vest with brass buttons over oatmeal rolled-up sleeves, brown trousers with cuffs above his ankles. Both feet entirely visible. Bare, slightly large and convincingly hairy hobbit feet with distinctly defined toes, short curly hair on top. Match his warm gouache brush texture and wood-toned palette. Friendly, shrewd backend programmer, owner of a jam stand in the Shire. Full figure with clean silhouette, neutral soft warm directional lighting and comfortable empty margin; objects held only when specified. Genuine completely transparent background, no scenery, no floor or rectangular shadow, no words, typography, captions, multiple characters, logos, watermark, film actor likeness or physical server hardware.\nBilbo is stooped slightly over a palm-sized folded logbook with simple thin horizontal dashes and a small brass magnifying glass at his eye. He has a delighted slight grin as he finds a clue. Keep both eyes recognizable, traditional green velvet waistcoat and round curly silhouette. Full-body, no hard floor or other set.",
+      "editPrompts": [
+        "Use case: precise-object-edit. Polish this exact already-painted Bilbo Backend transparent cutout. Preserve Bilbo's round smiling face, hair, warm storybook brush texture, all clothing, pose, expression, hand props and colours exactly as they are. Repair just the very end of both bare hobbit feet: each foot has exactly five toes: one large big toe and four progressively smaller toes, with exactly one nail on each toe. The smaller outer toes are gently foreshortened in the same three-quarter view. Preserve the original barefoot furry look, with curly dark hair on tops of the feet. Please carefully count one big and four smaller per foot. Fit the complete figure and all hair and toes with clear padding above and below on a square canvas, surrounded by genuine transparency. Remove small isolated colored speckles around the silhouette while preserving the textured contour. No lettering, no background or shadow. Preserve all other elements exactly."
+      ]
+    }
+  ]
+}
