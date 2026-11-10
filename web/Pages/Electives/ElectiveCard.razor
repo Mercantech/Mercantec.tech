@@ -1,0 +1,196 @@
+@using Mercantec.Tech.Web.Electives
+@inject ElectiveClient Client
+@implements IDisposable
+
+<article class="elective-card" aria-labelledby="@($"elective-{Item.Id:N}")">
+    <div class="elective-card-top">
+        @if (Item.Status != "template")
+        {
+            var registration = ElectiveDisplay.Registration(Item);
+            <span class="elective-badge @registration.Tone">@registration.Label</span>
+        }
+        <h3 id="@($"elective-{Item.Id:N}")">@Item.Title</h3>
+    </div>
+
+    @if (Item.Status != "template")
+    {
+        var period = ElectiveDisplay.Period(Item.StartsOn, Item.EndsOn);
+        var enrollmentPeriod = ElectiveDisplay.EnrollmentPeriod(Item.RegistrationOpensOn, Item.RegistrationClosesOn);
+        <dl class="elective-facts">
+            @if (period is not null)
+            {
+                <div><dt>Undervisning</dt><dd>@period</dd></div>
+            }
+            @if (!IsHistorical && enrollmentPeriod is not null)
+            {
+                <div><dt>Tilmeldingsperiode</dt><dd>@enrollmentPeriod</dd></div>
+            }
+            @if (!IsHistorical && Item.Capacity is int capacity)
+            {
+                <div><dt>Pladser</dt><dd>@Item.EnrollmentCount af @capacity optaget</dd></div>
+            }
+        </dl>
+    }
+
+    @if (HasDetails)
+    {
+        <details class="elective-details">
+            <summary>@(Item.Status == "template" ? "Se fagbeskrivelsen" : "Se fagbeskrivelse og program")</summary>
+            @if (Description is { } description && !string.IsNullOrWhiteSpace(description))
+            {
+                @LongText(description)
+            }
+            @if (!string.IsNullOrWhiteSpace(Item.Schedule))
+            {
+                @LongText(Item.Schedule)
+            }
+            @if (Item.Status != "template" && !string.IsNullOrWhiteSpace(Template?.Schedule) && Template.Schedule != Item.Schedule)
+            {
+                @LongText(Template.Schedule)
+            }
+            @if (ElectiveDisplay.SafeSourceUrl(Item.SourceUrl ?? Template?.SourceUrl) is { } source)
+            {
+                <a class="elective-source" href="@source" target="_blank" rel="noopener noreferrer">Åbn kilden <UiIcon Name="external" /></a>
+            }
+        </details>
+    }
+
+    @if (CanManage && Item.Status == "template")
+    {
+        <div class="elective-actions">
+            <a class="secondary" href="@($"/valgfag?vis=administrer&fag={Item.Id:D}")">Opret hold ud fra faget</a>
+        </div>
+    }
+    else if (Item.CanEnroll || Item.CanWithdraw)
+    {
+        <div class="elective-actions">
+            @if (_confirmOpen)
+            {
+                <form class="elective-confirm" @onsubmit="ChangeEnrollment" @onsubmit:preventDefault>
+                    <fieldset disabled="@_busy">
+                        @if (Item.IsEnrolled)
+                        {
+                            <legend>Vil du afmelde dig?</legend>
+                            <p>Din plads bliver frigivet.</p>
+                        }
+                        else
+                        {
+                            <legend>Bekræft din tilmelding</legend>
+                            <label class="elective-check">
+                                <input type="checkbox" @ref="_agreementInput" @bind="_hasAgreement" required />
+                                Jeg har aftalt med min mester eller arbejdsgiver, at jeg deltager.
+                            </label>
+                        }
+                        <div class="actions">
+                            <button type="submit" class="action" @ref="_confirmButton" disabled="@(!Item.IsEnrolled && !_hasAgreement)">
+                                @(Item.IsEnrolled ? "Bekræft afmelding" : "Bekræft tilmelding")
+                            </button>
+                            <button type="button" class="secondary" @onclick="CloseConfirmation">Annullér</button>
+                        </div>
+                    </fieldset>
+                </form>
+            }
+            else
+            {
+                <button type="button" class="@(Item.IsEnrolled ? "secondary" : "action")" @ref="_actionButton" @onclick="OpenConfirmation">
+                    @(Item.IsEnrolled ? "Afmeld mig" : "Tilmeld mig")
+                </button>
+            }
+        </div>
+    }
+    @if (_error is not null)
+    {
+        <p class="elective-error" role="alert">@_error</p>
+        <button type="button" class="secondary" @onclick="OnRefresh">Opdatér oversigten</button>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ElectiveView Item { get; set; } = null!;
+    [Parameter] public ElectiveView? Template { get; set; }
+    [Parameter] public bool CanManage { get; set; }
+    [Parameter] public EventCallback<ElectiveView> OnEnrollmentChanged { get; set; }
+    [Parameter] public EventCallback OnRefresh { get; set; }
+
+    private readonly CancellationTokenSource _lifetime = new();
+    private ElementReference _actionButton, _agreementInput, _confirmButton;
+    private string? _error;
+    private bool _confirmOpen, _hasAgreement, _busy, _focusPending;
+    private bool IsHistorical => ElectiveDisplay.IsPast(Item);
+    private string? Description => string.IsNullOrWhiteSpace(Item.Description) ? Template?.Description : Item.Description;
+    private bool HasDetails => !string.IsNullOrWhiteSpace(Description) || !string.IsNullOrWhiteSpace(Item.Schedule)
+        || !string.IsNullOrWhiteSpace(Template?.Schedule) || ElectiveDisplay.SafeSourceUrl(Item.SourceUrl ?? Template?.SourceUrl) is not null;
+
+    private static RenderFragment LongText(string text) => @<p class="elective-long-text">
+        @foreach (var (label, href) in ElectiveDisplay.TextLinks(text))
+        {
+            if (href is null)
+            {
+                @label
+            }
+            else
+            {
+                <a href="@href" target="_blank" rel="noopener noreferrer">@label</a>
+            }
+        }
+    </p>;
+
+    private void OpenConfirmation()
+    {
+        _hasAgreement = false;
+        _error = null;
+        _confirmOpen = true;
+        _focusPending = true;
+    }
+
+    private void CloseConfirmation()
+    {
+        _confirmOpen = false;
+        _error = null;
+        _focusPending = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending)
+            return;
+
+        _focusPending = false;
+        var control = _confirmOpen ? Item.IsEnrolled ? _confirmButton : _agreementInput : _actionButton;
+        await control.FocusAsync();
+    }
+
+    private async Task ChangeEnrollment()
+    {
+        if (_busy || (Item.IsEnrolled ? !Item.CanWithdraw : !Item.CanEnroll || !_hasAgreement))
+            return;
+
+        var ct = _lifetime.Token;
+        _busy = true;
+        _error = null;
+        try
+        {
+            var updated = Item.IsEnrolled ? await Client.Withdraw(Item.Id, ct) : await Client.Enroll(Item.Id, _hasAgreement, ct);
+            if (!ct.IsCancellationRequested)
+            {
+                _confirmOpen = false;
+                await OnEnrollmentChanged.InvokeAsync(updated);
+            }
+        }
+        catch (Exception ex) when (ex is ElectiveException or HttpRequestException or OperationCanceledException)
+        {
+            if (!ct.IsCancellationRequested)
+                _error = ex is ElectiveException ? ex.Message : "Tilmeldingen kunne ikke opdateres. Prøv igen.";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

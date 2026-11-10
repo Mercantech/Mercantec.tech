@@ -22,6 +22,7 @@
             {
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
                     <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
+                    <a href="/valgfag" class="@(ElectivesIsCurrent ? "active" : null)" aria-current="@(ElectivesIsCurrent ? "page" : null)">Valgfag</a>
                     <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Bibliotek</a>
                     <a href="/notion" class="@(NotebookIsCurrent ? "active" : null)" aria-current="@(NotebookIsCurrent ? "true" : null)">Notesbøger</a>
                     @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
@@ -30,6 +31,7 @@
                     <summary>Menu</summary>
                     <nav class="lup-mobile-menu" aria-label="Hovednavigation">
                         <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
+                        <a href="/valgfag" class="@(ElectivesIsCurrent ? "active" : null)" aria-current="@(ElectivesIsCurrent ? "page" : null)">Valgfag</a>
                         <a href="/library">Bibliotek</a>
                         <a href="/notion">Notesbøger</a>
                         @foreach (var link in NotebookLinks) { <NavLink href="@link.Href">@link.Label</NavLink> }
@@ -90,6 +92,7 @@
     private IReadOnlyList<NotebookNavigationLink> NotebookLinks => WorkspaceNavigation.NotebookLinks(IsTeacher);
     private bool NotebookIsCurrent => CurrentPath == "/journal" || CurrentPath.StartsWith("/notion", StringComparison.Ordinal) || CurrentPath.StartsWith("/notebook", StringComparison.Ordinal) || CurrentPath.StartsWith("/teacher/notebook", StringComparison.Ordinal);
     private bool IsTeacher => Redirect.ShowsTeacherChrome;
+    private bool ElectivesIsCurrent => CurrentPath is "/valgfag" or "/electives";
     private bool IsNotionEditor
     {
         get

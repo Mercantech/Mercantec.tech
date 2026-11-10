@@ -94,6 +94,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
         object? giftProfile = null;
         object? avatarProfile = null;
         object[] pollResponses = [];
+        object[] electiveEnrollments = [];
         object[] actionReadReceipts = [];
         if (subGuid is not null)
         {
@@ -131,6 +132,8 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 .Select(r => (object)new { r.UserSub, r.Kind, r.ResourceId, r.ReadAtUtc }).ToArrayAsync(ct);
             pollResponses = await db.PollResponses.AsNoTracking().Where(r => r.UserSub == giftSub)
                 .Select(r => (object)new { r.PollId, r.Poll.Question, r.Choice, r.Text, r.UpdatedAtUtc }).ToArrayAsync(ct);
+            electiveEnrollments = await db.ElectiveEnrollments.AsNoTracking().Where(e => e.UserSub == giftSub)
+                .Select(e => (object)new { e.ElectiveId, e.Elective.Title, e.DisplayName, e.EnrolledAtUtc }).ToArrayAsync(ct);
             gifts = await db.ChristmasGifts.AsNoTracking().Where(g => g.SenderSub == giftSub || g.RecipientSub == giftSub)
                 .OrderBy(g => g.CreatedAtUtc).Select(g => (object)new { g.Id, g.SenderSub, g.RecipientSub, g.SenderName, g.RecipientName, g.Kind, g.Wrapping, g.Theme, g.Message, g.CreatedAtUtc, g.OpenedAtUtc }).ToArrayAsync(ct);
             giftProfile = await db.GiftContacts.AsNoTracking().Where(g => g.UserSub == giftSub)
@@ -155,6 +158,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 giftProfile,
                 avatarProfile,
                 pollResponses,
+                electiveEnrollments,
                 actionReadReceipts,
                 submissions = Array.Empty<object>(),
                 deletionRequests = Array.Empty<object>()

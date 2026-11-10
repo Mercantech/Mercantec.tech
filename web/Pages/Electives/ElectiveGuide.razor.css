@@ -1,0 +1,38 @@
+.elective-guide {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--paper);
+}
+
+.elective-guide summary {
+    cursor: pointer;
+    padding: 1rem 1.25rem;
+    font-weight: 650;
+}
+
+.elective-guide-body {
+    display: grid;
+    gap: 1rem;
+    max-width: 78ch;
+    padding: 0 1.25rem 1.25rem;
+}
+
+.elective-guide-body h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+}
+
+.elective-guide-body ol {
+    padding-inline-start: 1.25rem;
+    margin: 0 0 0.6rem;
+}
+
+.elective-guide-body p + p {
+    margin-top: 0.5rem;
+}
+
+.elective-guide-body a {
+    color: var(--blue);
+    text-decoration: underline;
+}

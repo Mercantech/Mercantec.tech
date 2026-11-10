@@ -1,0 +1,193 @@
+@using Mercantec.Tech.Web.Electives
+@inject ElectiveClient Client
+@inject IJSRuntime Js
+@implements IDisposable
+
+<NavigationLock ConfirmExternalNavigation="_dirty" OnBeforeInternalNavigation="CheckNavigation" />
+
+<section class="elective-admin" aria-labelledby="elective-admin-title">
+    <div class="elective-admin-header">
+        <div>
+            <h2 id="elective-admin-title">Administrér valgfag</h2>
+            <p>Beskriv et fag i kataloget, eller opret et hold med datoer og tilmelding.</p>
+        </div>
+        <div class="actions">
+            <button type="button" class="secondary" disabled="@_busy" @onclick="Refresh">Opdatér</button>
+            <button type="button" class="secondary" disabled="@_busy" @onclick="NewTemplate">Nyt katalogfag</button>
+            <button type="button" class="action" disabled="@_busy" @onclick="() => OpenEditor(new())"><UiIcon Name="plus" /> Opret hold</button>
+        </div>
+    </div>
+
+    @if (_draft is { } draft)
+    {
+        <form class="panel elective-editor" aria-labelledby="elective-editor-title" @onsubmit="Save" @onsubmit:preventDefault @oninput="MarkDirty">
+            <h3 id="elective-editor-title">@(draft.Id is null ? draft.Status == "template" ? "Nyt katalogfag" : "Nyt valgfagshold" : "Redigér valgfag")</h3>
+            @if (_error is not null)
+            {
+                <p class="elective-admin-error" role="alert">@_error</p>
+            }
+            <fieldset disabled="@_busy">
+                @if (draft.Id is null && draft.Status != "template" && Templates.Any())
+                {
+                    <label class="field">
+                        Hent indhold fra fagkataloget
+                        <select value="@draft.TemplateId" @onchange="PrefillTemplate">
+                            <option value="">Ingen katalogtilknytning</option>
+                            @foreach (var item in Templates)
+                            {
+                                <option value="@item.Id">@item.Title</option>
+                            }
+                        </select>
+                    </label>
+                }
+                <label class="field">
+                    Titel
+                    <input @ref="_titleInput" required maxlength="200" @bind="draft.Title" />
+                </label>
+                <label class="field">
+                    Beskrivelse
+                    <textarea rows="5" maxlength="20000" @bind="draft.Description"></textarea>
+                </label>
+                <label class="field">
+                    @(draft.Status == "template" ? "Fakta om faget" : "Program og praktiske oplysninger")
+                    <textarea rows="4" maxlength="8000" @bind="draft.Schedule"></textarea>
+                </label>
+                <label class="field">
+                    Kildelink (valgfrit)
+                    <input type="url" maxlength="2048" placeholder="https://" @bind="draft.SourceUrl" />
+                </label>
+                @if (draft.Status != "template")
+                {
+                    <div class="elective-editor-fields">
+                        <label class="field">Undervisning starter<input type="date" @bind="draft.StartsOn" /></label>
+                        <label class="field">Undervisning slutter<input type="date" @bind="draft.EndsOn" /></label>
+                        <label class="field">Tilmelding åbner<input type="date" @bind="draft.RegistrationOpensOn" /></label>
+                        <label class="field">Sidste tilmeldingsdag<input type="date" @bind="draft.RegistrationClosesOn" /></label>
+                        <label class="field">
+                            Antal pladser
+                            <input type="number" min="1" max="10000" step="1" @bind="draft.Capacity" />
+                            <small>Lad feltet stå tomt, hvis holdet har ubegrænset plads.</small>
+                        </label>
+                        <label class="field">
+                            Reserverede pladser
+                            <input type="number" min="0" max="10000" step="1" @bind="draft.ReservedSeats" required />
+                            <small>Pladser optaget uden for LUP. De tæller med i holdets kapacitet.</small>
+                        </label>
+                    </div>
+                    <label class="field">
+                        Status
+                        <select @bind="draft.Status">
+                            @foreach (var status in OfferingStatuses)
+                            {
+                                <option value="@status">@ElectiveDisplay.Status(status)</option>
+                            }
+                        </select>
+                        <small>Kladder er skjult for elever. Åbne hold kan tage imod tilmeldinger i tilmeldingsperioden. Arkiverede hold vises under Tidligere hold.</small>
+                    </label>
+                }
+                <div class="actions">
+                    <button type="submit" class="action">@(_busy ? "Gemmer…" : "Gem")</button>
+                    <button type="button" class="secondary" @onclick="CloseEditor">Annullér</button>
+                </div>
+            </fieldset>
+        </form>
+    }
+
+    @if (_roster is { } roster)
+    {
+        <section class="panel elective-roster" aria-labelledby="elective-roster-title">
+            <div class="elective-admin-header">
+                <div>
+                    <h3 id="elective-roster-title" tabindex="-1" @ref="_rosterHeading">Deltagere på @roster.Title</h3>
+                    @if (roster.ReservedSeats > 0)
+                    {
+                        <p>@roster.ReservedSeats reserveret uden for LUP.</p>
+                    }
+                </div>
+                <button type="button" class="secondary" disabled="@_busy" @onclick="CloseRoster">Luk deltagerliste</button>
+            </div>
+            @if (_busy)
+            {
+                <p role="status">Henter deltagere…</p>
+            }
+            else if (_error is not null)
+            {
+                <p class="elective-admin-error" role="alert">@_error</p>
+                <button type="button" class="secondary" @onclick="() => ShowParticipants(roster)">Prøv igen</button>
+            }
+            else if (_participants.Length == 0)
+            {
+                <p>Ingen deltagere har tilmeldt sig i LUP endnu.</p>
+            }
+            else
+            {
+                <table>
+                    <thead><tr><th scope="col">Elev</th><th scope="col">Tilmeldt</th></tr></thead>
+                    <tbody>
+                        @foreach (var participant in _participants)
+                        {
+                            <tr @key="participant.UserSub">
+                                <td>@participant.DisplayName</td>
+                                <td><time datetime="@participant.EnrolledAtUtc.ToString("O")">@ElectiveDisplay.DateTime(participant.EnrolledAtUtc)</time></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+    }
+
+    <div class="elective-admin-filters">
+        <label class="field">
+            Find valgfag
+            <input type="search" placeholder="Søg efter titel" @bind="_search" @bind:event="oninput" />
+        </label>
+        <label class="field">
+            Vis status
+            <select @bind="_filter">
+                <option value="">Alle</option>
+                <option value="template">Fagkatalog</option>
+                @foreach (var status in OfferingStatuses)
+                {
+                    <option value="@status">@ElectiveDisplay.Status(status)</option>
+                }
+            </select>
+        </label>
+    </div>
+
+    @if (!FilteredItems.Any())
+    {
+        <div class="panel"><p>Ingen valgfag i denne visning.</p></div>
+    }
+    else
+    {
+        <ul class="elective-admin-list">
+            @foreach (var item in FilteredItems)
+            {
+                <li @key="item.Id">
+                    <div class="elective-admin-row-copy">
+                        <h3>@item.Title</h3>
+                        <p>
+                            <strong>@ElectiveDisplay.Status(item.Status)</strong>
+                            @if (ElectiveDisplay.Period(item.StartsOn, item.EndsOn) is { } period)
+                            {
+                                <span> · @period</span>
+                            }
+                            @if (item.Status != "template")
+                            {
+                                <span> · @item.EnrollmentCount @(item.Capacity is { } capacity ? $"af {capacity} pladser optaget" : "pladser optaget")</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="secondary" aria-label="@($"Redigér {item.Title}")" disabled="@_busy" @onclick="() => OpenEditor(Draft.ForEdit(item))">Redigér</button>
+                        @if (item.Status != "template")
+                        {
+                            <button type="button" class="secondary" aria-label="@($"Deltagere på {item.Title}")" disabled="@_busy" @onclick="() => ShowParticipants(item)">Deltagere</button>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</section>

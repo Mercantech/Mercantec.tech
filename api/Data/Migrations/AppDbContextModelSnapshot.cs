@@ -818,6 +818,96 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("editor_ai_text_chunks", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Elective", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Capacity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(20000)
+                        .HasColumnType("character varying(20000)");
+
+                    b.Property<DateOnly?>("EndsOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("RegistrationClosesOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("RegistrationOpensOn")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ReservedSeats")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Schedule")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<DateOnly?>("StartsOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<Guid?>("TemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
+
+                    b.ToTable("electives", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_electives_seats", "\"ReservedSeats\" >= 0 AND (\"Capacity\" IS NULL OR (\"Capacity\" > 0 AND \"Capacity\" >= \"ReservedSeats\"))");
+
+                            t.HasCheckConstraint("CK_electives_status", "\"Status\" IN ('template', 'draft', 'open', 'closed', 'archived')");
+                        });
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ElectiveEnrollment", b =>
+                {
+                    b.Property<Guid>("ElectiveId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("EnrolledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ElectiveId", "UserSub");
+
+                    b.HasIndex("UserSub");
+
+                    b.ToTable("elective_enrollments", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EntityReferenceLink", b =>
                 {
                     b.Property<string>("SourceKind")
@@ -2541,6 +2631,25 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Navigation("Run");
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Elective", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Elective", null)
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ElectiveEnrollment", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.Elective", "Elective")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("ElectiveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Elective");
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.FileAsset", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.Hold", null)
@@ -3008,6 +3117,11 @@ namespace Mercantec.Tech.Api.Data.Migrations
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.EditorAiRun", b =>
                 {
                     b.Navigation("Hunks");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Elective", b =>
+                {
+                    b.Navigation("Enrollments");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.Forloeb", b =>

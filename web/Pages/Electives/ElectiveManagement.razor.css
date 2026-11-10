@@ -1,0 +1,113 @@
+.elective-admin-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px 20px;
+    margin-bottom: 14px;
+}
+
+.elective-admin-header h2,
+.elective-admin-header h3,
+.elective-admin-row-copy h3 {
+    margin: 0 0 3px;
+}
+
+.elective-admin-header p,
+.elective-admin-row-copy p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.elective-admin-header ::deep .ui-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.elective-editor,
+.elective-roster {
+    margin: 14px 0;
+}
+
+.elective-editor fieldset {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.elective-editor-fields,
+.elective-admin-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+}
+
+.elective-editor .field small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+}
+
+.elective-admin-filters {
+    max-width: 500px;
+    margin-bottom: 12px;
+}
+
+.elective-admin-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--paper);
+    list-style: none;
+}
+
+.elective-admin-list li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    min-width: 0;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.elective-admin-list li:last-child {
+    border-bottom: 0;
+}
+
+.elective-admin-row-copy {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.elective-roster {
+    overflow-x: auto;
+}
+
+.elective-roster table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.elective-roster th,
+.elective-roster td {
+    padding: 8px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.elective-admin-error {
+    padding-inline-start: 10px;
+    border-inline-start: 3px solid var(--blue);
+}
+
+@media (max-width: 520px) {
+    .elective-editor-fields,
+    .elective-admin-filters {
+        grid-template-columns: 1fr;
+    }
+}

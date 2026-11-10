@@ -1,0 +1,18 @@
+section {
+    margin-top: 1.25rem;
+}
+
+h3 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+ul {
+    margin: 0.4rem 0 0;
+    padding-inline-start: 1.25rem;
+}
+
+a {
+    color: var(--blue);
+    text-decoration: underline;
+}

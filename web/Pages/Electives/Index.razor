@@ -1,0 +1,109 @@
+@page "/valgfag"
+@page "/electives"
+@using Mercantec.Tech.Web.Electives
+@inject ElectiveClient Client
+@inject AuthService Auth
+@inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
+@inject NavigationManager Nav
+@implements IDisposable
+
+<PageTitle>Valgfag · LUP</PageTitle>
+
+<div class="electives-page">
+    <header class="electives-heading">
+        <span class="electives-heading-mark"><UiIcon Name="book" /></span>
+        <div>
+            <h1>Valgfag</h1>
+            <p>Find et fag, der passer til din uddannelse, og se, hvornår du kan tilmelde dig.</p>
+        </div>
+    </header>
+
+    <nav class="electives-nav" aria-label="Valgfagsoversigt">
+        <a href="/valgfag" aria-current="@CurrentLink("aktuelle")">Aktuelle hold</a>
+        <a href="/valgfag?vis=katalog" aria-current="@CurrentLink("katalog")">Fagkatalog</a>
+        <a href="/valgfag?vis=historik" aria-current="@CurrentLink("historik")">Tidligere hold</a>
+        @if (!Redirect.ShowsTeacherChrome && !ViewAs.IsActive)
+        {
+            <a href="/valgfag?vis=mine" aria-current="@CurrentLink("mine")">Mine tilmeldinger</a>
+        }
+        @if (_canManage)
+        {
+            <a href="/valgfag?vis=administrer" aria-current="@CurrentLink("administrer")">Administrér</a>
+        }
+    </nav>
+
+    @if (_notice is not null)
+    {
+        <p class="electives-notice" role="status">@_notice</p>
+    }
+
+    @if (_loading)
+    {
+        <p role="status">Henter valgfag…</p>
+    }
+    else if (_error is not null)
+    {
+        <div class="panel" role="alert">
+            <p>@_error</p>
+            <button class="secondary" type="button" @onclick="Load">Prøv igen</button>
+        </div>
+    }
+    else if (ActiveView == "administrer")
+    {
+        <ElectiveManagement Items="_items" InitialTemplate="SelectedTemplate" OnSaved="ElectiveSaved" OnRefresh="Load" />
+    }
+    else
+    {
+        @if (ActiveView is "aktuelle" or "katalog")
+        {
+            <ElectiveGuide />
+        }
+
+        <section class="electives-list-section" aria-labelledby="electives-list-title">
+            <div class="electives-list-header">
+                <div>
+                    <h2 id="electives-list-title">@ViewTitle</h2>
+                    <p>@ViewDescription</p>
+                </div>
+                @if (VisibleItems.Any())
+                {
+                    <label class="field electives-search">
+                        Find valgfag
+                        <input type="search" placeholder="Søg efter titel eller indhold" @bind="_search" @bind:event="oninput" />
+                    </label>
+                }
+            </div>
+
+            @if (!VisibleItems.Any())
+            {
+                <div class="panel electives-empty"><p>@EmptyText</p></div>
+            }
+            else if (!MatchingItems.Any())
+            {
+                <div class="panel electives-empty"><p>Ingen valgfag matcher din søgning.</p></div>
+            }
+            else
+            {
+                @foreach (var group in MatchingItems.GroupBy(ArchiveYear))
+                {
+                    @if (ActiveView == "historik")
+                    {
+                        <h3 class="electives-archive-year">@(group.Key?.ToString() ?? "Uden dato")</h3>
+                    }
+                    <div class="electives-grid">
+                        @foreach (var item in group)
+                        {
+                            <ElectiveCard @key="item.Id" Item="item" Template="FindTemplate(item.TemplateId)" CanManage="_canManage"
+                                          OnEnrollmentChanged="EnrollmentChanged" OnRefresh="Load" />
+                        }
+                    </div>
+                }
+            }
+        </section>
+        @if (ActiveView == "historik")
+        {
+            <ElectiveArchiveDocuments />
+        }
+    }
+</div>

@@ -23,6 +23,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
         ConfigureGroupSets(modelBuilder);
         ConfigureHoldCalendar(modelBuilder);
         ConfigureTeachingCourses(modelBuilder);
+        ConfigureElectives(modelBuilder);
         ConfigureQuestAudience(modelBuilder);
         ConfigureNotion(modelBuilder);
         ConfigureNotionMcp(modelBuilder);

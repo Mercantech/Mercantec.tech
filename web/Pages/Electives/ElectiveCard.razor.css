@@ -1,0 +1,113 @@
+.elective-card {
+    display: grid;
+    gap: 13px;
+    min-width: 0;
+    padding: 17px;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--paper);
+}
+
+.elective-card h3 {
+    margin: 0;
+    font-size: 1.12rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.elective-badge {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 9px;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    color: var(--muted);
+    font-size: .82em;
+    font-weight: 600;
+}
+
+.elective-badge.enrolled {
+    background: color-mix(in srgb, var(--blue) 12%, var(--paper));
+    color: var(--ink);
+}
+
+.elective-facts {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+.elective-facts:empty {
+    display: none;
+}
+
+.elective-facts dt {
+    color: var(--muted);
+    font-size: .83em;
+}
+
+.elective-facts dd {
+    margin: 0;
+}
+
+.elective-details summary {
+    color: var(--blue);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.elective-long-text {
+    margin: 10px 0 0;
+    line-height: 1.55;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.elective-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.elective-source ::deep .ui-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.elective-confirm fieldset {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+}
+
+.elective-confirm legend {
+    padding-inline: 4px;
+    font-weight: 600;
+}
+
+.elective-confirm p {
+    margin: 0 0 8px;
+}
+
+.elective-check {
+    display: flex;
+    align-items: start;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.elective-check input {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    margin-top: 3px;
+}
+
+.elective-error {
+    margin: 0;
+    padding-inline-start: 10px;
+    border-inline-start: 3px solid var(--blue);
+}
