@@ -24,7 +24,7 @@ public sealed class LibraryCharactersTests
 
         Assert.Contains(page.FindAll(".library-categories button[aria-pressed='true']"),
             button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal));
-        Assert.Equal(9, page.FindAll("article.character-card").Count);
+        Assert.Equal(10, page.FindAll("article.character-card").Count);
         foreach (var character in CharacterCatalog.All)
         {
             var card = page.Find($".character-card.character-{character.Slug}");
@@ -70,7 +70,11 @@ public sealed class LibraryCharactersTests
             ("bee", "character-reactions-title", "48 emojis"),
             ("bee", "character-scenes-title", "4 miljøer"),
             ("bee", "character-animations-title", "3 GIF-animationer"),
-            ("bee", "character-gallery-title", "24 infografikker")
+            ("bee", "character-gallery-title", "24 infografikker"),
+            ("bat", "character-reactions-title", "48 emojis"),
+            ("bat", "character-scenes-title", "4 miljøer"),
+            ("bat", "character-animations-title", "3 GIF-animationer"),
+            ("bat", "character-gallery-title", "16 infografikker")
         };
         foreach (var (slug, section, label) in expected)
         {
@@ -94,7 +98,7 @@ public sealed class LibraryCharactersTests
 
         page.Find("#library-search").Input("emojis");
         var results = page.FindAll(".library-search-character");
-        Assert.Equal(9, results.Count);
+        Assert.Equal(10, results.Count);
         Assert.All(results, result =>
         {
             var path = result.GetAttribute("href");
@@ -102,14 +106,14 @@ public sealed class LibraryCharactersTests
             Assert.Equal(character.Appearances[0].Image, result.QuerySelector("img")!.GetAttribute("src"));
         });
         page.FindAll(".library-categories button").Single(button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal)).Click();
-        Assert.Equal(9, page.FindAll(".library-search-character").Count);
+        Assert.Equal(10, page.FindAll(".library-search-character").Count);
         Assert.Contains("i Karakterer", page.Find(".library-section-heading [role='status']").TextContent);
 
         page.Find(".library-search button").Click();
 
         Assert.Equal("", page.Find("#library-search").GetAttribute("value"));
         Assert.Empty(page.FindAll(".library-search-results"));
-        Assert.Equal(9, page.FindAll(".character-card").Count);
+        Assert.Equal(10, page.FindAll(".character-card").Count);
         Assert.Contains(page.FindAll(".library-categories button[aria-pressed='true']"),
             button => button.TextContent.Contains("Karakterer", StringComparison.Ordinal));
     }
@@ -135,6 +139,8 @@ public sealed class LibraryCharactersTests
     [InlineData("Gummianden breakpoint", "/characters/gummianden")]
     [InlineData("Cyberbien honeypot", "/characters/bee")]
     [InlineData("Cyberbien phishing", "/characters/bee")]
+    [InlineData("Næsebladet ekko", "/characters/bat")]
+    [InlineData("Næsebladet MQTT", "/characters/bat")]
     public void Public_search_finds_media_types_and_named_motifs(string query, string expectedPath)
     {
         var hit = Assert.Single(PublicCatalog.Search(query), hit => hit.Href == expectedPath);

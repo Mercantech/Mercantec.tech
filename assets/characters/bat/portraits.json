@@ -1,0 +1,63 @@
+{
+  "generator": "ImageGen",
+  "reference": "assets/characters/bat/reference-broad-shoulders.png",
+  "referenceSha256": "9a0178215eb3e9c9e840c2ae4195256c37a08a488e2ddf38770ade7f75160529",
+  "transparentBackground": true,
+  "portraits": [
+    {
+      "id": "portrait",
+      "title": "Næsebladet",
+      "png": "web/wwwroot/images/characters/bat/portrait.png",
+      "preview": "web/wwwroot/images/characters/bat/portrait.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c7c0e00179cf289a8b434285ee1e96c426319742fb3f683dbba4a2fb7c6adada",
+      "previewSha256": "ccd91747098814f33aa4dee58a2efb58be8dfc8be68d68cf6a359acf040205d6",
+      "prompt": "Use case: identity-preserve. Create one original full-body portrait of the EXACT same leaf-nosed bat sound designer in the supplied approved 'broad shoulders' concept. Keep the selected upright but squat broad trapezoid: shoulders wider than hips, narrow lower body, close-set small hind feet, two sharply pleated folded umbrella-wing forelimbs, no extra arms or legs. Preserve the precise fleshy leaf-shaped nose, broad fan ears with the signature notch on the right side of the image, smoky plum fur with warm rust cheek and chest accents, warm amber eyes, matte maroon wing membranes, and the original richly painted gouache / colored pencil character style. The redesign is ONLY a restrained theatrical villain expression and more determined stance: slightly lowered angled brows, concentrated amber eyes with one lid skeptical, chin confidently forward, tiny wry crooked closed-mouth smile. A commanding, mischievously strict sound designer and effective teacher. Quiet menace in expression, no gore, no fangs, no scary background, no resemblance to any specific existing character, no text or logos. A clearly readable silhouette, both wing tips and ears entirely inside the frame, generous margins, square 1:1, warm soft directional light, real transparent background, absolutely no scenery or floor shadow. Just one figure and if specified one small prop. Keep matching design proportions across outputs.\nThe canonical confident teacher pose: upright wide shoulders with both sharply folded wings held like the lapels of a dramatic stage coat, stable close-set feet. Face toward camera at a subtle three-quarter angle, one eyebrow tight, a crooked almost secretive confident smile, studying the viewer. A tiny simple copper wrist clip consistent with reference is allowed, no props."
+    },
+    {
+      "id": "lyddesigner",
+      "title": "Lyddesigneren",
+      "png": "web/wwwroot/images/characters/bat/lyddesigner.png",
+      "preview": "web/wwwroot/images/characters/bat/lyddesigner.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ebdea040db3153a69116d5f47398de58416cd5e001941235fa4f523d27ddb551",
+      "previewSha256": "070a11a1ebd62f8500c2701a0e49d3a8cbaf35627645a465b11c15e826ac4545",
+      "prompt": "Use case: identity-preserve. Create one original full-body portrait of the EXACT same leaf-nosed bat sound designer in the supplied approved 'broad shoulders' concept. Keep the selected upright but squat broad trapezoid: shoulders wider than hips, narrow lower body, close-set small hind feet, two sharply pleated folded umbrella-wing forelimbs, no extra arms or legs. Preserve the precise fleshy leaf-shaped nose, broad fan ears with the signature notch on the right side of the image, smoky plum fur with warm rust cheek and chest accents, warm amber eyes, matte maroon wing membranes, and the original richly painted gouache / colored pencil character style. The redesign is ONLY a restrained theatrical villain expression and more determined stance: slightly lowered angled brows, concentrated amber eyes with one lid skeptical, chin confidently forward, tiny wry crooked closed-mouth smile. A commanding, mischievously strict sound designer and effective teacher. Quiet menace in expression, no gore, no fangs, no scary background, no resemblance to any specific existing character, no text or logos. A clearly readable silhouette, both wing tips and ears entirely inside the frame, generous margins, square 1:1, warm soft directional light, real transparent background, absolutely no scenery or floor shadow. Just one figure and if specified one small prop. Keep matching design proportions across outputs.\nHe tilts his head toward a single small silver stereo field recorder held close with his wing's thumb hook. The other folded wing stays sharply angled against the body. Amber eyes squint as though the latest echo recording didn't meet his standards. No other accessories, do not cover the leaf nose or notch."
+    },
+    {
+      "id": "kalibrering",
+      "title": "Kalibrering",
+      "png": "web/wwwroot/images/characters/bat/kalibrering.png",
+      "preview": "web/wwwroot/images/characters/bat/kalibrering.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "02f994381603515e8fede54f2e5777c23ee3b92f70870ac4f1634ada5160c88b",
+      "previewSha256": "4d92b090b86db05c17b35050c06c5176421f7796e3286c7aad204f60250558fb",
+      "prompt": "Use case: identity-preserve. Create one original full-body portrait of the EXACT same leaf-nosed bat sound designer in the supplied approved 'broad shoulders' concept. Keep the selected upright but squat broad trapezoid: shoulders wider than hips, narrow lower body, close-set small hind feet, two sharply pleated folded umbrella-wing forelimbs, no extra arms or legs. Preserve the precise fleshy leaf-shaped nose, broad fan ears with the signature notch on the right side of the image, smoky plum fur with warm rust cheek and chest accents, warm amber eyes, matte maroon wing membranes, and the original richly painted gouache / colored pencil character style. The redesign is ONLY a restrained theatrical villain expression and more determined stance: slightly lowered angled brows, concentrated amber eyes with one lid skeptical, chin confidently forward, tiny wry crooked closed-mouth smile. A commanding, mischievously strict sound designer and effective teacher. Quiet menace in expression, no gore, no fangs, no scary background, no resemblance to any specific existing character, no text or logos. A clearly readable silhouette, both wing tips and ears entirely inside the frame, generous margins, square 1:1, warm soft directional light, real transparent background, absolutely no scenery or floor shadow. Just one figure and if specified one small prop. Keep matching design proportions across outputs.\nThe skeptical calibration specialist. Short forward lean, one wing forelimb holding a small laboratory ultrasonic distance sensor board (two little round silver transducer barrels on a dark teal PCB) near chest height. One raised skeptical brow, intense focus, closed-mouth smile of satisfaction when the number matches. No loose wires, not a new costume."
+    },
+    {
+      "id": "dirigenten",
+      "title": "Dirigenten",
+      "png": "web/wwwroot/images/characters/bat/dirigenten.png",
+      "preview": "web/wwwroot/images/characters/bat/dirigenten.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5b02693a550009704de60251e1eda8a791441444e9babd78c48a34927aa1e7e1",
+      "previewSha256": "49a58f96fd9a06867ab138162f97a8c80f87a7f9ac117cdff99882ffa1fe8a54",
+      "prompt": "Use case: identity-preserve. Create one original full-body portrait of the EXACT same leaf-nosed bat sound designer in the supplied approved 'broad shoulders' concept. Keep the selected upright but squat broad trapezoid: shoulders wider than hips, narrow lower body, close-set small hind feet, two sharply pleated folded umbrella-wing forelimbs, no extra arms or legs. Preserve the precise fleshy leaf-shaped nose, broad fan ears with the signature notch on the right side of the image, smoky plum fur with warm rust cheek and chest accents, warm amber eyes, matte maroon wing membranes, and the original richly painted gouache / colored pencil character style. The redesign is ONLY a restrained theatrical villain expression and more determined stance: slightly lowered angled brows, concentrated amber eyes with one lid skeptical, chin confidently forward, tiny wry crooked closed-mouth smile. A commanding, mischievously strict sound designer and effective teacher. Quiet menace in expression, no gore, no fangs, no scary background, no resemblance to any specific existing character, no text or logos. A clearly readable silhouette, both wing tips and ears entirely inside the frame, generous margins, square 1:1, warm soft directional light, real transparent background, absolutely no scenery or floor shadow. Just one figure and if specified one small prop. Keep matching design proportions across outputs.\nThe theatrical director. One sharp wing elbow lifted in a small sweeping command gesture, with a small plain silver teaspoon gently held like a conducting baton between the thumb hook and wing fold. Other wing tucked closely in an umbrella pleat. Upright trapezoidal proportions remain, chin lifted and side-eye daring the room to spoil the recording. No clothes or other objects."
+    },
+    {
+      "id": "natoptagelse",
+      "title": "På natoptagelse",
+      "png": "web/wwwroot/images/characters/bat/natoptagelse.png",
+      "preview": "web/wwwroot/images/characters/bat/natoptagelse.webp",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b3ada02426e1369967cbc880d5d76426d1f5097312e0156425c444f328e21801",
+      "previewSha256": "819f90b421a0c516d7976bf2d81ab6967a6ef775b785b109f99d8990e8173ce7",
+      "prompt": "Use case: identity-preserve. Create one original full-body portrait of the EXACT same leaf-nosed bat sound designer in the supplied approved 'broad shoulders' concept. Keep the selected upright but squat broad trapezoid: shoulders wider than hips, narrow lower body, close-set small hind feet, two sharply pleated folded umbrella-wing forelimbs, no extra arms or legs. Preserve the precise fleshy leaf-shaped nose, broad fan ears with the signature notch on the right side of the image, smoky plum fur with warm rust cheek and chest accents, warm amber eyes, matte maroon wing membranes, and the original richly painted gouache / colored pencil character style. The redesign is ONLY a restrained theatrical villain expression and more determined stance: slightly lowered angled brows, concentrated amber eyes with one lid skeptical, chin confidently forward, tiny wry crooked closed-mouth smile. A commanding, mischievously strict sound designer and effective teacher. Quiet menace in expression, no gore, no fangs, no scary background, no resemblance to any specific existing character, no text or logos. A clearly readable silhouette, both wing tips and ears entirely inside the frame, generous margins, square 1:1, warm soft directional light, real transparent background, absolutely no scenery or floor shadow. Just one figure and if specified one small prop. Keep matching design proportions across outputs.\nThe field recordist moves low and decisively, one wing tucked tighter than the other, holding a little warm amber flashlight aimed away from camera and down toward an implied floor. The wings stay angular and the body clearly broad up top. In his amber eyes a sly impatient look, with only subtle warm reflected light on chin. No cast beam into background, no floor, no additional props."
+    }
+  ]
+}

@@ -1,0 +1,952 @@
+{
+  "generator": "builtin-imagegen",
+  "character": "bat",
+  "source": "Separate sprite sheets referenced against the approved Næsebladet character reference.",
+  "preparation": "Transparent crops normalized onto 1254 × 1254 PNG canvases. The picker uses the existing WebP preparation step.",
+  "sheets": [
+    {
+      "file": "sheet-1.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "43fc9a6bd80d2cdcce45277d77d6ea98a5cc1d05284e215edb177daef6682589",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet raises one angular wing in a subtle, theatrical wave, small crooked smile.\nTop-middle: Næsebladet holds a round muted moss-green approval badge with a simple cream checkmark.\nTop-right: Næsebladet looks up thoughtfully with a bent wing claw under the chin.\nBottom-left: Næsebladet turns one broad ear toward two small curved sound marks, absorbed expression.\nBottom-middle: Næsebladet raises one little wing thumb beside a warm glowing light bulb, sly smile.\nBottom-right: Næsebladet tilts head beneath one clearly drawn muted teal question mark, one eyebrow raised.",
+      "entries": [
+        {
+          "id": "wave",
+          "title": "Hej",
+          "crop": {
+            "left": 38,
+            "top": 53,
+            "width": 469,
+            "height": 421
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            467,
+            419
+          ],
+          "transparentPixelsInCrop": 66315,
+          "pngSha256": "5123371cac73f87bf0ed5b5ca8c50d61d0463f13d76721350796ffdfd5898a96"
+        },
+        {
+          "id": "approval",
+          "title": "Godkendt",
+          "crop": {
+            "left": 546,
+            "top": 52,
+            "width": 455,
+            "height": 428
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            452,
+            426
+          ],
+          "transparentPixelsInCrop": 63143,
+          "pngSha256": "b15f223b71eec40ff2215cff4c191f06dba920bf2ad5d50ff69e3895de369f73"
+        },
+        {
+          "id": "thinking",
+          "title": "Tænker",
+          "crop": {
+            "left": 1043,
+            "top": 45,
+            "width": 453,
+            "height": 434
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            451,
+            431
+          ],
+          "transparentPixelsInCrop": 66641,
+          "pngSha256": "0a2967a2032c6b2ceab0bf657b5b13cebd57ce30e5790be8d761269ae0940e5e"
+        },
+        {
+          "id": "listening",
+          "title": "Lytter",
+          "crop": {
+            "left": 41,
+            "top": 544,
+            "width": 469,
+            "height": 433
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            466,
+            430
+          ],
+          "transparentPixelsInCrop": 66961,
+          "pngSha256": "585797ee6b157dc88c33ff4b0bd5cc70fb9f943b484dfc7fd270d2a8ec963846"
+        },
+        {
+          "id": "idea",
+          "title": "En idé",
+          "crop": {
+            "left": 543,
+            "top": 548,
+            "width": 450,
+            "height": 432
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            447,
+            430
+          ],
+          "transparentPixelsInCrop": 65591,
+          "pngSha256": "50ae7b1ee1804ab04bcdb6c52df7a247eb55057ee6f3fa6c859ed2abfeda3889"
+        },
+        {
+          "id": "question",
+          "title": "Spørgsmål",
+          "crop": {
+            "left": 1037,
+            "top": 530,
+            "width": 455,
+            "height": 456
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            453,
+            454
+          ],
+          "transparentPixelsInCrop": 76177,
+          "pngSha256": "6c7c115e810841d65309575e9717752fb1607094c334125cc7711b0a74fc6bcb"
+        }
+      ]
+    },
+    {
+      "file": "sheet-2.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "7b3f765e0d3308159a3e5e798395f4c71b54c3a1ca4f4b7ed1cb28baf2f1dafa",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet laughs with closed crescent eyes, mouth open, wings folding toward chest.\nTop-middle: Næsebladet winks one eye and makes a small mischievous grin, no props.\nTop-right: Næsebladet widens both eyes in surprise with little round mouth and wings slightly raised.\nBottom-left: Næsebladet skeptical side-eye, one eyebrow raised and wings folded like a cape, no props.\nBottom-middle: Næsebladet frowns in concentration over one small cream card with dark curve and a point, no labels.\nBottom-right: Næsebladet closed eyes and loosened wing shoulders, one tiny breath puff near face.",
+      "entries": [
+        {
+          "id": "laughing",
+          "title": "Griner",
+          "crop": {
+            "left": 59,
+            "top": 37,
+            "width": 423,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            421,
+            444
+          ],
+          "transparentPixelsInCrop": 49145,
+          "pngSha256": "d8a5d00193b7dbde125efa2a4eff728f00a1feabce70d4e662f545835b142849"
+        },
+        {
+          "id": "wink",
+          "title": "Blinker",
+          "crop": {
+            "left": 530,
+            "top": 34,
+            "width": 476,
+            "height": 444
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            474,
+            441
+          ],
+          "transparentPixelsInCrop": 63533,
+          "pngSha256": "2761392dda655dfc71429f3f67c0c428cbfa3008a441b5e4af3a44ee1c078b8d"
+        },
+        {
+          "id": "surprised",
+          "title": "Overrasket",
+          "crop": {
+            "left": 1035,
+            "top": 39,
+            "width": 470,
+            "height": 440
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            467,
+            437
+          ],
+          "transparentPixelsInCrop": 61447,
+          "pngSha256": "481f1e34df4bd8d566ae225dfca6f826018f970be03df5a3b8b2efd727d91e1b"
+        },
+        {
+          "id": "skeptical",
+          "title": "Skeptisk",
+          "crop": {
+            "left": 63,
+            "top": 532,
+            "width": 409,
+            "height": 450
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            406,
+            448
+          ],
+          "transparentPixelsInCrop": 47630,
+          "pngSha256": "f993238dea2e036879f2b5d09c8eab7c72aadb60b7a91b4b900331a12fe461a4"
+        },
+        {
+          "id": "focused",
+          "title": "Koncentreret",
+          "crop": {
+            "left": 532,
+            "top": 537,
+            "width": 457,
+            "height": 449
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            455,
+            447
+          ],
+          "transparentPixelsInCrop": 52831,
+          "pngSha256": "4b9653ee38e131bbf0c9162ae17fe4ab140677b73ed5dd0bdeba2eeb1837ffa3"
+        },
+        {
+          "id": "relieved",
+          "title": "Lettet",
+          "crop": {
+            "left": 1028,
+            "top": 535,
+            "width": 483,
+            "height": 448
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            481,
+            445
+          ],
+          "transparentPixelsInCrop": 67423,
+          "pngSha256": "27a17d5a9f112f0c1ff62a38a6832dc5ae3e289a9249f920dcbbf32d7046610e"
+        }
+      ]
+    },
+    {
+      "file": "sheet-3.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "fa0a1086de195e2f6a689137b2c59447d3570ddd43e372eade864a5edd9470c8",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet claps two tiny wing thumbs together with a sardonic smile and two small movement strokes.\nTop-middle: Næsebladet celebrates with both angular wings up within cell, three chunky muted rose and ochre confetti pieces close to the ears.\nTop-right: Næsebladet extends one angular wing claw forward and smiles reassuringly.\nBottom-left: Næsebladet warms both wing claws around a teal coffee mug with a single tiny steam curl.\nBottom-middle: Næsebladet yawns with one wing folded like a cloak and eyes almost closed, no letters.\nBottom-right: Næsebladet turns away, glancing back over one shoulder while raising one angular wing in farewell.",
+      "entries": [
+        {
+          "id": "applause",
+          "title": "Klapsalver",
+          "crop": {
+            "left": 45,
+            "top": 46,
+            "width": 447,
+            "height": 441
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            445,
+            439
+          ],
+          "transparentPixelsInCrop": 60343,
+          "pngSha256": "6af6a27129963fb996fc28bdc5ad1973aeecbb8b634fc2cc05a0efac3e2d8e18"
+        },
+        {
+          "id": "celebration",
+          "title": "Fejrer",
+          "crop": {
+            "left": 524,
+            "top": 26,
+            "width": 488,
+            "height": 464
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            485,
+            461
+          ],
+          "transparentPixelsInCrop": 90364,
+          "pngSha256": "3db8ddc0d79868179bfba40f7ac3edbcf25ce7a01539f95bc166fc0fbbafcf5a"
+        },
+        {
+          "id": "help",
+          "title": "Hjælper",
+          "crop": {
+            "left": 1042,
+            "top": 42,
+            "width": 451,
+            "height": 443
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            448,
+            441
+          ],
+          "transparentPixelsInCrop": 59313,
+          "pngSha256": "549f4cf29793b30684d5806fdb1d6e845321db0b727611bd73d758746f60842d"
+        },
+        {
+          "id": "coffee",
+          "title": "Kaffepause",
+          "crop": {
+            "left": 46,
+            "top": 534,
+            "width": 451,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            448,
+            443
+          ],
+          "transparentPixelsInCrop": 58120,
+          "pngSha256": "5240010da684c44efea965c11fbaf88231446c92ef5905ae45b493142003b910"
+        },
+        {
+          "id": "sleepy",
+          "title": "Træt",
+          "crop": {
+            "left": 539,
+            "top": 528,
+            "width": 442,
+            "height": 454
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            440,
+            451
+          ],
+          "transparentPixelsInCrop": 56025,
+          "pngSha256": "008414bdc1bd60d2fd0c8400c926b8cb4460d21e1dd77108afb29332f486a34e"
+        },
+        {
+          "id": "goodbye",
+          "title": "På gensyn",
+          "crop": {
+            "left": 1036,
+            "top": 538,
+            "width": 473,
+            "height": 444
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            471,
+            441
+          ],
+          "transparentPixelsInCrop": 71357,
+          "pngSha256": "81078528a43ef634bc256c66a958b9c00a5951a94f6e14a161320c2af0c54041"
+        }
+      ]
+    },
+    {
+      "file": "sheet-4.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "94f9639756833d85b1520d3bf07c8a4dbff87bae8724903da3d0171dcf1d43dd",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet solemnly holds one bright vintage silver teaspoon close to his chest, utterly serious expression.\nTop-middle: Næsebladet holds a compact dark field recorder with twin microphones and a round red recording light.\nTop-right: Næsebladet cocks ear toward two distinct separated painted sound-wave arcs near a silver teaspoon in one wing claw.\nBottom-left: Næsebladet tests one miniature brass microphone with a dramatically intent expression.\nBottom-middle: Næsebladet squints at an amber jagged zigzag waveform on a small cream card.\nBottom-right: Næsebladet holds up a small card displaying a single clean teal sinusoidal waveform.",
+      "entries": [
+        {
+          "id": "spoon",
+          "title": "Skeen",
+          "crop": {
+            "left": 41,
+            "top": 28,
+            "width": 450,
+            "height": 452
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            447,
+            450
+          ],
+          "transparentPixelsInCrop": 57946,
+          "pngSha256": "2eccc4996d3318f0123105ff95bf43030f5892c8aca1d1c04b6febe8260522d9"
+        },
+        {
+          "id": "recording",
+          "title": "Optager",
+          "crop": {
+            "left": 537,
+            "top": 33,
+            "width": 450,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            448,
+            444
+          ],
+          "transparentPixelsInCrop": 57279,
+          "pngSha256": "7b3e5625208f8886445aacb034257701752e9848ca06f9c3751c242ace8fabfa"
+        },
+        {
+          "id": "echo",
+          "title": "Ekko",
+          "crop": {
+            "left": 1028,
+            "top": 24,
+            "width": 461,
+            "height": 463
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            458,
+            460
+          ],
+          "transparentPixelsInCrop": 68565,
+          "pngSha256": "e8391a1b6ad0849389d0fabf27ad96204231d539c833030fe9a06a44fe8bd15e"
+        },
+        {
+          "id": "soundcheck",
+          "title": "Lydprøve",
+          "crop": {
+            "left": 36,
+            "top": 536,
+            "width": 449,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            446,
+            443
+          ],
+          "transparentPixelsInCrop": 57238,
+          "pngSha256": "0c2169a7fcd68fb5ce86d24308fcbf27edfab5e764b90ccf135eed506f68fff1"
+        },
+        {
+          "id": "noise",
+          "title": "Støj",
+          "crop": {
+            "left": 531,
+            "top": 542,
+            "width": 459,
+            "height": 438
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            457,
+            435
+          ],
+          "transparentPixelsInCrop": 53170,
+          "pngSha256": "2b01f69f87598e0e5bb8dca61ad3a043f135e16c91bb9e8aa5e301ed6ee49294"
+        },
+        {
+          "id": "signal",
+          "title": "Klart signal",
+          "crop": {
+            "left": 1035,
+            "top": 535,
+            "width": 467,
+            "height": 447
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            465,
+            444
+          ],
+          "transparentPixelsInCrop": 57928,
+          "pngSha256": "7f90580b2cbee32ed987dd6ff47db1beb40610de825a952c5ee2ce7ff661a6ab"
+        }
+      ]
+    },
+    {
+      "file": "sheet-5.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "d94959c2dae89f4d7a6ea1b9b84f0da974ed63cbb9ba8c98e91dcd4989800e51",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet investigates one small olive-green sensor board with a prominent circular sensing element.\nTop-middle: Næsebladet points at a compact card with a horizontal double-ended arrow between two distinct posts.\nTop-right: Næsebladet adjusts a single brass calibration knob on a navy analog gauge.\nBottom-left: Næsebladet points at a simple sloping orange line crossing a distinct horizontal teal threshold line on a small board.\nBottom-middle: Næsebladet holds a tiny tablet showing three distinct gold sample points on one teal waveform.\nBottom-right: Næsebladet starts a tiny brass actuator with a short teal swinging lever and one motion mark.",
+      "entries": [
+        {
+          "id": "sensor",
+          "title": "Sensor",
+          "crop": {
+            "left": 37,
+            "top": 38,
+            "width": 455,
+            "height": 439
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            452,
+            437
+          ],
+          "transparentPixelsInCrop": 64455,
+          "pngSha256": "3a70bbe7ba751700613cb022471ea3dedad45a378eecda60a16aad563f067830"
+        },
+        {
+          "id": "distance",
+          "title": "Måler afstand",
+          "crop": {
+            "left": 536,
+            "top": 38,
+            "width": 459,
+            "height": 429
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            456,
+            426
+          ],
+          "transparentPixelsInCrop": 59494,
+          "pngSha256": "8e4ec1897c6c49029a349d49694502a01ae74d4d89ad2d9955e238a3c78d348f"
+        },
+        {
+          "id": "calibration",
+          "title": "Kalibrerer",
+          "crop": {
+            "left": 1040,
+            "top": 38,
+            "width": 461,
+            "height": 439
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            458,
+            437
+          ],
+          "transparentPixelsInCrop": 60856,
+          "pngSha256": "705ff73257493574006acb9f08504803cc05ea4a7b5726a26d7d64e586b415d5"
+        },
+        {
+          "id": "threshold",
+          "title": "Tærskel",
+          "crop": {
+            "left": 37,
+            "top": 549,
+            "width": 456,
+            "height": 436
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            453,
+            433
+          ],
+          "transparentPixelsInCrop": 60058,
+          "pngSha256": "0b62e3225a90ac6496ec0429c79059d500ff5e91591e7d37162753a7a6ba57c6"
+        },
+        {
+          "id": "sampling",
+          "title": "Sampler signalet",
+          "crop": {
+            "left": 536,
+            "top": 549,
+            "width": 464,
+            "height": 432
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            461,
+            430
+          ],
+          "transparentPixelsInCrop": 60905,
+          "pngSha256": "26794c733e239b9f062dc4e8f758c28604088b8a86aed12e204f403318aa70e0"
+        },
+        {
+          "id": "actuator",
+          "title": "Aktuator",
+          "crop": {
+            "left": 1041,
+            "top": 551,
+            "width": 458,
+            "height": 435
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            456,
+            432
+          ],
+          "transparentPixelsInCrop": 59375,
+          "pngSha256": "0a534501906e6fc269a1a92a8f72f0b055e470f9e06d5f916f53aa34b01006f8"
+        }
+      ]
+    },
+    {
+      "file": "sheet-6.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "eb91d1e7270495be1bf0e526f1e3bdfbb68531ef93e8b7105b33486a7d3f5cd8",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet points to one prominent row of three gold pins on a small forest-green circuit board.\nTop-middle: Næsebladet holds one small indigo microchip with a clear amber upward arrow just above it.\nTop-right: Næsebladet uses a single dark terminal panel with a large teal greater-than prompt and a short underscore, no letters or logos.\nBottom-left: Næsebladet connects a short curled amber cable to a dark panel with two plain teal signal stripes.\nBottom-middle: Næsebladet presses a large glowing muted green power button on a compact panel.\nBottom-right: Næsebladet lifts one clear warm ochre circular restart arrow with an alert expression.",
+      "entries": [
+        {
+          "id": "gpio",
+          "title": "GPIO",
+          "crop": {
+            "left": 36,
+            "top": 29,
+            "width": 457,
+            "height": 444
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            454,
+            441
+          ],
+          "transparentPixelsInCrop": 61746,
+          "pngSha256": "8e7d468ea95395c9886d855f4dc1be94351c306a917541213cb0bcfdc9b8bce6"
+        },
+        {
+          "id": "firmware",
+          "title": "Firmware",
+          "crop": {
+            "left": 540,
+            "top": 30,
+            "width": 456,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            453,
+            443
+          ],
+          "transparentPixelsInCrop": 60759,
+          "pngSha256": "d090809ff50b0b23782288986b8ed7828b1108ac05d442d89e9ca9f491736f55"
+        },
+        {
+          "id": "linux",
+          "title": "Linux",
+          "crop": {
+            "left": 1041,
+            "top": 30,
+            "width": 460,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            457,
+            444
+          ],
+          "transparentPixelsInCrop": 62070,
+          "pngSha256": "c7eab07aafc996382e51fd7f64f9a5c7dc5ee1a366d34c0d959bac4612501e67"
+        },
+        {
+          "id": "serial",
+          "title": "Seriel konsol",
+          "crop": {
+            "left": 39,
+            "top": 542,
+            "width": 450,
+            "height": 444
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            447,
+            442
+          ],
+          "transparentPixelsInCrop": 58380,
+          "pngSha256": "c182b7373fd902c8b8cfbb5e99ff34bf82e8d2b9a54e90378f4fa1915f848511"
+        },
+        {
+          "id": "power",
+          "title": "Tændt",
+          "crop": {
+            "left": 541,
+            "top": 542,
+            "width": 449,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            446,
+            443
+          ],
+          "transparentPixelsInCrop": 58134,
+          "pngSha256": "b3ce0aab0d23603b0940c34843077ed6ee6dd9095de41876e715cdb3569a6c57"
+        },
+        {
+          "id": "restart",
+          "title": "Genstarter",
+          "crop": {
+            "left": 1045,
+            "top": 542,
+            "width": 451,
+            "height": 443
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            448,
+            441
+          ],
+          "transparentPixelsInCrop": 60118,
+          "pngSha256": "bdf2b02a051f86a3f7848fde64cef6611b25301fe2849dd0edf006f66fd26bae"
+        }
+      ]
+    },
+    {
+      "file": "sheet-7.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "85f21c22c0f90e8b1e644ec036246b5e7396c9230cba1e56a2f220f4ec664ce7",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet shows a small teal data packet with a distinct outgoing arrow pointing right toward the edge of the same cell.\nTop-middle: Næsebladet receives one amber data packet at the end of a clear inward arrow pointed toward the bat.\nTop-right: Næsebladet points to a compact tile with a single teal hub linked to three separate amber nodes.\nBottom-left: Næsebladet ties a single empty colored routing tag to a tiny teal data packet.\nBottom-middle: Næsebladet glowers at an amber wireless signal icon clearly crossed by a diagonal slash.\nBottom-right: Næsebladet waits impatiently with half-lidded eyes next to a nearly empty little brass hourglass.",
+      "entries": [
+        {
+          "id": "mqtt-publish",
+          "title": "MQTT · Publicér",
+          "crop": {
+            "left": 25,
+            "top": 29,
+            "width": 469,
+            "height": 452
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            466,
+            449
+          ],
+          "transparentPixelsInCrop": 64662,
+          "pngSha256": "e40b820a707d5c832d0841fefee72df75d52e1e8e259a68c5fa85d5a2cbe6cc0"
+        },
+        {
+          "id": "mqtt-subscribe",
+          "title": "MQTT · Abonnér",
+          "crop": {
+            "left": 532,
+            "top": 29,
+            "width": 471,
+            "height": 448
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            469,
+            446
+          ],
+          "transparentPixelsInCrop": 64878,
+          "pngSha256": "1e649b7c90a03883abace8ab265b8f23e5ea94ac607e665a64c425b16038be28"
+        },
+        {
+          "id": "mqtt-broker",
+          "title": "MQTT-broker",
+          "crop": {
+            "left": 1041,
+            "top": 29,
+            "width": 472,
+            "height": 444
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            470,
+            441
+          ],
+          "transparentPixelsInCrop": 61566,
+          "pngSha256": "6897fd3f43fec80742e20b8ef5c7b4a5ce49c5f83fd53c03f1865041dab07396"
+        },
+        {
+          "id": "topic",
+          "title": "Emne",
+          "crop": {
+            "left": 23,
+            "top": 541,
+            "width": 474,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            472,
+            443
+          ],
+          "transparentPixelsInCrop": 63819,
+          "pngSha256": "ad69aa0dc83c7f2f38288ccc19ade0c5d21c8dc19b555e1150f623c37c550449"
+        },
+        {
+          "id": "offline",
+          "title": "Offline",
+          "crop": {
+            "left": 528,
+            "top": 541,
+            "width": 476,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            2,
+            474,
+            443
+          ],
+          "transparentPixelsInCrop": 63561,
+          "pngSha256": "ec5ddcd68e412c292bf785ad85f7a8b0cbf8f01482f4b6198e9033aaf2666662"
+        },
+        {
+          "id": "no-reply",
+          "title": "Intet svar",
+          "crop": {
+            "left": 1037,
+            "top": 539,
+            "width": 477,
+            "height": 446
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            474,
+            443
+          ],
+          "transparentPixelsInCrop": 64559,
+          "pngSha256": "5e4579dbc95ef0832d101e61cfb95b13fd21fc6032a239c348123ae8ad1fca1d"
+        }
+      ]
+    },
+    {
+      "file": "sheet-8.png",
+      "reference": "02-de-brede-skuldre.png.png",
+      "sha256": "179fd5951bb69320a7e7737f52d7a2d3f7909d758b631ebf40f2317f5d370449",
+      "width": 1536,
+      "height": 1024,
+      "prompt": "Create a production sticker SPRITE ATLAS of exactly SIX separate bust illustrations of the SAME established leaf-nosed bat called Næsebladet from the image reference, on a TRUE TRANSPARENT alpha background. Landscape atlas with precisely 3 columns and 2 rows. Center coordinates fractions: (1/6,1/4), (1/2,1/4), (5/6,1/4), then (1/6,3/4), (1/2,3/4), (5/6,3/4). All stickers equally sized, each WELL INSIDE its own invisible square cell, leave at least 9% empty transparent safety margin on all sides. No panel, overlap, grid lines or ground. Cropped head and torso bust plus two broad wing-shoulders and listed prop, no feet. One clean distinct silhouette each in warm detailed hand-painted gouache and soft dry-brush fur texture. Preserve the source's exaggerated wide upright shoulders, angular folded umbrella wings with visible wing finger bones, large warm rust-colored ears including distinctive clean notch in the outer edge of his left ear (viewer right), very distinctive small pink pointed LEAF-shaped nose with veins, dark plum-brown woolly fur and rust cheek highlights, amber-brown skeptical eyes, determined slightly mischievous theatrical expression. Draw bat wings only, no separate human arms or hands; he manipulates compact props with the small free claws at his wing joints. Preserve broad silhouette and stable face proportions throughout. No long rabbit ears, no fangs, no clothing, no visible tail, no source spoon or recorder except when expressly requested. Keep props close to the body, symbols simple and readable at 48px. No labels, captions, backgrounds, shadows on ground, bright color halos, white outlines, watermarks or checkerboard. True alpha outside each sticker.\nTop-left: Næsebladet studies a short ivory receipt with three bold muted log stripes, no lettering.\nTop-middle: Næsebladet points at one clearly empty gap between three small teal data packet tiles.\nTop-right: Næsebladet looks grimly at a large low-battery icon with one short red bar, on a small card.\nBottom-left: Næsebladet reacts to a small analog meter with needle at a clear red edge.\nBottom-middle: Næsebladet shows a newly connected small plug and port with one distinct moss-green checkmark, satisfied grin.\nBottom-right: Næsebladet brings two large interlocking muted teal and ochre puzzle pieces together, generous smile.",
+      "entries": [
+        {
+          "id": "log-review",
+          "title": "Læser logs",
+          "crop": {
+            "left": 32,
+            "top": 26,
+            "width": 456,
+            "height": 458
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            453,
+            455
+          ],
+          "transparentPixelsInCrop": 58629,
+          "pngSha256": "e0c27580d5ff92837554dc5d943066b376521e843699c36b59a7c42d034942da"
+        },
+        {
+          "id": "packet-loss",
+          "title": "Pakketab",
+          "crop": {
+            "left": 526,
+            "top": 34,
+            "width": 475,
+            "height": 445
+          },
+          "alphaBoundsInCrop": [
+            2,
+            1,
+            472,
+            442
+          ],
+          "transparentPixelsInCrop": 58508,
+          "pngSha256": "a890e8fb4763b74418d9de05058fd217511933b99ff6b3584ab4a710f497a5e5"
+        },
+        {
+          "id": "battery-low",
+          "title": "Lavt batteri",
+          "crop": {
+            "left": 1035,
+            "top": 33,
+            "width": 476,
+            "height": 452
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            473,
+            450
+          ],
+          "transparentPixelsInCrop": 61718,
+          "pngSha256": "06b057ae2563fbcaf11b4fa3a49c610fd24b6271c14fb0d0779ae564da5293bb"
+        },
+        {
+          "id": "overload",
+          "title": "Overbelastning",
+          "crop": {
+            "left": 31,
+            "top": 533,
+            "width": 465,
+            "height": 461
+          },
+          "alphaBoundsInCrop": [
+            1,
+            1,
+            462,
+            458
+          ],
+          "transparentPixelsInCrop": 60095,
+          "pngSha256": "4124723641b4d1488f1aa8596c78ea32bd613625962b4ce12102363fa517de40"
+        },
+        {
+          "id": "fixed",
+          "title": "Fejlen er rettet",
+          "crop": {
+            "left": 533,
+            "top": 536,
+            "width": 472,
+            "height": 456
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            469,
+            453
+          ],
+          "transparentPixelsInCrop": 60786,
+          "pngSha256": "e4caa8e3633723c9fd54d93eb769af7933ad9767e0dd4d192dd4149b091feffd"
+        },
+        {
+          "id": "teamwork",
+          "title": "Samarbejde",
+          "crop": {
+            "left": 1036,
+            "top": 530,
+            "width": 471,
+            "height": 464
+          },
+          "alphaBoundsInCrop": [
+            1,
+            2,
+            469,
+            461
+          ],
+          "transparentPixelsInCrop": 59861,
+          "pngSha256": "5de8fef3227179ddf25960e0821132cf22cf5e865367abe1f4c1795cc8e06cb4"
+        }
+      ]
+    }
+  ]
+}

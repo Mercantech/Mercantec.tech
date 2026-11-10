@@ -413,19 +413,20 @@ public sealed class CharacterDetailTests
     }
 
     [Fact]
-    public async Task OverviewIncludesAllNineCharactersAndUsesStableAnimalRoutes()
+    public async Task OverviewIncludesAllTenCharactersAndUsesStableAnimalRoutes()
     {
         using var api = new NoNetwork();
         using var context = await LearningUiTestContext.CreateAsync(api);
         var page = context.Render<CharacterIndex>();
 
-        Assert.Equal(9, page.FindAll(".character-card").Count);
-        Assert.Equal(9, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
+        Assert.Equal(10, page.FindAll(".character-card").Count);
+        Assert.Equal(10, CharacterCatalog.All.Select(character => character.Path).Distinct().Count());
         Assert.Equal("Bæver", page.Find("a[href='/characters/beaver'] h2").TextContent);
         Assert.Equal("Ræv", page.Find("a[href='/characters/fox'] h2").TextContent);
         Assert.Equal("Docker", page.Find("a[href='/characters/whale'] h2").TextContent);
         Assert.Equal("Gummianden", page.Find("a[href='/characters/gummianden'] h2").TextContent);
         Assert.Equal("Cyberbien", page.Find("a[href='/characters/bee'] h2").TextContent);
+        Assert.Equal("Næsebladet", page.Find("a[href='/characters/bat'] h2").TextContent);
     }
 
     [Fact]

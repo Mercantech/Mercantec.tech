@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "source": "Valgt konceptstudie af Næsebladet · De brede skuldre",
+  "referenceFile": "02-de-brede-skuldre.png",
+  "referenceSha256": "9a0178215eb3e9c9e840c2ae4195256c37a08a488e2ddf38770ade7f75160529",
+  "generator": "Indbygget ImageGen, ét motiv pr. billede",
+  "imagePrompt": "Make one distinct 3:2 landscape, 1536×1024 Danish illustrated IoT and embedded teaching card for LUP. Use the supplied selected Næsebladet portrait as the exact character identity. Broad upright shoulders, strong low-set body, dark plum/rust fur, leaf-shaped nose, existing notch on the ear at the viewer's right, deep amber eyes with a determined, slightly villain-like skeptical gaze. Preserve the character's organic hinged folded umbrella wings with visible folds, two feet, no additional arms. The character is a theatrical sound designer and embeddedsystems teacher, who keeps a little field recorder and tests the echo of a teaspoon on concrete. Distinct original illustration in LUP's warm gouache/pencil, paper texture, not glossy vector. The exact main title and short Danish callouts below are the only text. Keep Æ Ø Å legible, no subtitles, no miniature fake text, no invented source code, no numbers unless specified, no logos. Use a large enough bold title and uncluttered diagram to remain legible at 768px preview width. Warm beige/ink-plum/amber palette, occasional muted cyan for signals, visual depth and clear hierarchy. No extra fingers, paws or props that contradict the specific scene. Pose and placement can change to support the teaching diagram. The primary viewer should understand a relationship from the illustration itself.",
+  "png": {
+    "width": 1536,
+    "height": 1024,
+    "derivation": "Uændret godkendt output fra ImageGen"
+  },
+  "webp": {
+    "width": 768,
+    "height": 512,
+    "derivation": "FFmpeg libwebp, Lanczos, kvalitet 86"
+  },
+  "files": [
+    {
+      "id": "01-sensor-til-handling",
+      "title": "Fra sensor til handling",
+      "callouts": "Mål | Behandl | Handl",
+      "scenePrompt": "Næsebladet oversees a simple three-step visual flow; a distance sensor measures a small parked toy car, a controller processes a signal and switches a warning indicator. Use a muted side view of a quiet parking level, and a nearby separate industrial production-line icon to echo the industrial counterpart. A dashed upward optional branch from controller suggests remote monitoring rather than mandatory cloud.",
+      "generation": "exec-65d15534-2921-4c97-ad73-32b12c32d5d7.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/01-sensor-til-handling.png",
+        "bytes": 3316440,
+        "sha256": "b97c4739bcc19eafd648dbdde4e08da70b6d21a5e62d1beae07392f417f3b45c"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/01-sensor-til-handling.webp",
+        "bytes": 110168,
+        "sha256": "dff10f88cb40f6dc9b03f1babb9c8f0fa3a02a5da97369cb7721e0605c83530d"
+      }
+    },
+    {
+      "id": "02-tegn-din-iot-loesning",
+      "title": "Tegn din IoT-løsning",
+      "callouts": "Formål | Komponenter | Test",
+      "scenePrompt": "Warm technical drafting table with Næsebladet moving a set of three cards about one parking-space indicator. One card with occupancy idea, one with sensor/controller/LED connected, one with a short checklist and a fixed reference marker. Show the physical mockup to one side, with scope, decision and test clearly separate.",
+      "generation": "exec-bcfb03e1-745a-4831-a639-d354410603b1.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/02-tegn-din-iot-loesning.png",
+        "bytes": 3358858,
+        "sha256": "9cdc58afbca1e87b549bf1a5b60669d0b923d9a586508377a8532c9e3490df60"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/02-tegn-din-iot-loesning.webp",
+        "bytes": 118562,
+        "sha256": "075f1bf0c30f1041bcec6c7e1611c8ec21488465aa21dc798b62a0284c9476f9"
+      }
+    },
+    {
+      "id": "03-analog-og-digital",
+      "title": "Analog eller digital?",
+      "callouts": "Analog | Digital",
+      "scenePrompt": "A side-by-side comparison. Left continuous smooth plotted signal from analog sensor to ADC shown as sample dots along curve. Right clean two-level square-wave digital sensor output, with two levels and no text numbers. The bat examines the signals in a compact workshop with probe and bench device.",
+      "generation": "exec-d4c7f1ba-eb0a-4774-8291-a4c5e7759bac.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/03-analog-og-digital.png",
+        "bytes": 3328077,
+        "sha256": "84813e9c93c3047bf41d731900a9f1f2407945cc530d3e80849c0af26514d073"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/03-analog-og-digital.webp",
+        "bytes": 121554,
+        "sha256": "63d011af4dcf864bf20087ee146b859884947d18448f51b5a0922d17519b7732"
+      }
+    },
+    {
+      "id": "04-ekko-og-afstand",
+      "title": "Mål afstanden med ekko",
+      "callouts": "Ud | Hjem | Tid",
+      "scenePrompt": "Theatrical Næsebladet records the echo of a teaspoon beside a workbench. Main instructional diagram uses a separate ultrasonic sensor emitting a clear outward arrow to a flat target, then returning reflection arrow on another lane toward the same sensor. Place a clock icon spanning both directions to indicate the measured round trip. No equations, numbers, spurious second source or extra text.",
+      "generation": "exec-7bbf386c-adb3-4260-a338-4b8279f4cbce.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/04-ekko-og-afstand.png",
+        "bytes": 3391461,
+        "sha256": "71b47a8970b60cc4688e8860af6f4dedba4300a26efc42c7e52b0c009d1cf0f1"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/04-ekko-og-afstand.webp",
+        "bytes": 115106,
+        "sha256": "42e8530945a201b606044ec572e520c68b78f02ba60d7fb6f0d0f206e0187eec"
+      }
+    },
+    {
+      "id": "05-kalibrering-og-filter",
+      "title": "Stol på målingen",
+      "callouts": "Reference | Gentag | Filtrér",
+      "scenePrompt": "Bat uses a measuring tape and a fixed flat target to compare sensor samples, with a strip showing mostly closely clustered dots and one visibly separated outlier. Clear three-stage flow: known distance reference, repeated observations, a small filtered central cluster. No suggestion that filtering makes a bad signal valid.",
+      "generation": "exec-2ef5bd07-94e3-42a9-9cda-e779da6b17de.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/05-kalibrering-og-filter.png",
+        "bytes": 3329922,
+        "sha256": "2ff9867cd8f7a2dad6deec9647c9c60352fa6472fdb90e2a9438e5eebb5a243d"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/05-kalibrering-og-filter.webp",
+        "bytes": 106016,
+        "sha256": "9c6337d82564259a18a336cbdfd31b87a1f0b13d8f514d75a5ab2a6b5016cb18"
+      }
+    },
+    {
+      "id": "06-mikrocontroller-og-linux",
+      "title": "Vælg den rette computer",
+      "callouts": "Mikrocontroller | Linux-enhed",
+      "scenePrompt": "A tiny board and a larger Linux-capable board contrasted on a prop table. Left small board connected to timed distance sensor and local output, right board linked to persistent storage and gateway/remote management icon. No logos or board-specific pin labels. Skeptical bat fits two appropriate pieces to a stage plan.",
+      "generation": "exec-f609ca5d-c9ac-4512-ba7e-1d4018bed460.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/06-mikrocontroller-og-linux.png",
+        "bytes": 3377493,
+        "sha256": "f80d47d3f43b3d5b8942b65666bb42ba1e696ae6ebe231e1f77347ee8742b965"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/06-mikrocontroller-og-linux.webp",
+        "bytes": 117286,
+        "sha256": "b87f30343bdbdb2eb6b1b982906cd7cf10e8865d48f9790993f7610a833941ab"
+      }
+    },
+    {
+      "id": "07-gpio-og-aktuatorer",
+      "title": "Fra GPIO til bevægelse",
+      "callouts": "Input | Styring | Aktuator",
+      "scenePrompt": "Left a low-voltage button and small sensor feed a GPIO board; center board logically triggers a separate driver module; right a tiny motor moves a physical indicator. A separate low-voltage power source feeds the driver, never from the GPIO pin. Show a meaningful visual separation between control and power, no pin numbers or invented voltages.",
+      "generation": "exec-1efae7b8-517e-416d-a1ca-3871fda1c367.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/07-gpio-og-aktuatorer.png",
+        "bytes": 3286031,
+        "sha256": "fb950183d22d8fb89cc2be75a3e7edbaafb668201fb98493c95963e55e36d26e"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/07-gpio-og-aktuatorer.webp",
+        "bytes": 106822,
+        "sha256": "77d8690df41d44ac6368297676a81689e55285f7774915814c20bbfdb3e67bb9"
+      }
+    },
+    {
+      "id": "08-i2c-spi-uart",
+      "title": "Vælg den rette bus",
+      "callouts": "I²C | SPI | UART",
+      "scenePrompt": "Næsebladet compares three rows with small modular boards. First shows two shared lines with two devices, middle shows selected chip and independent select line without hardcoding total number of lines, third shows crossed transmit/receive arrows between two devices. Keep the diagram schematic and no extra wiring labels, node IDs or numbers.",
+      "generation": "exec-4615aa01-7af0-48f2-b124-1da56381528f.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/08-i2c-spi-uart.png",
+        "bytes": 3364555,
+        "sha256": "c66d86d411abeed0ee9ce4bf5aabe4b765cd1af2776267b0036292d5e8fb7813"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/08-i2c-spi-uart.webp",
+        "bytes": 116728,
+        "sha256": "d9d73b45525324d4863a37e2a67eb40c7389e2b218fbc7291ac0ef77228b0f6c"
+      }
+    },
+    {
+      "id": "09-tilstand-og-timeout",
+      "title": "Vent på ekko uden at blokere",
+      "callouts": "Send | Lyt | Timeout",
+      "scenePrompt": "Næsebladet waits with a recorder and no idle delay; main visual is a small sensor state diagram, signal sent, timed listening window, then two visible branches. One branch shows returning pulse and tick, other shows no response and timer expiry (Timeout). A tiny separate lamp shows controller can continue other work. Timeout never appears as zero distance.",
+      "generation": "exec-a28bef18-c62f-4e65-bbdd-c2876f3553a5.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/09-tilstand-og-timeout.png",
+        "bytes": 3258046,
+        "sha256": "4be8747e5decc631dc62c7cbfab9a683e942244d4a7f47b47baeece9b4f71b6d"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/09-tilstand-og-timeout.webp",
+        "bytes": 104266,
+        "sha256": "027f99dd0cda60bd990e496e3a8878be95a7d4d4618960226afe10f3de3a8c10"
+      }
+    },
+    {
+      "id": "10-maal-vaerdi-handling",
+      "title": "Brug målingen i koden",
+      "callouts": "Validér | Sammenlign | Reagér",
+      "scenePrompt": "Three well-separated steps. Bat rejects a bad sensor sample (cross on one card), compares valid value against threshold (simple scale with two zones), then switches a local warning lamp while preparing a network message. No numerical thresholds, no actual code, no ambiguous arrows from the rejected sample to actuator.",
+      "generation": "exec-189f5fd9-09e9-4bf7-8d08-0f288dc6e17f.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/10-maal-vaerdi-handling.png",
+        "bytes": 3365496,
+        "sha256": "5051bedd0dc5e48438e3e485d99a8a29accd2a2ef5366a3287d2e18255d992a1"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/10-maal-vaerdi-handling.webp",
+        "bytes": 111538,
+        "sha256": "d197d7ba11ef05c47095c8bb580c039c4c2a04df61a52e1a070da2793fa08ef3"
+      }
+    },
+    {
+      "id": "11-fejlfinding",
+      "title": "Find fejlen lag for lag",
+      "callouts": "Mål | Log | Isolér",
+      "scenePrompt": "Bat investigates a lost parking sensor signal using three clear panels: inspect sensor with an instrument, read a simple abstract timeline, then disconnect one faulty pathway and verify other connections. Include distinct small icons for wire and wireless radio. No invented terminal text, no human figures.",
+      "generation": "exec-b520c81d-e5ef-4903-9f00-f51962e52b3d.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/11-fejlfinding.png",
+        "bytes": 3393075,
+        "sha256": "eb75c5084ff06820e1f2c4931f5195ae758b63d0ceac99a9ed0f080d8806d14e"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/11-fejlfinding.webp",
+        "bytes": 114436,
+        "sha256": "d00f142b9109bf1add3fc6ae6c040927a0331ceb7737b8439b16cc0dbe75c32b"
+      }
+    },
+    {
+      "id": "12-mqtt-og-protokoller",
+      "title": "Fra enhed til besked",
+      "callouts": "Publicér | Broker | Abonnér",
+      "scenePrompt": "A small sensor publisher sends a message envelope through a separate MQTT broker hub to two subscribers, a status panel and a log. Arrows flow from publisher to broker then from broker to subscribers. Distinctive little theatrical stage lights, bat presents the one-to-many route. No logos, credentials or public addresses.",
+      "generation": "exec-4aede46d-5023-4d7f-bbcc-55bc16f0d582.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/12-mqtt-og-protokoller.png",
+        "bytes": 3420196,
+        "sha256": "b4e5ca5827153518fdc4b7096adc521596a022c299a8695e08b25c47292a33c6"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/12-mqtt-og-protokoller.webp",
+        "bytes": 114294,
+        "sha256": "e8ff1de0e67c57a4d16ed645899a6b31e8ad06bcff5285f5370543dc0978d37e"
+      }
+    },
+    {
+      "id": "13-edge-og-gateway",
+      "title": "Bearbejd data tæt på sensoren",
+      "callouts": "Sensor | Gateway | System",
+      "scenePrompt": "A sensor with repeated raw echo blips enters an edge gateway. Gateway emits a clean concise event to a central system, with separate small local storage symbol for buffering during connection loss. Bat checks quality before handing data onward. Keep local decisions clearly possible when link is interrupted.",
+      "generation": "exec-3cb00bcb-f4c8-4235-871d-d6106152657d.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/13-edge-og-gateway.png",
+        "bytes": 3203079,
+        "sha256": "2ac5620001d6da4399a5ddf51c0154916b3dde41b57069efd85cd254ed6a23be"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/13-edge-og-gateway.webp",
+        "bytes": 104662,
+        "sha256": "b5bfe00d86884e8950024f01cc23123d25849171f7c2bcb622c712096b8fa004"
+      }
+    },
+    {
+      "id": "14-embedded-linux",
+      "title": "Kom i gang med embedded Linux",
+      "callouts": "Installér | Forbind | Undersøg",
+      "scenePrompt": "Bat examines small Linux-capable embedded board, boot media, and three clean boxes showing first boot, remote connection and a file tree. No Linux logo, no fake commands, no credentials, no invented computer screen text. Motif resembles quiet sound engineer station in a concrete parking studio.",
+      "generation": "exec-57453cd1-4a68-47aa-91ba-3d31a288d1e6.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/14-embedded-linux.png",
+        "bytes": 3000703,
+        "sha256": "02059f81ded317fc853e696480fc4635fe036ffd6eb2060e22127211de40da04"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/14-embedded-linux.webp",
+        "bytes": 98324,
+        "sha256": "567c9892a70e9cf3fe9bdf57fb8625f254a11a130ed4275ae5468e8ec2873374"
+      }
+    },
+    {
+      "id": "15-linux-bruger-og-tjeneste",
+      "title": "Lad gatewayen køre som tjeneste",
+      "callouts": "Bruger | Tjeneste | Log",
+      "scenePrompt": "Bat looks at a Linux gateway stack with distinct named operator, least-privileged service identity and a journal of health events. Show service receiving limited sensor access and emitting a status signal to a separate log. A bold no-admin-key icon near identity, no terminal text or actual shell code.",
+      "generation": "exec-8e776366-387a-4af7-bdfe-cfba510fbfeb.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/15-linux-bruger-og-tjeneste.png",
+        "bytes": 3005289,
+        "sha256": "f37996e877aaf29d7a7b7a1b1a79f83c3bd3498260fcf58fd6ed1c3a1dfb09b1"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/15-linux-bruger-og-tjeneste.webp",
+        "bytes": 98104,
+        "sha256": "ebde89a33294e9ed7cfa22483e907a223c4294f0e65839b8c6222342f83872c4"
+      },
+      "edit": {
+        "referenceGeneration": "exec-5b9062b0-6cb8-4183-8df4-e3d27ad30b98.png",
+        "prompt": "Edit this 1536×1024 3:2 landscape LUP teaching card in place. Keep the Næsebladet bat identical, preserve the Danish headline 'Lad gatewayen køre som tjeneste', all colors, texture, spoon/recorder, stage, gateway shape, and the coherent vertical internal diagram and arrows. Make only these two edits: (1) completely remove the small penguin silhouette and its text 'Linux gateway' from the header of the gateway unit and fill that area with seamless plain matching dark plum brushed housing. No animal logo or substitute text there. (2) completely remove the three duplicate external speech balloons that hang to the right of the unit, preserving the three labels 'Bruger', 'Tjeneste' and 'Log' inside the unit exactly once each. Fill the space from removed balloons with seamlessly continued beige concrete backdrop. No text other than headline and those three internal labels. Keep card landscape and wide framing and everything else visually intact."
+      }
+    },
+    {
+      "id": "16-sikker-firmware",
+      "title": "Opdatér enheden sikkert",
+      "callouts": "Identitet | Verificér | Gendan",
+      "scenePrompt": "Bat checks three well-distinguished safety steps for an IoT sensor: named individual device, verified firmware with trust seal before applying, then controlled restore fallback if the trial update fails. Use a narrow separated network segment and a clear offline backup icon, no credential strings, no exploit tutorial.",
+      "generation": "exec-f58636ca-baf0-4fc5-9f14-0e64c47dc27a.png",
+      "png": {
+        "path": "web/wwwroot/images/characters/bat/infographics/16-sikker-firmware.png",
+        "bytes": 3314037,
+        "sha256": "363c62ddf282d057e03e5e3b78f915dd10a73410315d4a4599357d6f2310484c"
+      },
+      "webp": {
+        "path": "web/wwwroot/images/characters/bat/infographics/16-sikker-firmware.webp",
+        "bytes": 111848,
+        "sha256": "2b77cfe1c7314a308e61c0b812e8db729df01a163a897ab8d2827149e10173be"
+      }
+    }
+  ]
+}
