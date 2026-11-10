@@ -55,7 +55,7 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         var doc = new NotebookDocument { Id = id, Kind = "template", Title = request.Title.Trim(),
             YjsState = state, Revision = 1, Fingerprint = projection.Fingerprint, SearchText = projection.PlainText,
             DrawingIdsJson = JsonSerializer.Serialize(projection.DrawingIds ?? []),
-            CreatedAtUtc = now, UpdatedAtUtc = now };
+            CreatedAtUtc = now, UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(User) };
         var template = new NotebookTemplate { Id = id, Cadence = request.Cadence };
         db.NotebookDocuments.Add(doc); db.NotebookTemplates.Add(template);
         await db.SaveChangesAsync(ct);
@@ -164,9 +164,8 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         var notebook = await db.Notebooks.SingleOrDefaultAsync(n => n.OwnerSub == sub, ct);
         if (notebook is null) return BadRequest(new { error = "open_notebook_first" });
         // A repeat of an acknowledged free-entry request remains idempotent even after archive/update.
-        var prior = await db.NotebookDocuments.AsNoTracking()
-            .SingleOrDefaultAsync(d => d.NotebookId == notebook.Id && d.RequestId == request.RequestId, ct);
-        if (prior is not null) return prior.TemplateId == request.TemplateId ? Ok(PageView(prior)) : Conflict(new { error = "request_id_reused" });
+        var prior = await FindRequest(notebook.Id, request.RequestId, ct);
+        if (prior is not null) return ExistingEntry(prior, request.TemplateId);
         var version = await (from template in db.NotebookTemplates.AsNoTracking()
             join v in db.NotebookTemplateVersions on template.ActiveVersionId equals (Guid?)v.Id
             where template.Id == request.TemplateId && template.IsActive select v).SingleOrDefaultAsync(ct);
@@ -177,7 +176,7 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         if (periodKey is not null)
         {
             var existing = await FindPeriod(notebook.Id, version.TemplateId, periodKey, ct);
-            if (existing is not null) return Ok(PageView(existing));
+            if (existing is not null && !EntryExpired(existing)) return ExistingEntry(existing, request.TemplateId);
         }
         var oldIds = JsonSerializer.Deserialize<Guid[]>(version.AssetIdsJson) ?? [];
         var originals = await db.NotebookAssets.AsNoTracking().Where(a => a.DocumentId == version.TemplateId && oldIds.Contains(a.Id)).ToArrayAsync(ct);
@@ -209,12 +208,23 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
             PeriodKey = periodKey, PeriodStart = start, HoldId = request.HoldId, YjsState = state,
             Fingerprint = projection.Fingerprint, SearchText = projection.PlainText,
             AssetIdsJson = JsonSerializer.Serialize(projection.AssetIds), DrawingIdsJson = JsonSerializer.Serialize(projection.DrawingIds ?? []), Revision = 1,
-            CreatedAtUtc = now, UpdatedAtUtc = now };
+            CreatedAtUtc = now, UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(User) };
         var linkedTargets = await db.NotebookDocuments.AsNoTracking().Where(d => d.NotebookId == notebook.Id
             && projection.LinkIds.Contains(d.Id)).Select(d => d.Id).ToArrayAsync(ct);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         try
         {
+            await NotebookPageTree.LockPersonalAsync(db, notebook.Id, ct);
+            prior = await FindRequest(notebook.Id, request.RequestId, ct);
+            if (prior is not null) return ExistingEntry(prior, request.TemplateId);
+            if (periodKey is not null && await FindPeriod(notebook.Id, version.TemplateId, periodKey, ct) is { } existing)
+            {
+                if (!EntryExpired(existing)) return ExistingEntry(existing, request.TemplateId);
+                // After the restore window an old entry no longer reserves the period. Its request ID
+                // stays consumed, so retrying the old request can never recreate a deleted document.
+                await db.NotebookDocuments.IgnoreQueryFilters().Where(d => d.Id == existing.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(d => d.PeriodKey, (string?)null), ct);
+            }
             db.NotebookDocuments.Add(doc); db.NotebookAssets.AddRange(copies);
             db.NotebookLinks.AddRange(linkedTargets.Distinct().Select(target => new NotebookLink { FromId = id, ToId = target }));
             await db.SaveChangesAsync(ct);
@@ -225,22 +235,35 @@ public sealed class NotebookTemplatesController(AppDbContext db, NotebookAccess 
         catch (DbUpdateException ex) when (NotebookPeriods.IsUniqueViolation(ex))
         {
             await transaction.RollbackAsync(ct); db.ChangeTracker.Clear();
-            var winner = await db.NotebookDocuments.AsNoTracking().SingleOrDefaultAsync(d => d.NotebookId == notebook.Id
-                && d.RequestId == request.RequestId, ct);
-            if (winner is not null && winner.TemplateId != request.TemplateId) return Conflict(new { error = "request_id_reused" });
+            var winner = await FindRequest(notebook.Id, request.RequestId, ct);
             if (winner is null && periodKey is not null) winner = await FindPeriod(notebook.Id, version.TemplateId, periodKey, ct);
             if (winner is null) throw;
-            return Ok(PageView(winner));
+            return ExistingEntry(winner, request.TemplateId);
         }
         return Ok(PageView(doc));
     }
 
+    private IActionResult ExistingEntry(NotebookDocument entry, Guid templateId)
+    {
+        if (entry.TemplateId != templateId) return Conflict(new { error = "request_id_reused" });
+        if (entry.DeletedAtUtc is not null)
+            return Conflict(new { error = EntryExpired(entry) ? "journal_request_deleted" : "journal_in_trash" });
+        return Ok(PageView(entry));
+    }
+
+    private static bool EntryExpired(NotebookDocument entry) =>
+        entry.DeletedAtUtc <= DateTimeOffset.UtcNow.AddDays(-NotebookPageTree.RetentionDays);
+
+    private Task<NotebookDocument?> FindRequest(Guid notebookId, Guid requestId, CancellationToken ct) =>
+        db.NotebookDocuments.IgnoreQueryFilters().AsNoTracking().SingleOrDefaultAsync(d => d.NotebookId == notebookId && d.RequestId == requestId, ct);
+
     private Task<NotebookDocument?> FindPeriod(Guid notebookId, Guid templateId, string period, CancellationToken ct) =>
-        db.NotebookDocuments.AsNoTracking().SingleOrDefaultAsync(d => d.NotebookId == notebookId && d.TemplateId == templateId && d.PeriodKey == period, ct);
+        db.NotebookDocuments.IgnoreQueryFilters().AsNoTracking().SingleOrDefaultAsync(d => d.NotebookId == notebookId && d.TemplateId == templateId && d.PeriodKey == period, ct);
     private static bool ValidTitle(string? title) => !string.IsNullOrWhiteSpace(title) && title.Trim().Length <= 200;
     private static NotebookTemplateView View(NotebookTemplate t, NotebookDocument d) => new(t.Id, t.Id, d.Title, t.Cadence, t.IsActive, t.Version, d.UpdatedAtUtc);
     private static NotebookPageSummary PageView(NotebookDocument d) => new(d.Id, d.NotebookId!.Value, d.Title, d.ParentPageId,
-        d.Kind, JsonSerializer.Deserialize<string[]>(d.TagsJson) ?? [], d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision);
+        d.Kind, JsonSerializer.Deserialize<string[]>(d.TagsJson) ?? [], d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision,
+        LastEditedByName: d.LastEditedByName, SortOrder: d.SortOrder);
     private ObjectResult Unavailable() => StatusCode(503, new { error = "document_service_unavailable", message = "Dokumentet kunne ikke oprettes. Prøv igen om lidt." });
     private ObjectResult DrawingFailure(DrawingException error) => StatusCode(error.Status, new { error = error.Code, message = error.Message });
 }

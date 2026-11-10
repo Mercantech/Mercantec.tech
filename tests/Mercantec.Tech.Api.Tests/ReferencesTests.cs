@@ -62,6 +62,25 @@ public sealed partial class ReferencesTests : IAsyncLifetime
     public async Task DisposeAsync() { await db.DisposeAsync(); await connection.DisposeAsync(); }
 
     [Fact]
+    public async Task Legacy_collection_graph_includes_links_from_readable_subtree_pages()
+    {
+        var root = new NotionPage { Id = Guid.NewGuid(), HoldId = hold, Title = "Gammelt forløb",
+            PublishedTitle = "Gammelt forløb", PublishedAtUtc = DateTimeOffset.UtcNow, PublishedState = GraphFixtures.Get("empty") };
+        var child = new NotionPage { Id = Guid.NewGuid(), HoldId = hold, ParentPageId = root.Id, Title = "Gammel underside",
+            PublishedTitle = "Gammel underside", PublishedAtUtc = DateTimeOffset.UtcNow, PublishedState = GraphFixtures.Get("empty") };
+        db.NotionPages.AddRange(root, child);
+        var from = Ref("notion-page", child.Id);
+        var to = Ref("notion-page", root.Id);
+        db.EntityReferenceLinks.Add(new() { SourceKind = from.Kind, SourceId = from.Id, TargetKind = to.Kind, TargetId = to.Id, Visibility = "published" });
+        await db.SaveChangesAsync();
+        var request = new ReferenceGraphRequest(ScopeKind: "collection", ScopeId: root.Id.ToString("D"), LinkedPagesOnly: true);
+        var visible = await service.GraphAsync(User(student), request, default);
+        Assert.Equal(new ReferenceGraphEdge(from.Key, to.Key), Assert.Single(visible.Edges));
+        Assert.Equal(2, visible.Nodes.Length);
+        Assert.Empty((await service.GraphAsync(User(outsider), request, default)).Nodes);
+    }
+
+    [Fact]
     public void TypedYjsReferencesReadOnlyIntegratedLiveNodesAndLegacyDomain()
     {
         var refs = new HashSet<EntityReference>();

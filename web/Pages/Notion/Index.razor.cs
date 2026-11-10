@@ -20,6 +20,7 @@ public partial class Index
     [Inject] private NotionClient Client { get; set; } = default!;
     [Inject] private IJSRuntime Js { get; set; } = default!;
     [Parameter] public Guid? PageId { get; set; }
+    [Parameter] public Guid? CollectionId { get; set; }
     [SupplyParameterFromQuery(Name = "notice")] public string? MentionNotice { get; set; }
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
     [SupplyParameterFromQuery(Name = "published")] public bool PublishedPreview { get; set; }
@@ -74,10 +75,10 @@ public partial class Index
     private Task<bool>? _titleSaveTask;
     private bool CanUse => Auth.IsAuthenticated;
     private bool ForceReadOnly => PublishedPreview || ViewAs.IsActive;
-    private bool CanManageHold => !ViewAs.IsActive && (_current?.CanEdit == true || _holds.Any(h => h.Id == _holdId && h.CanManage));
+    private bool CanManageHold => !ViewAs.IsActive && (_current?.CanEdit == true || _collection?.CanManage == true || _holds.Any(h => h.Id == _holdId && h.CanManage));
     private bool IsEditing => _current?.CanEdit == true && !ForceReadOnly;
     private bool Authoring => CanManageHold && !ForceReadOnly;
-    private string RouteKey => $"{PageId}:{HoldQuery}:{WorkspaceQuery}:{CourseQuery}:{ForceReadOnly}";
+    private string RouteKey => $"{PageId}:{CollectionId}:{HoldQuery}:{WorkspaceQuery}:{CourseQuery}:{ForceReadOnly}";
     private string StatusLabel => _savingTitle ? "Gemmer titel…" : _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Forbindelsen kræver opmærksomhed", _ => "Forbinder…" };
     private IEnumerable<NotionPageSummary> VisiblePages => ForceReadOnly ? _pages.Where(p => p.PublishedAtUtc is not null) : _pages;
     private string PageHref(Guid id, bool? publishedOnly = null) => WorkspaceNavigation.Page(id, _returnContext?.WorkspaceId, _returnContext?.CourseId, publishedOnly ?? ForceReadOnly, _holdId);
@@ -95,7 +96,7 @@ public partial class Index
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
-        PageId = HoldQuery = WorkspaceQuery = CourseQuery = null;
+        PageId = CollectionId = HoldQuery = WorkspaceQuery = CourseQuery = null;
         PublishedPreview = false;
         return base.SetParametersAsync(parameters);
     }
@@ -111,7 +112,7 @@ public partial class Index
     {
         if (firstRender) await SyncAccount();
         if (_disposed) return;
-        if (!CanUse || (!_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty))
+        if (!CanUse || (CollectionId is null && !_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty))
         { await UnmountSidebar(); return; }
         var sidebarSetup = InitializeSidebar();
         if (_needsMount && _current is not null && CanUse && !_disposed) await MountEditor();
@@ -169,7 +170,7 @@ public partial class Index
         var element = _workspaceElement;
         try
         {
-            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=ide-edge-20261108").AsTask();
+            _sidebarModuleTask ??= Js.InvokeAsync<IJSObjectReference>("import", "/js/notion-sidebar.js?v=notebook-tree-20261110").AsTask();
             var module = await _sidebarModuleTask;
             if (_disposed) return;
             if (_sidebarModule is not null && !string.IsNullOrEmpty(_sidebarMountedElement.Id))
@@ -250,7 +251,7 @@ public partial class Index
     {
         pageId = _current!.PageId, holdId = _current.HoldId, collectionId = _current.CollectionId, title = _current.Title,
         workspaceId = _returnContext?.WorkspaceId, courseId = _returnContext?.CourseId,
-        canEdit = IsEditing, members = _current.Members, polls = _current.Polls,
+        canEdit = IsEditing, lifecycleVersion = _current.LifecycleVersion, members = _current.Members, polls = _current.Polls,
         pages = _current.Pages ?? [], groups = _groups, resourcesLoaded = _resourcesLoaded, publishedStateBase64 = _current.PublishedStateBase64,
         publishedAtUtc = _current.PublishedAtUtc, updatedAtUtc = _current.UpdatedAtUtc,
         userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject, drawings = _current.Drawings
@@ -277,7 +278,8 @@ public partial class Index
         if (old is not null) { old.Cancel(); old.Dispose(); }
         await Unmount();
         if (!IsCurrent(generation, ct)) return;
-        _loadedRoute = RouteKey; _loading = true; _error = null; _notice = null; _current = null; _returnContext = null;
+        _loadedRoute = RouteKey; _loading = true; _error = null; _notice = null; _current = null; _collection = null; _returnContext = null;
+        _draggingPage = null;
         _groups = []; _resourcesLoaded = false; _resourcesTask = null; _navigationLoading = false; _navigationError = null; _resourcesError = null; _showGroups = false; _scrollCenterToTop = false;
         try
         {
@@ -289,6 +291,23 @@ public partial class Index
                 ResetSidebarScope(context.CollectionId);
                 if (_pagesHold != (context.CollectionId ?? _holdId) || _pagesPublishedOnly != ForceReadOnly) { _pages = []; _pagesHold = null; }
                 SelectContext(context);
+            }
+            else if (CollectionId is Guid collectionId)
+            {
+                var collection = await Client.Collection(collectionId, ct, ForceReadOnly);
+                if (!IsCurrent(generation, ct)) return;
+                _collection = collection;
+                _holdId = collection.HoldId ?? Guid.Empty;
+                ResetSidebarScope(collection.Id);
+                var pages = await Client.CollectionPages(collection.Id, ct, ForceReadOnly);
+                if (!IsCurrent(generation, ct)) return;
+                SetPages(pages);
+                if (collection.RootPageId is Guid landing && landing != Guid.Empty && pages.Any(p => p.Id == landing))
+                {
+                    var context = await FetchContext(landing, ct);
+                    if (!IsCurrent(generation, ct)) return;
+                    SelectContext(context);
+                }
             }
             else
             {
@@ -321,7 +340,7 @@ public partial class Index
             if (IsCurrent(generation, ct))
             {
                 _loading = false;
-                if (_current is null && _error is null && _holdId != Guid.Empty)
+                if (_current is null && _error is null && (_holdId != Guid.Empty || _collection is not null))
                 { _navigationGeneration = generation; _ = LoadNavigation(generation, ct); }
             }
         }
@@ -351,9 +370,8 @@ public partial class Index
         ct = _navigationRequests.Token;
         if (previous is not null) { previous.Cancel(); previous.Dispose(); }
         _navigationLoading = true; _navigationError = null;
-        var holdId = _holdId; var collectionId = _current?.CollectionId; var scopeId = collectionId ?? holdId;
-        // Each independent metadata request handles its own failure. A slow hold
-        // selector must not prevent the page list or the document from appearing.
+        var holdId = _holdId; var collectionId = ActiveCollectionId; var scopeId = collectionId ?? holdId;
+        // Each independent metadata request handles its own failure.
         async Task LoadPart(Func<Task> action)
         {
             try { await action(); }
@@ -369,7 +387,7 @@ public partial class Index
         }));
         if (_pagesHold != scopeId || _pagesPublishedOnly != ForceReadOnly || refresh) parts.Add(LoadPart(async () =>
         {
-            var pages = collectionId is Guid collection ? await Client.CollectionPages(collection, ct, ForceReadOnly) : await Client.Pages(holdId, ct, ForceReadOnly);
+            var pages = collectionId is Guid collection ? await Client.CollectionPages(collection, ct, ForceReadOnly) : await Client.Pages(holdId, ct, ForceReadOnly, legacyOnly: _current is not null);
             if (!IsCurrent(generation, ct)) return;
             SetPages(pages);
             await PushEditorContext(generation, ct);
@@ -390,7 +408,7 @@ public partial class Index
     private void SetPages(NotionPageSummary[] pages)
     {
         pages = ReconcileActivePage(pages);
-        _pages = pages; _pagesHold = _current?.CollectionId ?? _holdId; _pagesPublishedOnly = ForceReadOnly;
+        _pages = pages; _pagesHold = ActiveCollectionId ?? _holdId; _pagesPublishedOnly = ForceReadOnly;
         if (_current is not null) _current = _current with { Pages = pages.Select(p => new NotionPageLink(p.Id, p.Title, p.ParentPageId)).ToArray() };
         RebuildPageRows();
     }
@@ -445,14 +463,6 @@ public partial class Index
         return false;
     }
     private async Task BeforeNavigation(LocationChangingContext context) { if (!await CanLeave()) context.PreventNavigation(); }
-    private async Task ChangeHold(ChangeEventArgs args)
-    {
-        if (Guid.TryParse(args.Value?.ToString(), out var id) && id != _holdId && await CanLeave())
-        {
-            if (_sidebarMobile) SetSidebarOpen(false);
-            Nav.NavigateTo(WorkspaceNavigation.Editor(id, publishedOnly: ForceReadOnly));
-        }
-    }
     private async Task OpenPage(Guid id)
     {
         if (_current?.PageId == id) { if (_sidebarMobile) SetSidebarOpen(false); return; }
@@ -461,14 +471,15 @@ public partial class Index
         if (_sidebarMobile) SetSidebarOpen(false);
         Nav.NavigateTo(href);
     }
-    private void BeginCreate(bool child) { if (!Authoring) return; SetSidebarOpen(true); _newParent = child ? _current?.PageId : null; _newTitle = ""; _creating = true; }
+    private void BeginCreate(bool child) => BeginCreateAt(child ? _current?.PageId : null);
+    private void BeginCreateAt(Guid? parent) { if (!Authoring) return; SetSidebarOpen(true); _newParent = parent; _newTitle = ""; _creating = true; }
     private async Task CreatePage()
     {
         if (!Authoring || string.IsNullOrWhiteSpace(_newTitle) || !await CanLeave()) return;
         await Work(async ct =>
         {
             var holdId = _current is null ? WorkspaceNavigation.NonEmpty(_holdId) : _current.HoldId;
-            var page = await Client.Create(holdId, _newTitle.Trim(), _newParent, ct, _current?.CollectionId);
+            var page = await Client.Create(holdId, _newTitle.Trim(), _newParent, ct, ActiveCollectionId, atRoot: _newParent is null);
             _creating = false; _pagesHold = null;
             if (_sidebarMobile) SetSidebarOpen(false);
             Nav.NavigateTo(PageHref(page.Id));
@@ -590,7 +601,7 @@ public partial class Index
     });
     private void RebuildPageRows()
     {
-        var pages = VisiblePages.OrderBy(p => p.Title).ToArray();
+        var pages = VisiblePages.OrderBy(p => p.SortOrder ?? int.MaxValue).ThenBy(p => p.Title).ThenBy(p => p.Id).ToArray();
         if (_current is not null && !pages.Any(p => p.Id == _current.PageId))
             pages = [new(_current.PageId, _current.HoldId, _current.Title, null, _current.UpdatedAtUtc, _current.PublishedAtUtc, CollectionId: _current.CollectionId), .. pages];
         _parents = pages.ToDictionary(p => p.Id, p => p.ParentPageId);

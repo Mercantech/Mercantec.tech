@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +17,15 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
     public const int MaxStateBytes = 16 * 1024 * 1024;
 
     [HttpGet("{id:guid}/state")]
-    public async Task<IActionResult> ReadState(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ReadState(Guid id, CancellationToken ct, long lifecycleVersion = 0)
     {
         var denied = CheckServiceKey();
         if (denied is not null) return denied;
         Response.Headers.CacheControl = "no-store";
         var document = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
-            .Select(p => new { p.YjsState }).SingleOrDefaultAsync(ct);
+            .Select(p => new { p.YjsState, p.LifecycleVersion }).SingleOrDefaultAsync(ct);
         if (document is null) return NotFound();
+        if (document.LifecycleVersion != lifecycleVersion) return Conflict(new { error = "stale_document_session" });
         return document.YjsState is { Length: > 0 } bytes ? File(bytes, "application/octet-stream") : NoContent();
     }
 
@@ -42,6 +44,9 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         string? fingerprint;
         string? drawingManifest = null;
         StoreNotionMcpChange? mcpChange = null;
+        long lifecycleVersion = 0;
+        string? editorName = null;
+        var preserveEditMetadata = false;
         if (json)
         {
             StoreNotionDocument? projection;
@@ -68,6 +73,9 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             fingerprint = projection.Fingerprint;
             drawingManifest = JsonSerializer.Serialize(drawingIds);
             mcpChange = projection.McpChange;
+            lifecycleVersion = projection.LifecycleVersion;
+            editorName = UserClaims.CleanEditorName(projection.EditorName);
+            preserveEditMetadata = projection.PreserveEditMetadata;
         }
         else
         {
@@ -85,10 +93,17 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         if (hasFingerprint && !IsFingerprint(fingerprint)) return BadRequest(new { error = "invalid_fingerprint" });
         bytes = state.ToArray();
         }
-        var updated = DateTimeOffset.UtcNow;
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         // The source row also serializes its reference diff and durable mention occurrences.
         await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.PublicationVersion, p => p.PublicationVersion), ct);
+        var stored = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
+            .Select(p => new { p.DraftFingerprint, p.UpdatedAtUtc, p.LifecycleVersion }).SingleOrDefaultAsync(ct);
+        if (stored is null) return NotFound();
+        if (stored.LifecycleVersion != lifecycleVersion) return Conflict(new { error = "stale_document_session" });
+        var updated = DateTimeOffset.UtcNow;
+        var contentChanged = fingerprint is null || stored.DraftFingerprint != fingerprint;
+        var edited = contentChanged && !preserveEditMetadata;
+        var savedAt = edited ? updated : stored.UpdatedAtUtc;
         Mercantec.Tech.Api.Data.Entities.NotionMcpChange? operation = null;
         if (mcpChange is not null)
         {
@@ -101,7 +116,8 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
         await references.BaselineNotionAsync(id, ct);
         // Atomic column update leaves concurrently renamed page metadata intact.
         var written = await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
-            .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, updated)
+            .SetProperty(p => p.YjsState, bytes).SetProperty(p => p.UpdatedAtUtc, savedAt)
+            .SetProperty(p => p.LastEditedByName, p => edited ? editorName : p.LastEditedByName)
             // The authenticated v1 service may still flush while Compose replaces it. Preserve
             // those bytes, but require the v2 service to stamp them before publication.
             .SetProperty(p => p.DraftRevision, p => fingerprint != null && p.DraftFingerprint == fingerprint ? p.DraftRevision : p.DraftRevision + 1)
@@ -125,7 +141,7 @@ public sealed class NotionStorageController(AppDbContext db, IConfiguration conf
             await db.SaveChangesAsync(ct);
         }
         await transaction.CommitAsync(ct);
-        return Ok(new { savedAtUtc = updated, mcpOperationId = operation?.Id });
+        return Ok(new { savedAtUtc = savedAt, mcpOperationId = operation?.Id });
     }
 
     public static bool IsFingerprint(string? fingerprint) => fingerprint is { Length: 64 }

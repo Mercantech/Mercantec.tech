@@ -62,8 +62,9 @@ async function saved(domain, id, predicate) {
 async function mention(page, query, expectedTitle, contextLabel = null) {
   await editor(page).click(); await page.keyboard.press('Control+End'); await page.keyboard.press('Enter');
   await page.keyboard.type('@' + query, { delay: 20 });
-  const choices = page.locator('.bn-suggestion-menu').getByText(expectedTitle, { exact: true });
-  await (contextLabel ? choices.locator('..').filter({ hasText: contextLabel }) : choices).click({ timeout: 30000 });
+  const choices = page.locator('.bn-suggestion-menu').getByRole('option')
+    .filter({ has: page.getByText(expectedTitle, { exact: true }) });
+  await (contextLabel ? choices.filter({ hasText: contextLabel }) : choices).click({ timeout: 30000 });
 }
 async function publish(page) {
   const button = page.getByRole('button', { name: /^(Udgiv til LUP|Udgiv til holdet|Opdatér udgivelsen)$/ });
@@ -95,8 +96,9 @@ try {
     await form.getByLabel('Titel', { exact: true }).press('Tab');
     await form.locator('select').selectOption('');
     await form.getByRole('button', { name: 'Opret', exact: true }).click();
-    await teacher.waitForURL(/\/notion\/[0-9a-f-]{36}(?:\?|$)/);
-    theoryId = new URL(teacher.url()).pathname.split('/').at(-1);
+    await teacher.waitForURL(/\/notion\/collections\/[0-9a-f-]{36}(?:\?|$)/);
+    const collectionId = new URL(teacher.url()).pathname.split('/').at(-1);
+    theoryId = (await api('teacher', '/api/notion/collections/' + collectionId)).rootPageId;
     await editor(teacher).waitFor({ timeout: 60000 });
     await editor(teacher).click(); await teacher.keyboard.type('Teori uden hold om forbindelser i LUP.');
     await saved('notion', theoryId, value => value.plainText.includes('Teori uden hold'));

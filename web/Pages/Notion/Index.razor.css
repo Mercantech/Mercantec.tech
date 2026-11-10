@@ -40,6 +40,7 @@
 .notion-page-list{flex:1;min-height:100px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;margin:-6px -5px 0;padding:0 5px}
 .notion-page-row{display:flex;align-items:stretch;min-width:0;min-height:44px;height:44px;padding-left:calc(var(--page-depth,0)*12px);border-radius:7px}
 .notion-page-row:has(.is-current){background:var(--tint)}
+.notion-tree-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px}
 .notion-branch-toggle,.notion-branch-spacer{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px}
 .notion-branch-toggle{border:0;background:transparent;color:var(--muted);border-radius:5px;padding:3px}
 .notion-branch-toggle:hover{background:var(--paper);color:var(--ink)}

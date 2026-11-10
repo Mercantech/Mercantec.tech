@@ -14,13 +14,19 @@ public partial class AppDbContext
         {
             e.ToTable("notion_collections");
             e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.PublishedTitle).HasMaxLength(200);
             e.HasOne<Hold>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<NotionPage>(e =>
         {
             e.ToTable("notion_pages");
             e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => x.DeletedAtUtc == null);
+            e.HasIndex(x => x.TrashRootId);
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.LastEditedByName).HasMaxLength(200);
+            e.Property(x => x.PublishedEditorName).HasMaxLength(200);
             e.HasIndex(x => new { x.HoldId, x.ParentPageId });
             e.HasIndex(x => x.ParentPageId);
             e.HasIndex(x => new { x.CollectionId, x.ParentPageId });

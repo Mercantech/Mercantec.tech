@@ -1,1 +1,61 @@
-.books-actions,.books-tabs,.books-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.books-tabs{margin:24px 0 18px}.books-tabs .is-selected{background:var(--ink);color:var(--paper,#fff)}.books-filters{margin-bottom:24px;align-items:end}.books-filters label,.books-create label{display:grid;gap:6px}.books-filters input{min-width:min(320px,75vw)}.books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:18px}.books-card{margin:0;display:flex;flex-direction:column;gap:10px;min-height:220px}.books-card h2,.books-card p{margin:0}.books-kind{display:flex;gap:8px;align-items:center;font-size:.85rem;opacity:.75}.books-kind svg{width:20px;height:20px}.books-card small{opacity:.7}.books-open{margin-top:auto;padding-top:18px;display:flex;justify-content:space-between}.books-card details nav{display:grid;gap:8px;margin-top:10px}.books-create{display:grid;gap:16px;margin-bottom:24px;max-width:640px}.books-create h2{margin:0}.books-tabs button{min-height:44px}@media(max-width:600px){.books-filters{display:grid}.books-filters input{min-width:0;width:100%}.books-tabs{gap:8px}.books-tabs button{flex:1 0 auto}}
+.books-actions,.books-tabs,.books-filters {
+    display:flex; gap:12px; flex-wrap:wrap; align-items:center;
+}
+.books-tabs { margin:24px 0 18px; }
+.books-tabs button { min-height:44px; }
+.books-tabs .is-selected { background:var(--ink); color:var(--paper,#fff); }
+.books-filters { margin-bottom:24px; align-items:end; }
+.books-filters label,.books-create label { display:grid; gap:6px; }
+.books-filters input { min-width:min(320px,75vw); }
+.books-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));
+    grid-auto-rows:1fr; gap:18px;
+}
+.books-card {
+    --book-accent:#6176d7;
+    display:flex; flex-direction:column; gap:8px;
+    min-height:15.5rem; min-width:0; margin:0;
+    border-block-start:3px solid var(--book-accent);
+    background:linear-gradient(180deg,color-mix(in srgb,var(--book-accent) 10%,var(--paper)) 0,var(--paper) 6.75rem);
+}
+.books-card[data-kind="hold"] { --book-accent:#43856e; }
+.books-card[data-kind="personal"] { --book-accent:#9b64bf; }
+.books-card[data-kind="shared"] { --book-accent:#b47629; }
+.books-card[data-kind="students"] { --book-accent:#387caa; }
+.books-card-top,.books-card-actions { display:flex; align-items:center; gap:8px; }
+.books-card-top { margin-bottom:4px; }
+.books-icon {
+    display:grid; place-items:center; flex:none;
+    inline-size:2.75rem; block-size:2.75rem;
+    border:1px solid color-mix(in srgb,var(--book-accent,var(--blue)) 45%,var(--rule));
+    border-radius:10px; background:var(--paper);
+}
+.books-icon img,.books-icon ::deep svg { inline-size:1.75rem; block-size:1.75rem; object-fit:contain; }
+.books-kind {
+    color:var(--ink); padding:4px 8px; border-radius:20px; font-size:.75rem; font-weight:600;
+    background:color-mix(in srgb,var(--book-accent) 15%,var(--paper));
+}
+.books-card h2,.books-card p { margin:0; min-width:0; }
+.books-title a {
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;
+    overflow:hidden; overflow-wrap:anywhere;
+}
+.books-context,.books-updated small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.books-updated { display:grid; color:var(--muted); margin-top:2px; }
+.books-shared summary { cursor:pointer; font-size:.85rem; }
+.books-shared nav { display:grid; gap:6px; margin-top:8px; max-block-size:5.75rem; overflow:auto; }
+.books-shared nav a { overflow-wrap:anywhere; }
+.books-card-actions { margin-top:auto; padding-top:8px; flex-wrap:wrap; }
+.books-open { flex:1 0 auto; min-height:40px; display:flex; align-items:center; gap:6px; }
+.books-card-actions ::deep .emoji-picker-toggle { padding-inline:8px; min-height:40px; white-space:nowrap; }
+.books-card-actions .books-icon-reset { inline-size:40px; block-size:40px; padding:0; display:grid; place-items:center; }
+.books-icon-reset ::deep svg { inline-size:16px; block-size:16px; }
+.books-icon-error { color:var(--ink); }
+.books-create { display:grid; gap:16px; margin-bottom:24px; max-width:640px; }
+.books-create h2 { margin:0; }
+@media(max-width:600px) {
+    .books-filters { display:grid; }
+    .books-filters input { min-width:0; width:100%; }
+    .books-tabs { gap:8px; }
+    .books-tabs button { flex:1 0 auto; }
+}

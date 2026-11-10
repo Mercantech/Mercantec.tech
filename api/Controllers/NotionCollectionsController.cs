@@ -1,6 +1,7 @@
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Learning;
 using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
@@ -15,32 +16,68 @@ public sealed class NotionCollectionsController(AppDbContext db, CourseAccess co
 {
     private readonly NotionAccess access = new(db, courses);
 
+    [HttpPatch("{id:guid}/icon")]
+    public async Task<IActionResult> SetIcon(Guid id, SetNotebookIcon input, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid) return Unauthorized();
+        var collection = await db.NotionCollections.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id, ct);
+        if (collection is null || !await access.CanManageScopeAsync(collection.HoldId, User, ct)) return NotFound();
+        if (!await NotebookIcon.IsAvailableAsync(db, input.IconEmojiId, ct))
+            return BadRequest(new { error = "invalid_icon" });
+        var updated = await db.NotionCollections.Where(c => c.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.IconEmojiId, input.IconEmojiId), ct);
+        if (updated == 0) return NotFound();
+        Response.Headers.CacheControl = "no-store";
+        return NoContent();
+    }
+
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct, bool publishedOnly = false)
     {
         if (UserClaims.GetSub(User) is not Guid) return Unauthorized();
+        Response.Headers.CacheControl = "private, no-store";
+        return Ok(await ReadCollections(null, publishedOnly, ct));
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Get(Guid id, CancellationToken ct, bool publishedOnly = false)
+    {
+        if (UserClaims.GetSub(User) is not Guid) return Unauthorized();
+        var collection = (await ReadCollections(id, publishedOnly, ct)).SingleOrDefault();
+        Response.Headers.CacheControl = "private, no-store";
+        return collection is null ? NotFound() : Ok(collection);
+    }
+
+    private async Task<NotionCollectionView[]> ReadCollections(Guid? id, bool publishedOnly, CancellationToken ct)
+    {
         var manageable = await courses.AccessibleHolds(User, true).Select(h => h.Id).ToArrayAsync(ct);
         var teacher = !publishedOnly && UserClaims.IsTeacher(User);
-        var pages = await access.ReadablePages(User, publishedOnly).AsNoTracking().Where(p => p.CollectionId != null)
-            .Select(p => new { p.Id, p.CollectionId, p.HoldId, p.UpdatedAtUtc, p.PublishedAtUtc }).ToArrayAsync(ct);
-        var collectionIds = pages.Select(p => p.CollectionId!.Value).Distinct().ToArray();
-        var roots = await db.NotionPages.AsNoTracking().Where(p => collectionIds.Contains(p.Id))
-            .Select(p => new { p.Id, p.HoldId, DraftTitle = !publishedOnly && (p.HoldId == null && teacher
-                || p.HoldId != null && manageable.Contains(p.HoldId.Value)) ? p.Title : null,
-                p.PublishedTitle, p.PublishedAtUtc, HasPublication = p.PublishedState != null }).ToDictionaryAsync(p => p.Id, ct);
-        var holdIds = pages.Where(p => p.HoldId != null).Select(p => p.HoldId!.Value).Distinct().ToArray();
-        var names = await db.Hold.AsNoTracking().Where(h => holdIds.Contains(h.Id)).ToDictionaryAsync(h => h.Id, h => h.Name, ct);
-        Response.Headers.CacheControl = "no-store";
-        return Ok(pages.GroupBy(p => p.CollectionId!.Value).Select(group =>
+        var pageQuery = access.ReadablePages(User, publishedOnly).AsNoTracking()
+            .Where(p => p.CollectionId != null && (id == null || p.CollectionId == id));
+        var collections = await db.NotionCollections.AsNoTracking().Where(c => (id == null || c.Id == id)
+                && (pageQuery.Any(p => p.CollectionId == c.Id)
+                    || !publishedOnly && (c.HoldId == null ? teacher : manageable.Contains(c.HoldId.Value))))
+            .Select(c => new { c.Id, c.HoldId, c.CreatedAtUtc, c.Title, c.PublishedTitle, c.IconEmojiId,
+                HasActiveRoot = db.NotionPages.Any(p => p.Id == c.Id),
+                HoldName = db.Hold.Where(h => h.Id == c.HoldId).Select(h => h.Name).FirstOrDefault() }).ToArrayAsync(ct);
+        var pages = await pageQuery.Select(p => new { p.Id, p.CollectionId, p.ParentPageId, p.SortOrder, p.Title, p.PublishedTitle,
+            p.UpdatedAtUtc, p.PublishedAtUtc, p.LastEditedByName, p.PublishedEditedAtUtc, p.PublishedEditorName }).ToArrayAsync(ct);
+        var byCollection = pages.ToLookup(p => p.CollectionId);
+        return collections.Select(c =>
         {
-            var first = group.OrderBy(p => p.Id == group.Key ? 0 : 1).ThenBy(p => p.Id).First();
-            var manage = !publishedOnly && (first.HoldId is Guid hold ? manageable.Contains(hold) : teacher);
-            var root = roots.GetValueOrDefault(group.Key);
-            var title = manage ? root?.DraftTitle : root is { PublishedAtUtc: not null, HasPublication: true } ? root.PublishedTitle : null;
-            return new NotionCollectionView(group.Key, first.Id, title ?? "Samling", first.HoldId,
-                first.HoldId is Guid id ? names.GetValueOrDefault(id) : null, manage,
-                group.Max(p => manage ? p.UpdatedAtUtc : p.PublishedAtUtc!.Value));
-        }).OrderBy(p => p.Title).ToArray());
+            var group = byCollection[c.Id];
+            var manage = !publishedOnly && (c.HoldId is Guid hold ? manageable.Contains(hold) : teacher);
+            var root = group.FirstOrDefault(p => p.Id == c.Id);
+            var first = root ?? group.OrderBy(p => p.ParentPageId is not null).ThenBy(p => p.SortOrder ?? int.MaxValue)
+                .ThenBy(p => manage ? p.Title : p.PublishedTitle).ThenBy(p => p.Id).FirstOrDefault();
+            var title = manage ? root?.Title ?? c.Title : root?.PublishedTitle ?? (c.HasActiveRoot ? null : c.PublishedTitle);
+            var latest = group.OrderByDescending(p => manage ? p.UpdatedAtUtc : p.PublishedEditedAtUtc ?? p.PublishedAtUtc)
+                .ThenBy(p => p.Id).FirstOrDefault();
+            var updated = manage ? latest?.UpdatedAtUtc : latest?.PublishedEditedAtUtc ?? latest?.PublishedAtUtc;
+            return new NotionCollectionView(c.Id, first?.Id, title ?? "Samling", c.HoldId,
+                c.HoldName, manage, updated ?? c.CreatedAtUtc, c.IconEmojiId,
+                manage ? latest?.LastEditedByName : latest?.PublishedEditorName);
+        }).Where(p => p.CanManage || p.RootPageId is not null).OrderBy(p => p.Title).ToArray();
     }
 
     [HttpPost]
@@ -50,14 +87,18 @@ public sealed class NotionCollectionsController(AppDbContext db, CourseAccess co
         if (!await access.CanManageScopeAsync(request.HoldId, User, ct)) return NotFound();
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Trim().Length > 200 || request.Title.Any(char.IsControl))
             return BadRequest(new { error = "invalid_title" });
+        if (!await NotebookIcon.IsAvailableAsync(db, request.IconEmojiId, ct)) return BadRequest(new { error = "invalid_icon" });
         var id = Guid.NewGuid(); var now = DateTimeOffset.UtcNow;
-        var collection = new NotionCollection { Id = id, HoldId = request.HoldId, CreatedBySub = sub, CreatedAtUtc = now };
+        var title = request.Title.Trim();
+        var collection = new NotionCollection { Id = id, HoldId = request.HoldId, CreatedBySub = sub, CreatedAtUtc = now,
+            Title = title, IconEmojiId = request.IconEmojiId };
         var page = new NotionPage { Id = id, Collection = collection, HoldId = request.HoldId,
-            Title = request.Title.Trim(), CreatedBySub = sub, CreatedAtUtc = now, UpdatedAtUtc = now };
+            Title = title, CreatedBySub = sub, CreatedAtUtc = now, UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(User) };
         db.NotionCollections.Add(collection); db.NotionPages.Add(page);
         await db.SaveChangesAsync(ct);
         var holdName = request.HoldId is Guid hold ? await db.Hold.Where(h => h.Id == hold).Select(h => h.Name).SingleAsync(ct) : null;
         Response.Headers.CacheControl = "no-store";
-        return Ok(new NotionCollectionView(id, id, page.Title, page.HoldId, holdName, true, now));
+        return Ok(new NotionCollectionView(id, id, page.Title, page.HoldId, holdName, true, now,
+            collection.IconEmojiId, page.LastEditedByName));
     }
 }

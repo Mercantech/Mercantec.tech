@@ -18,6 +18,16 @@ public static class UserClaims
     public static bool IsTeacher(ClaimsPrincipal user) =>
         ToAppRole(RoleValues(user)) == "underviser";
 
+    public static string? EditorName(ClaimsPrincipal user) => CleanEditorName(user.FindFirstValue("name"));
+
+    public static string? CleanEditorName(string? value)
+    {
+        var name = value?.Trim();
+        if (string.IsNullOrEmpty(name) || name.Any(char.IsControl)) return null;
+        if (name.Length <= 200) return name;
+        return name[..(char.IsHighSurrogate(name[199]) ? 199 : 200)];
+    }
+
     public static string ToAppRole(IEnumerable<string> roles) =>
         roles.Any(TeacherRoleNames.Contains) ? "underviser" : "elev";
 

@@ -1,8 +1,9 @@
 @page "/notion/{PageId:guid}"
+@page "/notion/collections/{CollectionId:guid}"
 @using Mercantec.Tech.Web.Notion
 @implements IAsyncDisposable
 
-<NotionTabTitle Title="@_current?.Title" />
+<NotionTabTitle Title="@(_current?.Title ?? _collection?.Title)" />
 <NavigationLock OnBeforeInternalNavigation="BeforeNavigation" />
 <link rel="stylesheet" href="@EditorAssets.Style" />
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
@@ -12,7 +13,7 @@ else if (!Auth.IsAuthenticated)
 }
 else
 {
-    @if (!_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty)
+    @if (CollectionId is null && !_loading && _holdsLoaded && _holds.Length == 0 && _current is null && _holdId == Guid.Empty)
     {
         @PageFeedback
         <section class="panel notion-welcome"><h1>Du er ikke tilknyttet et hold endnu</h1><p>Når du bliver tilføjet til et hold, vises dets udgivne indhold her.</p><a class="secondary" href="/courses">Forløb og hold</a></section>
@@ -23,9 +24,15 @@ else
             @if (_sidebarOpen) { <button id="notion-sidebar-backdrop" class="notion-sidebar-backdrop" type="button" tabindex="-1" aria-label="Luk sidemenu" @onclick="() => SetSidebarOpen(false)"></button> }
             <aside id="notion-sidebar" class="notion-sidebar" tabindex="-1" hidden="@(!_sidebarOpen)" role="@(_sidebarMobile && _sidebarOpen ? "dialog" : null)" aria-modal="@(_sidebarMobile && _sidebarOpen ? "true" : null)" aria-label="Notesbogens sider">
                 <div class="notion-sidebar-heading"><div><span class="notion-sidebar-eyebrow">@(_holdId == Guid.Empty ? "Teori" : "Undervisning")</span><h2>Sider</h2></div><button type="button" class="notion-icon-button notion-sidebar-close" aria-label="Skjul sidemenu" title="Skjul sidemenu" @onclick="() => SetSidebarOpen(false)"><UiIcon Name="panel" /></button></div>
-                @if (_holdId != Guid.Empty) { <label class="notion-hold-picker"><span class="notion-visually-hidden">Vælg hold</span><select value="@_holdId" @onchange="ChangeHold" disabled="@(_busy || !_holdsLoaded)">@if (!_holdsLoaded) { <option value="@_holdId">Henter hold…</option> }@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label> }
                 <div class="notion-page-search"><UiIcon Name="search" /><label class="notion-visually-hidden" for="notion-page-search">Find en side</label><input id="notion-page-search" type="search" value="@_pageSearch" @oninput="SearchPages" @onkeydown="SearchKeyDown" placeholder="Find en side…" autocomplete="off" />@if (_pageSearch.Length > 0) { <button type="button" class="notion-icon-button" aria-label="Ryd sidesøgning" @onclick="ClearPageSearch"><UiIcon Name="close" /></button> }</div>
-                @if (Authoring) { <button type="button" class="notion-sidebar-create" @onclick="() => BeginCreate(false)" disabled="@_busy" aria-label="Opret dokument"><UiIcon Name="plus" />Ny side</button> }
+                @if (Authoring)
+                {
+                    <div class="notion-actions notion-tree-actions">
+                        <button type="button" class="notion-sidebar-create" @onclick="() => BeginCreate(false)" disabled="@_busy"><UiIcon Name="plus" />Ny side</button>
+                        @if (CanOpenTrash) { <button type="button" class="secondary" disabled="@_busy" @onclick="OpenTreeTrash">Papirkurv</button> }
+                    </div>
+                }
+                @if (_draggingPage is not null) { <NotebookTreeRootDrop OnDrop="DropTreePage" /> }
                 <div class="notion-page-list-heading"><span>@(_pageSearch.Trim().Length > 0 ? "Søgeresultater" : "Alle sider")</span><span aria-live="polite">@(_pageSearch.Trim().Length > 0 ? $"{_pageRows.Count} af {_totalPages}" : _totalPages.ToString())</span></div>
                 @if (_navigationLoading) { <p class="notion-sidebar-status" role="status">Henter sideoversigt…</p> }
                 @if (_navigationError is not null) { <p class="notion-sidebar-status" role="status">@_navigationError <button class="secondary" @onclick="RetryNavigation" disabled="@_navigationLoading">Prøv oversigten igen</button></p> }
@@ -37,7 +44,7 @@ else
                         else { @foreach (var item in _pageRows) { @PageRowContent(item) } }
                         @if (_pageRows.Count == 0 && !_loading && !_navigationLoading && _navigationError is null)
                         {
-                            <div class="notion-sidebar-empty" role="status">@if (_pageSearch.Trim().Length > 0) { <p>Ingen sider matcher “@_pageSearch.Trim()”.</p><button type="button" @onclick="ClearPageSearch">Vis alle sider</button> } else { <p>@(Authoring ? "Dit hold har ingen sider endnu." : "Der er ingen udgivne sider endnu.")</p> }</div>
+                            <div class="notion-sidebar-empty" role="status">@if (_pageSearch.Trim().Length > 0) { <p>Ingen sider matcher “@_pageSearch.Trim()”.</p><button type="button" @onclick="ClearPageSearch">Vis alle sider</button> } else { <p>@(Authoring ? "Notesbogen har ingen sider endnu." : "Der er ingen udgivne sider endnu.")</p> }</div>
                         }
                     </nav>
                 }
@@ -131,6 +138,12 @@ else
             </section>
             <div class="notion-ai-slot" aria-label="AI-arbejdsområde"></div>
         </div>
+        @if (Authoring)
+        {
+            <NotebookTreeDialogs @ref="_treeDialogs" Items="@TreeItems" Reorder="CanReorderTree"
+                                 OnCreateChild="CreateTreeChild" MovePage="MoveTreePage" PreviewDelete="PreviewTreeDelete"
+                                 DeletePage="DeleteTreePage" ListTrash="ListTreeTrash" RestorePage="RestoreTreePage" />
+        }
         @if (IsEditing && _codexHistoryPageId is Guid historyPageId && _current?.PageId == historyPageId)
         {
             <NotionCodexChanges @key="historyPageId" PageId="historyPageId" OnClose="() => _codexHistoryPageId = null" />
@@ -145,8 +158,12 @@ else
         @if (_resourcesError is not null) { <div class="notion-error" role="alert">@_resourcesError <button class="secondary" @onclick="async () => await EnsureNotionResources()">Hent holddata igen</button></div> }
     </text>;
 
-    private RenderFragment PageRowContent(PageRow item) => @<div @key="item.Page.Id" class="notion-page-row" style="--page-depth:@item.Depth">
+    private RenderFragment PageRowContent(PageRow item) => @<NotebookTreeRow @key="item.Page.Id"
+          Id="@item.Page.Id" Title="@item.Page.Title" Editable="Authoring" Busy="_busy" Reorder="CanReorderTree" Dragging="_draggingPage"
+          OnActions="OpenTreeActions" OnDragStart="StartTreeDrag" OnDragEnd="EndTreeDrag" OnDrop="DropTreePage">
+        <div class="notion-page-row" style="--page-depth:@item.Depth">
         @if (_pagesWithChildren.Contains(item.Page.Id) && _pageSearch.Trim().Length == 0) { <button type="button" class="notion-branch-toggle @(_expandedPages.Contains(item.Page.Id) ? "is-expanded" : null)" aria-expanded="@(_expandedPages.Contains(item.Page.Id) ? "true" : "false")" aria-label="@($"Fold {item.Page.Title} {(_expandedPages.Contains(item.Page.Id) ? "sammen" : "ud")}")" @onclick="() => ToggleBranch(item.Page.Id)"><UiIcon Name="chevron" /></button> } else { <span class="notion-branch-spacer" aria-hidden="true"></span> }
         <button type="button" class="notion-page @(item.Page.Id == _current?.PageId ? "is-current" : null)" aria-current="@(item.Page.Id == _current?.PageId ? "page" : null)" title="@item.Page.Title" disabled="@_busy" @onclick="() => OpenPage(item.Page.Id)"><UiIcon Name="@(_pagesWithChildren.Contains(item.Page.Id) ? "folder" : "file")" /><span class="notion-page-label"><EmojiText Text="@item.Page.Title" />@if (_pageSearch.Trim().Length > 0 && ParentTitle(item.Page) is string parent) { <small class="notion-page-parent"><EmojiText Text="@parent" /></small> }</span>@if (Authoring && (item.Page.PublishedAtUtc is null || item.Page.HasUnpublishedChanges)) { <span class="notion-draft-dot" title="@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")"><span class="notion-visually-hidden">@(item.Page.PublishedAtUtc is null ? "Kladde" : "Ny kladde")</span></span> }</button>
-    </div>;
+        </div>
+    </NotebookTreeRow>;
 }

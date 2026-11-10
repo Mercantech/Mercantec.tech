@@ -54,8 +54,28 @@ public sealed class NotebookOverviewUiTests
         page.WaitForAssertion(() => Assert.NotNull(api.Created));
         Assert.Null(api.Created!.HoldId);
         Assert.Equal("Ny fælles teori", api.Created.Title);
-        Assert.EndsWith("/notion/" + api.NewRoot, context.Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
+        Assert.EndsWith("/notion/collections/" + api.NewRoot, context.Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
         Assert.Empty(api.Unexpected);
+    }
+
+    [Fact]
+    public async Task Cards_show_editor_information_and_sort_by_title_or_most_recent_edit()
+    {
+        using var api = new OverviewApi();
+        await using var context = await Create(api, teacher: true);
+        var page = context.Render<Home>();
+        page.WaitForAssertion(() => Assert.Equal(4, page.FindAll(".books-card").Count));
+
+        Assert.Contains("H1 undervisning", page.Find(".books-card h2").TextContent);
+        Assert.Contains("Redigeret af Berit", page.Find(".books-card").TextContent);
+        Assert.Single(page.FindAll(".books-card[data-kind=hold] .books-kind"));
+        Assert.Equal("Forløb", page.Find(".books-card[data-kind=hold] .books-kind").TextContent);
+        Assert.NotNull(page.Find(".books-card time").GetAttribute("datetime"));
+
+        page.FindAll(".books-filters select").Last().Change("asc");
+        Assert.Contains("Fælles SQL-teori", page.Find(".books-card h2").TextContent);
+        page.FindAll(".books-filters select").Last().Change("desc");
+        Assert.Contains("Min notesbog", page.Find(".books-card h2").TextContent);
     }
 
     [Fact]
@@ -79,7 +99,8 @@ public sealed class NotebookOverviewUiTests
         public bool NoHolds;
         private readonly Guid hold = Guid.NewGuid(), own = Guid.NewGuid();
         public Guid NewRoot { get; } = Guid.NewGuid();
-        public NotebookPageSummary Shared { get; } = new(Guid.NewGuid(), Guid.NewGuid(), "Kun den delte side", null, "note", [], null, null, null, DateTimeOffset.UtcNow, 1);
+        private static readonly DateTimeOffset Updated = new(2026, 11, 10, 12, 0, 0, TimeSpan.Zero);
+        public NotebookPageSummary Shared { get; } = new(Guid.NewGuid(), Guid.NewGuid(), "Kun den delte side", null, "note", [], null, null, null, Updated.AddDays(-1), 1);
         public CreateNotionCollection? Created;
         public int StudentRequests;
         public List<string> Unexpected { get; } = [];
@@ -94,7 +115,7 @@ public sealed class NotebookOverviewUiTests
             if (path == "/api/notebooks/teacher") { StudentRequests++; return Json(new[] { new TeacherNotebookView(Guid.NewGuid(), Guid.NewGuid(), "Elev Anna", ["H1"], null, DateTimeOffset.UtcNow) }); }
             return path switch
             {
-                "/api/notion/collections" => Json(new[] { new NotionCollectionView(Guid.NewGuid(), Guid.NewGuid(), "Fælles SQL-teori", null, null, false, DateTimeOffset.UtcNow) }.Concat(NoHolds ? [] : new[] { new NotionCollectionView(Guid.NewGuid(), Guid.NewGuid(), "H1 undervisning", hold, "H1", true, DateTimeOffset.UtcNow) }).ToArray()),
+                "/api/notion/collections" => Json(new[] { new NotionCollectionView(Guid.NewGuid(), Guid.NewGuid(), "Fælles SQL-teori", null, null, false, Updated.AddDays(-2)) }.Concat(NoHolds ? [] : new[] { new NotionCollectionView(Guid.NewGuid(), Guid.NewGuid(), "H1 undervisning", hold, "H1", true, Updated, LastEditedByName: "Berit") }).ToArray()),
                 "/api/notion/holds" => Json(NoHolds ? Array.Empty<NotionHold>() : new[] { new NotionHold(hold, "H1", true) }),
                 "/api/notebooks/mine" => Json(new NotebookInfo(own, LearningUiTestContext.AccountId, "Mit navn", true, true)),
                 "/api/notebooks/shared" => Json(new[] { Shared }),

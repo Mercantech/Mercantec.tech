@@ -30,7 +30,10 @@ public partial class AppDbContext
         model.Entity<NotebookDocument>(e =>
         {
             e.ToTable("notebook_documents"); e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => x.DeletedAtUtc == null);
+            e.HasIndex(x => x.TrashRootId);
             e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.LastEditedByName).HasMaxLength(200);
             e.Property(x => x.Kind).HasMaxLength(16).IsRequired();
             e.Property(x => x.Fingerprint).HasMaxLength(64);
             e.Property(x => x.PeriodKey).HasMaxLength(80);

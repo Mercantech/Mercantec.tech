@@ -12,7 +12,7 @@ Eleven har én notesbog på tværs af forløb, også mellem hold. Åbn **Min not
 
 ## Skriv og forbind
 
-**Ny note** opretter en side; **Ny underside** lægger den under den åbne side. Under **Sidens oplysninger** gemmes titel, overordnet side, tags og valgfri holdrelation. En holdrelation organiserer indhold, men ændrer aldrig adgang. Brug editorens `@`/sidevælger til stabile ID-links; omdøbning bryder ikke linkene.
+**Ny note** opretter en side i roden. Brug højreklik eller **Sidehandlinger** for at oprette en underside, flytte en side eller slette den og dens undersider. Sider kan også flyttes med træk og slip. **Papirkurv** kan gendanne siden med dens links, kommentarer og delinger i op til 30 dage. Under **Sidens oplysninger** gemmes titel og tags. Brug editorens `@`/sidevælger til stabile ID-links.
 
 Den fælles BlockNote-editor understøtter tekst, tabeller, kode, callouts, Mermaid og medier. Notesbogen viser skriveværktøjer uden sidebyggerens elevliste-, gruppe-, afstemnings-, præsentations- og AI-handlinger. Notesbogsfiler kan være op til 100 MiB; sidebyggerens eksisterende multipart-upload er uændret.
 
@@ -31,7 +31,7 @@ Undervisere åbner **Logbogsskabeloner** (`/teacher/notebook-templates`). Biblio
 
 Aktivering kontrollerer revision og fingerprint og kopierer kun en færdiggemt kladde til en uforanderlig version. Elevbiblioteket viser den aktive versions titel og rytme; nye lærerkladder vises ikke.
 
-**Skriv logbog** lader eleven vælge skabelon, dato og valgfrit hold. Daglige og ugentlige valg åbner det eksisterende indlæg for perioden. Uger starter mandag; perioder beregnes på serveren i `Europe/Copenhagen`. Frie skabeloner opretter nye indlæg. Genforsøg er idempotente, og databaseindeks beskytter mod dubletter fra samtidige faner.
+**Skriv logbog** lader eleven vælge skabelon, dato og valgfrit hold. Daglige og ugentlige valg åbner det eksisterende indlæg for perioden. Ligger indlægget i papirkurven, kan det gendannes derfra; når fristen udløber, kan eleven skrive et nyt for samme periode. Uger starter mandag; perioder beregnes på serveren i `Europe/Copenhagen`. Frie skabeloner opretter nye indlæg. Genforsøg er idempotente, og databaseindeks beskytter mod dubletter fra samtidige faner.
 
 Eleven får en frit redigerbar kopi med nye blok-ID'er og egne filbevillinger. Skabelonændringer påvirker aldrig eksisterende indlæg. Biblioteket starter med **Dagens refleksion** og spørgsmål om arbejde, læring og næste skridt.
 

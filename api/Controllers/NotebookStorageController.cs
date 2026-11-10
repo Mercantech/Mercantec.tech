@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Notebooks;
@@ -13,13 +14,14 @@ namespace Mercantec.Tech.Api.Controllers;
 public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKey key) : ControllerBase
 {
     [HttpGet("{id:guid}/state")]
-    public async Task<IActionResult> ReadState(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ReadState(Guid id, CancellationToken ct, long lifecycleVersion = 0)
     {
         if (!key.Accepts(Request)) return Unauthorized();
         Response.Headers.CacheControl = "no-store";
         var doc = await db.NotebookDocuments.AsNoTracking().Where(d => d.Id == id)
-            .Select(d => new { d.YjsState }).SingleOrDefaultAsync(ct);
+            .Select(d => new { d.YjsState, d.LifecycleVersion }).SingleOrDefaultAsync(ct);
         if (doc is null) return NotFound();
+        if (doc.LifecycleVersion != lifecycleVersion) return Conflict(new { error = "stale_document_session" });
         return doc.YjsState is { Length: > 0 } state ? File(state, "application/octet-stream") : NoContent();
     }
 
@@ -33,6 +35,7 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
         await db.NotebookDocuments.Where(d => d.Id == id).ExecuteUpdateAsync(s => s.SetProperty(d => d.Revision, d => d.Revision), ct);
         var doc = await db.NotebookDocuments.AsNoTracking().SingleOrDefaultAsync(d => d.Id == id, ct);
         if (doc is null) return NotFound();
+        if (doc.LifecycleVersion != request.LifecycleVersion) return Conflict(new { error = "stale_document_session" });
         var assets = request.AssetIds.Distinct().ToArray();
         if (assets.Length != await db.NotebookAssets.CountAsync(a => a.DocumentId == id && assets.Contains(a.Id), ct))
             return BadRequest(new { error = "invalid_document_asset" });
@@ -51,7 +54,8 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
             return Ok(new { savedAtUtc = doc.UpdatedAtUtc });
         var references = new Mercantec.Tech.Api.References.ReferenceService(db);
         await references.BaselineNotebookAsync(id, ct);
-        var updated = DateTimeOffset.UtcNow;
+        var updated = request.PreserveEditMetadata ? doc.UpdatedAtUtc : DateTimeOffset.UtcNow;
+        var editorName = request.PreserveEditMetadata ? doc.LastEditedByName : UserClaims.CleanEditorName(request.EditorName);
         var manifest = JsonSerializer.Serialize(assets);
         var drawingManifest = JsonSerializer.Serialize(drawingIds);
         // Atomic increments preserve metadata revisions arriving between our read and this write.
@@ -59,13 +63,14 @@ public sealed class NotebookStorageController(AppDbContext db, NotebookServiceKe
             .SetProperty(d => d.YjsState, state).SetProperty(d => d.Fingerprint, request.Fingerprint)
             .SetProperty(d => d.Revision, d => d.Revision + 1).SetProperty(d => d.SearchText, request.PlainText)
             .SetProperty(d => d.AssetIdsJson, manifest).SetProperty(d => d.DrawingIdsJson, drawingManifest)
+            .SetProperty(d => d.LastEditedByName, editorName)
             .SetProperty(d => d.UpdatedAtUtc, updated), ct);
         var oldLinks = await db.NotebookLinks.Where(l => l.FromId == id).ToArrayAsync(ct);
         db.NotebookLinks.RemoveRange(oldLinks);
-        // Targets must be in this notebook; inaccessible and cross-domain IDs cannot enter its graph.
+        // Keep same-notebook links while a target is in the trash. Readers only see active endpoints.
         var requestedLinks = request.LinkIds.Distinct().Where(target => target != id).ToArray();
         var targets = doc.NotebookId is Guid notebookId
-            ? await db.NotebookDocuments.Where(d => d.NotebookId == notebookId && requestedLinks.Contains(d.Id))
+            ? await db.NotebookDocuments.IgnoreQueryFilters().Where(d => d.NotebookId == notebookId && requestedLinks.Contains(d.Id))
                 .Select(d => d.Id).ToArrayAsync(ct) : [];
         db.NotebookLinks.AddRange(targets.Select(target => new NotebookLink { FromId = id, ToId = target }));
         await db.SaveChangesAsync(ct);

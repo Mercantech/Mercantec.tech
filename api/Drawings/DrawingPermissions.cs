@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,8 @@ public sealed partial class DrawingService
             var written = await _db.Drawings.Where(d => d.Id == id && d.AccessVersion == input.ExpectedAccessVersion)
                 .ExecuteUpdateAsync(s => s.SetProperty(d => d.Mode, input.Mode).SetProperty(d => d.AccessVersion, d => d.AccessVersion + 1), ct);
             if (written != 1) throw DrawingValidation.Changed();
-            if (drawing.Mode != input.Mode) await TouchParentAsync(drawing.Domain, drawing.DocumentId, DateTimeOffset.UtcNow, ct);
+            if (drawing.Mode != input.Mode)
+                await TouchParentAsync(drawing.Domain, drawing.DocumentId, DateTimeOffset.UtcNow, UserClaims.EditorName(user), ct);
             await transaction.CommitAsync(ct);
         }
         await InvalidateAsync(id, ct);

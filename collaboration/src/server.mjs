@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { Server, IncomingMessage, MessageType } from '@hocuspocus/server';
 import * as Y from 'yjs';
-import { createApiClient, documentDomainFromName, documentIdFromName, resolveServiceSecret, TOKEN_CLOCK_SKEW_MS } from './api-client.mjs';
+import { createApiClient, documentDomainFromName, documentIdFromName, documentLifecycleFromName, resolveServiceSecret, StaleDocumentSessionError, TOKEN_CLOCK_SKEW_MS, versionedDocumentName } from './api-client.mjs';
 import { fingerprintHash } from './fingerprint.mjs';
 import { cloneNotebookDocument, projectNotionContext } from './notebook-documents.mjs';
 import { cloneDrawingDocument, drawingStateProjection, validateDrawingUpdate, MAX_DRAWING_BYTES } from './drawing-documents.mjs';
@@ -27,6 +27,7 @@ export function createCollaborationServer({
   const sessions = new Set();
   const cloneSecret = resolveServiceSecret(serviceSecret, serviceSecretFile);
   const drawingQueues = new WeakMap();
+  const lastEditors = new WeakMap();
   const mcpQueues = new Map();
   async function lockMcp(documentName) {
     const previous = mcpQueues.get(documentName) ?? Promise.resolve();
@@ -51,12 +52,13 @@ export function createCollaborationServer({
     // Share a pending check between the timer and arriving document updates.
     const generation = context.authorizationGeneration ?? 0;
     context.pendingAuthorization ??= api.authorize(documentName, context.token).then(permission => {
-      if (generation !== (context.authorizationGeneration ?? 0)) throw DENIED;
+      if (generation !== (context.authorizationGeneration ?? 0) || (permission.lifecycleVersion ?? 0) !== documentLifecycleFromName(documentName)) throw DENIED;
       const changed = context.canEdit !== permission.canEdit;
       context.expiresAt = permission.expiresAt;
       context.canRead = permission.canRead;
       context.canEdit = permission.canEdit;
       context.accessVersion = permission.accessVersion;
+      context.editorName = permission.editorName;
       if (context.connection && documentDomainFromName(documentName) === 'drawing') {
         context.connection.readOnly = permission.canEdit !== true;
         if (changed) context.connection.sendStateless(JSON.stringify({ type: 'permissions', canRead: true, canEdit: permission.canEdit, accessVersion: permission.accessVersion }));
@@ -77,8 +79,9 @@ export function createCollaborationServer({
   async function persistDocument(documentName, document, mcpChange = undefined) {
     const state = Y.encodeStateAsUpdate(document), vector = Y.encodeStateVector(document);
     const fingerprint = fingerprintHash(state, vector);
+    const editorName = lastEditors.get(document);
     try {
-      const result = await api.store(documentName, state, fingerprint, mcpChange);
+      const result = await api.store(documentName, state, fingerprint, mcpChange, { editorName });
       const metadata = typeof result === 'string' ? { savedAtUtc: result } : result;
       if (fingerprint === fingerprintHash(Y.encodeStateAsUpdate(document), Y.encodeStateVector(document))) {
         document.broadcastStateless(JSON.stringify({
@@ -88,7 +91,15 @@ export function createCollaborationServer({
         }));
       }
       return { id: documentIdFromName(documentName), fingerprint, ...metadata };
-    } catch {
+    } catch (error) {
+      if (error instanceof StaleDocumentSessionError) {
+        for (const context of sessions) {
+          if (context.documentName !== documentName) continue;
+          stopSession(context);
+          context.connection.close(DENIED);
+        }
+        throw error;
+      }
       document.broadcastStateless(JSON.stringify({ type: 'persistenceError', message: 'Indholdet er endnu ikke gemt i skyen. Prøver igen.' }));
       throw new Error('Document persistence failed');
     }
@@ -126,13 +137,19 @@ export function createCollaborationServer({
           for await (const chunk of request) { size += chunk.length; if (size > 24 * 1024 * 1024) throw new McpDocumentError('request_too_large', 'Opgaven er for stor.', 413); chunks.push(chunk); }
           let body; try { body = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new McpDocumentError('invalid_request', 'Ugyldig JSON.'); }
           if (typeof body?.pageId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.pageId)) throw new McpDocumentError('invalid_request', 'Ugyldigt side-id.');
-          const pageId = documentIdFromName(`notion:${body.pageId}`), name = `notion:${pageId}`;
+          const pageId = documentIdFromName(`notion:${body.pageId}`), baseName = `notion:${pageId}`;
           if (body.pageId !== pageId || typeof body.accessToken !== 'string') throw new McpDocumentError('invalid_request', 'Ugyldigt side-id eller adgangstoken.');
+          let lifecycle;
           const authorize = async () => {
-            try { const permission = await api.authorize(name, body.accessToken); if (!permission.canEdit) throw new Error(); }
+            try {
+              const permission = await api.authorize(baseName, body.accessToken);
+              if (!permission.canEdit || lifecycle !== undefined && lifecycle !== (permission.lifecycleVersion ?? 0)) throw new Error();
+              return permission;
+            }
             catch { throw new McpDocumentError('access_denied', 'Din aktuelle redigeringsadgang kunne ikke bekræftes.', 403); }
           };
-          await authorize();
+          lifecycle = (await authorize()).lifecycleVersion ?? 0;
+          const name = versionedDocumentName(baseName, lifecycle);
           release = await lockMcp(name);
           connection = await server.hocuspocus.openDirectConnection(name, { source: 'mcp', token: body.accessToken });
           const document = connection.document;
@@ -154,9 +171,9 @@ export function createCollaborationServer({
               await api.prepareMcpChange(pageId, { operationId: body.operationId, ownerSub: body.actorSub, requestHash: body.requestHash,
                 summary: typeof body.summary === 'string' ? body.summary.slice(0, 1000) : (request.url.endsWith('/undo') ? 'Fortryd Codex-ændring' : 'Codex redigerede dokumentet'),
                 ...(body.undoOf ? { undoOf: body.undoOf } : {}), before: plan.before, after: plan.after });
-              await authorize();
+              const permission = await authorize();
               revalidateMcpPlan(document, plan);
-              applyPreparedMcpPlan(document, plan, makeMcpReceipt(cloneSecret, body, plan));
+              applyPreparedMcpPlan(document, plan, makeMcpReceipt(cloneSecret, body, plan), permission.editorName);
             }
             // onStoreDocument/disconnect intentionally swallow hook errors. This explicit path must propagate the DB acknowledgement.
             const stored = await document.saveMutex.runExclusive(() => persistDocument(name, document,
@@ -200,7 +217,8 @@ export function createCollaborationServer({
             const ids = [...new Set(body.drawingIds.map(id => documentIdFromName(`drawing:${id}`)))];
             const drawings = [];
             for (const id of ids) {
-              const name = `drawing:${id}`, document = server.hocuspocus.documents.get(name);
+              const name = versionedDocumentName(`drawing:${id}`, await api.drawingLifecycle?.(id) ?? 0);
+              const document = server.hocuspocus.documents.get(name);
               if (document) {
                 if (document.isLoading) throw new Error('Drawing is loading');
                 drawings.push(await document.saveMutex.runExclusive(() => persistDocument(name, document)));
@@ -208,13 +226,13 @@ export function createCollaborationServer({
                 const state = await api.load(name);
                 if (!state) throw new Error('Drawing has no stored state');
                 const fingerprint = fingerprintHash(state, Y.encodeStateVectorFromUpdate(state));
-                drawings.push({ id, fingerprint, ...await api.store(name, state, fingerprint) });
+                drawings.push({ id, fingerprint, ...await api.store(name, state, fingerprint, undefined, { preserveEditMetadata: true }) });
               }
             }
             result = { drawings };
           } else {
-            const id = documentIdFromName(`drawing:${body?.drawingId}`), name = `drawing:${id}`;
-            const matching = [...sessions].filter(context => context.documentName === name);
+            const id = documentIdFromName(`drawing:${body?.drawingId}`);
+            const matching = [...sessions].filter(context => documentDomainFromName(context.documentName) === 'drawing' && documentIdFromName(context.documentName) === id);
             for (const context of matching) {
               context.authorizationGeneration = (context.authorizationGeneration ?? 0) + 1;
               context.authorizedAt = 0;
@@ -222,7 +240,7 @@ export function createCollaborationServer({
             }
             await Promise.all(matching.map(async context => {
               await context.pendingAuthorization?.catch(() => {});
-              try { await checkAccess(context, name, true); }
+              try { await checkAccess(context, context.documentName, true); }
               catch { stopSession(context); context.connection.close(DENIED); }
             }));
             result = { invalidated: true };
@@ -248,8 +266,10 @@ export function createCollaborationServer({
       // Hocuspocus keys live rooms by the raw name, while storage uses the UUID.
       // Do not allow two differently-cased notebook rooms to overwrite one document.
       const domain = documentDomainFromName(documentName);
-      if (domain !== 'notion' && documentName !== `${domain}:${documentId}`) throw DENIED;
+      const lifecycle = documentLifecycleFromName(documentName);
+      if ((domain !== 'notion' || lifecycle > 0) && documentName !== versionedDocumentName(`${domain}:${documentId}`, lifecycle)) throw DENIED;
       const permission = await api.authorize(documentName, token);
+      if ((permission.lifecycleVersion ?? 0) !== lifecycle) throw DENIED;
       if (domain === 'drawing') connectionConfig.readOnly = permission.canEdit !== true;
       return { token, documentName, ...permission, authorizedAt: Date.now(), windowStarted: Date.now(), messagesInWindow: 0 };
     },
@@ -311,11 +331,23 @@ export function createCollaborationServer({
       if (state && documentDomainFromName(documentName) === 'drawing') drawingStateProjection(state);
       // Stamp legacy persisted documents with canonical publication metadata before editing.
       // Re-saving an identical fingerprint does not advance the API's draft revision.
-      if (state) await api.store(documentName, state, fingerprintHash(state, Y.encodeStateVectorFromUpdate(state)));
+      if (state) await api.store(documentName, state, fingerprintHash(state, Y.encodeStateVectorFromUpdate(state)),
+        undefined, { preserveEditMetadata: true });
       return state ?? undefined;
     },
 
-    async onStoreDocument({ documentName, document }) { await persistDocument(documentName, document); },
+    onChange({ document, context, transactionOrigin }) {
+      // A durable save may combine updates from several sessions. Track the actor of the
+      // last actual Yjs change, independent of which connection caused the debounced save.
+      const editorName = transactionOrigin?.source === 'mcp' ? transactionOrigin.editorName
+        : context?.canEdit === true ? context.editorName : undefined;
+      lastEditors.set(document, editorName);
+    },
+
+    async onStoreDocument({ documentName, document }) {
+      try { await persistDocument(documentName, document); }
+      catch (error) { if (!(error instanceof StaleDocumentSessionError)) throw error; }
+    },
 
     async onDisconnect({ context }) { stopSession(context); },
     async onDestroy() { for (const context of sessions) stopSession(context); },

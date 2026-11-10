@@ -1,0 +1,8 @@
+<div class="nb-tree-root-drop" data-tree-drop="root" data-over="@(_over ? "true" : "false")"
+     @ondragenter="() => _over = true" @ondragleave="() => _over = false" @ondragover:preventDefault
+     @ondrop:preventDefault @ondrop="Drop">Flyt til notesbogens rod</div>
+@code {
+    [Parameter] public EventCallback<(Guid? Target, string Position)> OnDrop { get; set; }
+    private bool _over;
+    private Task Drop() { _over = false; return OnDrop.InvokeAsync((null, "root")); }
+}

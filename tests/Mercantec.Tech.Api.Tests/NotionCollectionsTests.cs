@@ -55,7 +55,7 @@ public sealed class NotionCollectionsTests : IAsyncLifetime
         Assert.IsType<UnauthorizedResult>(await anonymous.List(default));
         Assert.Equal(collection.Id, collection.RootPageId); Assert.Null(collection.HoldId);
         Assert.True(collection.CanManage);
-        var context = Value<NotionPageContext>(await Pages(otherTeacher, true).Context(collection.RootPageId, default));
+        var context = Value<NotionPageContext>(await Pages(otherTeacher, true).Context(collection.RootPageId!.Value, default));
         Assert.True(context.CanEdit); Assert.Equal(collection.Id, context.CollectionId); Assert.Empty(context.Members);
         Assert.IsType<OkObjectResult>(await Pages(otherTeacher, true).AuthorizeDocument(new("notion:" + collection.Id), default));
         Assert.IsType<NotFoundResult>(await Pages(reader).Context(collection.Id, default));
@@ -74,6 +74,42 @@ public sealed class NotionCollectionsTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Cards_only_show_the_editor_and_timestamp_of_the_readable_version()
+    {
+        var creator = Collections(teacher, true);
+        ((ClaimsIdentity)creator.User.Identity!).AddClaim(new Claim("name", "Anna"));
+        var collection = Value<NotionCollectionView>(await creator.Create(new("SQL-teori"), default));
+        await Publish(collection.Id);
+        var readerCard = Assert.Single(Value<NotionCollectionView[]>(await Collections(reader).List(default)));
+        Assert.Equal("Anna", readerCard.LastEditedByName);
+        Assert.Equal(collection.UpdatedAtUtc, readerCard.UpdatedAtUtc);
+
+        var editor = Pages(otherTeacher, true);
+        ((ClaimsIdentity)editor.User.Identity!).AddClaim(new Claim("name", "Berit"));
+        Assert.IsType<OkObjectResult>(await editor.Rename(collection.Id, new("Ny titel"), default));
+
+        var draftCard = Assert.Single(Value<NotionCollectionView[]>(await Collections(otherTeacher, true).List(default)));
+        Assert.Equal("Berit", draftCard.LastEditedByName);
+        Assert.True(draftCard.UpdatedAtUtc >= readerCard.UpdatedAtUtc);
+        Assert.Equal(readerCard, Assert.Single(Value<NotionCollectionView[]>(await Collections(reader).List(default))));
+        Assert.Equal(readerCard, Assert.Single(Value<NotionCollectionView[]>(await Collections(otherTeacher, true).List(default, publishedOnly: true))));
+    }
+
+    [Fact]
+    public async Task Collection_icon_can_be_changed_only_by_a_manager_and_is_visible_to_readers()
+    {
+        var collection = await Create();
+        var icon = CharacterEmojiCatalog.All.First().Id;
+        Assert.IsType<NotFoundResult>(await Collections(reader).SetIcon(collection.Id, new(icon), default));
+        Assert.IsType<BadRequestObjectResult>(await Collections(teacher, true).SetIcon(collection.Id, new(Guid.NewGuid()), default));
+        Assert.IsType<NoContentResult>(await Collections(teacher, true).SetIcon(collection.Id, new(icon), default));
+        await Publish(collection.Id);
+        Assert.Equal(icon, Assert.Single(Value<NotionCollectionView[]>(await Collections(reader).List(default))).IconEmojiId);
+        Assert.IsType<NoContentResult>(await Collections(otherTeacher, true).SetIcon(collection.Id, new(null), default));
+        Assert.Null(Assert.Single(Value<NotionCollectionView[]>(await Collections(reader).List(default))).IconEmojiId);
+    }
+
+    [Fact]
     public async Task Collection_pages_derive_scope_and_unpublished_roots_do_not_hide_readable_descendants()
     {
         var first = await Create(); var second = await Create();
@@ -87,6 +123,38 @@ public sealed class NotionCollectionsTests : IAsyncLifetime
         Assert.Equal(child.Id, Assert.Single(list).Id); Assert.Null(list[0].ParentPageId);
         var context = Value<NotionPageContext>(await Pages(reader).Context(child.Id, default));
         Assert.Equal(child.Id, Assert.Single(context.Pages!).Id);
+    }
+
+    [Fact]
+    public async Task Teaching_tree_supports_multiple_roots_and_restores_a_deleted_landing_page_with_its_branch()
+    {
+        var collection = await Create();
+        var other = await Create();
+        var editor = Pages(teacher, true);
+        var child = Value<NotionPageSummary>(await editor.Create(new(null, "SQL JOIN", collection.Id, collection.Id), default));
+        var top = Value<NotionPageSummary>(await editor.Create(new(null, "Indekser", CollectionId: collection.Id, AtRoot: true), default));
+        Assert.Null(top.ParentPageId);
+        Assert.IsType<BadRequestObjectResult>(await editor.Move(collection.Id, new(child.Id), default));
+        Assert.IsType<BadRequestObjectResult>(await editor.Move(child.Id, new(other.Id), default));
+        Assert.IsType<NoContentResult>(await editor.Move(top.Id, new(null, BeforePageId: collection.Id), default));
+        Assert.Equal(0, (await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == top.Id)).SortOrder);
+
+        await Publish(collection.Id);
+        await Publish(child.Id);
+        await Publish(top.Id);
+        Assert.Equal(1, Value<NotebookPageDeletionPreview>(await editor.DeletePreview(collection.Id, default)).DescendantCount);
+        Assert.IsType<ConflictObjectResult>(await editor.TrashPage(collection.Id, default, 0));
+        Assert.IsType<NotFoundResult>(await Pages(reader).TrashPage(collection.Id, default));
+        Assert.IsType<NoContentResult>(await editor.TrashPage(collection.Id, default, 1));
+        Assert.IsType<NotFoundResult>(await Pages(reader).Context(child.Id, default));
+        Assert.IsType<NotFoundResult>(await editor.AuthorizeDocument(new("notion:" + child.Id), default));
+        Assert.Equal(top.Id, Value<NotionCollectionView>(await Collections(reader).Get(collection.Id, default)).RootPageId);
+        Assert.Equal(top.Id, Assert.Single(Value<NotionGraph>(await Pages(reader).Graph(collection.Id, default)).Nodes).Id);
+        Assert.Equal(1, Assert.Single(Value<TrashedNotebookPage[]>(await editor.CollectionTrash(collection.Id, default))).DescendantCount);
+        Assert.IsType<NoContentResult>(await editor.RestorePage(collection.Id, default));
+        Assert.Equal(collection.Id, (await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == child.Id)).ParentPageId);
+        Assert.NotNull(Value<NotionPageContext>(await Pages(reader).Context(child.Id, default)).PublishedStateBase64);
+        Assert.Equal(1, (await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == child.Id)).LifecycleVersion);
     }
 
     [Fact]

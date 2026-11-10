@@ -12,12 +12,37 @@ public sealed class NotebookClient(HttpClient http)
         await Ensure(response, ct);
     }
     public Task<NotebookInfo> Mine(CancellationToken ct) => Post<NotebookInfo>("notebooks/mine", new { }, ct);
+    public async Task SetIcon(Guid notebook, Guid? iconEmojiId, CancellationToken ct)
+    {
+        using var response = await http.PatchAsJsonAsync($"notebooks/{notebook}/icon", new SetNotebookIcon(iconEmojiId), ct);
+        await Ensure(response, ct);
+    }
     public Task<DateOnly> Today(CancellationToken ct) => Get<DateOnly>("notebooks/today", ct);
     public Task<NotebookPageList> Pages(Guid notebook, string search, string tag, string kind, int offset, CancellationToken ct) => Get<NotebookPageList>($"notebooks/{notebook}/pages?search={E(search)}&tag={E(tag)}&kind={E(kind)}&offset={offset}&limit=100", ct);
     public Task<NotebookPageSummary[]> Shared(CancellationToken ct) => Get<NotebookPageSummary[]>("notebooks/shared", ct);
     public Task<NotebookDocumentContext> Context(Guid page, CancellationToken ct, long? knownRevision = null) => Get<NotebookDocumentContext>($"notebooks/pages/{page}/context" + (knownRevision is long revision ? $"?knownRevision={revision}" : ""), ct);
     public Task<NotebookPageSummary> Create(Guid notebook, CreateNotebookPage body, CancellationToken ct) => Post<NotebookPageSummary>($"notebooks/{notebook}/pages", body, ct);
     public Task<NotebookPageSummary> Update(Guid page, UpdateNotebookPage body, CancellationToken ct) => Patch<NotebookPageSummary>($"notebooks/pages/{page}", body, ct);
+    public Task<NotionPageLink[]> Tree(Guid notebook, CancellationToken ct) => Get<NotionPageLink[]>($"notebooks/{notebook}/tree", ct);
+    public async Task MovePage(Guid id, MoveNotebookPage move, CancellationToken ct)
+    {
+        using var response = await http.PatchAsJsonAsync($"notebooks/pages/{id}/placement", move, ct);
+        await Ensure(response, ct);
+    }
+    public Task<NotebookPageDeletionPreview> DeletePreview(Guid id, CancellationToken ct) =>
+        Get<NotebookPageDeletionPreview>($"notebooks/pages/{id}/delete-preview", ct);
+    public async Task DeletePage(Guid id, int count, CancellationToken ct)
+    {
+        using var response = await http.DeleteAsync($"notebooks/pages/{id}?expectedDescendantCount={count}", ct);
+        await Ensure(response, ct);
+    }
+    public Task<TrashedNotebookPage[]> Trash(Guid notebook, CancellationToken ct) =>
+        Get<TrashedNotebookPage[]>($"notebooks/{notebook}/trash", ct);
+    public async Task RestorePage(Guid id, CancellationToken ct)
+    {
+        using var response = await http.PostAsJsonAsync($"notebooks/pages/{id}/restore", new { }, ct);
+        await Ensure(response, ct);
+    }
     public Task<NotebookPageSummary[]> Backlinks(Guid page, CancellationToken ct) => Get<NotebookPageSummary[]>($"notebooks/pages/{page}/backlinks", ct);
     public Task<NotebookGraph> Graph(Guid notebook, CancellationToken ct) => Get<NotebookGraph>($"notebooks/{notebook}/graph", ct);
     public Task<NotebookCommentView[]> Comments(Guid page, CancellationToken ct) => Get<NotebookCommentView[]>($"notebooks/pages/{page}/comments", ct);
@@ -55,7 +80,11 @@ public sealed class NotebookClient(HttpClient http)
         throw new NotebookException(code switch
         {
             "template_changed" or "draft_changed" or "stale_draft" => "Skabelonen er ændret. Vent på lagring, opdatér og prøv igen.",
-            "invalid_parent" => "Vælg en anden overordnet side. En side kan ikke ligge under sig selv eller en af sine undersider.",
+            "invalid_parent" or "parent_cycle" or "invalid_page_position" => "Vælg en anden placering. En side kan ikke flyttes under sig selv eller en underside.",
+            "page_tree_changed" => "Undersiderne er ændret. Åbn slettehandlingen igen, og kontrollér, hvad der bliver slettet.",
+            "trash_expired" => "Fristen på 30 dage er udløbet.",
+            "journal_in_trash" => "Der ligger allerede et indlæg for perioden i papirkurven. Du kan gendanne det derfra.",
+            "invalid_icon" => "Ikonet er ikke længere tilgængeligt. Vælg et andet.",
             "recipient_unavailable" => "Personen er ikke tilgængelig i LUP. Søg og vælg en modtager igen.",
             _ => response.StatusCode switch
             {
@@ -65,12 +94,13 @@ public sealed class NotebookClient(HttpClient http)
                 HttpStatusCode.BadRequest => "Kontrollér de indtastede oplysninger og prøv igen.",
                 _ => "Notesbogen kunne ikke hentes. Kontrollér forbindelsen og prøv igen."
             }
-        }, response.StatusCode);
+        }, response.StatusCode, code);
     }
     private sealed record ErrorBody(string? Error);
 }
 
-public sealed class NotebookException(string message, HttpStatusCode status = HttpStatusCode.BadRequest) : Exception(message)
+public sealed class NotebookException(string message, HttpStatusCode status = HttpStatusCode.BadRequest, string? errorCode = null) : Exception(message)
 {
     public HttpStatusCode Status { get; } = status;
+    public string? ErrorCode { get; } = errorCode;
 }

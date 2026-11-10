@@ -1,3 +1,4 @@
+using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Drawings;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -31,7 +32,8 @@ public sealed class DrawingsController(DrawingService service, DrawingAccess acc
             || !Guid.TryParseExact(request.DocumentName.AsSpan(8), "D", out var id) || id == Guid.Empty) return BadRequest(new { error = "invalid_document" });
         var drawing = await service.FindAsync(id, ct);
         if (drawing is null || !await access.CanReadHeadAsync(drawing, User, ct)) return NotFound();
-        return Ok(new DrawingCollaborationAccess(id, true, await access.CanEditAsync(drawing, User, ct), drawing.AccessVersion));
+        return Ok(new DrawingCollaborationAccess(id, true, await access.CanEditAsync(drawing, User, ct),
+            drawing.AccessVersion, UserClaims.EditorName(User), await service.ParentLifecycleVersionAsync(drawing, ct)));
     }
 
     [HttpPost("{id:guid}/assets"), RequestSizeLimit(4 * 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = 4 * 1024 * 1024)]

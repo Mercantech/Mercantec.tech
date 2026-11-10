@@ -197,17 +197,31 @@ public sealed partial class ReferenceService(AppDbContext db)
             var title = edit ? p.Title : p.PublishedTitle!;
             var href = $"/notion/{p.Id:D}" + (edit ? "" : "?published=true");
             Add("notion-page", p.Id, title, href, p.HoldId, p.CollectionId, edit);
-            if (!pagesOnly && p.ParentPageId is null) Add("collection", p.Id, title, href, p.HoldId, p.CollectionId ?? p.Id, edit);
+            if (!pagesOnly && p.CollectionId is null && p.ParentPageId is null)
+                Add("collection", p.Id, title, href, p.HoldId, p.Id, edit);
         }
-        // A published child can be readable while its canonical collection root remains a draft.
-        // Keep the collection navigable without ever resolving that hidden root's draft title.
-        if (!pagesOnly)
-        foreach (var group in pages.Where(p => p.CollectionId != null).GroupBy(p => p.CollectionId!.Value))
-            if (!result.Any(r => r.Reference == Ref("collection", group.Key)))
+        if (!pagesOnly && (wanted is null || Ids("collection").Length > 0))
+        {
+            var visibleCollections = pages.Where(p => p.CollectionId != null).Select(p => p.CollectionId!.Value).Distinct().ToArray();
+            var requestedCollections = Ids("collection");
+            var editableHolds = manageSet.ToArray();
+            var canEditTheory = !publishedOnly && UserClaims.IsTeacher(user);
+            var byId = pages.ToDictionary(p => p.Id);
+            var collections = await db.NotionCollections.AsNoTracking()
+                .Where(c => visibleCollections.Contains(c.Id)
+                    || (wanted == null || requestedCollections.Contains(c.Id))
+                    && !publishedOnly && (c.HoldId == null ? canEditTheory : editableHolds.Contains(c.HoldId.Value)))
+                .Select(c => new { c.Id, c.HoldId, c.Title, c.PublishedTitle,
+                    HasActiveRoot = db.NotionPages.Any(p => p.Id == c.Id) }).ToArrayAsync(ct);
+            foreach (var c in collections)
             {
-                var first = group.OrderBy(p => p.Id).First();
-                Add("collection", group.Key, "Samling", $"/notion/{first.Id:D}?published=true", first.HoldId, group.Key);
+                var edit = !publishedOnly && (c.HoldId is Guid h ? manageSet.Contains(h) : canEditTheory);
+                var root = byId.GetValueOrDefault(c.Id);
+                var title = edit ? root?.Title ?? c.Title : root?.PublishedTitle ?? (c.HasActiveRoot ? null : c.PublishedTitle);
+                Add("collection", c.Id, title ?? "Samling", $"/notion/collections/{c.Id:D}" + (edit ? "" : "?published=true"),
+                    c.HoldId, c.Id, edit && root is not null);
             }
+        }
 
         var noteQuery = notebooks.ReadableDocuments(user).AsNoTracking().Where(d => d.NotebookId != null);
         if (wanted is not null)

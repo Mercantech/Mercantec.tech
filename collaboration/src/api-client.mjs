@@ -6,7 +6,8 @@ export const MAX_DOCUMENT_BYTES = 16 * 1024 * 1024;
 // Match ASP.NET's default JWT clock skew so collaboration does not reject tokens
 // the API would still accept after a short client/server time drift.
 export const TOKEN_CLOCK_SKEW_MS = 5 * 60 * 1000;
-const DOCUMENT_NAME = /^(notion|notebook|drawing):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+export class StaleDocumentSessionError extends Error {}
+const DOCUMENT_NAME = /^(notion|notebook|drawing):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?::v([1-9][0-9]{0,14}))?$/i;
 const route = domain => domain === 'notebook' ? 'notebooks' : domain === 'drawing' ? 'drawings' : 'notion';
 const statePath = (domain, id) => `/api/internal/${route(domain)}/${domain === 'drawing' ? '' : 'documents/'}${id}/state`;
 
@@ -31,6 +32,15 @@ export function documentIdFromName(name) {
 export function documentDomainFromName(name) {
   documentIdFromName(name);
   return name.slice(0, name.indexOf(':')).toLowerCase();
+}
+export function documentLifecycleFromName(name) {
+  const match = typeof name === 'string' && DOCUMENT_NAME.exec(name);
+  if (!match) throw new Error('Invalid document name');
+  return Number(match[3] ?? 0);
+}
+export function versionedDocumentName(name, lifecycleVersion) {
+  if (!Number.isSafeInteger(lifecycleVersion) || lifecycleVersion < 0 || lifecycleVersion >= 1e15) throw new Error('Invalid document lifecycle');
+  return `${documentDomainFromName(name)}:${documentIdFromName(name)}${lifecycleVersion > 0 ? ':v' + lifecycleVersion : ''}`;
 }
 
 function decodeJwtPayload(part) {
@@ -96,7 +106,9 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       if (permission?.documentId?.toLowerCase() !== documentId || (domain === 'drawing' ? permission.canRead !== true || typeof permission.canEdit !== 'boolean' : permission.canEdit !== true)) {
         throw new Error('Document access denied');
       }
-      return { documentId, expiresAt, canRead: true, canEdit: permission.canEdit, accessVersion: permission.accessVersion };
+      return { documentId, expiresAt, canRead: true, canEdit: permission.canEdit, accessVersion: permission.accessVersion,
+        editorName: typeof permission.editorName === 'string' ? permission.editorName : undefined,
+        ...(permission.lifecycleVersion ? { lifecycleVersion: permission.lifecycleVersion } : {}) };
     },
 
     async load(documentName) {
@@ -104,7 +116,8 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       const domain = documentDomainFromName(documentName);
       const drawing = domain === 'drawing';
       const limit = drawing ? MAX_DRAWING_BYTES : MAX_DOCUMENT_BYTES;
-      const response = await request(statePath(domain, id), {
+      const lifecycle = documentLifecycleFromName(documentName);
+      const response = await request(statePath(domain, id) + (lifecycle ? '?lifecycleVersion=' + lifecycle : ''), {
         headers: storageHeaders,
       });
       // Only an explicit empty-success response creates a blank Y.Doc. A missing
@@ -134,6 +147,14 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       return state;
     },
 
+    async drawingLifecycle(id) {
+      const response = await request(`/api/internal/drawings/${documentIdFromName('drawing:' + id)}/lifecycle`, { headers: storageHeaders });
+      if (!response.ok) throw new Error('Drawing is not available');
+      const lifecycle = await response.json();
+      if (!Number.isSafeInteger(lifecycle) || lifecycle < 0) throw new Error('Invalid drawing lifecycle');
+      return lifecycle;
+    },
+
     async prepareMcpChange(pageId, change) {
       const response = await request(`/api/internal/notion/mcp/changes/prepare?pageId=${encodeURIComponent(pageId)}`, {
         method: 'POST', headers: { ...storageHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify(change),
@@ -142,7 +163,7 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       return response.json().catch(() => ({}));
     },
 
-    async store(documentName, state, fingerprint, mcpChange = undefined) {
+    async store(documentName, state, fingerprint, mcpChange = undefined, metadata = {}) {
       const id = documentIdFromName(documentName);
       const domain = documentDomainFromName(documentName), drawing = domain === 'drawing';
       if (!(state instanceof Uint8Array) || state.length === 0 || state.length > MAX_DOCUMENT_BYTES) {
@@ -154,6 +175,10 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
       }
       const projected = drawing ? drawingStateProjection(state) : notebookStateProjection(state, domain);
       const projection = domain === 'notion' ? { stateBase64: projected.stateBase64, fingerprint: projected.fingerprint, drawingIds: projected.drawingIds, drawingBlocks: projected.drawingBlocks, references: projected.references } : projected;
+      if (typeof metadata.editorName === 'string') projection.editorName = metadata.editorName;
+      if (metadata.preserveEditMetadata) projection.preserveEditMetadata = true;
+      const lifecycle = documentLifecycleFromName(documentName);
+      if (lifecycle) projection.lifecycleVersion = lifecycle;
       if (mcpChange) {
         if (domain !== 'notion') throw new Error('MCP only supports teaching documents');
         projection.mcpChange = mcpChange;
@@ -164,8 +189,10 @@ export function createApiClient({ apiBaseUrl, serviceSecret, fetchImpl = fetch, 
         headers: { ...storageHeaders, 'Content-Type': 'application/json', 'X-Notion-State-Fingerprint': fingerprint },
         body: JSON.stringify(projection),
       });
-      if (!response.ok) throw new Error('Document state could not be saved');
       const result = await response.json().catch(() => null);
+      if (response.status === 404 || result?.error === 'stale_document_session')
+        throw new StaleDocumentSessionError('Document session is no longer current');
+      if (!response.ok) throw new Error('Document state could not be saved');
       if (mcpChange) {
         if (result?.mcpOperationId !== mcpChange.operationId || typeof result.savedAtUtc !== 'string') throw new Error('MCP storage acknowledgement is invalid');
         return { savedAtUtc: result.savedAtUtc, mcpOperationId: result.mcpOperationId };

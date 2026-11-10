@@ -32,6 +32,9 @@ udgivelse, private linkmåls synlighed, personnotifikationer og graf på tværs 
 undervisningssider og personlige notesbøger. Rapport og screenshots gemmes i
 `.tools/references-browser-qa/`. Scriptet kontakter kun loopback og starter ikke hosten.
 
+`node editor/tests/qa-notebook-tree-browser.mjs` afprøver sidemenuen, flytning med træk og tastatur,
+sletning og gendannelse med samme ID i personlige notesbøger og teorinotesbøger.
+
 ## Tegninger: automatiseret browseraccept
 
 Fixture registrerer de rigtige `DrawingAccess`/`DrawingService`-tjenester, alle40 indlejrede

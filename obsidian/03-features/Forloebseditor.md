@@ -1,6 +1,6 @@
 # Forløbseditor: kladde, udgivelse, grupper og medier
 
-Åbn **Notesbøger** i hovedmenuen (`/notion`) med Mercantec-login. Oversigten samler teori, holdsamlinger, egen notesbog og delte sider; undervisere kan hente elevnotesbøger i en separat fane. Undervisere med adgang til at administrere holdet kan redigere holdets sider; elever læser de udgivne sider.
+Åbn **Notesbøger** i hovedmenuen (`/notion`) med Mercantec-login. Oversigten samler teori, forløb, egen notesbog og delte sider; undervisere kan hente elevnotesbøger i en separat fane. Kortene viser type, ikon og seneste synlige redigering. Brug sorteringen til at skifte mellem seneste redigering og titel. Undervisere med adgang til at administrere holdet kan redigere holdets sider; elever læser de udgivne sider.
 
 ## Teori og forbindelser på tværs
 
@@ -49,9 +49,9 @@ Sidelinks og elevrelationer bruger stabile ID'er. Elevfelter bruger MembershipId
 
 Sidemenuen kan skjules og åbnes med **Sider**. Browseren husker valget på computer; på mobil starter menuen lukket og åbner som et panel. Escape og klik uden for panelet lukker det, og fokus vender tilbage til knappen. Søgning bruger de allerede hentede sidetitler, også i sammenfoldede grene. Escape rydder først en søgning; tryk igen for at lukke menuen.
 
-Den aktive sides overordnede sider åbnes automatisk. Andre grene kan foldes ud efter behov. Undervisere har **Ny side**; en underside oprettes fra sidens **Mere**-menu. Holdoversigt, grupper og graf er samlet under **Holdværktøjer**. Skjul/vis, søgning og foldning genstarter ikke dokumentet eller ændrer dets indhold.
+Den aktive sides overordnede sider åbnes automatisk. Andre grene kan foldes ud efter behov. **Ny side** opretter en side i notesbogens rod. Højreklik eller vælg **Sidehandlinger** for at oprette en underside, flytte eller slette. Træk en side ind på en anden side, over eller under en søskende eller ud i roden. **Flyt til** er tilgængelig med tastatur og på mobil. **Papirkurv** kan gendanne hele slettede grene i op til 30 dage med samme links og udgivelser.
 
-Et direkte sidelink henter først den valgte sides lette kontekst og åbner editoren. Holdvælger, sidetitler og brødkrummer hentes bagefter, uafhængigt af hinanden. Disse opslag læser ingen andre siders dokumenttilstande. Kladden henter heller ikke sin udgivne snapshot. Sideskift afbryder tidligere forespørgsler; sene svar kan ikke erstatte den aktive side.
+Et direkte sidelink henter først den valgte sides lette kontekst og åbner editoren. Sidetitler og brødkrummer hentes bagefter, uafhængigt af hinanden. Holdoversigt, grupper og graf ligger under **Holdværktøjer**. Disse opslag læser ingen andre siders dokumenttilstande. Kladden henter heller ikke sit udgivne snapshot. Sideskift afbryder tidligere forespørgsler; sene svar kan ikke erstatte den aktive side.
 
 Store sidelister virtualiseres, så kun synlige rækker bliver oprettet. Den aktive side er altid tilgængelig øverst. Elev-, gruppe- og afstemningsdata hentes samlet første gang en relevant blok, omtale eller AI-funktion bruger dem. Valgfrie opslag kan prøves igen uden at genstarte dokumentet.
 

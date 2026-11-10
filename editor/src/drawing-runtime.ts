@@ -120,7 +120,7 @@ export class DrawingController {
     this.status = 'Forbinder…';
     this.provider = new HocuspocusProvider({
       url: collaborationUrl(location),
-      name: 'drawing:' + this.id.toLowerCase(), document: this.doc,
+      name: 'drawing:' + this.id.toLowerCase() + (this.context?.lifecycleVersion ? ':v' + this.context.lifecycleVersion : ''), document: this.doc,
       token: async () => { const token = await this.env.getToken(); return token.startsWith('Bearer ') ? token.slice(7) : token; },
       onStatus: ({ status }) => {
         this.connected = status === 'connected';

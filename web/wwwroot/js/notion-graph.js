@@ -741,8 +741,21 @@ function create(host, dotnet, payload) {
         if (drag.node) {
             settleTicks = 0;
             const world = worldAt(at.x, at.y);
-            drag.node.x = drag.node.fx = world.x + drag.offsetX;
-            drag.node.y = drag.node.fy = world.y + drag.offsetY;
+            const { node } = drag;
+            const x = world.x + drag.offsetX;
+            const y = world.y + drag.offsetY;
+            const follow = Math.min(0.4, settings.linkForce * 0.25);
+            // Direct links follow the gesture even when springs are balanced or reduced motion stops the simulation.
+            if (follow > 0) {
+                const dx = (x - node.x) * follow;
+                const dy = (y - node.y) * follow;
+                for (const neighbor of node.neighbors) {
+                    neighbor.x += dx;
+                    neighbor.y += dy;
+                }
+            }
+            node.x = node.fx = x;
+            node.y = node.fy = y;
         } else pan(at.x - previous.x, at.y - previous.y);
         requestFrame();
     }, { signal });

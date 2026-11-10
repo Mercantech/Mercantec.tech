@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Mercantec.Tech.Api.Auth;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Notebooks;
 using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -159,10 +160,20 @@ public sealed partial class ReferenceService
         }
         else if (request.ScopeKind is "collection" or "notebook" && Guid.TryParse(request.ScopeId, out var collection))
         {
-            var canonical = collection;
-            if (request.ScopeKind == "collection" && catalog.FirstOrDefault(r => r.Reference == Ref("notion-page", collection))?.CollectionId is Guid root)
-                canonical = root;
+            var scopePage = request.ScopeKind == "collection"
+                ? catalog.FirstOrDefault(r => r.Reference == Ref("notion-page", collection))
+                : null;
+            var canonical = scopePage?.CollectionId ?? collection;
             selected.UnionWith(catalog.Where(r => r.CollectionId == canonical).Select(r => r.Reference.Key));
+            if (scopePage is { CollectionId: null })
+            {
+                var legacy = await db.NotionPages.AsNoTracking()
+                    .Where(p => p.HoldId == scopePage.HoldId && p.CollectionId == null)
+                    .Select(p => new NotebookPageTree.Row(p.Id, p.ParentPageId, null, "", null)).ToListAsync(ct);
+                var branch = NotebookPageTree.Branch(legacy, collection);
+                selected.UnionWith(catalog.Where(r => r.Reference.Kind == "notion-page" && branch.Contains(Guid.Parse(r.Reference.Id)))
+                    .Select(r => r.Reference.Key));
+            }
         }
         else if (request.ScopeKind == "hold" && Guid.TryParse(request.ScopeId, out var hold))
             selected.UnionWith(catalog.Where(r => r.HoldId == hold).Select(r => r.Reference.Key));

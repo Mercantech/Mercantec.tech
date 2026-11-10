@@ -8,10 +8,15 @@ public sealed class NotionPage
     public Guid? CollectionId { get; set; }
     public NotionCollection? Collection { get; set; }
     public Guid? ParentPageId { get; set; }
+    public int? SortOrder { get; set; }
+    public DateTimeOffset? DeletedAtUtc { get; set; }
+    public Guid? TrashRootId { get; set; }
+    public long LifecycleVersion { get; set; }
     public string Title { get; set; } = "";
     public Guid CreatedBySub { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+    public string? LastEditedByName { get; set; }
     public byte[]? YjsState { get; set; }
     public long DraftRevision { get; set; }
     public string? DraftFingerprint { get; set; }
@@ -19,6 +24,8 @@ public sealed class NotionPage
     public string? PublishedTitle { get; set; }
     public DateTimeOffset? PublishedAtUtc { get; set; }
     public Guid? PublishedBySub { get; set; }
+    public string? PublishedEditorName { get; set; }
+    public DateTimeOffset? PublishedEditedAtUtc { get; set; }
     public long? PublishedRevision { get; set; }
     public long PublicationVersion { get; set; }
     public string PublishedAssetIdsJson { get; set; } = "[]";
@@ -31,7 +38,10 @@ public sealed class NotionPage
 public sealed class NotionCollection
 {
     public Guid Id { get; set; }
+    public Guid? IconEmojiId { get; set; }
     public Guid? HoldId { get; set; }
     public Guid CreatedBySub { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
+    public string? Title { get; set; }
+    public string? PublishedTitle { get; set; }
 }

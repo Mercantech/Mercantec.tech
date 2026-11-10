@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Mercantec.Tech.Api.Auth;
+using Mercantec.Tech.Api.Emojis;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Learning;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Mercantec.Tech.Api.Controllers;
 
 [ApiController, Authorize, Route("api/notebooks")]
-public sealed class NotebooksController(AppDbContext db, NotebookAccess access) : ControllerBase
+public sealed partial class NotebooksController(AppDbContext db, NotebookAccess access) : ControllerBase
 {
     [HttpPost("profile")]
     public async Task<IActionResult> Profile(CancellationToken ct)
@@ -42,7 +43,21 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
             }
         }
         NoCache();
-        return Ok(new NotebookInfo(notebook.Id, sub, profile.DisplayName, true, true));
+        return Ok(new NotebookInfo(notebook.Id, sub, profile.DisplayName, true, true, notebook.IconEmojiId));
+    }
+
+    [HttpPatch("{notebookId:guid}/icon")]
+    public async Task<IActionResult> SetIcon(Guid notebookId, SetNotebookIcon input, CancellationToken ct)
+    {
+        if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
+        if (!await access.CanShareNotebookAsync(notebookId, User, ct)) return NotFound();
+        if (!await NotebookIcon.IsAvailableAsync(db, input.IconEmojiId, ct))
+            return BadRequest(new { error = "invalid_icon" });
+        var updated = await db.Notebooks.Where(n => n.Id == notebookId && n.OwnerSub == sub)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IconEmojiId, input.IconEmojiId), ct);
+        if (updated == 0) return NotFound();
+        NoCache();
+        return NoContent();
     }
 
     [HttpGet("{notebookId:guid}/pages")]
@@ -92,8 +107,17 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
                 && s.NotebookId == d.NotebookId && (s.PageId == null || s.PageId == d.Id)));
         var rows = await Project(query).ToListAsync(ct);
         var visible = rows.Select(d => d.Id).ToHashSet();
+        var notebookIds = rows.Select(d => d.NotebookId).Distinct().ToArray();
+        var owners = await db.Notebooks.AsNoTracking().Where(n => notebookIds.Contains(n.Id))
+            .Select(n => new { n.Id, n.IconEmojiId, Name = db.NotebookProfiles
+                .Where(p => p.Sub == n.OwnerSub).Select(p => p.DisplayName).FirstOrDefault() })
+            .ToDictionaryAsync(n => n.Id, ct);
         NoCache();
-        return Ok(rows.OrderByDescending(d => d.UpdatedAtUtc).Select(d => View(d, visible)).ToArray());
+        return Ok(rows.OrderByDescending(d => d.UpdatedAtUtc).ThenBy(d => d.Id).Select(d => View(d, visible) with
+        {
+            NotebookIconEmojiId = owners.GetValueOrDefault(d.NotebookId)?.IconEmojiId,
+            NotebookOwnerName = owners.GetValueOrDefault(d.NotebookId)?.Name
+        }).ToArray());
     }
 
     [HttpGet("pages/{id:guid}/context")]
@@ -105,24 +129,18 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
             .Select(d => new
             {
                 d.Id, d.NotebookId, d.Title, d.Kind, d.UpdatedAtUtc, d.Revision, d.Fingerprint,
-                d.TagsJson, d.PeriodStart, d.HoldId,
+                d.TagsJson, d.PeriodStart, d.HoldId, d.LifecycleVersion,
                 YjsState = knownRevision != null && knownRevision == d.Revision ? null : d.YjsState
             }).SingleOrDefaultAsync(ct);
         if (document is null) return NotFound();
-        var pages = document.NotebookId is Guid notebookId
-            ? await access.ReadableDocuments(User).AsNoTracking().Where(d => d.NotebookId == notebookId)
-                .Select(d => new NotionPageLink(d.Id, d.Title, d.ParentPageId)).ToArrayAsync(ct)
-            : [];
-        var visible = pages.Select(p => p.Id).ToHashSet();
-        pages = pages.Select(p => p.ParentPageId is Guid parent && !visible.Contains(parent)
-            ? p with { ParentPageId = null } : p).OrderBy(p => p.Title).ToArray();
+        var pages = document.NotebookId is Guid notebookId ? await ReadTreeLinks(notebookId, ct) : [];
         NoCache();
         return Ok(new NotebookDocumentContext(document.Id, document.NotebookId, document.Title, document.Kind,
             true, await access.CanEditAsync(id, User, ct), await access.CanCommentAsync(id, User, ct),
             document.NotebookId is Guid nb && await access.CanShareNotebookAsync(nb, User, ct),
             document.YjsState is { Length: > 0 } bytes ? Convert.ToBase64String(bytes) : null,
             document.UpdatedAtUtc, document.Revision, document.Fingerprint, pages,
-            ReadTags(document.TagsJson), document.PeriodStart, document.HoldId));
+            ReadTags(document.TagsJson), document.PeriodStart, document.HoldId, document.LifecycleVersion));
     }
 
     [HttpPost("{notebookId:guid}/pages")]
@@ -130,13 +148,17 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
     {
         if (!await access.CanShareNotebookAsync(notebookId, User, ct)) return NotFound();
         if (!ValidTitle(input.Title)) return BadRequest(new { error = "invalid_title" });
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await NotebookPageTree.LockPersonalAsync(db, notebookId, ct);
         if (input.ParentPageId is Guid parent && !await db.NotebookDocuments.AnyAsync(d => d.Id == parent
             && d.NotebookId == notebookId, ct)) return BadRequest(new { error = "invalid_parent" });
         var now = DateTimeOffset.UtcNow;
         var document = new NotebookDocument { Id = Guid.NewGuid(), NotebookId = notebookId, Kind = "note",
-            Title = input.Title.Trim(), ParentPageId = input.ParentPageId, CreatedAtUtc = now, UpdatedAtUtc = now };
+            Title = input.Title.Trim(), ParentPageId = input.ParentPageId, CreatedAtUtc = now, UpdatedAtUtc = now,
+            LastEditedByName = UserClaims.EditorName(User) };
         db.NotebookDocuments.Add(document);
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         NoCache();
         return Ok(PageView(document));
     }
@@ -144,20 +166,21 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
     [HttpPatch("pages/{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateNotebookPage input, CancellationToken ct)
     {
-        if (!await access.CanEditAsync(id, User, ct)) return NotFound();
-        var document = await db.NotebookDocuments.AsNoTracking().SingleAsync(d => d.Id == id, ct);
-        if (document.NotebookId is not Guid notebookId) return NotFound();
+        if (await FindOwnedNotebook(id, ct) is not Guid notebookId) return NotFound();
         if (!ValidTitle(input.Title) || input.Tags is null || input.Tags.Length > 20
             || input.Tags.Any(t => string.IsNullOrWhiteSpace(t) || t.Trim().Length > 50 || t.Any(char.IsControl)))
             return BadRequest(new { error = "invalid_metadata" });
-        if (input.HoldId is Guid hold && !await new CourseAccess(db).CanAccessAsync(hold, User, ct))
-            return BadRequest(new { error = "invalid_hold" });
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        if (db.Database.IsNpgsql())
-            // Serialize tree moves within a notebook so two tabs cannot create A -> B -> A.
-            await db.Database.ExecuteSqlInterpolatedAsync(
-                $"SELECT 1 FROM notebooks WHERE \"Id\" = {notebookId} FOR UPDATE", ct);
-        if (input.ParentPageId is Guid parent)
+        await NotebookPageTree.LockPersonalAsync(db, notebookId, ct);
+        var document = await db.NotebookDocuments.AsNoTracking().Where(d => d.Id == id)
+            .Select(d => new { d.ParentPageId, d.HoldId, d.SortOrder }).SingleOrDefaultAsync(ct);
+        if (document is null) return NotFound();
+        var parentId = input.KeepPlacementAndHold ? document.ParentPageId : input.ParentPageId;
+        var holdId = input.KeepPlacementAndHold ? document.HoldId : input.HoldId;
+        var sortOrder = parentId == document.ParentPageId ? document.SortOrder : null;
+        if (holdId is Guid hold && hold != document.HoldId && !await new CourseAccess(db).CanAccessAsync(hold, User, ct))
+            return BadRequest(new { error = "invalid_hold" });
+        if (parentId is Guid parent && !input.KeepPlacementAndHold)
         {
             var tree = await db.NotebookDocuments.AsNoTracking().Where(d => d.NotebookId == notebookId)
                 .Select(d => new { d.Id, d.ParentPageId }).ToDictionaryAsync(d => d.Id, d => d.ParentPageId, ct);
@@ -173,14 +196,18 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
         var tags = JsonSerializer.Serialize(input.Tags.Select(t => t.Trim().ToLowerInvariant())
             .Distinct(StringComparer.Ordinal).ToArray());
         var title = input.Title.Trim();
+        var editorName = UserClaims.EditorName(User);
         // Only metadata columns change: a simultaneous collaboration save keeps its bytes and fingerprint.
-        await db.NotebookDocuments.Where(d => d.Id == id).ExecuteUpdateAsync(s => s
-            .SetProperty(d => d.Title, title).SetProperty(d => d.ParentPageId, input.ParentPageId)
-            .SetProperty(d => d.TagsJson, tags).SetProperty(d => d.HoldId, input.HoldId)
+        await db.NotebookDocuments.Where(d => d.Id == id && (d.Title != title || d.ParentPageId != input.ParentPageId
+            || d.TagsJson != tags || d.HoldId != input.HoldId)).ExecuteUpdateAsync(s => s
+            .SetProperty(d => d.Title, title).SetProperty(d => d.ParentPageId, parentId).SetProperty(d => d.SortOrder, sortOrder)
+            .SetProperty(d => d.TagsJson, tags).SetProperty(d => d.HoldId, holdId)
+            .SetProperty(d => d.LastEditedByName, editorName)
             .SetProperty(d => d.UpdatedAtUtc, DateTimeOffset.UtcNow).SetProperty(d => d.Revision, d => d.Revision + 1), ct);
+        var result = await db.NotebookDocuments.AsNoTracking().SingleAsync(d => d.Id == id, ct);
         await transaction.CommitAsync(ct);
         NoCache();
-        return Ok(PageView(await db.NotebookDocuments.AsNoTracking().SingleAsync(d => d.Id == id, ct)));
+        return Ok(PageView(result));
     }
 
     [HttpGet("pages/{id:guid}/backlinks")]
@@ -324,14 +351,16 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
             select new { Sub = m.UserSub!.Value, h.Name }).ToListAsync(ct);
         var ids = notebooks.Select(n => n.Id).ToArray();
         var documents = await db.NotebookDocuments.AsNoTracking().Where(d => d.NotebookId != null && ids.Contains(d.NotebookId.Value))
-            .Select(d => new { d.NotebookId, d.Kind, d.PeriodStart, d.UpdatedAtUtc }).ToListAsync(ct);
+            .Select(d => new { d.Id, d.NotebookId, d.Kind, d.PeriodStart, d.UpdatedAtUtc, d.LastEditedByName }).ToListAsync(ct);
+        var byNotebook = documents.ToLookup(d => d.NotebookId);
         var result = notebooks.Select(n =>
         {
-            var pages = documents.Where(d => d.NotebookId == n.Id).ToArray();
+            var pages = byNotebook[n.Id];
+            var latest = pages.OrderByDescending(d => d.UpdatedAtUtc).ThenBy(d => d.Id).FirstOrDefault();
             return new TeacherNotebookView(n.Id, n.OwnerSub, profiles.GetValueOrDefault(n.OwnerSub)?.DisplayName ?? "LUP-bruger",
                 memberships.Where(m => m.Sub == n.OwnerSub).Select(m => m.Name).Distinct().Order().ToArray(),
                 pages.Where(d => d.Kind == "journal").Select(d => d.PeriodStart).Max(),
-                pages.Length > 0 ? pages.Max(d => d.UpdatedAtUtc) : n.CreatedAtUtc);
+                latest?.UpdatedAtUtc ?? n.CreatedAtUtc, n.IconEmojiId, latest?.LastEditedByName, latest is not null);
         });
         if (!string.IsNullOrWhiteSpace(search)) result = result.Where(n => n.OwnerName.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase));
         NoCache();
@@ -343,7 +372,8 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
     {
         if (!TryDocumentId(input.DocumentName, out var id)) return BadRequest(new { error = "invalid_document" });
         if (!await access.CanEditAsync(id, User, ct)) return NotFound();
-        return Ok(new NotionCollaborationAccess(id, true));
+        var version = await db.NotebookDocuments.Where(d => d.Id == id).Select(d => (long?)d.LifecycleVersion).SingleOrDefaultAsync(ct);
+        return version is long lifecycle ? Ok(new NotionCollaborationAccess(id, true, UserClaims.EditorName(User), lifecycle)) : NotFound();
     }
 
     public static bool TryDocumentId(string? name, out Guid id)
@@ -354,7 +384,8 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
     }
 
     public static NotebookPageSummary PageView(NotebookDocument d) => new(d.Id, d.NotebookId ?? Guid.Empty,
-        d.Title, d.ParentPageId, d.Kind, ReadTags(d.TagsJson), d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision);
+        d.Title, d.ParentPageId, d.Kind, ReadTags(d.TagsJson), d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision,
+        LastEditedByName: d.LastEditedByName, SortOrder: d.SortOrder);
 
     public static string[] ReadTags(string? json)
     {
@@ -401,16 +432,17 @@ public sealed class NotebooksController(AppDbContext db, NotebookAccess access) 
 
     private sealed record PageData(Guid Id, Guid NotebookId, string Title, Guid? ParentPageId, string Kind,
         string TagsJson, DateOnly? PeriodStart, Guid? HoldId, Guid? TemplateId, DateTimeOffset UpdatedAtUtc,
-        long Revision, string SearchText);
+        long Revision, string SearchText, string? LastEditedByName, int? SortOrder);
 
     private static IQueryable<PageData> Project(IQueryable<NotebookDocument> query) => query.Select(d => new PageData(
         d.Id, d.NotebookId!.Value, d.Title, d.ParentPageId, d.Kind, d.TagsJson, d.PeriodStart, d.HoldId,
-        d.TemplateId, d.UpdatedAtUtc, d.Revision, d.SearchText));
+        d.TemplateId, d.UpdatedAtUtc, d.Revision, d.SearchText, d.LastEditedByName, d.SortOrder));
 
     private static NotebookPageSummary View(PageData d, HashSet<Guid> visible, string? search = null) => new(d.Id,
         d.NotebookId, d.Title, d.ParentPageId is Guid parent && visible.Contains(parent) ? parent : null,
         d.Kind, ReadTags(d.TagsJson), d.PeriodStart, d.HoldId, d.TemplateId, d.UpdatedAtUtc, d.Revision,
-        string.IsNullOrWhiteSpace(search) ? null : Snippet(d.SearchText, search));
+        string.IsNullOrWhiteSpace(search) ? null : Snippet(d.SearchText, search),
+        LastEditedByName: d.LastEditedByName, SortOrder: d.SortOrder);
 
     private static string Snippet(string text, string search)
     {

@@ -4,6 +4,7 @@ using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
 using Mercantec.Tech.Api.Drawings;
 using Mercantec.Tech.Api.Learning;
+using Mercantec.Tech.Api.Notebooks;
 using Mercantec.Tech.Api.Notion;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ namespace Mercantec.Tech.Api.Controllers;
 
 /// <summary>Hold-scoped authoring and immutable published reading. Only managers join draft collaboration.</summary>
 [ApiController, Authorize, Route("api/notion")]
-public sealed class NotionController(AppDbContext db, CourseAccess access, DrawingService? drawings = null) : ControllerBase
+public sealed partial class NotionController(AppDbContext db, CourseAccess access, DrawingService? drawings = null) : ControllerBase
 {
     private readonly NotionAccess pagesAccess = new(db, access);
     [HttpGet("holds")]
@@ -27,7 +28,8 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
     }
 
     [HttpGet("pages")]
-    public async Task<IActionResult> List(Guid? holdId, CancellationToken ct, bool publishedOnly = false, Guid? collectionId = null)
+    public async Task<IActionResult> List(Guid? holdId, CancellationToken ct, bool publishedOnly = false, Guid? collectionId = null,
+        bool legacyOnly = false)
     {
         if (collectionId is Guid collection)
         {
@@ -40,15 +42,15 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         var manage = !publishedOnly && await pagesAccess.CanManageScopeAsync(holdId, User, ct);
         // Metadata queries deliberately never materialize the potentially large Yjs binary.
         var pages = await pagesAccess.ReadablePages(User, publishedOnly).AsNoTracking().Where(p => p.HoldId == holdId
-                && (collectionId == null || p.CollectionId == collectionId))
+                && (collectionId == null || p.CollectionId == collectionId) && (!legacyOnly || p.CollectionId == null))
             .Select(p => new { p.Id, p.HoldId, p.Title, p.ParentPageId, p.UpdatedAtUtc, p.PublishedTitle,
-                p.PublishedAtUtc, p.DraftRevision, p.PublishedRevision, p.CollectionId }).ToListAsync(ct);
+                p.PublishedAtUtc, p.DraftRevision, p.PublishedRevision, p.CollectionId, p.SortOrder }).ToListAsync(ct);
         var visible = pages.Select(p => p.Id).ToHashSet();
         Response.Headers.CacheControl = "no-store";
         return Ok(pages.Select(p => new NotionPageSummary(p.Id, p.HoldId, manage ? p.Title : p.PublishedTitle!,
             manage || p.ParentPageId is not Guid parent || visible.Contains(parent) ? p.ParentPageId : null,
             manage ? p.UpdatedAtUtc : p.PublishedAtUtc!.Value, p.PublishedAtUtc,
-            manage && p.PublishedAtUtc is not null && (p.DraftRevision != p.PublishedRevision || p.Title != p.PublishedTitle), p.CollectionId))
+            manage && p.PublishedAtUtc is not null && (p.DraftRevision != p.PublishedRevision || p.Title != p.PublishedTitle), p.CollectionId, p.SortOrder))
             .OrderBy(p => p.Title).ToList());
     }
 
@@ -70,40 +72,36 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
     [HttpGet("graph/{collectionId:guid}")]
     public async Task<IActionResult> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false)
     {
+        var collection = await db.NotionCollections.AsNoTracking().Where(c => c.Id == collectionId)
+            .Select(c => new { c.HoldId, c.Title, c.PublishedTitle }).SingleOrDefaultAsync(ct);
         var root = await db.NotionPages.AsNoTracking().Where(p => p.Id == collectionId)
             .Select(p => new { p.Id, p.HoldId, p.Title, p.PublishedTitle, p.PublishedAtUtc, HasPublication = p.PublishedState != null })
             .SingleOrDefaultAsync(ct);
-        if (root is null || !await pagesAccess.CanAccessScopeAsync(root.HoldId, User, ct)) return NotFound();
-        var manage = !publishedOnly && await pagesAccess.CanManageScopeAsync(root.HoldId, User, ct);
-        if (!manage && (root.PublishedAtUtc is null || root.PublishedTitle is null || !root.HasPublication)) return NotFound();
+        if (collection is null && root is null) return NotFound();
+        var holdId = collection?.HoldId ?? root?.HoldId;
+        if (!await pagesAccess.CanAccessScopeAsync(holdId, User, ct)) return NotFound();
+        var manage = !publishedOnly && await pagesAccess.CanManageScopeAsync(holdId, User, ct);
+        var rootPublished = root is { PublishedAtUtc: not null, PublishedTitle: not null, HasPublication: true };
+        if (collection is null && !manage && !rootPublished) return NotFound();
 
-        var meta = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == root.HoldId)
+        var meta = await db.NotionPages.AsNoTracking().Where(p => p.HoldId == holdId
+                && (collection == null || p.CollectionId == collectionId))
             .Select(p => new PageMeta(p.Id, p.ParentPageId, p.Title, p.PublishedTitle, p.PublishedAtUtc, p.PublishedState != null))
             .ToListAsync(ct);
-        var byParent = meta.ToLookup(p => p.ParentPageId);
-        var subtree = new List<Guid>();
-        var pending = new Stack<Guid>();
-        var seen = new HashSet<Guid>();
-        pending.Push(root.Id);
-        while (pending.Count > 0)
+        if (collection is null)
         {
-            var id = pending.Pop();
-            if (!seen.Add(id)) continue;
-            subtree.Add(id);
-            foreach (var child in byParent[id]) pending.Push(child.Id);
+            var subtree = NotebookPageTree.Branch(meta.Select(p => new NotebookPageTree.Row(p.Id, p.ParentPageId, null, p.Title)).ToArray(), collectionId);
+            meta.RemoveAll(p => !subtree.Contains(p.Id));
         }
-
-        var ordered = subtree.Select(id => meta.First(p => p.Id == id)).Where(p => PageVisible(p, manage))
-            .OrderBy(p => manage ? p.Title : p.PublishedTitle, StringComparer.CurrentCultureIgnoreCase).ThenBy(p => p.Id)
-            .ToList();
-        if (ordered.Count > 400)
-        {
-            var rootNode = ordered.First(p => p.Id == root.Id);
-            ordered = [rootNode, .. ordered.Where(p => p.Id != root.Id).Take(399)];
-        }
-        var nodes = ordered.ToArray();
+        var nodes = meta.Where(p => PageVisible(p, manage))
+            .OrderBy(p => p.Id == collectionId ? 0 : 1)
+            .ThenBy(p => manage ? p.Title : p.PublishedTitle, StringComparer.CurrentCultureIgnoreCase).ThenBy(p => p.Id)
+            .Take(400).ToArray();
+        if (!manage && nodes.Length == 0) return NotFound();
+        var title = manage ? root?.Title ?? collection?.Title
+            : rootPublished ? root?.PublishedTitle : root is null ? collection?.PublishedTitle : null;
         Response.Headers.CacheControl = "no-store";
-        return Ok(new NotionGraph(root.HoldId, root.Id, manage ? root.Title : root.PublishedTitle!, manage,
+        return Ok(new NotionGraph(holdId, collectionId, title ?? "Samling", manage && root is not null,
             ToNodes(nodes, manage), await ReadEdgesAsync(manage, nodes.Select(p => p.Id).ToHashSet(), ct)));
     }
 
@@ -168,6 +166,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         if (UserClaims.GetSub(User) is not Guid sub) return Unauthorized();
         if (request.HoldId is Guid requestedHold && !await access.CanManageAsync(requestedHold, User, ct)) return NotFound();
         if (!ValidTitle(request.Title)) return BadRequest(new { error = "invalid_title" });
+        if (request.AtRoot && request.ParentPageId is not null) return BadRequest(new { error = "invalid_parent" });
         var holdId = request.HoldId;
         var collectionId = request.CollectionId;
         var parentId = request.ParentPageId;
@@ -188,24 +187,32 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
             if (collection is null || !await pagesAccess.CanManageScopeAsync(collection.HoldId, User, ct)) return NotFound();
             if (holdId is Guid requested && requested != collection.HoldId) return BadRequest(new { error = "invalid_collection" });
             holdId = collection.HoldId;
-            parentId ??= collection.Id;
         }
         if (!await pagesAccess.CanManageScopeAsync(holdId, User, ct)) return NotFound();
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await NotebookPageTree.LockTeachingAsync(db, collectionId, holdId, ct);
+        if (parentId is Guid target && !await db.NotionPages.AnyAsync(p => p.Id == target, ct))
+            return BadRequest(new { error = "invalid_parent" });
+        if (!request.AtRoot && collectionId is Guid landing && parentId is null
+            && await db.NotionPages.AnyAsync(p => p.Id == landing && p.ParentPageId == null, ct))
+            parentId = landing;
         var now = DateTimeOffset.UtcNow;
         var id = Guid.NewGuid();
-        if (collectionId is null && parentId is null)
+        var title = request.Title.Trim();
+        if (collectionId is null && parentId is null && (!request.AtRoot || holdId is null))
         {
             collectionId = id;
-            db.NotionCollections.Add(new() { Id = id, HoldId = holdId, CreatedBySub = sub, CreatedAtUtc = now });
+            db.NotionCollections.Add(new() { Id = id, HoldId = holdId, CreatedBySub = sub, CreatedAtUtc = now, Title = title });
         }
         var page = new NotionPage
         {
             Id = id, HoldId = holdId, CollectionId = collectionId, ParentPageId = parentId,
-            Title = request.Title.Trim(), CreatedBySub = sub,
-            CreatedAtUtc = now, UpdatedAtUtc = now
+            Title = title, CreatedBySub = sub,
+            CreatedAtUtc = now, UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(User)
         };
         db.NotionPages.Add(page);
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
         return Ok(View(page));
     }
 
@@ -216,10 +223,13 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         if (page is null) return NotFound();
         if (!ValidTitle(request.Title)) return BadRequest(new { error = "invalid_title" });
         var title = request.Title.Trim();
+        var editorName = UserClaims.EditorName(User);
         await db.NotionPages.Where(p => p.Id == id && p.Title != title).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.Title, title).SetProperty(p => p.UpdatedAtUtc, DateTimeOffset.UtcNow)
+            .SetProperty(p => p.LastEditedByName, editorName)
             .SetProperty(p => p.DraftRevision, p => p.DraftRevision + 1), ct);
-        return Ok(View(await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct)));
+        var updated = await db.NotionPages.AsNoTracking().SingleOrDefaultAsync(p => p.Id == id, ct);
+        return updated is null ? NotFound() : Ok(View(updated));
     }
 
     [HttpGet("pages/{id:guid}/context")]
@@ -258,7 +268,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         var edit = !publishedOnly && await pagesAccess.CanManageScopeAsync(scope.HoldId, User, ct);
         var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
             .Select(p => new { p.Id, p.HoldId, p.Title, p.UpdatedAtUtc, p.PublishedAtUtc, p.PublishedTitle,
-                p.DraftRevision, p.PublishedRevision, PublishedState = edit ? null : p.PublishedState,
+                p.DraftRevision, p.PublishedRevision, p.LifecycleVersion, PublishedState = edit ? null : p.PublishedState,
                 PublishedDrawingsJson = edit ? null : p.PublishedDrawingsJson }).SingleOrDefaultAsync(ct);
         if (page is null) return NotFound();
         if (!edit && (page.PublishedAtUtc is null || page.PublishedTitle is null || page.PublishedState is not { Length: > 0 })) return NotFound();
@@ -268,10 +278,10 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         {
             var links = await pagesAccess.ReadablePages(User, publishedOnly).AsNoTracking().Where(p => p.HoldId == page.HoldId
                 && (scope.CollectionId == null || p.CollectionId == scope.CollectionId))
-                .Select(p => new { p.Id, p.Title, p.PublishedTitle, p.ParentPageId }).ToListAsync(ct);
+                .Select(p => new { p.Id, p.Title, p.PublishedTitle, p.ParentPageId, p.SortOrder }).ToListAsync(ct);
             var visible = links.Select(p => p.Id).ToHashSet();
             pages = links.Select(p => new NotionPageLink(p.Id, edit ? p.Title : p.PublishedTitle!,
-                edit || p.ParentPageId is not Guid parent || visible.Contains(parent) ? p.ParentPageId : null)).ToArray();
+                edit || p.ParentPageId is not Guid parent || visible.Contains(parent) ? p.ParentPageId : null, p.SortOrder)).ToArray();
         }
         // Published metadata and bytes come from the same row read; a concurrent re-publication
         // cannot combine an old title with a new document body.
@@ -281,7 +291,7 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
             edit ? page.UpdatedAtUtc : page.PublishedAtUtc!.Value, pages, page.PublishedAtUtc,
             edit ? page.DraftRevision : page.PublishedRevision ?? 0, page.PublishedRevision,
             state is null ? null : Convert.ToBase64String(state), page.PublishedTitle,
-            edit ? [] : DrawingAccess.Bindings(page.PublishedDrawingsJson), scope.CollectionId));
+            edit ? [] : DrawingAccess.Bindings(page.PublishedDrawingsJson), scope.CollectionId, edit ? page.LifecycleVersion : 0));
     }
 
     [HttpPost("pages/{id:guid}/publish")]
@@ -332,14 +342,17 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
             && p.DraftFingerprint == request.ExpectedFingerprint && p.PublicationVersion == page.PublicationVersion)
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.PublishedState, page.YjsState)
                 .SetProperty(p => p.PublishedTitle, page.Title).SetProperty(p => p.PublishedAtUtc, now)
+                .SetProperty(p => p.PublishedEditorName, p => p.LastEditedByName)
+                .SetProperty(p => p.PublishedEditedAtUtc, p => p.UpdatedAtUtc)
                 .SetProperty(p => p.PublishedBySub, sub).SetProperty(p => p.PublishedRevision, request.ExpectedRevision)
                 .SetProperty(p => p.PublishedAssetIdsJson, assets).SetProperty(p => p.PublishedDrawingsJson, drawingManifest)
                 .SetProperty(p => p.PublicationVersion, p => p.PublicationVersion + 1), ct);
         if (written == 0) return Conflict(new { error = "draft_changed" });
         await references.RefreshNotionAsync(id, ct, published: true);
+        var published = await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct);
         if (transaction is not null) await transaction.CommitAsync(ct);
         Response.Headers.CacheControl = "no-store";
-        return Ok(View(await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct)));
+        return Ok(View(published));
         }
         catch (DrawingException ex) { return StatusCode(ex.Status, new { error = ex.Code, message = ex.Message }); }
         catch (HttpRequestException) { return StatusCode(503, new { error = "drawing_service_unavailable" }); }
@@ -352,19 +365,22 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         var page = await FindEditable(id, ct);
         if (page is null) return NotFound();
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
+        var locked = await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.PublicationVersion, p => p.PublicationVersion), ct);
+        if (locked == 0) return NotFound();
         var references = new Mercantec.Tech.Api.References.ReferenceService(db);
         await references.BaselineNotionAsync(id, ct);
         await db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(p => p.PublishedState, (byte[]?)null).SetProperty(p => p.PublishedTitle, (string?)null)
             .SetProperty(p => p.PublishedAtUtc, (DateTimeOffset?)null).SetProperty(p => p.PublishedBySub, (Guid?)null)
+            .SetProperty(p => p.PublishedEditorName, (string?)null).SetProperty(p => p.PublishedEditedAtUtc, (DateTimeOffset?)null)
             .SetProperty(p => p.PublishedRevision, (long?)null).SetProperty(p => p.PublishedAssetIdsJson, "[]").SetProperty(p => p.PublishedDrawingsJson, "[]")
             .SetProperty(p => p.PublicationVersion, p => p.PublicationVersion + 1), ct);
         await references.RefreshNotionAsync(id, ct, published: true);
+        var unpublished = await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct);
         await transaction.CommitAsync(ct);
         Response.Headers.CacheControl = "no-store";
-        return Ok(View(await db.NotionPages.AsNoTracking().SingleAsync(p => p.Id == id, ct)));
+        return Ok(View(unpublished));
     }
 
     [HttpPost("collaboration/authorize")]
@@ -373,7 +389,8 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
         if (!TryDocumentId(request.DocumentName, out var id))
             return BadRequest(new { error = "invalid_document" });
         if (!await pagesAccess.CanManageAsync(id, User, ct)) return NotFound();
-        return Ok(new NotionCollaborationAccess(id, true));
+        var version = await db.NotionPages.Where(p => p.Id == id).Select(p => (long?)p.LifecycleVersion).SingleOrDefaultAsync(ct);
+        return version is long lifecycle ? Ok(new NotionCollaborationAccess(id, true, UserClaims.EditorName(User), lifecycle)) : NotFound();
     }
 
     public static bool TryDocumentId(string? name, out Guid id)
@@ -397,5 +414,5 @@ public sealed class NotionController(AppDbContext db, CourseAccess access, Drawi
     private static bool ValidTitle(string? title) => !string.IsNullOrWhiteSpace(title)
         && title.Length <= 200 && !title.Any(char.IsControl);
     private static NotionPageSummary View(NotionPage p) => new(p.Id, p.HoldId, p.Title, p.ParentPageId, p.UpdatedAtUtc,
-        p.PublishedAtUtc, p.PublishedAtUtc is not null && (p.DraftRevision != p.PublishedRevision || p.Title != p.PublishedTitle), p.CollectionId);
+        p.PublishedAtUtc, p.PublishedAtUtc is not null && (p.DraftRevision != p.PublishedRevision || p.Title != p.PublishedTitle), p.CollectionId, p.SortOrder);
 }

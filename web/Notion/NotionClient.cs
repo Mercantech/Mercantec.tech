@@ -6,10 +6,17 @@ namespace Mercantec.Tech.Web.Notion;
 public sealed class NotionClient(HttpClient http)
 {
     public Task<NotionCollectionView[]> Collections(CancellationToken ct, bool publishedOnly = false) => Get<NotionCollectionView[]>($"notion/collections?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
-    public Task<NotionCollectionView> CreateCollection(string title, Guid? holdId, CancellationToken ct) => Post<NotionCollectionView>("notion/collections", new CreateNotionCollection(title, holdId), ct);
+    public Task<NotionCollectionView> CreateCollection(string title, Guid? holdId, CancellationToken ct, Guid? iconEmojiId = null) =>
+        Post<NotionCollectionView>("notion/collections", new CreateNotionCollection(title, holdId, iconEmojiId), ct);
+    public async Task SetCollectionIcon(Guid id, Guid? iconEmojiId, CancellationToken ct)
+    {
+        using var response = await http.PatchAsJsonAsync($"notion/collections/{id}/icon", new SetNotebookIcon(iconEmojiId), ct);
+        if (!response.IsSuccessStatusCode) await Read<object>(response, ct);
+    }
     public Task<NotionPageSummary[]> CollectionPages(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?collectionId={collectionId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionHold[]> Holds(CancellationToken ct) => Get<NotionHold[]>("notion/holds", ct);
-    public Task<NotionPageSummary[]> Pages(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionPageSummary[]>($"notion/pages?holdId={holdId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
+    public Task<NotionPageSummary[]> Pages(Guid holdId, CancellationToken ct, bool publishedOnly = false, bool legacyOnly = false) =>
+        Get<NotionPageSummary[]>($"notion/pages?holdId={holdId}&publishedOnly={publishedOnly.ToString().ToLowerInvariant()}&legacyOnly={legacyOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGraph> Graph(Guid collectionId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/graph/{collectionId}?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionGraph> HoldGraph(Guid holdId, CancellationToken ct, bool publishedOnly = false) => Get<NotionGraph>($"notion/holds/{holdId}/graph?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
     public Task<NotionPageContext> Context(Guid id, CancellationToken ct, bool includeResources = true) => Get<NotionPageContext>($"notion/pages/{id}/context?includeResources={includeResources.ToString().ToLowerInvariant()}", ct);
@@ -19,7 +26,29 @@ public sealed class NotionClient(HttpClient http)
     public Task<NotionGroupView[]> Groups(Guid holdId, CancellationToken ct) => Get<NotionGroupView[]>($"notion/holds/{holdId}/groups", ct);
     public Task<NotionHoldMember[]> Members(Guid holdId, CancellationToken ct) => Get<NotionHoldMember[]>($"notion/holds/{holdId}/members", ct);
     public Task<NotionStudentProfile> Student(Guid holdId, Guid memberId, CancellationToken ct) => Get<NotionStudentProfile>($"notion/holds/{holdId}/members/{memberId}", ct);
-    public Task<NotionPageSummary> Create(Guid? holdId, string title, Guid? parentPageId, CancellationToken ct, Guid? collectionId = null) => Post<NotionPageSummary>("notion/pages", new { holdId, title, parentPageId, collectionId }, ct);
+    public Task<NotionPageSummary> Create(Guid? holdId, string title, Guid? parentPageId, CancellationToken ct, Guid? collectionId = null, bool atRoot = false) =>
+        Post<NotionPageSummary>("notion/pages", new CreateNotionPage(holdId, title, parentPageId, collectionId, atRoot), ct);
+    public Task<NotionCollectionView> Collection(Guid id, CancellationToken ct, bool publishedOnly = false) =>
+        Get<NotionCollectionView>($"notion/collections/{id}?publishedOnly={publishedOnly.ToString().ToLowerInvariant()}", ct);
+    public async Task MovePage(Guid id, MoveNotebookPage move, CancellationToken ct)
+    {
+        using var response = await http.PatchAsJsonAsync($"notion/pages/{id}/placement", move, ct);
+        await Ensure(response, ct);
+    }
+    public Task<NotebookPageDeletionPreview> DeletePreview(Guid id, CancellationToken ct) =>
+        Get<NotebookPageDeletionPreview>($"notion/pages/{id}/delete-preview", ct);
+    public async Task DeletePage(Guid id, int count, CancellationToken ct)
+    {
+        using var response = await http.DeleteAsync($"notion/pages/{id}?expectedDescendantCount={count}", ct);
+        await Ensure(response, ct);
+    }
+    public Task<TrashedNotebookPage[]> Trash(Guid id, bool isCollection, CancellationToken ct) =>
+        Get<TrashedNotebookPage[]>($"notion/{(isCollection ? "collections" : "holds")}/{id}/trash", ct);
+    public async Task RestorePage(Guid id, CancellationToken ct)
+    {
+        using var response = await http.PostAsJsonAsync($"notion/pages/{id}/restore", new { }, ct);
+        await Ensure(response, ct);
+    }
     public Task<NotionPageSummary> Publish(Guid id, long expectedRevision, string expectedFingerprint, Guid[] assetIds, CancellationToken ct,
         DrawingPublicationRequest[]? drawings = null) => Post<NotionPageSummary>($"notion/pages/{id}/publish", new { expectedRevision, expectedFingerprint, assetIds, drawings }, ct);
     public Task<NotionPageSummary> Unpublish(Guid id, CancellationToken ct) => Post<NotionPageSummary>($"notion/pages/{id}/unpublish", new {}, ct);
@@ -48,6 +77,13 @@ public sealed class NotionClient(HttpClient http)
     }
     private static async Task<T> Read<T>(HttpResponseMessage response, CancellationToken ct)
     {
+        await Ensure(response, ct);
+        var value = await response.Content.ReadFromJsonAsync<T>(ct) ?? throw new NotionException("Dokumenttjenesten gav et tomt svar.");
+        ct.ThrowIfCancellationRequested();
+        return value;
+    }
+    private static async Task Ensure(HttpResponseMessage response, CancellationToken ct)
+    {
         if (!response.IsSuccessStatusCode)
         {
             string? code = null;
@@ -62,6 +98,10 @@ public sealed class NotionClient(HttpClient http)
                 "group_changed" => "Gruppen er ændret af en anden. Opdatér listen, og prøv igen.",
                 "draft_changed" or "stale_draft" or "publication_conflict" => "Kladden er ændret. Vent på lagring, og prøv at udgive igen.",
                 "invalid_assets" => "En vedhæftning er ikke tilgængelig på denne side. Fjern den, eller upload den igen.",
+                "invalid_icon" => "Ikonet er ikke længere tilgængeligt. Vælg et andet.",
+                "invalid_parent" or "parent_cycle" or "invalid_page_position" => "Vælg en anden placering. En side kan ikke flyttes under sig selv eller en underside.",
+                "page_tree_changed" => "Undersiderne er ændret. Åbn slettehandlingen igen, og kontrollér, hvad der bliver slettet.",
+                "trash_expired" => "Fristen på 30 dage er udløbet.",
                 "drawing_changed" => "Tegningen er ændret. Vent på lagring, og prøv at udgive igen.",
                 "drawing_preview_required" => "Åbn tegningen, og vent på, at forhåndsvisningen er gemt, før du udgiver.",
                 "drawing_service_unavailable" => "Tegningerne kunne ikke gemmes lige nu. Prøv igen.",
@@ -77,9 +117,6 @@ public sealed class NotionClient(HttpClient http)
                 }
             }, code);
         }
-        var value = await response.Content.ReadFromJsonAsync<T>(ct) ?? throw new NotionException("Dokumenttjenesten gav et tomt svar.");
-        ct.ThrowIfCancellationRequested();
-        return value;
     }
     private sealed record ApiError(string? Error);
 }

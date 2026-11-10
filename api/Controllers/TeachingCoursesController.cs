@@ -97,13 +97,24 @@ public sealed class TeachingCoursesController(AppDbContext db, CourseAccess acce
         if (string.IsNullOrWhiteSpace(request.Title) || request.Title.Length > 200 || request.Title.Any(char.IsControl)
             || request.ParentPageId is Guid parent && !item.Resources.Any(r => r.Kind == "page" && r.ResourceId == parent))
             return BadRequest(new { error = "invalid_course_page" });
+        var parentScope = request.ParentPageId is Guid target
+            ? await db.NotionPages.Where(p => p.Id == target && p.HoldId == holdId)
+                .Select(p => new { p.CollectionId }).SingleOrDefaultAsync(ct)
+            : null;
+        if (request.ParentPageId is not null && parentScope is null) return BadRequest(new { error = "invalid_course_page" });
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await Mercantec.Tech.Api.Notebooks.NotebookPageTree.LockTeachingAsync(db, parentScope?.CollectionId, holdId, ct);
+        if (request.ParentPageId is Guid targetId && !await db.NotionPages.AnyAsync(p => p.Id == targetId, ct))
+            return BadRequest(new { error = "invalid_course_page" });
         var now = DateTimeOffset.UtcNow;
         var page = new NotionPage { Id = Guid.NewGuid(), HoldId = holdId, ParentPageId = request.ParentPageId,
-            Title = request.Title.Trim(), CreatedBySub = sub, CreatedAtUtc = now, UpdatedAtUtc = now };
+            CollectionId = parentScope?.CollectionId, Title = request.Title.Trim(), CreatedBySub = sub, CreatedAtUtc = now,
+            UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(User) };
         db.NotionPages.Add(page);
         item.Resources.Add(new() { Kind = "page", ResourceId = page.Id }); item.Version++;
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict(new { error = "teaching_course_changed" }); }
+        await transaction.CommitAsync(ct);
         return Ok(new TeachingCoursePageCreated(page.Id, View(item, await Resources(holdId, true, ct))));
     }
 

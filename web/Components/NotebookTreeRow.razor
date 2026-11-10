@@ -1,0 +1,52 @@
+<div class="nb-tree-row @(Dragging == Id ? "is-dragging" : null) @(Editable && Dragging is Guid active && active != Id ? "is-drop-target" : null)"
+     data-page-id="@Id" draggable="@(Editable && !Busy ? "true" : "false")"
+     @oncontextmenu:preventDefault="Editable" @oncontextmenu="Actions"
+     @ondragstart="() => OnDragStart.InvokeAsync(Id)" @ondragend="OnDragEnd">
+    @if (Editable && Dragging is Guid source && source != Id)
+    {
+        <div class="nb-tree-drop inside" data-tree-drop="inside" aria-hidden="true"
+             @ondragover:preventDefault @ondragenter="@(() => _over = "inside")" @ondragleave="ClearOver"
+             @ondrop:preventDefault @ondrop:stopPropagation @ondrop="@(() => Drop("inside"))"
+             data-over="@(_over == "inside" ? "true" : "false")"></div>
+        @if (Reorder)
+        {
+            <div class="nb-tree-drop before" data-tree-drop="before" aria-hidden="true"
+                 @ondragover:preventDefault @ondragenter="@(() => _over = "before")" @ondragleave="ClearOver"
+                 @ondrop:preventDefault @ondrop:stopPropagation @ondrop="@(() => Drop("before"))"
+                 data-over="@(_over == "before" ? "true" : "false")"></div>
+            <div class="nb-tree-drop after" data-tree-drop="after" aria-hidden="true"
+                 @ondragover:preventDefault @ondragenter="@(() => _over = "after")" @ondragleave="ClearOver"
+                 @ondrop:preventDefault @ondrop:stopPropagation @ondrop="@(() => Drop("after"))"
+                 data-over="@(_over == "after" ? "true" : "false")"></div>
+        }
+    }
+    <div class="nb-tree-content">@ChildContent</div>
+    @if (Editable)
+    {
+        <button class="nb-tree-more" type="button" disabled="@Busy" @onclick="Actions" aria-haspopup="dialog"
+                title="Sidehandlinger" aria-label="@($"Sidehandlinger: {Title}")"><UiIcon Name="more" /></button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid Id { get; set; }
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public bool Editable { get; set; }
+    [Parameter] public bool Reorder { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public Guid? Dragging { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<Guid> OnActions { get; set; }
+    [Parameter] public EventCallback<Guid> OnDragStart { get; set; }
+    [Parameter] public EventCallback OnDragEnd { get; set; }
+    [Parameter] public EventCallback<(Guid? Target, string Position)> OnDrop { get; set; }
+    private string? _over;
+    protected override void OnParametersSet() { if (Dragging is null) _over = null; }
+    private void ClearOver() => _over = null;
+    private Task Actions() => Editable && !Busy ? OnActions.InvokeAsync(Id) : Task.CompletedTask;
+    private Task Drop(string position)
+    {
+        ClearOver();
+        return OnDrop.InvokeAsync((Id, position));
+    }
+}

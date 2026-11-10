@@ -15,7 +15,7 @@ export interface DrawingFile { id: string; mimeType: string; sizeBytes: number; 
 export interface DrawingContext {
   id: string; domain: 'notion' | 'notebook'; documentId: string; blockId: string;
   canRead: boolean; canEditDrawing: boolean; canManageDrawing: boolean; mode: 'snapshot' | 'live';
-  revision: number; fingerprint: string | null; accessVersion: number;
+  revision: number; fingerprint: string | null; accessVersion: number; lifecycleVersion?: number;
   stateBase64: string | null; sceneJson: string | null; snapshotId: string | null;
   previewLightUrl: string | null; previewDarkUrl: string | null; files: DrawingFile[]; updatedAtUtc: string;
 }

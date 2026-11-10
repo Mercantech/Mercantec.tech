@@ -67,6 +67,30 @@ public sealed class NotebooksControllerTests : IAsyncLifetime
     private static T Value<T>(IActionResult action) => Assert.IsType<T>(Assert.IsType<OkObjectResult>(action).Value);
 
     [Fact]
+    public async Task Only_owner_can_reorder_trash_and_restore_shared_pages()
+    {
+        var editor = As(owner);
+        await editor.GrantShare(notebook.Id, new(reader, child.Id), default);
+        Assert.IsType<NotFoundResult>(await As(teacher, "Underviser").TrashPage(child.Id, default));
+        Assert.IsType<NotFoundResult>(await As(reader).Trash(notebook.Id, default));
+        Assert.IsType<NoContentResult>(await editor.Move(hidden.Id, new(parent.Id, AfterPageId: child.Id), default));
+        Assert.Equal(1, Value<NotionPageLink[]>(await editor.Tree(notebook.Id, default)).Single(p => p.Id == hidden.Id).SortOrder);
+        Assert.IsType<NoContentResult>(await editor.TrashPage(child.Id, default, 1));
+        Assert.IsType<NotFoundResult>(await As(reader).Context(child.Id, default));
+        Assert.IsType<NotFoundResult>(await As(teacher, "Underviser").Context(descendant.Id, default));
+        Assert.Empty(Value<NotebookPageSummary[]>(await As(reader).Shared(default)));
+        Assert.IsType<NoContentResult>(await editor.TrashPage(parent.Id, default, 1));
+        Assert.IsType<NoContentResult>(await editor.RestorePage(child.Id, default));
+        Assert.Null(Value<NotionPageLink[]>(await editor.Tree(notebook.Id, default)).Single(p => p.Id == child.Id).ParentPageId);
+        Assert.NotNull(Value<NotebookDocumentContext>(await As(reader).Context(child.Id, default)).StateBase64);
+        Assert.Equal(child.Id, Assert.Single(Value<NotebookPageSummary[]>(await As(reader).Shared(default))).Id);
+        await db.NotebookDocuments.IgnoreQueryFilters().Where(d => d.Id == parent.Id).ExecuteUpdateAsync(s =>
+            s.SetProperty(d => d.DeletedAtUtc, DateTimeOffset.UtcNow.AddDays(-30).AddMinutes(-1)));
+        Assert.IsType<NotFoundResult>(await editor.RestorePage(parent.Id, default));
+        Assert.Empty(Value<TrashedNotebookPage[]>(await editor.Trash(notebook.Id, default)));
+    }
+
+    [Fact]
     public async Task MineIsOnePermanentNotebookAndProfileComesFromAuthenticatedClaims()
     {
         var first = Value<NotebookInfo>(await As(owner).Mine(default));

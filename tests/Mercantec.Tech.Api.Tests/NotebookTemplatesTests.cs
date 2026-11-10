@@ -52,6 +52,28 @@ public sealed class NotebookTemplatesTests : IAsyncLifetime
     private static T Value<T>(IActionResult result) => Assert.IsType<T>(Assert.IsType<OkObjectResult>(result).Value);
 
     [Fact]
+    public async Task A_journal_in_trash_reserves_its_period_until_expiry_and_keeps_request_ids_consumed()
+    {
+        var request = new EnsureJournalEntry(NotebookDefaults.TemplateId, Guid.NewGuid(), new DateOnly(2026, 12, 31));
+        var entry = Value<NotebookPageSummary>(await As().EnsureEntry(request, default));
+        var notebooks = new NotebooksController(db, new(db)) { ControllerContext = As().ControllerContext };
+        Assert.IsType<NoContentResult>(await notebooks.TrashPage(entry.Id, default));
+        var nextRequest = request with { RequestId = Guid.NewGuid() };
+        Assert.IsType<ConflictObjectResult>(await As().EnsureEntry(nextRequest, default));
+        Assert.IsType<ConflictObjectResult>(await As().EnsureEntry(request, default));
+        Assert.IsType<NoContentResult>(await notebooks.RestorePage(entry.Id, default));
+        Assert.Equal(entry.Id, Value<NotebookPageSummary>(await As().EnsureEntry(nextRequest, default)).Id);
+        Assert.IsType<NoContentResult>(await notebooks.TrashPage(entry.Id, default));
+        await db.NotebookDocuments.IgnoreQueryFilters().Where(d => d.Id == entry.Id).ExecuteUpdateAsync(s =>
+            s.SetProperty(d => d.DeletedAtUtc, DateTimeOffset.UtcNow.AddDays(-31)));
+        Assert.IsType<ConflictObjectResult>(await As().EnsureEntry(request, default));
+        var replacement = Value<NotebookPageSummary>(await As().EnsureEntry(nextRequest, default));
+        Assert.NotEqual(entry.Id, replacement.Id);
+        Assert.Equal(entry.PeriodStart, replacement.PeriodStart);
+        Assert.IsType<NotFoundResult>(await notebooks.RestorePage(entry.Id, default));
+    }
+
+    [Fact]
     public async Task AllPupilsSeeActiveVersionsAndNeverUnpublishedTemplateMetadata()
     {
         var defaults = Value<NotebookTemplateView[]>(await As().List(default));

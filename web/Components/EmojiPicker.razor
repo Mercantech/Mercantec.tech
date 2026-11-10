@@ -5,7 +5,7 @@
 @implements IAsyncDisposable
 
 <div class="emoji-picker">
-    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-label="@TriggerLabel" title="@TriggerLabel" aria-expanded="@(_open ? "true" : "false")" aria-haspopup="dialog" aria-controls="@(_open ? _panelId : null)">Emoji</button>
+    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-label="@TriggerLabel" title="@TriggerLabel" aria-expanded="@(_open ? "true" : "false")" aria-haspopup="dialog" aria-controls="@(_open ? _panelId : null)">@TriggerText</button>
     @if (_open)
     {
         var visible = EmojiPickerCatalog.Filter(_items ?? [], _query, _category);
@@ -120,6 +120,7 @@
 @code {
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string TriggerLabel { get; set; } = "Emoji";
+    [Parameter] public string TriggerText { get; set; } = "Emoji";
     [Parameter] public EventCallback<CustomEmojiItem> OnPick { get; set; }
     private readonly string _panelId = "emoji-picker-" + Guid.NewGuid().ToString("N");
     private bool _open, _focusSearch, _disposed, _moduleDisposed;

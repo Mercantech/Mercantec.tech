@@ -100,7 +100,7 @@ public sealed partial class DrawingService
             snapshot is null && drawing.YjsState is not null ? Convert.ToBase64String(drawing.YjsState) : null,
             snapshot?.SceneJson ?? drawing.SceneJson, snapshot?.Id,
             light is Guid l ? MediaUrl(id, l, user) : null, dark is Guid d ? MediaUrl(id, d, user) : null,
-            files.Select(a => FileView(a, user)).ToArray(), drawing.UpdatedAtUtc);
+            files.Select(a => FileView(a, user)).ToArray(), drawing.UpdatedAtUtc, await ParentLifecycleVersionAsync(drawing, ct));
     }
 
     public async Task<DrawingStored> StoreAsync(Guid id, StoreDrawingDocument input, CancellationToken ct)
@@ -112,13 +112,16 @@ public sealed partial class DrawingService
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         await LockParentAsync(drawing.Domain, drawing.DocumentId, ct);
         drawing = await FindAsync(id, ct) ?? throw DrawingValidation.Denied();
+        if (await ParentLifecycleVersionAsync(drawing, ct) != input.LifecycleVersion)
+            throw new DrawingException(409, "stale_document_session", "Åbn tegningen igen for at fortsætte.");
         var changed = drawing.Fingerprint != input.Fingerprint; var now = DateTimeOffset.UtcNow;
         var revision = drawing.Revision + (changed ? 1 : 0);
         await _db.Drawings.Where(d => d.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(d => d.YjsState, bytes).SetProperty(d => d.SceneJson, input.SceneJson)
             .SetProperty(d => d.Fingerprint, input.Fingerprint).SetProperty(d => d.AssetIdsJson, JsonSerializer.Serialize(input.AssetIds))
             .SetProperty(d => d.Revision, revision).SetProperty(d => d.UpdatedAtUtc, now), ct);
-        if (changed) await TouchParentAsync(drawing.Domain, drawing.DocumentId, now, ct);
+        if (changed && !input.PreserveEditMetadata)
+            await TouchParentAsync(drawing.Domain, drawing.DocumentId, now, UserClaims.CleanEditorName(input.EditorName), ct);
         await transaction.CommitAsync(ct);
         return new(now, revision, input.Fingerprint, drawing.AccessVersion);
     }
@@ -130,9 +133,21 @@ public sealed partial class DrawingService
             : await _db.NotebookDocuments.Where(p => p.Id == documentId).ExecuteUpdateAsync(s => s.SetProperty(p => p.UpdatedAtUtc, p => p.UpdatedAtUtc), ct);
         if (count != 1) throw DrawingValidation.Denied();
     }
-    private Task<int> TouchParentAsync(string domain, Guid id, DateTimeOffset now, CancellationToken ct) => domain == "notion"
-        ? _db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.DraftRevision, p => p.DraftRevision + 1).SetProperty(p => p.UpdatedAtUtc, now), ct)
-        : _db.NotebookDocuments.Where(p => p.Id == id).ExecuteUpdateAsync(s => s.SetProperty(p => p.Revision, p => p.Revision + 1).SetProperty(p => p.UpdatedAtUtc, now), ct);
+    public async Task<long> ParentLifecycleVersionAsync(Drawing drawing, CancellationToken ct)
+    {
+        var id = drawing.DocumentId;
+        var version = drawing.Domain == "notion"
+            ? await _db.NotionPages.Where(p => p.Id == id).Select(p => (long?)p.LifecycleVersion).SingleOrDefaultAsync(ct)
+            : await _db.NotebookDocuments.Where(p => p.Id == id).Select(p => (long?)p.LifecycleVersion).SingleOrDefaultAsync(ct);
+        return version ?? throw DrawingValidation.Denied();
+    }
+    private Task<int> TouchParentAsync(string domain, Guid id, DateTimeOffset now, string? editorName, CancellationToken ct) => domain == "notion"
+        ? _db.NotionPages.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
+            .SetProperty(p => p.DraftRevision, p => p.DraftRevision + 1)
+            .SetProperty(p => p.UpdatedAtUtc, now).SetProperty(p => p.LastEditedByName, editorName), ct)
+        : _db.NotebookDocuments.Where(p => p.Id == id).ExecuteUpdateAsync(s => s
+            .SetProperty(p => p.Revision, p => p.Revision + 1)
+            .SetProperty(p => p.UpdatedAtUtc, now).SetProperty(p => p.LastEditedByName, editorName), ct);
     public Task CheckpointAsync(IEnumerable<Guid> ids, CancellationToken ct) => _engine.CheckpointAsync(ids, ct);
 
     public async Task<DrawingPublicationBinding[]> PreparePublicationAsync(string domain, Guid documentId,

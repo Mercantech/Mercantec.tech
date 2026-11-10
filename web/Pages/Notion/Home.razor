@@ -1,4 +1,6 @@
 @page "/notion"
+@using System.Globalization
+@using Mercantec.Tech.Web.Emojis
 @using Mercantec.Tech.Web.Notion
 @using Mercantec.Tech.Web.Notebooks
 @inject NotionClient Client
@@ -7,10 +9,11 @@
 @inject AuthRedirect Redirect
 @inject ViewAsStudentContext ViewAs
 @inject NavigationManager Nav
+@inject EmojiClient Emojis
 @implements IDisposable
 
 <PageTitle>Notesbøger · LUP</PageTitle>
-<header class="page-title"><div><h1>Notesbøger</h1><p>Teori, holdets samlinger og dine egne noter ét sted.</p></div><div class="books-actions"><a class="secondary" href="/notion/connections">Udforsk forbindelser</a>@if (Teacher) { <button class="action" @onclick="() => _creating = !_creating">Ny notesbog</button> }</div></header>
+<header class="page-title"><div><h1>Notesbøger</h1><p>Teori, forløb og dine egne noter ét sted.</p></div><div class="books-actions"><a class="secondary" href="/notion/connections">Udforsk forbindelser</a>@if (Teacher) { <button class="action" @onclick="() => _creating = !_creating">Ny notesbog</button> }</div></header>
 @if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
 else if (!Auth.IsAuthenticated) { <section class="panel"><h2>Åbn dine notesbøger</h2><p>Log ind for at finde teori, holdets indhold og dine noter.</p><a class="action" href="@Auth.LoginPath()">Log ind</a></section> }
 else
@@ -19,10 +22,42 @@ else
     <nav class="books-tabs" aria-label="Notesbogstyper">
         @foreach (var tab in Tabs) { <button class="secondary @(tab.Key == _type ? "is-selected" : "")" aria-pressed="@(tab.Key == _type)" @onclick="() => SelectType(tab.Key)">@tab.Label</button> }
     </nav>
-    <div class="books-filters"><label class="field">Find notesbog<input type="search" @bind="_search" @bind:event="oninput" placeholder="Titel, hold eller ejer" /></label><label class="field">Hold<select @bind="_hold"><option value="">Alle hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label></div>
+    <div class="books-filters">
+        <label class="field">Find notesbog<input type="search" @bind="_search" @bind:event="oninput" placeholder="Titel, hold eller ejer" /></label>
+        <label class="field">Hold<select @bind="_hold"><option value="">Alle hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label>
+        <label class="field">Sortér efter
+            <select @bind="_sort">
+                <option value="recent">Senest redigeret</option>
+                <option value="asc">Titel A–Å</option>
+                <option value="desc">Titel Å–A</option>
+            </select>
+        </label>
+    </div>
     @if (_creating && Teacher)
     {
-        <form class="panel books-create" @onsubmit="Create" @onsubmit:preventDefault><h2>Ny notesbog</h2><label class="field">Titel<input @bind="_title" @bind:event="oninput" maxlength="200" required /></label><label class="field">Tilhørsforhold<select aria-label="Tilhørsforhold" @bind="_newHold"><option value="">Teori · uafhængig af hold</option>@foreach (var hold in _holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }</select></label><p>@(_newHold.Length == 0 ? "Alle undervisere kan redigere. Alle i LUP kan læse de sider, du udgiver." : "Holdets eksisterende adgang og udgivelse gælder.")</p><div class="books-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Opret</button><button type="button" class="secondary" @onclick="() => _creating = false">Annullér</button></div></form>
+        <form class="panel books-create" @onsubmit="Create" @onsubmit:preventDefault>
+            <h2>Ny notesbog</h2>
+            <label class="field">Titel<input @bind="_title" @bind:event="oninput" maxlength="200" required /></label>
+            <label class="field">Tilhørsforhold
+                <select aria-label="Tilhørsforhold" @bind="_newHold">
+                    <option value="">Teori · uafhængig af hold</option>
+                    @foreach (var hold in _holds.Where(h => h.CanManage)) { <option value="@hold.Id">@hold.Name</option> }
+                </select>
+            </label>
+            <p>@(_newHold.Length == 0 ? "Alle undervisere kan redigere. Alle i LUP kan læse de sider, du udgiver." : "Holdets eksisterende adgang og udgivelse gælder.")</p>
+            <div class="books-actions">
+                @if (_newIcon is not null)
+                {
+                    <span class="books-icon"><img src="@_newIcon.ContentUrl" alt="@_newIcon.Name" /></span>
+                    <button type="button" class="secondary" @onclick="() => _newIcon = null">Brug standardikon</button>
+                }
+                <EmojiPicker Disabled="_busy" TriggerLabel="Vælg ikon til den nye notesbog" TriggerText="Vælg ikon" OnPick="emoji => _newIcon = emoji" />
+            </div>
+            <div class="books-actions">
+                <button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Opret</button>
+                <button type="button" class="secondary" @onclick="() => _creating = false">Annullér</button>
+            </div>
+        </form>
     }
     @if (_loading) { <p role="status">Henter notesbøger…</p> }
     else if (!Visible.Any()) { <section class="panel"><h2>Ingen notesbøger matcher</h2><p>Prøv en anden søgning eller et andet filter.</p>@if (_type == "students") { <a class="secondary" href="/teacher/notebooks">Åbn elevoversigten</a> }</section> }
@@ -30,25 +65,91 @@ else
     {
         <div class="books-grid">@foreach (var book in Visible)
         {
-            <article class="panel books-card"><div class="books-kind"><UiIcon Name="book" /><span>@book.Label</span></div><h2><a href="@book.Href"><EmojiText Text="@book.Title" /></a></h2><p>@book.Context</p>@if (book.Updated is DateTimeOffset updated) { <small>Opdateret @updated.ToLocalTime().ToString("d. MMM yyyy HH:mm")</small> }@if (book.Pages is { Length: > 0 }) { <details><summary>@book.Pages.Length tilgængelige sider</summary><nav aria-label="Delte sider">@foreach (var page in book.Pages) { <a href="/notebook/@(page.Id)">@(page.Title)</a> }</nav></details> }<a class="books-open" href="@book.Href">Åbn notesbog <span aria-hidden="true">→</span></a></article>
+            <article @key="book.Href" class="panel books-card" data-kind="@book.Kind">
+                <div class="books-card-top">
+                    <span class="books-icon" aria-hidden="true">
+                        @if (book.IconId is Guid id && _icons.TryGetValue(id, out var icon) && !_missingIcons.Contains(id))
+                        {
+                            <img src="@icon.ContentUrl" alt="" loading="lazy" decoding="async" @onerror="() => _missingIcons.Add(id)" />
+                        }
+                        else { <UiIcon Name="@book.DefaultIcon" /> }
+                    </span>
+                    <span class="books-kind">@book.Label</span>
+                </div>
+                <h2 class="books-title"><a href="@book.Href"><EmojiText Text="@book.Title" /></a></h2>
+                @if (!string.IsNullOrWhiteSpace(book.Context)) { <p class="books-context" title="@book.Context">@book.Context</p> }
+                <div class="books-updated">
+                    @if (book.Updated is DateTimeOffset updated)
+                    {
+                        <small>Senest redigeret <time datetime="@updated.ToString("O")">@updated.ToLocalTime().ToString("d. MMM yyyy 'kl.' HH:mm", Danish)</time></small>
+                        <small title="@book.EditorName">@(book.EditorName is null ? "Redaktør ukendt" : "Redigeret af " + book.EditorName)</small>
+                    }
+                    else { <small>Ingen redigeringer endnu</small> }
+                </div>
+                @if (book.Pages is { Length: > 0 })
+                {
+                    <details class="books-shared">
+                        <summary>@book.Pages.Length tilgængelige sider</summary>
+                        <nav aria-label="Delte sider">
+                            @foreach (var sharedPage in book.Pages) { <a href="/notebook/@(sharedPage.Id)"><EmojiText Text="@sharedPage.Title" /></a> }
+                        </nav>
+                    </details>
+                }
+                <div class="books-card-actions">
+                    <a class="books-open" href="@book.Href">Åbn notesbog <span aria-hidden="true">→</span></a>
+                    @if (book.CanChangeIcon)
+                    {
+                        <EmojiPicker Disabled="@_savingIcon.HasValue" TriggerLabel="@("Skift ikon for " + book.Title)" TriggerText="Skift ikon"
+                            OnPick="emoji => SetIcon(book, emoji)" />
+                        @if (book.IconId.HasValue)
+                        {
+                            <button type="button" class="secondary books-icon-reset" disabled="@_savingIcon.HasValue"
+                                aria-label="@("Brug standardikon for " + book.Title)" title="Brug standardikon" @onclick="() => SetIcon(book, null)"><UiIcon Name="loop" /></button>
+                        }
+                    }
+                </div>
+                @if (_iconError is { } error && error.BookId == book.Id)
+                {
+                    <small class="books-icon-error" role="alert">@error.Message</small>
+                }
+            </article>
         }</div>
     }
 }
 
 @code {
     [SupplyParameterFromQuery(Name = "hold")] public Guid? HoldQuery { get; set; }
+    private static readonly CultureInfo Danish = CultureInfo.GetCultureInfo("da-DK");
+    private static readonly StringComparer Titles = StringComparer.Create(Danish, ignoreCase: true);
     private bool Teacher => Redirect.ShowsTeacherChrome && !ViewAs.IsActive;
-    private IEnumerable<(string Key, string Label)> Tabs => new[] { ("", "Alle"), ("theory", "Teori"), ("hold", "Holdsamlinger"), ("personal", "Mine og delte") }.Concat(Teacher ? new[] { ("students", "Elevnotesbøger") } : []);
+    private IEnumerable<(string Key, string Label)> Tabs => new[] { ("", "Alle"), ("theory", "Teori"), ("hold", "Forløb"), ("personal", "Mine og delte") }.Concat(Teacher ? new[] { ("students", "Elevnotesbøger") } : []);
     private NotionHold[] _holds = [];
     private Book[] _books = [], _students = [];
-    private string _type = "", _search = "", _hold = "", _title = "", _newHold = "";
+    private readonly Dictionary<Guid, CustomEmojiItem> _icons = new();
+    private readonly HashSet<Guid> _missingIcons = [];
+    private CustomEmojiItem? _newIcon;
+    private Guid? _savingIcon;
+    private (Guid BookId, string Message)? _iconError;
+    private string _type = "", _search = "", _hold = "", _title = "", _newHold = "", _sort = "recent";
     private string? _error;
     private bool _loading = true, _busy, _creating, _disposed, _studentsLoaded;
     private CancellationTokenSource _request = new();
-    private IEnumerable<Book> Visible => (_type == "students" ? _students : _books).Where(b =>
-        (_type.Length == 0 || _type == "students" || b.Type == _type) && (_hold.Length == 0 || b.Holds.Contains(_hold)) &&
-        (_search.Length == 0 || (b.Title + " " + b.Context).Contains(_search, StringComparison.CurrentCultureIgnoreCase)))
-        .OrderByDescending(b => b.Updated).ThenBy(b => b.Title);
+    private IEnumerable<Book> Visible
+    {
+        get
+        {
+            var books = (_type == "students" ? _students : _books).Where(b =>
+                (_type.Length == 0 || _type == "students" || b.Kind == _type || _type == "personal" && b.Kind == "shared") &&
+                (_hold.Length == 0 || b.Holds.Contains(_hold)) &&
+                (_search.Length == 0 || (b.Title + " " + b.Context).Contains(_search, StringComparison.CurrentCultureIgnoreCase)));
+            return (_sort switch
+            {
+                "asc" => books.OrderBy(b => b.Title, Titles),
+                "desc" => books.OrderByDescending(b => b.Title, Titles),
+                _ => books.OrderByDescending(b => b.Updated).ThenBy(b => b.Title, Titles)
+            }).ThenBy(b => b.Href, StringComparer.Ordinal);
+        }
+    }
     protected override void OnInitialized() { Auth.AuthStateChanged += Changed; ViewAs.Changed += Changed; }
     protected override async Task OnParametersSetAsync() { _hold = HoldQuery?.ToString() ?? ""; await Load(); }
     private void Changed() => _ = InvokeAsync(async () => { await Load(); StateHasChanged(); });
@@ -56,6 +157,8 @@ else
     {
         _request.Cancel(); _request.Dispose(); _request = new(); var ct = _request.Token;
         _books = []; _students = []; _holds = []; _studentsLoaded = false; _error = null; _loading = Auth.IsAuthenticated;
+        _icons.Clear(); _missingIcons.Clear(); _iconError = null; _savingIcon = null;
+        if (!Teacher) { _creating = false; _newIcon = null; }
         if (!Auth.IsAuthenticated || _disposed) return;
         try
         {
@@ -63,18 +166,28 @@ else
             await Task.WhenAll(collectionsTask, holdsTask);
             if (ct.IsCancellationRequested) return;
             _holds = await holdsTask;
-            _books = (await collectionsTask).Select(c => new Book(c.HoldId is null ? "theory" : "hold", c.Title,
-                c.HoldId is null ? "Teorinotesbog" : "Holdsamling", c.HoldName ?? "Fælles teori · alle i LUP", "/notion/" + c.RootPageId,
-                c.HoldId is Guid id ? [id.ToString()] : [], c.UpdatedAtUtc)).ToArray();
+            _books = (await collectionsTask).Select(c => new Book(c.Id, c.HoldId is null ? "theory" : "hold", c.Title,
+                c.HoldName ?? "Fælles for alle i LUP", "/notion/collections/" + c.Id,
+                c.HoldId is Guid id ? [id.ToString()] : [], c.RootPageId is null ? null : c.UpdatedAtUtc,
+                c.LastEditedByName, c.IconEmojiId, c.CanManage && Teacher)).ToArray();
             if (!ViewAs.IsActive)
             {
                 var mineTask = Notebooks.Mine(ct); var sharedTask = Notebooks.Shared(ct); await Task.WhenAll(mineTask, sharedTask);
                 var mine = await mineTask; var pages = await Notebooks.Pages(mine.Id, "", "", "", 0, ct);
                 if (ct.IsCancellationRequested) return;
-                _books = [.. _books, new("personal", "Min notesbog", "Personlig", mine.OwnerName, "/notebook", [], pages.Items.FirstOrDefault()?.UpdatedAtUtc),
-                    .. (await sharedTask).GroupBy(p => p.NotebookId).Select(g => new Book("personal", g.First().Title, "Delt med mig", "Kun sider, du har læseadgang til", "/notebook/" + g.First().Id,
-                        g.Where(p => p.HoldId != null).Select(p => p.HoldId!.Value.ToString()).Distinct().ToArray(), g.Max(p => p.UpdatedAtUtc), g.ToArray()))];
+                var latest = pages.Items.FirstOrDefault();
+                _books = [.. _books, new(mine.Id, "personal", "Min notesbog", mine.OwnerName, "/notebook", [], latest?.UpdatedAtUtc,
+                    latest?.LastEditedByName, mine.IconEmojiId, mine.CanEdit),
+                    .. (await sharedTask).GroupBy(p => p.NotebookId).Select(g =>
+                    {
+                        var page = g.OrderByDescending(p => p.UpdatedAtUtc).ThenBy(p => p.Id).First();
+                        return new Book(g.Key, "shared", page.Title, page.NotebookOwnerName ?? "Sider du har læseadgang til",
+                            "/notebook/" + page.Id, g.Where(p => p.HoldId.HasValue)
+                                .Select(p => p.HoldId!.Value.ToString()).Distinct().ToArray(), page.UpdatedAtUtc,
+                            page.LastEditedByName, page.NotebookIconEmojiId, false, g.ToArray());
+                    })];
             }
+            await LoadIcons(_books, ct);
         }
         catch (Exception ex) when (ex is NotionException or NotebookException or HttpRequestException or OperationCanceledException)
         { if (!ct.IsCancellationRequested) _error = "Nogle notesbøger kunne ikke hentes. Prøv igen."; }
@@ -86,17 +199,74 @@ else
         if (type != "students" || _studentsLoaded || !Teacher) return;
         var ct = _request.Token; var account = Auth.Subject;
         _loading = true;
-        try { var result = await Notebooks.Teacher("", null, ct); if (ct.IsCancellationRequested || account != Auth.Subject || !Teacher || _disposed) return; _students = result.Select(n => new Book("students", n.OwnerName + "s notesbog", "Elevnotesbog", string.Join(" · ", n.Holds), "/notebook?owner=" + n.Id, _holds.Where(h => n.Holds.Contains(h.Name)).Select(h => h.Id.ToString()).ToArray(), n.UpdatedAtUtc)).ToArray(); _studentsLoaded = true; }
+        try
+        {
+            var result = await Notebooks.Teacher("", null, ct);
+            if (ct.IsCancellationRequested || account != Auth.Subject || !Teacher || _disposed) return;
+            _students = result.Select(n => new Book(n.Id, "students", n.OwnerName + "s notesbog",
+                string.Join(" · ", n.Holds), "/notebook?owner=" + n.Id,
+                _holds.Where(h => n.Holds.Contains(h.Name)).Select(h => h.Id.ToString()).ToArray(),
+                n.HasPages ? n.UpdatedAtUtc : null, n.LastEditedByName, n.IconEmojiId, false)).ToArray();
+            _studentsLoaded = true;
+            await LoadIcons(_students, ct);
+        }
         catch (Exception ex) when (ex is NotebookException or HttpRequestException or OperationCanceledException) { if (!ct.IsCancellationRequested) _error = "Elevnotesbøgerne kunne ikke hentes."; }
         finally { if (!ct.IsCancellationRequested) _loading = false; }
     }
     private async Task Create()
     {
         if (_busy || !Teacher) return; _busy = true; _error = null;
-        try { var book = await Client.CreateCollection(_title.Trim(), Guid.TryParse(_newHold, out var hold) ? hold : null, _request.Token); Nav.NavigateTo("/notion/" + book.RootPageId); }
+        try
+        {
+            var book = await Client.CreateCollection(_title.Trim(), Guid.TryParse(_newHold, out var hold) ? hold : null,
+                _request.Token, _newIcon?.Id);
+            Nav.NavigateTo("/notion/collections/" + book.Id);
+        }
         catch (Exception ex) when (ex is NotionException or HttpRequestException or OperationCanceledException) { if (!_request.IsCancellationRequested) _error = ex.Message; }
         finally { _busy = false; }
     }
+    private async Task LoadIcons(Book[] books, CancellationToken ct)
+    {
+        if (!books.Any(b => b.IconId.HasValue && !_icons.ContainsKey(b.IconId.Value))) return;
+        try
+        {
+            var items = await Emojis.List(ct: ct);
+            if (!ct.IsCancellationRequested)
+                foreach (var item in items) _icons[item.Id] = item;
+        }
+        catch (EmojiException) { /* The type icon is always available. */ }
+    }
+    private async Task SetIcon(Book book, CustomEmojiItem? icon)
+    {
+        if (!book.CanChangeIcon || _savingIcon.HasValue || book.IconId == icon?.Id) return;
+        var ct = _request.Token;
+        _savingIcon = book.Id;
+        _iconError = null;
+        try
+        {
+            if (book.Kind == "personal") await Notebooks.SetIcon(book.Id, icon?.Id, ct);
+            else await Client.SetCollectionIcon(book.Id, icon?.Id, ct);
+            if (ct.IsCancellationRequested) return;
+            if (icon is not null) { _icons[icon.Id] = icon; _missingIcons.Remove(icon.Id); }
+            _books = _books.Select(b => b.Href == book.Href ? b with { IconId = icon?.Id } : b).ToArray();
+        }
+        catch (Exception ex) when (ex is NotionException or NotebookException or HttpRequestException or OperationCanceledException)
+        {
+            if (!ct.IsCancellationRequested) _iconError = (book.Id, ex.Message);
+        }
+        finally { if (!ct.IsCancellationRequested) _savingIcon = null; }
+    }
     public void Dispose() { _disposed = true; Auth.AuthStateChanged -= Changed; ViewAs.Changed -= Changed; _request.Cancel(); _request.Dispose(); }
-    private sealed record Book(string Type, string Title, string Label, string Context, string Href, string[] Holds, DateTimeOffset? Updated, NotebookPageSummary[]? Pages = null);
+    private sealed record Book(Guid Id, string Kind, string Title, string Context, string Href, string[] Holds,
+        DateTimeOffset? Updated, string? EditorName, Guid? IconId, bool CanChangeIcon, NotebookPageSummary[]? Pages = null)
+    {
+        public string Label => Kind switch
+        {
+            "theory" => "Teorinotesbog", "hold" => "Forløb", "personal" => "Personlig", "shared" => "Delt med mig", _ => "Elevnotesbog"
+        };
+        public string DefaultIcon => Kind switch
+        {
+            "hold" => "folder", "personal" => "file", "shared" => "external", "students" => "people", _ => "book"
+        };
+    }
 }

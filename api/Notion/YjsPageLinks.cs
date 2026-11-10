@@ -74,10 +74,12 @@ public static partial class YjsPageLinks
 
             var pathEnd = href.IndexOfAny(['?', '#'], pathStart);
             var path = href.AsSpan(pathStart, (pathEnd < 0 ? href.Length : pathEnd) - pathStart);
-            var kind = path.StartsWith("/notion/", StringComparison.Ordinal) ? "notion-page"
-                : path.StartsWith("/notebook/", StringComparison.Ordinal) ? "notebook-page" : null;
+            var (kind, prefix) = path.StartsWith("/notion/collections/", StringComparison.Ordinal)
+                ? ("collection", "/notion/collections/")
+                : path.StartsWith("/notion/", StringComparison.Ordinal) ? ("notion-page", "/notion/")
+                : path.StartsWith("/notebook/", StringComparison.Ordinal) ? ("notebook-page", "/notebook/") : (null, "");
             if (kind is null) return null;
-            var id = path[(kind == "notion-page" ? "/notion/".Length : "/notebook/".Length)..];
+            var id = path[prefix.Length..];
             return id.Length == 36 && Guid.TryParseExact(id, "D", out var guid) && guid != Guid.Empty
                 ? new(kind, guid.ToString("D")) : null;
         }

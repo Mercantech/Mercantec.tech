@@ -1432,6 +1432,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("IconEmojiId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("OwnerSub")
                         .HasColumnType("uuid");
 
@@ -1530,6 +1533,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DrawingIdsJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1545,6 +1551,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
+
+                    b.Property<string>("LastEditedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<long>("LifecycleVersion")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("NotebookId")
                         .HasColumnType("uuid");
@@ -1569,6 +1582,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TagsJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1584,6 +1600,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid?>("TrashRootId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -1595,6 +1614,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.HasIndex("HoldId");
 
                     b.HasIndex("ParentPageId");
+
+                    b.HasIndex("TrashRootId");
 
                     b.HasIndex("NotebookId", "ParentPageId");
 
@@ -1896,6 +1917,17 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<Guid?>("HoldId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("IconEmojiId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublishedTitle")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("HoldId");
@@ -2013,6 +2045,9 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<Guid>("CreatedBySub")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DraftFingerprint")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -2026,6 +2061,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
 
                     b.Property<Guid?>("HoldId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("LastEditedByName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<long>("LifecycleVersion")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("ParentPageId")
                         .HasColumnType("uuid");
@@ -2047,6 +2089,13 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset?>("PublishedEditedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PublishedEditorName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<long?>("PublishedRevision")
                         .HasColumnType("bigint");
 
@@ -2060,10 +2109,16 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.Property<int>("SchemaVersion")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("SortOrder")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("TrashRootId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -2074,6 +2129,8 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ParentPageId");
+
+                    b.HasIndex("TrashRootId");
 
                     b.HasIndex("CollectionId", "ParentPageId");
 

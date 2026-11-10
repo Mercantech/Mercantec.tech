@@ -45,10 +45,10 @@ public partial class Index
     private NotebookUser[] _users = [];
     private NotionHold[] _holds = [];
     private NotebookGraph? _graph;
-    private Guid? _notebookId, _parent, _newParent;
+    private Guid? _notebookId, _newParent;
     private Guid _entryRequest = Guid.NewGuid();
     private string? _account, _route, _error, _notice;
-    private string _title = "", _tags = "", _hold = "", _parentValue = "", _cadence = "daily";
+    private string _title = "", _tags = "", _cadence = "daily";
     private string _search = "", _kind = "", _tag = "", _newTitle = "", _newCadence = "daily", _comment = "", _userSearch = "", _shareScope = "page";
     private DateOnly _period;
     private string _entryHold = "";
@@ -66,7 +66,7 @@ public partial class Index
     private string Heading => TemplateMode ? "Logbogsskabeloner" : Own ? "Min notesbog" : _ownerName.Length > 0 ? $"{_ownerName}s notesbog" : "Notesbog";
     private string StatusLabel => _status switch { "saved" => "Gemt i skyen", "saving" => "Gemmer…", "synced" => "Forbundet", "offline" => "Forbindelsen er afbrudt", "error" => "Kunne ikke gemme", _ => "Forbinder…" };
     private bool MetadataDirty => Editing && _current is not null && (_title.Trim() != _current.Title ||
-        (!TemplateMode && (!ParsedTags().SequenceEqual(_current.Tags.Order(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase) || _parentValue != (_parent?.ToString() ?? "") || _hold != (_current.HoldId?.ToString() ?? ""))) ||
+        (!TemplateMode && !ParsedTags().SequenceEqual(_current.Tags.Order(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase)) ||
         TemplateMode && CurrentTemplate is { } t && _cadence != t.Cadence);
 
     protected override void OnInitialized()
@@ -114,7 +114,7 @@ public partial class Index
     {
         domain = "notebook", documentName = "notebook:" + _current!.DocumentId,
         pageId = _current.DocumentId, collectionId = _current.NotebookId, holdId = _current.HoldId?.ToString() ?? "", title = _current.Title,
-        canEdit = Editing, members = Array.Empty<object>(), polls = Array.Empty<object>(), groups = Array.Empty<object>(),
+        canEdit = Editing, lifecycleVersion = _current.LifecycleVersion, members = Array.Empty<object>(), polls = Array.Empty<object>(), groups = Array.Empty<object>(),
         pages = _current.Pages, publishedStateBase64 = _current.StateBase64, stateBase64 = _current.StateBase64,
         revision = _current.Revision, updatedAtUtc = _current.UpdatedAtUtc, userName = Auth.DisplayName ?? "Bruger", userSub = Auth.Subject
     };
@@ -142,6 +142,7 @@ public partial class Index
         var ct = _requests.Token;
         var generation = ++_generation;
         _route = RouteKey; var route = _route; _loading = true; _error = null; _notice = null; _current = null;
+        _treePages = []; _draggingPage = null;
         _loadedNotebookAccess = null; _readNotifications.Clear();
         _showComments = _showShares = _showGraph = false; _comments = []; _shares = []; _backlinks = []; _graph = null;
         try
@@ -246,9 +247,8 @@ public partial class Index
     {
         _current = context;
         _comment = _commentDrafts.GetValueOrDefault(context.DocumentId, "");
+        if (Own) _treePages = context.Pages;
         _title = context.Title; _tags = string.Join(", ", context.Tags);
-        _parent = context.Pages.FirstOrDefault(p => p.Id == context.DocumentId)?.ParentPageId;
-        _parentValue = _parent?.ToString() ?? ""; _hold = context.HoldId?.ToString() ?? "";
         _cadence = CurrentTemplate?.Cadence ?? "daily";
         _status = "connecting"; _statusDetail = ""; _needsMount = true; _creating = false;
     }
@@ -266,12 +266,14 @@ public partial class Index
         var result = await Client.Pages(notebook, _search, _tag, _kind, more ? _pages.Length : 0, ct);
         _pages = more ? _pages.Concat(result.Items).DistinctBy(p => p.Id).ToArray() : result.Items;
         _total = result.Total;
+        if (Own && _current is null && _pages.Length > 0) _treePages = await Client.Tree(notebook, ct);
     });
     private Task ShowGraph() { _showGraph = true; return Task.CompletedTask; }
-    private void BeginCreate(bool child)
+    private void BeginCreate(bool child) => BeginCreateAt(child ? _current?.DocumentId : null);
+    private void BeginCreateAt(Guid? parent)
     {
         if (!Own && !TemplateMode) return;
-        _newTitle = ""; _newParent = child ? _current?.DocumentId : null; _creating = true;
+        _newTitle = ""; _newParent = parent; _creating = true;
     }
     private async Task Create()
     {
@@ -302,23 +304,36 @@ public partial class Index
         }
         else
         {
-            var summary = await Client.Update(_current.DocumentId, new(_title.Trim(), Guid.TryParse(_parentValue, out var p) ? p : null, ParsedTags(), Guid.TryParse(_hold, out var h) ? h : null), ct);
-            _parent = summary.ParentPageId;
+            var summary = await Client.Update(_current.DocumentId, new(_title.Trim(), null, ParsedTags(), KeepPlacementAndHold: true), ct);
             _current = _current with { Title = summary.Title, Tags = summary.Tags, HoldId = summary.HoldId,
                 Pages = _current.Pages.Select(p => p.Id == summary.Id ? p with { Title = summary.Title, ParentPageId = summary.ParentPageId } : p).ToArray() };
             _pages = _pages.Select(p => p.Id == summary.Id ? summary : p).ToArray();
+            _treePages = _treePages.Select(p => p.Id == summary.Id ? p with { Title = summary.Title } : p).ToArray();
         }
         if (_mounted && _editor is not null) await _editor.InvokeVoidAsync("setContext", _editorElement, EditorContext());
         _notice = "Oplysningerne er gemt.";
     });
-    private void ResetMetadata() { if (_current is null) return; _title = _current.Title; _tags = string.Join(", ", _current.Tags); _parentValue = _parent?.ToString() ?? ""; _hold = _current.HoldId?.ToString() ?? ""; _cadence = CurrentTemplate?.Cadence ?? "daily"; }
+    private void ResetMetadata() { if (_current is null) return; _title = _current.Title; _tags = string.Join(", ", _current.Tags); _cadence = CurrentTemplate?.Cadence ?? "daily"; }
     private async Task Entry(Guid template)
     {
         if (!Own || !await CanLeave()) return;
         await Work(async ct =>
         {
-            var page = await Client.Entry(new(template, _entryRequest, _period, Guid.TryParse(_entryHold, out var hold) ? hold : null), ct);
-            _entryRequest = Guid.NewGuid(); _showJournal = false; Nav.NavigateTo(PageHref(page.Id));
+            try
+            {
+                var page = await Client.Entry(new(template, _entryRequest, _period, Guid.TryParse(_entryHold, out var hold) ? hold : null), ct);
+                _entryRequest = Guid.NewGuid(); _showJournal = false; Nav.NavigateTo(PageHref(page.Id));
+            }
+            catch (NotebookException ex) when (ex.ErrorCode == "journal_in_trash")
+            {
+                _entryRequest = Guid.NewGuid(); _error = ex.Message;
+                await OpenTreeTrash();
+            }
+            catch (NotebookException ex) when (ex.ErrorCode == "journal_request_deleted")
+            {
+                _entryRequest = Guid.NewGuid();
+                throw;
+            }
         });
     }
     private async Task ToggleComments() => await Work(async ct =>
@@ -468,7 +483,7 @@ public partial class Index
         foreach (var page in _pages.Where(p => !visited.Contains(p.Id))) yield return (page, 0);
         IEnumerable<(NotebookPageSummary, int)> Walk(Guid? parent, int depth)
         {
-            foreach (var p in _pages.Where(p => parent is null ? p.ParentPageId is null || !ids.Contains(p.ParentPageId.Value) : p.ParentPageId == parent).OrderByDescending(p => p.PeriodStart).ThenBy(p => p.Title))
+            foreach (var p in _pages.Where(p => parent is null ? p.ParentPageId is null || !ids.Contains(p.ParentPageId.Value) : p.ParentPageId == parent).OrderBy(p => p.SortOrder ?? int.MaxValue).ThenByDescending(p => p.PeriodStart).ThenBy(p => p.Title).ThenBy(p => p.Id))
             { if (!visited.Add(p.Id)) continue; yield return (p, Math.Min(depth, 5)); foreach (var c in Walk(p.Id, depth + 1)) yield return c; }
         }
     }

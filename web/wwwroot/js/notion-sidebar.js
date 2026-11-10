@@ -165,7 +165,7 @@ export function mount(root, callbacks) {
             close();
             return;
         }
-        if (event.key !== 'Tab') return;
+        if (event.key !== 'Tab' || event.target?.closest?.('dialog[open]')) return;
         const items = focusable(panel);
         if (!items.length) { event.preventDefault(); focus(panel); return; }
         const first = items[0], last = items.at(-1);

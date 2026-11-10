@@ -26,9 +26,10 @@ const waitFor = async (check, message = 'condition', timeout = 5000) => {
 };
 
 async function fixture(t, { reauthorizeMs = 15000 } = {}) {
-  const state = { binary: null, fingerprint: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null, revision: 0 };
+  const state = { binary: null, fingerprint: null, loads: 0, saves: 0, storeAttempts: 0, authorizations: 0, failLoad: false, failStore: false, saveGate: null, revision: 0, lifecycle: 0, staleSaves: 0 };
   const grants = new Map();
   const readOnlyTokens = new Set();
+  const editorNames = new Map();
   const http = createServer(async (request, response) => {
     const chunks = [];
     for await (const chunk of request) chunks.push(chunk);
@@ -39,15 +40,21 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
       const requested = JSON.parse(body.toString()).documentName;
       if (!grants.get(accessToken)?.has(requested)) { response.writeHead(403).end(); return; }
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ documentId: requested.slice(requested.indexOf(':') + 1), canRead: true, canEdit: !readOnlyTokens.has(accessToken), accessVersion: 1 }));
+      response.end(JSON.stringify({ documentId: requested.slice(requested.indexOf(':') + 1), canRead: true, canEdit: !readOnlyTokens.has(accessToken), accessVersion: 1,
+        editorName: editorNames.get(accessToken), lifecycleVersion: state.lifecycle }));
       return;
     }
     if (request.headers['x-notion-service-key'] !== secret) { response.writeHead(401).end(); return; }
-    const notebook = request.url === `/api/internal/notebooks/documents/${id}/state`;
-    const drawing = request.url === `/api/internal/drawings/${id}/state`;
-    if (!notebook && !drawing && request.url !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
+    const url = new URL(request.url, 'http://localhost');
+    if (url.pathname === `/api/internal/drawings/${id}/lifecycle`) {
+      response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(state.lifecycle)); return;
+    }
+    const notebook = url.pathname === `/api/internal/notebooks/documents/${id}/state`;
+    const drawing = url.pathname === `/api/internal/drawings/${id}/state`;
+    if (!notebook && !drawing && url.pathname !== `/api/internal/notion/documents/${id}/state`) { response.writeHead(404).end(); return; }
     if (request.method === 'GET') {
       state.loads++;
+      if (Number(url.searchParams.get('lifecycleVersion') ?? 0) !== state.lifecycle) { response.writeHead(409).end(); return; }
       if (state.failLoad) { response.writeHead(503).end(); return; }
       response.writeHead(state.binary ? 200 : 204, { 'Content-Type': 'application/octet-stream' });
       response.end(state.binary);
@@ -60,6 +67,10 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
         response.writeHead(400).end(); return;
       }
       if (state.saveGate) await state.saveGate;
+      if ((projection.lifecycleVersion ?? 0) !== state.lifecycle) {
+        state.staleSaves++;
+        response.writeHead(409, { 'Content-Type': 'application/json' }).end(JSON.stringify({ error: 'stale_document_session' })); return;
+      }
       if (state.failStore) { response.writeHead(503).end(); return; }
       state.binary = binary;
       state.projection = projection;
@@ -121,8 +132,29 @@ async function fixture(t, { reauthorizeMs = 15000 } = {}) {
     websocket.connect().catch(() => {});
     return result;
   };
-  return { state, grants, readOnlyTokens, connect, start, get server() { return server; } };
+  return { state, grants, readOnlyTokens, editorNames, connect, start, get server() { return server; } };
 }
+
+test('an edit from before deletion cannot overwrite the restored room, even before reauthorization', async t => {
+  const f = await fixture(t);
+  const editorToken = token('editor');
+  f.grants.set(editorToken, new Set([documentName]));
+  const old = f.connect(editorToken);
+  await waitFor(() => old.provider.isSynced, 'original room synchronized');
+  old.doc.getText('test').insert(0, 'Gemt før sletning');
+  await waitFor(() => old.messages.some(message => message.type === 'persisted'), 'original state durable');
+  f.state.lifecycle = 1;
+  old.doc.getText('test').insert(0, 'Forældet ');
+  await waitFor(() => f.state.staleSaves === 1, 'old room write rejected by storage');
+  const stale = f.connect(editorToken);
+  await waitFor(() => stale.denied, 'old room name rejected');
+  const restored = f.connect(editorToken, documentName + ':v1');
+  await waitFor(() => restored.provider.isSynced, 'restored room synchronized');
+  assert.equal(restored.doc.getText('test').toString(), 'Gemt før sletning');
+  restored.doc.getText('test').insert(0, 'Gendannet: ');
+  await waitFor(() => restored.messages.some(message => message.type === 'persisted'), 'restored room writes normally');
+  assert.equal(f.state.projection.lifecycleVersion, 1);
+});
 
 test('internal AI projection requires service authentication, rejects browser origins and malformed states', async t => {
   const f = await fixture(t);
@@ -168,6 +200,22 @@ test('two real providers merge concurrent edits, acknowledge durable storage and
   const reopened = f.connect(aToken);
   await waitFor(() => reopened.provider.isSynced && reopened.doc.getText('test').toString() === expected, 'reload after process restart');
   assert.ok(f.state.loads >= 2);
+});
+
+test('collaboration persistence uses the authorized actor of the last document edit', async t => {
+  const f = await fixture(t);
+  const aToken = token('teacher-a'), bToken = token('teacher-b');
+  f.grants.set(aToken, new Set([documentName]));
+  f.grants.set(bToken, new Set([documentName]));
+  f.editorNames.set(aToken, 'Anna');
+  f.editorNames.set(bToken, 'Berit');
+  const a = f.connect(aToken), b = f.connect(bToken);
+  await waitFor(() => a.provider.isSynced && b.provider.isSynced, 'both providers synchronized');
+  a.doc.getText('test').insert(0, 'Første ændring');
+  await waitFor(() => f.state.projection?.editorName === 'Anna', 'first editor persisted');
+  b.doc.getText('test').insert(b.doc.getText('test').length, ' og anden ændring');
+  a.destroy();
+  await waitFor(() => f.state.projection?.editorName === 'Berit', 'last editor persisted after other session disconnects');
 });
 
 test('notebook clone HTTP endpoint requires the internal key and rejects browser origins', async t => {
@@ -262,6 +310,8 @@ test('loading a legacy persisted document stamps its canonical publication finge
   await waitFor(() => editor.provider.isSynced, 'legacy content synchronized');
   assert.equal(editor.doc.getText('test').toString(), 'Existing lesson');
   assert.equal(f.state.fingerprint, expected);
+  assert.equal(f.state.projection.preserveEditMetadata, true);
+  assert.equal(f.state.projection.editorName, undefined);
   assert.ok(f.state.saves > 0);
 });
 

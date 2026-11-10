@@ -60,6 +60,9 @@ public sealed class NotionMcpService(AppDbContext db, CourseAccess courses, IHtt
             await AuthorizeAsync(parentPageId, user, ct);
             var parent = await db.NotionPages.AsNoTracking().SingleOrDefaultAsync(p => p.Id == parentPageId, ct)
                 ?? throw new NotionMcpException("page_not_found", 404);
+            await Mercantec.Tech.Api.Notebooks.NotebookPageTree.LockTeachingAsync(db, parent.CollectionId, parent.HoldId, ct);
+            if (!await db.NotionPages.AnyAsync(p => p.Id == parentPageId, ct))
+                throw new NotionMcpException("page_not_found", 404);
             var holdId = parent.HoldId;
             if (parent.CollectionId is Guid collectionId)
             {
@@ -72,7 +75,7 @@ public sealed class NotionMcpService(AppDbContext db, CourseAccess courses, IHtt
             var now = DateTimeOffset.UtcNow;
             created = new() { Id = Guid.NewGuid(), Title = title, ParentPageId = parentPageId,
                 HoldId = holdId, CollectionId = parent.CollectionId, CreatedBySub = owner,
-                CreatedAtUtc = now, UpdatedAtUtc = now };
+                CreatedAtUtc = now, UpdatedAtUtc = now, LastEditedByName = UserClaims.EditorName(user) };
             receipt = new() { Id = operationId, OwnerSub = owner, ParentPageId = parentPageId,
                 PageId = created.Id, RequestHash = hash, CreatedAtUtc = now };
             db.NotionPages.Add(created);

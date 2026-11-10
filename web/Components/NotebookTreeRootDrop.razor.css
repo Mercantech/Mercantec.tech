@@ -1,0 +1,2 @@
+.nb-tree-root-drop{padding:8px;text-align:center;border:1px dashed var(--blue);border-radius:7px;color:var(--blue);font-size:12px}
+.nb-tree-root-drop[data-over=true]{background:var(--tint);border-style:solid}

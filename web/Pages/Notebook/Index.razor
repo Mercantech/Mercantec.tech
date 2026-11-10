@@ -30,10 +30,20 @@ else
                 }
                 else
                 {
-                    @if (Own) { <div class="nb-actions nb-create-actions"><button class="action" @onclick="() => BeginCreate(false)" disabled="@_busy">Ny note</button><button class="secondary" @onclick="() => _showJournal = !_showJournal" disabled="@_busy">Ny logbog</button></div> }
+                    @if (Own) { <div class="nb-actions nb-create-actions"><button class="action" @onclick="() => BeginCreate(false)" disabled="@_busy">Ny note</button><button class="secondary" @onclick="() => _showJournal = !_showJournal" disabled="@_busy">Ny logbog</button><button class="secondary" @onclick="OpenTreeTrash" disabled="@_busy">Papirkurv</button></div> }
                     <form class="nb-filters" @onsubmit="() => Filter()" @onsubmit:preventDefault><label>Find i notesbogen<input type="search" @bind="_search" placeholder="Titel eller indhold" /></label><div class="nb-filter-row"><label>Type<select @bind="_kind"><option value="">Alle sider</option><option value="note">Noter</option><option value="journal">Logbog</option></select></label><label>Tag<input @bind="_tag" placeholder="Alle tags" /></label></div><button class="secondary" disabled="@_busy">Søg</button></form>
                     <div class="nb-sidebar-title"><h2>Sider</h2><span>@_total</span></div>
-                    <nav class="nb-page-list" aria-label="Sider i notesbogen">@foreach (var item in OrderedPages()) { <button class="nb-page @(item.Page.Id == _current?.DocumentId ? "is-current" : "")" style="--nb-depth:@item.Depth" aria-current="@(item.Page.Id == _current?.DocumentId ? "page" : null)" @onclick="() => OpenPage(item.Page.Id)"><span>@item.Page.Title<small>@(item.Page.Kind == "journal" ? item.Page.PeriodStart?.ToString("d. MMM yyyy") ?? "Logbog" : "Note")</small>@if (!string.IsNullOrWhiteSpace(item.Page.Snippet) && _search.Length > 0) { <small class="nb-snippet">@item.Page.Snippet</small> }</span></button> }</nav>
+                    @if (_draggingPage is not null) { <NotebookTreeRootDrop OnDrop="DropTreePage" /> }
+                    <nav class="nb-page-list" aria-label="Sider i notesbogen">
+                        @foreach (var item in OrderedPages())
+                        {
+                            <NotebookTreeRow @key="item.Page.Id" Id="@item.Page.Id" Title="@item.Page.Title" Editable="Own"
+                                             Busy="_busy" Reorder="CanReorderTree" Dragging="_draggingPage"
+                                             OnActions="OpenTreeActions" OnDragStart="StartTreeDrag" OnDragEnd="EndTreeDrag" OnDrop="DropTreePage">
+                                <button class="nb-page @(item.Page.Id == _current?.DocumentId ? "is-current" : "")" style="--nb-depth:@item.Depth" aria-current="@(item.Page.Id == _current?.DocumentId ? "page" : null)" @onclick="() => OpenPage(item.Page.Id)"><span>@item.Page.Title<small>@(item.Page.Kind == "journal" ? item.Page.PeriodStart?.ToString("d. MMM yyyy") ?? "Logbog" : "Note")</small>@if (!string.IsNullOrWhiteSpace(item.Page.Snippet) && _search.Length > 0) { <small class="nb-snippet">@item.Page.Snippet</small> }</span></button>
+                            </NotebookTreeRow>
+                        }
+                    </nav>
                     @if (_pages.Length == 0) { <p class="nb-muted">@(_search.Length > 0 || _tag.Length > 0 || _kind.Length > 0 ? "Ingen sider matcher dine filtre." : "Din første side starter her.")</p> }
                     @if (_pages.Length < _total) { <button class="secondary" disabled="@_busy" @onclick="() => Filter(true)">Vis flere sider</button> }
                     @if (_notebookId is not null) { <button class="secondary nb-graph-button" disabled="@_busy" @onclick="ShowGraph">Åbn forbindelser og graf</button> }
@@ -64,7 +74,7 @@ else
                     @if (_status is "offline" or "error" && _statusDetail.Length > 0) { <p class="nb-message nb-error" role="alert">@_statusDetail</p> }
                     @if (Editing)
                     {
-                        <form class="nb-metadata" @onsubmit="SaveMetadata" @onsubmit:preventDefault><label class="nb-title-label">Titel<input class="nb-title-input" @bind="_title" @bind:event="oninput" maxlength="200" required /></label><details><summary>Sidens oplysninger</summary><div class="nb-meta-grid">@if (TemplateMode) { <label>Rytme<select @bind="_cadence"><option value="daily">Daglig</option><option value="weekly">Ugentlig</option><option value="free">Fri</option></select></label> } else { <label>Overordnet side<select @bind="_parentValue"><option value="">Ingen · rodside</option>@foreach (var page in _current.Pages.Where(p => p.Id != _current.DocumentId)) { <option value="@(page.Id)">@(page.Title)</option> }</select></label><label>Tags · adskil med komma<input @bind="_tags" @bind:event="oninput" placeholder="csharp, database" /></label><label>Hold (valgfrit)<select @bind="_hold"><option value="">Uden hold</option>@foreach (var hold in _holds) { <option value="@hold.Id">@hold.Name</option> }</select></label> }</div></details>@if (MetadataDirty) { <div class="nb-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Gem oplysninger</button><button type="button" class="secondary" @onclick="ResetMetadata">Annullér ændringer</button></div> }</form>
+                        <form class="nb-metadata" @onsubmit="SaveMetadata" @onsubmit:preventDefault><label class="nb-title-label">Titel<input class="nb-title-input" @bind="_title" @bind:event="oninput" maxlength="200" required /></label><details><summary>Sidens oplysninger</summary><div class="nb-meta-grid">@if (TemplateMode) { <label>Rytme<select @bind="_cadence"><option value="daily">Daglig</option><option value="weekly">Ugentlig</option><option value="free">Fri</option></select></label> } else { <label>Tags · adskil med komma<input @bind="_tags" @bind:event="oninput" placeholder="csharp, database" /></label> }</div></details>@if (MetadataDirty) { <div class="nb-actions"><button class="action" disabled="@(_busy || string.IsNullOrWhiteSpace(_title))">Gem oplysninger</button><button type="button" class="secondary" @onclick="ResetMetadata">Annullér ændringer</button></div> }</form>
                     }
                     else { <header class="nb-reader-title"><h2>@_current.Title</h2>@if (_current.PeriodStart is { } period) { <p>@period.ToString("d. MMMM yyyy")</p> }@if (_current.Tags.Length > 0) { <div class="nb-tags">@foreach (var tag in _current.Tags) { <span>#@tag</span> }</div> }</header> }
                     @if (TemplateMode && CurrentTemplate is { } currentTemplate)
@@ -88,5 +98,11 @@ else
                 }
             </section>
         </div>
+        @if (Own && !TemplateMode)
+        {
+            <NotebookTreeDialogs @ref="_treeDialogs" Items="@TreeItems" Reorder="CanReorderTree"
+                                 OnCreateChild="CreateTreeChild" MovePage="MoveTreePage" PreviewDelete="PreviewTreeDelete"
+                                 DeletePage="DeleteTreePage" ListTrash="ListTreeTrash" RestorePage="RestoreTreePage" />
+        }
     }
 }

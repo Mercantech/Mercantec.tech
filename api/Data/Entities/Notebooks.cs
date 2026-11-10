@@ -3,6 +3,7 @@ namespace Mercantec.Tech.Api.Data.Entities;
 public sealed class Notebook
 {
     public Guid Id { get; set; }
+    public Guid? IconEmojiId { get; set; }
     public Guid OwnerSub { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
@@ -24,6 +25,10 @@ public sealed class NotebookDocument
     public string Kind { get; set; } = "note";
     public string Title { get; set; } = "";
     public Guid? ParentPageId { get; set; }
+    public int? SortOrder { get; set; }
+    public DateTimeOffset? DeletedAtUtc { get; set; }
+    public Guid? TrashRootId { get; set; }
+    public long LifecycleVersion { get; set; }
     public string TagsJson { get; set; } = "[]";
     public DateOnly? PeriodStart { get; set; }
     public Guid? HoldId { get; set; }
@@ -39,6 +44,7 @@ public sealed class NotebookDocument
     public string DrawingIdsJson { get; set; } = "[]";
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
+    public string? LastEditedByName { get; set; }
 }
 
 public sealed class NotebookShare

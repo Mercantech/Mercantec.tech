@@ -152,7 +152,7 @@ public sealed class NotionControllerTests : IAsyncLifetime
         });
         Assert.Equal(2, queries.Commands.Count(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)));
         Assert.All(queries.Commands.Where(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)),
-            sql => Assert.Contains("WHERE \"n\".\"Id\" =", sql, StringComparison.Ordinal));
+            sql => Assert.Contains("\"n\".\"Id\" =", sql, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public sealed class NotionControllerTests : IAsyncLifetime
         Assert.Empty(context.Pages!);
         Assert.Equal(3, queries.Commands.Count);
         Assert.All(queries.Commands.Where(sql => sql.Contains("FROM \"notion_pages\"", StringComparison.Ordinal)),
-            sql => Assert.Contains("WHERE \"n\".\"Id\" =", sql, StringComparison.Ordinal));
+            sql => Assert.Contains("\"n\".\"Id\" =", sql, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -723,9 +723,11 @@ public sealed class NotionControllerTests : IAsyncLifetime
 
     private async Task AddPage(Guid id, string title, Guid? parent)
     {
+        var collection = parent is Guid parentId ? await db.NotionPages.Where(p => p.Id == parentId)
+            .Select(p => p.CollectionId).SingleAsync() : null;
         db.NotionPages.Add(new NotionPage
         {
-            Id = id, HoldId = holdId, ParentPageId = parent, Title = title, CreatedBySub = teacher,
+            Id = id, HoldId = holdId, CollectionId = collection, ParentPageId = parent, Title = title, CreatedBySub = teacher,
             CreatedAtUtc = DateTimeOffset.UtcNow, UpdatedAtUtc = DateTimeOffset.UtcNow
         });
         await db.SaveChangesAsync();

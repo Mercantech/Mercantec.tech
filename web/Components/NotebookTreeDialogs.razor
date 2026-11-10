@@ -1,0 +1,164 @@
+@using Mercantec.Tech.Web.Notion
+@using Mercantec.Tech.Web.Notebooks
+@inject IJSRuntime Js
+
+<dialog id="@_id" class="nb-tree-dialog" aria-labelledby="@(_id + "-title")">
+    <header class="nb-tree-dialog-header">
+        <h2 id="@(_id + "-title")">@Heading</h2>
+        <button type="button" class="secondary" @onclick="Close">Luk</button>
+    </header>
+    @if (_mode != "trash" && _selected is { } selected)
+    {
+        <p class="nb-tree-dialog-title"><EmojiText Text="@selected.Title" /></p>
+        @if (_mode == "actions")
+        {
+            <div class="nb-tree-dialog-actions">
+                <button type="button" class="secondary" @onclick="CreateChild">Ny underside</button>
+                <button type="button" class="secondary" @onclick="ShowMove">Flyt til</button>
+                <button type="button" class="secondary" @onclick="ShowDelete">Slet</button>
+            </div>
+        }
+        else if (_mode == "move")
+        {
+            <form @onsubmit="CommitMove" @onsubmit:preventDefault>
+                <label>Placering
+                    <select @bind="_position" disabled="@_busy" aria-label="Placering">
+                        <option value="root">I notesbogens rod</option>
+                        <option value="inside">Som underside</option>
+                        @if (Reorder) { <option value="before">Før en side</option><option value="after">Efter en side</option> }
+                    </select>
+                </label>
+                @if (_position != "root")
+                {
+                    <label>Side
+                        <select @bind="_destination" disabled="@_busy" aria-label="Side">
+                            <option value="">Vælg en side</option>
+                            @foreach (var item in Destinations) { <option value="@item.Id">@item.Title</option> }
+                        </select>
+                    </label>
+                }
+                <div class="nb-tree-dialog-actions">
+                    <button type="submit" class="action" disabled="@(_busy || _position != "root" && !Guid.TryParse(_destination, out _))">Flyt side</button>
+                    <button type="button" class="secondary" disabled="@_busy" @onclick="ShowActionsAgain">Tilbage</button>
+                </div>
+            </form>
+        }
+        else if (_mode == "delete")
+        {
+            @if (_descendants is int count)
+            {
+                <p>@(count == 0 ? "Én side flyttes til papirkurven." : $"{count + 1} sider flyttes til papirkurven, inklusive undersider.") Du kan gendanne dem i 30 dage.</p>
+                <div class="nb-tree-dialog-actions">
+                    <button type="button" class="action" disabled="@_busy" @onclick="CommitDelete">Flyt til papirkurv</button>
+                    <button type="button" class="secondary" disabled="@_busy" @onclick="ShowActionsAgain">Annullér</button>
+                </div>
+            }
+        }
+    }
+    else if (_mode == "trash")
+    {
+        <p>Slettede sider kan gendannes i 30 dage.</p>
+        @if (!_busy && _trash.Length == 0 && _error is null) { <p>Papirkurven er tom.</p> }
+        @foreach (var item in _trash)
+        {
+            <div class="nb-tree-trash-row" @key="item.Id">
+                <div><strong><EmojiText Text="@item.Title" /></strong>
+                    <small>Slettet <time datetime="@item.DeletedAtUtc.ToString("O")">@item.DeletedAtUtc.ToLocalTime().ToString("d. MMM yyyy HH:mm")</time> · @(item.DescendantCount + 1) @(item.DescendantCount == 0 ? "side" : "sider")</small>
+                </div>
+                <button type="button" class="secondary" disabled="@_busy" aria-label="@($"Gendan: {item.Title}")" @onclick="() => Restore(item.Id)">Gendan</button>
+            </div>
+        }
+    }
+    @if (_busy) { <p role="status">Vent et øjeblik…</p> }
+    @if (_error is not null) { <p role="alert">@_error</p> }
+</dialog>
+
+@code {
+    [Parameter] public NotebookTreeItem[] Items { get; set; } = [];
+    [Parameter] public bool Reorder { get; set; }
+    [Parameter, EditorRequired] public EventCallback<Guid> OnCreateChild { get; set; }
+    [Parameter, EditorRequired] public Func<Guid, MoveNotebookPage, Task<bool>> MovePage { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<Guid, Task<NotebookPageDeletionPreview>> PreviewDelete { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<Guid, int, Task<bool>> DeletePage { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<Task<TrashedNotebookPage[]>> ListTrash { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<Guid, Task> RestorePage { get; set; } = default!;
+    private readonly string _id = "nb-tree-" + Guid.NewGuid().ToString("N");
+    private NotebookTreeItem? _selected;
+    private TrashedNotebookPage[] _trash = [];
+    private string _mode = "actions", _position = "root", _destination = "";
+    private string? _error;
+    private int? _descendants;
+    private bool _busy, _open;
+    private string Heading => _mode switch { "trash" => "Papirkurv", "move" => "Flyt side", "delete" => "Slet side", _ => "Sidehandlinger" };
+    private IEnumerable<NotebookTreeItem> Destinations
+    {
+        get
+        {
+            if (_selected is not { } selected) return [];
+            var branch = NotebookTreeUi.Branch(Items, selected.Id);
+            return Items.Where(item => item.ScopeId == selected.ScopeId && !branch.Contains(item.Id)).OrderBy(item => item.Title);
+        }
+    }
+    public async Task Show(Guid id)
+    {
+        if (_busy || Items.FirstOrDefault(p => p.Id == id) is not { } item) return;
+        _selected = item;
+        ShowActionsAgain();
+        _open = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    public async Task ShowTrash()
+    {
+        if (_busy) return;
+        _mode = "trash"; _open = true; _trash = [];
+        await Run(async () => _trash = await ListTrash());
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_open) return;
+        _open = false;
+        await Js.InvokeVoidAsync("lupGiftUi.open", _id);
+    }
+    private Task Close() => Js.InvokeVoidAsync("lupGiftUi.close", _id).AsTask();
+    private void ShowActionsAgain() { _mode = "actions"; _error = null; }
+    private void ShowMove() { _mode = "move"; _position = "root"; _destination = ""; _error = null; }
+    private async Task CreateChild()
+    {
+        if (_selected is not { } page) return;
+        await Close();
+        await OnCreateChild.InvokeAsync(page.Id);
+    }
+    private Task ShowDelete()
+    {
+        _mode = "delete"; _descendants = null;
+        return _selected is { } page ? Run(async () => _descendants = (await PreviewDelete(page.Id)).DescendantCount) : Task.CompletedTask;
+    }
+    private Task CommitMove() => Run(async () =>
+    {
+        if (_selected is not { } page) return;
+        var target = Guid.TryParse(_destination, out var id) ? id : (Guid?)null;
+        var move = NotebookTreeUi.Placement(Items, page.Id, target, _position);
+        if (move is null) { _error = "Vælg en anden placering."; return; }
+        if (await MovePage(page.Id, move)) await Close();
+    });
+    private Task CommitDelete() => Run(async () =>
+    {
+        if (_selected is { } page && _descendants is int count && await DeletePage(page.Id, count)) await Close();
+    });
+    private Task Restore(Guid id) => Run(async () =>
+    {
+        await RestorePage(id);
+        _trash = await ListTrash();
+    });
+    private async Task Run(Func<Task> action)
+    {
+        if (_busy) return;
+        _busy = true; _error = null;
+        await InvokeAsync(StateHasChanged);
+        try { await action(); }
+        catch (Exception ex) when (ex is NotionException or NotebookException) { _error = ex.Message; }
+        catch (HttpRequestException) { _error = "Handlingen kunne ikke gennemføres. Prøv igen."; }
+        catch (OperationCanceledException) { }
+        finally { _busy = false; await InvokeAsync(StateHasChanged); }
+    }
+}

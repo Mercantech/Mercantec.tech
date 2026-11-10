@@ -23,7 +23,7 @@ const sample = () => {
 async function fixture(t) {
   const state = { binary: sample(), allowed: true, failStore: false, failPrepareAcknowledgement: false, authorizations: 0, saved: 0, audit: new Map(), pending: new Set(), afterPrepare: null };
   const api = {
-    async authorize(documentName, supplied) { state.authorizations++; if (!state.allowed || supplied !== token || documentName !== name) throw new Error('denied'); return { canEdit: true, canRead: true, documentId: id, expiresAt: Date.now() + 3600000 }; },
+    async authorize(documentName, supplied) { state.authorizations++; if (!state.allowed || supplied !== token || documentName !== name) throw new Error('denied'); return { canEdit: true, canRead: true, documentId: id, expiresAt: Date.now() + 3600000, editorName: 'Anna' }; },
     async load() { return state.binary; },
     async prepareMcpChange(pageId, change) {
       assert.equal(pageId, id); assert.ok(state.pending.has(change.operationId));
@@ -32,9 +32,12 @@ async function fixture(t) {
       if (state.afterPrepare) await state.afterPrepare();
       if (state.failPrepareAcknowledgement) throw new Error('Prepared in DB, network acknowledgement lost');
     },
-    async store(documentName, bytes, fingerprint, change) {
+    async store(documentName, bytes, fingerprint, change, metadata) {
       if (state.failStore) throw new Error('DB unavailable');
-      if (change) { assert.ok(state.audit.has(change.operationId)); assert.ok(state.pending.has(change.operationId)); }
+      if (change) {
+        assert.ok(state.audit.has(change.operationId)); assert.ok(state.pending.has(change.operationId));
+        state.operationEditorName = metadata?.editorName;
+      }
       state.binary = bytes; state.saved++;
       return change ? { savedAtUtc: new Date().toISOString(), mcpOperationId: change.operationId } : new Date().toISOString();
     },
@@ -64,6 +67,7 @@ test('browser-closed edits wait for durable audit+state, replay safely, and surv
   const req = f.request([{ type: 'insert_after', blockId: 'a', fingerprint: prior.body.blocks[0].fingerprint, block: { type: 'paragraph', content: 'Codex uden åben browser' } }]);
   const applied = await f.send('apply', req); assert.equal(applied.status, 200); assert.equal(applied.body.replayed, false); assert.ok(applied.body.savedAtUtc);
   assert.equal(f.state.audit.size, 1);
+  assert.equal(f.state.operationEditorName, 'Anna');
   const replay = await f.send('apply', req); assert.equal(replay.status, 200); assert.equal(replay.body.replayed, true);
   assert.equal((await f.read()).body.blocks.filter(b => b.text === 'Codex uden åben browser').length, 1);
   const otherPayload = await f.send('apply', { ...req, changes: [{ ...req.changes[0], block: { type: 'paragraph', content: 'Different' } }] }); assert.equal(otherPayload.status, 409);

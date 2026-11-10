@@ -495,7 +495,7 @@ export function verifyMcpReceipt(secret, request, receipt) {
     && data.payloadHash === mcpHash(request.originalChange || request.changes);
 }
 
-export function applyPreparedMcpPlan(doc, plan, receipt) {
+export function applyPreparedMcpPlan(doc, plan, receipt, editorName) {
   revalidateMcpPlan(doc, plan);
   // Put the signed receipt in the same update before applying it. Mixing a remote applyUpdate
   // with local writes inside one Yjs transaction can reuse the live client's clock range.
@@ -503,6 +503,6 @@ export function applyPreparedMcpPlan(doc, plan, receipt) {
   try {
     Y.applyUpdate(candidate, plan.update);
     candidate.getMap(MCP_RECEIPTS).set(receipt.operationId, receipt);
-    Y.applyUpdate(doc, Y.encodeStateAsUpdate(candidate, Y.encodeStateVector(doc)), { source: 'mcp', operationId: receipt.operationId });
+    Y.applyUpdate(doc, Y.encodeStateAsUpdate(candidate, Y.encodeStateVector(doc)), { source: 'mcp', operationId: receipt.operationId, editorName });
   } finally { candidate.destroy(); }
 }

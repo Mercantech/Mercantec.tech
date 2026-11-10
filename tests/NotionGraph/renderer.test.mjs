@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as graph from '../../web/wwwroot/js/notion-graph.js';
 
 // Exercise the production canvas renderer with deterministic frames and its real D3 forces.
-function fixture(t, payload = {}) {
+function fixture(t, payload = {}, { reducedMotion = true } = {}) {
   const previous = new Map();
   const install = (key, value) => { previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key)); Object.defineProperty(globalThis, key, { configurable: true, writable: true, value }); };
   const frames = new Map(); let nextFrame = 1, now = 0;
@@ -28,10 +28,10 @@ function fixture(t, payload = {}) {
   const context = {
     font: '', globalAlpha: 1, fills: [], texts: [], strokes: [], images: [], shape: null,
     setTransform() {}, clearRect() { this.fills = []; this.texts = []; this.strokes = []; this.images = []; },
-    beginPath() { this.shape = null; }, arc(x, y, radius) { this.shape = { x, y, radius, circle: true }; },
-    roundRect() { this.shape = { box: true }; }, moveTo() {}, lineTo() {},
+    beginPath() { this.shape = null; this.segments = []; }, arc(x, y, radius) { this.shape = { x, y, radius, circle: true }; },
+    roundRect() { this.shape = { box: true }; }, moveTo(x, y) { this.segments.push([x, y]); }, lineTo(x, y) { this.segments.push([x, y]); },
     fill() { if (this.shape?.circle) this.fills.push({ ...this.shape, alpha: this.globalAlpha, color: this.fillStyle }); },
-    stroke() { this.strokes.push({ shape: this.shape, alpha: this.globalAlpha, color: this.strokeStyle }); },
+    stroke() { this.strokes.push({ shape: this.shape, alpha: this.globalAlpha, color: this.strokeStyle, segments: this.segments }); },
     strokeText() {}, fillText(text, x, y) { this.texts.push({ text, x, y, font: this.font, alpha: this.globalAlpha }); },
     drawImage(image, x, y, width, height) { this.images.push({ url: image.url, x, y, width, height }); },
     measureText(text) { return { width: String(text).length * Number(this.font.match(/([\d.]+)px/)?.[1] || 12) * 0.5 }; },
@@ -42,7 +42,7 @@ function fixture(t, payload = {}) {
   host.replaceChildren = (...children) => { host.children = children; };
   const callbacks = [];
   const windowTarget = new Target();
-  const media = new Target(); media.matches = true;
+  const media = new Target(); media.matches = reducedMotion;
   Object.assign(windowTarget, {
     devicePixelRatio: 1, innerWidth: 800, innerHeight: 500,
     matchMedia: query => query.includes('reduced-motion') ? media : { matches: false, addEventListener() {} },
@@ -61,11 +61,14 @@ function fixture(t, payload = {}) {
   install('getComputedStyle', target => ({ color: ({ node: '#63728b', edge: '#9ba8bc', active: '#2452e8', label: '#17243b', surface: '#ffffff' })[target.style.color.match(/--graph-([a-z]+)/)?.[1]] || '#17243b' }));
   install('requestAnimationFrame', callback => { const id = nextFrame++; frames.set(id, callback); return id; });
   install('cancelAnimationFrame', id => frames.delete(id));
-  const flush = () => {
-    for (let count = 0; frames.size && count < 100; count++) {
+  const advance = (limit) => {
+    for (let count = 0; frames.size && count < limit; count++) {
       const pending = [...frames.values()]; frames.clear(); now += 32;
       for (const callback of pending) callback(now);
     }
+  };
+  const flush = () => {
+    advance(180);
     assert.equal(frames.size, 0, 'the renderer should settle and stop requesting frames');
   };
   graph.mount(host, { invokeMethodAsync: (...args) => { callbacks.push(args); return Promise.resolve(); } }, {
@@ -77,7 +80,7 @@ function fixture(t, payload = {}) {
     graph.destroy(host);
     for (const [key, descriptor] of previous) if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
   });
-  return { host, canvas, stage, context, callbacks, flush, storage, imageRequests };
+  return { host, canvas, stage, context, callbacks, advance, flush, storage, imageRequests };
 }
 
 test('persisted graph preferences are bounded and never contain graph data or selected references', t => {
@@ -217,4 +220,59 @@ test('dragging a node never navigates and keyboard selection keeps the details p
   assert.deepEqual(f.callbacks.filter(call => call[0] === 'OnGraphOpen'), [['OnGraphOpen', 'a']]);
   f.stage.dispatch('keydown', { key: 'Escape' }); f.flush();
   assert.equal(f.callbacks.at(-1)[1], '');
+});
+
+test('with reduced motion only directly linked nodes follow the drag and the edge tracks both endpoints', t => {
+  const f = fixture(t);
+  const positions = () => f.context.fills.map(({ x, y }) => [x, y]);
+  const [first, second, unrelated] = positions();
+  f.canvas.dispatch('pointerdown', { clientX: first[0], clientY: first[1] });
+  const target = { clientX: first[0] + 80, clientY: first[1] - 40 };
+  f.canvas.dispatch('pointermove', target);
+  f.flush();
+
+  const [dragged, neighbor, other] = positions();
+  assert.ok(Math.hypot(dragged[0] - target.clientX, dragged[1] - target.clientY) < 0.01);
+  assert.ok(neighbor[0] - second[0] > 10 && neighbor[1] < second[1]);
+  assert.deepEqual(other, unrelated);
+  const edge = f.context.strokes.find(stroke => !stroke.shape);
+  assert.deepEqual(edge?.segments, [dragged, neighbor]);
+
+  f.canvas.dispatch('pointercancel', target);
+  f.flush();
+  assert.deepEqual(positions(), [dragged, neighbor, unrelated]);
+  assert.deepEqual(f.callbacks, []);
+
+  graph.configure(f.host, { linkForce: 0 }); f.flush();
+  const [newOrigin, fixedNeighbor] = positions();
+  const nextTarget = { clientX: newOrigin[0] - 40, clientY: newOrigin[1] + 20 };
+  f.canvas.dispatch('pointerdown', { clientX: newOrigin[0], clientY: newOrigin[1] });
+  f.canvas.dispatch('pointermove', nextTarget);
+  f.canvas.dispatch('pointerup', nextTarget);
+  f.flush();
+  const [nextDragged, nextNeighbor] = positions();
+  assert.ok(Math.hypot(nextDragged[0] - nextTarget.clientX, nextDragged[1] - nextTarget.clientY) < 0.01);
+  assert.deepEqual(nextNeighbor, fixedNeighbor);
+  assert.deepEqual(f.callbacks, []);
+});
+
+test('dragging a leaf visibly pulls a connected hub on the first frame with normal motion', t => {
+  const f = fixture(t, {
+    nodes: Array.from({ length: 100 }, (_, i) => ({ id: String(i), title: `Punkt ${i}`,
+      color: i === 0 ? '#c2314e' : i === 1 ? '#3a6ae9' : '#666' })),
+    edges: Array.from({ length: 99 }, (_, i) => ({ fromId: '0', toId: String(i + 1) })),
+    options: { showLabels: false },
+  }, { reducedMotion: false });
+  const hub = () => f.context.fills.find(point => point.color === '#c2314e');
+  const original = hub();
+  const leaf = f.context.fills.find(point => point.color === '#3a6ae9');
+  const target = { clientX: leaf.x + 140, clientY: leaf.y + 100 };
+  f.canvas.dispatch('pointerdown', { clientX: leaf.x, clientY: leaf.y });
+  f.canvas.dispatch('pointermove', target);
+  f.advance(1);
+  assert.ok(hub().x - original.x > 20 && hub().y - original.y > 10);
+
+  f.canvas.dispatch('pointerup', target);
+  f.flush();
+  assert.deepEqual(f.callbacks, []);
 });
