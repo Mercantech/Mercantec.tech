@@ -1,5 +1,5 @@
-import { ArenaRenderer } from './arena-renderer.js?v=6';
-import { createArenaAudio, audioAvatarForEvent } from './arena-audio.js?v=1';
+import { ArenaRenderer } from './arena-renderer.js?v=7';
+import { createArenaAudio, audioAvatarForEvent } from './arena-audio.js?v=2';
 let canvas, bridge, renderer, socket, animation, heartbeat, inputTimer, resizeObserver;
 let practice = false, intentionalClose = false, reconnecting = false, disposed = true, phase = '', playerId = '', sequence = 0;
 let latest, previous, receivedAt = 0, previousAt = 0, reconnectTimer, reconnectAttempt = 0;
@@ -68,7 +68,7 @@ function soundActions(state,old){
         const before=old.fighters?.find(f=>f.id===fighter.id);
         if(!before||fighter.out||fighter.invulnerable&&fighter.action==='respawn')continue;
         const ability=fighter.combat?.activeAbility;
-        if((['rocket','charge','sleigh'].includes(ability)&&before.combat?.activeAbility!==ability)||(fighter.avatarId==='starter'&&fighter.action==='ability_4_dash'&&before.action!==fighter.action))audio?.cue('dash',1,fighter.avatarId,fighter.id);
+        if((['rocket','charge','sleigh','iterate'].includes(ability)&&before.combat?.activeAbility!==ability)||(fighter.avatarId==='starter'&&fighter.action==='ability_4_dash'&&before.action!==fighter.action))audio?.cue('dash',1,fighter.avatarId,fighter.id);
         if(ability==='capture'&&before.combat?.activeAbility!==ability)audio?.cue('capture',1,fighter.avatarId,fighter.id);
         if(fighter.shielding&&!before.shielding)audio?.cue('shield-up',1,fighter.avatarId,fighter.id);
         if(fighter.action==='ability_1_pulse'&&!ability&&(before.action!==fighter.action||fighter.actionFrame<before.actionFrame))audio?.cue('swing',1,fighter.avatarId,fighter.id);

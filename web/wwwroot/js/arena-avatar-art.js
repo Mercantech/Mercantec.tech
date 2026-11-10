@@ -11,7 +11,7 @@ const ACTIONS = Object.freeze({
     ability_4_dash: { fps: 8, authoritative: true }, ability_5_repair: { fps: 8, authoritative: true },
     ultimate_charge: { fps: 5, authoritative: true }, ultimate_release: { fps: 5, authoritative: true }
 });
-const ROOTS = Object.freeze({ bip01: '/assets/avatars/bip-01', raymond: '/assets/avatars/raymond', santa: '/assets/avatars/santa' });
+const ROOTS = Object.freeze({ bip01: '/assets/avatars/bip-01', raymond: '/assets/avatars/raymond', santa: '/assets/avatars/santa', lupp: '/assets/avatars/lupp' });
 export const ORIGINAL_COMBAT_ACTIONS = Object.freeze([
     'idle', 'walk', 'run', 'jump', 'land', 'hit', 'knockout', 'respawn', 'interact', 'celebrate',
     'ability_1_pulse', 'ability_2_magnet', 'ability_3_shield', 'ability_4_dash', 'ability_5_repair',

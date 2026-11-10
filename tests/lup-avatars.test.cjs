@@ -43,11 +43,11 @@ test('all complete avatar packs allow their exact 28 effects and five spoken fil
     const { api, audio } = setup();
     const actions = ['idle','blink','wave','think','talk','point','celebrate','encourage','surprised','unlock','walk','run','jump','land','sit','sleep','pickup','interact','hit','knockout','respawn','ability_1_pulse','ability_2_magnet','ability_3_shield','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release'];
     const phrases = ['phrase_1_welcome','phrase_2_start','phrase_3_success','phrase_4_retry','phrase_5_milestone'];
-    for (const avatar of ['bip-01', 'raymond', 'santa']) {
+    for (const avatar of ['bip-01', 'raymond', 'santa', 'lupp']) {
         for (const id of [...actions, ...phrases])
             assert.equal(await api.play(`/assets/avatars/${avatar}/audio/${id}.wav`), true, avatar + '/' + id);
     }
-    assert.equal(audio.length, 99);
+    assert.equal(audio.length, 132);
     assert.ok(audio.slice(0, -1).every(clip => clip.paused && clip.currentTime === 0));
     assert.equal(audio.at(-1).paused, false);
 });

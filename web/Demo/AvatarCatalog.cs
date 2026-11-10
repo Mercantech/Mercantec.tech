@@ -8,6 +8,7 @@ public static class AvatarCatalog
     public const string Bip01Id = "bip01";
     public const string RaymondId = "raymond";
     public const string SantaId = "santa";
+    public const string LuppId = "lupp";
 
     private static readonly AvatarAction[] CommonActions =
     [
@@ -62,6 +63,17 @@ public static class AvatarCatalog
         "ability_5_repair" => action with { Label = "Julevarme", Description = "En varm, rolig gestus samler kræfterne igen." },
         "ultimate_charge" => action with { Label = "Den store gavefest · opladning", Description = "Han samler al julemagien mellem sine hænder.", Fps = 5 },
         "ultimate_release" => action with { Label = "Den store gavefest · udløsning", Description = "Julemagien slippes fri i en fest af magiske snebolde.", Fps = 5 },
+        _ => action
+    }).ToArray());
+    private static readonly IReadOnlyList<AvatarAction> LuppActions = Array.AsReadOnly(CommonActions.Select(action => action.Id switch
+    {
+        "ability_1_pulse" => action with { Label = "Idépuls", Description = "LUPP sender en idégnist fra de åbne hænder. Projektil og effekter er separate sprites." },
+        "ability_2_magnet" => action with { Label = "Feedbackgreb", Description = "Et hurtigt greb vender modstanderen og skubber den tilbage til et nyt forsøg." },
+        "ability_3_shield" => action with { Label = "Prototypeværn", Description = "Et stabilt værn omsætter fjendtlige projektiler til en ny prototype." },
+        "ability_4_dash" => action with { Label = "Iterationsryk", Description = "Et elastisk ryk og et nyt afsæt giver plads til næste iteration." },
+        "ability_5_repair" => action with { Label = "Playtestpause", Description = "LUPP holder en sårbar pause, samler feedback og kommer stærkere tilbage." },
+        "ultimate_charge" => action with { Label = "Game Jam · opladning", Description = "LUPP samler alle sine idéer i en stor fælles prototype.", Fps = 5 },
+        "ultimate_release" => action with { Label = "Game Jam · udløsning", Description = "En vifte af selvstændige prototypekuber springer ud i verden.", Fps = 5 },
         _ => action
     }).ToArray());
     private static readonly IReadOnlyList<string> AnimationIds = Array.AsReadOnly(CommonActions.Select(action => action.Id).ToArray());
@@ -146,6 +158,30 @@ public static class AvatarCatalog
                 new("laugh", "Griner", "/assets/avatars/santa/emoji-laugh.png"),
                 new("think", "Tænksom", "/assets/avatars/santa/emoji-think.png"),
                 new("celebrate", "Jubel", "/assets/avatars/santa/emoji-celebrate.png")])
+        },
+        new(LuppId, "LUPP", "Den nysgerrige spildesigner med lilla modellerkrop, store øjne og mod på næste prototype. LUPP gør idéer til spil, der kan prøves af.", 1, 0,
+            Array.AsReadOnly<AvatarCatchphrase>(
+            [
+                new("lupp-greeting", "greeting", "Jeg er LUPP. Hvad skal spilleren prøve først?"),
+                new("lupp-start", "start", "En lille prototype kan gøre en stor idé tydelig."),
+                new("lupp-success", "success", "Prøv det af, lyt til feedback, og ret til."),
+                new("lupp-retry", "retry", "En fejl er en invitation til et nyt forsøg."),
+                new("lupp-unlock", "unlock", "Dit spil er ude i verden. Lad os se, hvad spillerne gør!")
+            ]))
+        {
+            Edition = "Fra idé til spil",
+            SpriteAssetRoot = "/assets/avatars/lupp",
+            SupportsWorldSprites = true,
+            FaceImage = "/assets/avatars/lupp/face.png",
+            Animations = AnimationIds,
+            Actions = LuppActions,
+            AudioFiles = PhraseFiles,
+            CharacterProfilePath = "/characters/lupp",
+            Emojis = Array.AsReadOnly<AvatarEmoji>([
+                new("happy", "Glad", "/assets/avatars/lupp/emoji-happy.png"),
+                new("laugh", "Griner", "/assets/avatars/lupp/emoji-laugh.png"),
+                new("think", "Tænksom", "/assets/avatars/lupp/emoji-think.png"),
+                new("celebrate", "Jubel", "/assets/avatars/lupp/emoji-celebrate.png")])
         }
     ]);
 

@@ -69,7 +69,7 @@ else
             @if (AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id) && avatar.UnlockRequirements.Count > 0))
             {
                 <div class="avatar-requirements-help">
-                    <p>@if (HasChristmasGiftRequirement) { <span>Julemanden kræver gaver til tre forskellige brugere. Vælg temaet <strong>Jul</strong>, og send via gaveikonet.</span> } else { <span>Se figurens krav nedenfor. Opdatér, når du har gjort fremskridt.</span> }</p>
+                    <div>@if (HasChristmasGiftRequirement) { <p>Julemanden kræver gaver til tre forskellige brugere. Vælg temaet <strong>Jul</strong>, og send via gaveikonet.</p> } @if (HasGameUploadRequirement) { <p>LUPP er gratis, når du har <a href="/games/mine">uploadet dit eget spil</a>. Dit spil behøver ikke være offentligt.</p> }</div>
                     <button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="RefreshRequirements">@(World.AvatarBusy ? "Henter krav…" : "Opdatér krav")</button>
                 </div>
             }
@@ -94,7 +94,7 @@ else
                             }
                             else
                             {
-                                <span class="avatar-requirement"><UiIcon Name="lock" /> Level @avatar.Level · @avatar.Cost guld</span>
+                                <span class="avatar-requirement"><UiIcon Name="lock" /> @(avatar.Cost == 0 ? "Gratis" : $"Level {avatar.Level} · {avatar.Cost} guld")</span>
                                 @if (avatar.UnlockRequirements.Count > 0)
                                 {
                                     <ul class="avatar-unlock-requirements" aria-label="@($"Oplåsningskrav for {avatar.Name}")">
@@ -103,13 +103,13 @@ else
                                             var progress = World.GetAvatarUnlockProgress(avatar.Id).First(value => value.RequirementId == requirement.Id);
                                             <li class="@(progress.IsMet ? "is-met" : null)" data-requirement-id="@requirement.Id">
                                                 <span>@requirement.Description</span>
-                                                <strong role="status" data-testid="@($"requirement-progress-{avatar.Id}-{requirement.Id}")">@Math.Min(progress.Current, progress.Required) / @progress.Required @(requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients ? "forskellige brugere" : "") @(progress.IsMet ? "· Opfyldt" : "")</strong>
+                                                <strong role="status" data-testid="@($"requirement-progress-{avatar.Id}-{requirement.Id}")">@Math.Min(progress.Current, progress.Required) / @progress.Required @(RequirementUnit(requirement.Kind)) @(progress.IsMet ? "· Opfyldt" : "")</strong>
                                                 <progress max="@progress.Required" value="@Math.Min(progress.Current, progress.Required)" aria-label="@requirement.Description"></progress>
                                             </li>
                                         }
                                     </ul>
                                 }
-                                <button type="button" class="action" disabled="@(World.AvatarBusy || !World.CanUnlockAvatar(avatar.Id))" data-testid="@(avatar.Id == AvatarCatalog.Bip01Id ? "unlock-robot" : $"unlock-{avatar.Id}")" @onclick="() => Unlock(avatar.Id)">@(World.AvatarBusy ? "Gemmer…" : World.CanUnlockAvatar(avatar.Id) ? $"Lås op · {avatar.Cost} guld" : World.AvatarRequirementText(avatar.Id))</button>
+                                <button type="button" class="action" disabled="@(World.AvatarBusy || !World.CanUnlockAvatar(avatar.Id))" data-testid="@(avatar.Id == AvatarCatalog.Bip01Id ? "unlock-robot" : $"unlock-{avatar.Id}")" @onclick="() => Unlock(avatar.Id)">@(World.AvatarBusy ? "Gemmer…" : World.CanUnlockAvatar(avatar.Id) ? avatar.Cost == 0 ? "Lås op gratis" : $"Lås op · {avatar.Cost} guld" : World.AvatarRequirementText(avatar.Id))</button>
                             }
                         </div>
                     </article>
@@ -168,6 +168,14 @@ else
     private string? _actionAudioNotice;
     private int _audioVersion;
     private AvatarDefinition PreviewDefinition => AvatarCatalog.Find(_previewId) ?? AvatarCatalog.All[0];
+    private bool HasGameUploadRequirement => AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id)
+        && avatar.UnlockRequirements.Any(requirement => requirement.Kind == AvatarRequirementKinds.UploadedGames));
+    private static string RequirementUnit(string kind) => kind switch
+    {
+        AvatarRequirementKinds.SentGiftsDistinctRecipients => "forskellige brugere",
+        AvatarRequirementKinds.UploadedGames => "uploadet spil",
+        _ => ""
+    };
     private bool HasChristmasGiftRequirement => AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id)
         && avatar.UnlockRequirements.Any(requirement => requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients && requirement.Target == "christmas"));
     private AvatarAction? PreviewAction => PreviewDefinition.Actions.FirstOrDefault(action => action.Id == _animation);

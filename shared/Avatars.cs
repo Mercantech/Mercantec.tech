@@ -20,6 +20,7 @@ public sealed record AvatarUnlockProgressDto(
 public static class AvatarRequirementKinds
 {
     public const string SentGiftsDistinctRecipients = "sent_gifts_distinct_recipients";
+    public const string UploadedGames = "uploaded_games";
 }
 
 public sealed record AvatarUnlockRequirementDefinition(
@@ -44,6 +45,7 @@ public static class AvatarEconomy
     public const string Bip01Id = "bip01";
     public const string RaymondId = "raymond";
     public const string SantaId = "santa";
+    public const string LuppId = "lupp";
     public const int InitialGold = 320;
     public const int InitialLevel = 7;
 
@@ -57,6 +59,10 @@ public static class AvatarEconomy
             [
                 new("christmas-gift-recipients", AvatarRequirementKinds.SentGiftsDistinctRecipients,
                     "christmas", 3, "Send gaver i juletemaet til 3 forskellige brugere")
+            ]),
+            new(LuppId, "LUPP", 1, 0, Requirements:
+            [
+                new("uploaded-game", AvatarRequirementKinds.UploadedGames, "site", 1, "Upload dit eget spil til LUP")
             ])
         ]);
 
@@ -88,7 +94,7 @@ public static class AvatarEconomy
 }
 
 // Only avatars that existed before account-backed ownership can be migrated
-// from browser data. New catalog entries must be purchased on the server.
+// from browser data. New catalog entries must be unlocked on the server.
 public sealed record AvatarUnlockDefinition(
     string Id,
     string Name,

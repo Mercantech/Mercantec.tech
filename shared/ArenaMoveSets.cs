@@ -11,6 +11,7 @@ public static class ArenaMoveSets
         "bip01" => Bip01,
         "raymond" => Raymond,
         "santa" => Santa,
+        "lupp" => Lupp,
         _ => null
     };
 
@@ -36,6 +37,17 @@ public static class ArenaMoveSets
         new("recovery", "W + K", "Snabelløft", "Tungt løft med et bredt redningsangreb."),
         new("repair", "S + K", "Gendannelse", "Omsætter skjold til heling efter en sårbar opladning."),
         new("ultimate", "Hold I", "Den store JOIN", "Fuld måler: komet trækker fjender sammen og eksploderer.")
+    ]);
+    public static ArenaMoveSet Lupp { get; } = new("lupp", "Spildesigner", "Idékraft driver prototyperne. Træffere lader Game Jam. Afprøv, få feedback og prøv igen.",
+    [
+        new("attack", "J", "Modellerslag", "Et elastisk, hurtigt slag med kort rækkevidde."),
+        new("pulse", "K", "Idépuls", "En idégnist springer én gang på banen. Koster 12 idékraft."),
+        new("grab", "U", "Feedbackgreb", "Vender og skubber en nærliggende fjende. Koster 16 idékraft."),
+        new("shield", "L", "Prototypeværn", "Omsætter et blokeret projektil til en langsommere prototypekube."),
+        new("dash", "A/D + K", "Iterationsryk", "Et elastisk ryk med et kort, beskyttet afsæt. Koster 20 idékraft."),
+        new("recovery", "W + K", "Nyt forsøg", "Et let hop tilbage mod banen. Koster 18 idékraft."),
+        new("repair", "S + K", "Playtestpause", "30 idékraft: heler 10 skade efter en sårbar pause. Kan afbrydes."),
+        new("ultimate", "Hold I", "Game Jam", "Fuld måler: fem prototypekuber i en vifte, der springer på banen. Kan afbrydes.")
     ]);
     public static ArenaMoveSet Santa { get; } = new("santa", "Julemagi", "Julemagi driver evnerne. Julefred omsætter projektiler til magi. Træffere lader gavefesten.",
     [

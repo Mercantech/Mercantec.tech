@@ -1,0 +1,240 @@
+{
+  "passed": true,
+  "decoded": 33,
+  "playbackStarted": 33,
+  "spokenPlaybackStarted": 5,
+  "results": [
+    {
+      "id": "idle",
+      "durationSeconds": 0.72,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "blink",
+      "durationSeconds": 0.12,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "wave",
+      "durationSeconds": 0.64,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "think",
+      "durationSeconds": 1,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "talk",
+      "durationSeconds": 0.88,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "point",
+      "durationSeconds": 0.34,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "celebrate",
+      "durationSeconds": 1.23,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "encourage",
+      "durationSeconds": 1.08,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "surprised",
+      "durationSeconds": 0.48,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "unlock",
+      "durationSeconds": 1.55,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "walk",
+      "durationSeconds": 0.23501133786848072,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "run",
+      "durationSeconds": 0.16,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "jump",
+      "durationSeconds": 0.44,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "land",
+      "durationSeconds": 0.4,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "sit",
+      "durationSeconds": 0.51,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "sleep",
+      "durationSeconds": 1.48,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "pickup",
+      "durationSeconds": 0.35,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "interact",
+      "durationSeconds": 0.37,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "hit",
+      "durationSeconds": 0.29,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "knockout",
+      "durationSeconds": 1.14,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "respawn",
+      "durationSeconds": 1.2,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ability_1_pulse",
+      "durationSeconds": 0.68,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ability_2_magnet",
+      "durationSeconds": 1.03,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ability_3_shield",
+      "durationSeconds": 1.25,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ability_4_dash",
+      "durationSeconds": 0.7,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ability_5_repair",
+      "durationSeconds": 1.55,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ultimate_charge",
+      "durationSeconds": 2.15,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "ultimate_release",
+      "durationSeconds": 2.52,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "phrase_1_welcome",
+      "durationSeconds": 3.9282539682539683,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "phrase_2_start",
+      "durationSeconds": 3.29718820861678,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "phrase_3_success",
+      "durationSeconds": 3.431156462585034,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "phrase_4_retry",
+      "durationSeconds": 2.8995238095238096,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    },
+    {
+      "id": "phrase_5_milestone",
+      "durationSeconds": 4.958888888888889,
+      "sampleRate": 44100,
+      "channels": 1,
+      "playback": "started"
+    }
+  ],
+  "scope": "Real native Chromium AudioContext decoding and HTMLAudioElement playback requests for all33files. Not subjective listening, transcription or full-clip end-to-end playback."
+}

@@ -5,10 +5,12 @@ using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text;
 using Mercantec.Tech.Api.Arena;
 using Mercantec.Tech.Api.Controllers;
 using Mercantec.Tech.Api.Data;
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Api.Storage;
 using Mercantec.Tech.Contracts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -43,6 +45,7 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
         builder.Services.AddControllers().AddApplicationPart(typeof(ArenaController).Assembly);
         builder.Services.AddAuthentication("ArenaAbilityTest").AddScheme<AuthenticationSchemeOptions, TestAuthentication>("ArenaAbilityTest", _ => { });
         builder.Services.AddAuthorization();
+        builder.Services.AddSingleton<IObjectStorage, GameStorage>();
         builder.Services.AddSingleton<ArenaRoomService>();
         builder.Services.AddHostedService(sp => sp.GetRequiredService<ArenaRoomService>());
         _app = builder.Build();
@@ -90,7 +93,7 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
         var profile = await bob.GetFromJsonAsync<AvatarProfileDto>("/api/me/avatars");
         Assert.DoesNotContain("santa", profile!.OwnedAvatarIds);
         Assert.Equal(320, profile.Gold);
-        Assert.Equal(0, Assert.Single(profile.UnlockProgress!).Current);
+        Assert.Equal(0, Assert.Single(profile.UnlockProgress!, progress => progress.AvatarId == "santa").Current);
     }
 
     [Fact]
@@ -112,6 +115,35 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
         Assert.InRange(Fighter(fired, match.FirstId).ActionFrame, 4, 5);
         Assert.InRange(Fighter(fired, match.FirstId).Combat!.Energy, 85, 90);
         Assert.True(Fighter(fired, match.FirstId).Combat!.Cooldowns.Pulse > 0);
+        await AssertSharedState(match.Second, fired);
+    }
+
+    [Fact]
+    public async Task RealPrivateUploadUnlocksLuppAndBothOnlineClientsReceiveTheFrameFourIdea()
+    {
+        using var alice = Client(_alice); using var bob = Client(_bob);
+        var forged = await bob.PostAsJsonAsync("/api/me/avatars/lupp/unlock", new { current = 1, isMet = true, uploadedGames = 1 });
+        Assert.Equal(HttpStatusCode.Conflict, forged.StatusCode);
+        using var upload = new MultipartFormDataContent();
+        upload.Add(new StringContent("Prototypespil"), "title");
+        upload.Add(new StringContent(Guid.NewGuid().ToString()), "requestId");
+        upload.Add(new ByteArrayContent(Encoding.UTF8.GetBytes("<!doctype html><button>Spil</button>")), "file", "spil.html");
+        var saved = await alice.PostAsync("/api/me/games", upload); saved.EnsureSuccessStatusCode();
+        var before = (await alice.GetFromJsonAsync<AvatarProfileDto>("/api/me/avatars"))!;
+        Assert.True(Assert.Single(before.UnlockProgress!, progress => progress.AvatarId == "lupp").IsMet);
+        Assert.False(Assert.Single((await bob.GetFromJsonAsync<AvatarProfileDto>("/api/me/avatars"))!.UnlockProgress!, progress => progress.AvatarId == "lupp").IsMet);
+        var claimed = await alice.PostAsJsonAsync("/api/me/avatars/lupp/unlock", new { }); claimed.EnsureSuccessStatusCode();
+        using var secondDevice = Client(_alice);
+        var profile = (await secondDevice.GetFromJsonAsync<AvatarProfileDto>("/api/me/avatars"))!;
+        Assert.Equal(before.Gold, profile.Gold); Assert.Equal("lupp", profile.SelectedAvatarId);
+        await using var match = await StartMatch(firstAvatar: "lupp");
+        var initial = await match.First.WaitState(state => state.Phase == "playing" && state.Tick >= 216);
+        await match.First.Input(special: true);
+        var windup = await match.First.WaitState(state => state.Tick > initial.Tick && Fighter(state, match.FirstId).Combat!.ActiveAbility == "idea");
+        Assert.Empty(windup.Projectiles); Assert.InRange(Fighter(windup, match.FirstId).ActionFrame, 0, 3);
+        var fired = await match.First.WaitState(state => state.Tick > windup.Tick && state.Projectiles.Any(projectile => projectile.SourceAvatarId == "lupp"));
+        var idea = Assert.Single(fired.Projectiles); Assert.Equal("idea", idea.Kind); Assert.Equal(match.FirstId, idea.OwnerId);
+        Assert.InRange(Fighter(fired, match.FirstId).ActionFrame, 4, 5); Assert.InRange(Math.Abs(idea.Vx), 559, 561);
         await AssertSharedState(match.Second, fired);
     }
 
@@ -476,6 +508,18 @@ public sealed class ArenaAbilityNetworkTests : IAsyncLifetime
             _socket.Dispose();
             _stop.Dispose();
         }
+    }
+
+    private sealed class GameStorage : IObjectStorage
+    {
+        private readonly Dictionary<string, byte[]> objects = [];
+        public bool IsConfigured => true;
+        public string Bucket => "test";
+        public async Task<ObjectPutResult> PutAsync(string key, Stream content, string contentType, CancellationToken ct = default)
+        { using var output = new MemoryStream(); await content.CopyToAsync(output, ct); objects[key] = output.ToArray(); return new(key, Bucket, contentType, output.Length); }
+        public Task<ObjectGetResult?> GetAsync(string key, CancellationToken ct = default) => Task.FromResult(objects.TryGetValue(key, out var bytes) ? new ObjectGetResult(new MemoryStream(bytes), "text/html", bytes.Length) : null);
+        public Task DeleteAsync(string key, CancellationToken ct = default) { objects.Remove(key); return Task.CompletedTask; }
+        public Task<Uri?> GetPresignedGetUrlAsync(string key, TimeSpan expiry, CancellationToken ct = default) => Task.FromResult<Uri?>(null);
     }
 
     public sealed class TestAuthentication(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)

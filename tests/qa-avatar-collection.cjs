@@ -5,7 +5,9 @@ function dependency(name){try{return require(name);}catch{return require(path.jo
 const {chromium}=dependency('playwright');
 const base=process.env.LUP_QA_URL||'http://localhost:3000';
 // One isolated harness verifies any complete character pack without copying tests.
-globalThis.__qaAvatar=process.env.LUP_QA_AVATAR==='santa'
+globalThis.__qaAvatar=process.env.LUP_QA_AVATAR==='lupp'
+  ? {id:'lupp',name:'LUPP',profilePath:'/characters/lupp'}
+  : process.env.LUP_QA_AVATAR==='santa'
   ? {id:'santa',name:'Julemanden',profilePath:null}
   : {id:'raymond',name:'Raymond',profilePath:'/characters/raymond'};
 const output=process.env.LUP_QA_OUTPUT?path.resolve(process.env.LUP_QA_OUTPUT):path.resolve(__dirname,'../../design/robot-avatar-platform');
@@ -16,17 +18,17 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   browser=await chromium.launch({executablePath:process.env.BIP_BROWSER||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
   // An API double shared by otherwise isolated browser/device contexts.
   // Real relational persistence and concurrency are covered by AvatarProfileTests.
-  const profiles=new Map(),calls=[]; let rejectMutation=false,rejectLoad=false;
+  const profiles=new Map(),calls=[],games=new Map(),gameRequests=[]; let rejectMutation=false,rejectLoad=false,rejectGameUpload=false;
   const first='11111111-1111-1111-1111-111111111111';
   const second='22222222-2222-2222-2222-222222222222';
   const legacy='33333333-3333-3333-3333-333333333333';
   const fullAvatarAccount='44444444-4444-4444-4444-444444444444';
-  const avatarCatalog={starter:{level:1,cost:0},bip01:{level:2,cost:150},raymond:{level:3,cost:150},santa:{level:4,cost:150}};
+  const avatarCatalog={starter:{level:1,cost:0},bip01:{level:2,cost:150},raymond:{level:3,cost:150},santa:{level:4,cost:150},lupp:{level:1,cost:0}};
   const clone=value=>JSON.parse(JSON.stringify(value));
   const profileFor=subject=>{
     // Full-pack playback QA uses a qualified Santa account. Separate focused
     // requirement QA exercises real blocked/progress/third-recipient UI flows.
-    if(!profiles.has(subject))profiles.set(subject,{selectedAvatarId:'starter',ownedAvatarIds:['starter'],gold:320,level:7,ownedItemIds:['desk','bed','chair','plant','board'],canImportLegacy:true,revision:0,unlockProgress:[{avatarId:'santa',requirementId:'christmas-gift-recipients',current:subject===fullAvatarAccount?3:0,required:3,isMet:subject===fullAvatarAccount}]});
+    if(!profiles.has(subject))profiles.set(subject,{selectedAvatarId:'starter',ownedAvatarIds:['starter'],gold:320,level:7,ownedItemIds:['desk','bed','chair','plant','board'],canImportLegacy:true,revision:0,unlockProgress:[{avatarId:'santa',requirementId:'christmas-gift-recipients',current:subject===fullAvatarAccount?3:0,required:3,isMet:subject===fullAvatarAccount},{avatarId:'lupp',requirementId:'uploaded-game',current:0,required:1,isMet:false}]});
     return profiles.get(subject);
   };
   async function device(subject,oldProfile=null){
@@ -39,6 +41,19 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
         const reply=(status,value)=>route.fulfill({status,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(value)});
         if(req.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PUT,OPTIONS','access-control-allow-headers':'*'}});
         if(!account)return reply(401,{detail:'Log ind'});
+        if(url.pathname.endsWith('/me/games')){
+          if(req.method()==='GET')return reply(200,games.get(account)||[]);
+          assert.equal(req.headers()['x-lup-game-subject'],account);
+          assert.match(req.headers()['content-type'],/^multipart\/form-data/);
+          const payload=req.postData();assert.ok(payload.includes('<button>Spil</button>'));
+          const boundary=req.headers()['content-type'].match(/boundary="?([^";]+)/)?.[1];assert.ok(boundary);
+          const requestPart=payload.split('--'+boundary).find(part=>/name="?requestId"?(?:\s|;)/.test(part));
+          const requestId=requestPart?.split(/\r?\n\r?\n/)[1]?.trim();assert.ok(requestId);gameRequests.push(requestId);
+          if(rejectGameUpload){rejectGameUpload=false;return reply(400,{error:'no_web_entrypoint'});}
+          const game={id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',fileId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',title:'Mit prototypespil',originalName:'prototype.html',entryPoint:'index.html',createdAtUtc:new Date().toISOString()};
+          games.set(account,[game]);profileFor(account).unlockProgress.find(p=>p.avatarId==='lupp').current=1;profileFor(account).unlockProgress.find(p=>p.avatarId==='lupp').isMet=true;
+          return reply(201,game);
+        }
         if(!url.pathname.includes('/me/avatars'))return reply(200,{sub:account,name:'Avatar QA'});
         assert.equal(req.headers()['x-lup-avatar-subject'],account);
         console.log('API',req.method(),url.pathname);calls.push({account,method:req.method(),path:url.pathname});
@@ -53,6 +68,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
           if(!state.ownedAvatarIds.includes(id)){
             if(state.level<avatar.level)return reply(409,{code:'level_required',detail:'Levelkravet er ikke opfyldt'});
             if(id==='santa'&&!state.unlockProgress.some(p=>p.avatarId==='santa'&&p.requirementId==='christmas-gift-recipients'&&p.current>=3&&p.required===3&&p.isMet))return reply(409,{code:'avatar_requirement_not_met',detail:'Send julegaver til mindst tre forskellige brugere'});
+            if(id==='lupp'&&!state.unlockProgress.some(p=>p.avatarId==='lupp'&&p.requirementId==='uploaded-game'&&p.current>=1&&p.required===1&&p.isMet))return reply(409,{code:'avatar_requirement_not_met',detail:'Upload dit eget spil'});
             if(state.gold<avatar.cost)return reply(409,{code:'insufficient_gold',detail:'Ikke nok guld'});
             state.gold-=avatar.cost;state.ownedAvatarIds.push(id);state.selectedAvatarId=id;changed=true;
           }
@@ -112,13 +128,13 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   const ready=()=>page.getByTestId('selected-avatar-name').waitFor({state:'visible',timeout:90000});
   await visit('/profile/character');await ready();
   assert.equal(await page.locator('.avatar-mystery').count(),12);
-  assert.equal(await page.locator('.avatar-collectible').count(),4);
+  assert.equal(await page.locator('.avatar-collectible').count(),5);
   assert.equal(await page.locator('.v2-swatch,.v4-wardrobe').count(),0);
   assert.equal(await page.getByTestId('selected-avatar-name').textContent(),'Din første avatar');
   assert.equal(await page.getByTestId('avatar-gold').textContent(),'320');
   assert.equal(await page.getByTestId('unlock-robot').isEnabled(),true);
   assert.equal(await page.evaluate(()=>window.__avatarAudio.length),0);
-  results.push('Collection replaces customization with four figures and 12 noninteractive coming-soon slots.');
+  results.push('Collection replaces customization with five figures and 12 noninteractive coming-soon slots.');
   await page.getByTestId('unlock-robot').click();
   await page.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]').textContent==='BIP-01');
   assert.equal(await page.getByTestId('avatar-gold').textContent(),'170');
@@ -217,6 +233,27 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   page=fullAvatarPage;fullAvatarPage.setDefaultTimeout(90000);
   await fullAvatarPage.goto(base+'/profile/character',{waitUntil:'domcontentloaded'});
   await fullAvatarPage.getByTestId('selected-avatar-name').waitFor();
+  if(globalThis.__qaAvatar.id==='lupp'){
+    assert.equal(await fullAvatarPage.getByTestId('unlock-lupp').isDisabled(),true);
+    assert.match(await fullAvatarPage.locator('[data-avatar-id="lupp"]').textContent(),/0\s*\/\s*1 uploadet spil/);
+    await fullAvatarPage.locator('.avatar-requirements-help a[href="/games/mine"]').click();
+    await fullAvatarPage.getByRole('heading',{name:'Mine spil',exact:true}).waitFor();
+    await fullAvatarPage.getByLabel('Spillets navn',{exact:true}).fill('Mit prototypespil');
+    await fullAvatarPage.locator('input[type="file"]').setInputFiles({name:'prototype.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><button>Spil</button>')});
+    rejectGameUpload=true;await fullAvatarPage.getByRole('button',{name:'Upload spil',exact:true}).click();
+    await fullAvatarPage.getByRole('alert').filter({hasText:'startside'}).waitFor();
+    assert.equal(await fullAvatarPage.getByLabel('Spillets navn',{exact:true}).inputValue(),'Mit prototypespil');
+    assert.equal(profileFor(fullAvatarAccount).unlockProgress.find(p=>p.avatarId==='lupp').current,0);
+    await fullAvatarPage.getByRole('button',{name:'Upload spil',exact:true}).click();
+    await fullAvatarPage.getByRole('status').filter({hasText:'Spillet er uploadet'}).waitFor();
+    assert.equal(gameRequests.length,2);assert.equal(gameRequests[0],gameRequests[1]);
+    assert.equal(profileFor(second).unlockProgress.find(p=>p.avatarId==='lupp').current,0);
+    await fullAvatarPage.getByRole('link',{name:'Vælg LUPP',exact:true}).click();
+    await fullAvatarPage.getByTestId('unlock-lupp').waitFor();
+    assert.equal(await fullAvatarPage.getByTestId('unlock-lupp').isEnabled(),true);
+    assert.equal((games.get(fullAvatarAccount)||[]).length,1);
+    results.push('Real browser file input posts owner-bound multipart HTML; failed upload preserves selections and request id, successful private upload advances only the uploader’s LUPP requirement and enables free claim.');
+  }
   await fullAvatarPage.getByRole('button',{name:`Se ${globalThis.__qaAvatar.name}`,exact:true}).click();
   await fullAvatarPage.locator(`.avatar-preview .avatar-sheet[data-avatar="${globalThis.__qaAvatar.id}"]`).waitFor();
   assert.equal(await fullAvatarPage.locator('#avatar-preview-title').textContent(),globalThis.__qaAvatar.name);
@@ -305,12 +342,12 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   assert.deepEqual(await fullAvatarPage.evaluate(()=>window.__avatarAudioFailed),[],`Every explicitly requested ${globalThis.__qaAvatar.name} sound must decode and start successfully`);
   await fullAvatarPage.getByTestId(`unlock-${globalThis.__qaAvatar.id}`).click();
   await fullAvatarPage.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent===globalThis.__qaAvatar.name);
-  assert.equal(await fullAvatarPage.getByTestId('avatar-gold').textContent(),'170');
+  assert.equal(await fullAvatarPage.getByTestId('avatar-gold').textContent(),String(320-avatarCatalog[globalThis.__qaAvatar.id].cost));
   assert.equal(profileFor(fullAvatarAccount).selectedAvatarId,globalThis.__qaAvatar.id);
   assert.ok(profileFor(fullAvatarAccount).ownedAvatarIds.includes(globalThis.__qaAvatar.id));
   assert.equal(await fullAvatarPage.locator(`.lup-account>summary [data-avatar-icon="${globalThis.__qaAvatar.id}"] img`).getAttribute('src'),`/assets/avatars/${globalThis.__qaAvatar.id}/face.png`);
   assert.equal(await fullAvatarPage.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('lup-avatar-profile-v1:'))),false);
-  results.push(`${globalThis.__qaAvatar.name} has 28 eight-frame sheets, all five abilities and both ultimate phases, explicit playback of 28 SFX and five spoken phrases, working motion/pause/replay/one-shots and a paid server-backed unlock.`);
+  results.push(`${globalThis.__qaAvatar.name} has 28 eight-frame sheets, all five abilities and both ultimate phases, explicit playback of 28 SFX and five spoken phrases, working motion/pause/replay/one-shots and a server-backed unlock with the configured price.`);
 
   console.log('Layer QA: item attachment and replacement');
   // Real world entities must stay separate from the actor sheet and its pose clock.
@@ -430,7 +467,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   const fullAvatarSecondDevice=await device(fullAvatarAccount),fullAvatarOther=observePage(await fullAvatarSecondDevice.newPage());fullAvatarOther.setDefaultTimeout(90000);
   await fullAvatarOther.goto(base+'/profile/character',{waitUntil:'domcontentloaded'});await fullAvatarOther.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await fullAvatarOther.getByTestId('selected-avatar-name').textContent(),globalThis.__qaAvatar.name);
-  assert.equal(await fullAvatarOther.getByTestId('avatar-gold').textContent(),'170');
+  assert.equal(await fullAvatarOther.getByTestId('avatar-gold').textContent(),String(320-avatarCatalog[globalThis.__qaAvatar.id].cost));
   await fullAvatarOther.locator('[data-avatar-id="starter"]').getByRole('button',{name:'Brug avatar',exact:true}).click();
   await fullAvatarOther.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent==='Din første avatar');
   await fullAvatarPage.reload();await fullAvatarPage.getByTestId('selected-avatar-name').waitFor();
@@ -440,7 +477,7 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   await fullAvatarPage.waitForFunction(()=>document.querySelector('[data-testid="selected-avatar-name"]')?.textContent===globalThis.__qaAvatar.name);
   await fullAvatarOther.reload();await fullAvatarOther.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await fullAvatarOther.getByTestId('selected-avatar-name').textContent(),globalThis.__qaAvatar.name);
-  assert.equal(await fullAvatarOther.getByTestId('avatar-gold').textContent(),'170');
+  assert.equal(await fullAvatarOther.getByTestId('avatar-gold').textContent(),String(320-avatarCatalog[globalThis.__qaAvatar.id].cost));
   await fullAvatarPage.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await fullAvatarPage.locator(`.avatar-preview .avatar-sheet[data-avatar="${globalThis.__qaAvatar.id}"]`).evaluate(el=>getComputedStyle(el).animationName),'none');
   await fullAvatarPage.screenshot({path:path.join(output,`${globalThis.__qaAvatar.id}-desktop.png`),fullPage:true});

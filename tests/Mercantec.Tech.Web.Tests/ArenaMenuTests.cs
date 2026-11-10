@@ -50,13 +50,16 @@ public sealed class ArenaMenuTests
         page.WaitForAssertion(() => Assert.False(page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("Din avatar")).HasAttribute("disabled")));
         var fighters = page.FindAll(".arena-fighter");
 
-        Assert.Equal(4, fighters.Count);
+        Assert.Equal(5, fighters.Count);
         Assert.False(fighters.Single(x => x.TextContent.Contains("Din avatar")).HasAttribute("disabled"));
         Assert.True(fighters.Single(x => x.TextContent.Contains("BIP-01")).HasAttribute("disabled"));
         Assert.True(fighters.Single(x => x.TextContent.Contains("Raymond")).HasAttribute("disabled"));
         var santa = fighters.Single(x => x.TextContent.Contains("Julemanden"));
         Assert.True(santa.HasAttribute("disabled"));
         Assert.Equal("/assets/avatars/santa/face.png", santa.QuerySelector("img")!.GetAttribute("src"));
+        var lupp = fighters.Single(x => x.TextContent.Contains("LUPP"));
+        Assert.True(lupp.HasAttribute("disabled"));
+        Assert.Equal("/assets/avatars/lupp/face.png", lupp.QuerySelector("img")!.GetAttribute("src"));
         Assert.Equal("true", fighters.Single(x => x.TextContent.Contains("Din avatar")).GetAttribute("aria-pressed"));
         Assert.Empty(api.Requests);
     }
@@ -110,7 +113,7 @@ public sealed class ArenaMenuTests
         var page = context.Render<Arena>();
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.MountCount));
 
-        Assert.Equal("./js/arena-client.js?v=6", javascript.ImportPath);
+        Assert.Equal("./js/arena-client.js?v=7", javascript.ImportPath);
         Assert.Equal(new[] { "soundPreference", "mount" }, javascript.Module.Calls.Take(2));
         Assert.True(javascript.Module.MountedSound);
         var sound = page.Find(".arena-topbar [data-arena-sound-toggle]");
@@ -208,6 +211,11 @@ public sealed class ArenaMenuTests
         Assert.Contains("Den store gavefest", help.Markup);
         Assert.Contains("Julemagi", help.Find("p").TextContent);
         Assert.DoesNotContain("Den store JOIN", help.Markup);
+        help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.LuppId));
+        Assert.Contains("Feedbackgreb", help.Markup);
+        Assert.Contains("Game Jam", help.Markup);
+        Assert.Contains("Idékraft", help.Find("p").TextContent);
+        Assert.DoesNotContain("Den store gavefest", help.Markup);
         help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.StarterId));
         Assert.Empty(help.FindAll("details"));
     }

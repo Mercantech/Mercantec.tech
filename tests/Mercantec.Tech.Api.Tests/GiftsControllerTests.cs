@@ -60,7 +60,7 @@ public sealed class GiftsControllerTests : IAsyncLifetime
         Assert.Empty(await _db.ChristmasGifts.ToListAsync());
         var progress = await Mercantec.Tech.Api.Avatars.AvatarRequirementEvaluator.EvaluateAsync(_db, Sender,
             Mercantec.Tech.Contracts.AvatarEconomy.Avatars, default);
-        Assert.Equal(0, Assert.Single(progress).Current);
+        Assert.All(progress, value => Assert.Equal(0, value.Current));
     }
     [Fact] public async Task MatchingAccountBindingAllowsTheAuthenticatedSender()
     {

@@ -1,11 +1,11 @@
-import { ArenaEffectArt, combatPresentation, combatStatusFor, effectAvatarForEvent, projectileArtFor, repairReadinessFor } from './arena-effect-art.js?v=3';
-import { isOriginalAvatar, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=2';
+import { ArenaEffectArt, combatPresentation, combatStatusFor, effectAvatarForEvent, projectileArtFor, repairReadinessFor } from './arena-effect-art.js?v=4';
+import { isOriginalAvatar, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=3';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
 const ART_ROOT = '/assets/arena/v2/';
 const COLORS = ['#ff647c', '#64b5ff', '#ffc766', '#b297ff'];
-const AVATARS = ['starter', 'bip01', 'raymond', 'santa'];
+const AVATARS = ['starter', 'bip01', 'raymond', 'santa', 'lupp'];
 const STAGES = ['rooftops', 'workshop', 'skyline'];
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const lerp = (a, b, amount) => a + (b - a) * amount;
@@ -220,10 +220,10 @@ export class ArenaRenderer {
                 case 'dodge': case 'recovery':
                     this.effects.push({ ...effect, frames: [13], duration: .27, size: 100, grow: 1.6 });
                     break;
-                case 'gift-grab': case 'magnet': case 'capture': case 'escape': case 'release':
+                case 'feedback': case 'gift-grab': case 'magnet': case 'capture': case 'escape': case 'release':
                     this.effects.push({ ...effect, frames: [0], effectId: 'magnet_field', duration: .35, size: event.type === 'magnet' ? 170 : 105, grow: 1.3 });
                     break;
-                case 'absorb': case 'reflect':
+                case 'prototype': case 'absorb': case 'reflect':
                     this.effects.push({ ...effect, frames: [0], effectId: event.type === 'reflect' ? 'shield' : 'unlock', duration: .24, size: 110, grow: 1.25 });
                     break;
                 case 'armor':
@@ -235,7 +235,7 @@ export class ArenaRenderer {
                 case 'ultimate-charge':
                     this.effects.push({ ...effect, frames: [0], effectId: 'ultimate_charge', duration: .4, size: 140, grow: 1.1 });
                     break;
-                case 'gift-fest': case 'overload': case 'join-explode':
+                case 'game-jam': case 'gift-fest': case 'overload': case 'join-explode':
                     this.effects.push({ ...effect, frames: [0], effectId: 'ultimate_release', duration: .58, size: event.type === 'overload' ? 340 : 300, grow: 1.35 });
                     this.shake = Math.max(this.shake, this.reducedMotion ? 0 : 6);
                     break;
@@ -476,7 +476,7 @@ export class ArenaRenderer {
             this.effectTexture(context, frame, fighter.x, fighter.y - 41, size * 1.25, 0, .7, 'screen', 1, fighter.avatarId, 'shield');
         }
         const combat = combatPresentation(fighter);
-        if (fighter.charge > 0 && !['overload-charge', 'join-charge', 'gift-fest-charge'].includes(combat?.activeAbility)) {
+        if (fighter.charge > 0 && !['overload-charge', 'join-charge', 'gift-fest-charge', 'game-jam-charge'].includes(combat?.activeAbility)) {
             this.effectTexture(context, 14, fighter.x, fighter.y - 43, 110 + fighter.charge * 65, 0, .25 + fighter.charge * .5, 'screen', 1, fighter.avatarId, 'ultimate_charge');
         }
         this.combatEffects(context, fighter, combat, now);
@@ -514,7 +514,7 @@ export class ArenaRenderer {
         if (combat.armored) {
             this.effectArt.draw(context, fighter.avatarId, 'shield', 0, x, y, 130, 0, .42 * pulse, 'screen');
         }
-        if (['overload-charge', 'join-charge', 'gift-fest-charge'].includes(combat.activeAbility)) {
+        if (['overload-charge', 'join-charge', 'gift-fest-charge', 'game-jam-charge'].includes(combat.activeAbility)) {
             this.effectArt.draw(context, fighter.avatarId, 'ultimate_charge', 0, x, y, 165, 0, .8 * pulse, 'screen');
         }
         if (combat.capturedBy) {
@@ -609,10 +609,11 @@ export class ArenaRenderer {
     combatHud(context, fighter, combat, x, y, width, own) {
         if (!combat) return;
         const magic = fighter.avatarId === 'santa';
-        const energy = magic || fighter.avatarId === 'bip01';
+        const ideas = fighter.avatarId === 'lupp';
+        const energy = ideas || magic || fighter.avatarId === 'bip01';
         const resource = energy ? combat.energy : clamp(fighter.shield || 0, 0, 100);
-        const resourceColor = magic ? '#f2d177' : energy ? '#76e5f2' : '#b6c9e2';
-        label(context, (magic ? 'M ' : energy ? 'E ' : 'L ') + Math.round(resource), x + 14, y + 80, 10, resourceColor, 700, 'left');
+        const resourceColor = ideas ? '#c4a1ff' : magic ? '#f2d177' : energy ? '#76e5f2' : '#b6c9e2';
+        label(context, (ideas ? 'IDÉ ' : magic ? 'M ' : energy ? 'E ' : 'L ') + Math.round(resource), x + 14, y + 80, 10, resourceColor, 700, 'left');
         panel(context, x + 14, y + 91, 53, 3, 1.5, '#35485c');
         if (resource > 0) panel(context, x + 14, y + 91, 53 * resource / 100, 3, 1.5, resourceColor);
         const ready = combat.ultimateReady && !fighter.out;
@@ -621,7 +622,7 @@ export class ArenaRenderer {
         if (combat.ultimate > 0) panel(context, x + 82, y + 98, (width - 98) * combat.ultimate / 100, 3, 1.5, ready ? '#ffdb8b' : '#c1a5ff');
         if (!own || fighter.out) return;
         const seconds = value => value > 0 ? value.toFixed(1) + 's' : 'klar';
-        const grab = combat.cooldowns.grab > 0 ? seconds(combat.cooldowns.grab) : magic && resource < 20 ? '20M' : energy && resource < 18 ? '18E' : 'klar';
+        const grab = combat.cooldowns.grab > 0 ? seconds(combat.cooldowns.grab) : ideas ? resource < 16 ? '16 IDÉ' : 'klar' : magic && resource < 20 ? '20M' : energy && resource < 18 ? '18E' : 'klar';
         const repair = repairReadinessFor(fighter, combat);
         label(context, 'U ' + grab + ' · ↓K ' + repair,
             x + 82, y + 71, 10, '#b8cadb', 600, 'left');

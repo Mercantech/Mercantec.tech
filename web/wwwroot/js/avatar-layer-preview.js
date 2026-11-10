@@ -1,7 +1,7 @@
 /* Separate preview entities. The actor's existing CSS clock owns pose timing. */
 const states = new WeakMap();
 const instances = new Map();
-const roots = new Set(['/assets/avatars/raymond', '/assets/avatars/santa']);
+const roots = new Set(['/assets/avatars/raymond', '/assets/avatars/santa', '/assets/avatars/lupp']);
 const visibleEvents = new Set(['attach_item', 'spawn_projectile', 'spawn_effect']);
 const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const bounded = (value, min, max, fallback) => Math.min(max, Math.max(min, number(value, fallback)));

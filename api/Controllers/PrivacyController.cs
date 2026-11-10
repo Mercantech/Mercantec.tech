@@ -96,6 +96,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
         object[] pollResponses = [];
         object[] electiveEnrollments = [];
         object[] actionReadReceipts = [];
+        object[] uploadedGames = [];
         if (subGuid is not null)
         {
             memberships = await db.Memberships
@@ -118,6 +119,11 @@ public class PrivacyController(AppDbContext db) : ControllerBase
 
         if (subGuid is Guid giftSub)
         {
+            uploadedGames = await db.UploadedGames.AsNoTracking()
+                .Where(game => game.OwnerSub == giftSub && game.FileAsset.OwnerSub == giftSub)
+                .OrderBy(game => game.CreatedAtUtc)
+                .Select(game => (object)new { game.Id, game.Title, game.FileAssetId, game.FileAsset.OriginalName, game.EntryPoint, game.CreatedAtUtc })
+                .ToArrayAsync(ct);
             avatarProfile = await db.AvatarProfiles.AsNoTracking().Where(profile => profile.UserSub == giftSub)
                 .Select(profile => new
                 {
@@ -157,6 +163,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
                 gifts,
                 giftProfile,
                 avatarProfile,
+                uploadedGames,
                 pollResponses,
                 electiveEnrollments,
                 actionReadReceipts,

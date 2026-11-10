@@ -11,14 +11,14 @@ public sealed class WebBuildService(IObjectStorage storage)
 
     private static readonly SemaphoreSlim Preparation = new(1, 1);
 
-    public async Task<WebBuildManifest> PrepareAsync(FileAsset asset, string? requestedEntry, CancellationToken ct)
+    public async Task<WebBuildManifest> PrepareAsync(FileAsset asset, string? requestedEntry, CancellationToken ct, ICollection<string>? writtenKeys = null)
     {
         await Preparation.WaitAsync(ct);
-        try { return await PrepareCoreAsync(asset, requestedEntry, ct); }
+        try { return await PrepareCoreAsync(asset, requestedEntry, ct, writtenKeys); }
         finally { Preparation.Release(); }
     }
 
-    private async Task<WebBuildManifest> PrepareCoreAsync(FileAsset asset, string? requestedEntry, CancellationToken ct)
+    private async Task<WebBuildManifest> PrepareCoreAsync(FileAsset asset, string? requestedEntry, CancellationToken ct, ICollection<string>? writtenKeys)
     {
         var manifestKey = $"web-builds/{asset.Id:N}/manifest.json";
         await using (var existing = await storage.GetAsync(manifestKey, ct))
@@ -73,6 +73,7 @@ public sealed class WebBuildService(IObjectStorage storage)
                 if (output.Length != entry.Length) throw new InvalidDataException("invalid_archive_length");
                 output.Position = 0;
                 var metadata = Metadata(entry.FullName, entry.Length);
+                writtenKeys?.Add(Key(asset.Id, entry.FullName));
                 await storage.PutAsync(Key(asset.Id, entry.FullName), output, metadata.ContentType, ct);
                 entries.Add(metadata);
             }
@@ -86,6 +87,7 @@ public sealed class WebBuildService(IObjectStorage storage)
             await CopyBounded(original.Content, temp, FilesLimit, ct);
             if (temp.Length != asset.SizeBytes) throw new InvalidDataException("invalid_file_length");
             temp.Position = 0;
+            writtenKeys?.Add(Key(asset.Id, entryPoint));
             await storage.PutAsync(Key(asset.Id, entryPoint), temp, "text/html; charset=utf-8", ct);
             entries.Add(new(entryPoint, asset.SizeBytes, "text/html; charset=utf-8", null));
         }
@@ -94,6 +96,7 @@ public sealed class WebBuildService(IObjectStorage storage)
         var manifest = new WebBuildManifest(entryPoint, entries.ToArray());
         await using var json = new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(manifest));
         // Publish the manifest last. Incomplete preparation never exposes a partial build.
+        writtenKeys?.Add(manifestKey);
         await storage.PutAsync(manifestKey, json, "application/json", ct);
         return manifest;
     }

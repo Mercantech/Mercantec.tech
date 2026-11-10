@@ -1,14 +1,14 @@
 // Browser audio is unlocked by the client's native input handlers, before Blazor interop.
-const folders = { bip01: 'bip-01', raymond: 'raymond', santa: 'santa' };
+const folders = { bip01: 'bip-01', raymond: 'raymond', santa: 'santa', lupp: 'lupp' };
 const clips = ['jump','land','hit','knockout','respawn','celebrate','ability_1_pulse','ability_2_magnet','ability_3_shield','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release'];
 const actions = {
     jump:'jump', land:'land', hit:'hit', ko:'knockout', respawn:'respawn', win:'celebrate',
     projectile:'ability_1_pulse', swing:'ability_1_pulse', magnet:'ability_2_magnet', capture:'ability_2_magnet',
-    throw:'ability_2_magnet', 'gift-grab':'ability_2_magnet', shield:'ability_3_shield', 'shield-up':'ability_3_shield',
-    parry:'ability_3_shield', reflect:'ability_3_shield', absorb:'ability_3_shield', armor:'ability_3_shield',
+    throw:'ability_2_magnet', 'gift-grab':'ability_2_magnet', feedback:'ability_2_magnet', shield:'ability_3_shield', 'shield-up':'ability_3_shield',
+    parry:'ability_3_shield', reflect:'ability_3_shield', absorb:'ability_3_shield', armor:'ability_3_shield', prototype:'ability_3_shield',
     break:'hit', dodge:'ability_4_dash', dash:'ability_4_dash', recovery:'ability_4_dash',
     'repair-start':'ability_5_repair', 'ultimate-charge':'ultimate_charge', overload:'ultimate_release',
-    join:'ultimate_release', 'join-explode':'ultimate_release', 'gift-fest':'ultimate_release'
+    join:'ultimate_release', 'join-explode':'ultimate_release', 'gift-fest':'ultimate_release', 'game-jam':'ultimate_release', 'prototype-bounce':'land'
 };
 const isAvatar = avatar => Object.hasOwn(folders, avatar);
 const tones = {
@@ -16,10 +16,10 @@ const tones = {
     jump:[380,.15,2], land:[125,.10,.7], shield:[520,.16,1.4], 'shield-up':[520,.16,1.4],
     parry:[780,.20,1.5], projectile:[600,.19,1.8], swing:[210,.10,1.4], win:[520,.65,2], break:[180,.32,.3],
     dodge:[330,.14,1.8], dash:[260,.23,2.2], recovery:[350,.25,2.4], respawn:[330,.30,2],
-    magnet:[180,.32,2.5], capture:[230,.23,.7], 'gift-grab':[500,.26,1.5], throw:[210,.20,2.3],
-    escape:[530,.18,1.7], absorb:[480,.17,.65], reflect:[790,.22,1.5], armor:[115,.19,.6],
+    magnet:[180,.32,2.5], capture:[230,.23,.7], 'gift-grab':[500,.26,1.5], feedback:[180,.32,2.5], throw:[210,.20,2.3],
+    escape:[530,.18,1.7], absorb:[480,.17,.65], reflect:[790,.22,1.5], armor:[115,.19,.6], prototype:[520,.16,1.4], 'prototype-bounce':[125,.10,.7],
     'repair-start':[370,.38,1.5], repair:[600,.30,2], 'repair-cancel':[240,.12,.6],
-    'ultimate-charge':[160,.55,3], overload:[100,.65,2.7], join:[240,.55,2], 'join-explode':[90,.65,2.5], 'gift-fest':[500,.55,2]
+    'ultimate-charge':[160,.55,3], overload:[100,.65,2.7], join:[240,.55,2], 'join-explode':[90,.65,2.5], 'gift-fest':[500,.55,2], 'game-jam':[500,.55,2]
 };
 
 export function audioAvatarForEvent(event, fighters = []) {
@@ -109,7 +109,7 @@ export function createArenaAudio({ createContext = () => new (globalThis.AudioCo
         if (disposed || !enabled || paused || context?.state !== 'running') return false;
         if (type === 'pull' || type === 'join-pull' || type === 'release') return false;
         if (type === 'repair-cancel' || type === 'repair') stopMatching(entity, 'ability_5_repair');
-        if (['overload','join','gift-fest'].includes(type)) stopMatching(entity, 'ultimate_charge');
+        if (['overload','join','gift-fest','game-jam'].includes(type)) stopMatching(entity, 'ultimate_charge');
         if (type === 'hit' || type === 'ko') { stopMatching(entity, 'ability_5_repair'); stopMatching(entity, 'ultimate_charge'); }
         const tone = Object.hasOwn(tones,type) ? tones[type] : null;
         const clip = Object.hasOwn(actions,type) ? actions[type] : null;

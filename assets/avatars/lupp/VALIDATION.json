@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "testedOnTopOf": "fa98e132403857ed6f7f4a16af689409128430bd",
+  "verifiedAtUtc": "2026-11-10T09:31:53Z",
+  "automatedTests": { "api": 676, "web": 605, "javascript": 56, "failed": 0 },
+  "art": { "actions": 28, "frames": 224, "icons": 5, "independentItems": 9, "projectiles": 2, "effects": 8, "arenaExports": 10 },
+  "audio": { "originalSfx": 28, "syntheticDanishPhrases": 5, "nativePreviewPlaybacks": 33, "arenaDecodedLuppClips": 13 },
+  "unlock": { "requirement": "one successfully validated owned game upload", "cost": 0, "privateUploadsQualify": true, "databaseBacked": true },
+  "fullReports": "Workspace design/lupp-avatar-v1/qa and its validated ZIP package",
+  "scope": "Local builds and real browser UI with synthetic accounts and blocked external traffic; isolated relational/API/WebSocket tests. No production accounts or deployment were changed during validation."
+}

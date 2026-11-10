@@ -2495,6 +2495,50 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("teaching_course_resources", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.UploadedGame", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentSha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EntryPoint")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("FileAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileAssetId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerSub", "RequestId")
+                        .IsUnique();
+
+                    b.ToTable("uploaded_games", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarItemOwnership", b =>
                 {
                     b.HasOne("Mercantec.Tech.Api.Data.Entities.AvatarProfile", "Profile")
@@ -3105,6 +3149,17 @@ namespace Mercantec.Tech.Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.UploadedGame", b =>
+                {
+                    b.HasOne("Mercantec.Tech.Api.Data.Entities.FileAsset", "FileAsset")
+                        .WithMany()
+                        .HasForeignKey("FileAssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FileAsset");
                 });
 
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.AvatarProfile", b =>

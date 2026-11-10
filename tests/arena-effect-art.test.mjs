@@ -8,12 +8,13 @@ test('effects load original per-character layers and four-frame projectiles with
     const calls = [];
     const art = new ArenaEffectArt((key, url) => { calls.push({ key, url }); return Promise.resolve(); }, new Map());
     await art.preload();
-    assert.equal(calls.length, 30);
-    assert.equal(new Set(calls.map(call => call.url)).size, 30);
+    assert.equal(calls.length, 40);
+    assert.equal(new Set(calls.map(call => call.url)).size, 40);
     assert.ok(calls.every(call => call.url.startsWith('/assets/arena/v3/effects/')));
     assert.ok(calls.some(call => call.url.endsWith('bip01-pulse_cyan.webp')));
     assert.ok(calls.some(call => call.url.endsWith('raymond-pulse_blue.webp')));
     assert.ok(calls.some(call => call.url.endsWith('santa-pulse_blue.webp')));
+    assert.ok(calls.some(call => call.url.endsWith('lupp-pulse_blue.webp')));
     assert.ok(calls.every(call => !call.url.includes('effects-atlas')));
 });
 
@@ -25,6 +26,8 @@ test('the two avatars select their own neutral and charged projectile artwork', 
     assert.equal(art.projectileId('raymond', true), 'pulse_gold');
     assert.equal(art.projectileId('santa'), 'pulse_blue');
     assert.equal(art.projectileId('santa', true), 'pulse_gold');
+    assert.equal(art.projectileId('lupp'), 'pulse_blue');
+    assert.equal(art.projectileId('lupp', true), 'pulse_gold');
 });
 
 test('projectile drawing preserves the full guarded source tile and restores canvas state', () => {
@@ -143,4 +146,15 @@ test('Santa keeps its own star and snowball textures even after a robot reflects
     const santa = { avatarId: 'santa', damage: 20, grounded: true, shield: 100, combat: { energy: 44 } };
     assert.equal(repairReadinessFor(santa), '45M');
     assert.equal(repairReadinessFor({ ...santa, combat: { energy: 45 } }), 'klar');
+});
+
+test('LUPP has independent idea and prototype artwork, charge status and idea repair cost', () => {
+    const fighters = new Map([['lupp', { avatarId: 'lupp' }], ['robot', { avatarId: 'bip01' }]]);
+    assert.deepEqual(projectileArtFor({ ownerId: 'lupp', sourceAvatarId: 'lupp', kind: 'idea' }, fighters), { avatarId: 'lupp', id: 'pulse_blue', reflected: false });
+    assert.deepEqual(projectileArtFor({ ownerId: 'robot', sourceAvatarId: 'lupp', kind: 'prototype', reflected: true }, fighters), { avatarId: 'lupp', id: 'pulse_gold', reflected: true });
+    assert.equal(combatStatusFor({ avatarId: 'lupp', combat: { activeAbility: 'game-jam-charge', channelRemaining: .9 } }), 'Lader Game Jam · 0.9s');
+    assert.equal(combatStatusFor({ avatarId: 'lupp', combat: { activeAbility: 'repair', channelRemaining: .7 } }), 'Playtestpause 0.7s');
+    const lupp = { avatarId: 'lupp', grounded: true, damage: 20, combat: { energy: 29 } };
+    assert.equal(repairReadinessFor(lupp), '30 IDÉ');
+    assert.equal(repairReadinessFor({ ...lupp, combat: { energy: 30 } }), 'klar');
 });

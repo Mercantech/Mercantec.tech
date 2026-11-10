@@ -1,0 +1,62 @@
+[
+  {
+    "id": "phrase_1_welcome",
+    "event": "welcome",
+    "text": "Jeg er LUPP. Hvad skal spilleren prøve først?",
+    "language": "da-DK",
+    "file": "phrase_1_welcome.wav",
+    "path": "audio/phrase_1_welcome.wav",
+    "available": true,
+    "duration": 3.9283,
+    "durationSeconds": 3.9283,
+    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+  },
+  {
+    "id": "phrase_2_start",
+    "event": "start",
+    "text": "En lille prototype kan gøre en stor idé tydelig.",
+    "language": "da-DK",
+    "file": "phrase_2_start.wav",
+    "path": "audio/phrase_2_start.wav",
+    "available": true,
+    "duration": 3.2972,
+    "durationSeconds": 3.2972,
+    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+  },
+  {
+    "id": "phrase_3_success",
+    "event": "success",
+    "text": "Prøv det af, lyt til feedback, og ret til.",
+    "language": "da-DK",
+    "file": "phrase_3_success.wav",
+    "path": "audio/phrase_3_success.wav",
+    "available": true,
+    "duration": 3.4312,
+    "durationSeconds": 3.4312,
+    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+  },
+  {
+    "id": "phrase_4_retry",
+    "event": "retry",
+    "text": "En fejl er en invitation til et nyt forsøg.",
+    "language": "da-DK",
+    "file": "phrase_4_retry.wav",
+    "path": "audio/phrase_4_retry.wav",
+    "available": true,
+    "duration": 2.8995,
+    "durationSeconds": 2.8995,
+    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+  },
+  {
+    "id": "phrase_5_milestone",
+    "event": "milestone",
+    "text": "Dit spil er ude i verden. Lad os se, hvad spillerne gør!",
+    "language": "da-DK",
+    "file": "phrase_5_milestone.wav",
+    "path": "audio/phrase_5_milestone.wav",
+    "available": true,
+    "duration": 4.9589,
+    "durationSeconds": 4.9589,
+    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+  }
+]

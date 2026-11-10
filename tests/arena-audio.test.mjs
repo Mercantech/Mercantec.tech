@@ -225,13 +225,13 @@ test('preloaded recorded clips retain the selected avatar and load once per file
     const h = harness();
     t.after(() => h.audio.dispose());
     await h.audio.unlock();
-    await h.audio.preload(['bip01', 'raymond', 'santa']);
+    await h.audio.preload(['bip01', 'raymond', 'santa', 'lupp']);
     const fetched = h.requests.length;
     assert.ok(fetched > 0);
-    await h.audio.preload(['bip01', 'raymond', 'santa']);
+    await h.audio.preload(['bip01', 'raymond', 'santa', 'lupp']);
     assert.equal(h.requests.length, fetched, 'repeated state/round preloads must reuse cached files');
     assert.equal(new Set(h.requests).size, h.requests.length);
-    for (const [avatar, path] of [['bip01', 'bip-01'], ['raymond', 'raymond'], ['santa', 'santa']]) {
+    for (const [avatar, path] of [['bip01', 'bip-01'], ['raymond', 'raymond'], ['santa', 'santa'], ['lupp', 'lupp']]) {
         h.context.advance();
         const count = h.context.sources.length;
         assert.equal(h.audio.cue('projectile', 1, avatar), true);
@@ -242,6 +242,31 @@ test('preloaded recorded clips retain the selected avatar and load once per file
     }
 });
 
+test('LUPP abilities play his recorded clips and Game Jam only cancels its owner charge', async t => {
+    const h = harness();
+    t.after(() => h.audio.dispose());
+    await h.audio.unlock();
+    await h.audio.preload(['lupp']);
+    for (const [event, clip] of [['feedback', 'ability_2_magnet'], ['prototype', 'ability_3_shield'],
+        ['game-jam', 'ultimate_release'], ['prototype-bounce', 'land']]) {
+        h.context.advance();
+        const count = h.context.sources.length;
+        assert.equal(h.audio.cue(event, 1, 'lupp', 'designer'), true, event);
+        const recorded = h.context.sources.slice(count).find(voice => voice.kind === 'buffer-source');
+        assert.ok(recorded, event + ' must use LUPP audio');
+        assert.equal(recorded.buffer.decodedFrom, '/assets/avatars/lupp/audio/' + clip + '.wav');
+        assertAudibleSource(h.context, [recorded]);
+    }
+    h.context.advance();
+    h.audio.cue('ultimate-charge', 1, 'lupp', 'designer-one');
+    const firstCharge = h.context.sources.at(-1);
+    h.audio.cue('ultimate-charge', 1, 'lupp', 'designer-two');
+    const secondCharge = h.context.sources.at(-1);
+    assert.equal(h.audio.cue('game-jam', 1, 'lupp', 'designer-one'), true);
+    assert.ok(firstCharge.stops.some(time => time <= h.context.currentTime));
+    assert.ok(secondCharge.stops.every(time => time > h.context.currentTime));
+});
+
 test('combat and unique ability events remain audible when recorded clips fail to load', async t => {
     const h = harness({ fetchFails: true });
     t.after(() => h.audio.dispose());
@@ -249,7 +274,8 @@ test('combat and unique ability events remain audible when recorded clips fail t
     await h.audio.preload(['bip01', 'raymond']);
     const events = ['jump', 'hit', 'projectile', 'shield', 'parry', 'break', 'ko', 'respawn',
         'dodge', 'recovery', 'magnet', 'capture', 'throw', 'escape', 'absorb', 'reflect',
-        'repair-start', 'repair', 'repair-cancel', 'armor', 'ultimate-charge', 'overload', 'join', 'join-explode', 'win'];
+        'repair-start', 'repair', 'repair-cancel', 'armor', 'ultimate-charge', 'overload', 'join', 'join-explode',
+        'feedback', 'prototype', 'game-jam', 'prototype-bounce', 'win'];
     for (const event of events) {
         h.context.advance();
         const count = h.context.sources.length;
@@ -262,7 +288,8 @@ test('event routing uses the defender for impacts, the actor for abilities and R
     const fighters = new Map([
         ['robot', { id: 'robot', avatarId: 'bip01' }],
         ['elephant', { id: 'elephant', avatarId: 'raymond' }],
-        ['santa', { id: 'santa', avatarId: 'santa' }]
+        ['santa', { id: 'santa', avatarId: 'santa' }],
+        ['designer', { id: 'designer', avatarId: 'lupp' }]
     ]);
     for (const type of ['hit', 'ko', 'shield', 'parry']) {
         assert.equal(audioAvatarForEvent({ type, actorId: 'robot', targetId: 'elephant' }, fighters), 'raymond', type);
@@ -271,6 +298,9 @@ test('event routing uses the defender for impacts, the actor for abilities and R
         assert.equal(audioAvatarForEvent({ type, actorId: 'robot', targetId: 'elephant' }, fighters), 'bip01', type);
     }
     assert.equal(audioAvatarForEvent({ type: 'gift-fest', actorId: 'santa' }, fighters), 'santa');
+    for (const type of ['feedback', 'prototype', 'game-jam', 'prototype-bounce']) {
+        assert.equal(audioAvatarForEvent({ type, actorId: 'designer', targetId: 'elephant' }, fighters), 'lupp');
+    }
     assert.equal(audioAvatarForEvent({ type: 'join-explode', actorId: 'robot', targetId: 'elephant' }, fighters), 'raymond');
     assert.equal(audioAvatarForEvent({ type: 'hit', actorId: 'missing', targetId: 'elephant' }, fighters), 'raymond');
     assert.equal(audioAvatarForEvent({ type: 'hit' }, fighters), 'starter');

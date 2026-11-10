@@ -18,9 +18,9 @@ else
             <label class="avatar-layer-toggle"><input type="checkbox" @bind="_enabled" /> Vis genstande og effekter</label>
             <div class="avatar-layer-choices">
                 <label>Genstand<select @bind="_item" disabled="@(!_enabled)">
-                    @foreach (var item in Items) { <option value="@item.Id">@item.Label</option> }
+                    @foreach (var item in PreviewItems) { <option value="@item.Id">@item.Label</option> }
                 </select></label>
-                <label>Projektil<select @bind="_projectile" disabled="@(!_enabled)"><option value="pulse_blue">@(Definition.Id == AvatarCatalog.SantaId ? "Stjerneskud" : "Blå puls")</option><option value="pulse_gold">@(Definition.Id == AvatarCatalog.SantaId ? "Magisk snebold" : "Gylden puls")</option></select></label>
+                <label>Projektil<select @bind="_projectile" disabled="@(!_enabled)"><option value="pulse_blue">@(Definition.Id switch { AvatarCatalog.LuppId => "Idégnist", AvatarCatalog.SantaId => "Stjerneskud", _ => "Blå puls" })</option><option value="pulse_gold">@(Definition.Id switch { AvatarCatalog.LuppId => "Prototypekube", AvatarCatalog.SantaId => "Magisk snebold", _ => "Gylden puls" })</option></select></label>
             </div>
             <p>Prøv Saml op eller @(Definition.Actions.FirstOrDefault(action => action.Id == "ability_1_pulse")?.Label ?? "dit projektilangreb"). Afspil igen for at sende det valgte projektil afsted.</p>
             @if (_error is not null) { <p class="avatar-layer-error" role="status">@_error</p> }
@@ -35,6 +35,7 @@ else
     [Parameter] public bool Paused { get; set; }
     [Parameter] public int Size { get; set; } = 136;
     private static readonly (string Id, string Label)[] Items = [("energy_cube", "Energikube"), ("book", "Bog"), ("key", "Nøgle"), ("gear", "Tandhjul"), ("gem", "Ædelsten"), ("coin", "Mønt"), ("crate", "Kasse"), ("scroll", "Skriftrulle")];
+    private IEnumerable<(string Id, string Label)> PreviewItems => Definition.Id == AvatarCatalog.LuppId ? Items.Append(("pencil", "Blyant")) : Items;
     private AvatarDefinition Definition => AvatarCatalog.Find(AvatarId ?? World.SelectedAvatarId) ?? AvatarCatalog.All[0];
     private ElementReference _stage;
     private IJSObjectReference? _module;

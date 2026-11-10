@@ -18,18 +18,20 @@ public static class AvatarRequirementEvaluator
             // A new or invalid requirement must not silently turn into a free
             // unlock when a deployment has not implemented its evaluator yet.
             var supported = requirement.RequiredCount > 0
-                && requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients
-                && GiftThemes.IsKnown(requirement.Target);
+                && (requirement.Kind == AvatarRequirementKinds.SentGiftsDistinctRecipients && GiftThemes.IsKnown(requirement.Target)
+                    || requirement.Kind == AvatarRequirementKinds.UploadedGames && requirement.Target == "site");
             var current = 0;
             if (supported)
             {
                 var key = (requirement.Kind, requirement.Target);
                 if (!counts.TryGetValue(key, out current))
                 {
-                    current = await db.ChristmasGifts.AsNoTracking()
-                        .Where(gift => gift.SenderSub == subject && gift.Theme == requirement.Target
-                            && gift.RecipientSub != Guid.Empty && gift.RecipientSub != subject)
-                        .Select(gift => gift.RecipientSub).Distinct().CountAsync(ct);
+                    current = requirement.Kind == AvatarRequirementKinds.UploadedGames
+                        ? await db.UploadedGames.AsNoTracking().CountAsync(game => game.OwnerSub == subject && game.FileAsset.OwnerSub == subject, ct)
+                        : await db.ChristmasGifts.AsNoTracking()
+                            .Where(gift => gift.SenderSub == subject && gift.Theme == requirement.Target
+                                && gift.RecipientSub != Guid.Empty && gift.RecipientSub != subject)
+                            .Select(gift => gift.RecipientSub).Distinct().CountAsync(ct);
                     counts[key] = current;
                 }
             }

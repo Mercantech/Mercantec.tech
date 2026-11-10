@@ -9,6 +9,7 @@ hud, hår og tøj er erstattet af hele figurer, som låses op og vælges.
 - `bip01`: BIP-01, level 2 og 150 guld.
 - `raymond`: Raymond / Professor Codd, level 3 og 150 guld. Oplåsning vælger figuren med det samme.
 - `santa`: Julemanden, level 4 og 150 guld samt julegaver sendt til mindst tre forskellige brugere.
+- `lupp`: LUPP, gratis ved mindst ét eget, valideret browser-spil under `/games/mine`. Ingen ekstra level- eller guldkrav.
 - Tolv felter med spørgsmålstegn viser kommende figurer. De er information,
   ikke købsknapper eller katalog-id'er, der kan låses op.
 
@@ -149,3 +150,15 @@ Pakken har samme 28 handlinger og 224 tegnede frames som BIP-01/Raymond, 28 orig
 Runtime ligger under `web/wwwroot/assets/avatars/santa/`. Den komplette lokale pakke ligger i `design/santa-avatar-v1/` ved siden af repositoryet. Lydkilder og den faktiske lokale talestemme er dokumenteret i `assets/avatars/santa/AUDIO.md`. Lyd kræver et eksplicit klik i avatarsamlingen.
 
 Den fælles browserkontrol kan køres mod Santa med `LUP_QA_AVATAR=santa`; uden parameter kontrollerer den fortsat Raymond. Begge forløb indeholder de eksisterende robot- og kontokontroller.
+
+## LUPP
+
+LUPP bruger sin eksisterende karakterprofil som reference: en lilla, afrundet modellerfigur med store cremefarvede øjne, korte arme og ben. Blyanten er en selvstændig genstand. Figuren har samme komplette 28 handlinger / 224 frames / 33 lydklip som de øvrige figurer, et ansigtsikon og fire emojis. Runtime ligger under `/assets/avatars/lupp`; masterark og preview er dokumenteret i `assets/avatars/lupp/README.md`.
+
+Idépuls, Feedbackgreb, Prototypeværn, Iterationsryk og Playtestpause er de fem evner. Game Jam har separate opladnings- og udløsningsark. Projektiler og effekter er selvstændige entities, så hænderne kan bruges med andre genstande. Idégnist og Prototypekube har hver fire frames; pickup følger otte håndankre fra LUPPs egne ark.
+
+LUPP har sin egen serverstyrede Arena-kampstil og ressource Idékraft. Idépuls bruger 12, Feedbackgreb 16, Iterationsryk 20, redningshoppet 18 og Playtestpause 30 idékraft. Pausen heler 10 skade efter 42 sårbare ticks og kan afbrydes. Værnet omdanner fjendtlige projektiler til langsommere prototypekuber med et loft på tre ejerskift. Idépuls frigives på den tegnede frame 4, og Game Jam sender fem selvstændige kuber afsted på release-frame 2. Pending udløsninger fjernes ved skade, disconnect, KO og rundereset. Kuber og idégnister springer henholdsvis to og én gang på banen. Computerstyring og HUD bruger samme autoritative kit.
+
+Kravet `uploaded_games` / `site` / `1` beregnes fra gemte `uploaded_games`-rækker med samme ejer som den tilknyttede fil. Generelle filbilag, projekt-demoer, URL'er, kladder, mislykkede uploads og andre brugeres spil tæller ikke. Uploads er private; offentlig udgivelse kræves ikke. Oplåsning koster 0 guld og vælger LUPP med det samme. Ny browser og ny computer henter ejerskab, valg og krav fra databasen. LUPP kan ikke tildeles gennem legacyimport.
+
+Se [Spilupload](Spilupload.md) for lagring, validering og drift. Browserkontrollen køres med `node tests/run-avatar-qa.cjs lupp http://localhost:5189 <outputmappe>` og omfatter et rigtigt HTML-filvalg, multipart-upload, fejl/genforsøg, fri oplåsning, animation/lyd og to isolerede enheder.

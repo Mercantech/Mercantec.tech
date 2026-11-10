@@ -51,7 +51,7 @@ public partial class Arena
     private bool SettingsDisabled => _practice || _playing || (_room is not null && (!IsHost || _phase != "lobby"));
     private ArenaStage SelectedStage => ArenaCatalog.FindStage(_stageId);
     private string WinnerName => _result?.Fighters.FirstOrDefault(f => f.Id == _result.WinnerId)?.Name ?? "Ingen";
-    private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", "santa" => "Stjerneskud & kanesus", _ => "Energipuls & himmelspring" };
+    private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", "santa" => "Stjerneskud & kanesus", "lupp" => "Idépuls & iterationsryk", _ => "Energipuls & himmelspring" };
     private static string FighterRole(string id) => ArenaMoveSets.Find(id)?.Role ?? "Alsidig";
     private bool Owns(string id) => id == "starter" || World.OwnsAvatar(id);
 
@@ -66,7 +66,7 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=6");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=7");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _sound = await _module.InvokeAsync<bool>("soundPreference");
             if (_disposed) return;
