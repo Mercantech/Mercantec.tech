@@ -9,13 +9,20 @@ public static partial class EmojiTextParts
     [GeneratedRegex(@"(?<![\p{L}\p{N}_]):([a-zA-Z0-9_-]{2,32}):", RegexOptions.CultureInvariant)]
     private static partial Regex Shortcode();
 
-    public static IReadOnlyList<EmojiTextPart> Split(string? text, IEnumerable<CustomEmojiItem> emojis)
+    public static IReadOnlyList<EmojiTextPart> Split(string? text, IEnumerable<CustomEmojiItem> emojis) =>
+        Split(text, Index(emojis));
+
+    internal static IReadOnlyDictionary<string, CustomEmojiItem> Index(IEnumerable<CustomEmojiItem> emojis)
     {
-        text ??= "";
         var map = new Dictionary<string, CustomEmojiItem>(StringComparer.Ordinal);
         foreach (var emoji in emojis)
             map.TryAdd(emoji.Name, emoji);
+        return map;
+    }
 
+    internal static IReadOnlyList<EmojiTextPart> Split(string? text, IReadOnlyDictionary<string, CustomEmojiItem> map)
+    {
+        text ??= "";
         var parts = new List<EmojiTextPart>();
         var index = 0;
         foreach (Match match in Shortcode().Matches(text))

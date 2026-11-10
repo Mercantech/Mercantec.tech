@@ -4,6 +4,7 @@ using System.Text.Json;
 using Bunit;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Components;
+using Mercantec.Tech.Web.Emojis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
@@ -11,6 +12,45 @@ namespace Mercantec.Tech.Web.Tests;
 
 public sealed class ReferenceGraphUiTests
 {
+    [Fact]
+    public async Task Graph_titles_render_known_emoji_and_preserve_unknown_shortcodes()
+    {
+        const string title = ":chameleon_coffee: Machine Learning :ukendt:";
+        var emoji = new CustomEmojiItem(Guid.NewGuid(), "chameleon_coffee", "image/webp", 12,
+            DateTimeOffset.UtcNow, "/images/characters/chameleon/reactions/coffee.webp", AltText: "Kamæleonen holder kaffepause");
+        using var api = new GraphApi(title) { Emoji = emoji };
+        GraphJavascript? javascript = null;
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            javascript = new GraphJavascript(original);
+            services.AddSingleton<IJSRuntime>(javascript);
+        });
+
+        var page = context.Render<ReferenceGraphView>();
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.NotNull(javascript!.Module.Payload);
+            var node = javascript.Module.Payload.Value.GetProperty("nodes").EnumerateArray()
+                .Single(node => node.GetProperty("id").GetString() == api.Note.Reference.Key);
+            Assert.Equal(title, node.GetProperty("title").GetString());
+            var parts = node.GetProperty("titleParts").EnumerateArray().ToArray();
+            Assert.Equal(2, parts.Length);
+            Assert.Equal(emoji.ContentUrl, parts[0].GetProperty("imageUrl").GetString());
+            Assert.Equal(emoji.AltText, parts[0].GetProperty("alt").GetString());
+            Assert.Equal(" Machine Learning :ukendt:", parts[1].GetProperty("text").GetString());
+
+            var link = page.Find($".reference-list a[href='{api.Note.Href}']");
+            Assert.Equal(" Machine Learning :ukendt:", link.TextContent);
+            var image = link.QuerySelector("img.custom-emoji");
+            Assert.NotNull(image);
+            Assert.Equal(emoji.ContentUrl, image.GetAttribute("src"));
+            Assert.Equal(emoji.AltText, image.GetAttribute("alt"));
+        });
+        Assert.Equal(1, api.EmojiRequests);
+    }
+
     [Fact]
     public async Task Published_graph_keeps_typed_nodes_canonical_destinations_and_publication_mode_when_searching()
     {
@@ -250,14 +290,16 @@ public sealed class ReferenceGraphUiTests
         public void Dispose() { System.Globalization.CultureInfo.CurrentCulture = previous; System.Globalization.CultureInfo.CurrentUICulture = previousUi; }
     }
 
-    private sealed class GraphApi : HttpMessageHandler
+    private sealed class GraphApi(string noteTitle = "Anden note") : HttpMessageHandler
     {
         public Guid Collection { get; } = Guid.NewGuid();
         public bool More;
         public bool IncludeExcluded;
+        public CustomEmojiItem? Emoji { get; init; }
+        public int EmojiRequests { get; private set; }
         public TaskCompletionSource? SearchGate;
         public TaskCompletionSource SearchStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public ResolvedReference Note { get; } = new(new("notebook-page", Guid.NewGuid().ToString()), "Anden note", "/notebook/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", "En delt notesbog");
+        public ResolvedReference Note { get; } = new(new("notebook-page", Guid.NewGuid().ToString()), noteTitle, "/notebook/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", "En delt notesbog");
         public ResolvedReference Person { get; } = new(new("person", Guid.NewGuid().ToString()), "Skjult person", "/people/person", "Elev");
         public ResolvedReference Member { get; } = new(new("member", Guid.NewGuid().ToString()), "Skjult elev", "/people/member", "Elev");
         public ResolvedReference Poll { get; } = new(new("poll", Guid.NewGuid().ToString()), "Skjult afstemning", "/polls/poll", "Afstemning");
@@ -266,6 +308,11 @@ public sealed class ReferenceGraphUiTests
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var path = request.RequestUri!.AbsolutePath;
+            if (path == "/api/emojis")
+            {
+                EmojiRequests++;
+                return Json(Emoji is { } emoji ? new[] { emoji } : Array.Empty<CustomEmojiItem>());
+            }
             if (path == "/api/references/graph")
             {
                 var input = (await request.Content!.ReadFromJsonAsync<ReferenceGraphRequest>(cancellationToken))!; GraphRequests.Add(input);
@@ -312,7 +359,7 @@ public sealed class ReferenceGraphUiTests
         public async ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             if (identifier == "readSettings") return StoredSettings is null ? default(TValue)! : JsonSerializer.Deserialize<TValue>(StoredSettings, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-            if (identifier is "mount" or "update") { Payload = JsonSerializer.SerializeToElement(args![identifier == "mount" ? 2 : 1]); if (identifier == "mount") Mounts++; else Updates++; Options = Payload.Value.GetProperty("options"); }
+            if (identifier is "mount" or "update") { Payload = JsonSerializer.SerializeToElement(args![identifier == "mount" ? 2 : 1], new JsonSerializerOptions(JsonSerializerDefaults.Web)); if (identifier == "mount") Mounts++; else Updates++; Options = Payload.Value.GetProperty("options"); }
             if (identifier == "mount") { Lifecycle.Add("mount"); MountStarted.TrySetResult(); if (MountGate is not null) await MountGate.Task; }
             if (identifier == "destroy") { Destroys++; Lifecycle.Add("destroy"); DestroyStarted.TrySetResult(); if (DestroyGate is not null) await DestroyGate.Task; }
             if (identifier == "configure") Options = JsonSerializer.SerializeToElement(args![1]);

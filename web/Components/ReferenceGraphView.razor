@@ -5,6 +5,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime Js
 @inject AuthService Auth
+@inject EmojiClient Emojis
 @implements IAsyncDisposable
 
 <section class="reference-graph" aria-label="Forbindelser på tværs af LUP">
@@ -19,7 +20,7 @@
     @if (_searching) { <p class="reference-status" role="status">Søger i indhold…</p> }
     @if (_matches.Length > 0)
     {
-        <ul class="reference-results" aria-label="Søgeresultater">@foreach (var match in _matches) { <li><button type="button" class="secondary" @onclick="() => Focus(match.Reference)"><strong>@match.Title</strong><small>@match.ContextLabel · @ReferencePresentation.KindLabel(match.Reference.Kind)</small></button></li> }</ul>
+        <ul class="reference-results" aria-label="Søgeresultater">@foreach (var match in _matches) { <li><button type="button" class="secondary" @onclick="() => Focus(match.Reference)"><strong><EmojiText Text="@match.Title" /></strong><small>@match.ContextLabel · @ReferencePresentation.KindLabel(match.Reference.Kind)</small></button></li> }</ul>
     }
     @if (_error is not null) { <p role="alert">@_error <button type="button" class="secondary" @onclick="() => Load(false)">Prøv igen</button></p> }
     @if (_loading) { <p class="reference-status" role="status">Henter forbindelser…</p> }
@@ -61,10 +62,10 @@
                 @if (_focus is not null) { <button type="button" class="secondary" @onclick="Reset">Tilbage til oversigten</button> }
                 @if (_selected is { } selected)
                 {
-                    <div class="panel reference-selected" aria-label="Valgt indhold"><div><h3>@selected.Title</h3><p>@selected.ContextLabel · @ReferencePresentation.KindLabel(selected.Reference.Kind)</p></div><div class="reference-selected-actions"><a class="action" href="@selected.Href">Åbn</a><button type="button" class="secondary" @onclick="() => Focus(selected.Reference)">Udvid forbindelser</button><button type="button" class="secondary" @onclick="ClearSelection">Fjern markering</button></div></div>
+                    <div class="panel reference-selected" aria-label="Valgt indhold"><div><h3><EmojiText Text="@selected.Title" /></h3><p>@selected.ContextLabel · @ReferencePresentation.KindLabel(selected.Reference.Kind)</p></div><div class="reference-selected-actions"><a class="action" href="@selected.Href">Åbn</a><button type="button" class="secondary" @onclick="() => Focus(selected.Reference)">Udvid forbindelser</button><button type="button" class="secondary" @onclick="ClearSelection">Fjern markering</button></div></div>
                 }
                 @if (_failed) { <p class="reference-help" role="status">Den interaktive graf kunne ikke vises. Du kan stadig bruge listen.</p> }
-                <details class="reference-list" open="@_failed"><summary>Indhold og forbindelser som liste</summary><ul>@foreach (var node in VisibleNodes) { <li><div><a href="@node.Entity.Href">@node.Entity.Title</a><small>@node.Entity.ContextLabel · @ReferencePresentation.KindLabel(node.Entity.Reference.Kind)</small></div><button type="button" class="secondary" @onclick="() => SelectNode(node.Entity.Reference)">Fremhæv</button><button type="button" class="secondary" @onclick="() => Focus(node.Entity.Reference)">Vis forbindelser</button></li> }</ul><ul>@foreach (var edge in VisibleEdges) { var from = _nodes.First(n => n.Key == edge.FromKey); var to = _nodes.First(n => n.Key == edge.ToKey); <li><a href="@from.Entity.Href">@from.Entity.Title</a><span aria-hidden="true">→</span><a href="@to.Entity.Href">@to.Entity.Title</a></li> }</ul></details>
+                <details class="reference-list" open="@_failed"><summary>Indhold og forbindelser som liste</summary><ul>@foreach (var node in VisibleNodes) { <li><div><a href="@node.Entity.Href"><EmojiText Text="@node.Entity.Title" /></a><small>@node.Entity.ContextLabel · @ReferencePresentation.KindLabel(node.Entity.Reference.Kind)</small></div><button type="button" class="secondary" @onclick="() => SelectNode(node.Entity.Reference)">Fremhæv</button><button type="button" class="secondary" @onclick="() => Focus(node.Entity.Reference)">Vis forbindelser</button></li> }</ul><ul>@foreach (var edge in VisibleEdges) { var from = _nodes.First(n => n.Key == edge.FromKey); var to = _nodes.First(n => n.Key == edge.ToKey); <li><a href="@from.Entity.Href"><EmojiText Text="@from.Entity.Title" /></a><span aria-hidden="true">→</span><a href="@to.Entity.Href"><EmojiText Text="@to.Entity.Title" /></a></li> }</ul></details>
             }
             else if (!_loading) { <div class="reference-empty"><h2>Find forbindelser i dit indhold</h2><p>Søg efter en note, teoriside, opgave eller et materiale. Links og referencer mellem indhold bliver vist her.</p></div> }
         </div>
@@ -75,7 +76,7 @@
     [Parameter] public string? ScopeKind { get; set; }
     [Parameter] public string? ScopeId { get; set; }
     [Parameter] public bool PublishedOnly { get; set; }
-    private const string ModulePath = "/js/notion-graph.js?v=connections-20261110";
+    private const string ModulePath = "/js/notion-graph.js?v=connections-emoji-20261110";
     private readonly string _settingsId = "reference-graph-settings-" + Guid.NewGuid().ToString("N");
     private string? _scope;
     private EntityReference? _focus;
@@ -83,6 +84,7 @@
     private ReferenceGraphEdge[] _edges = [];
     private ResolvedReference[] _matches = [];
     private ResolvedReference? _selected;
+    private IReadOnlyDictionary<string, CustomEmojiItem> _titleEmojis = EmojiTextParts.Index([]);
     private GraphSettings _settings = new();
     private string _query = "", _type = "";
     private string? _error;
@@ -130,10 +132,42 @@
             _offset = offset; _total = Math.Max(nodes.Length, graph.Total - (graph.Nodes.Length - nodes.Length)); _hasMore = graph.HasMore; _dataDirty = true;
             if (_type.Length > 0 && !nodes.Any(n => n.Entity.Reference.Kind == _type)) _type = "";
             _selected = null;
+            if (nodes.Any(node => node.Entity.Title.Contains(':')))
+            {
+                var emojis = LoadTitleEmojis(ct);
+                if (!emojis.IsCompleted) { _loading = false; StateHasChanged(); }
+                await emojis;
+            }
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException) { if (!ct.IsCancellationRequested) _error = "Forbindelserne kunne ikke hentes."; }
         finally { if (!ct.IsCancellationRequested) _loading = false; }
     }
+    private async Task LoadTitleEmojis(CancellationToken ct, bool refresh = false)
+    {
+        try
+        {
+            var items = await Emojis.List(refresh: refresh, ct: ct);
+            if (_disposed || ct.IsCancellationRequested) return;
+            _titleEmojis = EmojiTextParts.Index(items);
+            _dataDirty = true;
+        }
+        catch (Exception ex) when (ex is EmojiException or JsonException or OperationCanceledException)
+        {
+            // Keep graph titles usable while the emoji catalogue is unavailable.
+        }
+    }
+
+    private sealed record GraphTitlePart(string Text, string? ImageUrl, string? Alt);
+    private GraphTitlePart[]? TitleParts(string title)
+    {
+        if (_titleEmojis.Count == 0 || !title.Contains(':')) return null;
+        var parts = EmojiTextParts.Split(title, _titleEmojis);
+        if (!parts.Any(part => part.Emoji is not null)) return null;
+        return parts.Select(part => part.Emoji is { } emoji
+            ? new GraphTitlePart($":{emoji.Name}:", emoji.ContentUrl, emoji.AltText)
+            : new GraphTitlePart(part.Text, null, null)).ToArray();
+    }
+
     private async Task Search(ChangeEventArgs args)
     {
         _query = args.Value?.ToString() ?? ""; _search?.Cancel(); _search?.Dispose(); _search = CancellationTokenSource.CreateLinkedTokenSource(_life.Token); var ct = _search.Token; _matches = [];
@@ -195,7 +229,7 @@
             var visible = VisibleNodes.ToArray(); var keys = visible.Select(n => n.Key).ToHashSet();
             if (_dataDirty || !_mounted)
             {
-                var payload = new { nodes = visible.Select(n => new { id = n.Key, title = n.Entity.Title, inbound = _edges.Count(e => e.ToKey == n.Key) }), edges = _edges.Where(e => keys.Contains(e.FromKey) && keys.Contains(e.ToKey)).Select(e => new { fromId = e.FromKey, toId = e.ToKey }), options = Options() };
+                var payload = new { nodes = visible.Select(n => new { id = n.Key, title = n.Entity.Title, titleParts = TitleParts(n.Entity.Title), inbound = _edges.Count(e => e.ToKey == n.Key) }), edges = _edges.Where(e => keys.Contains(e.FromKey) && keys.Contains(e.ToKey)).Select(e => new { fromId = e.FromKey, toId = e.ToKey }), options = Options() };
                 _dataDirty = _visualDirty = false;
                 if (_mounted) await _module.InvokeVoidAsync("update", _host, payload);
                 else await _module.InvokeVoidAsync("mount", _host, _callback, payload);
@@ -220,6 +254,14 @@
     private async Task Zoom(int direction) { if (_module is not null && _mounted) await _module.InvokeVoidAsync("zoom", _host, direction); }
     [JSInvokable] public Task OnGraphOpen(string key) { var node = _nodes.FirstOrDefault(n => n.Key == key); if (!_disposed && node is not null && IsContent(node.Entity.Reference)) Nav.NavigateTo(node.Entity.Href); return Task.CompletedTask; }
     [JSInvokable] public Task OnGraphMenu(string key, double x, double y) => _disposed ? Task.CompletedTask : InvokeAsync(() => { if (_disposed) return; _selected = _nodes.FirstOrDefault(n => n.Key == key)?.Entity; _visualDirty = true; StateHasChanged(); });
+    [JSInvokable]
+    public Task OnGraphEmojiError() => _disposed ? Task.CompletedTask : InvokeAsync(async () =>
+    {
+        if (_disposed || _load is null || _load.IsCancellationRequested) return;
+        await LoadTitleEmojis(_load.Token, refresh: true);
+        if (!_disposed) StateHasChanged();
+    });
+
     private async Task Unmount()
     {
         _unmounting++;

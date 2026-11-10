@@ -8,6 +8,7 @@ function fixture(t, payload = {}) {
   const install = (key, value) => { previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key)); Object.defineProperty(globalThis, key, { configurable: true, writable: true, value }); };
   const frames = new Map(); let nextFrame = 1, now = 0;
   const storage = new Map();
+  const imageRequests = [];
   class Target {
     handlers = new Map(); style = {};
     addEventListener(name, callback, options) {
@@ -25,13 +26,14 @@ function fixture(t, payload = {}) {
     focus() {}
   }
   const context = {
-    font: '', globalAlpha: 1, fills: [], texts: [], strokes: [], shape: null,
-    setTransform() {}, clearRect() { this.fills = []; this.texts = []; this.strokes = []; },
+    font: '', globalAlpha: 1, fills: [], texts: [], strokes: [], images: [], shape: null,
+    setTransform() {}, clearRect() { this.fills = []; this.texts = []; this.strokes = []; this.images = []; },
     beginPath() { this.shape = null; }, arc(x, y, radius) { this.shape = { x, y, radius, circle: true }; },
     roundRect() { this.shape = { box: true }; }, moveTo() {}, lineTo() {},
     fill() { if (this.shape?.circle) this.fills.push({ ...this.shape, alpha: this.globalAlpha, color: this.fillStyle }); },
     stroke() { this.strokes.push({ shape: this.shape, alpha: this.globalAlpha, color: this.strokeStyle }); },
     strokeText() {}, fillText(text, x, y) { this.texts.push({ text, x, y, font: this.font, alpha: this.globalAlpha }); },
+    drawImage(image, x, y, width, height) { this.images.push({ url: image.url, x, y, width, height }); },
     measureText(text) { return { width: String(text).length * Number(this.font.match(/([\d.]+)px/)?.[1] || 12) * 0.5 }; },
   };
   const canvas = new Target(); canvas.getContext = () => context;
@@ -48,6 +50,11 @@ function fixture(t, payload = {}) {
   });
   install('window', windowTarget);
   install('document', { createElement: name => name === 'canvas' ? canvas : new Target() });
+  install('Image', class {
+    set src(value) { this.url = value; imageRequests.push(this); }
+    load(width, height) { this.naturalWidth = width; this.naturalHeight = height; this.complete = true; this.onload(); }
+    fail() { this.onerror(); }
+  });
   install('CSS', { supports: () => true });
   install('ResizeObserver', class { constructor(callback) { this.callback = callback; } observe() { this.callback(); } disconnect() {} });
   install('MutationObserver', class { observe() {} disconnect() {} });
@@ -70,7 +77,7 @@ function fixture(t, payload = {}) {
     graph.destroy(host);
     for (const [key, descriptor] of previous) if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
   });
-  return { host, canvas, stage, context, callbacks, flush, storage };
+  return { host, canvas, stage, context, callbacks, flush, storage, imageRequests };
 }
 
 test('persisted graph preferences are bounded and never contain graph data or selected references', t => {
@@ -98,6 +105,53 @@ test('text size and weight redraw measured labels without moving nodes or reheat
   assert.deepEqual(f.context.fills.map(({ x, y, radius }) => ({ x, y, radius })), before);
   assert.ok(f.context.texts.some(label => label.font.startsWith('700 18px')));
   assert.equal(f.context.texts.some(label => label.font.includes('12px')), false);
+});
+
+test('graph titles and tooltips render custom images inline and keep their title area clickable', t => {
+  const url = '/images/characters/chameleon/reactions/coffee.webp';
+  const icon = { text: ':chameleon_coffee:', imageUrl: url, alt: 'Kamæleon med kaffe' };
+  const titleParts = [icon, { text: ' Machine ' }, icon, { text: ' Learning 😀' }];
+  const f = fixture(t, { nodes: [{ id: 'a', title: ':chameleon_coffee: Machine :chameleon_coffee: Learning 😀', titleParts }], edges: [] });
+  const [{ x, y, radius }] = f.context.fills;
+  assert.equal(f.imageRequests.length, 1);
+  assert.equal(f.context.images.length, 0);
+  f.imageRequests[0].load(80, 40); f.flush();
+  assert.deepEqual(f.context.fills.map(point => [point.x, point.y, point.radius]), [[x, y, radius]]);
+  assert.deepEqual(f.context.texts.map(label => label.text), [' Machine ', ' Learning 😀']);
+  const [first, second] = f.context.images;
+  assert.equal(first.url, url);
+  assert.equal(first.width, 12 * 1.2);
+  assert.equal(first.height, 6 * 1.2);
+  assert.ok(first.x < f.context.texts[0].x && second.x < f.context.texts[1].x);
+  f.canvas.dispatch('dblclick', { clientX: first.x + first.width / 2, clientY: first.y + first.height / 2 });
+  assert.deepEqual(f.callbacks.filter(call => call[0] === 'OnGraphOpen'), [['OnGraphOpen', 'a']]);
+
+  f.canvas.dispatch('pointermove', { clientX: x, clientY: y }); f.flush();
+  assert.deepEqual(f.context.images.map(image => Number(image.width.toFixed(1))), [15.6, 15.6]);
+  assert.ok(f.context.texts.some(label => label.text === '0 indgående · 0 udgående'));
+  assert.equal(f.imageRequests.length, 1);
+  f.stage.dispatch('keydown', { key: 'n' }); f.flush();
+  assert.equal(f.host.children[1].textContent, 'Kamæleon med kaffe Machine Kamæleon med kaffe Learning 😀');
+});
+
+test('failed emoji images fall back to text and request the catalog refresh only once per graph', t => {
+  const titleParts = [
+    { text: ':one:', imageUrl: '/api/emojis/one/content?ticket=old' }, { text: ' ' },
+    { text: ':two:', imageUrl: '/api/emojis/two/content?ticket=old' }, { text: ' :ukendt:' },
+  ];
+  const nodes = [{ id: 'a', title: ':one: :two: :ukendt:', titleParts }];
+  const f = fixture(t, { nodes, edges: [] });
+  assert.equal(f.imageRequests.length, 2);
+  for (const image of f.imageRequests) image.fail();
+  f.flush();
+  assert.equal(f.context.texts.map(label => label.text).join(''), ':one: :two: :ukendt:');
+  assert.deepEqual(f.callbacks, [['OnGraphEmojiError']]);
+
+  titleParts[0] = { ...titleParts[0], imageUrl: '/api/emojis/one/content?ticket=fresh' };
+  graph.update(f.host, { nodes, edges: [] }); f.flush();
+  assert.equal(f.imageRequests.length, 3);
+  f.imageRequests[2].fail(); f.flush();
+  assert.deepEqual(f.callbacks, [['OnGraphEmojiError']]);
 });
 
 test('titles stay readable near 0.2 zoom by default and respect a higher saved threshold', t => {

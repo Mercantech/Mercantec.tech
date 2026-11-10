@@ -87,6 +87,7 @@ function create(host, dotnet, payload) {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
     const cache = new Map();
+    const emojiImages = new Map();
     const pointers = new Map();
     const springs = forceLink();
     const charge = forceManyBody().theta(0.9).distanceMin(16);
@@ -123,6 +124,7 @@ function create(host, dotnet, payload) {
     let selected = null;
     let emphasis = null;
     let emphasisOpacity = 0;
+    let reportedEmojiError = false;
 
     function applyForces() {
         const center = 0.032 * settings.centerForce;
@@ -173,8 +175,12 @@ function create(host, dotnet, payload) {
             if (nextById.has(id)) continue;
             const point = cache.get(id) ?? { id };
             const title = String(raw.title || "Uden titel");
-            if (title !== point.title) point.label = null;
+            const titleParts = Array.isArray(raw.titleParts) ? raw.titleParts.filter(part => typeof part?.text === "string") : [];
+            if (title !== point.title || point.titleParts?.length || titleParts.length) point.label = null;
             point.title = title;
+            point.titleParts = titleParts;
+            point.spokenTitle = titleParts.map(part => part.imageUrl && part.alt ? ` ${part.alt} ` : part.text)
+                .join("").replace(/\s+/g, " ").trim() || title;
             point.color = typeof raw.color === "string" && CSS.supports("color", raw.color) ? raw.color : null;
             point.totalInbound = typeof raw.inbound === "number" && raw.inbound >= 0 ? raw.inbound : null;
             point.inbound = 0;
@@ -211,7 +217,7 @@ function create(host, dotnet, payload) {
         labels = [...nodes].sort((a, b) => (b.totalInbound ?? b.inbound) - (a.totalInbound ?? a.inbound) ||
             b.links.length - a.links.length);
         if (selected && !byId.has(selected.id)) select(null);
-        else if (selected && announcer.textContent !== selected.title) announcer.textContent = selected.title;
+        else if (selected && announcer.textContent !== selected.spokenTitle) announcer.textContent = selected.spokenTitle;
         if (emphasis && !byId.has(emphasis.id)) {
             emphasis = null;
             emphasisOpacity = 0;
@@ -311,7 +317,7 @@ function create(host, dotnet, payload) {
 
     function select(point) {
         selected = point;
-        announcer.textContent = point?.title ?? "";
+        announcer.textContent = point?.spokenTitle ?? "";
         requestFrame();
     }
 
@@ -510,6 +516,72 @@ function create(host, dotnet, payload) {
         ctx.stroke();
     }
 
+    function emojiImage(url) {
+        if (typeof url !== "string" || !/^\/(?:images\/characters|api\/emojis)\//.test(url)) return null;
+        if (emojiImages.has(url)) return emojiImages.get(url);
+        const image = new Image();
+        const entry = { image, failed: false };
+        emojiImages.set(url, entry);
+        image.onload = requestFrame;
+        image.onerror = () => {
+            if (signal.aborted) return;
+            entry.failed = true;
+            for (const point of nodes) point.label = null;
+            if (!reportedEmojiError) {
+                reportedEmojiError = true;
+                invoke(dotnet, "OnGraphEmojiError");
+            }
+            requestFrame();
+        };
+        image.src = url;
+        return entry;
+    }
+
+    function layoutTitle(point, size, limit) {
+        const parts = point.titleParts.length ? point.titleParts : [{ text: point.title }];
+        const runs = parts.map(part => {
+            const entry = emojiImage(part.imageUrl);
+            return entry && !entry.failed ? { image: entry.image, width: size * 1.2 } : measureTitleText(ctx, part.text);
+        });
+        const width = runs.reduce((total, run) => total + run.width, 0);
+        if (width <= limit) return { runs, width };
+        const ellipsis = measureTitleText(ctx, "…");
+        if (ellipsis.width > limit) return { runs: [], width: 0 };
+        const shortened = [];
+        let remaining = limit - ellipsis.width;
+        for (const run of runs) {
+            if (run.width > remaining) {
+                if (run.text) {
+                    const tail = fitTitleText(ctx, run.text, remaining);
+                    shortened.push(tail);
+                    remaining -= tail.width;
+                }
+                break;
+            }
+            shortened.push(run);
+            remaining -= run.width;
+        }
+        shortened.push(ellipsis);
+        return { runs: shortened, width: limit - remaining };
+    }
+
+    function paintTitle(title, x, y, outline = false) {
+        for (const run of title.runs) {
+            if (run.image) {
+                const { naturalWidth, naturalHeight } = run.image;
+                if (run.image.complete && naturalWidth && naturalHeight) {
+                    const scale = run.width / Math.max(naturalWidth, naturalHeight);
+                    const w = naturalWidth * scale, h = naturalHeight * scale;
+                    ctx.drawImage(run.image, x + (run.width - w) / 2, y - h / 2, w, h);
+                }
+            } else if (run.text) {
+                if (outline) ctx.strokeText(run.text, x, y);
+                ctx.fillText(run.text, x, y);
+            }
+            x += run.width;
+        }
+    }
+
     function drawLabels() {
         const fade = clamp((camera.scale - settings.labelThreshold * 0.62) / (settings.labelThreshold * 0.48), 0, 1);
         const root = byId.get(settings.activeId);
@@ -518,7 +590,7 @@ function create(host, dotnet, payload) {
         ctx.strokeStyle = palette.surface;
         ctx.lineWidth = 3.5 * settings.labelSize;
         ctx.lineJoin = "round";
-        ctx.textAlign = "center";
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
         for (const point of nodes) if (point !== hovered) point.labelRect = null;
         const priority = new Set([selected, root, emphasis, ...(emphasis?.neighbors ?? []), ...labels]);
@@ -535,7 +607,7 @@ function create(host, dotnet, payload) {
 
             const font = (active ? Math.max(650, settings.labelWeight) : settings.labelWeight) + " " + fontSize + "px " + fontFamily;
             ctx.font = font;
-            if (point.label?.font !== font) point.label = { ...shortenedTitle(ctx, point.title, 176 * settings.labelSize), font };
+            if (point.label?.font !== font) point.label = { ...layoutTitle(point, fontSize, 176 * settings.labelSize), font };
             const x = point.sx;
             const half = point.label.width / 2 + 4;
             const halfHeight = fontSize / 2 + 2;
@@ -548,8 +620,7 @@ function create(host, dotnet, payload) {
                 occupied.push(rect);
                 point.labelRect = { left: -half, right: half, top: rect.top - point.sy, bottom: rect.bottom - point.sy };
                 ctx.globalAlpha = opacity;
-                ctx.strokeText(point.label.text, x, y);
-                ctx.fillText(point.label.text, x, y);
+                paintTitle(point.label, x - point.label.width / 2, y, true);
                 break;
             }
         }
@@ -563,7 +634,7 @@ function create(host, dotnet, payload) {
         const titleFont = Math.max(650, settings.labelWeight) + " " + titleSize + "px " + fontFamily;
         const detailFont = settings.labelWeight + " " + detailSize + "px " + fontFamily;
         ctx.font = titleFont;
-        const title = shortenedTitle(ctx, point.title, maxText);
+        const title = layoutTitle(point, titleSize, maxText);
         ctx.font = detailFont;
         const boxWidth = Math.min(maxText, Math.max(title.width, ctx.measureText(detail).width)) + 20;
         let x = point.sx + point.sr + 12;
@@ -582,7 +653,7 @@ function create(host, dotnet, payload) {
         ctx.textAlign = "left";
         ctx.fillStyle = palette.label;
         ctx.font = titleFont;
-        ctx.fillText(title.text, x + 10, y + 8 + titleSize * 0.55);
+        paintTitle(title, x + 10, y + 8 + titleSize * 0.55);
         ctx.font = detailFont;
         ctx.globalAlpha = 0.76;
         ctx.fillText(detail, x + 10, y + 8 + titleSize + gap + detailSize * 0.55, boxWidth - 20);
@@ -857,17 +928,19 @@ function optionNumber(value, fallback, min, max) {
     return typeof value === "number" && Number.isFinite(value) ? clamp(value, min, max) : fallback;
 }
 
-function shortenedTitle(ctx, title, limit) {
-    const width = ctx.measureText(title).width;
-    if (width <= limit) return { text: title, width };
-    let low = 0, high = title.length - 1;
+function measureTitleText(ctx, text) {
+    return { text, width: ctx.measureText(text).width };
+}
+
+function fitTitleText(ctx, text, limit) {
+    const characters = Array.from(text);
+    let low = 0, high = characters.length;
     while (low < high) {
         const middle = Math.ceil((low + high) / 2);
-        if (ctx.measureText(title.slice(0, middle) + "…").width <= limit) low = middle;
+        if (ctx.measureText(characters.slice(0, middle).join("")).width <= limit) low = middle;
         else high = middle - 1;
     }
-    const text = title.slice(0, low) + "…";
-    return { text, width: ctx.measureText(text).width };
+    return measureTitleText(ctx, characters.slice(0, low).join(""));
 }
 
 function pinch(pointers) {
