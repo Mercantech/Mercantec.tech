@@ -118,6 +118,75 @@ test('unknown block types and rich atoms cannot be silently deleted, replaced or
   assert.deepEqual(snapshot(doc), before); doc.destroy();
 });
 
+test('image title updates and their undo keep the media node, asset reference and nested content intact', () => {
+  const props = { assetId: actorSub, pageId, schemaVersion: 1, kind: 'image' };
+  const original = block('image', 'pageMedia', [], props, [block('child', 'paragraph', [txt('Forklaring')])]);
+  const doc = document([original]);
+  const container = doc.getXmlFragment('document-store').get(0).get(0), media = container.get(0), nested = container.get(1);
+  const makeChange = title => {
+    const { block, fingerprint } = find(doc, 'image');
+    block.children[0].attributes.displayTitle = title;
+    return { type: 'update_block', blockId: 'image', fingerprint, block };
+  };
+  const req = request([makeChange('  Lineær regression 📈  ')]);
+  const { plan, receipt } = apply(doc, req);
+  assert.deepEqual(media.getAttributes(), { ...props, displayTitle: 'Lineær regression 📈' });
+  assert.equal(container.get(0), media);
+  assert.equal(container.get(1), nested);
+  assert.equal(verifyMcpReceipt(secret, req, receipt), true);
+
+  const clearing = { ...request([makeChange(' ')]), operationId: '66666666-2222-4333-8444-555555555555' };
+  const cleared = apply(doc, clearing);
+  assert.deepEqual(media.getAttributes(), props);
+  const undoClear = { ...request([]), operationId: '55555555-2222-4333-8444-555555555555', originalChange: cleared.plan };
+  const restored = prepareMcpUndo(doc, undoClear);
+  applyPreparedMcpPlan(doc, restored, makeMcpReceipt(secret, undoClear, restored));
+  assert.equal(media.getAttribute('displayTitle'), 'Lineær regression 📈');
+
+  const undoReq = { ...request([]), operationId: randomOperationId(), originalChange: plan };
+  const undo = prepareMcpUndo(doc, undoReq);
+  applyPreparedMcpPlan(doc, undo, makeMcpReceipt(secret, undoReq, undo));
+  assert.deepEqual(find(doc, 'image').block, original);
+  assert.equal(container.get(0), media);
+  assert.equal(container.get(1), nested);
+  doc.destroy();
+});
+
+test('media title updates reject changes to assets, other content or invalid titles before touching the document', () => {
+  const props = { assetId: actorSub, pageId, schemaVersion: 1, kind: 'image' };
+  const doc = document([block('image', 'pageMedia', [], props), block('video', 'pageMedia', [], { ...props, kind: 'video' })]);
+  const before = Y.encodeStateAsUpdate(doc);
+  const update = (id, edit) => {
+    const { block, fingerprint } = find(doc, id);
+    block.children[0].attributes.displayTitle = 'Titel';
+    edit?.(block, block.children[0]);
+    return { type: 'update_block', blockId: id, fingerprint, block };
+  };
+  for (const edit of [
+    block => { block.attributes.id = 'other'; },
+    (_, media) => { media.attributes.assetId = pageId; },
+    (_, media) => { media.attributes.pageId = actorSub; },
+    (_, media) => { media.attributes.kind = 'pdf'; },
+    (_, media) => { media.attributes.caption = 'Andet felt'; },
+    (_, media) => { media.children.push(txt('Skjult indhold')); },
+  ]) assert.throws(() => prepareMcpApply(doc, request([update('image', edit)])), error => error.code === 'protected_content');
+  for (const title of [null, 42, 'x'.repeat(241), 'En\nlinje', '\tTitel', '\u0085', '\uD83D']) {
+    assert.throws(() => prepareMcpApply(doc, request([update('image', (_, media) => { media.attributes.displayTitle = title; })])), error => error.code === 'invalid_media_title');
+  }
+  assert.throws(() => prepareMcpApply(doc, request([update('image'), update('video')])), error => error.code === 'protected_content');
+  const { block: image, fingerprint } = find(doc, 'image');
+  assert.throws(() => prepareMcpApply(doc, request([{ type: 'delete_block', blockId: 'image', fingerprint }])), error => error.code === 'protected_content');
+  assert.throws(() => prepareMcpApply(doc, request([{ type: 'insert_after', blockId: 'image', fingerprint, block: { ...image, attributes: { id: 'new-media' } } }])), error => error.code === 'protected_content');
+  assert.deepEqual(Y.encodeStateAsUpdate(doc), before);
+
+  const req = request([update('image')]);
+  const plan = prepareMcpApply(doc, req), media = doc.getXmlFragment('document-store').get(0).get(0).get(0);
+  media.setAttribute('displayTitle', 'Samtidig redigering');
+  assert.throws(() => applyPreparedMcpPlan(doc, plan, makeMcpReceipt(secret, req, plan)), error => error.code === 'target_changed');
+  assert.equal(media.getAttribute('displayTitle'), 'Samtidig redigering');
+  doc.destroy();
+});
+
 test('known inline Raymond emojis and hard breaks can be inserted and updated without losing rich text, references or media, and undo restores them', () => {
   const reference = el('entityMention', [], { kind: 'notion-page', id: pageId });
   const original = block('a', 'paragraph', [txt('SQL ', { bold: {} }), reference, txt(' beskytter data.', { italic: {} })]);

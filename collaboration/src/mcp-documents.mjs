@@ -309,6 +309,34 @@ function assertNoOverlap(index, targets) {
 function scratchOf(doc) { const scratch = new Y.Doc(); Y.applyUpdate(scratch, Y.encodeStateAsUpdate(doc)); return scratch; }
 function captureEntries(index, ids, modes = new Map(), includeAnchor = true) { return index.ordered.filter(entry => ids.has(entry.id)).map(entry => describeEntry(entry, modes.get(entry.id), includeAnchor)); }
 
+function setMediaTitle(content, title) {
+  if (title === undefined) content.removeAttribute('displayTitle');
+  else content.setAttribute('displayTitle', title);
+}
+
+function updateImageTitle(entry, proposed) {
+  const assetId = entry.content.getAttribute('assetId');
+  if (entry.content.getAttribute('kind') !== 'image' || typeof assetId !== 'string' || !ID.test(assetId)) {
+    fail('protected_content', 'Kun visningstitlen på et uploadet billede kan ændres.');
+  }
+  if (!validObject(proposed)) fail('invalid_block', 'Brug den eksisterende billedbloks XML fra read_page.');
+
+  const current = serializeMcpXml(entry.node), replacement = cloneJson(proposed);
+  const contentIndex = entry.node.toArray().indexOf(entry.content);
+  const attributes = replacement.children?.[contentIndex]?.attributes;
+  if (!validObject(attributes)) fail('invalid_block', 'Brug den eksisterende billedbloks XML fra read_page.');
+  const title = attributes.displayTitle;
+  delete attributes.displayTitle;
+  delete current.children[contentIndex].attributes.displayTitle;
+  if (canonicalMcpJson(replacement) !== canonicalMcpJson(current)) {
+    fail('protected_content', 'Billedet, blok-id og øvrigt indhold skal bevares uændret.');
+  }
+  if (title !== undefined && (typeof title !== 'string' || !title.isWellFormed() || /[\p{Cc}\p{Zl}\p{Zp}]/u.test(title) || title.trim().length > 240)) {
+    fail('invalid_media_title', 'Billedets visningstitel må højst være 240 tegn og må ikke indeholde linjeskift eller kontroltegn.');
+  }
+  setMediaTitle(entry.content, title?.trim() || undefined);
+}
+
 export function prepareMcpApply(doc, request) {
   if (!ID.test(request.operationId || '') || !Array.isArray(request.changes) || !request.changes.length || request.changes.length > 500) fail('invalid_changes', 'En batch skal have 1–500 ændringer og et stabilt operations-id.');
   if (Buffer.byteLength(JSON.stringify(request.changes)) > MAX_BYTES) fail('changes_too_large', 'Ændringen er for stor til én batch. Fortsæt ved en blokgrænse.', 413);
@@ -341,7 +369,10 @@ export function prepareMcpApply(doc, request) {
       for (let order = 0; order < request.changes.length; order++) {
         const change = request.changes[order], index = documentIndex(scratch), entry = index.blocks.get(change.blockId);
         if (change.type === 'replace_text') { replaceText(entry, change); afterIds.add(entry.id); modes.set(entry.id, 'content'); }
-        else if (change.type === 'update_block') {
+        else if (change.type === 'update_block' && entry.content.nodeName === 'pageMedia') {
+          updateImageTitle(entry, change.block);
+          afterIds.add(entry.id); modes.set(entry.id, 'mediaTitle');
+        } else if (change.type === 'update_block') {
           if (!CONTENT_TYPES.has(entry.content.nodeName)) fail('protected_content', 'Denne bloktype er beskyttet mod Codex-redigering.');
           const old = serializeMcpXml(entry.node), block = normalizeBlock(change.block, request.operationId, order, entry.id);
           block.attributes = { ...old.attributes, ...block.attributes };
@@ -407,11 +438,17 @@ export function prepareMcpUndo(doc, request) {
   try {
     scratch.transact(() => {
       for (const entry of after.toReversed()) {
-        if (entry.mode === 'content') continue;
+        if (entry.mode === 'content' || entry.mode === 'mediaTitle') continue;
         const live = documentIndex(scratch).blocks.get(entry.id); live.group.delete(live.index, 1);
       }
       for (const entry of before) {
         const index = documentIndex(scratch);
+        if (entry.mode === 'mediaTitle') {
+          const live = index.blocks.get(entry.id), image = entry.block.children.find(node => node.name === 'pageMedia');
+          if (live?.content.nodeName !== 'pageMedia' || !image) fail('undo_conflict', 'Billedblokken findes ikke længere.', 409);
+          setMediaTitle(live.content, image.attributes.displayTitle);
+          continue;
+        }
         if (entry.mode === 'content') {
           const live = index.blocks.get(entry.id);
           if (!live) fail('undo_conflict', 'Målblokken findes ikke længere.', 409);

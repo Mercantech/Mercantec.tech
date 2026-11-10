@@ -82,6 +82,9 @@ Læsning har et serverbudget på 256 KiB pr. svar og fortsætter ved hele blokgr
 
 Nyt enkelt indhold kan beskrives som `{ "type": "paragraph", "content": "Den nye tekst" }`, med valgfrie `props` og `children`. Brug den tabsfrie XML-repræsentation til struktureret indhold, hvor alle egenskaber skal bevares, f.eks. en eksisterende tabel. En batch gælder én side og valideres samlet før mutation; den er ikke en tværgående transaktion over flere sider.
 
+En eksisterende billedblok (`pageMedia` med `kind: "image"`, inklusive GIF) har ét redigerbart felt. Brug `update_block` med den tabsfri XML fra `read_page` og tilføj eller ret `displayTitle` i billednodens `attributes`. Udelad feltet for at fjerne visningstitlen. Filreferencen og resten af XML’en skal matche den læste blok. Titlen vises under billedet og bruges som alternativ tekst.
+
+
 `apply_changes` og `undo_change` returnerer en kompakt kvittering med bl.a. operations-id og status. `get_change` modtager `operationId` og returnerer som standard også kun metadata; brug `includeAudit: true`, når den fulde, private før/efter-historik er nødvendig. `undo_change` modtager det oprindelige `operationId` og et nyt `reversalId`, som genbruges ved genforsøg på netop denne fortrydelse. En anden instruktion eller ændret payload skal have et nyt operations-id.
 
 Fortrydelse findes også i LUP under **Mere → Codex-ændringer**. Det er en særskilt, kontrolleret tilbageførsel; browserens almindelige Ctrl+Z er ikke historik for ændringer lavet af en ekstern samarbejdsklient.

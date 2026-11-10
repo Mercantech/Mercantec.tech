@@ -236,12 +236,12 @@ test('missing or incompatible editor schemas are rejected before authorization a
   const accessToken = token('teacher');
   const drawingName = `drawing:${id}`;
   f.grants.set(accessToken, new Set([documentName, drawingName]));
-  for (const version of [null, '1', '2', '3', '4', '5', '6', '999']) {
+  for (const version of [null, '1', '2', '3', '4', '5', '6', '7', '8', '999']) {
     const editor = f.connect(accessToken, documentName, version);
     await waitFor(() => editor.denied, 'incompatible editor rejected');
     assert.match(editor.denialReason, /editor_version_mismatch/);
   }
-  const drawing = f.connect(accessToken, drawingName, '7');
+  const drawing = f.connect(accessToken, drawingName, '8');
   await waitFor(() => drawing.denied, 'outdated drawing editor rejected');
   assert.match(drawing.denialReason, /editor_version_mismatch/);
   assert.equal(f.state.authorizations, 0);

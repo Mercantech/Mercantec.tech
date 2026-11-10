@@ -208,7 +208,7 @@ function UploadConfirmation({file,onConfirm}:{file:File;onConfirm:(confirmed:boo
     <div className="notion-upload-confirm-actions"><button type="button" autoFocus onClick={()=>onConfirm(false)}>Annuller</button><button type="button" onClick={()=>onConfirm(true)}>Upload fil</button></div>
   </dialog>;
 }
-function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;pageId:string;kind:string;onUpload:(id:string,kind:string)=>void;editable:boolean}) {
+function MediaBlock({assetId,pageId,kind,displayTitle,onUpload,editable}:{assetId:string;pageId:string;kind:string;displayTitle:string;onUpload:(id:string,kind:string)=>void;editable:boolean}) {
   const session=useContext(Runtime);
   const [container,nearViewport]=useViewport<HTMLElement>();
   const [access,setAccess]=useState<AssetAccess|null>(null);
@@ -277,6 +277,8 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     finally {session.pendingUploads--;if(uploadController.current===controller)uploadController.current=null;if(!session.destroyed){setUploading(false);if(!session.dirty && !session.pendingUploads)notify(session,'synced','Forbundet til dokumentet');}}
   };
   const loaded=()=>{if(media.current){media.current.currentTime=resumeAt.current;if(resumePlaying.current)void media.current.play().catch(()=>{});}};
+  const customTitle=access?.kind==='image' ? displayTitle.trim() : '';
+  const mediaTitle=customTitle || access?.originalName;
   const accept=kind==='video'?'video/mp4,video/webm':kind==='image'?'image/png,image/jpeg,image/gif,image/webp':kind==='audio'?'audio/mpeg,audio/wav,audio/ogg':'.mp4,.webm,.mp3,.wav,.ogg,.jpg,.jpeg,.png,.gif,.webp,.pdf,.zip,.docx,.xlsx,.pptx,.txt';
   return <section ref={container} className="notion-media-block" contentEditable={false} aria-label="Uploadet medie">
     {confirmationFile && <UploadConfirmation file={confirmationFile} onConfirm={confirmed=>{setConfirmationFile(null);confirmationResolve.current?.(confirmed);confirmationResolve.current=null;requestAnimationFrame(()=>{if(confirmed)cancelUploadButton.current?.focus();else uploadInput.current?.focus();});}}/>}
@@ -286,9 +288,9 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     {access && <>
       {access.kind==='video' && <video ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}>Din browser understøtter ikke denne video. Hent filen nedenfor.</video>}
       {access.kind==='audio' && <audio ref={element=>{media.current=element;}} controls preload="metadata" src={access.url} onPlay={()=>setPlaying(true)} onPause={()=>setPlaying(false)} onEnded={()=>setPlaying(false)} onLoadedMetadata={loaded} onError={()=>setPlaybackError(true)}/>}
-      {access.kind==='image' && <img src={access.url} alt={access.originalName} loading="lazy" decoding="async"/>}
+      {access.kind==='image' && <img src={access.url} alt={mediaTitle} loading="lazy" decoding="async"/>}
       {access.kind==='pdf' && <a href={access.url} target="_blank" rel="noopener noreferrer">Åbn PDF: {access.originalName}</a>}
-      <div className="notion-media-caption"><span>{access.originalName}</span><a href={access.downloadUrl} target="_blank" rel="noopener noreferrer">Hent fil</a></div>
+      <div className="notion-media-caption">{customTitle ? <strong>{customTitle}</strong> : <span>{mediaTitle}</span>}<a href={access.downloadUrl} target="_blank" rel="noopener noreferrer">Hent fil</a></div>
       {playbackError && <p className="notion-block-hint">Mediet kunne ikke afspilles i denne browser. Prøv at hente filen, eller brug MP4/WebM med en browserunderstøttet kodning.</p>}
     </>}
     {assetId && !access && !error && <p role="status">{nearViewport?'Åbner fil…':'Mediet indlæses, når det vises.'}</p>}
@@ -296,8 +298,8 @@ function MediaBlock({assetId,pageId,kind,onUpload,editable}:{assetId:string;page
     {pageId && session && pageId!==session.context.pageId && <p className="notion-media-error">Denne fil tilhører en anden side. Upload filen igen på denne side, før den udgives.</p>}
   </section>;
 }
-const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersion:{default:1},pageId:{default:''},assetId:{default:''},kind:{default:'download'}},content:'none'},{
-  render:({block,editor})=>{const context=useData();return <MediaBlock assetId={block.props.assetId} pageId={block.props.pageId} kind={block.props.kind} editable={Boolean(context?.canEdit && editor.isEditable)} onUpload={(id,kind)=>editor.updateBlock(block,{props:{assetId:id,kind}})}/>;},
+const createMedia=createReactBlockSpec({type:'pageMedia',propSchema:{schemaVersion:{default:1},pageId:{default:''},assetId:{default:''},kind:{default:'download'},displayTitle:{default:''}},content:'none'},{
+  render:({block,editor})=>{const context=useData();return <MediaBlock assetId={block.props.assetId} pageId={block.props.pageId} kind={block.props.kind} displayTitle={block.props.displayTitle} editable={Boolean(context?.canEdit && editor.isEditable)} onUpload={(id,kind)=>editor.updateBlock(block,{props:{assetId:id,kind}})}/>;},
   toExternalHTML:()=> <p>Vedhæftet undervisningsfil</p>,
 });
 const schema = BlockNoteSchema.create({

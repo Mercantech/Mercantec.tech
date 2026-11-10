@@ -243,7 +243,7 @@ export function createCollaborationServer({
 
     async onAuthenticate({ documentName, token, requestParameters, connectionConfig }) {
       // An older editor can discard block types or props it does not know.
-      if (requestParameters?.get('schemaVersion') !== '8') throw SCHEMA_MISMATCH;
+      if (requestParameters?.get('schemaVersion') !== '9') throw SCHEMA_MISMATCH;
       const documentId = documentIdFromName(documentName);
       // Hocuspocus keys live rooms by the raw name, while storage uses the UUID.
       // Do not allow two differently-cased notebook rooms to overwrite one document.

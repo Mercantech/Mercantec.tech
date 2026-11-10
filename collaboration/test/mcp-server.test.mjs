@@ -51,7 +51,7 @@ async function fixture(t) {
   const request = changes => { const operationId = randomUUID(); state.pending.add(operationId); return { actorSub: sub, operationId, requestHash: 'a'.repeat(64), changes }; };
   const connect = () => {
     const doc = new Y.Doc();
-    const websocket = new HocuspocusProviderWebsocket({ url: `ws://127.0.0.1:${server.address.port}/collaboration?schemaVersion=8`, WebSocketPolyfill: WebSocket, autoConnect: false, maxAttempts: 1 });
+    const websocket = new HocuspocusProviderWebsocket({ url: `ws://127.0.0.1:${server.address.port}/collaboration?schemaVersion=9`, WebSocketPolyfill: WebSocket, autoConnect: false, maxAttempts: 1 });
     const provider = new HocuspocusProvider({ name, token, document: doc, websocketProvider: websocket }); provider.attach(); websocket.connect().catch(() => {});
     const client = { doc, provider, websocket, destroy() { provider.destroy(); websocket.destroy(); doc.destroy(); } }; clients.push(client); return client;
   };
