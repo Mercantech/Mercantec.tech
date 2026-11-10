@@ -10,8 +10,9 @@
 
 <section class="reference-graph" aria-label="Forbindelser på tværs af LUP">
     <div class="reference-toolbar">
-        <label class="field reference-search">Søg i indhold<input type="search" value="@_query" @oninput="Search" placeholder="Note, teori, opgave eller materiale…" /></label>
-        <label class="field reference-type">Vis type<select @bind="_type" @bind:after="FilterChanged"><option value="">Alt indhold</option>@foreach (var kind in _nodes.Select(n => n.Entity.Reference.Kind).Distinct().Order()) { <option value="@kind">@ReferencePresentation.KindLabel(kind)</option> }</select></label>
+        <label class="field reference-search">Søg i indhold<input type="search" value="@_query" @oninput="Search" placeholder="@(_showAllContent ? "Note, teori, opgave eller materiale…" : "Find en forbundet side…")" /></label>
+        <label class="field reference-type">Vis type<select @bind="_type" @bind:after="FilterChanged"><option value="">@(_showAllContent ? "Alt indhold" : "Alle sider")</option>@foreach (var kind in _nodes.Select(n => n.Entity.Reference.Kind).Distinct().Order()) { <option value="@kind">@ReferencePresentation.KindLabel(kind)</option> }</select></label>
+        <label class="reference-check reference-content-toggle"><input type="checkbox" @bind="_showAllContent" @bind:after="ContentModeChanged" /> Vis filer og andet indhold</label>
         <div class="reference-toolbar-actions">
             <button type="button" class="secondary" @ref="_settingsToggle" aria-expanded="@_settingsOpen.ToString().ToLowerInvariant()" aria-controls="@_settingsId" @onclick="ToggleSettings"><span aria-hidden="true">☷</span> Visningsindstillinger</button>
             <button type="button" class="secondary" disabled="@_loading" @onclick="() => Load(false)">Opdatér graf</button>
@@ -67,7 +68,20 @@
                 @if (_failed) { <p class="reference-help" role="status">Den interaktive graf kunne ikke vises. Du kan stadig bruge listen.</p> }
                 <details class="reference-list" open="@_failed"><summary>Indhold og forbindelser som liste</summary><ul>@foreach (var node in VisibleNodes) { <li><div><a href="@node.Entity.Href"><EmojiText Text="@node.Entity.Title" /></a><small>@node.Entity.ContextLabel · @ReferencePresentation.KindLabel(node.Entity.Reference.Kind)</small></div><button type="button" class="secondary" @onclick="() => SelectNode(node.Entity.Reference)">Fremhæv</button><button type="button" class="secondary" @onclick="() => Focus(node.Entity.Reference)">Vis forbindelser</button></li> }</ul><ul>@foreach (var edge in VisibleEdges) { var from = _nodes.First(n => n.Key == edge.FromKey); var to = _nodes.First(n => n.Key == edge.ToKey); <li><a href="@from.Entity.Href"><EmojiText Text="@from.Entity.Title" /></a><span aria-hidden="true">→</span><a href="@to.Entity.Href"><EmojiText Text="@to.Entity.Title" /></a></li> }</ul></details>
             }
-            else if (!_loading) { <div class="reference-empty"><h2>Find forbindelser i dit indhold</h2><p>Søg efter en note, teoriside, opgave eller et materiale. Links og referencer mellem indhold bliver vist her.</p></div> }
+            else if (!_loading)
+            {
+                <div class="reference-empty">
+                    @if (_showAllContent)
+                    {
+                        <h2>Find forbindelser i dit indhold</h2><p>Søg efter en note, teoriside, opgave eller et materiale. Links og referencer mellem indhold bliver vist her.</p>
+                    }
+                    else
+                    {
+                        <h2>Ingen sidelinks at vise</h2><p>Grafen viser sider, der linker til andre sider eller bliver linket til. Slå Vis filer og andet indhold til for at se resten.</p>
+                    }
+                    @if (_focus is not null) { <button type="button" class="secondary" @onclick="Reset">Tilbage til oversigten</button> }
+                </div>
+            }
         </div>
     </div>
 </section>
@@ -88,8 +102,8 @@
     private GraphSettings _settings = new();
     private string _query = "", _type = "";
     private string? _error;
-    private int _total, _offset, _unmounting;
-    private bool _loading, _searching, _hasMore, _dataDirty, _visualDirty, _mounted, _failed, _disposed, _settingsOpen, _settingsLoaded, _renderingGraph;
+    private int _total, _offset, _unmounting, _contentModeVersion;
+    private bool _loading, _searching, _hasMore, _dataDirty, _visualDirty, _mounted, _failed, _disposed, _settingsOpen, _settingsLoaded, _renderingGraph, _showAllContent;
     private ElementReference _host, _settingsToggle;
     private IJSObjectReference? _module;
     private Task<IJSObjectReference>? _moduleTask;
@@ -98,7 +112,9 @@
     private DotNetObjectReference<ReferenceGraphView>? _callback;
     private readonly CancellationTokenSource _life = new();
     private CancellationTokenSource? _search, _load, _save;
-    private static bool IsContent(EntityReference reference) => reference.Kind is not ("person" or "member" or "poll");
+    private bool IsContent(EntityReference reference) => _showAllContent
+        ? reference.Kind is not ("person" or "member" or "poll")
+        : reference.Kind is "notion-page" or "notebook-page";
     private IEnumerable<ReferenceGraphNode> VisibleNodes => _nodes.Where(n => _type.Length == 0 || n.Entity.Reference.Kind == _type);
     private IEnumerable<ReferenceGraphEdge> VisibleEdges { get { var keys = VisibleNodes.Select(n => n.Key).ToHashSet(); return _edges.Where(e => keys.Contains(e.FromKey) && keys.Contains(e.ToKey)); } }
     private string? ActiveId => _selected?.Reference.Key ?? _focus?.Key;
@@ -122,7 +138,8 @@
         _loading = true; _error = null; _failed = false; var offset = more ? _offset + 400 : 0;
         try
         {
-            var graph = await new ReferenceClient(Http).Graph(new(_focus, ScopeKind, ScopeId, offset, 400, PublishedOnly), ct);
+            var graph = await new ReferenceClient(Http).Graph(new(_focus, ScopeKind, ScopeId, offset, 400, PublishedOnly,
+                LinkedPagesOnly: !_showAllContent), ct);
             if (ct.IsCancellationRequested) return;
             var nodes = graph.Nodes.Where(n => IsContent(n.Entity.Reference)).DistinctBy(n => n.Key).ToArray();
             if (nodes.Length == 0) await Unmount();
@@ -172,7 +189,7 @@
     {
         _query = args.Value?.ToString() ?? ""; _search?.Cancel(); _search?.Dispose(); _search = CancellationTokenSource.CreateLinkedTokenSource(_life.Token); var ct = _search.Token; _matches = [];
         if (_query.Trim().Length == 0) { _searching = false; return; } _searching = true;
-        try { await Task.Delay(200, ct); var result = await new ReferenceClient(Http).Search(_query, ct, ScopeKind, ScopeId, PublishedOnly, contentOnly: true); if (!ct.IsCancellationRequested) _matches = result.Items.Where(m => IsContent(m.Reference)).ToArray(); }
+        try { await Task.Delay(200, ct); var result = await new ReferenceClient(Http).Search(_query, ct, ScopeKind, ScopeId, PublishedOnly, contentOnly: true, linkedPagesOnly: !_showAllContent); if (!ct.IsCancellationRequested) _matches = result.Items.Where(m => IsContent(m.Reference)).ToArray(); }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException) { if (!ct.IsCancellationRequested) _error = "Søgningen kunne ikke hentes."; }
         finally { if (!ct.IsCancellationRequested) _searching = false; }
     }
@@ -183,6 +200,22 @@
     }
     private async Task Reset() { _focus = null; await Load(false); }
     private void FilterChanged() { if (_selected is not null && !VisibleNodes.Any(n => n.Entity.Reference == _selected.Reference)) _selected = null; _dataDirty = true; }
+    private async Task ContentModeChanged()
+    {
+        var version = ++_contentModeVersion;
+        var scope = _scope;
+        _focus = null;
+        _type = "";
+        CancelSearch();
+        _load?.Cancel();
+        await Unmount();
+        if (_disposed || version != _contentModeVersion || scope != _scope) return;
+        _nodes = [];
+        _edges = [];
+        _selected = null;
+        _loading = false;
+        if (Auth.IsAuthenticated) await Load(false);
+    }
     private async Task ToggleSettings() { if (_settingsOpen) await CloseSettings(); else _settingsOpen = true; }
     private async Task CloseSettings()
     {

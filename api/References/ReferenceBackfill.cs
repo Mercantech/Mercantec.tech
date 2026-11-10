@@ -24,7 +24,8 @@ public sealed class ReferenceBackfill(IServiceScopeFactory scopes, ILogger<Refer
                     {
                         var kind = notebook ? "notebook-page" : "notion-page";
                         var required = notebook ? 1 : 2;
-                        if (await db.ReferenceIndexStates.CountAsync(s => s.SourceKind == kind && s.SourceId == id.ToString("D"), stoppingToken) >= required) continue;
+                        if (await db.ReferenceIndexStates.CountAsync(s => s.SourceKind == kind && s.SourceId == id.ToString("D")
+                                && s.Fingerprint.StartsWith(ReferenceService.IndexFingerprintPrefix), stoppingToken) >= required) continue;
                         await using var transaction = await db.Database.BeginTransactionAsync(stoppingToken);
                         if (notebook)
                         {

@@ -10,17 +10,22 @@ namespace Mercantec.Tech.Api.References;
 
 public sealed partial class ReferenceService
 {
+    // Prefix the state hash so a change to reference extraction can reindex saved pages without changing their contents.
+    internal const string IndexFingerprintPrefix = "v2:";
+
     /// <summary>Read the previous saved state before a write, establishing a silent historical baseline.</summary>
     public async Task BaselineNotionAsync(Guid id, CancellationToken ct)
     {
-        var existing = await db.ReferenceIndexStates.AsNoTracking().Where(s => s.SourceKind == "notion-page" && s.SourceId == id.ToString("D"))
+        var existing = await db.ReferenceIndexStates.AsNoTracking().Where(s => s.SourceKind == "notion-page" && s.SourceId == id.ToString("D")
+                && s.Fingerprint.StartsWith(IndexFingerprintPrefix))
             .Select(s => s.Visibility).ToArrayAsync(ct);
         if (existing.Contains("draft") && existing.Contains("published")) return;
         var page = await db.NotionPages.AsNoTracking().Where(p => p.Id == id)
-            .Select(p => new { p.YjsState, p.PublishedState, p.CreatedBySub, p.PublishedBySub }).SingleOrDefaultAsync(ct);
+            .Select(p => new { p.YjsState, p.PublishedState, p.PublishedAtUtc, p.CreatedBySub, p.PublishedBySub }).SingleOrDefaultAsync(ct);
         if (page is null) return;
         if (!existing.Contains("draft")) await ReplaceIndexAsync(Ref("notion-page", id), "draft", page.YjsState, page.CreatedBySub, false, ct);
-        if (!existing.Contains("published")) await ReplaceIndexAsync(Ref("notion-page", id), "published", page.PublishedState, page.PublishedBySub ?? page.CreatedBySub, false, ct);
+        if (!existing.Contains("published")) await ReplaceIndexAsync(Ref("notion-page", id), "published",
+            page.PublishedAtUtc is null ? null : page.PublishedState, page.PublishedBySub ?? page.CreatedBySub, false, ct);
     }
 
     public async Task RefreshNotionAsync(Guid id, CancellationToken ct, bool published = false)
@@ -35,7 +40,8 @@ public sealed partial class ReferenceService
 
     public async Task BaselineNotebookAsync(Guid id, CancellationToken ct)
     {
-        if (await db.ReferenceIndexStates.AnyAsync(s => s.SourceKind == "notebook-page" && s.SourceId == id.ToString("D"), ct)) return;
+        if (await db.ReferenceIndexStates.AnyAsync(s => s.SourceKind == "notebook-page" && s.SourceId == id.ToString("D")
+                && s.Fingerprint.StartsWith(IndexFingerprintPrefix), ct)) return;
         var document = await db.NotebookDocuments.AsNoTracking().Where(p => p.Id == id)
             .Select(p => new { p.YjsState, OwnerSub = p.Notebook == null ? Guid.Empty : p.Notebook.OwnerSub }).SingleOrDefaultAsync(ct);
         if (document is not null) await ReplaceIndexAsync(Ref("notebook-page", id), "live", document.YjsState, document.OwnerSub, false, ct);
@@ -52,7 +58,7 @@ public sealed partial class ReferenceService
     private async Task ReplaceIndexAsync(EntityReference source, string visibility, byte[]? state, Guid author,
         bool notify, CancellationToken ct)
     {
-        var fingerprint = Convert.ToHexStringLower(SHA256.HashData(state ?? []));
+        var fingerprint = IndexFingerprintPrefix + Convert.ToBase64String(SHA256.HashData(state ?? []));
         var marker = await db.ReferenceIndexStates.SingleOrDefaultAsync(s => s.SourceKind == source.Kind
             && s.SourceId == source.Id && s.Visibility == visibility, ct);
         if (marker?.Fingerprint == fingerprint) return;
@@ -109,13 +115,18 @@ public sealed partial class ReferenceService
         return people.Concat(members).ToHashSet();
     }
 
-    private async Task<ReferenceGraphEdge[]> VisibleEdgesAsync(ClaimsPrincipal user, List<ResolvedReference> catalog, bool publishedOnly, CancellationToken ct)
+    private async Task<ReferenceGraphEdge[]> VisibleEdgesAsync(List<ResolvedReference> catalog, bool publishedOnly,
+        CancellationToken ct, bool linkedPagesOnly = false)
     {
         var byKey = catalog.ToDictionary(r => r.Reference.Key);
         var notionIds = catalog.Where(r => r.Reference.Kind == "notion-page").Select(r => r.Reference.Id).ToArray();
         var notebookIds = catalog.Where(r => r.Reference.Kind == "notebook-page").Select(r => r.Reference.Id).ToArray();
-        var edges = await db.EntityReferenceLinks.AsNoTracking().Where(e => e.SourceKind == "notion-page" && notionIds.Contains(e.SourceId)
-            || e.SourceKind == "notebook-page" && notebookIds.Contains(e.SourceId)).ToArrayAsync(ct);
+        var links = db.EntityReferenceLinks.AsNoTracking().Where(e => e.SourceKind == "notion-page" && notionIds.Contains(e.SourceId)
+            || e.SourceKind == "notebook-page" && notebookIds.Contains(e.SourceId));
+        if (linkedPagesOnly)
+            links = links.Where(e => (e.TargetKind == "notion-page" || e.TargetKind == "notebook-page")
+                && (e.SourceKind != e.TargetKind || e.SourceId != e.TargetId));
+        var edges = await links.ToArrayAsync(ct);
         return edges.Where(e => byKey.TryGetValue(e.SourceKind + ":" + e.SourceId, out var source)
                 && e.Visibility == (e.SourceKind == "notebook-page" ? "live" : source.CanRename && !publishedOnly ? "draft" : "published")
                 && byKey.ContainsKey(e.TargetKind + ":" + e.TargetId))
@@ -123,12 +134,23 @@ public sealed partial class ReferenceService
             .Distinct().ToArray();
     }
 
+    private static HashSet<string> ConnectedKeys(IEnumerable<ReferenceGraphEdge> edges)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var edge in edges)
+        {
+            keys.Add(edge.FromKey);
+            keys.Add(edge.ToKey);
+        }
+        return keys;
+    }
+
     public async Task<EntityGraph> GraphAsync(ClaimsPrincipal user, ReferenceGraphRequest request, CancellationToken ct)
     {
         var focus = Normalize(request.Focus);
         if (request.Focus is not null && (focus is null || !IsGraphContent(focus.Kind))) return new([], [], 0, false);
-        var catalog = await CatalogAsync(user, request.PublishedOnly, ct, contentOnly: true);
-        var edges = await VisibleEdgesAsync(user, catalog, request.PublishedOnly, ct);
+        var catalog = await CatalogAsync(user, request.PublishedOnly, ct, contentOnly: true, pagesOnly: request.LinkedPagesOnly);
+        var edges = await VisibleEdgesAsync(catalog, request.PublishedOnly, ct, request.LinkedPagesOnly);
         var selected = new HashSet<string>(StringComparer.Ordinal);
         if (focus is not null)
         {
@@ -146,11 +168,13 @@ public sealed partial class ReferenceService
             selected.UnionWith(catalog.Where(r => r.HoldId == hold).Select(r => r.Reference.Key));
         else selected.UnionWith(catalog.Select(r => r.Reference.Key));
         var primary = selected.ToHashSet();
-        foreach (var e in edges)
-            if (primary.Contains(e.FromKey) || primary.Contains(e.ToKey)) { selected.Add(e.FromKey); selected.Add(e.ToKey); }
+        var connected = ConnectedKeys(edges.Where(e => primary.Contains(e.FromKey) || primary.Contains(e.ToKey)));
+        if (request.LinkedPagesOnly) selected = connected;
+        else selected.UnionWith(connected);
         var nodes = catalog.Where(r => selected.Contains(r.Reference.Key)).OrderBy(r => r.Reference == focus ? 0 : primary.Contains(r.Reference.Key) ? 1 : 2)
             .ThenBy(r => r.Title, StringComparer.CurrentCultureIgnoreCase).ThenBy(r => r.Reference.Key, StringComparer.Ordinal).ToArray();
         var visible = nodes.Skip(request.Offset).Take(request.Limit).Select(r => new ReferenceGraphNode(r.Reference.Key, r)).ToArray();
+        if (!request.LinkedPagesOnly) await ApplyGraphAssetTitlesAsync(visible, catalog, ct);
         var keys = visible.Select(n => n.Key).ToHashSet();
         return new(visible, edges.Where(e => keys.Contains(e.FromKey) && keys.Contains(e.ToKey)).ToArray(), nodes.Length,
             request.Offset + visible.Length < nodes.Length);

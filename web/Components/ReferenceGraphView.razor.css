@@ -5,6 +5,7 @@
 .reference-search input{width:100%;min-width:0;min-height:44px}
 .reference-type{width:180px}
 .reference-type select{min-height:44px;max-width:100%}
+.reference-toolbar .reference-content-toggle{display:flex;align-items:center;gap:8px;min-height:44px}
 .reference-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}
 .reference-toolbar button{min-height:44px;white-space:normal}
 .reference-toolbar button[aria-expanded=true]{background:var(--tint,#eaf0ff);border-color:var(--blue,#2452e8)}

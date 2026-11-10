@@ -10,7 +10,7 @@ public sealed record ReferenceSearchResult(ResolvedReference[] Items, int Total)
 public sealed record ResolveReferences(EntityReference[] References, string? SourceKind = null, string? SourceId = null,
     bool PublishedOnly = false);
 public sealed record ReferenceGraphRequest(EntityReference? Focus = null, string? ScopeKind = null,
-    string? ScopeId = null, int Offset = 0, int Limit = 400, bool PublishedOnly = false);
+    string? ScopeId = null, int Offset = 0, int Limit = 400, bool PublishedOnly = false, bool LinkedPagesOnly = false);
 public sealed record ReferenceGraphNode(string Key, ResolvedReference Entity);
 public sealed record ReferenceGraphEdge(string FromKey, string ToKey);
 public sealed record EntityGraph(ReferenceGraphNode[] Nodes, ReferenceGraphEdge[] Edges, int Total, bool HasMore);

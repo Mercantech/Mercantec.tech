@@ -1,14 +1,14 @@
 using System.Text;
+using System.Text.Json;
 using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Api.Notion;
 
 /// <summary>
 /// Reads live internal page references from a BlockNote/Yjs document.
-/// Only <c>pageLink</c> blocks and <c>pageMention</c> inline nodes count.
 /// Deleted history stays in the update and must not become an edge.
 /// </summary>
-public static class YjsPageLinks
+public static partial class YjsPageLinks
 {
     public static bool TryReadReferences(ReadOnlySpan<byte> update, string pageKind, ISet<EntityReference> references,
         ISet<EntityReference>? mentions = null)
@@ -50,6 +50,38 @@ public static class YjsPageLinks
         {
             return false;
         }
+    }
+
+    private static EntityReference? ReadLinkTarget(string json)
+    {
+        if (json.Length == 0 || json[0] != '{') return null;
+        try
+        {
+            using var value = JsonDocument.Parse(json);
+            if (!value.RootElement.TryGetProperty("href", out var attribute) || attribute.ValueKind != JsonValueKind.String
+                || attribute.GetString() is not { Length: > 0 } href
+                || href.Contains('\\') || href.Any(char.IsWhiteSpace) || href.Any(char.IsControl)) return null;
+
+            var pathStart = 0;
+            if (!href.StartsWith('/'))
+            {
+                if (!href.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                    || !Uri.TryCreate(href, UriKind.Absolute, out var uri) || !uri.IsDefaultPort || uri.UserInfo.Length != 0
+                    || uri.Host is not ("lup.dk" or "www.lup.dk" or "mercantec.tech")) return null;
+                pathStart = href.IndexOfAny(['/', '?', '#'], "https://".Length);
+                if (pathStart < 0) return null;
+            }
+
+            var pathEnd = href.IndexOfAny(['?', '#'], pathStart);
+            var path = href.AsSpan(pathStart, (pathEnd < 0 ? href.Length : pathEnd) - pathStart);
+            var kind = path.StartsWith("/notion/", StringComparison.Ordinal) ? "notion-page"
+                : path.StartsWith("/notebook/", StringComparison.Ordinal) ? "notebook-page" : null;
+            if (kind is null) return null;
+            var id = path[(kind == "notion-page" ? "/notion/".Length : "/notebook/".Length)..];
+            return id.Length == 36 && Guid.TryParseExact(id, "D", out var guid) && guid != Guid.Empty
+                ? new(kind, guid.ToString("D")) : null;
+        }
+        catch (JsonException) { return null; }
     }
 
     private readonly record struct Id(ulong Client, ulong Clock);
@@ -134,6 +166,13 @@ public static class YjsPageLinks
         public override Content Splice(int offset) => throw new InvalidDataException("cannot split content");
     }
 
+    private sealed class LinkFormatContent(EntityReference? target) : Content
+    {
+        public EntityReference? Target { get; } = target;
+        public override int Length => 1;
+        public override Content Splice(int offset) => throw new InvalidDataException("cannot split a link format");
+    }
+
     private sealed class TypeContent(YNode node) : Content
     {
         public YNode Node = node;
@@ -142,15 +181,16 @@ public static class YjsPageLinks
         public override Content Splice(int offset) => throw new InvalidDataException("cannot split a type");
     }
 
-    private sealed class YNode(string? elementName)
+    private sealed class YNode(string? elementName, bool isXmlText = false)
     {
         public string? ElementName = elementName;
+        public bool IsXmlText = isXmlText;
         public Item? Item;
         public Item? Start;
         public Dictionary<string, Item> Map = new(StringComparer.Ordinal);
     }
 
-    private sealed class Doc
+    private sealed partial class Doc
     {
         public Dictionary<string, YNode> Roots { get; } = new(StringComparer.Ordinal);
         private readonly Dictionary<ulong, List<Struct>> _store = new();
@@ -231,9 +271,17 @@ public static class YjsPageLinks
             while (pending.TryPop(out var current))
             {
                 if (!seen.Add(current)) continue;
+                EntityReference? hyperlink = null;
                 for (var child = current.Start; child != null; child = child.Right)
                 {
-                    if (child.Deleted || child.Content is not TypeContent type) continue;
+                    if (child.Deleted) continue;
+                    if (current.IsXmlText)
+                    {
+                        if (child.Content is LinkFormatContent link) hyperlink = link.Target;
+                        else if (hyperlink is not null && child.Content is StringContent text && !string.IsNullOrWhiteSpace(text.Text))
+                            references.Add(hyperlink);
+                    }
+                    if (child.Content is not TypeContent type) continue;
                     var element = type.Node;
                     var name = element.ElementName;
                     void Add(string kind, string? value, bool isMention = false)
@@ -697,7 +745,12 @@ public static class YjsPageLinks
         }
         private Content ReadBinary() { Skip(checked((int)ReadVarUint())); return new OpaqueContent(1); }
         private Content ReadEmbed() { ReadString(); return new OpaqueContent(1); }
-        private Content ReadFormat() { ReadString(); ReadString(); return new OpaqueContent(1); }
+        private Content ReadFormat()
+        {
+            var key = ReadString();
+            var value = ReadString();
+            return key == "link" ? new LinkFormatContent(ReadLinkTarget(value)) : new OpaqueContent(1);
+        }
         private Content ReadAnyContent()
         {
             var count = checked((int)ReadVarUint());
@@ -712,7 +765,7 @@ public static class YjsPageLinks
             var type = ReadVarUint();
             var name = type is 3 or 5 ? ReadString() : null;
             if (type > 6) throw new InvalidDataException("unknown yjs type");
-            return new TypeContent(new YNode(type == 3 ? name : null));
+            return new TypeContent(new YNode(type == 3 ? name : null, isXmlText: type == 6));
         }
     }
 }

@@ -13,12 +13,12 @@ public sealed class ReferencesController(AppDbContext db) : ControllerBase
     private ReferenceService Service => new(db);
     [HttpGet("search")]
     public async Task<IActionResult> Search(CancellationToken ct, string? q = null, string? sourceKind = null,
-        string? sourceId = null, Guid? holdId = null, int limit = 30, int offset = 0, bool publishedOnly = false, bool contentOnly = false)
+        string? sourceId = null, Guid? holdId = null, int limit = 30, int offset = 0, bool publishedOnly = false, bool contentOnly = false, bool linkedPagesOnly = false)
     {
         if (UserClaims.GetSub(User) is null) return Unauthorized();
         if (q?.Length > 200 || limit is < 1 or > 100 || offset is < 0 or > 100000) return BadRequest(new { error = "invalid_search" });
         NoCache();
-        return Ok(await Service.SearchAsync(User, q, Source(sourceKind, sourceId), holdId, offset, limit, publishedOnly, ct, contentOnly));
+        return Ok(await Service.SearchAsync(User, q, Source(sourceKind, sourceId), holdId, offset, limit, publishedOnly, ct, contentOnly, linkedPagesOnly));
     }
 
     [HttpPost("resolve")]

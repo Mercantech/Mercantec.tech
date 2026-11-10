@@ -6,10 +6,12 @@ using Mercantec.Tech.Api.References;
 using Mercantec.Tech.Contracts;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Mercantec.Tech.Api.Tests;
 
-public sealed class ReferencesTests : IAsyncLifetime
+public sealed partial class ReferencesTests : IAsyncLifetime
 {
     private readonly SqliteConnection connection = new("DataSource=:memory:");
     private AppDbContext db = null!;
@@ -69,6 +71,35 @@ public sealed class ReferencesTests : IAsyncLifetime
         Assert.Equal([Ref("notebook-page", noteId)], refs);
         refs.Clear(); Assert.True(YjsPageLinks.TryReadReferences(GraphFixtures.Get("basic"), "notebook-page", refs));
         Assert.Contains(refs, r => r.Kind == "notebook-page"); Assert.DoesNotContain(refs, r => r.Kind == "notion-page");
+    }
+
+    [Fact]
+    public async Task BackfillReindexesLegacyPageAndNotebookFingerprintsWithoutNewMentions()
+    {
+        var state = GraphFixtures.Get("hyperlinks");
+        await db.NotionPages.Where(p => p.Id == page.Id).ExecuteUpdateAsync(update => update
+            .SetProperty(p => p.YjsState, state).SetProperty(p => p.PublishedState, state));
+        await db.NotebookDocuments.Where(p => p.Id == noteId).ExecuteUpdateAsync(update => update.SetProperty(p => p.YjsState, state));
+        var oldFingerprint = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(state));
+        db.ReferenceIndexStates.AddRange(
+            new ReferenceIndexState { SourceKind = "notion-page", SourceId = page.Id.ToString("D"), Visibility = "draft", Fingerprint = oldFingerprint },
+            new ReferenceIndexState { SourceKind = "notion-page", SourceId = page.Id.ToString("D"), Visibility = "published", Fingerprint = oldFingerprint },
+            new ReferenceIndexState { SourceKind = "notebook-page", SourceId = noteId.ToString("D"), Visibility = "live", Fingerprint = oldFingerprint });
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        await using var services = new ServiceCollection().AddDbContext<AppDbContext>(options => options.UseSqlite(connection)).BuildServiceProvider();
+        using var backfill = new ReferenceBackfill(services.GetRequiredService<IServiceScopeFactory>(), NullLogger<ReferenceBackfill>.Instance);
+        await backfill.StartAsync(CancellationToken.None);
+        await backfill.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+
+        var markers = await db.ReferenceIndexStates.AsNoTracking().ToArrayAsync();
+        Assert.All(markers, marker => Assert.StartsWith("v2:", marker.Fingerprint));
+        var links = await db.EntityReferenceLinks.AsNoTracking().ToArrayAsync();
+        Assert.Equal(12, links.Length);
+        Assert.All(links, link => Assert.False(link.IsMention));
+        Assert.Equal(new[] { "draft", "live", "published" }, links.Select(link => link.Visibility).Distinct().Order());
+        Assert.Empty(await db.ReferenceMentionEvents.ToArrayAsync());
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Notion;
+using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Api.Tests;
 
@@ -42,6 +43,24 @@ public sealed class YjsPageLinksTests
     public void NestedMentionsIncludeDuplicatesAsOneTargetAndANestedLink()
     {
         Assert.Equal(new[] { A, B, D }.Order(), YjsPageLinks.Read(Bytes("nested")).Order());
+    }
+
+    [Fact]
+    public void OrdinaryHyperlinksRequireLiveVisibleTextAndCanonicalLupPageTargets()
+    {
+        // The fixture also contains external and deceptive URLs, a cleared format, deleted text and a blank link.
+        var references = new HashSet<EntityReference>();
+        var mentions = new HashSet<EntityReference>();
+
+        Assert.True(YjsPageLinks.TryReadReferences(Bytes("hyperlinks"), "notebook-page", references, mentions));
+        Assert.Equal(new EntityReference[]
+        {
+            new("notion-page", A.ToString("D")),
+            new("notebook-page", B.ToString("D")),
+            new("notion-page", C.ToString("D")),
+            new("notion-page", D.ToString("D"))
+        }.OrderBy(r => r.Id), references.OrderBy(r => r.Id));
+        Assert.Empty(mentions);
     }
 
     [Fact]

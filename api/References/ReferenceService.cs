@@ -39,9 +39,17 @@ public sealed partial class ReferenceService(AppDbContext db)
     }
 
     public async Task<ReferenceSearchResult> SearchAsync(ClaimsPrincipal user, string? q, EntityReference? source,
-        Guid? preferredHold, int offset, int limit, bool publishedOnly, CancellationToken ct, bool contentOnly = false)
+        Guid? preferredHold, int offset, int limit, bool publishedOnly, CancellationToken ct, bool contentOnly = false,
+        bool linkedPagesOnly = false)
     {
-        var catalog = await CatalogAsync(user, publishedOnly, ct, search: q, contentOnly: contentOnly);
+        contentOnly |= linkedPagesOnly;
+        var catalog = await CatalogAsync(user, publishedOnly, ct, search: q, contentOnly: contentOnly, pagesOnly: linkedPagesOnly);
+        if (linkedPagesOnly)
+        {
+            var edges = await VisibleEdgesAsync(catalog, publishedOnly, ct, linkedPagesOnly: true);
+            var connected = ConnectedKeys(edges);
+            catalog.RemoveAll(r => !connected.Contains(r.Reference.Key));
+        }
         var current = source is null ? null : catalog.FirstOrDefault(r => r.Reference == Normalize(source));
         var activeHold = current?.HoldId ?? preferredHold;
         var aliases = new Dictionary<string, string>();
@@ -138,7 +146,7 @@ public sealed partial class ReferenceService(AppDbContext db)
     }
 
     private async Task<List<ResolvedReference>> CatalogAsync(ClaimsPrincipal user, bool publishedOnly, CancellationToken ct,
-        HashSet<EntityReference>? wanted = null, string? search = null, bool contentOnly = false)
+        HashSet<EntityReference>? wanted = null, string? search = null, bool contentOnly = false, bool pagesOnly = false)
     {
         if (UserClaims.GetSub(user) is not Guid sub) return [];
         var result = new List<ResolvedReference>();
@@ -158,6 +166,7 @@ public sealed partial class ReferenceService(AppDbContext db)
         string HoldName(Guid? id) => id is Guid h ? holdNames.GetValueOrDefault(h, "Hold") : "Teori";
         void Add(string kind, Guid id, string title, string href, Guid? hold = null, Guid? collection = null,
             bool rename = false, string? context = null) => result.Add(new(Ref(kind, id), title, href, context ?? HoldName(hold), hold, collection, rename));
+        if (!pagesOnly)
         foreach (var h in holds.Where(h => wanted is null || wanted.Contains(Ref("hold", h.Id)))) Add("hold", h.Id, h.Name, $"/holds/{h.Id:D}?view=overview", h.Id);
 
         var extraPages = new List<Guid>(); var extraNotes = new List<Guid>();
@@ -182,18 +191,17 @@ public sealed partial class ReferenceService(AppDbContext db)
         var pages = await pageQuery
             .Select(p => new { p.Id, p.HoldId, p.CollectionId, p.ParentPageId, p.Title, p.PublishedTitle,
                 p.PublishedAssetIdsJson, p.PublishedDrawingsJson, p.DrawingIdsJson }).ToArrayAsync(ct);
-        var pageAccess = pages.ToDictionary(p => p.Id);
-        var readablePageIds = pages.Select(p => p.Id).ToArray();
         foreach (var p in pages)
         {
             var edit = !publishedOnly && (p.HoldId is Guid h ? manageSet.Contains(h) : UserClaims.IsTeacher(user));
             var title = edit ? p.Title : p.PublishedTitle!;
             var href = $"/notion/{p.Id:D}" + (edit ? "" : "?published=true");
             Add("notion-page", p.Id, title, href, p.HoldId, p.CollectionId, edit);
-            if (p.ParentPageId is null) Add("collection", p.Id, title, href, p.HoldId, p.CollectionId ?? p.Id, edit);
+            if (!pagesOnly && p.ParentPageId is null) Add("collection", p.Id, title, href, p.HoldId, p.CollectionId ?? p.Id, edit);
         }
         // A published child can be readable while its canonical collection root remains a draft.
         // Keep the collection navigable without ever resolving that hidden root's draft title.
+        if (!pagesOnly)
         foreach (var group in pages.Where(p => p.CollectionId != null).GroupBy(p => p.CollectionId!.Value))
             if (!result.Any(r => r.Reference == Ref("collection", group.Key)))
             {
@@ -209,10 +217,14 @@ public sealed partial class ReferenceService(AppDbContext db)
         }
         var notes = await noteQuery
             .Select(d => new { d.Id, d.Title, d.NotebookId, d.HoldId, d.Notebook!.OwnerSub, d.AssetIdsJson }).ToArrayAsync(ct);
-        var noteAccess = notes.ToDictionary(d => d.Id);
-        var readableNoteIds = notes.Select(d => d.Id).ToArray();
         foreach (var d in notes) Add("notebook-page", d.Id, d.Title, $"/notebook/{d.Id:D}", d.HoldId,
             d.NotebookId, d.OwnerSub == sub, "Personlige noter");
+        if (pagesOnly) return result;
+
+        var pageAccess = pages.ToDictionary(p => p.Id);
+        var readablePageIds = pages.Select(p => p.Id).ToArray();
+        var noteAccess = notes.ToDictionary(d => d.Id);
+        var readableNoteIds = notes.Select(d => d.Id).ToArray();
         var ownerIds = notes.Select(d => d.OwnerSub).Distinct().ToArray();
         var profileQuery = Only(db.NotebookProfiles.AsNoTracking(), "person", p => p.Sub, ownerIds);
         if (contentOnly) profileQuery = profileQuery.Where(p => ownerIds.Contains(p.Sub));

@@ -66,6 +66,7 @@ public sealed class ReferenceGraphUiTests
         Assert.Equal("collection", api.GraphRequests[0].ScopeKind);
         Assert.Equal(api.Collection.ToString(), api.GraphRequests[0].ScopeId);
         Assert.True(api.GraphRequests[0].PublishedOnly);
+        Assert.True(api.GraphRequests[0].LinkedPagesOnly);
         Assert.Equal(400, api.GraphRequests[0].Limit);
         page.WaitForAssertion(() => Assert.NotNull(javascript!.Module.Payload));
         var nodes = javascript!.Module.Payload!.Value.GetProperty("nodes").EnumerateArray().ToArray();
@@ -76,11 +77,68 @@ public sealed class ReferenceGraphUiTests
         page.WaitForAssertion(() => Assert.Single(api.SearchQueries), TimeSpan.FromSeconds(5));
         Assert.Contains("publishedOnly=true", api.SearchQueries[0], StringComparison.OrdinalIgnoreCase);
         Assert.Contains("contentOnly=true", api.SearchQueries[0], StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("linkedPagesOnly=true", api.SearchQueries[0], StringComparison.OrdinalIgnoreCase);
         page.WaitForAssertion(() => Assert.Single(page.FindAll(".reference-results button")));
         page.Find(".reference-results button").Click();
         page.WaitForAssertion(() => Assert.Equal(2, api.GraphRequests.Count));
         Assert.Equal(api.Note.Reference, api.GraphRequests[1].Focus);
         Assert.True(api.GraphRequests[1].PublishedOnly);
+        Assert.True(api.GraphRequests[1].LinkedPagesOnly);
+    }
+
+    [Fact]
+    public async Task Other_content_can_be_enabled_and_switching_back_resets_the_focused_graph_and_filters()
+    {
+        using var api = new GraphApi { IncludeFile = true, More = true };
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            services.AddSingleton<IJSRuntime>(new GraphJavascript(original));
+        });
+        var page = context.Render<ReferenceGraphView>();
+        page.WaitForAssertion(() => Assert.Single(api.GraphRequests));
+        Assert.True(api.GraphRequests[0].LinkedPagesOnly);
+        Assert.DoesNotContain(api.File.Title, page.Markup);
+
+        page.Find(".reference-content-toggle input").Change(true);
+        page.WaitForAssertion(() => Assert.Contains(api.File.Title, page.Markup));
+        Assert.False(api.GraphRequests[1].LinkedPagesOnly);
+        page.Find(".reference-type select").Change("file");
+        Assert.Equal(api.File.Title, page.Find(".reference-list a").TextContent);
+        page.Find(".reference-toolbar input[type=search]").Input(api.File.Title);
+        page.WaitForAssertion(() => Assert.Contains("linkedPagesOnly=false", Assert.Single(api.SearchQueries)));
+        page.WaitForElement(".reference-results button");
+        page.FindAll(".reference-results button").Single(button => button.TextContent.Contains(api.File.Title)).Click();
+        page.WaitForAssertion(() => Assert.Equal(api.File.Reference, api.GraphRequests[2].Focus));
+        page.FindAll("button").Single(button => button.TextContent.Contains("Hent næste udsnit", StringComparison.Ordinal)).Click();
+        page.WaitForAssertion(() => Assert.Equal(400, api.GraphRequests[3].Offset));
+
+        page.Find(".reference-content-toggle input").Change(false);
+        page.WaitForAssertion(() => Assert.Equal(5, api.GraphRequests.Count));
+        var linked = api.GraphRequests[4];
+        Assert.True(linked.LinkedPagesOnly);
+        Assert.Null(linked.Focus);
+        Assert.Equal(0, linked.Offset);
+        Assert.DoesNotContain(api.File.Title, page.Markup);
+        Assert.Empty(page.FindAll(".reference-results button"));
+        Assert.Contains(api.Note.Title, page.Find(".reference-list").TextContent);
+    }
+
+    [Fact]
+    public async Task Empty_linked_graph_explains_how_to_show_other_content()
+    {
+        using var api = new GraphApi { NoLinkedPages = true, IncludeFile = true };
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var original = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            services.AddSingleton<IJSRuntime>(new GraphJavascript(original));
+        });
+        var page = context.Render<ReferenceGraphView>();
+        Assert.Equal("Ingen sidelinks at vise", page.Find(".reference-empty h2").TextContent);
+        Assert.Contains("Vis filer og andet indhold", page.Find(".reference-empty p").TextContent);
+        page.Find(".reference-content-toggle input").Change(true);
+        page.WaitForAssertion(() => Assert.Contains(api.File.Title, page.Markup));
+        Assert.Empty(page.FindAll(".reference-empty"));
     }
 
     [Fact]
@@ -98,6 +156,7 @@ public sealed class ReferenceGraphUiTests
         page.WaitForAssertion(() => Assert.Equal(2, api.GraphRequests.Count));
         Assert.Equal(400, api.GraphRequests[1].Offset);
         Assert.Equal(400, api.GraphRequests[1].Limit);
+        Assert.True(api.GraphRequests[1].LinkedPagesOnly);
         Assert.Equal("hold", api.GraphRequests[1].ScopeKind);
         Assert.Equal(api.Collection.ToString(), api.GraphRequests[1].ScopeId);
     }
@@ -295,11 +354,14 @@ public sealed class ReferenceGraphUiTests
         public Guid Collection { get; } = Guid.NewGuid();
         public bool More;
         public bool IncludeExcluded;
+        public bool IncludeFile { get; init; }
+        public bool NoLinkedPages { get; init; }
         public CustomEmojiItem? Emoji { get; init; }
         public int EmojiRequests { get; private set; }
         public TaskCompletionSource? SearchGate;
         public TaskCompletionSource SearchStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public ResolvedReference Note { get; } = new(new("notebook-page", Guid.NewGuid().ToString()), noteTitle, "/notebook/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", "En delt notesbog");
+        public ResolvedReference File { get; } = new(new("file", Guid.NewGuid().ToString()), "Vedhæftet fil", "/files/file", "Materiale");
         public ResolvedReference Person { get; } = new(new("person", Guid.NewGuid().ToString()), "Skjult person", "/people/person", "Elev");
         public ResolvedReference Member { get; } = new(new("member", Guid.NewGuid().ToString()), "Skjult elev", "/people/member", "Elev");
         public ResolvedReference Poll { get; } = new(new("poll", Guid.NewGuid().ToString()), "Skjult afstemning", "/polls/poll", "Afstemning");
@@ -316,9 +378,15 @@ public sealed class ReferenceGraphUiTests
             if (path == "/api/references/graph")
             {
                 var input = (await request.Content!.ReadFromJsonAsync<ReferenceGraphRequest>(cancellationToken))!; GraphRequests.Add(input);
+                if (input.LinkedPagesOnly && NoLinkedPages) return Json(new EntityGraph([], [], 0, false));
                 var source = new ResolvedReference(new("notion-page", Collection.ToString()), "Fælles teori", "/notion/" + Collection, "Teori", CollectionId: Collection);
                 ReferenceGraphNode[] nodes = [new(source.Reference.Key, source), new(Note.Reference.Key, Note)];
                 ReferenceGraphEdge[] edges = [new(source.Reference.Key, Note.Reference.Key)];
+                if (IncludeFile && !input.LinkedPagesOnly)
+                {
+                    nodes = [.. nodes, new(File.Reference.Key, File)];
+                    edges = [.. edges, new(source.Reference.Key, File.Reference.Key)];
+                }
                 if (IncludeExcluded)
                 {
                     nodes = nodes.Concat(new[] { Person, Member, Poll }.Select(reference => new ReferenceGraphNode(reference.Reference.Key, reference))).ToArray();
@@ -330,7 +398,10 @@ public sealed class ReferenceGraphUiTests
             {
                 SearchQueries.Add(request.RequestUri.Query); SearchStarted.TrySetResult();
                 if (SearchGate is not null) await SearchGate.Task;
-                return Json(new ReferenceSearchResult(IncludeExcluded ? [Note, Person, Member, Poll] : [Note], IncludeExcluded ? 4 : 1));
+                List<ResolvedReference> matches = [Note];
+                if (IncludeExcluded) matches.AddRange([Person, Member, Poll]);
+                if (IncludeFile && request.RequestUri.Query.Contains("linkedPagesOnly=false")) matches.Add(File);
+                return Json(new ReferenceSearchResult(matches.ToArray(), matches.Count));
             }
             return new(HttpStatusCode.NotFound);
         }
