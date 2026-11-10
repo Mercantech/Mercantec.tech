@@ -1,0 +1,421 @@
+@using System.Globalization
+@using System.Net
+@using System.Text.Json
+@using Mercantec.Tech.Web.Navigation
+@inject AuthRedirect Redirect
+@inject HttpClient Http
+@implements IDisposable
+
+@if (Redirect.ShowsTeacherChrome)
+{
+    <div id="lectio-import" class="course-lectio">
+        <button type="button" class="@(_open ? "secondary" : "action")" @onclick="ToggleAsync" disabled="@_creating"
+                aria-expanded="@(_open ? "true" : "false")" aria-controls="lectio-import-panel">
+            <UiIcon Name="people" /> @(_open ? "Luk Lectio-import" : "Opret fra Lectio")
+        </button>
+
+        @if (_open)
+        {
+            <section id="lectio-import-panel" class="course-lectio-panel" aria-labelledby="lectio-import-heading">
+                <header class="course-lectio-header">
+                    <div>
+                        <h2 id="lectio-import-heading">Opret hold fra Lectio</h2>
+                        <p>Vælg et hold, se elevlisten, og opret holdet her i LUP.</p>
+                    </div>
+                    <a href="/lectio">Avancerede Lectio-værktøjer</a>
+                </header>
+
+                @if (_error is not null)
+                {
+                    <p class="course-lectio-error" role="alert">@_error</p>
+                }
+
+                @if (_result is { } result)
+                {
+                    <div class="course-lectio-result">
+                        <div role="status">
+                            @if (result.Total is int total)
+                            {
+                                <strong>@result.Name er oprettet.</strong>
+                                <p>@StudentCount(total) importeret.</p>
+                            }
+                            else
+                            {
+                                <strong>@result.Name er allerede oprettet i LUP.</strong>
+                            }
+                        </div>
+                        <div class="course-lectio-actions">
+                            <a class="action" href="@WorkspaceNavigation.View(result.WorkspaceId)">Åbn holdet</a>
+                            <button type="button" class="secondary" @onclick="BackToList">Opret et hold mere</button>
+                        </div>
+                    </div>
+                }
+                else if (_selected is { } selected)
+                {
+                    <button type="button" class="secondary" @onclick="BackToList" disabled="@(_loading || _creating)">
+                        Tilbage til Lectio-hold
+                    </button>
+                    <div class="course-lectio-preview">
+                        <h3>@selected.Name</h3>
+                        @if (_loading)
+                        {
+                            <p role="status">Henter elevlisten…</p>
+                        }
+                        else if (_students is not { } students)
+                        {
+                            <button type="button" class="secondary" @onclick="() => PreviewAsync(selected)">Prøv at hente elevlisten igen</button>
+                        }
+                        else
+                        {
+                            <p>@StudentCount(students.Length) på Lectio-holdet.</p>
+                            @if (students.Length > 0)
+                            {
+                                <details class="course-lectio-students">
+                                    <summary>Se elevlisten</summary>
+                                    <ul>@foreach (var student in students) { <li>@student</li> }</ul>
+                                </details>
+                            }
+                            <form class="course-lectio-form" @onsubmit="ImportAsync" @onsubmit:preventDefault>
+                                <label class="field">
+                                    Navn i LUP
+                                    <input @bind="_name" @bind:event="oninput" maxlength="200" required disabled="@_creating" />
+                                </label>
+                                <button type="submit" class="action" disabled="@(_creating || string.IsNullOrWhiteSpace(_name))">
+                                    @(_creating ? "Opretter hold…" : "Opret hold")
+                                </button>
+                            </form>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="course-lectio-filters">
+                        <label class="field">
+                            Søg i Lectio-hold
+                            <input type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetVisibleCount"
+                                   placeholder="Navn, holdkode eller fag" />
+                        </label>
+                        <label class="field">
+                            Vis
+                            <select value="@(_showAll ? "saved" : "tracked")" @onchange="ChangeScopeAsync" disabled="@_loading">
+                                <option value="tracked">Fulgte hold</option>
+                                <option value="saved">Alle gemte hold</option>
+                            </select>
+                        </label>
+                    </div>
+                    @if (_loading)
+                    {
+                        <p role="status">Henter hold fra Lectio…</p>
+                    }
+                    else if (_holds is null)
+                    {
+                        <button type="button" class="secondary" @onclick="LoadAsync">Prøv igen</button>
+                    }
+                    else
+                    {
+                        var matches = MatchingHolds();
+                        @if (matches.Length == 0)
+                        {
+                            <p role="status">Ingen hold matcher. Søg igen, eller skift til alle gemte hold.</p>
+                        }
+                        else
+                        {
+                            <ul class="course-lectio-list">
+                                @foreach (var hold in matches.Take(_visibleCount))
+                                {
+                                    <li @key="hold.Key">
+                                        <div>
+                                            <strong>@hold.Name</strong>
+                                            <p>@hold.Key
+                                                @if (hold.Year is not null) { <span> · @hold.Year</span> }
+                                                @if (hold.Subject is not null) { <span> · @hold.Subject</span> }
+                                                @if (hold.MemberCount is int count) { <span> · @StudentCount(count)</span> }
+                                            </p>
+                                        </div>
+                                        @if (KnownWorkspace(hold.Key) is Guid workspaceId)
+                                        {
+                                            <a class="secondary" href="@WorkspaceNavigation.View(workspaceId)"
+                                               aria-label="@($"Åbn {hold.Name} i LUP")">Åbn i LUP</a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="secondary" @onclick="() => PreviewAsync(hold)"
+                                                    aria-label="@($"Vælg {hold.Name}")">Vælg</button>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                            @if (matches.Length > _visibleCount)
+                            {
+                                <button type="button" class="secondary" @onclick="() => _visibleCount += PageSize">Vis flere hold</button>
+                            }
+                        }
+                    }
+                }
+            </section>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool OpenInitially { get; set; }
+    [Parameter] public IReadOnlyDictionary<string, Guid> ExistingHolds { get; set; } = new Dictionary<string, Guid>();
+    [Parameter] public EventCallback OnImported { get; set; }
+
+    private const int PageSize = 12;
+    private readonly CancellationTokenSource _lifetime = new();
+    private readonly Dictionary<string, Guid> _knownHolds = new(StringComparer.OrdinalIgnoreCase);
+    private LectioHold[]? _holds;
+    private LectioHold? _selected;
+    private ImportResult? _result;
+    private string[]? _students;
+    private string _query = "";
+    private string _name = "";
+    private string? _error;
+    private int _visibleCount = PageSize;
+    private bool _open;
+    private bool _showAll;
+    private bool _loading;
+    private bool _creating;
+    private bool _disposed;
+    private bool _openedFromRoute;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!OpenInitially)
+            _openedFromRoute = false;
+
+        if (OpenInitially && !_openedFromRoute && Redirect.ShowsTeacherChrome)
+        {
+            _openedFromRoute = true;
+            _open = true;
+            await LoadAsync();
+        }
+    }
+
+    private async Task ToggleAsync()
+    {
+        _open = !_open;
+        if (_open && _holds is null)
+            await LoadAsync();
+    }
+
+    private async Task ChangeScopeAsync(ChangeEventArgs change)
+    {
+        _showAll = change.Value as string == "saved";
+        _holds = null;
+        ResetVisibleCount();
+        await LoadAsync();
+    }
+
+    private void ResetVisibleCount() => _visibleCount = PageSize;
+
+    private LectioHold[] MatchingHolds()
+    {
+        var query = _query.Trim();
+        return _holds!.Where(hold =>
+            hold.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase)
+            || hold.Key.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || hold.Subject?.Contains(query, StringComparison.CurrentCultureIgnoreCase) == true)
+            .ToArray();
+    }
+
+    private Guid? KnownWorkspace(string key) =>
+        _knownHolds.TryGetValue(key, out var workspace) || ExistingHolds.TryGetValue(key, out workspace)
+            ? workspace : null;
+
+    private async Task LoadAsync()
+    {
+        if (_loading || _disposed || !Redirect.ShowsTeacherChrome)
+            return;
+
+        _loading = true;
+        _error = null;
+        try
+        {
+            var source = _showAll ? "saved" : "tracked";
+            using var response = await Http.GetAsync($"lectio/holds/{source}", _lifetime.Token);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>(_lifetime.Token);
+            if (!TryArray(body, "holds", out var holds))
+                throw new JsonException("Missing Lectio hold list.");
+
+            _holds = holds.EnumerateArray()
+                .Select(ReadHold)
+                .OfType<LectioHold>()
+                .DistinctBy(hold => hold.Key, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(hold => hold.Name, StringComparer.CurrentCultureIgnoreCase)
+                .ThenBy(hold => hold.Key, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException or OperationCanceledException)
+        {
+            if (!_disposed)
+                _error = ErrorMessage((exception as HttpRequestException)?.StatusCode, "Holdene kunne ikke hentes fra Lectio. Prøv igen.");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task PreviewAsync(LectioHold hold)
+    {
+        if (_loading || _disposed || !Redirect.ShowsTeacherChrome || KnownWorkspace(hold.Key) is not null)
+            return;
+
+        _selected = hold;
+        _name = hold.Name.Length > 200 ? hold.Name[..200] : hold.Name;
+        _students = null;
+        _error = null;
+        _loading = true;
+        try
+        {
+            using var response = await Http.GetAsync($"lectio/holds/by-lectio/{Uri.EscapeDataString(hold.Key)}", _lifetime.Token);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>(_lifetime.Token);
+            if (!TryArray(body, "members", out var members)
+                && !(body.ValueKind == JsonValueKind.Object && body.TryGetProperty("hold", out var details)
+                    && TryArray(details, "members", out members)))
+                throw new JsonException("Missing Lectio roster.");
+
+            var roster = members.EnumerateArray()
+                .Select(member => (Id: Text(member, "studentLectioId") ?? Text(member, "lectioId"), Name: Text(member, "studentName") ?? Text(member, "name")))
+                .ToArray();
+            if (roster.Any(member => member.Id is null))
+                throw new JsonException("Invalid Lectio roster member.");
+
+            _students = roster
+                .DistinctBy(member => member.Id, StringComparer.OrdinalIgnoreCase)
+                .Select(member => member.Name ?? "Elev uden navn")
+                .Order(StringComparer.CurrentCultureIgnoreCase)
+                .ToArray();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException or OperationCanceledException)
+        {
+            if (!_disposed)
+                _error = ErrorMessage((exception as HttpRequestException)?.StatusCode, "Elevlisten kunne ikke hentes. Prøv igen.");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ImportAsync()
+    {
+        if (_creating || _disposed || _students is null || _selected is not { } hold
+            || string.IsNullOrWhiteSpace(_name) || !Redirect.ShowsTeacherChrome)
+            return;
+
+        _creating = true;
+        _error = null;
+        try
+        {
+            var name = _name.Trim();
+            using var response = await Http.PostAsJsonAsync("forloeb/from-lectio",
+                new { lectioHoldKey = hold.Key, name, holdName = name }, _lifetime.Token);
+            if (response.StatusCode != HttpStatusCode.Conflict)
+                response.EnsureSuccessStatusCode();
+
+            var body = await response.Content.ReadFromJsonAsync<JsonElement>(_lifetime.Token);
+            if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                var existing = TryArray(body, "conflicts", out var conflicts)
+                    ? conflicts.EnumerateArray()
+                        .Where(conflict => string.Equals(Text(conflict, "lectioHoldKey"), hold.Key, StringComparison.OrdinalIgnoreCase))
+                        .Select(conflict => Id(conflict, "forloebId"))
+                        .FirstOrDefault(value => value is not null)
+                    : Id(body, "forloebId");
+                if (existing is not Guid workspaceId)
+                {
+                    _error = Text(body, "error") == "already_imported"
+                        ? "Holdet er allerede oprettet i LUP. Vælg et andet Lectio-hold."
+                        : "Holdet kunne ikke oprettes. Prøv igen.";
+                    return;
+                }
+
+                _knownHolds[hold.Key] = workspaceId;
+                _result = new(workspaceId, hold.Name, null);
+            }
+            else if (Id(body, "id") is Guid workspaceId)
+            {
+                var total = body.TryGetProperty("imported", out var imported) ? Number(imported, "total") : null;
+                _knownHolds[hold.Key] = workspaceId;
+                _result = new(workspaceId, Text(body, "name") ?? name, total ?? _students.Length);
+            }
+            else
+            {
+                throw new JsonException("Missing created workspace ID.");
+            }
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException or OperationCanceledException)
+        {
+            if (!_disposed)
+                _error = ErrorMessage((exception as HttpRequestException)?.StatusCode, "Holdet kunne ikke oprettes. Prøv igen.");
+        }
+        finally
+        {
+            _creating = false;
+        }
+
+        if (!_disposed && _result is not null)
+            await OnImported.InvokeAsync();
+    }
+
+    private void BackToList()
+    {
+        _selected = null;
+        _students = null;
+        _result = null;
+        _error = null;
+    }
+
+    private static string ErrorMessage(HttpStatusCode? status, string fallback) => status switch
+    {
+        HttpStatusCode.Unauthorized => "Log ind igen for at hente hold fra Lectio.",
+        HttpStatusCode.Forbidden => "Du har ikke adgang til denne handling i Lectio.",
+        HttpStatusCode.NotFound => "Lectio-holdet kunne ikke findes. Prøv et andet hold.",
+        _ => fallback
+    };
+
+    private static LectioHold? ReadHold(JsonElement element)
+    {
+        if (Text(element, "lectioHoldKey") is not { } key)
+            return null;
+
+        return new(key, Text(element, "name") ?? key, Text(element, "yearLabel") ?? Text(element, "year"),
+            Text(element, "fagId"), Number(element, "memberCount"));
+    }
+
+    private static string StudentCount(int total) => total == 1 ? "1 elev" : $"{total.ToString(CultureInfo.CurrentCulture)} elever";
+
+    private static string? Text(JsonElement element, string name) =>
+        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property)
+        && property.ValueKind == JsonValueKind.String && property.GetString()?.Trim() is { Length: > 0 } text
+            ? text : null;
+
+    private static int? Number(JsonElement element, string name) =>
+        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var property)
+        && property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var number)
+            ? number : null;
+
+    private static Guid? Id(JsonElement element, string name) =>
+        Guid.TryParse(Text(element, name), out var id) && id != Guid.Empty ? id : null;
+
+    private static bool TryArray(JsonElement element, string name, out JsonElement array)
+    {
+        array = default;
+        return element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out array) && array.ValueKind == JsonValueKind.Array;
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+
+    private sealed record LectioHold(string Key, string Name, string? Year, string? Subject, int? MemberCount);
+    private sealed record ImportResult(Guid WorkspaceId, string Name, int? Total);
+}

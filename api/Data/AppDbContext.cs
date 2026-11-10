@@ -7,6 +7,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
 {
     public DbSet<Forloeb> Forloeb => Set<Forloeb>();
     public DbSet<Hold> Hold => Set<Hold>();
+    public DbSet<HoldFavorite> HoldFavorites => Set<HoldFavorite>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<HoldLectioSource> HoldLectioSources => Set<HoldLectioSource>();
 
@@ -112,6 +113,13 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
                 .WithMany(x => x.LectioSources)
                 .HasForeignKey(x => x.HoldId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<HoldFavorite>(e =>
+        {
+            e.ToTable("hold_favorites");
+            e.HasKey(x => new { x.UserSub, x.HoldId });
+            e.HasOne<Hold>().WithMany().HasForeignKey(x => x.HoldId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Membership>(e =>

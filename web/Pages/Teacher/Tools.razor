@@ -1,18 +1,200 @@
 @page "/teacher/tools"
+@using Mercantec.Tech.Web.Navigation
+@using Mercantec.Tech.Web.Notion
 @inject AuthService Auth
 @inject AuthRedirect Redirect
+@inject ViewAsStudentContext ViewAs
+@inject NotionClient Notion
+@implements IDisposable
 
 <PageTitle>Underviserværktøjer · LUP</PageTitle>
-@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Log ind for at fortsætte.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
-else if (!Redirect.ShowsTeacherChrome) { <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Denne side er for undervisere.</p></div></header><a class="secondary" href="@Redirect.PostLoginPath()">Til dit overblik</a> }
+@if (!Auth.IsInitialized)
+{
+    <p role="status">Indlæser…</p>
+}
+else if (!Auth.IsAuthenticated)
+{
+    <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Log ind for at fortsætte.</p></div></header>
+    <a class="action" href="@Auth.LoginPath()">Log ind</a>
+}
+else if (!CanRead)
+{
+    <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Denne side er for undervisere.</p></div></header>
+    <a class="secondary" href="@Redirect.PostLoginPath()">Til dit overblik</a>
+}
 else
 {
     <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/teacher">Overblik</a><span>›</span><span aria-current="page">Underviserværktøjer</span></nav>
-    <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Brugere, Lectio og fælles indstillinger.</p></div></header>
-    <div class="teacher-tools-grid">
-        <NavigationCard Href="/lectio" Title="Lectio" Description="Elev- og holdoversigt, Auth-kobling og elevvisning." Icon="calendar" />
-        <NavigationCard Href="/users" Title="Brugere" Description="Brugeroversigt og rettigheder." Icon="people" />
-        <NavigationCard Href="/emojis" Title="Emojis" Description="Fælles emojis til indhold og feedback." Icon="message" />
+    <header class="page-title"><div><h1>Underviserværktøjer</h1><p>Planlæg undervisning, følg eleverne, og administrér dine hold.</p></div></header>
+    <nav class="teacher-tools-jump" aria-label="Kategorier af underviserværktøjer">
+        <a href="/teacher/tools#holdvaerktoejer">Holdværktøjer</a>
+        <a href="/teacher/tools#undervisning">Undervisning</a>
+        <a href="/teacher/tools#opfoelgning">Elever og opfølgning</a>
+        <a href="/teacher/tools#opsaetning">Opsætning</a>
+    </nav>
+    <div class="teacher-tools-sections">
+        <section class="teacher-tools-holds" id="holdvaerktoejer" aria-labelledby="teacher-hold-tools-title">
+            <div class="teacher-hold-tools-header">
+                <div>
+                    <h2 id="teacher-hold-tools-title">Holdværktøjer</h2>
+                    <p>Vælg et hold for at gå direkte til dets undervisning, opgaver og indstillinger.</p>
+                </div>
+                <div class="actions">
+                    <a class="secondary" href="/courses">Mine hold</a>
+                    <a class="action" href="/courses?import=lectio">Opret fra Lectio</a>
+                </div>
+            </div>
+            @if (_loading)
+            {
+                <p role="status">Henter dine hold…</p>
+            }
+            else if (_loadFailed)
+            {
+                <div class="teacher-tools-error">
+                    <p role="alert">Holdene kunne ikke hentes.</p>
+                    <button type="button" class="secondary" @onclick="LoadHolds">Prøv igen</button>
+                </div>
+            }
+            else if (_holds.Length == 0)
+            {
+                <p>Du har endnu ingen hold, du kan administrere.</p>
+            }
+            else
+            {
+                <label class="field teacher-hold-picker">
+                    Hold
+                    <select @bind="_selectedHoldId">
+                        <option value="">Vælg hold</option>
+                        @foreach (var hold in _holds)
+                        {
+                            <option value="@hold.Id">@hold.Name</option>
+                        }
+                    </select>
+                </label>
+                @if (_holds.FirstOrDefault(hold => hold.Id == _selectedHoldId) is { } selected)
+                {
+                    <nav class="teacher-hold-shortcuts" aria-label="@($"Værktøjer til {selected.Name}")">
+                        @foreach (var tool in HoldTools)
+                        {
+                            <a class="secondary" href="@WorkspaceNavigation.Hold(selected.Id, tool.View)"><UiIcon Name="@tool.Icon" />@tool.Title</a>
+                        }
+                        <a class="secondary" href="@WorkspaceNavigation.Roulette(selected.Id)"><UiIcon Name="shuffle" />Grupperoulette</a>
+                        <a class="secondary" href="@WorkspaceNavigation.HoldGraph(selected.Id)"><UiIcon Name="chart" />Sidegraf</a>
+                    </nav>
+                }
+            }
+        </section>
+        <section id="undervisning" aria-labelledby="teacher-instruction-title">
+            <h2 id="teacher-instruction-title">Undervisning</h2>
+            <div class="teacher-tools-grid">
+                <NavigationCard Href="/teacher/planner" Title="Min kalender" Description="Se din Outlook-kalender og planlæg undervisningen." Icon="calendar" HeadingLevel="3" />
+                <NavigationCard Href="/notion" Title="Notesbøger og forløbseditor" Description="Skriv, organisér og udgiv undervisningssider." Icon="file" HeadingLevel="3" />
+                <NavigationCard Href="/teacher/polls" Title="Afstemninger" Description="Opret spørgsmål og stemningstjek til dine hold." Icon="chart" HeadingLevel="3" />
+                <NavigationCard Href="/valgfag?vis=administrer" Title="Administrér valgfag" Description="Opret valgfagshold, og se tilmeldinger." Icon="sliders" HeadingLevel="3" />
+                <NavigationCard Href="/courses/template" Title="Undervisningsplaner" Description="Find undervisningsplaner, læringsmål og ugeplaner." Icon="book" HeadingLevel="3" />
+                <NavigationCard Href="/library" Title="Bibliotek" Description="Find fag, undervisningsmaterialer og projekter." Icon="folder" HeadingLevel="3" />
+            </div>
+        </section>
+        <section id="opfoelgning" aria-labelledby="teacher-followup-title">
+            <h2 id="teacher-followup-title">Elever og opfølgning</h2>
+            <div class="teacher-tools-grid">
+                <NavigationCard Href="/notifications" Title="Til opfølgning" Description="Se afleveringer, der venter på feedback, og øvrige beskeder." Icon="check" HeadingLevel="3" />
+                <NavigationCard Href="/teacher/notebooks" Title="Elevnotesbøger" Description="Følg elevernes noter og logbøger, og giv kommentarer." Icon="book" HeadingLevel="3" />
+                <NavigationCard Href="/teacher/notebook-templates" Title="Logbogsskabeloner" Description="Opret og udgiv fælles skabeloner til logbøger." Icon="file" HeadingLevel="3" />
+                <NavigationCard Href="/lectio" Title="Lectio" Description="Se elever og hold, forbind elevkonti, og åbn elevvisning." Icon="people" HeadingLevel="3" />
+            </div>
+        </section>
+        <section id="opsaetning" aria-labelledby="teacher-setup-title">
+            <h2 id="teacher-setup-title">Opsætning</h2>
+            <div class="teacher-tools-grid">
+                <NavigationCard Href="/users" Title="Brugere" Description="Find brugere, og se roller og kontotilknytning. Kræver administratoradgang i Mercantec Auth." Icon="people" HeadingLevel="3" />
+                <NavigationCard Href="/emojis" Title="Emojis" Description="Find og administrér fælles emojis til indhold og feedback." Icon="message" HeadingLevel="3" />
+                <NavigationCard Href="/extension" Title="LUP til Chrome" Description="Opsæt din forbindelse til LUP-udvidelsen." Icon="external" HeadingLevel="3" />
+                <NavigationCard Href="/teacher/updates" Title="Nyt i LUP" Description="Se nye funktioner og ændringer til undervisningen." Icon="rocket" HeadingLevel="3" />
+            </div>
+        </section>
     </div>
+}
+
+@code {
+    private static readonly (string View, string Title, string Icon)[] HoldTools =
+    [
+        ("content", "Forløb", "book"),
+        ("quests", "Quests", "target"),
+        ("submissions", "Afleveringer til vurdering", "check"),
+        ("calendar", "Holdkalender", "calendar"),
+        ("groups", "Grupper", "people"),
+        ("materials", "Materialer", "folder"),
+        ("polls", "Afstemninger", "chart"),
+        ("settings", "Holdindstillinger", "sliders")
+    ];
+
+    private NotionHold[] _holds = [];
+    private Guid? _selectedHoldId;
+    private string? _account;
+    private CancellationTokenSource? _request;
+    private bool _loading, _loadFailed, _disposed;
+    private bool CanRead => Auth.IsInitialized && Redirect.ShowsTeacherChrome;
+
+    protected override Task OnInitializedAsync()
+    {
+        Auth.AuthStateChanged += OnAccountChanged;
+        ViewAs.Changed += OnAccountChanged;
+        return LoadHolds();
+    }
+
+    private void OnAccountChanged() => _ = InvokeAsync(async () =>
+    {
+        if (_disposed) return;
+        if (_account != (CanRead ? Auth.Subject : null))
+        {
+            var pending = LoadHolds();
+            StateHasChanged();
+            await pending;
+        }
+        StateHasChanged();
+    });
+
+    private async Task LoadHolds()
+    {
+        _request?.Cancel();
+        _request?.Dispose();
+        _request = null;
+        _holds = [];
+        _selectedHoldId = null;
+        _loadFailed = _loading = false;
+        _account = CanRead ? Auth.Subject : null;
+        if (!CanRead || _disposed) return;
+
+        _request = new CancellationTokenSource();
+        var ct = _request.Token;
+        _loading = true;
+        try
+        {
+            var holds = await Notion.Holds(ct);
+            if (!ct.IsCancellationRequested)
+            {
+                _holds = holds.Where(hold => hold.CanManage).ToArray();
+                if (_holds.Length == 1) _selectedHoldId = _holds[0].Id;
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex) when (ex is NotionException or HttpRequestException or System.Text.Json.JsonException or OperationCanceledException)
+        {
+            if (!ct.IsCancellationRequested) _loadFailed = true;
+        }
+        finally
+        {
+            if (!ct.IsCancellationRequested) _loading = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        Auth.AuthStateChanged -= OnAccountChanged;
+        ViewAs.Changed -= OnAccountChanged;
+        _request?.Cancel();
+        _request?.Dispose();
+    }
 }
