@@ -5,7 +5,10 @@
 @implements IAsyncDisposable
 
 <div class="emoji-picker">
-    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle" @onclick="Toggle" disabled="@Disabled" aria-label="@TriggerLabel" title="@TriggerLabel" aria-expanded="@(_open ? "true" : "false")" aria-haspopup="dialog" aria-controls="@(_open ? _panelId : null)">@TriggerText</button>
+    <button @ref="_trigger" type="button" class="secondary emoji-picker-toggle @TriggerClass" @onclick="Toggle" disabled="@Disabled" aria-label="@TriggerLabel" title="@TriggerLabel" aria-expanded="@(_open ? "true" : "false")" aria-haspopup="dialog" aria-controls="@(_open ? _panelId : null)">
+        @if (TriggerContent is not null) { @TriggerContent }
+        else { @TriggerText }
+    </button>
     @if (_open)
     {
         var visible = EmojiPickerCatalog.Filter(_items ?? [], _query, _category);
@@ -59,6 +62,10 @@
             }
             else
             {
+            @if (ResetLabel is not null)
+            {
+                <button type="button" class="emoji-picker-reset-selection" @onclick="ResetSelection">@ResetLabel</button>
+            }
             <label class="emoji-picker-search-label">
                 <span class="emoji-picker-sr-only">Søg efter emoji</span>
                 <input class="emoji-picker-search" type="search" value="@_query" @oninput="Search" placeholder="Søg navn eller fx glad, raket…" autocomplete="off" spellcheck="false" maxlength="100" disabled="@(_items is null)" />
@@ -121,6 +128,10 @@
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string TriggerLabel { get; set; } = "Emoji";
     [Parameter] public string TriggerText { get; set; } = "Emoji";
+    [Parameter] public string? TriggerClass { get; set; }
+    [Parameter] public RenderFragment? TriggerContent { get; set; }
+    [Parameter] public string? ResetLabel { get; set; }
+    [Parameter] public EventCallback OnReset { get; set; }
     [Parameter] public EventCallback<CustomEmojiItem> OnPick { get; set; }
     private readonly string _panelId = "emoji-picker-" + Guid.NewGuid().ToString("N");
     private bool _open, _focusSearch, _disposed, _moduleDisposed;
@@ -218,6 +229,12 @@
     {
         await Close(true);
         await OnPick.InvokeAsync(item);
+    }
+
+    private async Task ResetSelection()
+    {
+        await Close(true);
+        await OnReset.InvokeAsync();
     }
 
     [JSInvokable]

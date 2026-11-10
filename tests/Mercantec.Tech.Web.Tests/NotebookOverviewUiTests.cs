@@ -69,7 +69,11 @@ public sealed class NotebookOverviewUiTests
         Assert.Contains("H1 undervisning", page.Find(".books-card h2").TextContent);
         Assert.Contains("Redigeret af Berit", page.Find(".books-card").TextContent);
         Assert.Single(page.FindAll(".books-card[data-kind=hold] .books-kind"));
-        Assert.Equal("Forløb", page.Find(".books-card[data-kind=hold] .books-kind").TextContent);
+        Assert.Equal("H1", page.Find(".books-card[data-kind=hold] .books-kind").TextContent.Trim());
+        Assert.Empty(page.FindAll(".books-card[data-kind=hold] .books-context"));
+        Assert.Equal("Teorinotesbog", page.Find(".books-card[data-kind=theory] .books-kind strong").TextContent);
+        Assert.Equal("Fælles for alle i LUP", page.Find(".books-card[data-kind=theory] .books-kind small").TextContent);
+        Assert.Single(page.FindAll(".books-card[data-kind=hold] button.books-icon[aria-label='Skift ikon for H1 undervisning']"));
         Assert.NotNull(page.Find(".books-card time").GetAttribute("datetime"));
 
         page.FindAll(".books-filters select").Last().Change("asc");

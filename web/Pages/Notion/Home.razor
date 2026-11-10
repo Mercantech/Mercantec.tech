@@ -65,19 +65,30 @@ else
     {
         <div class="books-grid">@foreach (var book in Visible)
         {
-            <article @key="book.Href" class="panel books-card" data-kind="@book.Kind">
+            <article @key="book.Href" class="books-card" data-kind="@book.Kind">
                 <div class="books-card-top">
-                    <span class="books-icon" aria-hidden="true">
-                        @if (book.IconId is Guid id && _icons.TryGetValue(id, out var icon) && !_missingIcons.Contains(id))
-                        {
-                            <img src="@icon.ContentUrl" alt="" loading="lazy" decoding="async" @onerror="() => _missingIcons.Add(id)" />
-                        }
-                        else { <UiIcon Name="@book.DefaultIcon" /> }
-                    </span>
-                    <span class="books-kind">@book.Label</span>
+                    @if (book.CanChangeIcon)
+                    {
+                        <EmojiPicker Disabled="@_savingIcon.HasValue" TriggerLabel="@("Skift ikon for " + book.Title)" TriggerClass="books-icon"
+                                     ResetLabel="@(book.IconId.HasValue ? "Brug standardikon" : null)" OnReset="() => SetIcon(book, null)"
+                                     OnPick="emoji => SetIcon(book, emoji)">
+                            <TriggerContent>@BookIcon(book)</TriggerContent>
+                        </EmojiPicker>
+                    }
+                    else
+                    {
+                        <span class="books-icon" aria-hidden="true">@BookIcon(book)</span>
+                    }
+                    <div class="books-kind" title="@(book.Kind == "hold" ? book.Label : null)">
+                        <strong>@book.Label</strong>
+                        @if (book.Kind == "theory") { <small>@book.Context</small> }
+                    </div>
                 </div>
                 <h2 class="books-title"><a href="@book.Href"><EmojiText Text="@book.Title" /></a></h2>
-                @if (!string.IsNullOrWhiteSpace(book.Context)) { <p class="books-context" title="@book.Context">@book.Context</p> }
+                @if (book.Kind is not ("theory" or "hold") && !string.IsNullOrWhiteSpace(book.Context))
+                {
+                    <p class="books-context" title="@book.Context">@book.Context</p>
+                }
                 <div class="books-updated">
                     @if (book.Updated is DateTimeOffset updated)
                     {
@@ -97,16 +108,6 @@ else
                 }
                 <div class="books-card-actions">
                     <a class="books-open" href="@book.Href">Åbn notesbog <span aria-hidden="true">→</span></a>
-                    @if (book.CanChangeIcon)
-                    {
-                        <EmojiPicker Disabled="@_savingIcon.HasValue" TriggerLabel="@("Skift ikon for " + book.Title)" TriggerText="Skift ikon"
-                            OnPick="emoji => SetIcon(book, emoji)" />
-                        @if (book.IconId.HasValue)
-                        {
-                            <button type="button" class="secondary books-icon-reset" disabled="@_savingIcon.HasValue"
-                                aria-label="@("Brug standardikon for " + book.Title)" title="Brug standardikon" @onclick="() => SetIcon(book, null)"><UiIcon Name="loop" /></button>
-                        }
-                    }
                 </div>
                 @if (_iconError is { } error && error.BookId == book.Id)
                 {
@@ -134,6 +135,13 @@ else
     private string? _error;
     private bool _loading = true, _busy, _creating, _disposed, _studentsLoaded;
     private CancellationTokenSource _request = new();
+    private RenderFragment BookIcon(Book book) => @<text>
+        @if (book.IconId is Guid id && _icons.TryGetValue(id, out var icon) && !_missingIcons.Contains(id))
+        {
+            <img src="@icon.ContentUrl" alt="" loading="lazy" decoding="async" @onerror="() => _missingIcons.Add(id)" />
+        }
+        else { <UiIcon Name="@book.DefaultIcon" /> }
+    </text>;
     private IEnumerable<Book> Visible
     {
         get
@@ -167,7 +175,7 @@ else
             if (ct.IsCancellationRequested) return;
             _holds = await holdsTask;
             _books = (await collectionsTask).Select(c => new Book(c.Id, c.HoldId is null ? "theory" : "hold", c.Title,
-                c.HoldName ?? "Fælles for alle i LUP", "/notion/collections/" + c.Id,
+                c.HoldId is null ? "Fælles for alle i LUP" : c.HoldName ?? "", "/notion/collections/" + c.Id,
                 c.HoldId is Guid id ? [id.ToString()] : [], c.RootPageId is null ? null : c.UpdatedAtUtc,
                 c.LastEditedByName, c.IconEmojiId, c.CanManage && Teacher)).ToArray();
             if (!ViewAs.IsActive)
@@ -262,7 +270,7 @@ else
     {
         public string Label => Kind switch
         {
-            "theory" => "Teorinotesbog", "hold" => "Forløb", "personal" => "Personlig", "shared" => "Delt med mig", _ => "Elevnotesbog"
+            "theory" => "Teorinotesbog", "hold" => Context, "personal" => "Personlig", "shared" => "Delt med mig", _ => "Elevnotesbog"
         };
         public string DefaultIcon => Kind switch
         {

@@ -32,6 +32,8 @@
 .emoji-picker-add:has(input:disabled) { opacity: .5; cursor: default; }
 .emoji-picker-add ::deep .emoji-picker-file { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: inherit; padding: 0; margin: 0; }
 .emoji-picker-panel button { font: inherit; cursor: pointer; }
+.emoji-picker-reset-selection { align-self:start; min-height:36px; padding:6px 10px; border:1px solid var(--rule); border-radius:7px; background:var(--paper); color:var(--ink); }
+.emoji-picker-reset-selection:hover { border-color:var(--blue); background:var(--tint); }
 .emoji-picker-close { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: transparent; border: 1px solid transparent; border-radius: 7px; color: var(--muted, #63728b); font-size: 22px !important; line-height: 1; }
 .emoji-picker-search-label { display: block; flex: 0 0 auto; margin: 0; }
 .emoji-picker-search {
