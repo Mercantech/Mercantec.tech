@@ -1,38 +1,74 @@
 @inject IJSRuntime Js
 @implements IAsyncDisposable
-<div class="snow-controls">
-    <button class="snow-toggle" @onclick="Toggle" aria-label="@(_state.Paused ? "Start sneen" : "Sæt sneen på pause")" title="@Explanation"><UiIcon Name="snow" /><span>@(_state.Paused ? "Start sne" : "Pause sne")</span></button>
-    <details class="snow-settings">
-        <summary aria-label="Sneindstillinger">⌄</summary>
-        <div class="snow-panel">
-            <h2>Sne i baggrunden</h2>
-            <label>Bevægelse<select value="@_state.Mode" @onchange="ChangeMode"><option value="auto">Følg systemet</option><option value="on">Bevægelig sne</option><option value="off">Stille sne</option></select></label>
-            <p role="status">@Explanation</p>
-        </div>
-    </details>
-</div>
+
+<section class="snow-preferences" aria-labelledby="@TitleId" aria-busy="@(_ready ? "false" : "true")">
+    <h3 id="@TitleId">Julesne</h3>
+    <label for="@SelectId">Bevægelse i baggrunden</label>
+    <select id="@SelectId" value="@_state.Mode" @onchange="ChangeMode" disabled="@(!_ready)" aria-describedby="@DescriptionId">
+        <option value="auto">Følg systemet</option>
+        <option value="on">Bevægelig sne</option>
+        <option value="off">Stille sne</option>
+    </select>
+    <p id="@DescriptionId" role="status">@(_ready ? Explanation : "Henter sneindstillinger…")</p>
+</section>
+
 @code {
+    [Parameter] public string Id { get; set; } = "lup-snow";
+    private string TitleId => Id + "-title";
+    private string SelectId => Id + "-mode";
+    private string DescriptionId => Id + "-description";
     private SnowState _state = new();
     private DotNetObjectReference<SnowControls>? _reference;
     private int _observer;
-    private string Explanation => _state.Hidden ? "Sneen bevæger sig, når fanen er aktiv." : _state.Mode == "auto" && _state.ReducedMotion ? "Din enhed bruger reduceret bevægelse. Vælg Bevægelig sne, eller tryk Start sne for at sætte den i gang." : _state.Mode == "off" ? "Sneen er sat på pause i denne browser." : _state.Mode == "on" ? "Du har valgt bevægelig sne. Bevæg musen for at påvirke vinden." : "Sneen følger enhedens indstilling for bevægelse.";
+    private bool _ready, _disposed;
+    private string Explanation => _state.Mode == "off" ? "Du har valgt stille sne i denne browser."
+        : _state.Mode == "auto" && _state.ReducedMotion ? "Sneen står stille, fordi din enhed foretrækker reduceret bevægelse. Du kan selv vælge Bevægelig sne."
+        : _state.Hidden ? "Bevægelsen venter, mens fanen er skjult."
+        : _state.Mode == "on" ? "Du har valgt bevægelig sne. Bevæg musen for at påvirke vinden."
+        : "Sneen følger enhedens indstilling for bevægelse.";
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
-        _state = await Js.InvokeAsync<SnowState>("lupTheme.snowState");
+        if (!firstRender || _disposed) return;
+        var state = await Js.InvokeAsync<SnowState>("lupTheme.snowState");
+        if (_disposed) return;
+        _state = state;
         _reference = DotNetObjectReference.Create(this);
-        _observer = await Js.InvokeAsync<int>("lupTheme.observeSnow", _reference);
+        var observer = await Js.InvokeAsync<int>("lupTheme.observeSnow", _reference);
+        if (_disposed)
+        {
+            await Js.InvokeVoidAsync("lupTheme.unobserveSnow", observer);
+            return;
+        }
+        _observer = observer;
+        _ready = true;
         StateHasChanged();
     }
-    [JSInvokable] public Task SnowChanged(SnowState state) => InvokeAsync(() => { _state = state; StateHasChanged(); });
-    private async Task Toggle() { await Js.InvokeVoidAsync("lupTheme.toggleSnow"); _state = await Js.InvokeAsync<SnowState>("lupTheme.snowState"); }
-    private async Task ChangeMode(ChangeEventArgs e) => _state = await Js.InvokeAsync<SnowState>("lupTheme.setSnowMode", e.Value?.ToString() ?? "auto");
+
+    [JSInvokable]
+    public Task SnowChanged(SnowState state) => _disposed ? Task.CompletedTask : InvokeAsync(() =>
+    {
+        if (_disposed) return;
+        _state = state;
+        StateHasChanged();
+    });
+
+    private async Task ChangeMode(ChangeEventArgs e)
+    {
+        if (!_ready || _disposed || e.Value is not string mode || mode is not ("auto" or "on" or "off")) return;
+        var state = await Js.InvokeAsync<SnowState>("lupTheme.setSnowMode", mode);
+        if (!_disposed) _state = state;
+    }
+
     public async ValueTask DisposeAsync()
     {
+        if (_disposed) return;
+        _disposed = true;
         try { if (_observer != 0) await Js.InvokeVoidAsync("lupTheme.unobserveSnow", _observer); }
         catch (JSDisconnectedException) { }
         finally { _reference?.Dispose(); }
     }
+
     public sealed class SnowState
     {
         public string Mode { get; set; } = "auto";

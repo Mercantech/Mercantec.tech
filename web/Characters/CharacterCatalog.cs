@@ -190,7 +190,7 @@ public static class CharacterCatalog
              new("Lær mønstret, ikke facitlisten", "Hans motto er: En god model tilpasser sig. En dårlig model husker bare træningsdata. Han bruger det til at forklare generalisering og overfitting: En model skal vurderes på eksempler, der ikke blev brugt til at træne eller vælge den."),
              new("Italiensk håndværk, bluegrass i pausen", "Han lærte at bygge violiner i Italien og kan bruge en eftermiddag på en enkelt trækurve. Når limen tørrer, finder han banjoen frem. Han samler på stemmegafler, nynner bluegrass og kalder en god forklaring for noget, der klinger rigtigt."),
              new("Rolig, præcis og villig til at ombestemme sig", "Han spørger gerne: Hvad så modellen, og hvad har vi endnu ikke vist den? Fejl er spor, der skal undersøges. Han hjælper med klassifikation, regression, klynger, datalækage, metrikker, skævheder og ansvarlig brug af modeller.")],
-            [new("Se billeder og materialer i biblioteket", "/library?category=characters", false, false),
+            [new("Se billeder og materialer i Oversigt", "/library?category=characters", false, false),
              new("Mød Raymond og databaserne", "/characters/raymond", false, false)])
         {
             Illustrations = InfographicsFor("chameleon"),

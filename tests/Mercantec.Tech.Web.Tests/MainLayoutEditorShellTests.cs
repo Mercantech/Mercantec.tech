@@ -50,9 +50,51 @@ public sealed class MainLayoutEditorShellTests
         Assert.Contains("Aktuelt indhold", layout.Find("#main-content").TextContent);
     }
 
-    private static async Task<LearningUiTestContext> CreateContext(LayoutApi api)
+    [Fact]
+    public async Task Public_navigation_uses_the_home_logo_and_overview_on_desktop_and_mobile()
     {
-        var context = await LearningUiTestContext.CreateAsync(api, teacher: true, configure: services =>
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api);
+        await context.Auth.LogoutLocalAsync();
+        var layout = context.Render<MainLayout>();
+
+        Assert.Equal("/", layout.Find("a.brand").GetAttribute("href"));
+        Assert.Equal("LUP – Lokal UndervisningsPlatform", layout.Find("a.brand").GetAttribute("aria-label"));
+        Assert.Equal(2, layout.FindAll("header nav a[href='/library']").Count);
+        Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
+        Assert.DoesNotContain(layout.FindAll("header nav a"), link => link.TextContent.Trim() == "Undervisning");
+    }
+
+    [Theory]
+    [InlineData(false, "/student")]
+    [InlineData(true, "/teacher")]
+    public async Task Renaming_overview_preserves_authenticated_home_destinations(bool teacher, string home)
+    {
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api, teacher);
+        var layout = context.Render<MainLayout>();
+        Assert.Equal(home, layout.Find("a.brand").GetAttribute("href"));
+        Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
+    }
+
+    [Fact]
+    public async Task Footer_keeps_its_visit_name_during_navigation_and_the_logo_keeps_the_official_identity()
+    {
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api);
+        await context.Auth.LogoutLocalAsync();
+        var layout = context.Render<MainLayout>();
+        var first = layout.Find(".footer-brand").TextContent;
+        Assert.Contains(Mercantec.Tech.Web.Branding.LupIdentity.Expansions,
+            expansion => first == "LUP · " + expansion.Name);
+        Assert.Equal("LUP – Lokal UndervisningsPlatform", layout.Find("a.brand").GetAttribute("aria-label"));
+        context.Services.GetRequiredService<NavigationManager>().NavigateTo("/sources");
+        layout.WaitForAssertion(() => Assert.Equal(first, layout.Find(".footer-brand").TextContent));
+    }
+
+    private static async Task<LearningUiTestContext> CreateContext(LayoutApi api, bool teacher = true)
+    {
+        var context = await LearningUiTestContext.CreateAsync(api, teacher: teacher, configure: services =>
         {
             services.AddSingleton<IAvatarClient>(new LayoutAvatarClient());
             services.AddSingleton<DemoWorld>();

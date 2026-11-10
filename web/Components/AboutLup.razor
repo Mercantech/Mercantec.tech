@@ -1,0 +1,75 @@
+@using Mercantec.Tech.Web.Branding
+
+<div class="about-lup">
+    <header class="about-opening">
+        <div class="about-introduction">
+            <h1>Om LUP</h1>
+            <p class="about-lead">Et fælles sted at lære og bygge.</p>
+            <p class="about-description">LUP samler undervisningsplaner, materialer og det, du arbejder med på dit hold. Her kan du finde næste skridt, afprøve en idé og vise, hvad du har lært.</p>
+            <div class="about-actions">
+                <a class="about-primary" href="/library">Gå til Oversigt</a>
+                <a class="about-secondary" href="/login">Log ind i LUP</a>
+            </div>
+            <nav class="about-role-links" aria-label="Hvad får du ud af LUP?">
+                <a href="/sources#for-elever">Jeg er elev</a>
+                <a href="/sources#for-undervisere">Jeg underviser</a>
+            </nav>
+        </div>
+        <figure class="about-mascot">
+            <img src="/images/about/lupp.webp" alt="LUPP, den lilla Game Design-figur, med sin store gule blyant" width="1280" height="1280" fetchpriority="high" />
+            <figcaption><a href="/characters/lupp">Mød LUPP</a><span>Din makker i Game Design.</span></figcaption>
+        </figure>
+    </header>
+
+    <div class="about-audiences">
+        <section id="for-elever" class="about-pupil" aria-labelledby="about-pupil-title">
+            <h2 id="about-pupil-title">Til dig, der er elev</h2>
+            <p>Brug mindre tid på at lede. Brug mere tid på det, du er ved at lære.</p>
+            <ul class="about-benefits">
+                <li><strong>Find dagens arbejde.</strong><span>Gå fra dit hold til planer, materialer og opgaver.</span></li>
+                <li><strong>Arbejd med din forståelse.</strong><span>Saml dine noter, prøv koden af, og byg videre på dit projekt.</span></li>
+                <li><strong>Vis, hvad du kan.</strong><span>Aflevér dit arbejde, læs feedback, og følg din faglige udvikling.</span></li>
+            </ul>
+            <a class="about-text-link" href="/library?category=courses">Se forløb og læringsplaner</a>
+        </section>
+        <section id="for-undervisere" class="about-teacher" aria-labelledby="about-teacher-title">
+            <h2 id="about-teacher-title">Til dig, der underviser</h2>
+            <p>Giv holdet et sted at starte, og bind planen sammen med det praktiske arbejde.</p>
+            <ul class="about-benefits">
+                <li><strong>Saml dit forløb.</strong><span>Gør mål, materialer og opgaver tilgængelige for holdet.</span></li>
+                <li><strong>Sæt læringen i gang.</strong><span>Brug fælles noter, afstemninger og aktiviteter i undervisningen.</span></li>
+                <li><strong>Følg arbejdet.</strong><span>Se afleveringer, giv feedback, og hjælp eleverne med deres næste skridt.</span></li>
+            </ul>
+            <a class="about-text-link" href="/login">Log ind med din Mercantec-konto</a>
+        </section>
+    </div>
+
+    <section class="about-characters" aria-labelledby="about-characters-title">
+        <div class="about-section-heading">
+            <div><h2 id="about-characters-title">Faglighed med et ansigt</h2><p>Du møder flere hjælpere undervejs. De har hver deres fag og måde at undersøge tingene på.</p></div>
+            <a class="about-text-link" href="/characters">Mød alle karaktererne</a>
+        </div>
+        <ul class="about-character-list">
+            <li><a href="/characters/raymond"><img src="/images/characters/raymond/neutral.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Raymond</strong><small>SQL og databaser</small></span></a></li>
+            <li><a href="/characters/bee"><img src="/images/characters/bee/portrait.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Cyberbien</strong><small>Cybersikkerhed</small></span></a></li>
+            <li><a href="/characters/beaver"><img src="/images/about/beaver.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Bæver</strong><small>Sikker kode og test</small></span></a></li>
+            <li><a href="/characters/fox"><img src="/images/about/fox.webp" alt="" width="160" height="160" loading="lazy" decoding="async" /><span><strong>Ræv</strong><small>Etisk sikkerhedstest</small></span></a></li>
+        </ul>
+    </section>
+
+    <section class="about-name" aria-labelledby="about-name-title">
+        <div class="about-name-intro"><h2 id="about-name-title">Hvad står LUP for?</h2><p>Det kommer an på, hvordan dagen går.</p></div>
+        <ul class="about-expansions">
+            @foreach (var expansion in LupIdentity.Expansions)
+            {
+                <li class="@(expansion.IsOfficial ? "is-official" : null)"><strong>@expansion.Name.</strong><span>@expansion.Description</span></li>
+            }
+        </ul>
+        <p class="about-attribution">Med et nik til <a href="https://github.com/git/git/blob/e83c5163316f89bfbde7d9ab23ca2e25604af290/README#L1-L11" target="_blank" rel="noopener">Gits første README</a>.</p>
+    </section>
+
+    <section class="about-people" aria-labelledby="about-people-title">
+        <div><h2 id="about-people-title">Bygget tæt på undervisningen</h2><p>Kasper og Mathias underviser på forløbene. LUP vokser med det, elever og undervisere arbejder med, og de idéer, der opstår undervejs.</p></div>
+        <a class="about-text-link" href="https://github.com/Mercantech/Mercantec.tech" target="_blank" rel="noopener">Se projektet på GitHub</a>
+    </section>
+</div>

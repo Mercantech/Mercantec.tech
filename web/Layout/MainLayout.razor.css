@@ -6,14 +6,14 @@ main { flex:1; }
 .lup.notion-ide-shell .lup-header:has(details[open]){z-index:100}
 .lup.notion-ide-shell .footer{display:none}
 @media print{.lup.notion-ide-shell,.lup.notion-ide-shell .app{height:auto;overflow:visible}.lup.notion-ide-shell .body{display:block;overflow:visible}.lup.notion-ide-shell .lup-header{position:static}}
-.lup-header.public-header { background:#172941; border-bottom:1px solid #30425c; padding-left:max(27px,calc((100% - 1320px) / 2)); padding-right:max(27px,calc((100% - 1320px) / 2)); }
-.lup-header.public-header .brand { color:#f2f6ff; font-size:29px; }
+.lup-header.public-header { background:var(--paper); border-bottom:1px solid var(--rule); padding-left:max(27px,calc((100% - 1320px) / 2)); padding-right:max(27px,calc((100% - 1320px) / 2)); }
+.lup-header.public-header .brand { color:var(--blue); font-size:29px; }
 .lup-header.public-header .mainnav { background:transparent; border:0; }
-.lup-header.public-header ::deep .public-nav a { color:#edf2ff; font-size:14px; padding:16px 0 14px; }
-.lup-header.public-header ::deep .public-nav a.active,.lup-header.public-header .public-nav a.is-current { color:#fff; border-bottom-color:#8eb4ff; }
+.lup-header.public-header ::deep .public-nav a { color:var(--ink); font-size:14px; padding:16px 0 14px; }
+.lup-header.public-header ::deep .public-nav a.active,.lup-header.public-header .public-nav a.is-current { color:var(--blue); border-bottom-color:var(--blue); }
 .lup-header.public-header .lup-tools { margin-left:auto; }
-.lup-header.public-header .lup-tools>.action { background:#9ab5ff; color:#14254c; }
-.lup-header.public-header .lup-account>summary,.lup-header.public-header .lup-mobile-nav>summary { color:#edf2ff; }
+.lup-header.public-header .lup-tools>.action { background:var(--blue); color:var(--on-blue); }
+.lup-header.public-header .lup-account>summary,.lup-header.public-header .lup-mobile-nav>summary { color:var(--ink); }
 .lup-header.public-header ::deep .lup-mobile-menu a { color:var(--ink); }
 .lup-header.public-header ::deep .v3-menu { color:var(--ink); }
 @media(max-width:620px) { .lup-header.public-header { padding-left:16px; padding-right:16px; } .lup-header.public-header .brand { font-size:25px; } }
@@ -40,3 +40,5 @@ main { flex:1; }
 /* Open header menus stay above the fixed seasonal controls. */
 .lup:has(.theme-picker[open]) { z-index:46; }
 .lup-header:has(details[open]) { z-index:50; }
+
+.footer-brand { display:block; flex:0 1 220px; max-width:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

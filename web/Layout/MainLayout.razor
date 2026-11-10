@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @using Mercantec.Tech.Web.Theming
 @using Mercantec.Tech.Web.Navigation
+@using Mercantec.Tech.Web.Branding
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject ViewAsStudentContext ViewAs
@@ -23,7 +24,7 @@
                 <nav class="mainnav member-nav" id="campus-nav" aria-label="Hovednavigation">
                     <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                     <a href="/valgfag" class="@(ElectivesIsCurrent ? "active" : null)" aria-current="@(ElectivesIsCurrent ? "page" : null)">Valgfag</a>
-                    <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Bibliotek</a>
+                    <a href="/library" class="@(LibraryIsCurrent ? "active" : null)" aria-current="@(LibraryIsCurrent ? "true" : null)">Oversigt</a>
                     <a href="/notion" class="@(NotebookIsCurrent ? "active" : null)" aria-current="@(NotebookIsCurrent ? "true" : null)">Notesbøger</a>
                     @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
                 </nav>
@@ -32,7 +33,7 @@
                     <nav class="lup-mobile-menu" aria-label="Hovednavigation">
                         <a href="/courses" class="@(HoldsIsCurrent ? "active" : null)" aria-current="@(HoldsIsCurrent ? "true" : null)">Mine hold</a>
                         <a href="/valgfag" class="@(ElectivesIsCurrent ? "active" : null)" aria-current="@(ElectivesIsCurrent ? "page" : null)">Valgfag</a>
-                        <a href="/library">Bibliotek</a>
+                        <a href="/library">Oversigt</a>
                         <a href="/notion">Notesbøger</a>
                         @foreach (var link in NotebookLinks) { <NavLink href="@link.Href">@link.Label</NavLink> }
                         @if (IsTeacher) { <NavLink href="/teacher/planner">Min kalender</NavLink> }
@@ -67,13 +68,12 @@
             else
             {
                 <nav class="mainnav public-nav" aria-label="Hovednavigation">
-                    <a class="@(PublicArea == "learning" ? "is-current" : null)" href="/" aria-current="@(PublicArea == "learning" ? "true" : null)">Undervisning</a>
-                    <NavLink href="/library">Bibliotek</NavLink>
+                    <NavLink href="/library">Oversigt</NavLink>
                     <NavLink href="/explore/projects">Projekter</NavLink>
                     <NavLink href="/characters">Karakterer</NavLink>
                     <NavLink href="/sources">Om LUP</NavLink>
                 </nav>
-                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/">Undervisning</a><a href="/library">Bibliotek</a><a href="/explore/projects">Projekter</a><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
+                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/library">Oversigt</a><a href="/explore/projects">Projekter</a><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
                     <ThemePicker Value="@_theme" ValueChanged="SetTheme" />
                     <button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>
@@ -81,12 +81,13 @@
             }
         </header>
         <main class="body" id="main-content">@Body</main>
-        <footer class="footer"><span>LUP · Lokal UndervisningsPlatform</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/characters">Karakterer</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
+        <footer class="footer"><span class="footer-brand" title="@($"LUP · {_footerName}")">LUP · @_footerName</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/characters">Karakterer</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
     </div>
 </div>
 
 @code {
     private string _theme = "light";
+    private readonly string _footerName = LupIdentity.NameForVisit();
     private bool _loginBusy;
     private string? _notebookProfileAccount;
     private IReadOnlyList<NotebookNavigationLink> NotebookLinks => WorkspaceNavigation.NotebookLinks(IsTeacher);
@@ -105,7 +106,6 @@
     }
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
     private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
-    private string PublicArea => CurrentPath is "/" or "/subjects" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/courses/template/") ? "learning" : "";
     private bool HoldsIsCurrent => CurrentPath is "/courses" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
     private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
     private string SkipToContentHref

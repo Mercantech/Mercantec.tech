@@ -182,11 +182,11 @@ public sealed class LibraryCharactersTests
         using var api = new NoNetwork();
         using var context = await CreateContext(api);
         var overview = context.Render<CharacterIndex>();
-        Assert.Contains(overview.FindAll("a"), link => link.GetAttribute("href") == "/library?category=characters");
+        Assert.Contains(overview.FindAll("a"), link => link.GetAttribute("href") == "/library?category=characters" && link.TextContent.Contains("Oversigt", StringComparison.Ordinal));
         foreach (var character in CharacterCatalog.All)
         {
             var profile = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, character.Slug));
-            Assert.Contains(profile.FindAll("a"), link => link.GetAttribute("href") == "/library?category=characters");
+            Assert.Contains(profile.FindAll("a"), link => link.GetAttribute("href") == "/library?category=characters" && link.TextContent.Contains("Oversigt", StringComparison.Ordinal));
         }
     }
 

@@ -8,9 +8,9 @@ tags: [feature, navigation, search, design]
 
 ## Retning
 
-**LUP – Lokal UndervisningsPlatform** har én kompakt header. Logoet åbner det personlige overblik. De fælles indgange er **Mine hold** og **Bibliotek**; undervisere har desuden **Min kalender** på tværs af hold. Søgning, én notifikationsindgang og profil ligger til højre. Mobilnavigationen foldes ind i Menu.
+**LUP – Lokal UndervisningsPlatform** har én kompakt header. Logoet åbner forsiden før login og det personlige overblik efter login. De fælles indgange er **Mine hold** og **Oversigt**; undervisere har desuden **Min kalender** på tværs af hold. Søgning, én notifikationsindgang og profil ligger til højre. Mobilnavigationen foldes ind i Menu.
 
-Profilmenuen samler Min profil, Mit univers, Indstillinger og Log ud. Underviserværktøjer vises kun til undervisere. Indstillinger samler tema og kontotilknytning. Biblioteket samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav; eksempelforløb er en særskilt foldet sektion for loggede ind. Mit univers samler progression, badges, egne projekter, avatar, lejlighed, butik og spil.
+Profilmenuen samler Min profil, Mit univers, Indstillinger og Log ud. Underviserværktøjer vises kun til undervisere. Indstillinger samler tema og kontotilknytning. Oversigten samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav; eksempelforløb er en særskilt foldet sektion for loggede ind. Mit univers samler progression, badges, egne projekter, avatar, lejlighed, butik og spil.
 
 På **Underviserværktøjer** er genvejene grupperet under **Undervisning**, **Elever og opfølgning** og **Opsætning**. Vælg et hold under **Holdværktøjer** for at gå direkte til dets forløb, quests, afleveringer til vurdering, kalender, grupper, materialer, afstemninger og indstillinger. Samme område har genveje til grupperoulette, sidegraf, Mine hold og oprettelse fra Lectio. Holdvælgeren viser de hold, underviseren kan administrere.
 
@@ -20,7 +20,7 @@ Holdcentralen har fem hovedfaner: **Overblik, Undervisning, Opgaver, Kalender og
 
 Valgt hold og undervisningsforløb følger med i URL'er til faner, sider, editor, quests, kalender, grupper og afstemningens tavlevisning. Brødkrummer og lokale tilbageknapper fører tilbage til samme kontekst, også efter genindlæsning. Wrapperens workspace-id og det faktiske hold-id holdes adskilt; kontekst valideres mod API'ets hold og forløb og giver aldrig adgang i sig selv. Kun et eksplicit valg af Alle holdets forløb eller et andet hold nulstiller forløbsvalget. Opgave- og kalenderfanerne viser stadig hele holdets data.
 
-Personlige sider kræver login. Biblioteket og de allerede offentlige læsesider kan åbnes uden login. Notifikationer og klokken bruger samme personlige oversigt fra `GET /api/me/actions?version=2`. Den samler obligatoriske afleveringer og rettelser, aktuelle frivillige Side/Daily-quests, ubesvarede afstemninger, underviserens vurderinger, egne uåbnede gaver samt ulæst feedback og notesbogskommentarer/-delinger. Rød er vigtige mangler, orange er handlinger/ulæste beskeder, grøn vises kun efter et vellykket svar uden ventende punkter. Grå bruges under indlæsning og ved fejl.
+Personlige sider kræver login. Oversigten og de allerede offentlige læsesider kan åbnes uden login. Notifikationer og klokken bruger samme personlige oversigt fra `GET /api/me/actions?version=2`. Den samler obligatoriske afleveringer og rettelser, aktuelle frivillige Side/Daily-quests, ubesvarede afstemninger, underviserens vurderinger, egne uåbnede gaver samt ulæst feedback og notesbogskommentarer/-delinger. Rød er vigtige mangler, orange er handlinger/ulæste beskeder, grøn vises kun efter et vellykket svar uden ventende punkter. Grå bruges under indlæsning og ved fejl.
 
 Fremtidige daily-gentagelser tæller først på deres danske dato. Udløbne frivillige muligheder og indsendt/godkendt arbejde står ikke som mangler. Gaver er personlige og får aldrig et opdigtet hold; de kan åbnes fra `/gifts/{id}` i alle temaer og fra Mit univers. En gave forsvinder først fra klokken, når modtageren pakker den ud.
 
@@ -32,9 +32,9 @@ Klokken opdateres efter svar/aflevering, gaveåbning og læsekvittering, ved nav
 
 Der opfindes ingen logbogspligt ud fra aktive skabeloner. Badgeopnåelser, profilkrav, fremmøde og holdinvitationer kan først tænde klokken, når de har egentlige tildelings-/krav-/acceptdata. Kalenderbegivenheder er ikke i sig selv en personlig mangel.
 
-Biblioteket har lokal offentlig søgning og fire kategorier med direkte links: `/library?category=courses|subjects|projects|badges`. Læringsplaner vises med indeks, mål og ugeplan, fag med emnelinks, projekter med DEMO-billeder og badges med kriterier. De offentlige badgekrav vises ens med og uden login; personlige badges findes under Mit univers.
+Oversigten har lokal offentlig søgning og fem kategorier med direkte links: `/library?category=courses|subjects|projects|badges|characters`. Læringsplaner vises med indeks, mål og ugeplan, fag med emnelinks, projekter med DEMO-billeder og badges med kriterier. De offentlige badgekrav vises ens med og uden login; personlige badges findes under Mit univers.
 
-System, lyst, mørkt, jul, nytår og hacker kan vælges under Indstillinger (gæster har temavalg i headeren). [[Temaer-og-nytaar]] beskriver temakataloget. Rainbow er udgået.
+System, lyst, mørkt, jul, nytår og hacker kan vælges med Tema-knappen i topbaren før og efter login. [[Temaer-og-nytaar]] beskriver temakataloget. Rainbow er udgået.
 
 ## Global søgning
 
@@ -60,3 +60,9 @@ LUP-shell og global søgning er separate implementeringsopgaver; der introducere
 
 - [#27 – LUP-shell: kompakt navigation, temaer og forløbskontekst](https://github.com/Mercantech/Mercantec.tech/issues/27)
 - [#28 – Global søgning i forløb, emner, quests, badges og projekter](https://github.com/Mercantech/Mercantec.tech/issues/28)
+
+## Før login og Om LUP · issue 78
+
+Den offentlige topbar følger det valgte tema via de fælles farvetokens. Forsiden åbnes via LUP-navnet, så det tidligere Undervisning-link er fjernet fra desktop og mobil. Oversigt er det nye navn for den eksisterende `/library`-side; kategori- og planparametre samt gamle links er bevaret.
+
+Om LUP på `/sources` bruger `AboutLup.razor` med særskilte afsnit for elever og undervisere, eksisterende karakterer og genveje til Oversigt og login. Fortolkningerne af LUP ligger i `Branding/LupIdentity.cs` og deles med footeren. De fleste besøg viser det officielle navn; enkelte viser en af de humoristiske varianter. Valget foretages én gang pr. layoutbesøg og ændres ikke ved navigation, temaskift eller periodiske opdateringer. Footerens tekstfelt har fast bredde og én linje, så varianterne ikke ændrer højden.

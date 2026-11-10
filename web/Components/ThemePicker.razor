@@ -13,6 +13,10 @@
                     <span class="theme-option-copy"><strong>@theme.Name</strong><small id="@($"{Id}-{theme.Id}-description")">@theme.Description</small></span>
                     <span class="theme-option-check" aria-hidden="true">@if (selected) { <UiIcon Name="check" /> }</span>
                 </button>
+                @if (selected && theme.Id == "christmas")
+                {
+                    <SnowControls Id="@(Id + "-snow")" @key="theme.Id" />
+                }
             }
         </div>
         <p class="theme-current" role="status">@Current.Name er valgt</p>

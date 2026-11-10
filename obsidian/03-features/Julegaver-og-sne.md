@@ -41,7 +41,7 @@ Privatlivseksporten indeholder egen gavekontakt samt sendte/modtagne gaver. Den 
 
 ## Sne
 
-Sneindstillinger har tre tilstande: Følg systemet, Bevægelig sne og Stille sne. I systemtilstand respekteres prefers-reduced-motion. Start sne vælger aktivt bevægelig sne, også hvis computeren foretrækker reduceret bevægelse. Dette tilsidesætter kun sneen; øvrige animationer følger stadig systemets præference.
+Sneindstillinger har tre tilstande: Følg systemet, Bevægelig sne og Stille sne. I systemtilstand respekteres prefers-reduced-motion. Valget Bevægelig sne under Tema → Jul vælger aktivt bevægelig sne, også hvis computeren foretrækker reduceret bevægelse. Dette tilsidesætter kun sneen; øvrige animationer følger stadig systemets præference.
 
 Valget gemmes lokalt som lup-snow-mode (auto/on/off). Et tidligere lup-snow-paused-valg respekteres, indtil brugeren vælger på ny. Kontrollen forklarer den aktuelle tilstand. Sne stopper ved skjult fane og uden for juletemaet; ét canvas, højst 90 fnug og begrænset pixelratio bevares. Mus/finger påvirker vinden.
 
@@ -73,3 +73,7 @@ Modtager, gavetype og indpakning har nu tydelige valgte tilstande. Gave- og indp
 Valg og faner låses under afsendelse. Ved fejl bevares valgene, og afsendelse bruger fortsat samme forsøgs-ID ved genprøvning. Bekræftelser og fejl vises øverst og får fokus; fokus flyttes også korrekt mellem redigering og forhåndsvisning. Indlæsning og forbindelsesfejl adskilles fra en tom indbakke.
 
 Komponeringen ligger i `GiftComposer.razor`; samlet gavestil ligger i `css/lup-gifts.css`. Komponenttests bruger syntetiske modtagere og tester valgte tilstande, overblik, søgning og låsning under afsendelse uden at sende gaver til rigtige personer.
+
+## Sneindstillinger i temamenuen · 10. november 2026
+
+Pause/Start sne-knappen og den lille pil i bunden er fjernet. Når Jul er valgt, findes bevægelsesvalget i Tema-menuen i topbaren. Indstillinger, lokal lagring, reduceret bevægelse og pause ved skjult fane bruger den samme eksisterende snefunktion. Den faste gaveknap er bevaret.

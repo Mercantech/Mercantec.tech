@@ -7,18 +7,18 @@
 @inject IJSRuntime Js
 @inject NavigationManager Nav
 
-<PageTitle>Bibliotek · LUP</PageTitle>
+<PageTitle>Oversigt · LUP</PageTitle>
 <div class="library">
     <header class="library-intro">
-        <div><h1>Bibliotek</h1><p>Undervisningsplaner, fag, projekter, badgekrav og karakterer.</p></div>
+        <div><h1>Oversigt</h1><p>Undervisningsplaner, fag, projekter, badgekrav og karakterer.</p></div>
         <form class="library-search" role="search" @onsubmit="Search" @onsubmit:preventDefault>
-            <label class="visually-hidden" for="library-search">Søg i biblioteket</label>
+            <label class="visually-hidden" for="library-search">Søg i oversigten</label>
             <UiIcon Name="search" />
             <input id="library-search" type="search" value="@_query" @oninput="UpdateSearch" placeholder="Søg efter fx API, Arduino eller game design" maxlength="200" />
             @if (IsSearching) { <button type="button" @onclick="ClearSearch">Ryd</button> }
         </form>
     </header>
-    <div class="library-categories" role="group" aria-label="Indhold i biblioteket">
+    <div class="library-categories" role="group" aria-label="Indhold i oversigten">
         @foreach (var category in Categories)
         {
             <button type="button" aria-pressed="@(IsCurrent(category.Id) ? "true" : "false")" aria-controls="library-content" @onclick="() => SelectCategory(category.Id)"><UiIcon Name="@category.Icon" /><span>@category.Name</span><span class="library-count">@CategoryCount(category.Id)</span></button>
