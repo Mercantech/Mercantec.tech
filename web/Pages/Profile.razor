@@ -50,7 +50,7 @@
                 }
             </div>
             <div class="profile-identity-body">
-                <h2 id="profile-name">@ProfileName</h2>
+                <ProfileNameEditor LoginName="@LoginName" @key="Auth.Subject" />
                 <p>@RoleLabel</p>
                 <div class="profile-identity-actions">
                     <a class="action" href="/profile/character">Vælg avatar</a>
@@ -139,7 +139,7 @@
 
     private string? _scrollLocation;
 
-    private string ProfileName => Auth.DisplayName is { Length: > 0 } name && name != Auth.Subject ? name : "Min konto";
+    private string? LoginName => Auth.DisplayName is { Length: > 0 } name && name != Auth.Subject ? name : null;
     private string RoleLabel => Redirect.ShowsTeacherChrome ? "Underviser" : "Elev";
 
     protected override void OnInitialized()

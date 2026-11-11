@@ -2,6 +2,7 @@
 @using Mercantec.Tech.Web.Theming
 @using Mercantec.Tech.Web.Navigation
 @using Mercantec.Tech.Web.Branding
+@using Mercantec.Tech.Web.ProfileNames
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject ViewAsStudentContext ViewAs
@@ -9,6 +10,7 @@
 @inject IJSRuntime Js
 @inject LearningContext CourseContext
 @inject DemoWorld World
+@inject ProfileNameState ProfileNames
 @inject Mercantec.Tech.Web.Notebooks.NotebookClient Notebooks
 @implements IDisposable
 
@@ -120,7 +122,7 @@
     }
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
     private bool HomeIsCurrent => string.Equals(CurrentPath, HomeHref, StringComparison.OrdinalIgnoreCase);
-    private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
+    private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? "Elev" : ProfileNames.DisplayName ?? Auth.DisplayName ?? "Bruger";
     private bool HoldsIsCurrent => CurrentPath is "/courses" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
     private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
     private string SkipToContentHref
@@ -149,16 +151,19 @@
         {
             var parts = AccountDisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0) return "?";
-            return parts.Length == 1 ? char.ToUpperInvariant(parts[0][0]).ToString() : $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
+            var first = System.Globalization.StringInfo.GetNextTextElement(parts[0]);
+            return (parts.Length == 1 ? first : first + System.Globalization.StringInfo.GetNextTextElement(parts[^1])).ToUpperInvariant();
         }
     }
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Auth.AuthStateChanged += OnAuthChanged;
         ViewAs.Changed += OnViewChanged;
         Nav.LocationChanged += OnLocation;
-        World.Changed += OnWorldChanged;
+        World.Changed += OnPersonalDataChanged;
+        ProfileNames.Changed += OnPersonalDataChanged;
         EnforceViewAsRoutes();
+        await ProfileNames.EnsureAsync();
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -187,7 +192,7 @@
     private void EnforceViewAsRoutes() { if (ViewAs.IsActive && ViewAsStudentContext.IsTeacherOnlyPath(CurrentPath)) Nav.NavigateTo("/student"); }
     private void OnAuthChanged() => InvokeAsync(async () => { if (Auth.IsAuthenticated) { await World.EnsureAsync(); await World.BindAvatarProfileAsync(Auth.Subject); await RegisterNotebookProfile(); } else { _notebookProfileAccount = null; await World.BindAvatarProfileAsync(null); } EnforceViewAsRoutes(); StateHasChanged(); });
     private void OnViewChanged() => InvokeAsync(() => { EnforceViewAsRoutes(); StateHasChanged(); });
-    private void OnWorldChanged() => InvokeAsync(StateHasChanged);
+    private void OnPersonalDataChanged() => InvokeAsync(StateHasChanged);
     private async Task RegisterNotebookProfile()
     {
         var subject = Auth.Subject;
@@ -204,5 +209,5 @@
         EnforceViewAsRoutes();
         StateHasChanged();
     });
-    public void Dispose() { Auth.AuthStateChanged -= OnAuthChanged; ViewAs.Changed -= OnViewChanged; World.Changed -= OnWorldChanged; Nav.LocationChanged -= OnLocation; }
+    public void Dispose() { Auth.AuthStateChanged -= OnAuthChanged; ViewAs.Changed -= OnViewChanged; World.Changed -= OnPersonalDataChanged; ProfileNames.Changed -= OnPersonalDataChanged; Nav.LocationChanged -= OnLocation; }
 }

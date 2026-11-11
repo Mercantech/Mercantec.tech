@@ -1,4 +1,5 @@
 using Mercantec.Tech.Api.Data.Entities;
+using Mercantec.Tech.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mercantec.Tech.Api.Data;
@@ -15,6 +16,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
     public DbSet<GiftContact> GiftContacts => Set<GiftContact>();
     public DbSet<PollRound> PollRounds => Set<PollRound>();
     public DbSet<PollResponse> PollResponses => Set<PollResponse>();
+    public DbSet<ProfileName> ProfileNames => Set<ProfileName>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +40,13 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
         ConfigurePreviews(modelBuilder);
         ConfigureEmojis(modelBuilder);
         ConfigureExtensionUploads(modelBuilder);
+        modelBuilder.Entity<ProfileName>(e =>
+        {
+            e.ToTable("profile_names");
+            e.HasKey(x => x.UserSub);
+            e.Property(x => x.UserSub).ValueGeneratedNever();
+            e.Property(x => x.DisplayName).HasMaxLength(ProfileNameRules.MaxLength).IsRequired();
+        });
         modelBuilder.Entity<PollRound>(e =>
         {
             e.ToTable("poll_rounds");

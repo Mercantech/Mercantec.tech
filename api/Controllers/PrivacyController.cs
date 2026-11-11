@@ -58,7 +58,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
             sub,
             nextSteps = new[]
             {
-                "Platform-data i Mercantec.tech slettes manuelt af drift, når anmodningen er verificeret (indtil automatik findes).",
+                "Platform-data i Mercantec.tech, herunder dit valgte visningsnavn, slettes manuelt af drift, når anmodningen er verificeret (indtil automatik findes).",
                 "Identitetskonto (login, MFA, roller) administreres i Mercantec Auth — kontakt Auth/drift for sletning dér.",
                 "Lectio-skoleforløb ligger uden for denne app (Lectio-Collector / Lectio)."
             },
@@ -90,6 +90,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
             .ToDictionary(g => g.Key, g => g.Select(c => c.Value).Distinct().ToArray());
 
         object[] memberships = [];
+        string? displayName = null;
         object[] gifts = [];
         object? giftProfile = null;
         object? avatarProfile = null;
@@ -99,6 +100,8 @@ public class PrivacyController(AppDbContext db) : ControllerBase
         object[] uploadedGames = [];
         if (subGuid is not null)
         {
+            displayName = await db.ProfileNames.AsNoTracking().Where(profile => profile.UserSub == subGuid.Value)
+                .Select(profile => profile.DisplayName).SingleOrDefaultAsync(ct);
             memberships = await db.Memberships
                 .AsNoTracking()
                 .Where(m => m.UserSub == subGuid.Value)
@@ -153,6 +156,7 @@ public class PrivacyController(AppDbContext db) : ControllerBase
             Profile: new
             {
                 name,
+                displayName,
                 email,
                 loginMethod,
                 roles

@@ -1,0 +1,141 @@
+@using Mercantec.Tech.Web.ProfileNames
+@inject ProfileNameState Names
+@implements IDisposable
+
+<div class="profile-name-editor">
+    <div class="profile-name-row">
+        <h2 id="profile-name">@(Names.DisplayName ?? (string.IsNullOrEmpty(LoginName) ? "Min konto" : LoginName))</h2>
+        @if (!_editing && CanEditName)
+        {
+            <button type="button" class="secondary profile-name-edit" @ref="_editButton" @onclick="BeginEdit">
+                Rediger navn
+            </button>
+        }
+    </div>
+    @if (Names.IsLoading && !Names.IsLoaded)
+    {
+        <p role="status" class="profile-name-help">Henter profilnavn…</p>
+    }
+    @if (Names.LoadError is { } loadError)
+    {
+        <p role="alert" class="profile-name-error">@loadError</p>
+        <button type="button" class="secondary profile-name-edit" @onclick="Names.ReloadAsync">Hent profilnavn igen</button>
+    }
+    @if (_editing)
+    {
+        <form class="profile-name-form" @onsubmit="Save" @onsubmit:preventDefault>
+            <label for="profile-name-input">Profilnavn</label>
+            <input id="profile-name-input" type="text" autocomplete="nickname" maxlength="@ProfileNameRules.MaxLength"
+                   @ref="_nameInput" @bind="_draft" @bind:event="oninput" @bind:after="ClearError"
+                   disabled="@Names.IsSaving" aria-invalid="@(_error is null ? "false" : "true")"
+                   aria-describedby="@(_error is null ? "profile-name-help" : "profile-name-help profile-name-error")" />
+            <p id="profile-name-help" class="profile-name-help">Navnet vises på profilen og i kontomenuen. Op til @ProfileNameRules.MaxLength tegn.</p>
+            @if (_error is { } error)
+            {
+                <p id="profile-name-error" role="alert" class="profile-name-error">@error</p>
+            }
+            <div class="profile-name-actions">
+                <button type="submit" class="action" disabled="@Names.IsSaving">@(Names.IsSaving ? "Gemmer…" : "Gem navn")</button>
+                <button type="button" class="secondary" @onclick="CloseEditor" disabled="@Names.IsSaving">Annuller</button>
+                @if (Names.DisplayName is not null)
+                {
+                    <button type="button" class="secondary" @onclick="Reset" disabled="@Names.IsSaving">Brug login-navn</button>
+                }
+            </div>
+        </form>
+    }
+    @if (_notice is { } notice)
+    {
+        <p class="profile-name-notice" role="status">@notice</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string? LoginName { get; set; }
+
+    private ElementReference _nameInput;
+    private ElementReference _editButton;
+    private string _draft = "";
+    private string? _error;
+    private string? _notice;
+    private bool _editing;
+    private bool _moveFocus;
+    private bool _disposed;
+
+    private bool CanEditName => Names.CanEdit && Names.IsLoaded && !Names.IsLoading;
+
+    protected override void OnInitialized() => Names.Changed += OnNameChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_moveFocus)
+            return;
+
+        _moveFocus = false;
+        if (_editing)
+            await _nameInput.FocusAsync(preventScroll: true);
+        else if (CanEditName)
+            await _editButton.FocusAsync(preventScroll: true);
+    }
+
+    private void BeginEdit()
+    {
+        _draft = Names.DisplayName ?? LoginName ?? "";
+        _notice = null;
+        _error = null;
+        _editing = true;
+        _moveFocus = true;
+    }
+
+    private void CloseEditor()
+    {
+        _draft = "";
+        _error = null;
+        _editing = false;
+        _moveFocus = true;
+    }
+
+    private Task Save()
+    {
+        if (!ProfileNameRules.TryNormalize(_draft, out var name))
+        {
+            _error = $"Skriv et navn på 1–{ProfileNameRules.MaxLength} tegn uden linjeskift.";
+            _moveFocus = true;
+            return Task.CompletedTask;
+        }
+
+        return ApplyAsync(name);
+    }
+
+    private Task Reset() => ApplyAsync(null);
+
+    private async Task ApplyAsync(string? name)
+    {
+        if (!CanEditName || Names.IsSaving)
+            return;
+
+        _error = null;
+        var saved = await Names.SaveAsync(name);
+        if (_disposed)
+            return;
+
+        if (saved)
+        {
+            CloseEditor();
+            _notice = name is null ? "Du bruger nu dit login-navn." : "Navnet er gemt.";
+        }
+        else
+        {
+            _error = Names.SaveError;
+        }
+    }
+
+    private void ClearError() => _error = null;
+    private void OnNameChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        _disposed = true;
+        Names.Changed -= OnNameChanged;
+    }
+}

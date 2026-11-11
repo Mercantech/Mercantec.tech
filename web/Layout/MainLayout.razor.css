@@ -81,3 +81,7 @@ html[data-theme="hacker"] .brand-mark {
     .brand-mark { width:22px; height:22px; }
     .lup-header .brand.is-current::after { bottom:-10px; }
 }
+
+.lup-account-name {
+    overflow-wrap: anywhere;
+}
