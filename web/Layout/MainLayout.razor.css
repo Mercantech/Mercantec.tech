@@ -51,10 +51,30 @@ main { flex:1; }
 .footer-brand { display:block; flex:0 1 220px; max-width:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .lup-header .brand { position:relative; display:inline-flex; align-items:center; gap:9px; text-decoration:none; }
-.brand-mark { display:block; width:26px; height:26px; flex:none; }
-.brand-mark-l { fill:light-dark(#763ca7,#cc9aef); }
-.brand-mark-u { fill:light-dark(#087b80,#68d9ce); }
-.brand-mark-p { fill:light-dark(#ba4c21,#ffad78); }
+.brand-mark {
+    display:block;
+    width:26px;
+    height:26px;
+    flex:none;
+    --lup-logo-l:light-dark(#763ca7,#cc9aef);
+    --lup-logo-u:light-dark(#087b80,#68d9ce);
+    --lup-logo-p:light-dark(#ba4c21,#ffad78);
+}
+html[data-theme="christmas"] .brand-mark {
+    --lup-logo-l:#ed7881;
+    --lup-logo-u:#8cd5b4;
+    --lup-logo-p:#f2cd83;
+}
+html[data-theme="newyear"] .brand-mark {
+    --lup-logo-l:#f7d89a;
+    --lup-logo-u:#ba8bea;
+    --lup-logo-p:#9ae1ed;
+}
+html[data-theme="hacker"] .brand-mark {
+    --lup-logo-l:#8aefaa;
+    --lup-logo-u:#70b9ef;
+    --lup-logo-p:#efc383;
+}
 .lup-header .brand.is-current::after { content:""; position:absolute; left:0; right:0; bottom:-12px; height:2px; background:var(--blue); }
 @media(max-width:620px) {
     .lup-header .brand { gap:7px; }

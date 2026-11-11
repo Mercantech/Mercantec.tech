@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" role="img" aria-labelledby="title" shape-rendering="crispEdges">
+  <title id="title">Pixel-LUP</title>
+  <g id="mark">
+    <path d="M0 0h2v8h6v2H0z" fill="#763ca7" style="fill: var(--lup-logo-l, #763ca7)" />
+    <path d="M8 0h2v10H8z" fill="#087b80" style="fill: var(--lup-logo-u, #087b80)" />
+    <path d="M2 0h4v6H2V4h2V2H2z" fill="#ba4c21" style="fill: var(--lup-logo-p, #ba4c21)" />
+  </g>
+</svg>
