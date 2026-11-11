@@ -56,24 +56,6 @@ main { flex:1; }
     width:26px;
     height:26px;
     flex:none;
-    --lup-logo-l:light-dark(#763ca7,#cc9aef);
-    --lup-logo-u:light-dark(#087b80,#68d9ce);
-    --lup-logo-p:light-dark(#ba4c21,#ffad78);
-}
-html[data-theme="christmas"] .brand-mark {
-    --lup-logo-l:#ed7881;
-    --lup-logo-u:#8cd5b4;
-    --lup-logo-p:#f2cd83;
-}
-html[data-theme="newyear"] .brand-mark {
-    --lup-logo-l:#f7d89a;
-    --lup-logo-u:#ba8bea;
-    --lup-logo-p:#9ae1ed;
-}
-html[data-theme="hacker"] .brand-mark {
-    --lup-logo-l:#8aefaa;
-    --lup-logo-u:#70b9ef;
-    --lup-logo-p:#efc383;
 }
 .lup-header .brand.is-current::after { content:""; position:absolute; left:0; right:0; bottom:-12px; height:2px; background:var(--blue); }
 @media(max-width:620px) {

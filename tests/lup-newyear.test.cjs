@@ -16,13 +16,15 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     document.hidden = false;
     document.documentElement = { dataset: { theme: 'newyear' } };
     const window = new EventTarget();
-    const context = new Proxy({
-        rects: [], images: [], texts: [],
-        clearRect() { this.rects = []; this.images = []; this.texts = []; },
+    const createContext = () => new Proxy({
+        rects: [], images: [], texts: [], translations: [],
+        clearRect() { this.rects = []; this.images = []; this.texts = []; this.translations = []; },
         fillRect(...rect) { this.rects.push(rect); },
         drawImage(image, ...args) { this.images.push({ image, args }); },
-        fillText(text, ...args) { this.texts.push({ text, args }); }
+        fillText(text, ...args) { this.texts.push({ text, args }); },
+        translate(...coordinates) { this.translations.push(coordinates); }
     }, { get(target, key) { return key in target ? target[key] : () => {}; } });
+    const context = createContext(), skyContext = createContext();
     function element(rect = {}) {
         const node = new EventTarget(), classes = new Set();
         node.dataset = {}; node.style = { setProperty(name, value) { this[name] = value; } }; node.isConnected = true; node.textContent = ''; node.hidden = false;
@@ -48,6 +50,9 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     interfaceTargets.push(...cometTargets);
     const canvas = element({ left: 0, top: 0, width: canvasWidth, height: 600, right: canvasWidth, bottom: 600 });
     canvas.getContext = () => context;
+    const sky = element({ left: 0, top: 0, width: canvasWidth, height: 600 });
+    sky.hidden = true;
+    sky.getContext = () => skyContext;
     const mascot = element(); mascot.complete = loadedMascot; mascot.naturalWidth = loadedMascot ? 1000 : 0; mascot.naturalHeight = loadedMascot ? 1000 : 0;
     mascot.dataset = { muzzleX: '0.76', muzzleY: '0.18', footY: '0.889' };
     const fields = Object.fromEntries(['score', 'level', 'hits', 'status'].map(name => ['[data-newyear-' + name + ']', element()]));
@@ -63,7 +68,8 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
     dialog.showModal = () => { dialog.open = true; };
     dialog.close = () => { dialog.open = false; closedEvents.push(() => dialog.dispatchEvent(new Event('close'))); };
     dialog.querySelector = selector => fields[selector] || null;
-    document.getElementById = id => ({ 'lup-newyear-game': dialog, 'lup-newyear-canvas': canvas, 'lup-newyear-player': mascot })[id] || null;
+    document.getElementById = id => ({ 'lup-newyear-game': dialog, 'lup-newyear-canvas': canvas, 'lup-newyear-player': mascot, 'lup-newyear-sky': sky })[id] || null;
+    document.querySelector = () => dialog.open || document.menuOpen ? dialog : null;
     document.querySelectorAll = () => noTargets ? [] : interfaceTargets;
     function emit(host, name, properties = {}) {
         const event = new Event(name, { cancelable: true });
@@ -87,11 +93,16 @@ function scene({ reducedMotion = false, noTargets = false, protectedContent = nu
         cancelAnimationFrame: id => pending.delete(id)
     });
     const app = {
-        game: window.lupNewYear, target, otherTarget, interfaceTargets, piercingTargets, radiusTargets, cometTargets, canvas, mascot, dialog, document, context, pending, observers, focusBefore, fields,
+        game: window.lupNewYear, target, otherTarget, interfaceTargets, piercingTargets, radiusTargets, cometTargets, canvas, mascot, dialog, document, context, sky, skyContext, pending, observers, focusBefore, fields,
         click(action) {
             const button = element(); button.dataset.newyearAction = action;
             button.closest = selector => selector === '[data-newyear-action]' || selector === 'button' ? button : null;
             return emit(document, 'click', { target: button });
+        },
+        clickPage({ background = true, ...options } = {}) {
+            const target = element();
+            target.matches = selector => background && selector.includes('.public-home');
+            return emit(document, 'click', { target, button: 0, detail: 1, clientX: 340, clientY: 250, ...options });
         },
         key(key) { return emit(dialog, 'keydown', { key, target: canvas }); },
         keyUp(key) { return emit(window, 'keyup', { key }); },
@@ -166,6 +177,75 @@ test('fireworks destroy actual interface content, award points and restore it on
     assert.equal(app.game.state().running, false);
     assert.equal(app.pending.size, 0); assert.equal(app.observers.size, 0);
     assert.equal(app.document.activeElement, app.focusBefore);
+});
+
+test('a blank-page click launches from below and bursts at the clicked point', () => {
+    const app = scene();
+    const click = app.clickPage();
+    assert.equal(click.defaultPrevented, false);
+    assert.equal(app.sky.hidden, false);
+    app.advance(100);
+    const [x, y] = app.skyContext.translations[0];
+    assert.equal(x, 340);
+    assert.ok(y > 250 && y < 615);
+    app.advance(100);
+    assert.ok(app.skyContext.translations[0][1] < y);
+    let landed = false;
+    for (let i = 0; i < 25 && !landed; i++) {
+        app.advance(20);
+        landed = app.skyContext.rects.some(([left, top, width]) => left === 339 && top === 249 && width === 2.4);
+    }
+    assert.ok(landed, 'sparks start at the click coordinates');
+    assert.equal(app.game.state().running, false);
+    assert.equal(app.game.state().score, 0);
+    app.advance(2200);
+    assert.equal(app.sky.hidden, true);
+    assert.equal(app.pending.size, 0);
+    assert.equal(app.observers.size, 0);
+});
+
+test('page fireworks ignore controls, open menus and other themes', () => {
+    const app = scene();
+    app.clickPage({ background: false });
+    app.clickPage({ detail: 0 });
+    app.clickPage({ ctrlKey: true });
+    app.document.menuOpen = true;
+    app.clickPage();
+    app.document.menuOpen = false;
+    app.theme('dark');
+    app.clickPage();
+    assert.equal(app.sky.hidden, true);
+    assert.equal(app.pending.size, 0);
+    app.theme('newyear');
+    app.clickPage();
+    assert.equal(app.sky.hidden, false);
+    app.game.start();
+    app.clickPage();
+    assert.equal(app.sky.hidden, true, 'the game takes over without launching decorative rockets');
+    app.game.stop();
+    app.clickPage();
+    app.theme('light');
+    assert.equal(app.sky.hidden, true);
+    assert.equal(app.pending.size, 0);
+});
+
+test('page fireworks still fly and scatter sparks when reduced motion is requested', () => {
+    const app = scene({ reducedMotion: true });
+    app.clickPage();
+    app.advance(100);
+    const [x, y] = app.skyContext.translations[0];
+    assert.equal(x, 340);
+    assert.ok(y > 250 && y < 615);
+    app.advance(100);
+    assert.ok(app.skyContext.translations[0][1] < y);
+    app.advance(500);
+    assert.equal(app.skyContext.translations.length, 0);
+    const sparks = app.skyContext.rects.filter(([, , width]) => width === 2.4);
+    assert.ok(sparks.some(([left]) => left < 339));
+    assert.ok(sparks.some(([left]) => left > 339));
+    app.advance(1800);
+    assert.equal(app.sky.hidden, true);
+    assert.equal(app.pending.size, 0);
 });
 
 test('clearing the interface or starting on an empty page never ends the endless game', () => {

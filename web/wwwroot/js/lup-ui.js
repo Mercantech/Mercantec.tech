@@ -4,6 +4,50 @@
     const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* Themes also work without storage. */ } };
     const normalize = value => themes.has(value) ? value : "light";
 
+    let brandArtwork;
+    function syncBrandFavicon() {
+        const icon = document.head?.querySelector("link[data-lup-brand-icon]");
+        if (!icon) return;
+        brandArtwork ??= fetch(icon.dataset.lupBrandIcon)
+            .then(response => {
+                if (!response.ok) throw new Error("Logo could not be loaded");
+                return response.text();
+            })
+            .then(source => {
+                const svg = new DOMParser().parseFromString(source, "image/svg+xml");
+                const mark = svg.querySelector("g#mark");
+                if (!mark) throw new Error("Logo artwork is missing");
+                return mark.outerHTML;
+            })
+            .catch(() => {
+                brandArtwork = undefined;
+                return null;
+            });
+        brandArtwork.then(mark => {
+            if (!mark || !icon.isConnected) return;
+            const style = getComputedStyle(document.documentElement);
+            const colors = ["l", "u", "p", "tile"].map(part => style.getPropertyValue(`--lup-logo-${part}`).trim());
+            if (!colors.every(color => /^#[0-9a-f]{6}$/i.test(color))) return;
+            const [l, u, p, tile] = colors;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 14 14"
+                style="--lup-logo-l:${l};--lup-logo-u:${u};--lup-logo-p:${p}">
+                <rect x="-2" y="-2" width="14" height="14" rx="3" fill="${tile}"/>
+                <g shape-rendering="crispEdges">${mark}</g>
+            </svg>`;
+            const href = "data:image/svg+xml," + encodeURIComponent(svg);
+            if (icon.getAttribute("href") !== href) icon.setAttribute("href", href);
+        });
+    }
+    // HeadOutlet replaces the default favicon while a notebook supplies its own.
+    if (document.head && typeof MutationObserver === "function") {
+        new MutationObserver(syncBrandFavicon).observe(document.head, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["data-lup-brand-icon"]
+        });
+    }
+
     let dockFrame = 0, dockFooter, dockObserver, dockClearance = -1;
     function updateSeasonalDock() {
         dockFrame = 0;
@@ -89,6 +133,7 @@
             const value = normalize(theme || this.get());
             document.documentElement.dataset.theme = value;
             document.documentElement.dataset.bsTheme = this.resolved(value);
+            syncBrandFavicon();
             updateSeasonalDock();
             syncSnow();
         },
@@ -161,6 +206,10 @@ window.lupGiftUi = {
         target.focus({ preventScroll: true });
         target.scrollIntoView({ block: "nearest", behavior: "auto" });
     }
+};
+
+window.lupCyberLabScroll = log => {
+    if (log) log.scrollTop = log.scrollHeight;
 };
 
 window.lupCharacterUi = {

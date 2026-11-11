@@ -29,7 +29,8 @@ public sealed class NotionTitleUiTests
         using var context = await CreateContext(api);
         var javascript = (TitleJavascript)context.Services.GetRequiredService<IJSRuntime>();
         var head = context.Render<HeadOutlet>();
-        context.Render<HeadContent>(p => p.AddChildContent("""<link rel="icon" href="favicon.png">"""));
+        const string brandIcon = "images/branding/pixel-lup.svg";
+        context.Render<HeadContent>(p => p.AddChildContent($"""<link rel="icon" type="image/svg+xml" href="{brandIcon}" data-lup-brand-icon="{brandIcon}">"""));
         var page = context.Render<NotionPage>(p => p.Add(x => x.PageId, api.PageId));
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Editor.Mounts), Timeout);
         Assert.Equal("SQL 🐘 · LUP", head.Find("title").TextContent);
@@ -48,12 +49,16 @@ public sealed class NotionTitleUiTests
         head.WaitForAssertion(() =>
         {
             Assert.Equal("SQL 🐘 · LUP", head.Find("title").TextContent);
-            Assert.Equal(raymond.ContentUrl, head.Find("link[rel=icon]").GetAttribute("href"));
+            var icon = head.Find("link[rel=icon]");
+            Assert.Equal(raymond.ContentUrl, icon.GetAttribute("href"));
+            Assert.False(icon.HasAttribute("data-lup-brand-icon"));
         }, Timeout);
 
         page.Find("#notion-title").Input("SQL 🐘");
         await page.Find("#notion-title").BlurAsync(new FocusEventArgs());
-        Assert.Equal("favicon.png", head.Find("link[rel=icon]").GetAttribute("href"));
+        var restoredIcon = head.Find("link[rel=icon]");
+        Assert.Equal(brandIcon, restoredIcon.GetAttribute("href"));
+        Assert.Equal(brandIcon, restoredIcon.GetAttribute("data-lup-brand-icon"));
         Assert.Equal(1, api.EmojiRequests);
         Assert.Equal(1, javascript.Editor.Mounts);
         Assert.Equal(0, javascript.Editor.Destroys);

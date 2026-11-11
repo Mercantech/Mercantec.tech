@@ -1,0 +1,185 @@
+.hacker-lab {
+    display: none;
+    --hacker-dock: calc(max(1rem, env(safe-area-inset-bottom)) + var(--lup-footer-clearance, 0px));
+    --hacker-right: max(1rem, env(safe-area-inset-right));
+    --hacker-paper: #10231c;
+    --hacker-ink: #ddf3e6;
+    --hacker-rule: #426e50;
+    --hacker-green: #8aefaa;
+    --hacker-mono: 'Cascadia Code', Consolas, monospace;
+}
+
+@supports selector(:popover-open) {
+    html[data-theme="hacker"] .hacker-lab {
+        display: block;
+    }
+}
+
+.hacker-lab button {
+    min-height: 44px;
+    border: 1px solid var(--hacker-rule);
+    border-radius: 5px;
+    padding: 0.5rem 0.75rem;
+    background: #152f24;
+    color: var(--hacker-ink);
+    cursor: pointer;
+    font: 600 0.875rem var(--hacker-mono);
+}
+
+.hacker-lab button:hover {
+    border-color: var(--hacker-green);
+    background: #244633;
+}
+
+.hacker-lab :is(button, a, input, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--hacker-green);
+    outline-offset: 2px;
+}
+
+.hacker-lab .hacker-launcher {
+    position: fixed;
+    right: var(--hacker-right);
+    bottom: var(--hacker-dock);
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--hacker-paper);
+    color: var(--hacker-green);
+    box-shadow: 0 4px 20px #07110e60;
+}
+
+.hacker-panel {
+    position: fixed;
+    inset: auto var(--hacker-right) calc(var(--hacker-dock) + 3.5rem) auto;
+    box-sizing: border-box;
+    width: min(39rem, calc(100vw - var(--hacker-right) - 1rem));
+    max-height: min(42rem, calc(100dvh - var(--hacker-dock) - 4.5rem));
+    margin: 0;
+    border: 1px solid var(--hacker-rule);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--hacker-paper);
+    color: var(--hacker-ink);
+    box-shadow: 0 12px 36px #07110eb0;
+    font: 0.875rem/1.5 'DM Sans', system-ui, sans-serif;
+}
+
+.hacker-heading,
+.hacker-toolbar,
+.hacker-shortcuts,
+.hacker-command-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hacker-heading,
+.hacker-toolbar {
+    justify-content: space-between;
+}
+
+.hacker-heading h2 {
+    margin: 0;
+    color: var(--hacker-green);
+    font: 700 1.25rem var(--hacker-mono);
+}
+
+.hacker-close { width: 44px; }
+
+.hacker-panel p { margin: 0.625rem 0; }
+
+.hacker-status {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    color: var(--hacker-green);
+    font: 600 0.8125rem/1.45 var(--hacker-mono);
+}
+
+.hacker-status span { color: #b7d2c2; }
+
+.hacker-terminal {
+    border: 1px solid var(--hacker-rule);
+    border-radius: 5px;
+    background: #07140e;
+}
+
+.hacker-transcript {
+    height: clamp(9rem, 31dvh, 17rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.75rem;
+    font: 0.8125rem/1.55 var(--hacker-mono);
+}
+
+.hacker-transcript .hacker-welcome {
+    margin: 0;
+    color: #b7d2c2;
+}
+
+.hacker-welcome code,
+.hacker-prompt,
+.hacker-hints a {
+    color: var(--hacker-green);
+}
+
+.hacker-entry {
+    margin-top: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.hacker-entry pre {
+    margin: 0.25rem 0 0;
+    color: var(--hacker-ink);
+    font: inherit;
+    white-space: pre-wrap;
+}
+
+.hacker-command-form {
+    padding: 0.5rem 0.625rem;
+    border-top: 1px solid var(--hacker-rule);
+    font-family: var(--hacker-mono);
+}
+
+.hacker-command-form input {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid var(--hacker-rule);
+    border-radius: 5px;
+    padding: 0.5rem;
+    background: #091713;
+    color: var(--hacker-ink);
+    font: 1rem var(--hacker-mono);
+}
+
+.hacker-toolbar {
+    flex-wrap: wrap;
+    margin-top: 0.625rem;
+}
+
+.hacker-shortcuts { flex-wrap: wrap; }
+
+.hacker-lab .hacker-reset { background: transparent; }
+
+.hacker-hints {
+    margin-top: 0.75rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--hacker-rule);
+}
+
+.hacker-hints summary {
+    cursor: pointer;
+    color: var(--hacker-green);
+    font-weight: 600;
+}
+
+.hacker-debrief {
+    padding: 0.75rem;
+    border: 1px solid var(--hacker-rule);
+    border-radius: 5px;
+    background: #0d2119;
+}

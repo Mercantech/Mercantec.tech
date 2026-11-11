@@ -1,3 +1,31 @@
+:root {
+    --lup-logo-l:#763ca7;
+    --lup-logo-u:#087b80;
+    --lup-logo-p:#ba4c21;
+    --lup-logo-tile:#f3f6fb;
+}
+html[data-bs-theme="dark"] {
+    --lup-logo-l:#cc9aef;
+    --lup-logo-u:#68d9ce;
+    --lup-logo-p:#ffad78;
+    --lup-logo-tile:#17243b;
+}
+html[data-theme="christmas"] {
+    --lup-logo-l:#ed7881;
+    --lup-logo-u:#8cd5b4;
+    --lup-logo-p:#f2cd83;
+}
+html[data-theme="newyear"] {
+    --lup-logo-l:#f7d89a;
+    --lup-logo-u:#ba8bea;
+    --lup-logo-p:#9ae1ed;
+}
+html[data-theme="hacker"] {
+    --lup-logo-l:#8aefaa;
+    --lup-logo-u:#70b9ef;
+    --lup-logo-p:#efc383;
+}
+
 html[data-theme="christmas"],html[data-theme="hacker"] { color-scheme:dark; }
 html[data-theme="christmas"] body { background:#081d18; }
 html[data-theme="christmas"] .lup {

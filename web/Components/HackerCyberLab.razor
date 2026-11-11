@@ -1,0 +1,120 @@
+@using Mercantec.Tech.Web.Characters
+@using Mercantec.Tech.Web.Theming
+@implements IDisposable
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+
+<aside class="hacker-lab" aria-label="Hacker-tema">
+    <button class="hacker-launcher" type="button" popovertarget="lup-hacker-lab"><UiIcon Name="terminal" />Cyberlab</button>
+    <section @key="Nav.Uri" class="hacker-panel" id="lup-hacker-lab" popover="auto" aria-labelledby="hacker-lab-title">
+        <header class="hacker-heading">
+            <h2 id="hacker-lab-title">Cyberlab</h2>
+            <button class="hacker-close" type="button" popovertarget="lup-hacker-lab" popovertargetaction="hide" aria-label="Luk Cyberlab"><UiIcon Name="close" /></button>
+        </header>
+        <p>Kursuskataloget viser ændrede data. Undersøg logfilerne, begræns hændelsen og få kataloget sikkert online igen i øvelsessystemet.</p>
+        <p class="hacker-status" role="status"><span>Status</span> @StatusLabel</p>
+
+        <div class="hacker-terminal">
+            <div class="hacker-transcript" role="log" aria-label="Terminalens svar" tabindex="0" @ref="_transcript">
+                <p class="hacker-welcome">Skriv <code>help</code> for at se kommandoerne, eller begynd med <code>ls</code>.</p>
+                @foreach (var entry in _entries)
+                {
+                    <div class="hacker-entry">
+                        <div class="hacker-prompt"><span aria-hidden="true">$ </span>@entry.Command</div>
+                        <pre>@entry.Output</pre>
+                    </div>
+                }
+            </div>
+            <form class="hacker-command-form" @onsubmit="Submit" @onsubmit:preventDefault>
+                <label class="visually-hidden" for="hacker-lab-command">Terminalkommando</label>
+                <span class="hacker-prompt" aria-hidden="true">$</span>
+                <input id="hacker-lab-command" type="text" maxlength="100" spellcheck="false" autocomplete="off" autocapitalize="none" @bind="_command" @bind:event="oninput" />
+                <button type="submit">Kør</button>
+            </form>
+        </div>
+        <div class="hacker-toolbar">
+            <div class="hacker-shortcuts" role="group" aria-label="Terminalgenveje">
+                <button type="button" @onclick='() => Execute("help")'>help</button>
+                <button type="button" @onclick='() => Execute("ls")'>ls</button>
+                <button type="button" @onclick='() => Execute("status")'>status</button>
+            </div>
+            <button type="button" class="hacker-reset" @onclick="Reset">Start forfra</button>
+        </div>
+        <details class="hacker-hints">
+            <summary>Tips fra cyberunderviserne</summary>
+            @foreach (var hint in TeacherHints)
+            {
+                @if (CharacterCatalog.Find(hint.Slug) is { } teacher)
+                {
+                    <p><a href="@teacher.Path">@teacher.Name</a> · @hint.Text</p>
+                }
+            }
+        </details>
+        @if (_lab.Stage == HackerIncidentStage.Recovered)
+        {
+            <p class="hacker-debrief">Tag øvelsen med til dine cyberundervisere. Hvilket spor gjorde dig sikker på, at det var forsvarligt at genåbne kataloget?</p>
+        }
+    </section>
+</aside>
+
+@code {
+    private static readonly (string Slug, string Text)[] TeacherHints =
+    [
+        ("bee", "Læs loggen, og sæt hændelserne i rækkefølge. Hvad ændrede sig lige før alarmen?"),
+        ("beaver", "Vælg en kontrolleret sikkerhedskopi fra før hændelsen. Kontrollér resultatet før genåbning."),
+        ("fox", "Brug loggen som bevis for, hvilken tjeneste og konto der skal isoleres.")
+    ];
+
+    private readonly List<TerminalEntry> _entries = [];
+    private HackerIncidentLab _lab = new();
+    private ElementReference _transcript;
+    private string _command = "";
+    private bool _scrollPending;
+
+    private string StatusLabel => _lab.Stage switch
+    {
+        HackerIncidentStage.Investigating => "Hændelse under undersøgelse",
+        HackerIncidentStage.Isolated => "Tjenesten er isoleret",
+        HackerIncidentStage.Contained => "Hændelsen er begrænset",
+        HackerIncidentStage.Restored => "Data er gendannet",
+        HackerIncidentStage.Verified => "Data er kontrolleret",
+        HackerIncidentStage.Recovered => "Kataloget er online igen",
+        _ => ""
+    };
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    private void Submit()
+    {
+        var command = _command.Trim();
+        _command = "";
+        if (command.Length > 0) Execute(command);
+    }
+
+    private void Execute(string command)
+    {
+        _entries.Add(new TerminalEntry(command, _lab.Execute(command)));
+        if (_entries.Count > 40) _entries.RemoveAt(0);
+        _scrollPending = true;
+    }
+
+    private void Reset()
+    {
+        _lab = new HackerIncidentLab();
+        _entries.Clear();
+        _command = "";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_scrollPending) return;
+        _scrollPending = false;
+        await Js.InvokeVoidAsync("lupCyberLabScroll", _transcript);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
+    private sealed record TerminalEntry(string Command, string Output);
+}

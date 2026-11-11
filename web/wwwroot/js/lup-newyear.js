@@ -23,12 +23,13 @@
     const limits = { falling: 28, rockets: 72, particles: 720, bursts: 12, labels: 20, pickups: 8 };
     const keys = new Set(), destroyed = new Set(), pointers = new Map();
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const gameEffects = { particles: [], bursts: [] };
     let dialog, canvas, ctx, observer, previousFocus, playerImage, controls;
     let running = false, paused = false, frame = 0, previous = null;
     let width = 0, height = 0, playerX = 0, floor = 0, targetTop = 106;
     let elapsed = 0, score = 0, hits = 0, total = 0, level = 1, cooldown = 0, announced = 0;
     let spawnWait = 0, spawned = 0, escaped = 0, nextId = 0, dropped = 0, collected = 0;
-    let targets = [], falling = [], rockets = [], particles = [], bursts = [], labels = [], pickups = [];
+    let targets = [], falling = [], rockets = [], labels = [], pickups = [];
     let pointerHeld = false, steering = 0;
 
     const query = selector => dialog?.querySelector(selector);
@@ -65,17 +66,17 @@
     const playerSpeed = () => 410 * (boosts.speed > 0 ? 1.6 : 1);
     const state = () => ({
         running, paused, score, hits, level, remaining: remaining(), total,
-        fallingCount: falling.length, projectileCount: rockets.length, particleCount: particles.length,
-        burstCount: bursts.length, labelCount: labels.length, pickupCount: pickups.length,
+        fallingCount: falling.length, projectileCount: rockets.length, particleCount: gameEffects.particles.length,
+        burstCount: gameEffects.bursts.length, labelCount: labels.length, pickupCount: pickups.length,
         spawned, escaped, dropped, collected, playerX, fireOriginX: muzzle().x,
         spawnInterval: spawnInterval(), fallSpeed: fallSpeed(), playerSpeed: playerSpeed(),
         projectileSpeed: projectileSpeed(), fireCooldown: fireCooldown(), boosts: { ...boosts },
         falling: falling.map(({ id, type, x, y, width, height, hp, points }) => ({ id, type, x, y, width, height, hp, points })),
         pickups: pickups.map(({ id, type, x, y, width, height }) => ({ id, type, x, y, width, height })),
         rockets: rockets.map(({ x, y, vx, vy, radius, damage, pierceLeft, kind }) => ({ x, y, vx, vy, radius, damage, pierceLeft, kind })),
-        bursts: bursts.map(({ x, y, age, life, maxRadius, static: still }) => ({ x, y, age, life, radius: still ? maxRadius * .55 : maxRadius * (1 - Math.pow(1 - age / life, 3)), static: still })),
+        bursts: gameEffects.bursts.map(({ x, y, age, life, maxRadius, static: still }) => ({ x, y, age, life, radius: still ? maxRadius * .55 : maxRadius * (1 - Math.pow(1 - age / life, 3)), static: still })),
         labels: labels.map(({ text, x, y, life }) => ({ text, x, y, life })),
-        particles: particles.map(({ x, y, previousX, previousY, life }) => ({ x, y, previousX, previousY, life }))
+        particles: gameEffects.particles.map(({ x, y, previousX, previousY, life }) => ({ x, y, previousX, previousY, life }))
     });
 
     function announce(message) { setText("[data-newyear-status]", message); }
@@ -146,11 +147,11 @@
         if (labels.length >= limits.labels) labels.shift();
         labels.push({ text, x: clamp(x, 76, Math.max(76, width - 76)), y, color, life: motion.matches ? .75 : 1.25, duration: motion.matches ? .75 : 1.25 });
     }
-    function burst(x, y, color, destroyedTarget = true, large = false) {
+    function burst({ particles, bursts, animate = !motion.matches }, x, y, color, destroyedTarget = true, large = false) {
         if (bursts.length >= limits.bursts) bursts.shift();
-        bursts.push({ x, y, color, age: 0, life: motion.matches ? .45 : destroyedTarget ? (large ? 1.8 : 1.3) : .5,
-            maxRadius: destroyedTarget ? (large ? 105 : 76) : 25, static: motion.matches, rings: destroyedTarget ? 2 : 1 });
-        if (motion.matches) return;
+        bursts.push({ x, y, color, age: 0, life: !animate ? .45 : destroyedTarget ? (large ? 1.8 : 1.3) : .5,
+            maxRadius: destroyedTarget ? (large ? 105 : 76) : 25, static: !animate, rings: destroyedTarget ? 2 : 1 });
+        if (!animate) return;
         const count = destroyedTarget ? (large ? 88 : 56) : 10;
         if (particles.length + count > limits.particles) particles.splice(0, particles.length + count - limits.particles);
         for (let i = 0; i < count; i++) {
@@ -174,13 +175,13 @@
         if (item.hit) return;
         item.hit = true; boosts[item.type] = boostDuration; collected++;
         addLabel(item.label + "!", item.x + item.width / 2, item.y - 6, item.color);
-        burst(item.x + item.width / 2, item.y + item.height / 2, item.color, false);
+        burst(gameEffects, item.x + item.width / 2, item.y + item.height / 2, item.color, false);
         announce("Boost: " + item.label + ". Aktivt i 12 sekunders spilletid.");
         updateBoostHud();
     }
     function hit(target, x, y, damage = 1) {
         target.hp = Math.max(0, target.hp - damage);
-        burst(x, y, target.color, target.hp === 0, target.type === "build");
+        burst(gameEffects, x, y, target.color, target.hp === 0, target.type === "build");
         if (target.hp > 0) return;
         target.hit = true;
         if (target.element) { target.element.classList.add("newyear-destroyed"); destroyed.add(target.element); }
@@ -253,11 +254,11 @@
         ctx.fillText("++ " + item.label, item.x + item.width / 2, item.y + 19);
         ctx.fillStyle = "#fff7dd"; ctx.fillRect(item.x + 8, item.y - 4, 3, 3); ctx.fillRect(item.x + item.width - 10, item.y + item.height + 2, 3, 3); ctx.restore();
     }
-    function drawRocket(rocket) {
+    function drawRocket(ctx, rocket, animate = !motion.matches) {
         const scale = rocket.radius > 3 ? 1.65 : 1;
         ctx.save(); ctx.translate(rocket.x, rocket.y); ctx.rotate(Math.atan2(rocket.vx, -rocket.vy));
         if (rocket.kind === "comet") {
-            if (!motion.matches) for (let i = 3; i > 0; i--) {
+            if (animate) for (let i = 3; i > 0; i--) {
                 ctx.globalAlpha = .6 / i; ctx.fillStyle = i % 2 ? "#c39af1" : "#f6d889";
                 ctx.beginPath(); ctx.moveTo(-4 * scale / i, 5); ctx.lineTo(0, 12 + i * 14); ctx.lineTo(4 * scale / i, 5); ctx.closePath(); ctx.fill();
             }
@@ -267,11 +268,11 @@
             ctx.fillStyle = "#ff927e"; ctx.fillRect(-3 * scale, -9 * scale, 6 * scale, 15 * scale);
             ctx.fillStyle = "#f6d889"; ctx.fillRect(-3 * scale, -3 * scale, 6 * scale, 3 * scale);
             ctx.beginPath(); ctx.moveTo(0, -15 * scale); ctx.lineTo(5 * scale, -8 * scale); ctx.lineTo(-5 * scale, -8 * scale); ctx.closePath(); ctx.fill(); ctx.fillRect(-scale, 6 * scale, 2 * scale, 7 * scale);
-            if (!motion.matches) { ctx.fillStyle = "#f6d889aa"; ctx.fillRect(-1.5 * scale, 14 * scale, 3 * scale, 9 * scale); ctx.fillStyle = "#ff927e88"; ctx.fillRect(-scale, 25 * scale, 2 * scale, 5 * scale); }
+            if (animate) { ctx.fillStyle = "#f6d889aa"; ctx.fillRect(-1.5 * scale, 14 * scale, 3 * scale, 9 * scale); ctx.fillStyle = "#ff927e88"; ctx.fillRect(-scale, 25 * scale, 2 * scale, 5 * scale); }
         }
         ctx.restore();
     }
-    function drawBurst(effect) {
+    function drawBurst(ctx, effect) {
         const progress = clamp(effect.age / effect.life, 0, 1);
         const radius = effect.static ? effect.maxRadius * .55 : effect.maxRadius * (1 - Math.pow(1 - progress, 3));
         ctx.save(); ctx.globalAlpha = (1 - progress) * .85; ctx.lineWidth = effect.static ? 2 : 1.5;
@@ -285,6 +286,25 @@
             }
         }
         ctx.restore();
+    }
+    function drawEffects(ctx, { bursts, particles }) {
+        for (const effect of bursts) drawBurst(ctx, effect);
+        for (const particle of particles) {
+            const age = particle.duration - particle.life;
+            ctx.globalAlpha = clamp(particle.life / particle.duration, 0, 1) * (.4 + .6 * Math.pow(Math.sin(age * 28 + particle.seed), 2));
+            ctx.strokeStyle = particle.color; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(particle.x - particle.vx * .055, particle.y - particle.vy * .055); ctx.lineTo(particle.x, particle.y); ctx.stroke();
+            ctx.fillStyle = particle.color; ctx.fillRect(particle.x - 1, particle.y - 1, 2.4, 2.4);
+        }
+        ctx.globalAlpha = 1;
+    }
+    function advanceEffects(effects, step) {
+        for (const particle of effects.particles) {
+            particle.previousX = particle.x; particle.previousY = particle.y; particle.x += particle.vx * step; particle.y += particle.vy * step;
+            particle.vx *= Math.exp(-.8 * step); particle.vy += 75 * step; particle.life -= step;
+        }
+        effects.particles = effects.particles.filter(particle => particle.life > 0);
+        for (const effect of effects.bursts) effect.age += step;
+        effects.bursts = effects.bursts.filter(effect => effect.age < effect.life);
     }
     function drawPlayer() {
         const size = playerSize(), x = playerX - size.width / 2, y = playerTop();
@@ -321,15 +341,8 @@
         }
         for (const item of falling) if (!item.hit) drawFalling(item);
         for (const pickup of pickups) if (!pickup.hit) drawPickup(pickup);
-        for (const rocket of rockets) drawRocket(rocket);
-        for (const effect of bursts) drawBurst(effect);
-        for (const particle of particles) {
-            const age = particle.duration - particle.life;
-            ctx.globalAlpha = clamp(particle.life / particle.duration, 0, 1) * (.4 + .6 * Math.pow(Math.sin(age * 28 + particle.seed), 2));
-            ctx.strokeStyle = particle.color; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(particle.x - particle.vx * .055, particle.y - particle.vy * .055); ctx.lineTo(particle.x, particle.y); ctx.stroke();
-            ctx.fillStyle = particle.color; ctx.fillRect(particle.x - 1, particle.y - 1, 2.4, 2.4);
-        }
-        ctx.globalAlpha = 1;
+        for (const rocket of rockets) drawRocket(ctx, rocket);
+        drawEffects(ctx, gameEffects);
         for (const label of labels) {
             const w = Math.min(180, Math.max(72, label.text.length * 7 + 18));
             ctx.globalAlpha = Math.min(1, label.life * 3); ctx.fillStyle = "#102c32e8"; roundRect(label.x - w / 2, label.y - 21, w, 26, 6); ctx.fill();
@@ -388,12 +401,7 @@
         rockets = rockets.filter(rocket => !rocket.dead && rocket.y > -60 && rocket.x > -50 && rocket.x < width + 50);
         pickups = pickups.filter(item => !item.hit && item.y <= floor + 32);
         falling = falling.filter(item => { if (item.hit) return false; if (item.y > floor) { escaped++; return false; } return true; });
-        for (const particle of particles) {
-            particle.previousX = particle.x; particle.previousY = particle.y; particle.x += particle.vx * step; particle.y += particle.vy * step;
-            particle.vx *= Math.exp(-.8 * step); particle.vy += 75 * step; particle.life -= step;
-        }
-        particles = particles.filter(particle => particle.life > 0);
-        for (const effect of bursts) effect.age += step; bursts = bursts.filter(effect => effect.age < effect.life);
+        advanceEffects(gameEffects, step);
         for (const label of labels) { label.life -= step; if (!motion.matches) label.y -= 18 * step; } labels = labels.filter(label => label.life > 0);
         updateHud(); draw(); frame = requestAnimationFrame(tick);
     }
@@ -419,10 +427,12 @@
         if (!dialog || !canvas || typeof dialog.showModal !== "function") return false;
         ctx = canvas.getContext("2d"); if (!ctx) return false;
         previousFocus = document.activeElement; restore(); keys.clear(); pointers.clear();
-        targets = []; falling = []; rockets = []; particles = []; bursts = []; labels = []; pickups = [];
+        targets = []; falling = []; rockets = []; labels = []; pickups = [];
+        gameEffects.particles.length = gameEffects.bursts.length = 0;
         for (const kind of boostKinds) boosts[kind.type] = 0;
         score = 0; hits = 0; level = 1; total = 0; elapsed = 0; cooldown = 0; announced = 0; previous = null;
         spawnWait = .65; spawned = 0; escaped = 0; nextId = 0; dropped = 0; collected = 0; paused = false; steering = 0; pointerHeld = false;
+        stopPageFireworks();
         try { dialog.showModal(); } catch { return false; }
         resizeCanvas(); targets = collectTargets(); total = targets.length;
         spawn(.13); spawn(.48); spawn(.83); running = true;
@@ -463,13 +473,100 @@
         cancelAnimationFrame(frame); frame = 0; previous = null;
         controls?.abort(); controls = null; observer?.disconnect(); observer = null;
         keys.clear(); pointers.clear(); pointerHeld = false; steering = 0;
-        restore(); targets = []; falling = []; rockets = []; particles = []; bursts = []; labels = []; pickups = [];
+        restore(); targets = []; falling = []; rockets = []; labels = []; pickups = [];
+        gameEffects.particles.length = gameEffects.bursts.length = 0;
         for (const kind of boostKinds) boosts[kind.type] = 0; updateBoostHud();
         if (ctx) ctx.clearRect(0, 0, width, height);
         if (dialog?.open) dialog.close();
         if (wasRunning && previousFocus?.isConnected && getComputedStyle(previousFocus).display !== "none") previousFocus.focus({ preventScroll: true });
         previousFocus = null;
     }
+
+    // Only layout backgrounds can launch decorative fireworks. Cards, text and controls retain their normal clicks.
+    const pageBackgrounds = "html,body,#app,.lup,.lup > .app,.lup #main-content,.public-home,.public-intro,"
+        + ".public-home > section,.public-section-title,.public-course-browser,.public-lower,.public-lower > section";
+    let pageFireworks;
+    function stopPageFireworks() {
+        if (!pageFireworks) return;
+        const { canvas, ctx, width, height, frame, observer } = pageFireworks;
+        pageFireworks = null;
+        cancelAnimationFrame(frame);
+        observer.disconnect();
+        canvas.hidden = true;
+        ctx.clearRect(0, 0, width, height);
+    }
+    function drawPageFireworks(now) {
+        const scene = pageFireworks;
+        if (!scene) return;
+        if (document.documentElement.dataset.theme !== "newyear" || document.hidden || !scene.canvas.isConnected) {
+            stopPageFireworks();
+            return;
+        }
+        const step = scene.previous === null ? 0 : clamp((now - scene.previous) / 1000, 0, .05);
+        scene.previous = now;
+        advanceEffects(scene.effects, step);
+        scene.ctx.clearRect(0, 0, scene.width, scene.height);
+        scene.rockets = scene.rockets.filter(rocket => {
+            rocket.age += step;
+            if (rocket.age >= rocket.duration) {
+                burst(scene.effects, rocket.x, rocket.targetY, rocket.color);
+                return false;
+            }
+            const progress = Math.sin(rocket.age / rocket.duration * Math.PI / 2);
+            rocket.y = rocket.startY + (rocket.targetY - rocket.startY) * progress;
+            drawRocket(scene.ctx, rocket, scene.effects.animate);
+            return true;
+        });
+        drawEffects(scene.ctx, scene.effects);
+        if (scene.rockets.length || scene.effects.bursts.length || scene.effects.particles.length) {
+            scene.frame = requestAnimationFrame(drawPageFireworks);
+        } else {
+            stopPageFireworks();
+        }
+    }
+    function launchPageFirework(event) {
+        if (running || document.documentElement.dataset.theme !== "newyear" || document.hidden
+            || event.defaultPrevented || event.button !== 0 || !event.detail || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+            || !event.target.matches?.(pageBackgrounds)
+            || event.target.closest?.(".notion-ide-shell,dialog,[inert],[data-newyear-ignore]")
+            || window.getSelection?.()?.isCollapsed === false
+            || document.querySelector("dialog[open],.lup-header details[open],[role='dialog'][aria-modal='true']:not([hidden])")) return;
+        const canvas = document.getElementById("lup-newyear-sky");
+        if (!canvas) return;
+        if (!pageFireworks || pageFireworks.canvas !== canvas) {
+            stopPageFireworks();
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            canvas.hidden = false;
+            const { width, height } = canvas.getBoundingClientRect();
+            const ratio = Math.min(devicePixelRatio || 1, 2);
+            canvas.width = Math.round(width * ratio);
+            canvas.height = Math.round(height * ratio);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            const observer = new MutationObserver(stopPageFireworks);
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+            pageFireworks = { canvas, ctx, width, height, frame: 0, previous: null, observer,
+                rockets: [], effects: { particles: [], bursts: [], animate: true } };
+        }
+        const scene = pageFireworks;
+        const bounds = canvas.getBoundingClientRect();
+        const x = event.clientX - bounds.left, targetY = event.clientY - bounds.top;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        if (scene.rockets.length < limits.bursts) {
+            const startY = scene.height + 15;
+            const duration = clamp((startY - targetY) / 860, .24, .84);
+            scene.rockets.push({ x, targetY, startY, age: 0, duration, color, radius: 3, vx: 0, vy: -1 });
+        }
+        if (!scene.frame) scene.frame = requestAnimationFrame(drawPageFireworks);
+    }
+
+    // Capture the click before an open menu's outside-click handler closes it.
+    document.addEventListener("click", launchPageFirework, { capture: true, passive: true });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stopPageFireworks(); });
+    for (const event of ["resize", "popstate", "hashchange", "pagehide"]) {
+        window.addEventListener(event, stopPageFireworks);
+    }
+
     document.addEventListener("click", event => {
         const action = actionOf(event); if (!action) return;
         if (action === "start") { event.preventDefault(); start(); }

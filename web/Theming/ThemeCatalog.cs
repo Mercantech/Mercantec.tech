@@ -10,7 +10,7 @@ public static class ThemeCatalog
         new("dark", "Mørkt", "star", "Platformens mørke grundtema."),
         new("christmas", "Jul", "snow", "Julelys, gaver og interaktiv sne."),
         new("newyear", "Nytår", "firework", "Midnatsblå og guld, fyrværkeri, programmeringsfejl og kombinerbare boosts."),
-        new("hacker", "Hacker", "terminal", "Grønne terminalfarver og monospace-overskrifter.")
+        new("hacker", "Hacker", "terminal", "Grønne terminalfarver og en hændelsesøvelse i Cyberlab.")
     ]);
 
     public static ThemeDefinition Find(string? id) =>
