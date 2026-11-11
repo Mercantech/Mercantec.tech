@@ -1,0 +1,23 @@
+@using Mercantec.Tech.Web.Demo
+@inject DemoWorld World
+@implements IDisposable
+
+<span class="arena-starter-preview @VariantClass" style="@PreviewStyle" aria-hidden="true"></span>
+
+@code {
+    [Parameter] public int Size { get; set; } = 136;
+
+    private string PreviewStyle => $"--arena-starter-size:{Math.Clamp(Size, 24, 512)}px";
+    private string VariantClass => World.HairStyle switch
+    {
+        "long" => "arena-starter-preview--long",
+        "cap" => "arena-starter-preview--cap",
+        _ => ""
+    };
+
+    protected override void OnInitialized() => World.Changed += OnWorldChanged;
+
+    private void OnWorldChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => World.Changed -= OnWorldChanged;
+}

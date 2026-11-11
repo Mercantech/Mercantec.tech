@@ -9,8 +9,10 @@
 @page "/games/avatar-demo"
 @page "/onboarding"
 @using Mercantec.Tech.Web.Demo
+@using Mercantec.Tech.Web.Characters
 @inject NavigationManager Nav
 @inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
 @inject DemoWorld World
 @implements IDisposable
 
@@ -41,7 +43,21 @@ else if (PathKey == "projects/mine")
 }
 else if (PathKey == "profile/character")
 {
-    <header class="page-title"><div><h1>Min avatarsamling</h1><p>Lås nye figurer op, og vælg den avatar, der følger dig rundt på LUP.</p></div></header><AvatarEditor />
+    <header class="page-title">
+        <div><h1>Min avatarsamling</h1></div>
+        <div class="actions">
+            <a class="secondary" href="/profile">Min profil</a>
+            <a class="secondary" href="@ArenaFighters.RosterPath">Karakterer og oplåsning</a>
+        </div>
+    </header>
+    @if (ViewAs.IsActive)
+    {
+        <p>Afslut elevvisning for at åbne din egen avatarsamling.</p>
+    }
+    else
+    {
+        <AvatarEditor RequestedAvatarId="@RequestedAvatarId" @key="Auth.Subject" />
+    }
 }
 else if (PathKey == "apartment")
 {
@@ -87,6 +103,8 @@ else
 }
 
 @code {
+    [SupplyParameterFromQuery(Name = "avatar")] public string? RequestedAvatarId { get; set; }
+
     private string PathKey
     {
         get
@@ -126,8 +144,8 @@ else
         _ => "Tomt felt"
     };
 
-    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; Nav.LocationChanged += OnLocation; World.Changed += OnAuth; await World.EnsureAsync(); }
+    protected override async Task OnInitializedAsync() { Auth.AuthStateChanged += OnAuth; ViewAs.Changed += OnAuth; Nav.LocationChanged += OnLocation; World.Changed += OnAuth; await World.EnsureAsync(); }
     private void OnAuth() => InvokeAsync(StateHasChanged);
     private void OnLocation(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
-    public void Dispose() { Auth.AuthStateChanged -= OnAuth; Nav.LocationChanged -= OnLocation; World.Changed -= OnAuth; }
+    public void Dispose() { Auth.AuthStateChanged -= OnAuth; ViewAs.Changed -= OnAuth; Nav.LocationChanged -= OnLocation; World.Changed -= OnAuth; }
 }

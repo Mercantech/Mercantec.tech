@@ -31,7 +31,7 @@ function scene(reducedMotion, saved = {}, options = {}) {
     };
     vm.runInNewContext(source, environment);
     window.lupTheme.mount();
-    return { theme: window.lupTheme, document, storage, pending, canvas,
+    return { window, theme: window.lupTheme, document, storage, pending, canvas,
         get canvasCount() { return canvasCount; },
         frame(time) { const callbacks = [...pending.values()]; pending.clear(); callbacks.forEach(fn => fn(time)); return arcs.map(a => [...a]); },
         visibility(hidden) { document.hidden = hidden; events.get('visibilitychange')(); },
@@ -159,4 +159,65 @@ test('Explicit System theme survives a guest reload and resolves the device pale
         matchMedia: () => ({ matches: true }) });
     assert.equal(root.dataset.theme, 'system');
     assert.equal(root.dataset.bsTheme, 'dark');
+});
+
+test('Character gallery links open the disclosure before scrolling and focus its keyboard toggle', async () => {
+    const app = scene(false, {}, { theme: 'light' });
+    const id = 'character-reactions-title';
+    const expectedLocation = 'https://lup.example/characters/raymond#' + id;
+    app.window.location = { href: expectedLocation, hash: '#' + id };
+    const gallery = { open: false };
+    const steps = [];
+    const summary = {
+        scrollIntoView() {
+            assert.equal(gallery.open, true);
+            steps.push('scroll');
+        },
+        focus(options) {
+            assert.equal(options.preventScroll, true);
+            steps.push('focus');
+        },
+        setAttribute() { assert.fail('The native summary must stay in the tab order'); }
+    };
+    const heading = {
+        closest(selector) {
+            if (selector === 'details.character-artwork-gallery') return gallery;
+            if (selector === 'summary') return summary;
+            return null;
+        }
+    };
+    app.document.getElementById = target => target === id ? heading : null;
+
+    const current = app.window.lupCharacterUi.scrollToSection(id, expectedLocation);
+    assert.equal(gallery.open, false);
+    app.frame(1000);
+    await current;
+    assert.equal(gallery.open, true);
+    assert.deepEqual(steps, ['scroll', 'focus']);
+
+    gallery.open = false;
+    const outdated = app.window.lupCharacterUi.scrollToSection(id, expectedLocation);
+    app.window.location.href = 'https://lup.example/characters/lupp#' + id;
+    app.frame(1020);
+    await outdated;
+    assert.equal(gallery.open, false);
+    assert.deepEqual(steps, ['scroll', 'focus']);
+});
+
+test('The shared profile anchor helper still focuses and scrolls an ordinary section', async () => {
+    const app = scene(false, {}, { theme: 'light' });
+    app.window.location = { hash: '#indstillinger' };
+    const steps = [];
+    const section = {
+        closest() { return null; },
+        setAttribute(name, value) { steps.push([name, value]); },
+        scrollIntoView() { steps.push('scroll'); },
+        focus() { steps.push('focus'); }
+    };
+    app.document.getElementById = target => target === 'indstillinger' ? section : null;
+
+    const scroll = app.window.lupProfileUi.scrollToSection('indstillinger');
+    app.frame(1000);
+    await scroll;
+    assert.deepEqual(steps, [['tabindex', '-1'], 'scroll', 'focus']);
 });

@@ -1,4 +1,5 @@
 @page "/profile"
+@using Mercantec.Tech.Web.Characters
 @inject AuthService Auth
 @inject AuthRedirect Redirect
 @inject NavigationManager Nav
@@ -53,7 +54,7 @@
                 <ProfileNameEditor LoginName="@LoginName" @key="Auth.Subject" />
                 <p>@RoleLabel</p>
                 <div class="profile-identity-actions">
-                    <a class="action" href="/profile/character">Vælg avatar</a>
+                    <a class="action" href="@AvatarCollectionHref">Vælg avatar</a>
                     <a class="secondary" href="/arena"><UiIcon Name="game" />Spil LUP Arena</a>
                 </div>
             </div>
@@ -122,6 +123,7 @@
         [
             new("/profile/character", "Min avatarsamling"),
             new("/characters", "Mød karaktererne"),
+            new(ArenaFighters.RosterPath, "Kæmpere og oplåsning"),
             new("/games", "Spil")
         ]),
         new("profile-projects", "Projekter", "folder",
@@ -140,6 +142,9 @@
     private string? _scrollLocation;
 
     private string? LoginName => Auth.DisplayName is { Length: > 0 } name && name != Auth.Subject ? name : null;
+    private string AvatarCollectionHref => World.AvatarProfileReady
+        ? ArenaFighters.CollectionPath(World.SelectedAvatarId)
+        : "/profile/character";
     private string RoleLabel => Redirect.ShowsTeacherChrome ? "Underviser" : "Elev";
 
     protected override void OnInitialized()

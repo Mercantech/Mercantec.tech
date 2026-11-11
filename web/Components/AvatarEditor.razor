@@ -1,4 +1,5 @@
 @using Mercantec.Tech.Web.Demo
+@using Mercantec.Tech.Web.Characters
 @inject DemoWorld World
 @inject AuthService Auth
 @inject GiftMailboxClient Mailbox
@@ -27,7 +28,16 @@ else
     <div class="avatar-collection-layout">
         <section class="avatar-preview" aria-labelledby="avatar-preview-title">
             <div class="avatar-preview-top"><span>Forhåndsvisning</span><span class="avatar-edition">@PreviewDefinition.Edition</span></div>
-            <div class="avatar-preview-canvas" role="group" aria-label="@($"{PreviewDefinition.Name} – forhåndsvisning")"><AvatarLayerPreview @key="_previewId" AvatarId="@_previewId" Animation="@_animation" ReplayKey="@_replayKey" Paused="@_animationPaused" Size="248" /></div>
+            <div class="avatar-preview-canvas" role="group" aria-label="@($"{PreviewDefinition.Name} – forhåndsvisning")">
+                @if (PreviewDefinition.Id == AvatarCatalog.StarterId)
+                {
+                    <ArenaStarterPreview Size="248" />
+                }
+                else
+                {
+                    <AvatarLayerPreview @key="_previewId" AvatarId="@_previewId" Animation="@_animation" ReplayKey="@_replayKey" Paused="@_animationPaused" Size="248" />
+                }
+            </div>
             <h2 id="avatar-preview-title">@PreviewDefinition.Name</h2>
             <p>@PreviewDefinition.Description</p>
             @if (PreviewDefinition.Animations.Count > 0)
@@ -62,6 +72,7 @@ else
             {
                 <a class="avatar-character-link" href="@PreviewDefinition.CharacterProfilePath">Lær @PreviewDefinition.Name at kende <span aria-hidden="true">↗</span></a>
             }
+            <a class="avatar-game-link" href="@ArenaFighters.PlayPath">Se kæmpere i LUP Arena</a>
             <a class="avatar-game-link" href="/games/avatar-demo">Prøv din valgte avatar i Rune Run <span aria-hidden="true">↗</span></a>
         </section>
         <section class="avatar-library" aria-labelledby="avatar-library-title">
@@ -127,7 +138,13 @@ else
             @if (PreviewDefinition.FaceImage is not null)
             {
                 <section class="avatar-expressions" aria-labelledby="avatar-expressions-title">
-                    <div><h3 id="avatar-expressions-title">Et ansigt til hver anledning</h3><p>Et profilikon og @PreviewDefinition.Emojis.Count små reaktioner følger med @PreviewDefinition.Name.</p></div>
+                    <div>
+                        <h3 id="avatar-expressions-title">@(PreviewDefinition.Emojis.Count == 0 ? "Profilikon" : "Et ansigt til hver anledning")</h3>
+                        @if (PreviewDefinition.Emojis.Count > 0)
+                        {
+                            <p>Et profilikon og @PreviewDefinition.Emojis.Count små reaktioner følger med @PreviewDefinition.Name.</p>
+                        }
+                    </div>
                     <div class="avatar-emoji-row">
                         <AvatarIcon AvatarId="@PreviewDefinition.Id" Size="56" />
                         @foreach (var emoji in PreviewDefinition.Emojis)
@@ -158,6 +175,9 @@ else
 }
 
 @code {
+    [Parameter] public string? RequestedAvatarId { get; set; }
+
+    private string? _handledAvatarRequest;
     private string _previewId = AvatarCatalog.Bip01Id;
     private string _animation = "idle";
     private int _replayKey;
@@ -231,6 +251,15 @@ else
         Mailbox.GiftSent += OnGiftSent;
         await World.EnsureAsync();
         await World.BindAvatarProfileAsync(Auth.Subject);
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_handledAvatarRequest == RequestedAvatarId)
+            return;
+
+        _handledAvatarRequest = RequestedAvatarId;
+        if (AvatarCatalog.Find(RequestedAvatarId) is { } avatar && avatar.Id != _previewId)
+            await Preview(avatar.Id);
     }
     private void OnChanged() { if (!_disposed) _ = InvokeAsync(StateHasChanged); }
     private void OnGiftSent() { if (!_disposed) _ = InvokeAsync(RefreshRequirements); }

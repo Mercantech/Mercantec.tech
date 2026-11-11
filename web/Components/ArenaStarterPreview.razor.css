@@ -1,0 +1,30 @@
+.arena-starter-preview {
+    display: block;
+    width: min(100%, var(--arena-starter-size));
+    aspect-ratio: 1;
+    background-image: url('/assets/arena/v2/fighters-starter.webp');
+    background-repeat: no-repeat;
+    background-size: 400% 400%;
+    background-position: 0 0;
+    animation: arena-starter-idle 720ms steps(1, end) infinite;
+}
+
+.arena-starter-preview--long {
+    background-image: url('/assets/arena/v2/fighters-starter-long.webp');
+}
+
+.arena-starter-preview--cap {
+    background-image: url('/assets/arena/v2/fighters-starter-cap.webp');
+}
+
+/* Arena's idle frames occupy the first row of each 4 × 4 atlas. */
+@keyframes arena-starter-idle {
+    0% { background-position: 0 0; }
+    25% { background-position: 33.333333% 0; }
+    50% { background-position: 66.666667% 0; }
+    75%, 100% { background-position: 100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arena-starter-preview { animation: none; }
+}

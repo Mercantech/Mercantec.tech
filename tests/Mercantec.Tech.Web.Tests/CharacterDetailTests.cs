@@ -1,5 +1,9 @@
+using System.Collections.Concurrent;
 using Bunit;
 using Mercantec.Tech.Web.Characters;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using CharacterDetail = Mercantec.Tech.Web.Pages.Characters.Detail;
 using CharacterIndex = Mercantec.Tech.Web.Pages.Characters.Index;
 
@@ -529,6 +533,84 @@ public sealed class CharacterDetailTests
         Assert.Equal(48, page.FindAll(".character-reactions figure").Count);
         Assert.Contains("48 af 48", page.Find(".character-reactions .character-artwork-count").TextContent);
         Assert.EndsWith("/fancy.webp", page.Find(".character-main-art img").GetAttribute("src"));
+    }
+
+    [Fact]
+    public async Task Artwork_galleries_start_closed_with_counts_and_stable_link_targets()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        var page = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, "raymond"));
+        var profile = CharacterCatalog.Find("raymond")!;
+
+        Assert.Equal(2, page.FindAll("details.character-artwork-gallery").Count);
+        Assert.Empty(page.FindAll("details.character-artwork-gallery[open]"));
+        Assert.Equal(profile.Reactions.Count.ToString(), page.Find("summary #character-reactions-title .character-artwork-total").TextContent);
+        Assert.Equal(profile.Scenes.Count.ToString(), page.Find("summary #character-scenes-title .character-artwork-total").TextContent);
+        Assert.NotEmpty(page.FindAll(".character-animation-card"));
+        Assert.NotEmpty(page.FindAll(".character-gallery figure"));
+    }
+
+    [Fact]
+    public async Task Artwork_links_follow_the_fragment_and_wait_for_the_matching_slug()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            var storage = (IJSRuntime)services.Last(service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
+            services.AddSingleton<IJSRuntime>(new GalleryScrollRuntime(storage));
+        });
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        var js = (GalleryScrollRuntime)context.Services.GetRequiredService<IJSRuntime>();
+        navigation.NavigateTo("/characters/raymond#character-reactions-title");
+        var page = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, "raymond"));
+        page.WaitForAssertion(() => Assert.Equal(("character-reactions-title", navigation.Uri), Assert.Single(js.Sections)));
+
+        await page.InvokeAsync(() => navigation.NavigateTo("/characters/raymond#character-scenes-title"));
+        page.WaitForAssertion(() => Assert.Equal(("character-scenes-title", navigation.Uri), js.Sections.Last()));
+
+        await page.InvokeAsync(() => navigation.NavigateTo("/characters/lupp#character-reactions-title"));
+        Assert.Equal(2, js.Sections.Count);
+        page.Render(p => p.Add(x => x.Slug, "lupp"));
+        page.WaitForAssertion(() => Assert.Equal(("character-reactions-title", navigation.Uri), js.Sections.Last()));
+        Assert.Equal(3, js.Sections.Count);
+        Assert.Equal("LUPP", page.Find("h1").TextContent);
+    }
+
+    [Fact]
+    public async Task Arena_section_links_the_public_fighter_to_its_own_collection_entry()
+    {
+        using var api = new NoNetwork();
+        using var context = await LearningUiTestContext.CreateAsync(api);
+        await context.Auth.LogoutLocalAsync();
+        var page = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, "raymond"));
+
+        var arena = page.Find(".character-arena");
+        Assert.Contains("Raymond", arena.QuerySelector("h2")!.TextContent);
+        var links = arena.QuerySelectorAll("a").Select(link => link.GetAttribute("href")).ToArray();
+        Assert.Contains(ArenaFighters.RosterPath, links);
+        Assert.Contains(ArenaFighters.PlayPath, links);
+        Assert.Contains(ArenaFighters.CollectionPath("raymond"), links);
+        Assert.Equal(ArenaFighters.Requirements("raymond"), arena.QuerySelectorAll("li").Select(item => item.TextContent).ToArray());
+        Assert.NotEmpty(arena.QuerySelectorAll("li"));
+
+        page.Render(p => p.Add(x => x.Slug, "vatson"));
+        Assert.Empty(page.FindAll(".character-arena"));
+    }
+
+    private sealed class GalleryScrollRuntime(IJSRuntime storage) : IJSRuntime
+    {
+        public ConcurrentQueue<(string Id, string Location)> Sections { get; } = [];
+
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken ct, object?[]? args)
+        {
+            if (identifier != "lupCharacterUi.scrollToSection") return storage.InvokeAsync<TValue>(identifier, ct, args);
+            Sections.Enqueue(((string)args![0]!, (string)args[1]!));
+            return ValueTask.FromResult(default(TValue)!);
+        }
     }
 
     private sealed class NoNetwork : HttpMessageHandler

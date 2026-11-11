@@ -18,6 +18,7 @@ public partial class Arena
     [Inject] private AuthService Auth { get; set; } = default!;
     [Inject] private DemoWorld World { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
+    [SupplyParameterFromQuery(Name = "view")] public string? RequestedView { get; set; }
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private ElementReference _canvas;
     private IJSObjectReference? _module;
@@ -42,6 +43,7 @@ public partial class Arena
     private bool _sound = true;
     private bool _loading = true, _practicePaused, _artReady;
     private string _screen = "main", _settingsReturn = "main", _rosterReturn = "main";
+    private bool _linkedRoster;
     private bool IsBattle => _screen == "battle";
     private string FighterName(string id) => id == "starter" ? "Din avatar" : AvatarCatalog.Find(id)?.Name ?? "Avatar";
     private static string Portrait(string id) => AvatarCatalog.Find(id)?.FaceImage ?? "/assets/arena/v2/portrait-starter.webp";
@@ -56,6 +58,21 @@ public partial class Arena
     private bool Owns(string id) => id == "starter" || World.OwnsAvatar(id);
 
     protected override void OnInitialized() { Auth.AuthStateChanged += AuthChanged; }
+
+    protected override void OnParametersSet()
+    {
+        var showRoster = string.Equals(RequestedView, "fighters", StringComparison.OrdinalIgnoreCase);
+        if (_linkedRoster == showRoster) return;
+
+        _linkedRoster = showRoster;
+        if (_practice || _room is not null || _busy) return;
+
+        if (showRoster)
+            OpenFighters();
+        else if (_screen == "fighters")
+            _screen = _rosterReturn;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -96,7 +113,15 @@ public partial class Arena
     private void OpenOnlineFighters() { _rosterReturn = "online"; _screen = "fighters"; }
     private void OpenOnline() => _screen = "online";
     private void ShowSettings() { _settingsReturn = _screen; _practicePaused = _practice; _screen = "settings"; }
-    private void Back() { _practicePaused = false; _error = null; _screen = _screen == "settings" ? _settingsReturn : _screen == "fighters" ? _rosterReturn : _room is not null ? "online" : _practice ? "battle" : "main"; }
+    private void Back()
+    {
+        _practicePaused = false;
+        _error = null;
+        var closingLinkedRoster = _screen == "fighters" && _linkedRoster;
+        _screen = _screen == "settings" ? _settingsReturn : _screen == "fighters" ? _rosterReturn : _room is not null ? "online" : _practice ? "battle" : "main";
+        if (closingLinkedRoster)
+            Nav.NavigateTo(Nav.GetUriWithQueryParameter("view", (string?)null), replace: true);
+    }
     private async Task ReturnMain() { if (_practice) await StopPractice(); if (_room is not null) await LeaveRoom(); _practicePaused = false; _screen = "main"; }
     private Task MenuKey(KeyboardEventArgs e) { if (e.Key == "Escape") { if (IsBattle) ShowSettings(); else Back(); } return Task.CompletedTask; }
     private async Task StartTraining() { _practicePaused = false; await StartPractice(); }

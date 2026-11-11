@@ -3,41 +3,46 @@
 @if (Items.Count > 0)
 {
     var visibleItems = VisibleItems;
-    <section class="character-artwork-gallery @(Compact ? "character-reactions" : "character-scenes") @(LargePreviews ? "character-reactions-large" : null)" aria-labelledby="@HeadingId">
-        <header>
-            <h2 id="@HeadingId">@Title</h2>
-            <p>@Description</p>
-        </header>
-        @if (Searchable)
-        {
-            <div class="character-artwork-tools">
-                <label for="@($"{HeadingId}-search")">Find en emoji</label>
-                <div class="character-artwork-search">
-                    <input id="@($"{HeadingId}-search")" type="search" value="@_query" @oninput="Search" placeholder="Navn eller motiv, fx kaffe" aria-controls="@($"{HeadingId}-items")" />
-                    <button type="button" @onclick="() => _query = string.Empty">Vis alle</button>
-                </div>
-                <p class="character-artwork-count" role="status">Viser @visibleItems.Count af @Items.Count emojis</p>
-            </div>
-        }
-        <div class="character-artwork-grid" id="@($"{HeadingId}-items")">
-            @foreach (var item in visibleItems)
+    <details class="character-artwork-gallery character-artwork-disclosure @(Compact ? "character-reactions" : "character-scenes") @(LargePreviews ? "character-reactions-large" : null)">
+        <summary class="character-artwork-summary">
+            <h2 id="@HeadingId">@Title <span class="character-artwork-total">@Items.Count</span></h2>
+        </summary>
+        <div class="character-artwork-content">
+            @if (!string.IsNullOrWhiteSpace(Description))
             {
-                <figure @key="item.Image">
-                    <a class="character-artwork-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
-                        <img src="@item.Preview" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
-                    </a>
-                    <figcaption>
-                        <span>@item.Title</span>
-                        <a class="character-artwork-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image.Split('?')[0])}")" aria-label="@($"Hent {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
-                    </figcaption>
-                </figure>
+                <header><p>@Description</p></header>
+            }
+            @if (Searchable)
+            {
+                <div class="character-artwork-tools">
+                    <label for="@($"{HeadingId}-search")">Find en emoji</label>
+                    <div class="character-artwork-search">
+                        <input id="@($"{HeadingId}-search")" type="search" value="@_query" @oninput="Search" placeholder="Navn eller motiv, fx kaffe" aria-controls="@($"{HeadingId}-items")" />
+                        <button type="button" @onclick="() => _query = string.Empty">Vis alle</button>
+                    </div>
+                    <p class="character-artwork-count" role="status">Viser @visibleItems.Count af @Items.Count emojis</p>
+                </div>
+            }
+            <div class="character-artwork-grid" id="@($"{HeadingId}-items")">
+                @foreach (var item in visibleItems)
+                {
+                    <figure @key="item.Image">
+                        <a class="character-artwork-preview" href="@item.Image" target="_blank" rel="noopener noreferrer" aria-label="@($"Se {item.Title} i fuld størrelse (åbner i ny fane)")">
+                            <img src="@item.Preview" alt="@item.Alt" width="@item.Width" height="@item.Height" loading="lazy" decoding="async" />
+                        </a>
+                        <figcaption>
+                            <span>@item.Title</span>
+                            <a class="character-artwork-download" href="@item.Image" download="@($"{CharacterSlug}-{System.IO.Path.GetFileName(item.Image.Split('?')[0])}")" aria-label="@($"Hent {item.Title} som PNG")">Hent PNG <span aria-hidden="true">↓</span></a>
+                        </figcaption>
+                    </figure>
+                }
+            </div>
+            @if (visibleItems.Count == 0)
+            {
+                <p class="character-artwork-empty" role="status">Ingen emojis matcher din søgning. Prøv et andet ord, eller vælg Vis alle.</p>
             }
         </div>
-        @if (visibleItems.Count == 0)
-        {
-            <p class="character-artwork-empty" role="status">Ingen emojis matcher din søgning. Prøv et andet ord, eller vælg Vis alle.</p>
-        }
-    </section>
+    </details>
 }
 
 @code {
