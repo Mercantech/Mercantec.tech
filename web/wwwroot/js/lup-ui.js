@@ -163,16 +163,16 @@ window.lupGiftUi = {
     }
 };
 
-window.lupCharacterUi = {
+window.lupProfileUi = window.lupCharacterUi = {
     async scrollToSection(id) {
-        // Wait for route rendering and FocusOnNavigate before moving to the gallery.
+        // Wait for route rendering and FocusOnNavigate before moving to the section.
         await new Promise(resolve => requestAnimationFrame(resolve));
         if (window.location.hash !== "#" + id) return;
-        const heading = document.getElementById(id);
-        if (!heading) return;
-        heading.setAttribute("tabindex", "-1");
-        heading.scrollIntoView({ block: "start", behavior: "instant" });
-        heading.focus({ preventScroll: true });
+        const section = document.getElementById(id);
+        if (!section) return;
+        section.setAttribute("tabindex", "-1");
+        section.scrollIntoView({ block: "start", behavior: "instant" });
+        section.focus({ preventScroll: true });
     }
 };
 

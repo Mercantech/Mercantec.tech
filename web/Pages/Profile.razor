@@ -1,113 +1,171 @@
 @page "/profile"
 @inject AuthService Auth
 @inject AuthRedirect Redirect
-@inject HttpClient Http
 @inject NavigationManager Nav
+@inject IJSRuntime Js
+@inject ViewAsStudentContext ViewAs
 @inject DemoWorld World
 @implements IDisposable
 
-<PageTitle>Brugeroplysninger</PageTitle>
+<PageTitle>Min profil · LUP</PageTitle>
 
-@if (!Auth.IsInitialized)
-{
-    <p>Indlæser…</p>
-}
-else if (!Auth.IsAuthenticated)
-{
-    <p>Du er ikke logget ind. <a href="@Auth.LoginPath()">Log ind</a></p>
-}
-else
-{
-    <header class="page-title"><div><h1>Min profil</h1></div></header>
-    @if (World.Ready)
+<div class="profile-page">
+    @if (!Auth.IsInitialized)
     {
-        <section class="panel" style="margin-bottom:16px">
-            <div class="row">
-                <AvatarIcon />
-                <div>
-                    <h2>@World.SelectedAvatar.Name</h2>
-                    <p>Din valgte avatar følger dig rundt på LUP.</p>
+        <p role="status">Indlæser profil…</p>
+    }
+    else if (!Auth.IsAuthenticated)
+    {
+        <header class="page-title">
+            <div><h1>Min profil</h1><p>Log ind for at åbne din profil og dit univers.</p></div>
+        </header>
+        <a class="action" href="@Auth.LoginPath()">Log ind</a>
+    }
+    else if (ViewAs.IsActive)
+    {
+        <header class="page-title">
+            <div><h1>Min profil</h1><p>Afslut elevvisning for at åbne din egen profil.</p></div>
+        </header>
+        <button type="button" class="action" @onclick="ViewAs.Exit">Afslut elevvisning</button>
+    }
+    else
+    {
+        <header class="profile-header">
+            <h1>Min profil</h1>
+            <nav aria-label="På profilsiden" class="profile-jump-links">
+                <a href="/profile#mit-univers"><UiIcon Name="folder" />Mit univers</a>
+                <a href="/profile#indstillinger"><UiIcon Name="sliders" />Indstillinger</a>
+            </nav>
+        </header>
+
+        <section class="profile-identity" aria-labelledby="profile-name">
+            <div class="profile-avatar">
+                @if (World.AvatarProfileReady)
+                {
+                    <AvatarIcon Size="112" />
+                }
+                else
+                {
+                    <UiIcon Name="people" />
+                }
+            </div>
+            <div class="profile-identity-body">
+                <h2 id="profile-name">@ProfileName</h2>
+                <p>@RoleLabel</p>
+                <div class="profile-identity-actions">
+                    <a class="action" href="/profile/character">Vælg avatar</a>
+                    <a class="secondary" href="/arena"><UiIcon Name="game" />Spil LUP Arena</a>
                 </div>
-                <a class="secondary" href="/profile/character">Vælg avatar</a>
-                <a class="action" href="/arena">Spil LUP Arena</a>
             </div>
         </section>
+
+        <section id="mit-univers" class="profile-section" tabindex="-1" aria-labelledby="profile-universe-title">
+            <h2 id="profile-universe-title">Mit univers</h2>
+            <div class="profile-categories">
+                @foreach (var category in Categories)
+                {
+                    <section class="profile-category" aria-labelledby="@category.Id">
+                        <h3 id="@category.Id"><span class="profile-category-icon"><UiIcon Name="@category.Icon" /></span>@category.Title</h3>
+                        <ul>
+                            @foreach (var link in category.Links)
+                            {
+                                <li><a href="@link.Href">@link.Label<UiIcon Name="chevron" /></a></li>
+                            }
+                        </ul>
+                    </section>
+                }
+            </div>
+        </section>
+
+        <section id="indstillinger" class="profile-section panel profile-settings" tabindex="-1" aria-labelledby="profile-settings-title">
+            <div class="profile-section-heading">
+                <span class="profile-category-icon"><UiIcon Name="sliders" /></span>
+                <h2 id="profile-settings-title">Indstillinger</h2>
+            </div>
+            <ProfileThemeSettings />
+        </section>
+
+        <section class="profile-section profile-account" aria-labelledby="profile-account-title">
+            <h2 id="profile-account-title">Konto</h2>
+            <dl class="profile-account-details">
+                @if (!string.IsNullOrWhiteSpace(Auth.Email))
+                {
+                    <div><dt>E-mail</dt><dd>@Auth.Email</dd></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Auth.LoginMethod))
+                {
+                    <div><dt>Loginmetode</dt><dd>@Auth.LoginMethod</dd></div>
+                }
+            </dl>
+            <nav aria-label="Kontogenveje" class="profile-account-links">
+                <a href="@Redirect.PostLoginPath()">Mit overblik</a>
+                <a href="/lectio">Lectio-kobling</a>
+                <a href="/rights">Mine rettigheder</a>
+                <a href="/privacy">Privatliv</a>
+                <a href="/help">Hjælp</a>
+            </nav>
+            <button type="button" class="secondary" @onclick="Logout">Log ud</button>
+        </section>
     }
-    <section class="panel">
-        <h2>@(Auth.DisplayName ?? "—")</h2>
-        <p>@(Auth.Email ?? "—")</p>
-        <p>Rolle: <strong>@Redirect.CurrentAppRole()</strong></p>
-        <p>Login: @(Auth.LoginMethod ?? "—")</p>
-        <p>Subject: <code>@(Auth.Subject ?? "—")</code></p>
-        @if (Auth.Roles.Count == 0)
-        {
-            <p>Ingen role-claims.</p>
-        }
-        else
-        {
-            <p>Auth-roller: @string.Join(", ", Auth.Roles)</p>
-        }
-    </section>
-    <section class="panel" style="margin-top:16px">
-        <h2>Fra API</h2>
-        @if (_meError is not null)
-        {
-            <p>@_meError</p>
-        }
-        else if (_meJson is null)
-        {
-            <p>Henter…</p>
-        }
-        else
-        {
-            <pre style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px">@_meJson</pre>
-        }
-    </section>
-    <div class="actions">
-        <a class="action" href="@Redirect.PostLoginPath()">Gå til overblik</a>
-        <a class="secondary" href="/rights">Mine rettigheder</a>
-        <a class="secondary" href="/privacy">Privatliv</a>
-        <button type="button" class="secondary" @onclick="Logout">Log ud</button>
-    </div>
-}
+</div>
 
 @code {
-    private string? _meJson;
-    private string? _meError;
+    private static readonly ProfileCategory[] Categories =
+    [
+        new("profile-progress", "Fremskridt", "chart",
+        [
+            new("/progress", "XP, level og guld"),
+            new("/progress/badges", "Mine badges"),
+            new("/universe/unlocks", "Oplåsninger")
+        ]),
+        new("profile-characters", "Karakterer og spil", "game",
+        [
+            new("/profile/character", "Min avatarsamling"),
+            new("/characters", "Mød karaktererne"),
+            new("/games", "Spil")
+        ]),
+        new("profile-projects", "Projekter", "folder",
+        [
+            new("/projects/mine", "Mine projekter"),
+            new("/explore/projects", "Projektgalleri")
+        ]),
+        new("profile-room", "Lejlighed og butik", "home",
+        [
+            new("/apartment", "Min lejlighed"),
+            new("/universe/shop", "Butik"),
+            new("/gifts", "Mine gaver")
+        ])
+    ];
 
-    protected override async Task OnInitializedAsync()
+    private string? _scrollLocation;
+
+    private string ProfileName => Auth.DisplayName is { Length: > 0 } name && name != Auth.Subject ? name : "Min konto";
+    private string RoleLabel => Redirect.ShowsTeacherChrome ? "Underviser" : "Elev";
+
+    protected override void OnInitialized()
     {
-        Auth.AuthStateChanged += OnAuth;
-        World.Changed += OnWorldChanged;
-        await EnsureAndLoadAsync();
+        Auth.AuthStateChanged += OnChanged;
+        ViewAs.Changed += OnChanged;
+        World.Changed += OnChanged;
+        Nav.LocationChanged += OnLocationChanged;
     }
 
-    private async Task EnsureAndLoadAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!Auth.IsInitialized)
+        if (!Auth.IsAuthenticated || ViewAs.IsActive)
+        {
+            _scrollLocation = null;
+            return;
+        }
+
+        var location = Nav.Uri;
+        if (_scrollLocation == location)
             return;
 
-        // Ingen redirect til /login her — det ville starte OAuth-race efter lokal logout.
-        if (!Auth.IsAuthenticated)
-            return;
-
-        await World.EnsureAsync();
-        await LoadMeAsync();
-    }
-
-    private async Task LoadMeAsync()
-    {
-        try
-        {
-            var doc = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>("me");
-            _meJson = System.Text.Json.JsonSerializer.Serialize(doc, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            _meError = null;
-        }
-        catch (Exception ex)
-        {
-            _meError = ex.Message;
-            _meJson = null;
-        }
+        _scrollLocation = location;
+        var fragment = Nav.ToAbsoluteUri(location).Fragment;
+        if (fragment is "#mit-univers" or "#indstillinger")
+            await Js.InvokeVoidAsync("lupProfileUi.scrollToSection", fragment[1..]);
     }
 
     private async Task Logout()
@@ -116,17 +174,18 @@ else
         Nav.NavigateTo("/");
     }
 
-    private void OnAuth() => _ = InvokeAsync(async () =>
-    {
-        await EnsureAndLoadAsync();
-        StateHasChanged();
-    });
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => OnChanged();
 
-    private void OnWorldChanged() => _ = InvokeAsync(StateHasChanged);
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
-        Auth.AuthStateChanged -= OnAuth;
-        World.Changed -= OnWorldChanged;
+        Auth.AuthStateChanged -= OnChanged;
+        ViewAs.Changed -= OnChanged;
+        World.Changed -= OnChanged;
+        Nav.LocationChanged -= OnLocationChanged;
     }
+
+    private sealed record ProfileCategory(string Id, string Title, string Icon, ProfileLink[] Links);
+    private sealed record ProfileLink(string Href, string Label);
 }

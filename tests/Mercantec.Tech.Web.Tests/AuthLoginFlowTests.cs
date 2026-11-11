@@ -58,6 +58,23 @@ public sealed class AuthLoginFlowTests
         Assert.Equal("http://localhost" + Target, context.Navigation.Uri);
     }
 
+    [Theory]
+    [InlineData("/universe", "/profile#mit-univers")]
+    [InlineData("/settings", "/profile#indstillinger")]
+    public async Task Saved_legacy_profile_links_reach_their_section_after_login(string legacyPath, string destination)
+    {
+        using var context = new LoginContext(authenticated: true);
+        context.Navigation.NavigateTo(AuthReturnPath.LoginUrl(legacyPath));
+        await context.Auth.InitializeAsync();
+        context.Render<Login>();
+
+        Assert.Equal("http://localhost" + legacyPath, context.Navigation.Uri);
+        if (legacyPath == "/universe") context.Render<PersonalUniverse>();
+        else context.Render<Settings>();
+
+        Assert.Equal("http://localhost" + destination, context.Navigation.Uri);
+    }
+
     [Fact]
     public async Task Return_path_is_consumed_once_and_external_stored_values_are_ignored()
     {

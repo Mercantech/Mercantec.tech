@@ -19,7 +19,7 @@ public static class CharacterCatalog
              new("Klar til nytår", "I nytårstemaet skyder LUPP fyrværkeri mod programmeringsfejl. Spillet startes frivilligt og gendanner siden, når du afslutter.")],
             [new("Se Game Design-forløbet", "/courses/template/game-design", false, false),
              new("Åbn Game Design i Notion", "https://app.notion.com/p/Game-Design-3c6123f464aa8158906ae7c7a3643328", true, false),
-             new("Åbn Notion-editoren", "/notion", false, true), new("Vælg nytårstema", "/settings", false, true)])
+             new("Åbn Notion-editoren", "/notion", false, true), new("Vælg nytårstema", "/profile#indstillinger", false, true)])
         {
             Portrait = new("Game Design", "/images/about/lupp.webp", "LUPP, en lilla lerfigur med store øjne og en blyant, klar til at undervise i Game Design"),
             Reactions = ReactionsFor("lupp"),

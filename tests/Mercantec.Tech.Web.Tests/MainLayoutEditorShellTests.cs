@@ -1,5 +1,6 @@
 using System.Net;
 using Bunit;
+using Bunit.TestDoubles;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Avatars;
 using Mercantec.Tech.Web.Components;
@@ -64,6 +65,7 @@ public sealed class MainLayoutEditorShellTests
         Assert.Equal(2, layout.FindAll("header nav a[href='/library']").Count);
         Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
         Assert.DoesNotContain(layout.FindAll("header nav a"), link => link.TextContent.Trim() == "Undervisning");
+        Assert.Single(layout.FindComponents<Stub<ThemePicker>>());
     }
 
     [Theory]
@@ -76,6 +78,23 @@ public sealed class MainLayoutEditorShellTests
         var layout = context.Render<MainLayout>();
         Assert.Equal(home, layout.Find("a.brand").GetAttribute("href"));
         Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
+        Assert.Equal("Min profil", Assert.Single(layout.FindAll(".lup-account a[href='/profile']")).TextContent.Trim());
+        Assert.Empty(layout.FindAll(".lup-account a[href='/universe'], .lup-account a[href='/settings']"));
+        Assert.Empty(layout.FindComponents<Stub<ThemePicker>>());
+    }
+
+    [Fact]
+    public async Task Preview_menu_keeps_the_exit_action_and_hides_the_teachers_personal_profile()
+    {
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api);
+        context.ViewAs.Enter("preview-student", null);
+        var layout = context.Render<MainLayout>();
+
+        Assert.Equal("Elev", layout.Find(".lup-account-name").TextContent.Trim());
+        Assert.Equal("E", layout.Find(".lup-account .avatar").TextContent.Trim());
+        Assert.Empty(layout.FindAll(".lup-account a[href='/profile'], .lup-account a[href='/universe'], .lup-account a[href='/settings']"));
+        Assert.Contains(layout.FindAll(".lup-account button"), button => button.TextContent.Trim() == "Afslut elev-visning");
     }
 
     [Fact]

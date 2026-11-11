@@ -45,21 +45,24 @@
                     </nav>
                 </details>
                 <div class="lup-tools">
-                    <ThemePicker Value="@_theme" ValueChanged="SetTheme" />
                     <a class="lup-search-link" href="/search" aria-label="Søg"><UiIcon Name="search" /><span>Søg</span></a>
                     <NotificationBell />
                     <details class="lup-account v3-navgroup">
-                        <summary aria-label="Profil og indstillinger"><span class="avatar lup-face">@if (World.Ready) { <AvatarIcon Size="32" Decorative="true" /> } else { @Initials }</span></summary>
+                        <summary aria-label="Kontomenu"><span class="avatar lup-face">@if (World.Ready && !ViewAs.IsActive) { <AvatarIcon Size="32" Decorative="true" /> } else { @Initials }</span></summary>
                         <div class="v3-menu">
                             <p class="lup-account-name">@AccountDisplayName</p>
                             <p class="lup-account-sub">@(IsTeacher ? "Underviser" : ViewAs.IsActive ? "Elevvisning" : "Elev") · LUP</p>
-                            @if (ViewAs.IsActive) { <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button> }
-                            <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
+                            @if (ViewAs.IsActive)
+                            {
+                                <button type="button" class="action" @onclick="ExitViewAs">Afslut elev-visning</button>
+                            }
+                            else
+                            {
+                                <NavLink href="/profile" Match="NavLinkMatch.All">Min profil</NavLink>
+                            }
                             @foreach (var link in NotebookLinks.Skip(1)) { <NavLink href="@link.Href">@link.Label</NavLink> }
-                            <NavLink href="/universe" Match="NavLinkMatch.All">Mit univers</NavLink>
                             <NavLink href="/arena">LUP Arena</NavLink>
                             <NavLink href="/characters">Karakterer</NavLink>
-                            <NavLink href="/settings" Match="NavLinkMatch.All">Indstillinger</NavLink>
                             @if (IsTeacher)
                             {
                                 <NavLink href="/teacher/updates">Nyt i LUP</NavLink>
@@ -85,7 +88,13 @@
                 </div>
             }
         </header>
-        <main class="body" id="main-content">@Body</main>
+        <main class="body" id="main-content">
+            <CascadingValue Name="LupTheme" Value="@_theme">
+                <CascadingValue Name="LupThemeChanged" Value="@(EventCallback.Factory.Create<string>(this, SetTheme))">
+                    @Body
+                </CascadingValue>
+            </CascadingValue>
+        </main>
         <footer class="footer"><span class="footer-brand" title="@($"LUP · {_footerName}")">LUP · @_footerName</span><div class="footer-links"><a href="/courses/template">Undervisningsplaner</a><a href="/characters">Karakterer</a><a href="/help">Hjælp</a><a href="/privacy">Privatliv</a><a href="/sources">Om LUP</a></div></footer>
     </div>
 </div>
@@ -111,7 +120,7 @@
     }
     private string HomeHref => IsTeacher ? "/teacher" : Auth.IsAuthenticated ? "/student" : "/";
     private bool HomeIsCurrent => string.Equals(CurrentPath, HomeHref, StringComparison.OrdinalIgnoreCase);
-    private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? Auth.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
+    private string AccountDisplayName => ViewAs.IsActive ? ViewAs.DisplayName ?? "Elev" : Auth.DisplayName ?? "Bruger";
     private bool HoldsIsCurrent => CurrentPath is "/courses" or "/afleveringer" || CurrentPath.StartsWith("/holds/") || CurrentPath.StartsWith("/polls/") || CurrentPath.StartsWith("/teacher/polls") || (CurrentPath.StartsWith("/courses/") && !CurrentPath.StartsWith("/courses/template")) || (CurrentPath.StartsWith("/quests/") && Guid.TryParse(CurrentPath.Split('/')[2], out _));
     private bool LibraryIsCurrent => CurrentPath is "/library" or "/subjects" or "/badges" or "/courses/template" || CurrentPath.StartsWith("/subjects/") || CurrentPath.StartsWith("/badges/") || CurrentPath.StartsWith("/explore/") || CurrentPath.StartsWith("/courses/template/") || CurrentPath.StartsWith("/learning/") || CurrentPath is "/learning" or "/education" or "/calendar" or "/quests";
     private string SkipToContentHref

@@ -6,7 +6,7 @@ tags: [feature, themes, newyear, design]
 
 # Temaer og nytår
 
-Dette er det fælles overblik over platformens udseender. Nye temaer registreres i `web/Theming/ThemeCatalog.cs`; knappen **Tema** i topbaren bruger kataloget både før og efter login. Temaer er gratis og kræver hverken level, badges eller guld.
+Dette er det fælles overblik over platformens udseender. Nye temaer registreres i `web/Theming/ThemeCatalog.cs`. Tema-knappen for gæster og temavalget på **Min profil** bruger det samme katalog. Temaer er gratis og kræver hverken level, badges eller guld.
 
 | ID | Navn | Udseende og funktion |
 | --- | --- | --- |
@@ -19,15 +19,15 @@ Dette er det fælles overblik over platformens udseender. Nye temaer registreres
 
 Rainbow er udgået. Ukendte eller tidligere temaværdier falder tilbage til Lyst. Temavalget gemmes i browseren og giver ikke adgang til indhold.
 
-## Temavælger i topbaren
+## Temavalg
 
-Knappen **Tema** er synlig for gæster og indloggede brugere. Menuen viser alle seks valg med beskrivelse, tydeligt flueben og markeret valgt tilstand. Valget gemmes i browseren. Menuen kan lukkes med Escape eller et klik udenfor og tilpasser sig mobilbredden. `ThemePicker.razor` deler visning og tilgængelighedsmarkering mellem de to topbarer. Gæsternes topbar bruger også temafarverne. Når Jul er valgt, bevæger sneen sig hele tiden. Der er ingen sneindstillinger eller Pause/Start-knap. Tidligere bevægelsesvalg ignoreres; gaveknappen er bevaret.
+Gæster vælger tema fra knappen **Tema** i topbaren. Menuen viser alle seks valg og kan lukkes med Escape eller et klik udenfor. Efter login ligger valgene under **Min profil**. Her har **System** sin egen knap ved siden af temavalget. Valget gemmes i browseren begge steder. Når Jul er valgt, bevæger sneen sig hele tiden. Der er ingen sneindstillinger eller Pause/Start-knap. Tidligere bevægelsesvalg ignoreres, og gaveknappen er bevaret.
 
 ## Nytårstema
 
 Tilføjet 5. november 2026 efter ønsket om et Space Invaders-inspireret nytårstema. Brugeren vælger Nytår under Tema og starter derefter fyrværkerispillet med en særskilt knap. Under spillet kan raketter ramme og midlertidigt skjule synlige dele af interfacet. Point og fyrværkeri giver feedback på træffere.
 
-Vælg **Tema → Nytår**, og tryk **Start fyrværkeri**. Den lilla lerfigur fra brugerens referencebillede holder et fyrværkerirør og skyder op fra røret. Flyt med musen, piletasterne eller A/D, og skyd med klik eller ved at holde mellemrum nede. På touchskærme kan man holde retningsknapper og Skyd nede samtidig. **Start forfra** nulstiller spillet.
+Vælg temaet **Nytår**, og tryk **Start fyrværkeri**. Den lilla lerfigur fra brugerens referencebillede holder et fyrværkerirør og skyder op fra røret. Flyt med musen, piletasterne eller A/D, og skyd med klik eller ved at holde mellemrum nede. På touchskærme kan man holde retningsknapper og Skyd nede samtidig. **Start forfra** nulstiller spillet.
 
 Spillet har ingen tidsgrænse og fortsætter, selv når sidens oprindelige mål er ramt. Programmeringsfejl falder ned foran interfacet: bugs, syntaxfejl, null-fejl, mergekonflikter, fejlede tests og større build-fejl. Røde tests bliver til PASS, og build-fejl afsluttes med Build succeeded. Niveauet stiger løbende med flere og hurtigere mål, op til en øvre grænse for fart og antal, så spillet fortsat kan spilles på mobil. Nogle mål kræver flere træffere og giver flere point. Et mål, der slipper forbi, afslutter ikke spillet.
 

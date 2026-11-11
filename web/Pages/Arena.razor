@@ -7,7 +7,7 @@
 <div class="arena-shell @(_screen == "main" ? "is-main" : "") @(IsBattle ? "is-battle" : "")" @onkeydown="MenuKey">
     <div class="arena-keyart" aria-hidden="true"></div>
     <header class="arena-topbar">
-        <a href="/universe" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
+        <a href="@(Auth.IsAuthenticated ? "/profile#mit-univers" : "/")" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
         <div class="arena-top-actions">
             @if (_room is not null) { <span class="arena-room-tag">@_room.Code</span> }
             <button class="arena-icon-button" data-arena-sound-toggle="true" @onclick="ToggleSound" aria-label="@(_sound ? "Slå lyd fra" : "Slå lyd til")" aria-pressed="@(_sound ? "true" : "false")">

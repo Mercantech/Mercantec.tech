@@ -20,13 +20,13 @@ test('only the configured web origin and registered routes/public static prefixe
   assert.equal(classifyCaptureRequest({ url: 'http://web:3000/js/notion-graph.js?v=connections-20261108' }, base), 'static');
   // EditorAssets combines the JS and CSS SHA256 hashes into one 129-character cache version.
   assert.equal(classifyCaptureRequest({ url: `http://web:3000/notion-editor/editor.js?v=${'A'.repeat(64)}-${'B'.repeat(64)}` }, base), 'static');
-  assert.equal(classifyCaptureRequest({ url: 'http://web:3000/settings', navigation: true }, base), 'static');
+  assert.equal(classifyCaptureRequest({ url: 'http://web:3000/profile', navigation: true }, base), 'static');
   for (const url of ['https://mercantec.tech/api/users', 'http://other:3000/images/avatar.png', 'http://web:3000/admin',
     'http://web:3000/images/%2f..%2fapi/users', 'http://web:3000/images/x.png?access_token=sensitive',
     'http://web:3000/service-worker.js', 'http://web:3000/unknown-route']) {
     assert.equal(classifyCaptureRequest({ url }, base), 'blocked', url);
   }
-  assert.equal(classifyCaptureRequest({ url: 'http://web:3000/settings', method: 'POST', navigation: true }, base), 'blocked');
+  assert.equal(classifyCaptureRequest({ url: 'http://web:3000/profile', method: 'POST', navigation: true }, base), 'blocked');
   for (const value of ['file:///etc/passwd', 'http://user:password@web:3000/', 'http://web:3000/api/', 'http://web:3000/?key=value'])
     assert.throws(() => captureBase(value));
 });

@@ -9,7 +9,7 @@
 
 <PageTitle>Mine gaver · LUP</PageTitle>
 <div class="gift-page">
-    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/universe">Mit univers</a><span aria-hidden="true">/</span><a href="/gifts">Mine gaver</a>@if (GiftId is not null) { <span aria-hidden="true">/</span><span>Din gave</span> }</nav>
+    <nav class="breadcrumbs" aria-label="Brødkrummer"><a href="/profile#mit-univers">Mit univers</a><span aria-hidden="true">/</span><a href="/gifts">Mine gaver</a>@if (GiftId is not null) { <span aria-hidden="true">/</span><span>Din gave</span> }</nav>
     <header class="page-title"><div><h1>@(GiftId is null ? "Mine gaver" : "En gave til dig")</h1>@if (GiftId is null) { <p>Gaver og hilsner, du har modtaget.</p> }</div>@if (GiftId is not null) { <a class="secondary" href="/gifts">Alle modtagne gaver</a> } else { <button type="button" class="secondary" disabled="@_loading" @onclick="Reload">Opdatér</button> }</header>
     @if (!Auth.IsInitialized || _loading) { <p role="status">Henter dine gaver…</p> }
     else if (!Auth.IsAuthenticated) { <p>Log ind for at åbne dine gaver.</p><a class="action" href="/login">Log ind</a> }
