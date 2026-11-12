@@ -363,6 +363,15 @@ services:
       - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.browserXssFilter=true
       - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.frameDeny=true
       - traefik.http.middlewares.mercantec-tech-web-lup-headers.headers.referrerPolicy=no-referrer
+      # Move the Games front page only. Legacy game/API paths and Arduino clients keep their existing services.
+      - traefik.http.routers.mercantec-tech-games-home.rule=Host(`games.mercantec.tech`) && Path(`/`)
+      - traefik.http.routers.mercantec-tech-games-home.entrypoints=web
+      - traefik.http.routers.mercantec-tech-games-home.priority=10000
+      - traefik.http.routers.mercantec-tech-games-home.service=mercantec-tech-web
+      - traefik.http.routers.mercantec-tech-games-home.middlewares=mercantec-tech-games-home
+      - traefik.http.middlewares.mercantec-tech-games-home.redirectregex.regex=^https?://games[.]mercantec[.]tech(:[0-9]+)?/
+      - traefik.http.middlewares.mercantec-tech-games-home.redirectregex.replacement=https://lup.dk/games
+      - traefik.http.middlewares.mercantec-tech-games-home.redirectregex.permanent=true
     restart: unless-stopped
 
 volumes:

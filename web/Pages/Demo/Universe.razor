@@ -1,12 +1,9 @@
 @page "/progress"
 @page "/progress/badges"
-@page "/projects/mine"
 @page "/profile/character"
 @page "/apartment"
 @page "/universe/shop"
 @page "/universe/unlocks"
-@page "/games"
-@page "/games/avatar-demo"
 @page "/onboarding"
 @using Mercantec.Tech.Web.Demo
 @using Mercantec.Tech.Web.Characters
@@ -36,10 +33,6 @@ else if (PathKey == "progress")
 else if (PathKey == "progress/badges")
 {
     <header class="page-title"><div><h1>Mine badges</h1><p>Din samling af faglige fremskridt.</p></div><a class="secondary" href="/badges">Se hele kataloget</a></header><BadgeGallery OwnedOnly="true" />
-}
-else if (PathKey == "projects/mine")
-{
-    <header class="page-title"><div><h1>Mine projekter</h1><p>Dit arbejde, dine idéer og det, du vælger at dele.</p></div></header><ProjectGallery OwnedOnly="true" />
 }
 else if (PathKey == "profile/character")
 {
@@ -73,26 +66,6 @@ else if (PathKey == "universe/unlocks")
     <UnlockRoadmap />
     <section class="panel" style="margin-top:18px"><h2>Titler og ekstra profiltemaer</h2>@foreach (var unlock in DemoCatalog.Unlocks.Where(u => u.Type is "Titel" or "Tema")) { <div class="row"><span class="mark">@unlock.Level</span><div><h3>@unlock.Name</h3><p>@unlock.Type · level @unlock.Level · @(unlock.Open ? "Åben" : "Låst")</p></div></div> }</section>
 }
-else if (PathKey == "games/avatar-demo")
-{
-    <header class="page-title"><div><h1>Rune Run Mini</h1><p>Saml tre runer, og find portalen med din avatar.</p></div></header><AvatarGame />
-}
-else if (PathKey == "games")
-{
-    <header class="page-title"><div><h1>Spil</h1><p>Prøv en rute, udforsk et spil, og lad dig inspirere.</p></div><a class="action" href="/games/mine">Upload dit eget spil</a></header>
-    <img src="lup/assets/game-cover.jpg" alt="" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:16px" />
-    <table class="table">
-        <thead><tr><th>Elev</th><th>Spil</th><th>Point</th></tr></thead>
-        <tbody>
-            @foreach (var score in DemoCatalog.Highscores)
-            {
-                <tr><td>@score.Name</td><td>@score.Game</td><td>@score.Points</td></tr>
-            }
-        </tbody>
-    </table>
-    <section class="panel" style="margin-bottom:16px"><h2>LUP Arena</h2><p>Platformkamp med dine profilavatarer. Træn mod computeren, eller invitér op til tre venner fra andre computere.</p><a class="action" href="/arena">Spil LUP Arena</a></section>
-    <a class="secondary" href="/games/avatar-demo">Prøv Rune Run Mini med din avatar</a>
-}
 else
 {
     <header class="page-title"><div><h1>Velkommen til LUP</h1><p>Find dit forløb, og gør LUP til dit eget.</p></div></header>
@@ -121,12 +94,10 @@ else
     {
         "progress" => "Udvikling",
         "progress/badges" => "Mine badges",
-        "projects/mine" => "Mine projekter",
         "profile/character" => "Avatar",
         "apartment" => "Lejlighed",
         "universe/shop" => "Butik",
         "universe/unlocks" => "Oplåsninger",
-        "games" => "Spil",
         _ => "Onboarding"
     };
 

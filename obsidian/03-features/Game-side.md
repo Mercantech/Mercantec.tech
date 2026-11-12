@@ -1,44 +1,25 @@
 ---
 type: feature
-status: idé
+status: i brug
 tags:
   - feature
   - spil
-  - nice-to-have
 ---
 
-# Game-side
+# Spiloversigt
 
-## Problem
+`/games` er den offentlige spiloversigt. LUP Arena åbner på `/games/arena` eller `/arena`. Bomberman, Wizard Duel, Tetris, Pong og Tower Defense har egne indgange under `/games`, sammen med Arduino-guiden, manualerne, turneringsbrættet og spilstatus.
 
-Holdets/spillets egne produktioner skal kunne spilles og konkurrere på highscores — ikke kun som links i galleriet.
+Elevspil uploades privat under **Mine projekter → Spil**. De indgår ikke i det offentlige katalog. Se [[Spilupload]] for filvalidering og LUPP-oplåsning.
 
-## Forslag
+## Drift og gamle adresser
 
-Side til **egne spil** (Unity, browser-baseret m.m.). Underviser bestemmer hvilke spil der er med. Highscore-tavle.
+Den eksisterende [Mercantech/Games-app](https://github.com/Mercantech/Games) og dens spilservices leverer klassikerne. De er indlejret på LUP fra den faste eksterne origin `https://games.mercantec.tech`. Spillets scripts, cookies og lokale data forbliver på den origin. Hver indgang har også et link til at åbne spillet direkte.
 
-Status: **nice-to-have** ift. kerne-quest/aflevering.
+Spilcoverne er kopieret fra Mercantech/Games til `web/wwwroot/assets/games/classics/`, så kataloget har egne billeder.
 
-## Acceptkriterier
+Traefik-reglen i `docker-compose.yml` flytter præcis `https://games.mercantec.tech/` til `https://lup.dk/games` på den fælles Dokploy-proxy. De gamle spil-, guide-, API- og MQTT-adresser skal fortsat nå deres eksisterende tjenester. Det bevarer også spillets Arduino-controllere, som bruger de gamle API-adresser. Hvis domænerne på et tidspunkt fordeles på hver sin proxy, skal den samme præcise forsideomdirigering konfigureres på proxyen, der modtager `games.mercantec.tech`.
 
-- [ ] Underviser kan pege på/tilføje spil til game-siden
-- [ ] Understøt mere end Unity (fx browser)
-- [ ] Highscores pr. spil (regler senere)
+Efter deploy skal den gamle forside give 301 til `https://lup.dk/games`. Kontrollér også, at `https://games.mercantec.tech/guide` og mindst én af de gamle spiladresser fortsat svarer med 200, og at spillet kan åbnes fra LUPs katalog.
 
-## Afhængigheder
-
-- [[Projekter-Steam-galleri]] (overlap muligt)
-- [[Hold-og-Lectio]]
-
-## Risks
-
-- Hosting og sikkerhed for uploadede builds
-
-## Out of scope
-
-- Generelt app-store for eksterne spil
-
-## Relateret
-
-- [[Feature-oversigt]]
-- [[Projekter-Steam-galleri]]
+På LUP fører `/games/avatar-demo` til spiloversigten. `/games/mine` og `/games/upload` fører til **Mine projekter → Spil**.

@@ -41,6 +41,11 @@ public partial class Arena
     private int _minutes = 5;
     private bool _busy, _practice, _playing, _ready, _isPublic, _copied, _roomsLoaded, _reconnecting, _disposed;
     private bool _sound = true;
+    private double _soundVolume = 65;
+    private bool _sandbox = true;
+    private bool _refillPractice;
+    private string _practiceOpponent = "raymond", _practiceMode = "idle", _practiceDifficulty = "normal";
+    private string _practiceMove = "pulse", _practicePosition = "center";
     private bool _loading = true, _practicePaused, _artReady;
     private string _screen = "main", _settingsReturn = "main", _rosterReturn = "main";
     private bool _linkedRoster;
@@ -52,7 +57,8 @@ public partial class Arena
     private bool IsHost => _room?.HostId == _playerId;
     private bool SettingsDisabled => _practice || _playing || (_room is not null && (!IsHost || _phase != "lobby"));
     private ArenaStage SelectedStage => ArenaCatalog.FindStage(_stageId);
-    private string WinnerName => _result?.Fighters.FirstOrDefault(f => f.Id == _result.WinnerId)?.Name ?? "Ingen";
+    private IEnumerable<PlayerView> RemovablePlayers => IsHost && _room is not null
+        ? _room.Players.Where(player => player.Id != _playerId && player.CanRemoveAfk) : [];
     private string FighterSpecial => _selectedAvatarId switch { "bip01" => "Pulsbolt & raketryk", "raymond" => "Snabelpuls & elefantstorm", "santa" => "Stjerneskud & kanesus", "lupp" => "Idépuls & iterationsryk", _ => "Energipuls & himmelspring" };
     private static string FighterRole(string id) => ArenaMoveSets.Find(id)?.Role ?? "Alsidig";
     private bool Owns(string id) => id == "starter" || World.OwnsAvatar(id);
@@ -83,12 +89,17 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=7");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=8");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _sound = await _module.InvokeAsync<bool>("soundPreference");
+            _soundVolume = Math.Clamp(await _module.InvokeAsync<double>("soundVolume"), 0, 100);
             if (_disposed) return;
             _reference = DotNetObjectReference.Create(this);
-            _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, soundEnabled = _sound, appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });
+            _artReady = await _module.InvokeAsync<bool>("mount", _canvas, _reference, new { stages = ArenaCatalog.Stages, selectedAvatarId = _selectedAvatarId, soundEnabled = _sound, soundVolume = _soundVolume,
+                phrases = AvatarCatalog.All.Where(avatar => avatar.AudioFiles.Count > 0).ToDictionary(avatar => avatar.Id,
+                    avatar => avatar.Catchphrases.Zip(avatar.AudioFiles,
+                        (phrase, file) => new { context = phrase.Context, text = phrase.Text, speaker = avatar.Name, file })),
+                appearance = new { skin = World.Skin, hair = World.Hair, hairStyle = World.HairStyle, outfit = World.OutfitColor } });
             if (_disposed) return;
             var query = new Uri(Nav.Uri).Query;
             var invitation = query.TrimStart('?').Split('&').Select(p => p.Split('=', 2)).FirstOrDefault(p => p.Length == 2 && p[0] == "room");
@@ -123,11 +134,31 @@ public partial class Arena
             Nav.NavigateTo(Nav.GetUriWithQueryParameter("view", (string?)null), replace: true);
     }
     private async Task ReturnMain() { if (_practice) await StopPractice(); if (_room is not null) await LeaveRoom(); _practicePaused = false; _screen = "main"; }
-    private Task MenuKey(KeyboardEventArgs e) { if (e.Key == "Escape") { if (IsBattle) ShowSettings(); else Back(); } return Task.CompletedTask; }
+    private async Task MenuKey(KeyboardEventArgs args)
+    {
+        if (args.Key != "Escape") return;
+        if (IsBattle) ShowSettings();
+        else if (_screen == "result") await ReturnMain();
+        else Back();
+    }
     private async Task StartTraining() { _practicePaused = false; await StartPractice(); }
-    private async Task SelectFighter(string id) { if (!Owns(id) || _practice) return; _selectedAvatarId = id; if (_module is not null) await _module.InvokeVoidAsync("preview", _stageId, id); }
-    private async Task SelectStage(string id) { if (SettingsDisabled) return; _stageId = id; if (_module is not null) await _module.InvokeVoidAsync("preview", id, _selectedAvatarId); await ConfigureRoom(); }
+    private async Task SelectFighter(string id) { if (!Owns(id) || _practice || _busy) return; _selectedAvatarId = id; if (_module is not null) await _module.InvokeVoidAsync("preview", _stageId, id); }
+    private async Task SelectStage(string id) { if (SettingsDisabled || _busy) return; _stageId = id; if (_module is not null) await _module.InvokeVoidAsync("preview", id, _selectedAvatarId); await ConfigureRoom(); }
     private async Task ToggleSound() { _sound = !_sound; if (_module is not null) await _module.InvokeVoidAsync("sound", _sound); }
+    private async Task ChangeVolume(ChangeEventArgs args)
+    {
+        if (!double.TryParse(args.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var value) ||
+            !double.IsFinite(value)) return;
+        _soundVolume = Math.Clamp(value, 0, 100);
+        if (_module is not null) await _module.InvokeVoidAsync("setVolume", _soundVolume);
+    }
+
+    private async Task PlayFighterPhrase()
+    {
+        if (_module is not null)
+            await _module.InvokeVoidAsync("previewPhrase", _selectedAvatarId, FighterName(_selectedAvatarId));
+    }
+
     private void ClearError() => _error = null;
     private async Task Fullscreen() { if (_module is not null) await _module.InvokeVoidAsync("fullscreen"); }
     private async Task ConfigureRoom() { if (_room is not null && IsHost && _phase == "lobby") await Send(new { type = "configure", stageId = _stageId, stocks = _stocks, minutes = _minutes, isPublic = _isPublic }); }
@@ -135,42 +166,134 @@ public partial class Arena
 
     private async Task StartPractice()
     {
-        if (_module is null || !_artReady || _practice || _room is not null) return;
-        _error = null; _result = null; _screen = "battle"; _practicePaused = false; _practice = _playing = true; _phase = "countdown"; _playerId = "local";
-        _simulation = new ArenaSimulation(_stageId, _stocks, _minutes, training: true);
-        _simulation.AddFighter("local", Auth.DisplayName ?? "Dig", _selectedAvatarId, appearance: CurrentAppearance);
-        _simulation.AddFighter("cpu", "Computer", _selectedAvatarId == "raymond" ? "bip01" : "raymond", true);
-        _simulation.Start();
-        await _module.InvokeVoidAsync("beginPractice", "local");
-        await _module.InvokeVoidAsync("pushState", _simulation.Snapshot());
-        _practiceCancellation = new CancellationTokenSource();
-        _practiceTask = RunPractice(_practiceCancellation.Token);
-    }
-    private async Task RunPractice(CancellationToken ct)
-    {
-        var watch = Stopwatch.StartNew(); var previous = watch.Elapsed.TotalSeconds; double accumulator = 0; var frames = 0;
+        if (_module is null || !_artReady || _practice || _room is not null || _busy) return;
+        var entry = _screen;
+        var stage = _stageId;
+        var fighter = _selectedAvatarId;
+        var opponent = _practiceOpponent;
+        var appearance = CurrentAppearance;
+        _busy = true;
+        _error = null;
         try
         {
-            while (!ct.IsCancellationRequested && _simulation is not null && _module is not null)
+            var ready = await _module.InvokeAsync<bool>("prepareBattle", stage, new[]
+            {
+                new { avatarId = fighter, appearance },
+                new { avatarId = opponent, appearance = ArenaAppearance.Sanitize(null) }
+            });
+            if (_disposed || _screen != entry) return;
+            if (!ready) { _error = "Kampbanen kunne ikke åbnes. Prøv igen."; return; }
+
+            var simulation = new ArenaSimulation(stage, _stocks, _minutes, training: true);
+            simulation.AddFighter("local", Auth.DisplayName ?? "Dig", fighter, appearance: appearance);
+            simulation.AddFighter("cpu", "Computer", opponent, true);
+            if (_sandbox)
+                simulation.ConfigurePractice("local", "cpu", new(_practiceMode, _practiceDifficulty,
+                    _practiceMove, _practicePosition, InfiniteResources: _refillPractice));
+            else
+            {
+                simulation.SetPracticeDifficulty(_practiceDifficulty);
+                simulation.Start();
+            }
+
+            await _module.InvokeVoidAsync("beginPractice", "local");
+            if (_disposed) return;
+            _simulation = simulation;
+            _result = null;
+            _screen = "battle";
+            _practicePaused = false;
+            _practice = _playing = true;
+            _phase = simulation.Phase;
+            _playerId = "local";
+            await _module.InvokeVoidAsync("pushState", simulation.Snapshot());
+            if (_disposed) return;
+            _practiceCancellation?.Dispose();
+            _practiceCancellation = new CancellationTokenSource();
+            _practiceTask = RunPractice(simulation, _module, _practiceCancellation.Token);
+        }
+        catch (JSException)
+        {
+            _practice = _playing = false;
+            _simulation = null;
+            _screen = "setup";
+            _error = "Træningen kunne ikke åbnes. Prøv igen.";
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task RunPractice(ArenaSimulation simulation, IJSObjectReference module, CancellationToken ct)
+    {
+        const double step = 1d / ArenaCatalog.TickRate;
+        var watch = Stopwatch.StartNew();
+        var previous = 0d;
+        var accumulator = 0d;
+        var ticksSinceSnapshot = 0;
+        try
+        {
+            while (!ct.IsCancellationRequested)
             {
                 await Task.Delay(8, ct);
                 var now = watch.Elapsed.TotalSeconds;
                 if (_practicePaused) { previous = now; accumulator = 0; continue; }
-                accumulator += Math.Min(.1, now - previous); previous = now;
-                var changed = false;
-                while (accumulator >= 1d / 60) { _simulation.Tick(); accumulator -= 1d / 60; frames++; changed = true; }
-                if (!changed || frames % 2 != 0) continue;
-                var state = _simulation.Snapshot();
-                await _module.InvokeVoidAsync("pushState", ct, state);
-                if (state.Phase != _phase) { _phase = state.Phase; if (_phase == "finished") { _playing = false; _result = state; } await InvokeAsync(StateHasChanged); }
+                accumulator += Math.Min(.1, now - previous);
+                previous = now;
+                while (accumulator >= step)
+                {
+                    simulation.Tick();
+                    accumulator -= step;
+                    ticksSinceSnapshot++;
+                    if (simulation.Phase == "finished") break;
+                }
+
+                if (ticksSinceSnapshot < 2 && simulation.Phase != "finished") continue;
+                ticksSinceSnapshot = 0;
+                var state = simulation.Snapshot();
+                await module.InvokeVoidAsync("pushState", ct, state);
+                if (state.Phase != _phase)
+                {
+                    _phase = state.Phase;
+                    if (_phase == "finished")
+                    {
+                        _playing = false;
+                        _result = state;
+                        _screen = "result";
+                    }
+                    await InvokeAsync(StateHasChanged);
+                }
                 if (state.Phase == "finished") break;
             }
         }
         catch (OperationCanceledException) { }
         catch (JSDisconnectedException) { }
         catch (ObjectDisposedException) { }
+        catch (JSException)
+        {
+            if (_disposed) return;
+            _practice = _playing = false;
+            _simulation = null;
+            _screen = "setup";
+            _error = "Træningen blev afbrudt. Start en ny øvelse.";
+            await InvokeAsync(StateHasChanged);
+        }
     }
+
     [JSInvokable] public void PracticeInput(ArenaInput input) => _simulation?.SetInput("local", input);
+    [JSInvokable] public Task ResetPracticeFromKeyboard() => InvokeAsync(ResetPractice);
+
+    private async Task ResetPractice()
+    {
+        if (_screen != "battle" || _simulation is not { } simulation || _module is null || !simulation.ResetPractice()) return;
+        await _module.InvokeVoidAsync("resetPracticePresentation");
+        await _module.InvokeVoidAsync("pushState", simulation.Snapshot());
+    }
+
+    private void RefillPractice() => _simulation?.RefillPracticeResources();
+    private async Task EditPractice()
+    {
+        await StopPractice();
+        _screen = "setup";
+    }
+
     private async Task StopPractice()
     {
         _practiceCancellation?.Cancel();
@@ -209,7 +332,7 @@ public partial class Arena
         }
         var admission = await response.Content.ReadFromJsonAsync<AdmissionView>(Json) ?? throw new JsonException("Serveren returnerede et tomt rum.");
         if (_disposed || generation != _admissionGeneration) return;
-        _room = admission.Room; _screen = _room.Phase is "playing" or "countdown" or "finished" ? "battle" : "online"; _playerId = admission.PlayerId; _stageId = _room.StageId; _stocks = _room.Stocks; _minutes = _room.Minutes; _phase = _room.Phase; _result = null;
+        _room = admission.Room; _screen = _room.Phase switch { "finished" when _result is not null => "result", "countdown" or "playing" or "finished" => "battle", _ => "online" }; _playerId = admission.PlayerId; _stageId = _room.StageId; _stocks = _room.Stocks; _minutes = _room.Minutes; _phase = _room.Phase; if (_phase != "finished") _result = null;
         var socket = new Uri(Http.BaseAddress!, admission.WebSocketPath);
         if (_module is not null) await _module.InvokeVoidAsync("connect", socket.AbsoluteUri, _playerId);
     }
@@ -220,7 +343,8 @@ public partial class Arena
         _ready = _room.Players.FirstOrDefault(p => p.Id == _playerId)?.Ready ?? false;
         _phase = _room.Phase; _playing = _phase is "countdown" or "playing";
         if (_phase == "lobby") { _result = null; _screen = "online"; }
-        else _screen = "battle";
+        else if (_phase == "finished" && _result is not null) _screen = "result";
+        else if (_screen != "settings") _screen = "battle";
         StateHasChanged();
     });
     [JSInvokable] public Task PhaseChanged(JsonElement state) => InvokeAsync(() =>
@@ -228,8 +352,21 @@ public partial class Arena
         var value = state.Deserialize<ArenaState>(Json); if (value is null) return;
         _phase = value.Phase; _playing = _phase is "countdown" or "playing";
         _result = _phase == "finished" ? value : null;
-        _screen = _phase == "lobby" ? "online" : "battle"; StateHasChanged();
+        _screen = _phase switch { "finished" => "result", "lobby" => "online", _ when _screen == "settings" => "settings", _ => "battle" };
+        StateHasChanged();
     });
+    [JSInvokable] public Task ArenaRemoved(string message) => InvokeAsync(() =>
+    {
+        _admissionGeneration++;
+        _room = null;
+        _playing = _ready = _reconnecting = false;
+        _result = null;
+        _phase = "lobby";
+        _screen = "online";
+        _error = message;
+        StateHasChanged();
+    });
+
     [JSInvokable] public Task ArenaError(string message) => InvokeAsync(() => { _error = message; StateHasChanged(); });
     [JSInvokable] public Task ConnectionChanged(bool reconnecting) => InvokeAsync(() => { _reconnecting = reconnecting; StateHasChanged(); });
     [JSInvokable] public async Task<bool> Reconnect()
@@ -238,10 +375,30 @@ public partial class Arena
         try { await Admit("arena/rooms/" + _room.Code + "/ticket", new { }); return true; }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or JSException or TaskCanceledException) { return false; }
     }
-    private async Task ToggleReady() { _ready = !_ready; await Send(new { type = "ready", ready = _ready }); }
+    private async Task ToggleReady()
+    {
+        if (_busy || _room is not { Phase: "lobby" } room || _module is null) return;
+        var ready = !_ready;
+        _busy = true;
+        try
+        {
+            if (ready && !await _module.InvokeAsync<bool>("prepareBattle", room.StageId, room.Players))
+            {
+                _error = "Kampbanen kunne ikke åbnes. Prøv igen.";
+                return;
+            }
+            if (_disposed || _room is not { Phase: "lobby" } current || current.Code != room.Code) return;
+            await Send(new { type = "ready", ready });
+        }
+        catch (JSException) { _error = "Kampbanen kunne ikke åbnes. Prøv igen."; }
+        finally { _busy = false; }
+    }
+
+    private Task RemoveAfk(string id) => RemovablePlayers.Any(player => player.Id == id)
+        ? Send(new { type = "removeAfk", playerId = id }) : Task.CompletedTask;
     private Task AddBot() => Send(new { type = "bot", add = true });
     private Task StartOnline() => Send(new { type = "start" });
-    private async Task Rematch() { if (_practice) { await StopPractice(); await StartPractice(); } else if (IsHost) { _result = null; await Send(new { type = "rematch" }); } }
+    private async Task Rematch() { if (_practice) { await StopPractice(); await StartPractice(); } else if (IsHost) await Send(new { type = "rematch" }); }
     private async Task LeaveRoom()
     {
         _admissionGeneration++; var code = _room?.Code;
@@ -278,7 +435,7 @@ public partial class Arena
         await LeaveMembership(_room?.Code);
         _reference?.Dispose();
     }
-    public sealed record PlayerView(string Id, string Name, string AvatarId, bool Ready, bool Connected, bool IsBot, string Color, ArenaAppearance? Appearance = null);
+    public sealed record PlayerView(string Id, string Name, string AvatarId, bool Ready, bool Connected, bool IsBot, string Color, ArenaAppearance? Appearance = null, bool CanRemoveAfk = false);
     public sealed record RoomView(string Code, string HostId, string Phase, string StageId, int Stocks, int Minutes, bool IsPublic, List<PlayerView> Players);
     public sealed record AdmissionView(RoomView Room, string PlayerId, string Ticket, string WebSocketPath, DateTimeOffset ExpiresAt);
 }

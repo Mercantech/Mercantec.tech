@@ -49,3 +49,10 @@ test('starter atlases stay separate and invalid original actions safely use idle
  assert.equal(art.originalAvatarSource('bip01','../../evil'),'/assets/avatars/bip-01/sprites/idle.png');
  assert.equal(art.originalAvatarFrame({id:'p2',avatarId:'bip01',action:'not-an-action'},0,new Map()).action,'idle');
 });
+
+test('match art requests are scoped to unique participants', () => {
+ const assets = art.originalAvatarAssets(['raymond', 'raymond', 'starter', 'lupp']);
+ assert.equal(assets.length, 34);
+ assert.ok(assets.every(([key]) => /^avatar-(raymond|lupp)-/.test(key)));
+ assert.deepEqual(art.originalAvatarAssets([]), []);
+});

@@ -1,6 +1,6 @@
 # Spilupload
 
-`/games/mine` (og alias `/games/upload`) lader en logget ind bruger gemme sit eget browser-spil. Brugeren angiver navn og en HTML-/HTM-fil eller ZIP med en HTML-startside. Filgrænsen er 100 MiB. Dette er private uploads og kræver hverken et hold eller en offentlig udgivelse. Elevvisning kan ikke bruges til at uploade på en andens konto.
+**Mine projekter → Spil** (`/projects/mine?category=spil`) lader en logget ind bruger gemme sit eget browser-spil som et privat spilprojekt. Gamle links til `/games/mine` og `/games/upload` fører til samme kategori. Brugeren angiver navn og en HTML-/HTM-fil eller ZIP med en HTML-startside. Filgrænsen er 100 MiB. Upload kræver hverken et hold eller en offentlig udgivelse. Elevvisning kan ikke bruges til at uploade på en andens konto. Projekterne vises både i **Alle** og **Spil** under Mine projekter.
 
 - `GET /api/me/games` returnerer op til 50 af kontoens egne uploads.
 - `POST /api/me/games` modtager multipartfelterne `file`, `title` og `requestId`.
@@ -16,7 +16,7 @@ Et vellykket upload genhenter avatarprofilen og opfylder LUPPs krav. Samlingen v
 
 ## Afvikling og drift
 
-Upload og LUPP-oplåsning kræver database og konfigureret object storage. De fungerer uden et eksekverbart preview-domæne. Mine spil linker til den eksisterende private filvisning, hvor originalen fortsat kan hentes.
+Upload og LUPP-oplåsning kræver database og konfigureret object storage. De fungerer uden et eksekverbart preview-domæne. Spilprojekter linker til den eksisterende private filvisning, hvor originalen fortsat kan hentes.
 
 Afvikling bruger den eksisterende `WEB_PREVIEW_ORIGIN`, et særskilt HTTPS-domæne med autoriseret filbillet. `WEB_PREVIEW_APP_ORIGIN` angiver appens origin. Domænet skal rutes **direkte til API'et** med bevaret HTTPS og Host fra en IP i `REVERSE_PROXY_KNOWN_PROXIES`. Det må ikke gå gennem webcontainerens HTTP-nginx på 3000, som ellers omskriver HTTPS til http. Et tomt preview-domæne afviser afvikling med en forklaring i filvisningen; upload og optjent fremskridt bevares.
 

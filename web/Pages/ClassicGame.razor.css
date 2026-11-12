@@ -1,0 +1,9 @@
+.classic-game-frame {
+    display: block;
+    width: 100%;
+    min-height: 35rem;
+    height: 78vh;
+    border: 1px solid var(--rule);
+    border-radius: .8rem;
+    background: #171a31;
+}

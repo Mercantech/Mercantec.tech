@@ -17,6 +17,9 @@
     background-image: url('/assets/arena/v2/fighters-starter-cap.webp');
 }
 
+.arena-starter-preview--celebrate { background-position: 100% 100%; animation: none; }
+.arena-starter-preview--knockout { background-position: 66.666667% 100%; animation: none; }
+
 /* Arena's idle frames occupy the first row of each 4 × 4 atlas. */
 @keyframes arena-starter-idle {
     0% { background-position: 0 0; }

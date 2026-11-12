@@ -1,0 +1,92 @@
+@using Mercantec.Tech.Contracts
+@using Mercantec.Tech.Web.Demo
+
+<main class="arena-end @OutcomeClass" aria-labelledby="arena-result-title" style="@StageStyle">
+    <header class="arena-end-header">
+        <span>@ArenaCatalog.FindStage(Result.StageId).Name</span>
+        <h1 id="arena-result-title" tabindex="-1">@Outcome</h1>
+    </header>
+
+    <div class="arena-end-fighters">
+        @if (Winner is { } winner)
+        {
+            <div class="arena-end-fighter is-winner">
+                @Figure(winner, "celebrate", 280)
+                <span>Vinder</span>
+                <h2>@winner.Name</h2>
+            </div>
+        }
+        @if (Winner is null && Local is { } tied)
+        {
+            <div class="arena-end-fighter">
+                @Figure(tied, "idle", 280)
+                <h2>@tied.Name</h2>
+            </div>
+        }
+        @if (Local is { } local && Winner is { } victor && local.Id != victor.Id)
+        {
+            <div class="arena-end-fighter is-defeated">
+                @Figure(local, "knockout", 208)
+                <span>Din kæmper</span>
+                <h2>@local.Name</h2>
+            </div>
+        }
+    </div>
+
+    <table class="arena-end-table" aria-label="Kampresultat">
+        <thead><tr><th scope="col">Kæmper</th><th scope="col">KO</th><th scope="col">Fald</th><th scope="col">Liv</th></tr></thead>
+        <tbody>
+            @foreach (var fighter in Standing)
+            {
+                <tr class="@(fighter.Id == Result.WinnerId ? "is-winner" : null)">
+                    <th scope="row"><img src="@Portrait(fighter.AvatarId)" alt="" /><span>@fighter.Name</span></th>
+                    <td>@fighter.KOs</td><td>@fighter.Falls</td><td>@fighter.Stocks</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <footer class="arena-end-actions">
+        <button type="button" class="arena-end-menu" @onclick="OnMenu">Menu</button>
+        @if (CanRematch)
+        {
+            <button type="button" class="arena-end-rematch" disabled="@Busy" @onclick="OnRematch">Revanche</button>
+        }
+        else
+        {
+            <span>Værten kan starte en revanche.</span>
+        }
+    </footer>
+</main>
+
+@code {
+    [Parameter, EditorRequired] public ArenaState Result { get; set; } = default!;
+    [Parameter, EditorRequired] public string PlayerId { get; set; } = "";
+    [Parameter] public bool CanRematch { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback OnMenu { get; set; }
+    [Parameter] public EventCallback OnRematch { get; set; }
+
+    private ArenaFighterSnapshot? Winner => Result.Fighters.FirstOrDefault(fighter => fighter.Id == Result.WinnerId);
+    private ArenaFighterSnapshot? Local => Result.Fighters.FirstOrDefault(fighter => fighter.Id == PlayerId);
+    private string Outcome => Winner is null ? "Uafgjort" : Winner.Id == PlayerId ? "Sejr" : "Nederlag";
+    private string OutcomeClass => Winner is null ? "is-draw" : Winner.Id == PlayerId ? "is-victory" : "is-loss";
+    private IEnumerable<ArenaFighterSnapshot> Standing => Result.Fighters
+        .OrderByDescending(fighter => fighter.Id == Result.WinnerId)
+        .ThenByDescending(fighter => fighter.Stocks).ThenBy(fighter => fighter.Damage);
+    private string StageStyle => $"--end-stage:url('/assets/arena/v2/stage-{ArenaCatalog.FindStage(Result.StageId).Id}.webp')";
+
+    private static string Portrait(string avatar) => AvatarCatalog.Find(avatar)?.FaceImage
+        ?? "/assets/arena/v2/portrait-starter.webp";
+
+    private RenderFragment Figure(ArenaFighterSnapshot fighter, string action, int size) => @<div class="arena-end-figure">
+        @if (AvatarCatalog.Find(fighter.AvatarId)?.SpriteAssetRoot is not null)
+        {
+            <AvatarSprite AvatarId="@fighter.AvatarId" Animation="@action" Size="@size" ReplayKey="@Result.Tick" />
+        }
+        else
+        {
+            <ArenaStarterPreview Size="@size" Appearance="@fighter.Appearance" Pose="@action" />
+        }
+    </div>;
+}

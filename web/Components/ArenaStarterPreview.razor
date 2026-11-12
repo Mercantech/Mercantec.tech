@@ -2,16 +2,24 @@
 @inject DemoWorld World
 @implements IDisposable
 
-<span class="arena-starter-preview @VariantClass" style="@PreviewStyle" aria-hidden="true"></span>
+<span class="arena-starter-preview @VariantClass @PoseClass" style="@PreviewStyle" aria-hidden="true"></span>
 
 @code {
     [Parameter] public int Size { get; set; } = 136;
+    [Parameter] public string? Pose { get; set; }
+    [Parameter] public Mercantec.Tech.Contracts.ArenaAppearance? Appearance { get; set; }
 
     private string PreviewStyle => $"--arena-starter-size:{Math.Clamp(Size, 24, 512)}px";
-    private string VariantClass => World.HairStyle switch
+    private string VariantClass => (Appearance?.HairStyle ?? World.HairStyle) switch
     {
         "long" => "arena-starter-preview--long",
         "cap" => "arena-starter-preview--cap",
+        _ => ""
+    };
+    private string PoseClass => Pose switch
+    {
+        "celebrate" => "arena-starter-preview--celebrate",
+        "knockout" => "arena-starter-preview--knockout",
         _ => ""
     };
 

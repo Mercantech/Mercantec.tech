@@ -1,19 +1,30 @@
-import { ArenaEffectArt, combatPresentation, combatStatusFor, effectAvatarForEvent, projectileArtFor, repairReadinessFor } from './arena-effect-art.js?v=4';
-import { isOriginalAvatar, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=3';
+import { ArenaEffectArt, combatPresentation, combatStatusFor, effectAvatarForEvent, projectileArtFor, repairReadinessFor } from './arena-effect-art.js?v=5';
+import { isOriginalAvatar, originalAvatarAction, originalAvatarAssets, originalAvatarFace, originalAvatarFrame, originalAvatarKey, originalAvatarSource } from './arena-avatar-art.js?v=4';
+import { ArenaMotion } from './arena-motion.js?v=1';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
 const ART_ROOT = '/assets/arena/v2/';
 const COLORS = ['#ff647c', '#64b5ff', '#ffc766', '#b297ff'];
-const AVATARS = ['starter', 'bip01', 'raymond', 'santa', 'lupp'];
 const STAGES = ['rooftops', 'workshop', 'skyline'];
+// The collision surface crop of each authored row in the 1254 × 1254 atlas.
+const PLATFORM_FRAMES = [
+    { x: 21, y: 143, width: 1213, height: 210 },
+    { x: 20, y: 504, width: 1215, height: 213 },
+    { x: 20, y: 869, width: 1215, height: 274 }
+];
+const MATCH_ART_BUDGET_MS = 1200;
+const IMAGE_TIMEOUT_MS = 8000;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const lerp = (a, b, amount) => a + (b - a) * amount;
 const loaded = image => Boolean(image?.complete && image.naturalWidth && !image.failed);
+const starterKey = appearance => ['long', 'cap'].includes(appearance?.hairStyle) ? 'fighter-starter-' + appearance.hairStyle : 'fighter-starter';
 
 function panel(context, x, y, width, height, radius, fill, stroke) {
+    if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return;
     context.beginPath();
-    context.roundRect(x, y, width, height, radius);
+    if (context.roundRect) context.roundRect(x, y, width, height, radius);
+    else context.rect(x, y, width, height);
     if (fill) { context.fillStyle = fill; context.fill(); }
     if (stroke) { context.strokeStyle = stroke; context.stroke(); }
 }
@@ -41,7 +52,32 @@ function hue(red, green, blue) {
     return (sector * 60 + 360) % 360;
 }
 
-/** Raster-only stage and character presentation. Simulation coordinates never change here. */
+const RESOURCE_HUD = {
+    bip01: { name: 'Energi', short: 'E', color: '#76e5f2', grabCost: 18 },
+    raymond: { name: 'Skjold', short: 'L', color: '#b6c9e2', grabCost: 0 },
+    santa: { name: 'Magi', short: 'M', color: '#f2d177', grabCost: 20 },
+    lupp: { name: 'Idé', short: 'IDÉ', color: '#c4a1ff', grabCost: 16 }
+};
+
+function clockText(state) {
+    if (state.isPracticeSandbox) return '∞';
+    const seconds = Number.isFinite(state.remainingSeconds) ? Math.max(0, Math.ceil(state.remainingSeconds)) : 0;
+    return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+}
+
+function resourceHud(fighter, combat) {
+    const info = Object.hasOwn(RESOURCE_HUD, fighter.avatarId) ? RESOURCE_HUD[fighter.avatarId] : null;
+    if (!info || !combat) return null;
+    const value = fighter.avatarId === 'raymond' ? clamp(fighter.shield || 0, 0, 100) : combat.energy;
+    const grab = combat.cooldowns.grab > 0 ? combat.cooldowns.grab.toFixed(1) + 's'
+        : value < info.grabCost ? info.grabCost + info.short : 'klar';
+    return { ...info, value, grab, repair: repairReadinessFor(fighter, combat) };
+}
+
+function damageColor(damage) {
+    return damage >= 140 ? '#ff8797' : damage >= 80 ? '#ffc18b' : '#f5f7fa';
+}
+
 export class ArenaRenderer {
     constructor(canvas, options, cue) {
         this.canvas = canvas;
@@ -53,12 +89,15 @@ export class ArenaRenderer {
         this.avatar = options.selectedAvatarId || 'starter';
         this.images = new Map();
         this.imagePromises = new Map();
+        this.pendingImages = new Map();
+        this.retryImagesAt = new Map();
         this.failures = new Set();
         this.effectArt = new ArenaEffectArt(this.loadImage.bind(this), this.images);
+        this.motion = new ArenaMotion();
         this.frameFighters = new Map();
-        this.platformFrames = [];
-        this.effectFrames = [];
         this.materialVariants = new Map();
+        this.pendingMaterials = new Set();
+        this.materialWork = Promise.resolve();
         this.originalAnimationTimelines = new Map();
         this.seenEvents = new Set();
         this.effects = [];
@@ -66,55 +105,101 @@ export class ArenaRenderer {
         this.camera = { x: 640, y: 360, zoom: 1 };
         this.shake = 0;
         this.currentTick = 0;
-        this.loading = true;
         this.disposed = false;
+        this.viewport = { width: WIDTH, height: HEIGHT };
         this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        this.preloadPromise = this.loadArt();
+        this.warmPreview(this.stageId, [{ avatarId: this.avatar, appearance: options.appearance }]);
     }
 
-    get ready() { return !this.loading && !this.failures.size; }
+    get ready() { return !this.disposed && Boolean(this.context); }
     get assetsFailed() { return Array.from(this.failures); }
-    preload() { return this.preloadPromise; }
+    preload() { return Promise.resolve(this.ready); }
 
-    async loadArt() {
-        const art = [
-            ...STAGES.map(id => ['stage-' + id, 'stage-' + id + '.webp']),
-            ['fighter-starter', 'fighters-starter.webp'],
-            ['portrait-starter', 'portrait-starter.webp'],
-            ['fighter-starter-long', 'fighters-starter-long.webp'],
-            ['fighter-starter-cap', 'fighters-starter-cap.webp'],
-            ['platforms', 'platform-atlas.webp']
-
-        ];
-        await Promise.all([
-            this.effectArt.preload(),
-            ...art.map(([key, file]) => this.loadImage(key, ART_ROOT + file)),
-            ...originalAvatarAssets().map(([key, file]) => this.loadImage(key, file)),
-            ...AVATARS.filter(isOriginalAvatar).map(id => this.loadImage('portrait-' + id, originalAvatarFace(id)))
-        ]);
-        if (this.disposed) return false;
-        const platforms = this.images.get('platforms');
-        if (loaded(platforms)) this.platformFrames = this.splitAndTrim(platforms, 1, 3, { alpha: 64, surfaceCoverage: .22 });
-        this.loading = false;
-        return this.ready;
+    setViewport(width, height) {
+        if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+            this.viewport = { width, height };
+        }
     }
 
-    loadImage(key, source) {
-        if (this.imagePromises.has(key)) return this.imagePromises.get(key);
+    warmStage(stageId) {
+        const id = this.stages.find(stage => stage.id === stageId)?.id || this.stages[0].id;
+        return [
+            this.loadImage('stage-' + id, ART_ROOT + 'stage-' + id + '.webp', 'high'),
+            this.loadImage('platforms', ART_ROOT + 'platform-atlas.webp', 'high')
+        ];
+    }
+
+    warmFighter(fighter) {
+        const id = fighter.avatarId;
+        if (isOriginalAvatar(id)) {
+            void this.loadImage('portrait-' + id, originalAvatarFace(id), 'low');
+            return this.loadImage(originalAvatarKey(id, 'idle'), originalAvatarSource(id, 'idle'), 'high');
+        }
+        const key = starterKey(fighter.appearance);
+        const file = key.replace('fighter-', 'fighters-') + '.webp';
+        const base = this.loadImage('fighter-starter', ART_ROOT + 'fighters-starter.webp', 'high');
+        const sheet = key === 'fighter-starter' ? base : this.loadImage(key, ART_ROOT + file, 'high');
+        return sheet.then(image => image || base).then(image => {
+            if (loaded(image)) this.materialImage(image, fighter.appearance, key);
+            return image;
+        });
+    }
+
+    warmPreview(stageId, fighters) {
+        this.warmStage(stageId);
+        for (const fighter of fighters) void this.warmFighter(fighter);
+    }
+
+    async prepareMatch(stageId, fighters = []) {
+        if (!this.ready) return false;
+        const participants = fighters.map(fighter => typeof fighter === 'string' ? { avatarId: fighter } : fighter).filter(Boolean);
+        const avatars = [...new Set(participants.map(fighter => fighter.avatarId))];
+        const critical = Promise.all([
+            ...this.warmStage(stageId),
+            ...participants.map(fighter => this.warmFighter(fighter))
+        ]);
+        let timeout;
+        await Promise.race([critical, new Promise(resolve => { timeout = setTimeout(resolve, MATCH_ART_BUDGET_MS); })]);
+        clearTimeout(timeout);
+        if (!this.ready) return false;
+        // Combat can start while optional sheets load. Each draw has a local fallback.
+        for (const [key, file] of originalAvatarAssets(avatars)) void this.loadImage(key, file, 'low');
+        void this.effectArt.preload(avatars);
+        return true;
+    }
+
+    loadImage(key, source, priority = 'auto') {
+        if (this.disposed || !source) return Promise.resolve(null);
+        if (this.imagePromises.has(key) && Date.now() < (this.retryImagesAt.get(key) ?? Infinity)) return this.imagePromises.get(key);
+        this.retryImagesAt.delete(key);
         const image = new Image();
         image.decoding = 'async';
+        image.fetchPriority = priority;
         this.images.set(key, image);
-        const promise = new Promise(resolve => {
-            image.onload = () => resolve(image);
-            image.onerror = () => {
-                image.failed = true;
-                this.failures.add(source);
-                console.warn('Arena artwork could not load:', source);
-                resolve(null);
-            };
-        });
+        let resolve, timeout;
+        const promise = new Promise(done => { resolve = done; });
+        const finish = success => {
+            if (this.pendingImages.get(key) !== cancel) return;
+            this.pendingImages.delete(key);
+            clearTimeout(timeout);
+            image.onload = image.onerror = null;
+            if (!this.disposed) {
+                if (success) this.failures.delete(source);
+                else {
+                    image.failed = true;
+                    this.failures.add(source);
+                    this.retryImagesAt.set(key, Date.now() + IMAGE_TIMEOUT_MS);
+                }
+            }
+            resolve(success && !this.disposed ? image : null);
+        };
+        const cancel = () => finish(false);
+        this.pendingImages.set(key, cancel);
         this.imagePromises.set(key, promise);
-        image.src = source;
+        image.onload = () => finish(loaded(image));
+        image.onerror = () => finish(false);
+        timeout = setTimeout(() => finish(false), IMAGE_TIMEOUT_MS);
+        try { image.src = source; } catch { finish(false); }
         return promise;
     }
 
@@ -122,47 +207,9 @@ export class ArenaRenderer {
     load(avatarId, action = 'idle') {
         if (!isOriginalAvatar(avatarId)) return this.images.get('fighter-' + avatarId) || null;
         const key = originalAvatarKey(avatarId, action);
-        if (!this.images.has(key)) this.loadImage(key, originalAvatarSource(avatarId, action));
+        if (!this.images.has(key)) void this.loadImage(key, originalAvatarSource(avatarId, action), 'low');
         const image = this.images.get(key);
-        return loaded(image) ? image : this.images.get(originalAvatarKey(avatarId, 'idle')) || null;
-    }
-
-    splitAndTrim(image, columns, rows, options = {}) {
-        const canvas = document.createElement('canvas');
-        canvas.width = image.naturalWidth;
-        canvas.height = image.naturalHeight;
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-        context.drawImage(image, 0, 0);
-        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-        const frameWidth = canvas.width / columns, frameHeight = canvas.height / rows;
-        const frames = [];
-        for (let row = 0; row < rows; row++) {
-            for (let column = 0; column < columns; column++) {
-                const left = Math.round(column * frameWidth), top = Math.round(row * frameHeight);
-                const right = Math.round((column + 1) * frameWidth), bottom = Math.round((row + 1) * frameHeight);
-                let minX = right, minY = bottom, maxX = left, maxY = top;
-                let scanTop = top;
-                const alpha = options.alpha || 12;
-                if (options.surfaceCoverage) {
-                    for (let y = top; y < bottom; y++) {
-                        let covered = 0;
-                        for (let x = left; x < right; x++) if (pixels[(y * canvas.width + x) * 4 + 3] >= alpha) covered++;
-                        if (covered >= frameWidth * options.surfaceCoverage) { scanTop = y; break; }
-                    }
-                }
-                for (let y = scanTop; y < bottom; y++) {
-                    for (let x = left; x < right; x++) {
-                        if (pixels[(y * canvas.width + x) * 4 + 3] < alpha) continue;
-                        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-                        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-                    }
-                }
-                frames.push(maxX >= minX && maxY >= minY
-                    ? { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 }
-                    : { x: left, y: top, width: frameWidth, height: frameHeight });
-            }
-        }
-        return frames;
+        return loaded(image) ? image : null;
     }
 
     reset() {
@@ -171,6 +218,7 @@ export class ArenaRenderer {
         this.shake = 0;
         this.currentTick = 0;
         this.originalAnimationTimelines.clear();
+        this.motion.reset();
         this.camera = { x: 640, y: 360, zoom: 1 };
     }
 
@@ -179,14 +227,19 @@ export class ArenaRenderer {
         this.avatar = avatarId;
         this.previewPlayers = players;
         this.reset();
+        this.warmPreview(stageId, players?.length ? players : [{ avatarId, appearance: this.options.appearance }]);
     }
 
     dispose() {
         this.disposed = true;
+        for (const cancel of this.pendingImages.values()) cancel();
         this.images.clear();
         this.imagePromises.clear();
+        this.retryImagesAt.clear();
         this.materialVariants.clear();
+        this.pendingMaterials.clear();
         this.originalAnimationTimelines.clear();
+        this.motion.reset();
         this.effects.length = 0;
     }
 
@@ -257,26 +310,11 @@ export class ArenaRenderer {
         context.imageSmoothingQuality = 'high';
         context.fillStyle = '#071322';
         context.fillRect(0, 0, WIDTH, HEIGHT);
-        if (!this.ready) {
-            label(context, this.loading ? 'Indlæser' : 'Grafikken kunne ikke indlæses', 640, 360, 18, '#c6d3e4');
-            return;
-        }
         const stage = this.stages.find(stage => stage.id === (state?.stageId || this.stageId)) || this.stages[0];
         this.background(context, stage);
-        let fighters = state?.fighters || this.previewFighters(stage, now);
-        if (state && previous && state.tick >= previous.tick) {
-            const interval = Math.max(1, receivedAt - previousAt);
-            const amount = clamp((now - receivedAt) / interval, 0, 1);
-            fighters = fighters.map(fighter => {
-                const before = previous.fighters.find(item => item.id === fighter.id);
-                if (!before || Math.abs(before.x - fighter.x) > 180 || Math.abs(before.y - fighter.y) > 200 || before.stocks !== fighter.stocks) return fighter;
-                const own = fighter.id === playerId;
-                const lead = Math.min(.026, Math.max(0, now - receivedAt) / 1000);
-                return { ...fighter,
-                    x: own ? fighter.x + fighter.vx * lead : lerp(before.x, fighter.x, amount),
-                    y: own ? fighter.y + fighter.vy * lead : lerp(before.y, fighter.y, amount) };
-            });
-        }
+        const { fighters, projectiles } = state
+            ? this.motion.sample(now, deltaTime, state, previous, receivedAt, previousAt, playerId)
+            : { fighters: this.previewFighters(stage, now), projectiles: [] };
         this.frameFighters = new Map(fighters.map(fighter => [fighter.id, fighter]));
         if (state) {
             this.currentTick = state.tick;
@@ -291,7 +329,7 @@ export class ArenaRenderer {
         }
         this.shake *= Math.pow(.03, deltaTime);
         this.platforms(context, stage);
-        for (const projectile of state?.projectiles || []) this.projectile(context, projectile, now);
+        for (const projectile of projectiles) this.projectile(context, projectile, now);
         for (const fighter of fighters) {
             if (fighter.out || fighter.stocks <= 0) continue;
             this.fighter(context, fighter, now, playerId, state?.phase);
@@ -299,7 +337,8 @@ export class ArenaRenderer {
         this.drawEffects(context, deltaTime);
         context.restore();
         if (!state) return;
-        this.hud(context, state, playerId);
+        if (this.viewport.width < 1100) this.compactHud(context, state, playerId);
+        else this.hud(context, state, playerId);
         if (state.phase === 'countdown') {
             const number = Math.ceil(state.countdown);
             context.save();
@@ -333,7 +372,15 @@ export class ArenaRenderer {
 
     background(context, stage) {
         const image = this.images.get('stage-' + stage.id);
-        if (!loaded(image)) return;
+        if (!loaded(image)) {
+            const sky = context.createLinearGradient(0, 0, 0, HEIGHT);
+            sky.addColorStop(0, '#111f34');
+            sky.addColorStop(.65, '#293d58');
+            sky.addColorStop(1, '#0a1426');
+            context.fillStyle = sky;
+            context.fillRect(0, 0, WIDTH, HEIGHT);
+            return;
+        }
         // The environment stays behind the collision plane, with only a small camera parallax.
         const scale = Math.max(WIDTH / image.naturalWidth, HEIGHT / image.naturalHeight) * 1.04;
         const width = image.naturalWidth * scale, height = image.naturalHeight * scale;
@@ -350,8 +397,7 @@ export class ArenaRenderer {
     previewFighters(stage, now) {
         const surfaces = stage.platforms.filter(platform => !platform.oneWay);
         const players = this.previewPlayers || [
-            { id: 'preview1', avatarId: this.avatar, name: '', color: COLORS[0], appearance: this.options.appearance },
-            { id: 'preview2', avatarId: this.avatar === 'raymond' ? 'bip01' : 'raymond', name: '', color: COLORS[1] }
+            { id: 'preview1', avatarId: this.avatar, name: '', color: COLORS[0], appearance: this.options.appearance }
         ];
         return players.map((player, index) => {
             const surface = surfaces[index % surfaces.length];
@@ -365,8 +411,15 @@ export class ArenaRenderer {
     platforms(context, stage) {
         const atlas = this.images.get('platforms');
         const row = STAGES.indexOf(stage.id);
-        const frame = this.platformFrames[Math.max(0, row)];
-        if (!loaded(atlas) || !frame) return;
+        const frame = PLATFORM_FRAMES[Math.max(0, row)];
+        if (!loaded(atlas) || atlas.naturalWidth !== 1254 || atlas.naturalHeight !== 1254) {
+            for (const platform of stage.platforms) {
+                const height = platform.oneWay ? 16 : Math.max(28, platform.height || 32);
+                panel(context, platform.x, platform.y, platform.width, height, 4, '#203750', '#9fb9d2');
+                panel(context, platform.x + 2, platform.y, platform.width - 4, 3, 1.5, hexColor(stage.accent, '#90cbe5'));
+            }
+            return;
+        }
         for (const platform of stage.platforms) {
             const height = platform.oneWay ? 34 : 72;
             const cap = Math.min(frame.width * .18, frame.height * .85);
@@ -408,67 +461,111 @@ export class ArenaRenderer {
 
     appearanceImage(fighter, playerId) {
         const appearance = fighter.appearance || (fighter.id === playerId || fighter.id === 'local' || fighter.id === 'preview1' ? this.options.appearance : null);
-        const variant = fighter.avatarId === 'starter' && ['long', 'cap'].includes(appearance?.hairStyle) ? 'fighter-starter-' + appearance.hairStyle : null;
-        const source = variant ? this.images.get(variant) : this.load(fighter.avatarId, fighter.action);
-        if (fighter.avatarId !== 'starter' || !loaded(source)) return source;
-        if (!appearance) return source;
+        const key = starterKey(appearance);
+        if (!this.images.has(key)) void this.warmFighter({ avatarId: 'starter', appearance });
+        const variant = this.images.get(key);
+        const source = loaded(variant) ? variant : this.images.get('fighter-starter');
+        return loaded(source) ? this.materialImage(source, appearance, loaded(variant) ? key : 'fighter-starter') : null;
+    }
+
+    materialImage(source, appearance, sourceKey) {
+        if (!appearance || this.disposed) return source;
         const skin = hexColor(appearance.skin, '#c98d69');
         const hair = hexColor(appearance.hair, '#42302a');
         const outfit = hexColor(appearance.outfit, '#2452e8');
         if (skin.toLowerCase() === '#c98d69' && hair.toLowerCase() === '#42302a' && outfit.toLowerCase() === '#2452e8') return source;
-        const key = [skin, hair, outfit, appearance.hairStyle].join(':');
+        const key = [sourceKey, skin, hair, outfit].join(':');
         if (this.materialVariants.has(key)) return this.materialVariants.get(key);
+        if (this.pendingMaterials.has(key)) return source;
+        this.pendingMaterials.add(key);
+        const materials = { skin: { color: rgb(skin), light: .55 }, hair: { color: rgb(hair), light: .19 }, outfit: { color: rgb(outfit), light: .31 } };
+        // Schedule and slice the pixel work. First render stays on the base sheet.
+        this.materialWork = this.materialWork
+            .then(() => new Promise(resolve => setTimeout(resolve, 0)))
+            .then(() => this.tintSheet(source, materials))
+            .catch(() => source)
+            .then(image => {
+                this.pendingMaterials.delete(key);
+                if (this.disposed || !image) return;
+                if (this.materialVariants.size >= 8) this.materialVariants.delete(this.materialVariants.keys().next().value);
+                this.materialVariants.set(key, image);
+            });
+        return source;
+    }
+
+    async tintSheet(source, materials) {
+        if (this.disposed) return null;
         const canvas = document.createElement('canvas');
         canvas.width = source.naturalWidth; canvas.height = source.naturalHeight;
         const context = canvas.getContext('2d', { willReadFrequently: true });
         context.drawImage(source, 0, 0);
-        const image = context.getImageData(0, 0, canvas.width, canvas.height);
-        const materials = { skin: { color: rgb(skin), light: .55 }, hair: { color: rgb(hair), light: .19 }, outfit: { color: rgb(outfit), light: .31 } };
-        for (let index = 0; index < image.data.length; index += 4) {
-            if (image.data[index + 3] < 12) continue;
-            const red = image.data[index] / 255, green = image.data[index + 1] / 255, blue = image.data[index + 2] / 255;
-            const value = Math.max(red, green, blue), min = Math.min(red, green, blue);
-            const saturation = value ? (value - min) / value : 0;
-            const colorHue = hue(red, green, blue);
-            let material;
-            if (colorHue >= 190 && colorHue <= 265 && saturation > .28) material = materials.outfit;
-            else if (colorHue >= 5 && colorHue <= 48 && saturation > .24 && value < .42) material = materials.hair;
-            else if (colorHue >= 6 && colorHue <= 44 && saturation > .22 && value >= .42 && value < .96) material = materials.skin;
-            if (!material) continue;
-            const luminance = .2126 * red + .7152 * green + .0722 * blue;
-            const shade = clamp(luminance / material.light, .22, 2.4);
-            for (let channel = 0; channel < 3; channel++) image.data[index + channel] = clamp(material.color[channel] * shade, 0, 255);
+        const rows = Math.max(1, Math.floor(32768 / canvas.width));
+        for (let y = 0; y < canvas.height; y += rows) {
+            if (this.disposed) return null;
+            const image = context.getImageData(0, y, canvas.width, Math.min(rows, canvas.height - y));
+            for (let index = 0; index < image.data.length; index += 4) {
+                if (image.data[index + 3] < 12) continue;
+                const red = image.data[index] / 255, green = image.data[index + 1] / 255, blue = image.data[index + 2] / 255;
+                const value = Math.max(red, green, blue), min = Math.min(red, green, blue);
+                const saturation = value ? (value - min) / value : 0;
+                const colorHue = hue(red, green, blue);
+                let material;
+                if (colorHue >= 190 && colorHue <= 265 && saturation > .28) material = materials.outfit;
+                else if (colorHue >= 5 && colorHue <= 48 && saturation > .24 && value < .42) material = materials.hair;
+                else if (colorHue >= 6 && colorHue <= 44 && saturation > .22 && value >= .42 && value < .96) material = materials.skin;
+                if (!material) continue;
+                const luminance = .2126 * red + .7152 * green + .0722 * blue;
+                const shade = clamp(luminance / material.light, .22, 2.4);
+                for (let channel = 0; channel < 3; channel++) image.data[index + channel] = clamp(material.color[channel] * shade, 0, 255);
+            }
+            context.putImageData(image, 0, y);
+            if (y + rows < canvas.height) await new Promise(resolve => setTimeout(resolve, 0));
         }
-        context.putImageData(image, 0, 0);
-        if (this.materialVariants.size >= 20) this.materialVariants.delete(this.materialVariants.keys().next().value);
-        this.materialVariants.set(key, canvas);
         return canvas;
     }
 
+    fighterSprite(fighter, now, playerId) {
+        if (!isOriginalAvatar(fighter.avatarId)) return {
+            image: this.appearanceImage(fighter, playerId), frame: this.animationFrame(fighter, now), rows: 4, originY: .9
+        };
+        let action = originalAvatarAction(fighter.action);
+        let image = this.load(fighter.avatarId, action);
+        if (!image && action !== 'idle') {
+            action = 'idle';
+            image = this.load(fighter.avatarId, action);
+        }
+        if (image) return { image, ...originalAvatarFrame({ ...fighter, action }, now, this.originalAnimationTimelines) };
+        const base = this.images.get('fighter-starter');
+        return {
+            image: loaded(base) && !loaded(this.images.get('portrait-' + fighter.avatarId)) ? base : null,
+            frame: this.animationFrame(fighter, now), rows: 4, originY: .9
+        };
+    }
+
     fighter(context, fighter, now, playerId, phase) {
-        const image = this.appearanceImage(fighter, playerId);
-        if (!image || (!image.width && !image.naturalWidth)) return;
-        const original = originalAvatarFrame(fighter, now, this.originalAnimationTimelines);
-        const frame = original ? original.frame : this.animationFrame(fighter, now);
-        const sourceWidth = (image.naturalWidth || image.width) / 4;
-        const sourceHeight = (image.naturalHeight || image.height) / (original ? original.rows : 4);
-        const x = frame % 4 * sourceWidth, y = Math.floor(frame / 4) * sourceHeight;
-        const width = fighter.avatarId === 'raymond' ? 125 : 118;
-        const height = width * sourceHeight / sourceWidth;
+        const { image, frame, rows, originY } = this.fighterSprite(fighter, now, playerId);
         const color = fighter.color || COLORS[0];
         const own = fighter.id === playerId;
         context.save();
         context.translate(fighter.x, fighter.y);
-        // A flattened copy of the generated sprite supplies its contact shadow.
-        if (fighter.grounded) {
-            context.save(); context.globalAlpha = .2; context.filter = 'brightness(0) blur(2px)';
-            context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .37, -2, width * .74, 9);
-            context.restore();
+        if (image) {
+            const sourceWidth = (image.naturalWidth || image.width) / 4;
+            const sourceHeight = (image.naturalHeight || image.height) / rows;
+            const x = frame % 4 * sourceWidth, y = Math.floor(frame / 4) * sourceHeight;
+            const width = fighter.avatarId === 'raymond' ? 125 : 118;
+            const height = width * sourceHeight / sourceWidth;
+            if (fighter.grounded) {
+                context.save(); context.globalAlpha = .2; context.filter = 'brightness(0) blur(2px)';
+                context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .37, -2, width * .74, 9);
+                context.restore();
+            }
+            context.scale(fighter.facing || 1, 1);
+            if (fighter.invulnerable) context.globalAlpha = .55 + Math.sin(now / 55) * .25;
+            context.shadowColor = '#031125a0'; context.shadowBlur = 6;
+            context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .5, -height * originY, width, height);
+        } else {
+            this.fallbackFighter(context, fighter.avatarId, color);
         }
-        context.scale(fighter.facing || 1, 1);
-        if (fighter.invulnerable) context.globalAlpha = .55 + Math.sin(now / 55) * .25;
-        context.shadowColor = '#031125a0'; context.shadowBlur = 6;
-        context.drawImage(image, x, y, sourceWidth, sourceHeight, -width * .5, -height * (original ? original.originY : .9), width, height);
         context.restore();
         if (fighter.shielding) {
             const frame = 8 + Math.floor(now / 110) % 4;
@@ -490,7 +587,18 @@ export class ArenaRenderer {
             this.effectTexture(context, 13, fighter.x + (radial ? 0 : fighter.facing * 32), fighter.y - (attached === 'repair_field' ? 18 : 43),
                 attached === 'ultimate_release' ? 185 : radial ? 125 : 95, radial ? 0 : fighter.facing < 0 ? Math.PI : 0, .8, 'screen', 1, fighter.avatarId, attached);
         }
-        if (fighter.name && (phase || this.previewPlayers)) {
+        if (this.viewport.width < 1100 && phase) {
+            const size = clamp(WIDTH / this.viewport.width, 1, 4) / this.camera.zoom;
+            context.beginPath();
+            if (own) {
+                context.moveTo(fighter.x - 4 * size, fighter.y - 118);
+                context.lineTo(fighter.x + 4 * size, fighter.y - 118);
+                context.lineTo(fighter.x, fighter.y - 118 + 5 * size);
+                context.closePath();
+            } else context.arc(fighter.x, fighter.y - 112, 2.3 * size, 0, Math.PI * 2);
+            context.fillStyle = color;
+            context.fill();
+        } else if (fighter.name && (phase || this.previewPlayers)) {
             const name = (own ? 'Dig' : fighter.name).slice(0, 22);
             const labelWidth = Math.max(46, Math.min(160, name.length * 6.3 + 20));
             panel(context, fighter.x - labelWidth / 2, fighter.y - 137, labelWidth, 22, 5, '#061727cf', color + '60');
@@ -499,6 +607,19 @@ export class ArenaRenderer {
         if (!fighter.connected && !fighter.isBot && phase === 'playing') {
             label(context, 'Forbinder…', fighter.x, fighter.y - 153, 10, '#f2c6a6');
         }
+    }
+
+    fallbackFighter(context, avatarId, color) {
+        const portrait = this.images.get('portrait-' + avatarId);
+        panel(context, -22, -45, 44, 45, 14, '#152b43', color);
+        if (loaded(portrait)) {
+            context.drawImage(portrait, -37, -84, 74, 74);
+            return;
+        }
+        context.beginPath();
+        context.arc(0, -56, 16, 0, Math.PI * 2);
+        context.fillStyle = color;
+        context.fill();
     }
 
     combatEffects(context, fighter, combat, now) {
@@ -572,10 +693,8 @@ export class ArenaRenderer {
         const width = Math.min(244, (WIDTH - 96 - 14 * (count - 1)) / Math.max(2, count));
         const start = (WIDTH - width * count - 14 * (count - 1)) / 2;
         const height = state.fighters.some(fighter => combatPresentation(fighter)) ? 110 : 78;
-        const seconds = Math.max(0, Math.ceil(state.remainingSeconds));
-        const clock = Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
         panel(context, 572, 20, 136, 45, 7, '#071828cf', '#b3c8df33');
-        label(context, clock, 640, 43, 28, '#f2f5f8', 700);
+        label(context, clockText(state), 640, 43, 28, '#f2f5f8', 700);
         for (let index = 0; index < count; index++) {
             const fighter = state.fighters[index], x = start + index * (width + 14), y = HEIGHT - height - 20;
             const color = fighter.color || COLORS[index % COLORS.length];
@@ -588,14 +707,15 @@ export class ArenaRenderer {
             const portrait = this.images.get('portrait-' + fighter.avatarId);
             if (fighter.avatarId === 'starter') {
                 const sheet = this.appearanceImage(fighter, playerId);
-                const frameWidth = (sheet.naturalWidth || sheet.width) / 4;
-                const frameHeight = (sheet.naturalHeight || sheet.height) / 4;
-                context.drawImage(sheet, frameWidth * .15, frameHeight * .03, frameWidth * .7, frameHeight * .7, x + 4, y - 11, 78, 78);
+                if (sheet) {
+                    const frameWidth = (sheet.naturalWidth || sheet.width) / 4;
+                    const frameHeight = (sheet.naturalHeight || sheet.height) / 4;
+                    context.drawImage(sheet, frameWidth * .15, frameHeight * .03, frameWidth * .7, frameHeight * .7, x + 4, y - 11, 78, 78);
+                }
             } else if (loaded(portrait)) context.drawImage(portrait, x + 4, y - 11, 78, 78);
-            const name = fighter.id === playerId ? 'Dig' : fighter.name;
+            const name = fighter.id === playerId ? 'Dig' : (fighter.name || '');
             label(context, name.length > 18 ? name.slice(0, 17) + '…' : name, x + 82, y + 16, 11, '#c9d6e4', 600, 'left');
-            const damageColor = fighter.damage >= 140 ? '#ff8797' : fighter.damage >= 80 ? '#ffc18b' : '#f5f7fa';
-            label(context, fighter.out ? 'Ude' : Math.round(fighter.damage) + '%', x + 80, y + 44, 32, damageColor, 700, 'left');
+            label(context, fighter.out ? 'Ude' : Math.round(fighter.damage) + '%', x + 80, y + 44, 32, damageColor(fighter.damage), 700, 'left');
             label(context, '× ' + fighter.stocks, x + 29, y + 64, 11, color, 700);
             if (fighter.shielding) {
                 panel(context, x + 82, y + 65, width - 98, 3, 1, '#52677d');
@@ -608,28 +728,84 @@ export class ArenaRenderer {
 
     combatHud(context, fighter, combat, x, y, width, own) {
         if (!combat) return;
-        const magic = fighter.avatarId === 'santa';
-        const ideas = fighter.avatarId === 'lupp';
-        const energy = ideas || magic || fighter.avatarId === 'bip01';
-        const resource = energy ? combat.energy : clamp(fighter.shield || 0, 0, 100);
-        const resourceColor = ideas ? '#c4a1ff' : magic ? '#f2d177' : energy ? '#76e5f2' : '#b6c9e2';
-        label(context, (ideas ? 'IDÉ ' : magic ? 'M ' : energy ? 'E ' : 'L ') + Math.round(resource), x + 14, y + 80, 10, resourceColor, 700, 'left');
+        const resource = resourceHud(fighter, combat);
+        if (!resource) {
+            if (own && !fighter.out) this.hudStatus(context, fighter, combat, x, y - 28, width, '#b6c9e2');
+            return;
+        }
+        label(context, resource.short + ' ' + Math.round(resource.value), x + 14, y + 80, 10, resource.color, 700, 'left');
         panel(context, x + 14, y + 91, 53, 3, 1.5, '#35485c');
-        if (resource > 0) panel(context, x + 14, y + 91, 53 * resource / 100, 3, 1.5, resourceColor);
+        if (resource.value > 0) panel(context, x + 14, y + 91, 53 * resource.value / 100, 3, 1.5, resource.color);
         const ready = combat.ultimateReady && !fighter.out;
         label(context, ready ? 'I KLAR' : 'I ' + Math.floor(combat.ultimate) + '%', x + 82, y + 88, 11, ready ? '#ffdb8b' : '#c9d6e4', 700, 'left');
         panel(context, x + 82, y + 98, width - 98, 3, 1.5, '#35485c');
         if (combat.ultimate > 0) panel(context, x + 82, y + 98, (width - 98) * combat.ultimate / 100, 3, 1.5, ready ? '#ffdb8b' : '#c1a5ff');
         if (!own || fighter.out) return;
-        const seconds = value => value > 0 ? value.toFixed(1) + 's' : 'klar';
-        const grab = combat.cooldowns.grab > 0 ? seconds(combat.cooldowns.grab) : ideas ? resource < 16 ? '16 IDÉ' : 'klar' : magic && resource < 20 ? '20M' : energy && resource < 18 ? '18E' : 'klar';
-        const repair = repairReadinessFor(fighter, combat);
-        label(context, 'U ' + grab + ' · ↓K ' + repair,
+        label(context, 'U ' + resource.grab + ' · ↓K ' + resource.repair,
             x + 82, y + 71, 10, '#b8cadb', 600, 'left');
+        this.hudStatus(context, fighter, combat, x, y - 28, width, resource.color);
+    }
+
+    hudStatus(context, fighter, combat, x, y, width, color) {
         const status = combatStatusFor(fighter, combat);
-        if (status) {
-            panel(context, x, y - 28, width, 23, 5, '#081b2ce8', (combat.capturedBy ? '#ffc766' : resourceColor) + '66');
-            label(context, status, x + width / 2, y - 16, 11, combat.capturedBy ? '#ffdb8b' : resourceColor, 700);
+        if (!status) return;
+        const captured = combat.capturedBy && combat.captureRemaining > 0;
+        const ink = combat.capturedBy ? '#ffdb8b' : color;
+        panel(context, x, y, width, 23, 5, '#081b2ce8', ink + '66');
+        label(context, status, captured ? x + 9 : x + width / 2, y + 12, 11, ink, 700, captured ? 'left' : 'center');
+        if (!captured) return;
+        for (let press = 0; press < 3; press++) {
+            context.beginPath();
+            context.arc(x + width - 29 + press * 9, y + 12, 2.8, 0, Math.PI * 2);
+            context.fillStyle = press < combat.escapePresses ? '#ffdb8b' : '#52627a';
+            context.fill();
         }
+    }
+
+    compactHud(context, state, playerId) {
+        const { width, height } = this.viewport;
+        const margin = 6, gap = 5;
+        context.save();
+        // Drawing in CSS pixels keeps these labels legible at any backing-store size.
+        context.setTransform(this.canvas.width / width, 0, 0, this.canvas.height / height, 0, 0);
+        panel(context, width - 66, margin, 60, 24, 5, '#08192eea', '#8da6c655');
+        label(context, clockText(state), width - 36, margin + 12, 15, '#f2f5f8', 700);
+
+        const own = state.fighters.find(fighter => fighter.id === playerId && !fighter.out);
+        if (own) {
+            const combat = combatPresentation(own);
+            const resource = resourceHud(own, combat);
+            const infoWidth = Math.min(210, width - 78);
+            if (resource) {
+                const ready = combat.ultimateReady;
+                const ultColor = ready ? '#ffdb8b' : '#c1a5ff';
+                panel(context, margin, margin, infoWidth, 37, 5, '#08192eea', '#8da6c655');
+                label(context, resource.name + ' ' + Math.round(resource.value), margin + 7, margin + 9, 11, resource.color, 700, 'left');
+                label(context, ready ? 'I KLAR' : 'I ' + Math.floor(combat.ultimate) + '%', margin + infoWidth - 7, margin + 9, 11, ultColor, 700, 'right');
+                const bar = (infoWidth - 23) / 2;
+                panel(context, margin + 7, margin + 17, bar, 2, 1, '#35485c');
+                panel(context, margin + 7, margin + 17, bar * resource.value / 100, 2, 1, resource.color);
+                panel(context, margin + infoWidth - 7 - bar, margin + 17, bar, 2, 1, '#35485c');
+                panel(context, margin + infoWidth - 7 - bar, margin + 17, bar * combat.ultimate / 100, 2, 1, ultColor);
+                label(context, 'U ' + resource.grab + ' · ↓K ' + resource.repair, margin + 7, margin + 28, 11, '#d3deeb', 600, 'left');
+            }
+            if (combat) this.hudStatus(context, own, combat, margin, resource ? 47 : margin, infoWidth, resource?.color || '#b6c9e2');
+        }
+
+        const count = state.fighters.length;
+        const cardWidth = Math.min(206, (width - margin * 2 - gap * (count - 1)) / Math.max(1, count));
+        const start = (width - cardWidth * count - gap * (count - 1)) / 2;
+        state.fighters.forEach((fighter, index) => {
+            const x = start + index * (cardWidth + gap), y = height - 42;
+            const color = fighter.color || COLORS[index % COLORS.length];
+            const name = fighter.id === playerId ? 'Dig' : (fighter.name || '');
+            const chars = Math.max(3, Math.floor((cardWidth - 12) / 6.2));
+            context.globalAlpha = fighter.out ? .5 : 1;
+            panel(context, x, y, cardWidth, 36, 5, '#08192eeb', fighter.id === playerId ? color : '#8da6c655');
+            label(context, name.length > chars ? name.slice(0, chars - 1) + '…' : name, x + 6, y + 8, 10, color, 700, 'left');
+            label(context, fighter.out ? 'Ude' : Math.round(fighter.damage) + '%', x + 6, y + 24, 16, damageColor(fighter.damage), 700, 'left');
+            label(context, '×' + fighter.stocks, x + cardWidth - 6, y + 24, 10, '#cbd7e8', 700, 'right');
+        });
+        context.restore();
     }
 }

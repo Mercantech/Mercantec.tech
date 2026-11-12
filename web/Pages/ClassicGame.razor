@@ -1,0 +1,31 @@
+@page "/games/{PageId}"
+@page "/games/manual/{ManualId}"
+@using Mercantec.Tech.Web.Games
+
+@if (GamesCatalog.FindClassicPage(PageId, ManualId) is { } entry)
+{
+    <PageTitle>@entry.Title · LUP</PageTitle>
+    <header class="page-title">
+        <h1>@entry.Title</h1>
+        <div class="actions">
+            <a class="secondary" href="@GamesCatalog.Path">Alle spil</a>
+            <a class="secondary" href="@entry.Url" target="_blank" rel="noopener noreferrer">Åbn i ny fane</a>
+        </div>
+    </header>
+    <iframe class="classic-game-frame" src="@entry.Url" title="@entry.Title"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-pointer-lock"
+            allow="fullscreen; gamepad" allowfullscreen referrerpolicy="no-referrer"></iframe>
+}
+else
+{
+    <PageTitle>Spillet findes ikke · LUP</PageTitle>
+    <section class="empty">
+        <h1>Spillet findes ikke</h1>
+        <a href="@GamesCatalog.Path">Alle spil</a>
+    </section>
+}
+
+@code {
+    [Parameter] public string? PageId { get; set; }
+    [Parameter] public string? ManualId { get; set; }
+}

@@ -184,8 +184,8 @@ public sealed class ArenaMenuTests
         var page = context.Render<Arena>();
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.MountCount));
 
-        Assert.Equal("./js/arena-client.js?v=7", javascript.ImportPath);
-        Assert.Equal(new[] { "soundPreference", "mount" }, javascript.Module.Calls.Take(2));
+        Assert.Equal("./js/arena-client.js?v=8", javascript.ImportPath);
+        Assert.Equal(new[] { "soundPreference", "soundVolume", "mount" }, javascript.Module.Calls.Take(3));
         Assert.True(javascript.Module.MountedSound);
         var sound = page.Find(".arena-topbar [data-arena-sound-toggle]");
         Assert.Equal("true", sound.GetAttribute("aria-pressed"));
@@ -250,6 +250,7 @@ public sealed class ArenaMenuTests
         await using var context = await CreateContext(api, javascript);
         var page = context.Render<Arena>();
         await Button(page, "Træning").ClickAsync(new MouseEventArgs());
+        await Button(page, "Træningskamp").ClickAsync(new MouseEventArgs());
         await Button(page, "Start").ClickAsync(new MouseEventArgs());
         page.WaitForAssertion(() => Assert.NotNull(javascript.Module.LastState));
         var state = javascript.Module.LastState!;
@@ -289,6 +290,85 @@ public sealed class ArenaMenuTests
         Assert.DoesNotContain("Den store gavefest", help.Markup);
         help.Render(p => p.Add(x => x.AvatarId, AvatarEconomy.StarterId));
         Assert.Empty(help.FindAll("details"));
+    }
+
+    [Fact]
+    public async Task Sandbox_can_select_a_repeat_opponent_and_reset_without_reloading_the_game()
+    {
+        using var api = new NoNetworkApi();
+        var javascript = new MenuJavascript();
+        await using var context = await CreateContext(api, javascript);
+        var page = context.Render<Arena>();
+        await Button(page, "Træning").ClickAsync(new MouseEventArgs());
+        await page.InvokeAsync(() => page.FindAll(".arena-practice-fields select")[0].Change("bip01"));
+        await page.InvokeAsync(() => page.FindAll(".arena-practice-fields select")[1].Change("repeat"));
+        await Button(page, "Start").ClickAsync(new MouseEventArgs());
+        page.WaitForAssertion(() =>
+        {
+            Assert.True(javascript.Module.LastState?.IsPracticeSandbox);
+            Assert.Equal("playing", javascript.Module.LastState?.Phase);
+            Assert.Equal("bip01", javascript.Module.LastState?.Fighters.Single(f => f.IsBot).AvatarId);
+        });
+
+        await Button(page, "Nulstil").ClickAsync(new MouseEventArgs());
+        Assert.Contains("resetPracticePresentation", javascript.Module.Calls);
+        Assert.Equal(1, javascript.Module.MountCount);
+        Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public async Task Volume_slider_sends_the_chosen_level_and_restores_it_on_mount()
+    {
+        using var api = new NoNetworkApi();
+        var javascript = new MenuJavascript();
+        javascript.Module.Volume = 37;
+        await using var context = await CreateContext(api, javascript);
+        var page = context.Render<Arena>();
+        await Button(page, "Indstillinger").ClickAsync(new MouseEventArgs());
+        Assert.Equal("37", page.Find(".arena-volume input").GetAttribute("value"));
+        await page.Find(".arena-volume input").InputAsync(new ChangeEventArgs { Value = "21" });
+        Assert.Equal(21, javascript.Module.Volume);
+        Assert.Contains("21%", page.Find(".arena-volume").TextContent);
+    }
+
+    [Theory]
+    [InlineData("raymond", "Nederlag")]
+    [InlineData("local", "Sejr")]
+    [InlineData(null, "Uafgjort")]
+    public async Task Result_scene_uses_the_authoritative_outcome(string? winnerId, string title)
+    {
+        using var api = new NoNetworkApi();
+        await using var context = await CreateContext(api, new MenuJavascript());
+        var simulation = new Mercantec.Tech.Api.Arena.ArenaSimulation();
+        simulation.AddFighter("raymond", "Raymond", "raymond");
+        simulation.AddFighter("local", "BIP-01", "bip01");
+        simulation.Start();
+        var result = simulation.Snapshot() with { Phase = "finished", WinnerId = winnerId };
+        var view = context.Render<ArenaResultScene>(parameters => parameters
+            .Add(scene => scene.Result, result).Add(scene => scene.PlayerId, "local"));
+        Assert.Equal(title, view.Find("h1").TextContent);
+        var winners = view.FindAll(".arena-end-fighter.is-winner");
+        var defeated = view.FindAll(".arena-end-fighter.is-defeated");
+        if (winnerId is null)
+        {
+            Assert.Empty(winners);
+            Assert.Equal("idle", view.Find(".arena-end-fighter [data-animation]").GetAttribute("data-animation"));
+        }
+        else
+        {
+            Assert.Contains(winnerId == "local" ? "BIP-01" : "Raymond", Assert.Single(winners).TextContent);
+            Assert.Equal("celebrate", view.Find(".arena-end-fighter.is-winner [data-animation]").GetAttribute("data-animation"));
+        }
+        if (winnerId == "raymond")
+        {
+            Assert.Contains("BIP-01", Assert.Single(defeated).TextContent);
+            Assert.Equal("knockout", view.Find(".arena-end-fighter.is-defeated [data-animation]").GetAttribute("data-animation"));
+        }
+        else
+        {
+            Assert.Empty(defeated);
+        }
+        Assert.Equal(2, view.FindAll("tbody tr").Count);
     }
 
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<Arena> page, string label)
@@ -334,11 +414,15 @@ public sealed class ArenaMenuTests
         public List<bool> SoundChanges { get; } = [];
         public List<string> Calls { get; } = [];
         public ArenaState? LastState { get; private set; }
+        public double Volume { get; set; } = 65;
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             Calls.Add(identifier);
             if (identifier == "soundPreference") return ValueTask.FromResult((TValue)(object)SoundPreference);
+            if (identifier == "soundVolume") return ValueTask.FromResult((TValue)(object)Volume);
+            if (identifier == "setVolume") Volume = (double)args![0]!;
+            if (identifier == "prepareBattle") return ValueTask.FromResult((TValue)(object)true);
             if (identifier == "mount")
             {
                 MountCount++;

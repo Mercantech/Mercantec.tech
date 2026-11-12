@@ -73,14 +73,14 @@ else
                 <a class="avatar-character-link" href="@PreviewDefinition.CharacterProfilePath">Lær @PreviewDefinition.Name at kende <span aria-hidden="true">↗</span></a>
             }
             <a class="avatar-game-link" href="@ArenaFighters.PlayPath">Se kæmpere i LUP Arena</a>
-            <a class="avatar-game-link" href="/games/avatar-demo">Prøv din valgte avatar i Rune Run <span aria-hidden="true">↗</span></a>
+            <a class="avatar-game-link" href="/games/arena">Prøv din valgte avatar i LUP Arena <span aria-hidden="true">↗</span></a>
         </section>
         <section class="avatar-library" aria-labelledby="avatar-library-title">
             <div class="avatar-section-heading"><div><h2 id="avatar-library-title">Vælg din figur</h2><p>Opfyld figurens krav, og lås den op én gang.</p></div><span>@World.OwnedAvatarIds.Count / @AvatarCatalog.All.Count</span></div>
             @if (AvatarCatalog.All.Any(avatar => !World.OwnsAvatar(avatar.Id) && avatar.UnlockRequirements.Count > 0))
             {
                 <div class="avatar-requirements-help">
-                    <div>@if (HasChristmasGiftRequirement) { <p>Julemanden kræver gaver til tre forskellige brugere. Vælg temaet <strong>Jul</strong>, og send via gaveikonet.</p> } @if (HasGameUploadRequirement) { <p>LUPP er gratis, når du har <a href="/games/mine">uploadet dit eget spil</a>. Dit spil behøver ikke være offentligt.</p> }</div>
+                    <div>@if (HasChristmasGiftRequirement) { <p>Julemanden kræver gaver til tre forskellige brugere. Vælg temaet <strong>Jul</strong>, og send via gaveikonet.</p> } @if (HasGameUploadRequirement) { <p>LUPP er gratis, når du har <a href="@Mercantec.Tech.Web.Games.GamesCatalog.UploadGameProjectPath">uploadet dit eget spil</a>. Dit spil behøver ikke være offentligt.</p> }</div>
                     <button type="button" class="secondary" disabled="@World.AvatarBusy" @onclick="RefreshRequirements">@(World.AvatarBusy ? "Henter krav…" : "Opdatér krav")</button>
                 </div>
             }

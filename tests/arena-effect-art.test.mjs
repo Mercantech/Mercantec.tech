@@ -30,6 +30,14 @@ test('the two avatars select their own neutral and charged projectile artwork', 
     assert.equal(art.projectileId('lupp', true), 'pulse_gold');
 });
 
+test('effects warm only the selected participant palettes', async () => {
+    const calls = [];
+    const art = new ArenaEffectArt((key, url) => { calls.push(url); return Promise.resolve(); }, new Map());
+    await art.preload(['raymond', 'raymond', 'lupp']);
+    assert.equal(calls.length, 20);
+    assert.ok(calls.every(url => /effects\/(raymond|lupp)-/.test(url)));
+});
+
 test('projectile drawing preserves the full guarded source tile and restores canvas state', () => {
     const images = new Map();
     const art = new ArenaEffectArt(() => {}, images);
@@ -111,6 +119,15 @@ test('shared channel timer distinguishes ultimate charging from actual restorati
     assert.equal(combatStatusFor(fighter('raymond', 'repair', .8)), 'Gendanner 0.8s');
     assert.equal(combatStatusFor(fighter('raymond', 'capture', .5)), null);
     assert.equal(combatStatusFor({ avatarId: 'raymond' }), null);
+});
+
+test('a captured starter exposes escape progress without requiring an ability kit', () => {
+    const starter = { avatarId: 'starter', combat: { capturedBy: 'ray', captureRemaining: .4, escapePresses: 2 } };
+    const combat = combatPresentation(starter);
+    assert.equal(combat.escapePresses, 2);
+    assert.equal(combat.captureRemaining, .4);
+    assert.equal(combatStatusFor(starter), 'Hop fri · 0.4s');
+    assert.equal(combatPresentation({ ...starter, combat: { ...starter.combat, escapePresses: 7 } }).escapePresses, 3);
 });
 
 test('repair HUD prioritizes cooldown, full health, landing and each kit resource before readiness', () => {

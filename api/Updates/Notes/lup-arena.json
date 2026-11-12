@@ -1,7 +1,7 @@
 {
-  "date": "2026-11-10",
-  "title": "Spil LUP Arena med dine avatarer",
-  "description": "Kæmp mod venner online eller træn mod computeren med avatarernes egne evner. Arenaen bruger nu de originale kamplyde for BIP-01, Raymond og Julemanden. Lyd starter efter dit første klik eller tastetryk, og dit valg af lyd til eller fra bliver husket.",
+  "date": "2026-11-12",
+  "title": "Øv dine evner i LUP Arena",
+  "description": "Kom hurtigere ind i kampen, og få korte tastetryk med. På øvebanen kan du vælge en modstander, gentage et træk og nulstille med R. Figurerne siger deres egne replikker, og kampen slutter med en vinder- eller taberscene. Lydstyrken huskes, og værten kan fjerne inaktive spillere.",
   "authors": [
     "Kasper"
   ],

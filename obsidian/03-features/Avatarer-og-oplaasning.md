@@ -9,7 +9,7 @@ hud, hår og tøj er erstattet af hele figurer, som låses op og vælges.
 - `bip01`: BIP-01, level 2 og 150 guld.
 - `raymond`: Raymond / Professor Codd, level 3 og 150 guld. Oplåsning vælger figuren med det samme.
 - `santa`: Julemanden, level 4 og 150 guld samt julegaver sendt til mindst tre forskellige brugere.
-- `lupp`: LUPP, gratis ved mindst ét eget, valideret browser-spil under `/games/mine`. Ingen ekstra level- eller guldkrav.
+- `lupp`: LUPP, gratis ved mindst ét eget, valideret browser-spil under **Mine projekter → Spil** (`/projects/mine?category=spil`). Ingen ekstra level- eller guldkrav.
 - Tolv felter med spørgsmålstegn viser kommende figurer. De er information,
   ikke købsknapper eller katalog-id'er, der kan låses op.
 

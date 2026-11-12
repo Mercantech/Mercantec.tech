@@ -1,0 +1,19 @@
+.project-categories {
+    display: flex;
+    gap: .55rem;
+    margin-bottom: 1rem;
+}
+
+.project-categories a[aria-current="page"] {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--tint);
+}
+
+.project-examples {
+    margin-top: 1.5rem;
+}
+
+.project-examples h2 {
+    margin: 0 0 .75rem;
+}

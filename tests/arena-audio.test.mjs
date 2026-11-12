@@ -61,7 +61,7 @@ class AudioSource extends AudioNode {
 }
 
 class FakeAudioContext {
-    constructor({ resumeFailures = 0 } = {}) {
+    constructor({ resumeFailures = 0, decodedSeconds = .1 } = {}) {
         this.currentTime = 10;
         this.sampleRate = 48000;
         this.state = 'suspended';
@@ -71,6 +71,7 @@ class FakeAudioContext {
         this.closeCalls = 0;
         this.decodeCalls = [];
         this.resumeFailures = resumeFailures;
+        this.decodedSeconds = decodedSeconds;
     }
     node(kind) { const node = new AudioNode(this, kind); this.nodes.push(node); return node; }
     source(kind) { const source = new AudioSource(this, kind); this.nodes.push(source); return source; }
@@ -101,7 +102,7 @@ class FakeAudioContext {
         assert.ok(bytes instanceof ArrayBuffer, 'sound files must be decoded from actual bytes');
         assert.ok(bytes.byteLength > 0);
         this.decodeCalls.push(bytes);
-        const buffer = this.createBuffer(1, 4800, this.sampleRate);
+        const buffer = this.createBuffer(1, Math.round(this.decodedSeconds * this.sampleRate), this.sampleRate);
         buffer.decodedFrom = new TextDecoder().decode(bytes);
         return buffer;
     }
@@ -123,7 +124,7 @@ function reachesDestination(source, visited = new Set()) {
 }
 
 function harness(options = {}) {
-    const contexts = [], requests = [];
+    const contexts = [], requests = [], captions = [];
     const audio = createArenaAudio({
         createContext: () => {
             const context = new FakeAudioContext(options);
@@ -135,10 +136,12 @@ function harness(options = {}) {
             if (options.fetchFails) throw new Error('Clip unavailable');
             return { ok: true, arrayBuffer: async () => new TextEncoder().encode(url).buffer };
         },
+        phrases: options.phrases,
+        onPhrase: (text, duration) => captions.push({ text, duration }),
         ...(options.enabled === undefined ? {} : { enabled: options.enabled }),
         ...(options.volume === undefined ? {} : { volume: options.volume })
     });
-    return { audio, contexts, requests, get context() { return contexts[0]; } };
+    return { audio, contexts, requests, captions, get context() { return contexts[0]; } };
 }
 
 function assertAudibleSource(context, sources = context.sources) {
@@ -458,4 +461,132 @@ test('unsupported browsers and constructor failure leave gameplay callers safe',
         await assert.doesNotReject(() => audio.preload(['bip01']));
         await audio.dispose();
     }
+});
+
+const battlePhrases = {
+    bip01: [
+        { context: 'greeting', text: 'System klar. Lad os lære noget!', speaker: 'BIP-01', file: 'phrase_1_welcome.wav' },
+        { context: 'start', text: 'Vi tager den én byte ad gangen.', speaker: 'BIP-01', file: 'phrase_2_start.wav' },
+        { context: 'success', text: 'Bip-bip! Den sad lige i kredsløbet!', speaker: 'BIP-01', file: 'phrase_3_success.wav' },
+        { context: 'retry', text: 'Fejl fundet. Ny idé på vej!', speaker: 'BIP-01', file: 'phrase_4_retry.wav' }
+    ],
+    raymond: [
+        { context: 'success', text: 'Sådan! Nu hænger tabellerne sammen.', speaker: 'Raymond', file: 'phrase_3_success.wav' }
+    ]
+};
+
+test('battle lines warm by context and play the original recording with its exact caption and duration', async t => {
+    const h = harness({ phrases: battlePhrases, decodedSeconds: 2.75 });
+    t.after(() => h.audio.dispose());
+    h.audio.warmPhrases(['bip01']);
+    assert.equal(h.requests.length, 0);
+    assert.equal(await h.audio.phrase('bip01', 'start'), false);
+    await h.audio.unlock();
+    h.audio.warmPhrases(['bip01', 'bip01']);
+    h.audio.warmPhrases(['bip01']);
+    assert.deepEqual(h.requests.map(url => url.split('/').at(-1)).sort(),
+        ['phrase_2_start.wav?v=chatterbox-1', 'phrase_3_success.wav?v=chatterbox-1', 'phrase_4_retry.wav?v=chatterbox-1']);
+    assert.equal(await h.audio.phrase('bip01', 'start', 'Spiller 1'), true);
+    const voice = h.context.sources.at(-1);
+    assert.equal(voice.buffer.decodedFrom, '/assets/avatars/bip-01/audio/phrase_2_start.wav?v=chatterbox-1');
+    assertAudibleSource(h.context, [voice]);
+    assert.deepEqual(h.captions.at(-1), { text: 'BIP-01 · Vi tager den én byte ad gangen.', duration: 2.75 });
+    assert.equal(h.requests.length, 3, 'playing a warmed line reuses the recording');
+    voice.finish();
+    assert.equal(h.captions.at(-1).text, '');
+    assert.equal(voice.disconnected, true);
+});
+
+test('a result line replaces active speech and keeps its caption and mix after the old voice ends', async t => {
+    const h = harness({ phrases: battlePhrases });
+    t.after(() => h.audio.dispose());
+    await h.audio.unlock();
+    h.audio.cue('hit', 1, 'starter');
+    const effects = h.context.sources.at(-1).connections[0].connections[0];
+    const idleGain = effects.gain.value;
+    assert.equal(await h.audio.phrase('bip01', 'start'), true);
+    const first = h.context.sources.at(-1);
+    assert.ok(effects.gain.value < idleGain);
+    assert.equal(await h.audio.phrase('bip01', 'retry'), false, 'regular lines cannot overlap');
+    assert.equal(await h.audio.phrase('raymond', 'success', 'Spiller 2', true), true);
+    const result = h.context.sources.at(-1);
+    assert.ok(first.stops.some(time => time <= h.context.currentTime));
+    assert.equal(result.buffer.decodedFrom, '/assets/avatars/raymond/audio/phrase_3_success.wav?v=chatterbox-1');
+    first.finish();
+    assert.equal(h.captions.at(-1).text, 'Raymond · Sådan! Nu hænger tabellerne sammen.');
+    assert.ok(effects.gain.value < idleGain);
+    result.finish();
+    assert.equal(effects.gain.value, idleGain);
+    assert.equal(h.captions.at(-1).text, '');
+    assert.equal(await h.audio.phrase('bip01', 'retry'), false, 'rapid events cannot replay speech after the voice ends');
+    h.context.advance(9);
+    assert.equal(await h.audio.phrase('bip01', 'retry'), true);
+});
+
+test('mute and a new round discard a pending line after late decoding', async t => {
+    for (const clear of ['mute', 'round']) {
+        const h = harness({ phrases: battlePhrases });
+        t.after(() => h.audio.dispose());
+        await h.audio.unlock();
+        const decode = h.context.decodeAudioData.bind(h.context);
+        let finishDecode, markStarted;
+        const started = new Promise(resolve => { markStarted = resolve; });
+        h.context.decodeAudioData = bytes => new Promise(resolve => {
+            finishDecode = () => resolve(decode(bytes));
+            markStarted();
+        });
+        const pending = h.audio.phrase('bip01', 'start');
+        await started;
+        if (clear === 'mute') await h.audio.setEnabled(false);
+        else h.audio.clearSpeech();
+        finishDecode();
+        assert.equal(await pending, false, clear);
+        assert.equal(h.context.sources.length, 0);
+        assert.deepEqual(h.captions, []);
+        if (clear === 'mute') await h.audio.setEnabled(true);
+        assert.equal(await h.audio.phrase('bip01', 'start'), true, 'the decoded file remains reusable');
+        const voice = h.context.sources.at(-1);
+        h.audio.clearSpeech();
+        assert.ok(voice.stops.some(time => time <= h.context.currentTime));
+        assert.equal(h.captions.at(-1).text, '');
+    }
+});
+
+test('melee and reflections sound distinct from projectiles and ordinary blocks', async t => {
+    const h = harness();
+    t.after(() => h.audio.dispose());
+    await h.audio.unlock();
+    await h.audio.preload(['bip01']);
+    const sounds = new Map();
+    for (const cue of ['swing', 'projectile', 'shield', 'reflect']) {
+        assert.equal(h.audio.cue(cue, 1, 'bip01', 'robot'), true, cue);
+        sounds.set(cue, h.context.sources.at(-1));
+    }
+    assert.equal(sounds.get('swing').kind, 'oscillator');
+    assert.equal(sounds.get('reflect').kind, 'oscillator');
+    assert.notDeepEqual(sounds.get('swing').frequency.automation, sounds.get('reflect').frequency.automation);
+    assert.match(sounds.get('projectile').buffer.decodedFrom, /ability_1_pulse\.wav$/);
+    assert.match(sounds.get('shield').buffer.decodedFrom, /ability_3_shield\.wav$/);
+    for (const source of sounds.values()) assertAudibleSource(h.context, [source]);
+});
+
+test('the restored volume reaches the shared mixer and zero volume clears speech', async t => {
+    const h = harness({ phrases: battlePhrases, volume: .34 });
+    t.after(() => h.audio.dispose());
+    await h.audio.unlock();
+    const master = h.context.nodes.find(node => node.gain && node.connections.some(target => target.kind === 'compressor'));
+    assert.equal(master.gain.value, .34);
+    h.audio.setVolume(.72);
+    assert.equal(master.gain.value, .72);
+    assert.equal(await h.audio.phrase('bip01', 'start'), true);
+    const voice = h.context.sources.at(-1);
+    h.audio.setVolume(0);
+    assert.equal(master.gain.value, 0);
+    assert.ok(voice.stops.some(time => time <= h.context.currentTime));
+    assert.equal(h.captions.at(-1).text, '');
+    assert.equal(await h.audio.phrase('bip01', 'retry'), false);
+    h.audio.setVolume(NaN);
+    assert.equal(master.gain.value, 0);
+    h.audio.setVolume(.34);
+    assert.equal(await h.audio.phrase('bip01', 'retry'), true);
 });

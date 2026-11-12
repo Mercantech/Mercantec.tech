@@ -1,0 +1,39 @@
+@page "/projects/mine"
+@using Mercantec.Tech.Web.Games
+@inject AuthService Auth
+@inject ViewAsStudentContext ViewAs
+
+<PageTitle>Mine projekter · LUP</PageTitle>
+<header class="page-title">
+    <h1>Mine projekter</h1>
+    @if (Auth.IsAuthenticated && !ViewAs.IsActive && !ShowGames)
+    {
+        <a class="action" href="@GamesCatalog.UploadGameProjectPath">Upload spilprojekt</a>
+    }
+</header>
+
+@if (!Auth.IsAuthenticated)
+{
+    <p>Log ind for at åbne dine projekter. <a href="@Auth.LoginPath()">Log ind</a></p>
+}
+else
+{
+    <nav class="project-categories" aria-label="Projektkategorier">
+        <a class="secondary" href="@GamesCatalog.ProjectsPath" aria-current="@(!ShowGames ? "page" : null)">Alle</a>
+        <a class="secondary" href="@GamesCatalog.GameProjectsPath" aria-current="@(ShowGames ? "page" : null)">Spil</a>
+    </nav>
+    <UploadedGames ShowUpload="@ShowGames" @key="ShowGames" />
+    @if (!ShowGames)
+    {
+        <section class="project-examples" aria-labelledby="project-examples-title">
+            <h2 id="project-examples-title">Projekteksempler</h2>
+            <ProjectGallery OwnedOnly="true" />
+        </section>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "category")] public string? Category { get; set; }
+
+    private bool ShowGames => string.Equals(Category, GamesCatalog.GameCategory, StringComparison.OrdinalIgnoreCase);
+}

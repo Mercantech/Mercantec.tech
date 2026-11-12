@@ -1,0 +1,19 @@
+@page "/games/avatar-demo"
+@page "/games/mine"
+@page "/games/upload"
+@using Mercantec.Tech.Web.Games
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized()
+    {
+        var path = Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/');
+        var destination = path.ToLowerInvariant() switch
+        {
+            "games/avatar-demo" => GamesCatalog.Path,
+            "games/upload" => GamesCatalog.UploadGameProjectPath,
+            _ => GamesCatalog.GameProjectsPath
+        };
+        Nav.NavigateTo(destination, replace: true);
+    }
+}

@@ -2,7 +2,20 @@ namespace Mercantec.Tech.Contracts;
 
 public sealed record ArenaInput(long Sequence = 0, double Horizontal = 0, double Vertical = 0,
     bool Jump = false, bool Attack = false, bool Special = false, bool Shield = false,
-    bool Grab = false, bool Smash = false, bool Dodge = false);
+    bool Grab = false, bool Smash = false, bool Dodge = false, int Pressed = 0,
+    double? PressHorizontal = null, double? PressVertical = null);
+
+/// <summary>Presses recorded since the preceding input packet. The held buttons remain separate.</summary>
+[Flags]
+public enum ArenaPress
+{
+    None = 0, Jump = 1, Attack = 2, Special = 4, Shield = 8, Grab = 16, Smash = 32, Dodge = 64
+}
+
+/// <summary>Options for the local practice sandbox, which uses the same combat rules as a match.</summary>
+public sealed record ArenaPracticeOptions(string OpponentMode = "cpu", string Difficulty = "normal",
+    string RepeatedMove = "pulse", string Position = "center", double PlayerDamage = 0,
+    double OpponentDamage = 0, bool InfiniteResources = false);
 
 /// <summary>Cosmetic starter-avatar choices. These never change combat statistics.</summary>
 public sealed record ArenaAppearance(string Skin = "#c98d69", string Hair = "#42302a",
@@ -55,7 +68,8 @@ public sealed record ArenaFighterSnapshot(string Id, string Name, string AvatarI
 public sealed record ArenaCooldownSnapshot(double Pulse = 0, double Grab = 0, double Dash = 0,
     double Recovery = 0, double Repair = 0, double Ultimate = 0);
 public sealed record ArenaCombatSnapshot(double Energy, double Ultimate, ArenaCooldownSnapshot Cooldowns,
-    double ChannelRemaining = 0, bool Armored = false, string? CapturedBy = null, string? ActiveAbility = null);
+    double ChannelRemaining = 0, bool Armored = false, string? CapturedBy = null, string? ActiveAbility = null,
+    int EscapePresses = 0, double CaptureRemaining = 0);
 
 public sealed record ArenaProjectileSnapshot(long Id, string OwnerId, double X, double Y,
     double Vx, double Vy, double Radius, string Color, string Kind = "pulse", string? SourceAvatarId = null,
@@ -65,4 +79,4 @@ public sealed record ArenaEvent(long Id, int Tick, string Type, double X, double
 public sealed record ArenaState(int Tick, string Phase, double Countdown, double RemainingSeconds,
     string StageId, IReadOnlyList<ArenaFighterSnapshot> Fighters,
     IReadOnlyList<ArenaProjectileSnapshot> Projectiles, IReadOnlyList<ArenaEvent> Events,
-    string? WinnerId, bool SuddenDeath);
+    string? WinnerId, bool SuddenDeath, bool IsPracticeSandbox = false);

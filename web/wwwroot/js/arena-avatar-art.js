@@ -23,8 +23,8 @@ export const originalAvatarKey = (avatarId, action = 'idle') => 'avatar-' + avat
 export const originalAvatarSource = (avatarId, action = 'idle') => isOriginalAvatar(avatarId)
     ? ROOTS[avatarId] + '/sprites/' + originalAvatarAction(action) + '.png' : null;
 export const originalAvatarFace = avatarId => isOriginalAvatar(avatarId) ? ROOTS[avatarId] + '/face.png' : null;
-export function originalAvatarAssets() {
-    return Object.keys(ROOTS).flatMap(avatarId => ORIGINAL_COMBAT_ACTIONS.map(action =>
+export function originalAvatarAssets(avatarIds = Object.keys(ROOTS)) {
+    return [...new Set(avatarIds)].filter(isOriginalAvatar).flatMap(avatarId => ORIGINAL_COMBAT_ACTIONS.map(action =>
         [originalAvatarKey(avatarId, action), originalAvatarSource(avatarId, action)]));
 }
 

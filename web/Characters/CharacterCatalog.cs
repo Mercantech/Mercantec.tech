@@ -305,7 +305,7 @@ public static class CharacterCatalog
             [new("Se undervisningsbillederne", "/characters/bat#character-gallery-title", false, false),
              new("Se animationerne", "/characters/bat#character-animations-title", false, false),
              new("IoT og embedded på Målpinde", "https://maalpinde.lup.dk/sites/#iot", true, false),
-             new("Arduino Oplà-guide på Mercantec Games", "https://games.mercantec.tech/guide", true, false),
+             new("Arduino Oplà-guide", "/games/guide", false, false),
              new("Mød Cyberbien", "/characters/bee", false, false)])
         {
             Illustrations = BatTeachingMaterials.Illustrations,

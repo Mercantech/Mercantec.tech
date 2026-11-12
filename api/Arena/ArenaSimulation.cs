@@ -1,3 +1,4 @@
+using System.Numerics;
 using Mercantec.Tech.Contracts;
 
 namespace Mercantec.Tech.Api.Arena;
@@ -12,6 +13,10 @@ public sealed class ArenaSimulation
     private const double Dt = 1d / ArenaCatalog.TickRate;
     private const double HalfWidth = 24;
     private const double BodyHeight = 70;
+    private const int ActionBufferTicks = 6;
+    private const ArenaPress AllPresses = ArenaPress.Jump | ArenaPress.Attack | ArenaPress.Special |
+        ArenaPress.Shield | ArenaPress.Grab | ArenaPress.Smash | ArenaPress.Dodge;
+    private const ArenaPress BufferedPresses = ArenaPress.Attack | ArenaPress.Special | ArenaPress.Grab;
     private readonly List<Fighter> fighters = [];
     private readonly List<Projectile> projectiles = [];
     private readonly List<ArenaEvent> events = [];
@@ -28,6 +33,8 @@ public sealed class ArenaSimulation
     private string phase = "lobby";
     private string? winnerId;
     private bool suddenDeath;
+    private PracticeSetup? practice;
+    private string practiceDifficulty = "normal";
 
     public ArenaSimulation(string stageId = "rooftops", int stocks = 3, int minutes = 4, bool training = false)
     {
@@ -76,7 +83,7 @@ public sealed class ArenaSimulation
             fighter.Connected = false;
             fighter.Removed = true;
             fighter.Stocks = 0;
-            fighter.Input = new();
+            ClearInput(fighter);
             Emit("leave", fighter.X, fighter.Y, fighter.Id);
             ResolveWinner();
         }
@@ -95,29 +102,86 @@ public sealed class ArenaSimulation
         // A replacement browser socket starts a new input sequence. Clear held
         // keys on both disconnect and reconnect so neither old keys nor sequence
         // numbers can lock a returning player out of the running match.
-        fighter.Input = fighter.PreviousInput = new();
-        fighter.LastSequence = -1;
-        fighter.InputTick = frame;
+        ClearInput(fighter, newEpoch: true);
     }
 
     public void SetInput(string id, ArenaInput input)
     {
         var fighter = Find(id);
-        if (fighter is null || input.Sequence <= fighter.LastSequence) return;
+        if (fighter is null || !fighter.Connected || input.Sequence <= fighter.LastSequence) return;
         // Reject non-finite values before they can poison the simulation.
         if (!double.IsFinite(input.Horizontal) || !double.IsFinite(input.Vertical)) return;
         fighter.LastSequence = input.Sequence;
+        AcceptInput(fighter, input);
+    }
+
+    private void AcceptInput(Fighter fighter, ArenaInput input)
+    {
+        var held = HeldButtons(input);
+        var edges = held & ~fighter.ReceivedButtons;
+        var horizontal = Math.Clamp(input.Horizontal, -1, 1);
+        var vertical = Math.Clamp(input.Vertical, -1, 1);
+        fighter.ReceivedButtons = held;
+        if (phase == "playing" && fighter.Stocks > 0 && fighter.RespawnTicks == 0)
+        {
+            RecordPresses(fighter, edges, new(horizontal, vertical));
+            if (input.Pressed > 0)
+            {
+                var explicitEdges = (ArenaPress)input.Pressed & AllPresses;
+                RecordPresses(fighter, explicitEdges, new(
+                    NormalizePressAxis(input.PressHorizontal, horizontal),
+                    NormalizePressAxis(input.PressVertical, vertical)));
+            }
+        }
         fighter.Input = input with
         {
-            Horizontal = Math.Clamp(input.Horizontal, -1, 1),
-            Vertical = Math.Clamp(input.Vertical, -1, 1)
+            Horizontal = horizontal, Vertical = vertical,
+            Pressed = 0, PressHorizontal = null, PressVertical = null
         };
         fighter.InputTick = frame;
+    }
+
+    private static double NormalizePressAxis(double? axis, double fallback) =>
+        axis is double value && double.IsFinite(value) ? Math.Clamp(value, -1, 1) : fallback;
+
+    private static ArenaPress HeldButtons(ArenaInput input) =>
+        (input.Jump ? ArenaPress.Jump : ArenaPress.None) |
+        (input.Attack ? ArenaPress.Attack : ArenaPress.None) |
+        (input.Special ? ArenaPress.Special : ArenaPress.None) |
+        (input.Shield ? ArenaPress.Shield : ArenaPress.None) |
+        (input.Grab ? ArenaPress.Grab : ArenaPress.None) |
+        (input.Smash ? ArenaPress.Smash : ArenaPress.None) |
+        (input.Dodge ? ArenaPress.Dodge : ArenaPress.None);
+
+    private static void RecordPresses(Fighter fighter, ArenaPress presses, PressDirection direction)
+    {
+        fighter.PendingPresses |= presses;
+        for (var bits = (uint)presses; bits != 0; bits &= bits - 1)
+            fighter.PressDirections[BitOperations.TrailingZeroCount(bits)] = direction;
+    }
+
+    private static bool WasPressed(Fighter fighter, ArenaPress button) => (fighter.TickPresses & button) != 0;
+    private static PressDirection PressedDirection(Fighter fighter, ArenaPress button) =>
+        fighter.PressDirections[BitOperations.TrailingZeroCount((uint)button)];
+
+    private void ClearInput(Fighter fighter, bool newEpoch = false)
+    {
+        if (newEpoch)
+        {
+            fighter.LastSequence = -1;
+            fighter.ReceivedButtons = ArenaPress.None;
+        }
+        fighter.Input = fighter.PreviousInput = new(fighter.LastSequence);
+        fighter.InputTick = frame;
+        fighter.PendingPresses = fighter.TickPresses = ArenaPress.None;
+        fighter.BufferedAction = null;
+        fighter.JumpBuffer = 0;
     }
 
     public void Start()
     {
         if (fighters.Count < 2) throw new InvalidOperationException("Der skal være mindst to kæmpere.");
+        if (practice is not null) { ResetPractice(); return; }
         frame = elapsed = suddenDeathTicks = 0;
         suddenDeath = false;
         winnerId = null;
@@ -135,11 +199,105 @@ public sealed class ArenaSimulation
             fighter.LastHitterId = null;
             ResetCombat(fighter);
             fighter.Ultimate = training && HasKit(fighter) ? 100 : 0;
-            fighter.LastSequence = -1;
-            fighter.Input = fighter.PreviousInput = new();
+            ClearInput(fighter, newEpoch: true);
             Place(fighter, fighters.IndexOf(fighter), false);
         }
         Emit("countdown", 640, 320);
+    }
+
+    public bool ConfigurePractice(string playerId, string opponentId, ArenaPracticeOptions options)
+    {
+        if (!training || fighters.Count != 2 || Find(playerId) is not { IsBot: false } player ||
+            Find(opponentId) is not { IsBot: true } opponent ||
+            options.OpponentMode is not ("cpu" or "idle" or "block" or "repeat") ||
+            !IsPracticeDifficulty(options.Difficulty) ||
+            options.RepeatedMove is not ("attack" or "pulse" or "grab" or "dash") ||
+            options.Position is not ("center" or "edge" or "offstage") ||
+            !double.IsFinite(options.PlayerDamage) || !double.IsFinite(options.OpponentDamage)) return false;
+
+        practice = new(player, opponent, options with
+        {
+            PlayerDamage = Math.Clamp(options.PlayerDamage, 0, 999),
+            OpponentDamage = Math.Clamp(options.OpponentDamage, 0, 999)
+        }, frame);
+        return ResetPractice();
+    }
+
+    public bool SetPracticeDifficulty(string difficulty)
+    {
+        if (!training || !IsPracticeDifficulty(difficulty)) return false;
+        practiceDifficulty = difficulty;
+        if (practice is { } setup)
+            practice = setup with { Options = setup.Options with { Difficulty = difficulty } };
+        foreach (var fighter in fighters) fighter.BotThreatTicks = 0;
+        return true;
+    }
+
+    private static bool IsPracticeDifficulty(string difficulty) => difficulty is "easy" or "normal" or "hard";
+
+    public bool ResetPractice()
+    {
+        if (practice is not { } setup) return false;
+        practice = setup with { ResetAt = frame };
+        countdownTicks = elapsed = suddenDeathTicks = 0;
+        suddenDeath = false;
+        winnerId = null;
+        phase = "playing";
+        projectiles.Clear();
+        foreach (var fighter in fighters)
+        {
+            ResetCombat(fighter);
+            fighter.Stocks = stockCount;
+            fighter.Removed = false;
+            fighter.EliminationTick = -1;
+            fighter.KOs = fighter.Falls = 0;
+            PlacePracticeFighter(fighter, setup);
+        }
+        RefillPracticeResources();
+        events.Clear();
+        Emit("practice-reset", setup.Player.X, setup.Player.Y, setup.Player.Id);
+        return true;
+    }
+
+    public bool RefillPracticeResources()
+    {
+        if (practice is null) return false;
+        foreach (var fighter in fighters)
+        {
+            fighter.Energy = fighter.Shield = 100;
+            fighter.Ultimate = HasKit(fighter) ? 100 : 0;
+            fighter.PulseCooldown = fighter.GrabCooldown = fighter.DashCooldown = 0;
+            fighter.RecoveryCooldown = fighter.RepairCooldown = fighter.UltimateCooldown = 0;
+            fighter.SpecialCooldown = fighter.DodgeCooldown = 0;
+        }
+        return true;
+    }
+
+    private void PlacePracticeFighter(Fighter fighter, PracticeSetup setup)
+    {
+        var platform = stage.Platforms.Where(x => !x.OneWay).MaxBy(x => x.Width)!;
+        var center = platform.X + platform.Width / 2;
+        var shortRange = setup.Options.OpponentMode == "repeat" && (setup.Options.RepeatedMove is "attack" or "grab");
+        var separation = shortRange ? 43 : Math.Min(150, (platform.Width - 70) / 2);
+        var isPlayer = fighter == setup.Player;
+        fighter.X = center + (isPlayer ? -separation : separation);
+        fighter.Y = platform.Y;
+        fighter.Facing = isPlayer ? 1 : -1;
+        fighter.Grounded = true;
+        fighter.Damage = isPlayer ? setup.Options.PlayerDamage : setup.Options.OpponentDamage;
+
+        if (setup.Options.Position is "edge" or "offstage")
+        {
+            if (!isPlayer) fighter.X = platform.X + (shortRange ? 120 : 200);
+            else if (setup.Options.Position == "edge") fighter.X = platform.X + 36;
+            else
+            {
+                fighter.X = platform.X - 62;
+                fighter.Y = platform.Y + 54;
+                fighter.Vy = 130;
+                fighter.Grounded = false;
+            }
+        }
     }
 
     /// <summary>Advance exactly one 1/60-second step. Call from one owning thread.</summary>
@@ -163,8 +321,17 @@ public sealed class ArenaSimulation
 
         foreach (var fighter in fighters)
         {
-            if (fighter.IsBot && fighter.Stocks > 0) fighter.Input = BotInput(fighter);
-            else if (frame - fighter.InputTick > 20) fighter.Input = new(fighter.LastSequence);
+            if (fighter.IsBot && fighter.Stocks > 0) AcceptInput(fighter, GetBotInput(fighter));
+            else if (frame - fighter.InputTick > 20 &&
+                (fighter.ReceivedButtons != ArenaPress.None || fighter.Input.Horizontal != 0 || fighter.Input.Vertical != 0))
+            {
+                // The input timeout releases held keys, including the baseline
+                // used by older clients that send only snapshots of held keys.
+                fighter.Input = new(fighter.LastSequence);
+                fighter.ReceivedButtons = ArenaPress.None;
+            }
+            fighter.TickPresses = fighter.PendingPresses;
+            fighter.PendingPresses = ArenaPress.None;
             StepFighter(fighter);
         }
         ResolveAttacks();
@@ -178,13 +345,16 @@ public sealed class ArenaSimulation
                 fighter.Y < stage.Top || fighter.Y > stage.Bottom)
                 KnockOut(fighter);
         }
-        ResolveWinner();
-        if (phase == "playing" && !suddenDeath && elapsed >= matchTicks) FinishOnTime();
+        if (practice is null)
+        {
+            ResolveWinner();
+            if (phase == "playing" && !suddenDeath && elapsed >= matchTicks) FinishOnTime();
+        }
         foreach (var fighter in fighters) fighter.PreviousInput = fighter.Input;
     }
 
     public ArenaState Snapshot() => new(frame, phase, Math.Max(0, countdownTicks * Dt),
-        phase == "lobby" ? matchTicks * Dt : Math.Max(0, (matchTicks - elapsed) * Dt), stage.Id,
+        practice is not null ? 0 : phase == "lobby" ? matchTicks * Dt : Math.Max(0, (matchTicks - elapsed) * Dt), stage.Id,
         fighters.Select(f => new ArenaFighterSnapshot(f.Id, f.Name, f.AvatarId, f.Color,
             Round(f.X), Round(f.Y), Round(f.Vx), Round(f.Vy), f.Facing, Round(f.Damage),
             f.Stocks, DisplayAction(f), ActionFrame(f), Round(f.Shield),
@@ -194,12 +364,13 @@ public sealed class ArenaSimulation
             f.Shielding, f.Stocks <= 0, f.Appearance, new ArenaCombatSnapshot(Round(f.Energy), Round(f.Ultimate),
                 new(Round(f.PulseCooldown * Dt), Round(f.GrabCooldown * Dt), Round(f.DashCooldown * Dt),
                     Round(f.RecoveryCooldown * Dt), Round(f.RepairCooldown * Dt), Round(f.UltimateCooldown * Dt)),
-                Round(f.ChannelTicks * Dt), f.ArmorHits > 0, f.CapturedBy?.Id, ActiveAbility(f)))).ToArray(),
+                 Round(f.ChannelTicks * Dt), f.ArmorHits > 0, f.CapturedBy?.Id, ActiveAbility(f),
+                 f.EscapeEdges, Round((f.CapturedBy?.CaptureTicks ?? 0) * Dt)))).ToArray(),
         projectiles.Select(p => new ArenaProjectileSnapshot(p.Id, p.Owner.Id, Round(p.X),
             Round(p.Y), Round(p.Vx), Round(p.Vy), p.Radius, p.Kind == "join" ? "#ffd56b" : p.Kind == "reflected" ? "#5ee8ff" :
                 p.SourceAvatarId == AvatarEconomy.Bip01Id ? "#5ee8ff" : p.SourceAvatarId == AvatarEconomy.RaymondId ? "#65a7ff" : p.SourceAvatarId == AvatarEconomy.SantaId ? "#f2d177" : p.SourceAvatarId == AvatarEconomy.LuppId ? "#c4a1ff" : p.Owner.Color,
             p.Kind, p.SourceAvatarId, p.Reflections > 0)).ToArray(),
-        events.ToArray(), winnerId, suddenDeath);
+        events.ToArray(), winnerId, suddenDeath, practice is not null);
 
     private Fighter? Find(string id) => fighters.FirstOrDefault(x => x.Id == id);
     private static double Round(double value) => Math.Round(value, 2);
@@ -219,13 +390,27 @@ public sealed class ArenaSimulation
             if (--fighter.RespawnTicks == 0)
             {
                 ResetCombat(fighter);
-                Place(fighter, fighters.IndexOf(fighter), true);
-                fighter.Invulnerability = 150;
+                if (practice is { } setup)
+                {
+                    PlacePracticeFighter(fighter, setup);
+                    fighter.Ultimate = HasKit(fighter) ? 100 : 0;
+                    fighter.Invulnerability = 30;
+                }
+                else
+                {
+                    Place(fighter, fighters.IndexOf(fighter), true);
+                    fighter.Invulnerability = 150;
+                }
                 Emit("respawn", fighter.X, fighter.Y - 40, fighter.Id);
             }
             return;
         }
         StepKitTimers(fighter);
+        if (practice is { Options.InfiniteResources: true } sandbox && fighter == sandbox.Player)
+        {
+            fighter.Energy = fighter.Shield = 100;
+            if (HasKit(fighter) && fighter.UltimateCooldown == 0 && fighter.ChannelTicks == 0) fighter.Ultimate = 100;
+        }
         fighter.Invulnerability = Math.Max(0, fighter.Invulnerability - 1);
         fighter.DodgeInvulnerability = Math.Max(0, fighter.DodgeInvulnerability - 1);
         fighter.DodgeCooldown = Math.Max(0, fighter.DodgeCooldown - 1);
@@ -239,7 +424,12 @@ public sealed class ArenaSimulation
             StepCaptured(fighter);
             return;
         }
-        if (fighter.Input.Jump && !fighter.PreviousInput.Jump) fighter.JumpBuffer = 7;
+        if (WasPressed(fighter, ArenaPress.Jump))
+        {
+            fighter.JumpBuffer = 7;
+            fighter.JumpVertical = PressedDirection(fighter, ArenaPress.Jump).Vertical;
+        }
+        if (fighter.CapturedTarget is null) BufferCombatPress(fighter);
         if (fighter.Hitstop > 0) { fighter.Hitstop--; return; }
 
         StepChannel(fighter);
@@ -257,7 +447,7 @@ public sealed class ArenaSimulation
             {
                 fighter.Ledge = null;
                 fighter.JumpsUsed = 1;
-                fighter.Vy = -700;
+                fighter.Vy = fighter.Input.Jump ? -700 : -280;
                 fighter.Vx = inward * 150;
                 fighter.Y -= 8;
                 fighter.JumpBuffer = 0;
@@ -271,7 +461,8 @@ public sealed class ArenaSimulation
                 fighter.Vx = -inward * 150;
                 fighter.Vy = 100;
             }
-            else if (fighter.Input.Horizontal * inward > .3 || fighter.LedgeTicks > 40 || fighter.Input.Attack)
+            else if (fighter.Input.Horizontal * inward > .3 || fighter.LedgeTicks > 40 || fighter.Input.Attack ||
+                WasPressed(fighter, ArenaPress.Attack))
             {
                 fighter.Ledge = null;
                 fighter.X = edgeX + inward * 40;
@@ -280,6 +471,7 @@ public sealed class ArenaSimulation
                 fighter.Action = "land";
                 fighter.ActionTicks = 10;
                 fighter.Invulnerability = 15;
+                fighter.BufferedAction = null;
             }
             else return;
         }
@@ -294,7 +486,8 @@ public sealed class ArenaSimulation
         fighter.ActionTicks = Math.Max(0, fighter.ActionTicks - 1);
         var busy = fighter.ChannelTicks > 0 || fighter.FieldTicks > 0 || fighter.CapturedTarget is not null;
         var free = !stunned && !busy && fighter.Attack is null && fighter.ActionTicks == 0;
-        fighter.Shielding = free && fighter.Grounded && fighter.Input.Shield && fighter.Shield > 0;
+        var shieldPressed = WasPressed(fighter, ArenaPress.Shield);
+        fighter.Shielding = free && fighter.Grounded && (fighter.Input.Shield || shieldPressed) && fighter.Shield > 0;
         fighter.ShieldAge = fighter.Shielding ? fighter.ShieldAge + 1 : 0;
         if (fighter.Shielding)
         {
@@ -303,18 +496,19 @@ public sealed class ArenaSimulation
         }
         else if (!stunned) fighter.Shield = Math.Min(100, fighter.Shield + 0.13);
 
-        if (free && fighter.DodgeCooldown == 0 &&
-            (fighter.Input.Dodge && !fighter.PreviousInput.Dodge ||
-             fighter.Input.Shield && !fighter.PreviousInput.Shield &&
-                (!fighter.Grounded || Math.Abs(fighter.Input.Horizontal) > .5)))
+        var dodgePressed = WasPressed(fighter, ArenaPress.Dodge);
+        var dodgeDirection = dodgePressed ? PressedDirection(fighter, ArenaPress.Dodge) :
+            shieldPressed ? PressedDirection(fighter, ArenaPress.Shield) : default;
+        if (free && fighter.DodgeCooldown == 0 && (dodgePressed ||
+            shieldPressed && (!fighter.Grounded || Math.Abs(dodgeDirection.Horizontal) > .5)))
         {
             fighter.Shielding = false;
             fighter.Ability = null;
             fighter.DodgeInvulnerability = fighter.Grounded ? 16 : 13;
             fighter.ActionTicks = 26;
             fighter.DodgeCooldown = 64;
-            fighter.Vx = fighter.Input.Horizontal * 540;
-            if (!fighter.Grounded) fighter.Vy = fighter.Input.Vertical * 300;
+            fighter.Vx = dodgeDirection.Horizontal * 540;
+            if (!fighter.Grounded) fighter.Vy = dodgeDirection.Vertical * 300;
             SetAction(fighter, "ability_4_dash", 26);
             Emit("dodge", fighter.X, fighter.Y - 35, fighter.Id);
             free = false;
@@ -324,7 +518,7 @@ public sealed class ArenaSimulation
         {
             if (Math.Abs(fighter.Input.Horizontal) > .12 && fighter.ChargeTicks == 0)
                 fighter.Facing = fighter.Input.Horizontal > 0 ? 1 : -1;
-            if (fighter.Grounded && fighter.Input.Vertical > .65 && fighter.JumpBuffer > 0 &&
+            if (fighter.Grounded && fighter.JumpVertical > .65 && fighter.JumpBuffer > 0 &&
                 stage.Platforms.Any(p => p.OneWay && Math.Abs(fighter.Y - p.Y) < 1 &&
                     fighter.X >= p.X - HalfWidth && fighter.X <= p.X + p.Width + HalfWidth))
             {
@@ -339,53 +533,46 @@ public sealed class ArenaSimulation
             {
                 if (fighter.Coyote > 0) fighter.JumpsUsed = 0;
                 fighter.JumpsUsed++;
-                fighter.Vy = fighter.JumpsUsed == 1 ? -700 : -650;
+                fighter.Vy = !fighter.Input.Jump ? -280 : fighter.JumpsUsed == 1 ? -700 : -650;
                 fighter.Grounded = false;
                 fighter.Coyote = fighter.JumpBuffer = 0;
                 Emit("jump", fighter.X, fighter.Y, fighter.Id, strength: fighter.JumpsUsed);
             }
 
-            if (fighter.Input.Grab && !fighter.PreviousInput.Grab)
+            var command = ReadyCombatPress(fighter);
+            var smashPressed = WasPressed(fighter, ArenaPress.Smash);
+            if (command is { Button: ArenaPress.Grab } grab)
             {
+                fighter.BufferedAction = null;
                 fighter.ChargeTicks = 0;
-                Grab(fighter);
+                FacePress(fighter, grab.Direction);
+                Grab(fighter, grab.Direction);
             }
-            else if (fighter.Input.Special && !fighter.PreviousInput.Special &&
-                (HasKit(fighter) || fighter.SpecialCooldown == 0))
+            else if (command is { Button: ArenaPress.Special } special)
             {
+                fighter.BufferedAction = null;
                 fighter.ChargeTicks = 0;
-                Special(fighter);
+                FacePress(fighter, special.Direction);
+                Special(fighter, special.Direction);
             }
-            else if (HasKit(fighter) && fighter.Input.Smash && !fighter.PreviousInput.Smash)
+            else if (HasKit(fighter) && smashPressed)
+            {
+                FacePress(fighter, PressedDirection(fighter, ArenaPress.Smash));
                 BeginUltimate(fighter);
-            else if (!HasKit(fighter) && fighter.Grounded && fighter.Input.Smash)
+            }
+            else if (!HasKit(fighter) && fighter.Grounded && (fighter.Input.Smash || smashPressed))
             {
                 fighter.ChargeTicks = Math.Min(72, fighter.ChargeTicks + 1);
                 fighter.Action = "ultimate_charge";
                 if (fighter.ChargeTicks >= 72) ReleaseSmash(fighter);
             }
             else if (!HasKit(fighter) && fighter.ChargeTicks > 0) ReleaseSmash(fighter);
-            else if (fighter.Input.Attack && !fighter.PreviousInput.Attack ||
-                !HasKit(fighter) && !fighter.Grounded && fighter.Input.Smash && !fighter.PreviousInput.Smash)
+            else if (command is { Button: ArenaPress.Attack } || !HasKit(fighter) && !fighter.Grounded && smashPressed)
             {
-                var aerial = !fighter.Grounded;
-                fighter.Ability = null;
-                fighter.Attack = IsRay(fighter)
-                    ? MakeAttack(fighter, aerial ? "aerial" : "normal", aerial ? 9 : 10, 7, 24,
-                        aerial ? 12 : 11, aerial ? 390 : 365, aerial ? 125 : 135)
-                    : IsBip(fighter)
-                        ? MakeAttack(fighter, aerial ? "aerial" : "normal", 3, aerial ? 5 : 3, 12,
-                            aerial ? 8 : 6, aerial ? 300 : 240, aerial ? 88 : 78)
-                        : IsSanta(fighter)
-                            ? MakeAttack(fighter, aerial ? "aerial" : "normal", 6, 5, 18,
-                                aerial ? 9 : 8, aerial ? 315 : 285, 98)
-                            : IsLupp(fighter)
-                                ? MakeAttack(fighter, aerial ? "aerial" : "normal", 4, 4, 15,
-                                    aerial ? 8 : 7, aerial ? 305 : 260, aerial ? 92 : 85)
-                            : MakeAttack(fighter, aerial ? "aerial" : "normal",
-                            aerial ? 5 : 4, aerial ? 6 : 4, aerial ? 16 : 14,
-                            aerial ? 9 : 7, aerial ? 325 : 270, aerial ? 88 : 82);
-                SetAction(fighter, "ability_1_pulse", AttackDuration(fighter.Attack));
+                var direction = command?.Direction ?? PressedDirection(fighter, ArenaPress.Smash);
+                fighter.BufferedAction = null;
+                FacePress(fighter, direction);
+                NormalAttack(fighter, direction.Vertical);
             }
         }
 
@@ -465,11 +652,63 @@ public sealed class ArenaSimulation
         }
     }
 
+    private void BufferCombatPress(Fighter fighter)
+    {
+        if (fighter.BufferedAction is { } previous && previous.ExpiresAt < frame)
+            fighter.BufferedAction = null;
+        var presses = fighter.TickPresses & BufferedPresses;
+        if (presses == ArenaPress.None) return;
+        // A fighter can queue one move. Same-tick inputs follow the normal
+        // grab, special, attack priority, while a later press can replace it.
+        var button = (presses & ArenaPress.Grab) != 0 ? ArenaPress.Grab :
+            (presses & ArenaPress.Special) != 0 ? ArenaPress.Special : ArenaPress.Attack;
+        fighter.BufferedAction = new(button, PressedDirection(fighter, button), frame + ActionBufferTicks - 1);
+    }
+
+    private static BufferedAction? ReadyCombatPress(Fighter fighter)
+    {
+        if (fighter.BufferedAction is not { } command) return null;
+        if (command.Button == ArenaPress.Grab && IsRay(fighter) && !fighter.Grounded) return null;
+        if (command.Button == ArenaPress.Special)
+        {
+            if (!HasKit(fighter) && fighter.SpecialCooldown > 0) return null;
+            if (HasKit(fighter) && command.Direction.Vertical > .5 && !fighter.Grounded) return null;
+        }
+        return command;
+    }
+
+    private static void FacePress(Fighter fighter, PressDirection direction)
+    {
+        if (Math.Abs(direction.Horizontal) > .12) fighter.Facing = direction.Horizontal > 0 ? 1 : -1;
+    }
+
+    private void NormalAttack(Fighter fighter, double vertical)
+    {
+        var aerial = !fighter.Grounded;
+        var kind = aerial ? "aerial" : "normal";
+        fighter.Ability = null;
+        fighter.Attack = fighter.AvatarId switch
+        {
+            AvatarEconomy.RaymondId => MakeAttack(fighter, kind, aerial ? 9 : 10, 7, 24,
+                aerial ? 12 : 11, aerial ? 390 : 365, aerial ? 125 : 135, vertical),
+            AvatarEconomy.Bip01Id => MakeAttack(fighter, kind, 3, aerial ? 5 : 3, 12,
+                aerial ? 8 : 6, aerial ? 300 : 240, aerial ? 88 : 78, vertical),
+            AvatarEconomy.SantaId => MakeAttack(fighter, kind, 6, 5, 18,
+                aerial ? 9 : 8, aerial ? 315 : 285, 98, vertical),
+            AvatarEconomy.LuppId => MakeAttack(fighter, kind, 4, 4, 15,
+                aerial ? 8 : 7, aerial ? 305 : 260, aerial ? 92 : 85, vertical),
+            _ => MakeAttack(fighter, kind, aerial ? 5 : 4, aerial ? 6 : 4, aerial ? 16 : 14,
+                aerial ? 9 : 7, aerial ? 325 : 270, aerial ? 88 : 82, vertical)
+        };
+        SetAction(fighter, "ability_1_pulse", AttackDuration(fighter.Attack));
+    }
+
     private Attack MakeAttack(Fighter fighter, string kind, int startup, int active, int recovery,
-        double damage, double force, double reach)
+        double damage, double force, double reach, double? pressedVertical = null)
     {
         var horizontal = fighter.Facing;
-        var vertical = fighter.Input.Vertical < -.5 ? -1 : fighter.Input.Vertical > .5 ? 1 : 0;
+        var inputVertical = pressedVertical ?? fighter.Input.Vertical;
+        var vertical = inputVertical < -.5 ? -1 : inputVertical > .5 ? 1 : 0;
         return new Attack
         {
             Kind = kind, Startup = startup, Active = active, Recovery = recovery,
@@ -490,14 +729,14 @@ public sealed class ArenaSimulation
         fighter.Invulnerability = 0;
     }
 
-    private void Grab(Fighter fighter)
+    private void Grab(Fighter fighter, PressDirection direction)
     {
         // Raymond's planted stance is essential to the short capture: aerial
         // recovery uses his specials rather than an airborne immobilizing grab.
         if (IsRay(fighter) && !fighter.Grounded) return;
         if (!HasKit(fighter))
         {
-            fighter.Attack = MakeAttack(fighter, "grab", 3, 4, 22, 7, 470, 74);
+            fighter.Attack = MakeAttack(fighter, "grab", 3, 4, 22, 7, 470, 74, direction.Vertical);
             SetAction(fighter, "ability_2_magnet", 29);
             return;
         }
@@ -506,7 +745,7 @@ public sealed class ArenaSimulation
         {
             if (!SpendEnergy(fighter, 16)) return;
             fighter.GrabCooldown = 84;
-            fighter.Attack = MakeAttack(fighter, "feedback", 4, 5, 22, 6, 320, 90);
+            fighter.Attack = MakeAttack(fighter, "feedback", 4, 5, 22, 6, 320, 90, direction.Vertical);
             fighter.Ability = "feedback";
             fighter.Invulnerability = 0;
             SetAction(fighter, "ability_2_magnet", 31);
@@ -517,7 +756,7 @@ public sealed class ArenaSimulation
         {
             if (!SpendEnergy(fighter, 20)) return;
             fighter.GrabCooldown = 110;
-            fighter.Attack = MakeAttack(fighter, "gift-grab", 6, 5, 24, 5, 340, 112);
+            fighter.Attack = MakeAttack(fighter, "gift-grab", 6, 5, 24, 5, 340, 112, direction.Vertical);
             fighter.Ability = "gift-grab";
             fighter.Invulnerability = 0;
             SetAction(fighter, "ability_2_magnet", 35);
@@ -537,29 +776,29 @@ public sealed class ArenaSimulation
         else
         {
             fighter.GrabCooldown = 100;
-            fighter.Attack = MakeAttack(fighter, "capture", 8, 5, 24, 0, 0, 95);
+            fighter.Attack = MakeAttack(fighter, "capture", 8, 5, 24, 0, 0, 95, direction.Vertical);
             fighter.Ability = "capture";
             SetAction(fighter, "ability_2_magnet", 37);
         }
         fighter.Invulnerability = 0;
     }
 
-    private void Special(Fighter fighter)
+    private void Special(Fighter fighter, PressDirection direction)
     {
-        if (!HasKit(fighter)) { LegacySpecial(fighter); return; }
-        if (IsLupp(fighter)) { LuppSpecial(fighter); return; }
-        if (IsSanta(fighter)) { SantaSpecial(fighter); return; }
-        if (fighter.Input.Vertical < -.5)
+        if (!HasKit(fighter)) { LegacySpecial(fighter, direction); return; }
+        if (IsLupp(fighter)) { LuppSpecial(fighter, direction); return; }
+        if (IsSanta(fighter)) { SantaSpecial(fighter, direction); return; }
+        if (direction.Vertical < -.5)
         {
             if (fighter.UsedRecovery || fighter.RecoveryCooldown > 0 || IsBip(fighter) && !SpendEnergy(fighter, 15)) return;
             fighter.UsedRecovery = true;
             fighter.RecoveryCooldown = IsBip(fighter) ? 45 : 64;
             fighter.Vy = IsBip(fighter) ? -900 : -715;
-            fighter.Vx = fighter.Input.Horizontal * (IsBip(fighter) ? 180 : 330);
+            fighter.Vx = direction.Horizontal * (IsBip(fighter) ? 180 : 330);
             fighter.Grounded = false;
             fighter.Attack = MakeAttack(fighter, "recovery", IsBip(fighter) ? 2 : 7,
                 IsBip(fighter) ? 13 : 17, IsBip(fighter) ? 16 : 25, IsBip(fighter) ? 9 : 14,
-                IsBip(fighter) ? 320 : 410, IsBip(fighter) ? 82 : 105);
+                IsBip(fighter) ? 320 : 410, IsBip(fighter) ? 82 : 105, direction.Vertical);
             fighter.Attack.OffsetY = -75;
             fighter.Attack.DirectionX = fighter.Facing * (IsBip(fighter) ? .15 : .5);
             fighter.Attack.DirectionY = -1;
@@ -567,7 +806,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
             Emit("recovery", fighter.X, fighter.Y, fighter.Id);
         }
-        else if (fighter.Input.Vertical > .5)
+        else if (direction.Vertical > .5)
         {
             if (fighter.RepairCooldown > 0 || !fighter.Grounded || fighter.Damage <= 0) return;
             if (IsBip(fighter))
@@ -590,7 +829,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_5_repair", fighter.ChannelTicks);
             Emit("repair-start", fighter.X, fighter.Y - 35, fighter.Id);
         }
-        else if (Math.Abs(fighter.Input.Horizontal) > .5)
+        else if (Math.Abs(direction.Horizontal) > .5)
         {
             if (fighter.DashCooldown > 0 || !fighter.Grounded && fighter.UsedAirSpecial || IsBip(fighter) && !SpendEnergy(fighter, 18)) return;
             fighter.UsedAirSpecial = true;
@@ -600,7 +839,7 @@ public sealed class ArenaSimulation
             fighter.Vy = Math.Min(fighter.Vy, 0);
             fighter.Attack = MakeAttack(fighter, "dash", IsBip(fighter) ? 2 : 8,
                 IsBip(fighter) ? 10 : 25, IsBip(fighter) ? 18 : 35,
-                IsBip(fighter) ? 10 : 16, IsBip(fighter) ? 345 : 470, IsBip(fighter) ? 84 : 112);
+                IsBip(fighter) ? 10 : 16, IsBip(fighter) ? 345 : 470, IsBip(fighter) ? 84 : 112, direction.Vertical);
             fighter.DodgeInvulnerability = IsBip(fighter) ? 5 : 0;
             fighter.ArmorHits = IsRay(fighter) ? 1 : 0;
             fighter.Ability = IsBip(fighter) ? "rocket" : "charge";
@@ -629,17 +868,17 @@ public sealed class ArenaSimulation
 
     // Santa trades energy for arcing stars, a shield-bypassing lift and a
     // gliding dash. His kit has independent costs/timings, not starter defaults.
-    private void SantaSpecial(Fighter fighter)
+    private void SantaSpecial(Fighter fighter, PressDirection direction)
     {
-        if (fighter.Input.Vertical < -.5)
+        if (direction.Vertical < -.5)
         {
             if (fighter.UsedRecovery || fighter.RecoveryCooldown > 0 || !SpendEnergy(fighter, 16)) return;
             fighter.UsedRecovery = true;
             fighter.RecoveryCooldown = 55;
             fighter.Vy = -830;
-            fighter.Vx = fighter.Input.Horizontal * 260;
+            fighter.Vx = direction.Horizontal * 260;
             fighter.Grounded = false;
-            fighter.Attack = MakeAttack(fighter, "recovery", 5, 12, 22, 8, 355, 94);
+            fighter.Attack = MakeAttack(fighter, "recovery", 5, 12, 22, 8, 355, 94, direction.Vertical);
             fighter.Attack.OffsetY = -75;
             fighter.Attack.DirectionX = fighter.Facing * .3;
             fighter.Attack.DirectionY = -1;
@@ -647,7 +886,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
             Emit("recovery", fighter.X, fighter.Y, fighter.Id);
         }
-        else if (fighter.Input.Vertical > .5)
+        else if (direction.Vertical > .5)
         {
             if (fighter.RepairCooldown > 0 || !fighter.Grounded || fighter.Damage <= 0 || !SpendEnergy(fighter, 45)) return;
             fighter.RepairCooldown = 480;
@@ -658,7 +897,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_5_repair", 48);
             Emit("repair-start", fighter.X, fighter.Y - 35, fighter.Id);
         }
-        else if (Math.Abs(fighter.Input.Horizontal) > .5)
+        else if (Math.Abs(direction.Horizontal) > .5)
         {
             if (fighter.DashCooldown > 0 || !fighter.Grounded && fighter.UsedAirSpecial || !SpendEnergy(fighter, 22)) return;
             fighter.UsedAirSpecial = true;
@@ -666,7 +905,7 @@ public sealed class ArenaSimulation
             fighter.DashTicks = 18;
             fighter.Vx = fighter.Facing * 650;
             fighter.Vy = Math.Min(fighter.Vy, -110);
-            fighter.Attack = MakeAttack(fighter, "dash", 4, 14, 20, 11, 365, 94);
+            fighter.Attack = MakeAttack(fighter, "dash", 4, 14, 20, 11, 365, 94, direction.Vertical);
             fighter.Ability = "sleigh";
             SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
         }
@@ -696,17 +935,17 @@ public sealed class ArenaSimulation
         Emit("projectile", fighter.X, fighter.Y - 44, fighter.Id);
     }
 
-    private void LuppSpecial(Fighter fighter)
+    private void LuppSpecial(Fighter fighter, PressDirection direction)
     {
-        if (fighter.Input.Vertical < -.5)
+        if (direction.Vertical < -.5)
         {
             if (fighter.UsedRecovery || fighter.RecoveryCooldown > 0 || !SpendEnergy(fighter, 18)) return;
             fighter.UsedRecovery = true;
             fighter.RecoveryCooldown = 50;
             fighter.Vy = -850;
-            fighter.Vx = fighter.Input.Horizontal * 300;
+            fighter.Vx = direction.Horizontal * 300;
             fighter.Grounded = false;
-            fighter.Attack = MakeAttack(fighter, "recovery", 3, 11, 20, 7, 310, 86);
+            fighter.Attack = MakeAttack(fighter, "recovery", 3, 11, 20, 7, 310, 86, direction.Vertical);
             fighter.Attack.OffsetY = -72;
             fighter.Attack.DirectionX = fighter.Facing * .25;
             fighter.Attack.DirectionY = -1;
@@ -714,7 +953,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
             Emit("recovery", fighter.X, fighter.Y, fighter.Id);
         }
-        else if (fighter.Input.Vertical > .5)
+        else if (direction.Vertical > .5)
         {
             if (fighter.RepairCooldown > 0 || !fighter.Grounded || fighter.Damage <= 0 || !SpendEnergy(fighter, 30)) return;
             fighter.RepairCooldown = 420;
@@ -725,7 +964,7 @@ public sealed class ArenaSimulation
             SetAction(fighter, "ability_5_repair", 42);
             Emit("repair-start", fighter.X, fighter.Y - 35, fighter.Id);
         }
-        else if (Math.Abs(fighter.Input.Horizontal) > .5)
+        else if (Math.Abs(direction.Horizontal) > .5)
         {
             if (fighter.DashCooldown > 0 || !fighter.Grounded && fighter.UsedAirSpecial || !SpendEnergy(fighter, 20)) return;
             fighter.UsedAirSpecial = true;
@@ -733,7 +972,7 @@ public sealed class ArenaSimulation
             fighter.DashTicks = 15;
             fighter.Vx = fighter.Facing * 710;
             fighter.Vy = Math.Min(fighter.Vy, -70);
-            fighter.Attack = MakeAttack(fighter, "dash", 3, 12, 22, 9, 325, 86);
+            fighter.Attack = MakeAttack(fighter, "dash", 3, 12, 22, 9, 325, 86, direction.Vertical);
             fighter.DodgeInvulnerability = 3;
             fighter.Ability = "iterate";
             SetAction(fighter, "ability_4_dash", AttackDuration(fighter.Attack));
@@ -765,16 +1004,16 @@ public sealed class ArenaSimulation
         Emit("projectile", fighter.X, fighter.Y - 43, fighter.Id);
     }
 
-    private void LegacySpecial(Fighter fighter)
+    private void LegacySpecial(Fighter fighter, PressDirection direction)
     {
-        if (fighter.Input.Vertical < -.5)
+        if (direction.Vertical < -.5)
         {
             if (fighter.UsedRecovery) return;
             fighter.UsedRecovery = true;
             fighter.Vy = -790;
-            fighter.Vx = fighter.Input.Horizontal * 210;
+            fighter.Vx = direction.Horizontal * 210;
             fighter.Grounded = false;
-            fighter.Attack = MakeAttack(fighter, "recovery", 2, 15, 14, 11, 340, 84);
+            fighter.Attack = MakeAttack(fighter, "recovery", 2, 15, 14, 11, 340, 84, direction.Vertical);
             fighter.Attack.OffsetY = -75;
             fighter.Attack.DirectionX = fighter.Facing * .25;
             fighter.Attack.DirectionY = -1;
@@ -782,9 +1021,9 @@ public sealed class ArenaSimulation
             fighter.SpecialCooldown = 28;
             Emit("recovery", fighter.X, fighter.Y, fighter.Id);
         }
-        else if (fighter.Input.Vertical > .5)
+        else if (direction.Vertical > .5)
         {
-            fighter.Attack = MakeAttack(fighter, "shockwave", 12, 8, 26, 13, 370, 130);
+            fighter.Attack = MakeAttack(fighter, "shockwave", 12, 8, 26, 13, 370, 130, direction.Vertical);
             fighter.Attack.OffsetX = 0;
             fighter.Attack.OffsetY = -25;
             fighter.Attack.DirectionY = -.8;
@@ -792,13 +1031,13 @@ public sealed class ArenaSimulation
             fighter.Action = "ability_5_repair";
             fighter.SpecialCooldown = 100;
         }
-        else if (Math.Abs(fighter.Input.Horizontal) > .5)
+        else if (Math.Abs(direction.Horizontal) > .5)
         {
             if (!fighter.Grounded && fighter.UsedAirSpecial) return;
             fighter.UsedAirSpecial = true;
             fighter.Vx = fighter.Facing * 720;
             fighter.Vy = Math.Min(fighter.Vy, 0);
-            fighter.Attack = MakeAttack(fighter, "dash", 2, 12, 23, 12, 390, 86);
+            fighter.Attack = MakeAttack(fighter, "dash", 2, 12, 23, 12, 390, 86, direction.Vertical);
             fighter.ActionTicks = 14;
             fighter.DodgeInvulnerability = 5;
             fighter.Action = "ability_4_dash";
@@ -882,7 +1121,7 @@ public sealed class ArenaSimulation
         if (fighter.Channel == "repair" &&
             (!fighter.Grounded || Math.Abs(fighter.Input.Horizontal) > .15 || fighter.Input.Jump ||
              fighter.Input.Shield || fighter.Input.Attack || fighter.Input.Grab || fighter.Input.Dodge ||
-             fighter.Input.Special && !fighter.PreviousInput.Special))
+             WasPressed(fighter, AllPresses & ~ArenaPress.Smash)))
         {
             CancelAbility(fighter);
             return;
@@ -984,6 +1223,8 @@ public sealed class ArenaSimulation
         CancelAbility(target);
         target.Attack = null;
         target.ChargeTicks = target.JumpBuffer = 0;
+        target.BufferedAction = null;
+        target.PendingPresses = ArenaPress.None;
         target.Shielding = false;
         target.CapturedBy = attacker;
         target.Vx = target.Vy = 0;
@@ -1015,7 +1256,7 @@ public sealed class ArenaSimulation
         var owner = target.CapturedBy!;
         if (!owner.Connected || owner.Stocks <= 0 || owner.RespawnTicks > 0 || owner.Hitstun > 0)
         { ReleaseCapture(target); return; }
-        if (target.Input.Jump && !target.PreviousInput.Jump) target.EscapeEdges++;
+        if (WasPressed(target, ArenaPress.Jump)) target.EscapeEdges++;
         if (target.EscapeEdges >= 3)
         {
             ReleaseCapture(target);
@@ -1034,10 +1275,14 @@ public sealed class ArenaSimulation
         if (!owner.Connected || !target.Connected || target.Stocks <= 0 || owner.Hitstun > 0 || !owner.Grounded)
         { ReleaseCapture(owner); return; }
         owner.CaptureTicks--;
-        if (owner.CaptureTicks > 0 && !(owner.Input.Grab && !owner.PreviousInput.Grab) &&
-            !(owner.Input.Attack && !owner.PreviousInput.Attack)) return;
-        var directionX = owner.Input.Horizontal < -.5 ? -1 : owner.Input.Horizontal > .5 ? 1 : owner.Facing;
-        var directionY = owner.Input.Vertical < -.5 ? -1 : owner.Input.Vertical > .5 ? .8 : -.45;
+        var throwButton = WasPressed(owner, ArenaPress.Grab) ? ArenaPress.Grab :
+            WasPressed(owner, ArenaPress.Attack) ? ArenaPress.Attack : ArenaPress.None;
+        if (owner.CaptureTicks > 0 && throwButton == ArenaPress.None) return;
+        var direction = throwButton == ArenaPress.None
+            ? new PressDirection(owner.Input.Horizontal, owner.Input.Vertical)
+            : PressedDirection(owner, throwButton);
+        var directionX = direction.Horizontal < -.5 ? -1 : direction.Horizontal > .5 ? 1 : owner.Facing;
+        var directionY = direction.Vertical < -.5 ? -1 : direction.Vertical > .5 ? .8 : -.45;
         ReleaseCapture(owner);
         Strike(owner, target, 13, 510, directionX, directionY, true);
         owner.ActionTicks = 25;
@@ -1134,7 +1379,7 @@ public sealed class ArenaSimulation
                 }
                 else if (attack.Kind is "grab" or "gift-grab")
                 {
-                    var directionY = attack.Kind == "gift-grab" ? -1 : attacker.Input.Vertical < -.5 ? -1 : attacker.Input.Vertical > .5 ? .7 : -.4;
+                    var directionY = attack.Kind == "gift-grab" || attack.DirectionY < -.5 ? -1 : attack.DirectionY > .5 ? .7 : -.4;
                     Strike(attacker, target, attack.Damage, attack.Force, attacker.Facing * (attack.Kind == "gift-grab" ? .3 : .9), directionY, true);
                     Emit("throw", target.X, target.Y - 35, attacker.Id, target.Id, 1.2);
                 }
@@ -1356,17 +1601,17 @@ public sealed class ArenaSimulation
         ReleaseCapture(fighter);
         CancelAbility(fighter);
         ResetKit(fighter);
-        fighter.Stocks--;
+        if (practice is null) fighter.Stocks--;
         if (fighter.Stocks == 0) fighter.EliminationTick = frame;
         fighter.Falls++;
         var scorer = fighter.LastHitterId is not null && frame - fighter.LastHitTick < 600 ? Find(fighter.LastHitterId) : null;
         if (scorer is not null) scorer.KOs++;
         Emit("ko", Math.Clamp(fighter.X, 20, 1260), Math.Clamp(fighter.Y, 20, 700), scorer?.Id, fighter.Id, 2);
-        fighter.RespawnTicks = 90;
+        fighter.RespawnTicks = practice is null ? 90 : 45;
         fighter.Vx = fighter.Vy = 0;
         fighter.ExternalVx = fighter.ExternalVy = 0;
         fighter.Attack = null;
-        fighter.Input = new(fighter.LastSequence);
+        ClearInput(fighter);
         projectiles.RemoveAll(p => p.Owner == fighter);
     }
 
@@ -1418,7 +1663,7 @@ public sealed class ArenaSimulation
 
     private void Finish(Fighter winner)
     {
-        foreach (var fighter in fighters) { ReleaseCapture(fighter); CancelAbility(fighter); }
+        foreach (var fighter in fighters) { ReleaseCapture(fighter); CancelAbility(fighter); ClearInput(fighter); }
         winnerId = winner.Id;
         phase = "finished";
         SetAction(winner, "celebrate", 48);
@@ -1430,6 +1675,7 @@ public sealed class ArenaSimulation
     {
         ReleaseCapture(fighter);
         CancelAbility(fighter);
+        ClearInput(fighter);
         ResetKit(fighter);
         fighter.Damage = 0;
         fighter.Shield = 100;
@@ -1438,6 +1684,7 @@ public sealed class ArenaSimulation
         fighter.DodgeCooldown = fighter.DodgeInvulnerability = fighter.SpecialCooldown = 0;
         fighter.DropTicks = fighter.JumpBuffer = fighter.Coyote = fighter.RespawnTicks = 0;
         fighter.LedgeCooldown = fighter.LedgeTicks = 0;
+        fighter.BotThreatTicks = fighter.ShieldAge = 0;
         fighter.Ledge = null;
         fighter.Invulnerability = 0;
         fighter.JumpsUsed = 0;
@@ -1476,12 +1723,63 @@ public sealed class ArenaSimulation
         fighter.Facing = fighter.X < 640 ? 1 : -1;
     }
 
-    private ArenaInput BotInput(Fighter bot)
+    private ArenaInput GetBotInput(Fighter bot)
     {
+        if (practice is not { } setup || setup.Opponent != bot) return BotInput(bot, practiceDifficulty);
+        if (setup.Options.OpponentMode == "cpu") return BotInput(bot, setup.Options.Difficulty);
+        if (setup.Options.OpponentMode == "idle" || bot.CapturedBy is not null || bot.CapturedTarget is not null) return new();
+        if (setup.Options.OpponentMode == "block") return new(Shield: true);
+
+        // A repeatable drill uses the chosen move and its normal engine rules.
+        // Start after a short beat so the player can get ready after a reset.
+        var direction = Math.Sign(setup.Player.X - bot.X);
+        if (direction == 0) direction = bot.Facing;
+        if (direction != bot.Facing) return new(Horizontal: direction * .25);
+        var interval = setup.Options.RepeatedMove switch
+        {
+            "attack" => 66,
+            "grab" => 108,
+            "dash" => 126,
+            _ => 84
+        };
+        var sinceFirstMove = frame - setup.ResetAt - 36;
+        if (sinceFirstMove < 0 || sinceFirstMove % interval != 0) return new();
+        return setup.Options.RepeatedMove switch
+        {
+            "attack" => new(Attack: true),
+            "grab" => new(Grab: true),
+            "dash" => new(Horizontal: direction, Special: true),
+            _ => new(Special: true)
+        };
+    }
+
+    private static int BotPeriod(int normal, string difficulty) => difficulty switch
+    {
+        "easy" => normal + Math.Max(8, normal / 2),
+        "hard" => Math.Max(9, normal * 3 / 4),
+        _ => normal
+    };
+
+    private static bool BotReactsTo(Fighter bot, bool threat, string difficulty)
+    {
+        var delay = difficulty switch { "easy" => 12, "hard" => 2, _ => 5 };
+        bot.BotThreatTicks = threat ? Math.Min(delay, bot.BotThreatTicks + 1) : 0;
+        return bot.BotThreatTicks >= delay;
+    }
+
+    private ArenaInput BotInput(Fighter bot, string difficulty)
+    {
+        if (bot.CapturedBy is { } captor)
+        {
+            var delay = difficulty switch { "easy" => 18, "hard" => 7, _ => 12 };
+            var interval = difficulty switch { "easy" => 12, "hard" => 6, _ => 8 };
+            var elapsedCapture = 36 - captor.CaptureTicks - delay;
+            return new(Jump: elapsedCapture >= 0 && elapsedCapture % interval == 0);
+        }
         var target = fighters.Where(f => f != bot && f.Stocks > 0 && f.RespawnTicks == 0)
             .OrderBy(f => Math.Abs(f.X - bot.X) + Math.Abs(f.Y - bot.Y) * .5).FirstOrDefault();
         if (target is null) return new(bot.LastSequence + 1);
-        if (HasKit(bot)) return KitBotInput(bot, target);
+        if (HasKit(bot)) return KitBotInput(bot, target, difficulty);
         var dx = target.X - bot.X;
         var dy = target.Y - bot.Y;
         var closest = stage.Platforms.Where(p => !p.OneWay).OrderBy(p =>
@@ -1495,18 +1793,17 @@ public sealed class ArenaSimulation
             (offstage && bot.Grounded && frame % 9 == 0);
         var recovery = recovering && bot.JumpsUsed >= 2 && bot.Vy > 20 && !bot.UsedRecovery && frame % 10 == 0;
         var nearby = Math.Abs(dx) < 105 && Math.Abs(dy) < 90;
-        var danger = nearby && target.Attack is not null;
+        var danger = BotReactsTo(bot, nearby && target.Attack is not null, difficulty);
         return new(bot.LastSequence + 1, horizontal, recovery ? -1 : nearby && target.Y < bot.Y - 35 ? -1 : 0,
-            jump, nearby && frame % 24 == 0, recovery || !nearby && Math.Abs(dx) < 470 && frame % 83 == 0,
-            danger && frame % 70 < 25, nearby && frame % 109 == 0,
+            jump, nearby && frame % BotPeriod(24, difficulty) == 0, recovery || !nearby && Math.Abs(dx) < 470 && frame % BotPeriod(83, difficulty) == 0,
+            danger && frame % 70 < 25, nearby && frame % BotPeriod(109, difficulty) == 0,
             nearby && bot.Grounded && frame % 230 is >= 170 and < 195,
             danger && frame % 113 == 0);
     }
 
-    private ArenaInput KitBotInput(Fighter bot, Fighter target)
+    private ArenaInput KitBotInput(Fighter bot, Fighter target, string difficulty)
     {
         var sequence = bot.LastSequence + 1;
-        if (bot.CapturedBy is not null) return new(sequence, Jump: frame % 2 == 0);
         if (bot.ChannelTicks > 0) return new(sequence, Smash: bot.Channel != "repair");
         if (bot.CapturedTarget is not null) return new(sequence, Horizontal: bot.Facing,
             Vertical: target.Damage > 80 ? -1 : 0, Grab: frame % 8 == 0);
@@ -1525,29 +1822,30 @@ public sealed class ArenaSimulation
         var nearby = Math.Abs(dx) < (IsRay(bot) ? 132 : 100) && Math.Abs(dy) < 90;
         var incoming = projectiles.Any(p => p.Owner != bot && Math.Abs(p.X - bot.X) < 90 &&
             Math.Abs(p.Y - (bot.Y - 35)) < 75 && (p.X - bot.X) * p.Vx < 0);
-        if (bot.Grounded && (incoming || nearby && target.Attack is not null && frame % 70 < 25))
+        var danger = BotReactsTo(bot, incoming || nearby && target.Attack is not null && frame % 70 < 25, difficulty);
+        if (bot.Grounded && danger)
             return new(sequence, Shield: true);
         if (bot.Ultimate >= 100 && bot.UltimateCooldown == 0 && Math.Abs(dy) < 110 && Math.Abs(dx) < (IsSanta(bot) ? 420 : IsBip(bot) ? 195 : 520))
             return new(sequence, Smash: true);
         var safeRepair = bot.Grounded && Math.Abs(dx) > 300 && bot.Damage >= (IsLupp(bot) ? 10 : IsSanta(bot) ? 12 : IsBip(bot) ? 10 : 16) &&
             bot.RepairCooldown == 0 && (IsLupp(bot) ? bot.Energy >= 45 : IsSanta(bot) ? bot.Energy >= 60 : IsBip(bot) ? bot.Energy >= 55 : bot.Shield >= 70);
         if (safeRepair && frame % 20 == 0) return new(sequence, Vertical: 1, Special: true);
-        if (IsBip(bot) && bot.Energy >= 30 && bot.GrabCooldown == 0 && Math.Abs(dx) is > 105 and < 205 && Math.Abs(dy) < 90 && frame % 32 == 0)
+        if (IsBip(bot) && bot.Energy >= 30 && bot.GrabCooldown == 0 && Math.Abs(dx) is > 105 and < 205 && Math.Abs(dy) < 90 && frame % BotPeriod(32, difficulty) == 0)
             return new(sequence, horizontal, Grab: true);
-        if (IsSanta(bot) && nearby && bot.Energy >= 20 && bot.GrabCooldown == 0 && frame % 43 == 0)
+        if (IsSanta(bot) && nearby && bot.Energy >= 20 && bot.GrabCooldown == 0 && frame % BotPeriod(43, difficulty) == 0)
             return new(sequence, horizontal, Grab: true);
-        if (IsLupp(bot) && nearby && bot.Energy >= 16 && bot.GrabCooldown == 0 && frame % 41 == 0)
+        if (IsLupp(bot) && nearby && bot.Energy >= 16 && bot.GrabCooldown == 0 && frame % BotPeriod(41, difficulty) == 0)
             return new(sequence, horizontal, Grab: true);
-        if (IsRay(bot) && nearby && bot.GrabCooldown == 0 && frame % 58 == 0)
+        if (IsRay(bot) && nearby && bot.GrabCooldown == 0 && frame % BotPeriod(58, difficulty) == 0)
             return new(sequence, horizontal, Grab: true);
         if (bot.DashCooldown == 0 && Math.Abs(dx) is > 155 and < 330 && Math.Abs(dy) < 65 &&
-            (IsLupp(bot) ? bot.Energy >= 32 : IsSanta(bot) ? bot.Energy >= 35 : !IsBip(bot) || bot.Energy >= 40) && frame % 79 == 0)
+            (IsLupp(bot) ? bot.Energy >= 32 : IsSanta(bot) ? bot.Energy >= 35 : !IsBip(bot) || bot.Energy >= 40) && frame % BotPeriod(79, difficulty) == 0)
             return new(sequence, Math.Sign(dx), Special: true);
         if (!nearby && Math.Abs(dx) < 650 && Math.Abs(dy) < 85 && bot.PulseCooldown == 0 &&
-            (!(IsBip(bot) || IsSanta(bot) || IsLupp(bot)) || bot.Energy >= 25) && frame % 37 == 0)
+            (!(IsBip(bot) || IsSanta(bot) || IsLupp(bot)) || bot.Energy >= 25) && frame % BotPeriod(37, difficulty) == 0)
             return new(sequence, Special: true);
         return new(sequence, horizontal, nearby && dy < -35 ? -1 : 0, jump,
-            Attack: nearby && frame % (IsLupp(bot) ? 23 : IsSanta(bot) ? 28 : IsBip(bot) ? 20 : 35) == 0);
+            Attack: nearby && frame % BotPeriod(IsLupp(bot) ? 23 : IsSanta(bot) ? 28 : IsBip(bot) ? 20 : 35, difficulty) == 0);
     }
 
     private static string DisplayAction(Fighter fighter)
@@ -1567,7 +1865,11 @@ public sealed class ArenaSimulation
 
     private int ActionFrame(Fighter fighter)
     {
-        if (fighter.RespawnTicks > 0) return Math.Clamp((90 - fighter.RespawnTicks) * 8 / 90, 0, 7);
+        if (fighter.RespawnTicks > 0)
+        {
+            var duration = practice is null ? 90 : 45;
+            return Math.Clamp((duration - fighter.RespawnTicks) * 8 / duration, 0, 7);
+        }
         if (fighter.ChannelTicks > 0) return Math.Clamp((fighter.ChannelTotal - fighter.ChannelTicks) * 8 / Math.Max(1, fighter.ChannelTotal), 0, 7);
         if (fighter.CapturedTarget is not null) return Math.Clamp((36 - fighter.CaptureTicks) * 8 / 36, 0, 7);
         if (fighter.CapturedBy is not null) return Math.Clamp((frame - fighter.ActionStartTick) * 8 / 36, 0, 7);
@@ -1612,9 +1914,11 @@ public sealed class ArenaSimulation
         public int Facing = 1, Stocks, KOs, Falls;
         public bool Grounded, Shielding, UsedRecovery, UsedAirSpecial;
         public int JumpsUsed, Coyote, JumpBuffer, DropTicks, Hitstun, Hitstop;
+        public double JumpVertical;
         public int Invulnerability, DodgeInvulnerability, DodgeCooldown, SpecialCooldown;
         public int RespawnTicks, ChargeTicks, ActionTicks, ShieldAge, InputTick;
         public int LedgeCooldown, LedgeTicks, LedgeSide;
+        public int BotThreatTicks;
         public ArenaPlatform? Ledge;
         public string Action = "idle";
         public string? LastHitterId;
@@ -1622,8 +1926,15 @@ public sealed class ArenaSimulation
         public long LastSequence = -1;
         public ArenaInput Input = new();
         public ArenaInput PreviousInput = new();
+        public ArenaPress ReceivedButtons, PendingPresses, TickPresses;
+        public readonly PressDirection[] PressDirections = new PressDirection[7];
+        public BufferedAction? BufferedAction;
         public Attack? Attack;
     }
+
+    private readonly record struct PressDirection(double Horizontal, double Vertical);
+    private readonly record struct BufferedAction(ArenaPress Button, PressDirection Direction, int ExpiresAt);
+    private sealed record PracticeSetup(Fighter Player, Fighter Opponent, ArenaPracticeOptions Options, int ResetAt);
 
     private sealed class Attack
     {

@@ -40,6 +40,14 @@ Kampmotoren omfatter acceleration, luftstyring, dobbelthop, hopbuffer, coyote ti
 
 Træning er tilgængelig uden login og kører samme C#-motor i Blazor WASM. Ingen separat browserfysik skal holdes synkron med serveren. Onlinekampe kræver det eksisterende Mercantec-login.
 
+## Øvebane og kampstart
+
+Træning kan åbnes som en øvebane uden tidsgrænse eller som en kamp mod en computer. Øvebanen kan begynde midt på banen, ved kanten eller uden for den. Modstanderen kan stå stille, holde skjold, gentage et valgt træk eller kæmpe med en af tre sværhedsgrader. R og Nulstil gendanner startpositionerne. Fyld op genopfylder ressourcer i øvebanen.
+
+Korte tryk gemmes mellem netværksbeskeder og simulationstrin. Angreb, special og greb kan ligge klar i op til seks simulationstrin, mens figuren lander eller bliver klar igen. Retningen på specialtrykket bevares.
+
+Menuen henter forhåndsvisning. Kampen varmer grafik til den valgte bane og deltagerne med en kort ventetid og bruger reservegrafik ved manglende filer. Kampens HUD viser læsbare målere på små skærme samt grebets resterende tid og hop.
+
 ## Styring
 
 | Handling | Tastatur | Standardcontroller |
@@ -50,6 +58,7 @@ Træning er tilgængelig uden login og kører samme C#-motor i Blazor WASM. Inge
 | Special | K; W+K redder opad | B + retning |
 | Skjold | L | LT/RT |
 | Undvig | Shift | LB |
+| Nulstil øvebane | R | Nulstil-knappen |
 | Grib/kast | U | Y |
 | Stor evne (BIP/Raymond) eller kraftslag (startfigur) | Hold I, slip I | Hold RB, slip RB |
 
@@ -57,7 +66,7 @@ Touchknapper inkluderer retning, hop, angreb, special, skjold, undvigelse, greb 
 
 ## Lyd
 
-Lyd er som standard slået til. Browserens AudioContext oprettes og genoptages direkte i et betroet klik eller tastetryk før Blazor-interoperabilitet. Lydknapperne i toppen og i Indstillinger gemmer valget lokalt og stopper igangværende klip ved mute. Skjult fane pauser lyden; en ny interaktion kan genaktivere den.
+Lyd er som standard slået til. Lydstyrken gemmes lokalt, og de fire figurpakker bruger deres egne replikker ved kampstart og resultat. Talelyd dæmper kamplydene kort, mens underteksten vises. Browserens AudioContext oprettes og genoptages direkte i et betroet klik eller tastetryk før Blazor-interoperabilitet. Lydknapperne i toppen og i Indstillinger gemmer valget lokalt og stopper igangværende klip ved mute. Skjult fane pauser lyden; en ny interaktion kan genaktivere den.
 
 BIP-01, Raymond og Julemanden bruger deres egne originale WAV-klip for bevægelse, træffere og evner. Kun kampens relevante klip indlæses efter aktivering. Startfiguren og manglende lydfiler har en lokal syntetiseret reserve. Lyden bruger en fælles volumenbegrænser, maksimalt 12 samtidige stemmer og ingen gentagen lyd for kontinuerlige trækfelter. Afbrudt heling og opladning stopper deres klip.
 
@@ -71,7 +80,7 @@ BIP-01, Raymond og Julemanden bruger deres egne originale WAV-klip for bevægels
 4. Alle markerer sig klar. Værten starter kampen. Værten kan tilføje CPU-spillere op til i alt fire kæmpere.
 5. Efter kampen kan værten vælge revanche, som åbner lobbyen igen.
 
-Der er automatisk genforbindelse og 30 sekunders frist til at genoptage sin plads. Værtsrollen flytter til en anden menneskelig spiller, hvis værten forlader rummet. Udtrykkelig udmeldelse sendes både på forbindelsen og gennem det godkendte HTTP-endpoint. En sen genforbindelse kan ikke genåbne et rum, som brugeren har forladt.
+Der er automatisk genforbindelse og 30 sekunders frist til at genoptage sin plads. Værtsrollen flytter til en anden menneskelig spiller, hvis værten forlader rummet. Værten kan fjerne en inaktiv deltager efter 90 sekunder i lobbyen eller 45 sekunder i kampen. En afbrudt spiller kan fjernes efter 10 sekunder. Serveren genkontrollerer aktiviteten ved fjernelse. Udtrykkelig udmeldelse sendes både på forbindelsen og gennem det godkendte HTTP-endpoint. En sen genforbindelse kan ikke genåbne et rum, som brugeren har forladt.
 
 ## Avatarer og visning
 
@@ -90,7 +99,7 @@ BIP-01 og Raymond bruger de eksisterende 4×2 spritesheets med otte frames pr. h
 
 Serveren modtager kun input. Positioner, skade, liv, træffere og vindere beregnes på serveren. Der er ingen klientindsendte kampresultater. Transporten bruger en kortlivet engangsbillet fra et autentificeret HTTP-kald; det egentlige login-token placeres ikke i WebSocket-URLen. Der er origin-kontrol, beskedgrænser, inputsekvenser og oprydning. Kosmetik tillader kun sekscifrede hex-farver og de kendte frisurer.
 
-Klienten interpolerer netværkssnapshots og fremskriver lokalt den egne figur kortvarigt. Det er ikke en rollback-netcode. Høj netværksforsinkelse vil derfor kunne mærkes; ping vises i kampbanen.
+Serveren sender seneste kampsnapshot til hver forbindelse. Klienten interpolerer modstandere med buffer til ujævne leveringstider og fremskriver den lokale figur kortvarigt. Det er ikke en rollback-netcode. Høj netværksforsinkelse vil derfor kunne mærkes; ping vises i kampbanen.
 
 Kamprum findes i den aktuelle API-proces og er begrænset til 128 samtidige rum. En API-genstart afslutter igangværende kampe. Den eksisterende Docker-stack kører én API-instans. Flere replikaer kræver session affinity eller en separat fælles room-host; der er ikke tilføjet en ny database eller ekstern spiltjeneste.
 

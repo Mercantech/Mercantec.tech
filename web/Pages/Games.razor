@@ -1,0 +1,38 @@
+@page "/games"
+@using Mercantec.Tech.Web.Games
+
+<PageTitle>Spil · LUP</PageTitle>
+
+<div class="games-catalog">
+    <h1>Spil</h1>
+    <article class="arena-feature" aria-labelledby="arena-feature-title">
+        <img class="arena-feature-art" src="/assets/arena/v2/menu-keyart.webp" alt="" fetchpriority="high" />
+        <div class="arena-feature-copy">
+            <h2 id="arena-feature-title">LUP Arena</h2>
+            <p>Vælg din avatar, træn mod computeren, eller kæmp online med op til tre venner.</p>
+            <a class="arena-feature-play" href="/games/arena">Spil LUP Arena</a>
+        </div>
+    </article>
+
+    <section class="classic-games" aria-labelledby="classic-games-title">
+        <h2 id="classic-games-title">Klassikere</h2>
+        <div class="classic-games-grid">
+            @foreach (var game in GamesCatalog.Classics)
+            {
+                <article class="classic-game">
+                    <img src="@game.ArtworkUrl" alt="" loading="lazy" width="1024" height="576" />
+                    <div class="classic-game-copy">
+                        <h3><a href="@game.Path">@game.Name</a></h3>
+                        <p>@game.Description</p>
+                    </div>
+                </article>
+            }
+        </div>
+        <nav class="games-resources" aria-label="Vejledning og turnering">
+            <a href="@GamesCatalog.GuidePath">Arduino Oplà-guide</a>
+            <a href="/games/manual">Spilmanualer</a>
+            <a href="/games/bracket">Turnering</a>
+            <a href="/games/status">Spilstatus</a>
+        </nav>
+    </section>
+</div>

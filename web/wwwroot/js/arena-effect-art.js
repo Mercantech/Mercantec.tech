@@ -21,7 +21,7 @@ export function projectileArtFor(projectile, fighters) {
 // Older snapshots and menu previews have no combat resources. Keep their HUD
 // unchanged; authoritative resource values never come from an animation frame.
 export function combatPresentation(fighter) {
-    if (!fighter.combat || !['bip01', 'raymond', 'santa', 'lupp'].includes(fighter.avatarId)) return null;
+    if (!fighter.combat || (!Object.hasOwn(PROJECTILES, fighter.avatarId) && !fighter.combat.capturedBy)) return null;
     const combat = fighter.combat;
     const cooldowns = Object.fromEntries(['pulse', 'grab', 'dash', 'recovery', 'repair', 'ultimate']
         .map(id => [id, Math.max(0, finite(combat.cooldowns?.[id]))]));
@@ -30,6 +30,8 @@ export function combatPresentation(fighter) {
         energy: resource(combat.energy), ultimate, cooldowns,
         ultimateReady: ultimate >= 100 && cooldowns.ultimate === 0,
         channelRemaining: Math.max(0, finite(combat.channelRemaining)),
+        captureRemaining: Math.max(0, finite(combat.captureRemaining)),
+        escapePresses: Math.min(3, Math.max(0, Math.floor(finite(combat.escapePresses)))),
         armored: combat.armored === true,
         capturedBy: typeof combat.capturedBy === 'string' ? combat.capturedBy : null,
         activeAbility: typeof combat.activeAbility === 'string' ? combat.activeAbility : null
@@ -38,7 +40,8 @@ export function combatPresentation(fighter) {
 
 export function combatStatusFor(fighter, combat = combatPresentation(fighter)) {
     if (!combat) return null;
-    if (combat.capturedBy) return 'Grebet · Hop fri';
+    if (combat.capturedBy) return combat.captureRemaining > 0
+        ? 'Hop fri · ' + combat.captureRemaining.toFixed(1) + 's' : 'Grebet · Hop fri';
     const remaining = combat.channelRemaining > 0 ? ' · ' + combat.channelRemaining.toFixed(1) + 's' : '';
     if (combat.activeAbility === 'overload-charge') return 'Lader Kerneoverload' + remaining;
     if (combat.activeAbility === 'join-charge') return 'Lader JOIN' + remaining;
@@ -67,11 +70,11 @@ export function repairReadinessFor(fighter, combat = combatPresentation(fighter)
 // has a real transparent guard border; no tight atlas trim or matte threshold.
 export class ArenaEffectArt {
     constructor(loadImage, images) { this.loadImage = loadImage; this.images = images; }
-    async preload() {
+    async preload(avatarIds = Object.keys(PROJECTILES)) {
         const requests = [];
-        for (const avatar of Object.keys(PROJECTILES)) {
+        for (const avatar of new Set(avatarIds.map(id => this.avatar(id)))) {
             for (const id of [...EFFECT_IDS, ...PROJECTILES[avatar]]) {
-                requests.push(this.loadImage(this.key(avatar, id), EFFECT_ROOT + avatar + '-' + id + '.webp'));
+                requests.push(this.loadImage(this.key(avatar, id), EFFECT_ROOT + avatar + '-' + id + '.webp', 'low'));
             }
         }
         await Promise.all(requests);
@@ -81,8 +84,12 @@ export class ArenaEffectArt {
     projectileId(avatarId, charged = false) { return PROJECTILES[this.avatar(avatarId)][charged ? 1 : 0]; }
     draw(context, avatarId, id, frame, x, y, size, rotation = 0, opacity = 1, blend = 'source-over', heightScale = 1) {
         const avatar = this.avatar(avatarId);
+        if (![frame, x, y, size, rotation, opacity, heightScale].every(Number.isFinite) || size <= 0 || opacity <= 0 || heightScale <= 0) return;
         const image = this.images.get(this.key(avatar, id));
-        if (!valid(image) || ![frame, x, y, size, rotation, opacity, heightScale].every(Number.isFinite) || !(size > 0) || opacity <= 0) return;
+        if (!valid(image)) {
+            this.drawFallback(context, avatar, id, x, y, size, rotation, opacity, blend, heightScale);
+            return;
+        }
         const columns = id.startsWith('pulse_') ? 4 : 1;
         const cellWidth = image.naturalWidth / columns;
         const cellHeight = image.naturalHeight;
@@ -96,6 +103,29 @@ export class ArenaEffectArt {
         context.globalAlpha = Math.max(0, Math.min(1, opacity));
         context.globalCompositeOperation = blend;
         context.drawImage(image, index * cellWidth, 0, cellWidth, cellHeight, -width / 2, -height / 2, width, height);
+        context.restore();
+    }
+
+    drawFallback(context, avatar, id, x, y, size, rotation, opacity, blend, heightScale) {
+        const projectile = id.startsWith('pulse_');
+        const color = id === 'pulse_gold' || id === 'pulse_amber' ? '255,205,105'
+            : avatar === 'santa' ? '255,219,145'
+            : avatar === 'lupp' ? '194,158,255' : '121,220,255';
+        const radius = size * (projectile ? .23 : .42);
+        context.save();
+        context.translate(x, y);
+        context.rotate(rotation);
+        context.scale(projectile ? 1.65 : 1, (projectile ? .56 : 1) * heightScale);
+        context.globalAlpha = Math.min(1, opacity);
+        context.globalCompositeOperation = blend;
+        const glow = context.createRadialGradient(0, 0, 0, 0, 0, radius);
+        glow.addColorStop(0, projectile ? '#fff' : 'rgba(' + color + ',.08)');
+        glow.addColorStop(projectile ? .36 : .72, 'rgba(' + color + ',.72)');
+        glow.addColorStop(1, 'rgba(' + color + ',0)');
+        context.beginPath();
+        context.arc(0, 0, radius, 0, Math.PI * 2);
+        context.fillStyle = glow;
+        context.fill();
         context.restore();
     }
 }

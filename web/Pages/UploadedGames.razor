@@ -1,5 +1,3 @@
-@page "/games/mine"
-@page "/games/upload"
 @using Mercantec.Tech.Web.Games
 @using Microsoft.AspNetCore.Components.Forms
 @inject UploadedGamesClient Games
@@ -8,8 +6,6 @@
 @inject DemoWorld World
 @implements IDisposable
 
-<PageTitle>Mine spil</PageTitle>
-<header class="page-title"><div><h1>Mine spil</h1><p>Upload dit eget browser-spil, og lås LUPP op i avatarsamlingen.</p></div><a class="secondary" href="/profile/character">Min avatarsamling</a></header>
 @if (!Auth.IsAuthenticated)
 {
     <p>Log ind for at uploade dit spil. <a href="@Auth.LoginPath()">Log ind</a></p>
@@ -20,29 +16,59 @@ else if (ViewAs.IsActive)
 }
 else
 {
-    <section class="panel game-upload" aria-labelledby="game-upload-title" aria-busy="@(_busy ? "true" : "false")">
-        <h2 id="game-upload-title">Upload et spil</h2>
-        <p>Brug en HTML-fil eller en ZIP fra din spileksport med en startside, fx index.html. Højst 100 MiB.</p>
-        <p>Spillet er kun tilgængeligt for din konto. Det behøver ikke være offentligt for at låse LUPP op.</p>
-        <label class="field">Spillets navn<input maxlength="120" @bind="_title" @bind:event="oninput" disabled="@_busy" /></label>
-        <label class="field">Vælg spilfil<InputFile @key="_fileKey" OnChange="ChooseFile" accept=".zip,.html,.htm" disabled="@_busy" /></label>
-        @if (_file is not null) { <p>@_file.Name · @((_file.Size / 1024d / 1024d).ToString("0.0")) MiB</p> }
-        <button class="action" type="button" disabled="@(_busy || _file is null || string.IsNullOrWhiteSpace(_title))" @onclick="Upload">@(_busy ? "Uploader og kontrollerer…" : "Upload spil")</button>
-        @if (_notice is not null) { <p role="status">@_notice <a href="/profile/character">Vælg LUPP</a></p> }
-        @if (_error is not null) { <p role="alert">@_error</p> }
-    </section>
+    @if (ShowUpload)
+    {
+        <section class="panel game-upload" id="@GamesCatalog.UploadSection" aria-labelledby="game-upload-title" aria-busy="@(_busy ? "true" : "false")">
+            <h2 id="game-upload-title">Upload spilprojekt</h2>
+            <p>Vælg en HTML-fil eller en ZIP med en startside, fx index.html. Højst 100 MiB.</p>
+            <p>Projektet er privat. En godkendt upload opfylder kravet til LUPP.</p>
+            <label class="field">Spillets navn<input maxlength="120" @bind="_title" @bind:event="oninput" disabled="@_busy" /></label>
+            <label class="field">Vælg spilfil<InputFile @key="_fileKey" OnChange="ChooseFile" accept=".zip,.html,.htm" disabled="@_busy" /></label>
+            @if (_file is not null)
+            {
+                <p>@_file.Name · @((_file.Size / 1024d / 1024d).ToString("0.0")) MiB</p>
+            }
+            <button class="action" type="button" disabled="@(_busy || _file is null || string.IsNullOrWhiteSpace(_title))" @onclick="Upload">
+                @(_busy ? "Uploader og kontrollerer…" : "Upload spilprojekt")
+            </button>
+            @if (_notice is not null)
+            {
+                <p role="status">@_notice <a href="/profile/character">Vælg LUPP</a></p>
+            }
+        </section>
+    }
+    @if (_error is not null)
+    {
+        <p role="alert">@_error</p>
+    }
     <section class="panel" aria-labelledby="my-games-title">
-        <div class="headrow"><h2 id="my-games-title">Dine uploadede spil</h2><button type="button" class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button></div>
-        @if (_loading) { <p role="status">Henter dine spil…</p> }
-        else if (_games.Length == 0) { <p>Dit første uploadede spil vil stå her.</p> }
+        <div class="headrow"><h2 id="my-games-title">Spil</h2><button type="button" class="secondary" disabled="@_busy" @onclick="Reload">Opdatér</button></div>
+        @if (_loading)
+        {
+            <p role="status">Henter dine spilprojekter…</p>
+        }
+        else if (_games.Length == 0 && _error is null)
+        {
+            <p>Du har endnu ingen spilprojekter.</p>
+        }
         @foreach (var game in _games)
         {
-            <article class="uploaded-game"><div><h3>@game.Title</h3><p>@game.OriginalName · @game.CreatedAtUtc.ToLocalTime().ToString("d. MMM yyyy")</p></div><a class="secondary" href="@($"/files/{game.FileId:D}")">Åbn spil</a></article>
+            <article class="uploaded-game" @key="game.Id">
+                <div>
+                    <span class="pill">Spil</span>
+                    <span class="pill">Privat</span>
+                    <h3>@game.Title</h3>
+                    <p>@game.OriginalName · @game.CreatedAtUtc.ToLocalTime().ToString("d. MMM yyyy")</p>
+                </div>
+                <a class="secondary" href="@($"/files/{game.FileId:D}")">Åbn spilprojekt</a>
+            </article>
         }
     </section>
 }
 
 @code {
+    [Parameter] public bool ShowUpload { get; set; } = true;
+
     private UploadedGameView[] _games = [];
     private IBrowserFile? _file;
     private string _title = "";
@@ -71,28 +97,51 @@ else
     private async Task Reload()
     {
         if (_disposed || !Auth.IsAuthenticated || ViewAs.IsActive) return;
-        var subject = Auth.Subject; _loading = true;
-        try { var games = await Games.ListAsync(_lifetime.Token); if (!_disposed && Auth.Subject == subject) _games = games; }
+        var subject = Auth.Subject;
+        var ct = _lifetime.Token;
+        _loading = true;
+        _error = null;
+        try
+        {
+            var games = await Games.ListAsync(ct);
+            if (IsCurrent(subject, ct)) _games = games;
+        }
         catch (Exception ex) when (ex is UploadedGameException or HttpRequestException or OperationCanceledException or System.Text.Json.JsonException)
-        { if (!_disposed && Auth.Subject == subject) _error = ex is UploadedGameException ? ex.Message : "Dine spil kunne ikke hentes. Prøv igen."; }
-        finally { if (!_disposed && Auth.Subject == subject) _loading = false; }
+        {
+            if (IsCurrent(subject, ct)) _error = "Dine spilprojekter kunne ikke hentes. Prøv igen.";
+        }
+        finally
+        {
+            if (IsCurrent(subject, ct)) _loading = false;
+        }
     }
     private async Task Upload()
     {
         if (_busy || _file is null || !Auth.IsAuthenticated || ViewAs.IsActive) return;
-        var subject = Auth.Subject; _busy = true; _error = _notice = null;
+        var subject = Auth.Subject;
+        var ct = _lifetime.Token;
+        _busy = true;
+        _error = _notice = null;
         try
         {
-            await Games.UploadAsync(_file, _title, _request, _lifetime.Token);
-            if (_disposed || subject != Auth.Subject || ViewAs.IsActive) return;
+            await Games.UploadAsync(_file, _title, _request, ct);
+            if (!IsCurrent(subject, ct)) return;
             _file = null; _fileKey++; _request = Guid.NewGuid(); _notice = "Spillet er uploadet. Kravet til LUPP er opfyldt.";
             await World.BindAvatarProfileAsync(subject); await World.ReloadAvatarProfileAsync();
-            await Reload();
+            if (IsCurrent(subject, ct)) await Reload();
         }
         catch (Exception ex) when (ex is UploadedGameException or HttpRequestException or OperationCanceledException or System.Text.Json.JsonException)
-        { if (!_disposed && subject == Auth.Subject) _error = ex is UploadedGameException ? ex.Message : "Spillet kunne ikke gemmes. Prøv igen med de samme valg."; }
-        finally { if (!_disposed && subject == Auth.Subject) _busy = false; }
+        {
+            if (IsCurrent(subject, ct)) _error = ex is UploadedGameException ? ex.Message : "Spillet kunne ikke gemmes. Prøv igen med de samme valg.";
+        }
+        finally
+        {
+            if (IsCurrent(subject, ct)) _busy = false;
+        }
     }
+    private bool IsCurrent(string? subject, CancellationToken ct) =>
+        !_disposed && !ct.IsCancellationRequested && !ViewAs.IsActive && Auth.IsAuthenticated && Auth.Subject == subject;
+
     public void Dispose()
     {
         _disposed = true; Auth.AuthStateChanged -= AccountChanged; ViewAs.Changed -= AccountChanged;

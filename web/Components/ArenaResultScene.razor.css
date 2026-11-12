@@ -1,0 +1,98 @@
+.arena-end {
+    --scene-accent: #f2c686;
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-content: center;
+    gap: clamp(10px, 1.6vh, 18px);
+    max-width: 920px;
+    min-height: calc(100dvh - 68px);
+    margin: auto;
+    padding: clamp(14px, 2.3vh, 30px) clamp(18px, 4vw, 56px);
+    color: #f1f5fc;
+}
+
+.arena-end::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, #0b1725be, #0a1426 78%), var(--end-stage) center / cover;
+}
+
+.arena-end.is-loss { --scene-accent: #dbadcb; }
+.arena-end.is-loss::before {
+    background: linear-gradient(180deg, #252036bf, #131827 78%), var(--end-stage) center / cover;
+}
+.arena-end-header { text-align: center; }
+.arena-end-header > span { color: #cbd8ec; font-size: 14px; }
+.arena-end h1 {
+    margin: 4px 0 0;
+    font: 700 clamp(44px, 9vh, 88px)/.95 'Space Grotesk', sans-serif;
+    letter-spacing: -.065em;
+    color: var(--scene-accent);
+}
+.arena-end h1:focus { outline: none; }
+.arena-end-fighters { display: flex; justify-content: center; align-items: end; gap: clamp(12px, 5vw, 64px); margin-top: 12px; }
+.arena-end-fighter {
+    min-width: 0;
+    width: clamp(140px, 24vw, 310px);
+    padding: 0 14px 9px;
+    text-align: center;
+    border-bottom: 2px solid #6b7891;
+}
+.arena-end-fighter.is-winner { border-color: #f2c686; }
+.arena-end-figure {
+    height: clamp(132px, 27vh, 218px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    background: radial-gradient(ellipse at 50% 84%, #edbb7347, transparent 65%);
+}
+.is-defeated .arena-end-figure { height: 154px; background: radial-gradient(ellipse at 50% 84%, #8e739a4f, transparent 65%); }
+.arena-end-figure ::deep .avatar-sheet,
+.arena-end-figure ::deep .arena-starter-preview { flex: 0 0 auto; }
+.arena-end-figure ::deep .arena-starter-preview {
+    transform: scale(1.4);
+    transform-origin: 50% 88%;
+}
+.is-defeated .arena-end-figure ::deep .arena-starter-preview { transform: scale(1.15); }
+.arena-end-fighter > span { font-size: 13px; color: #c4d1e2; }
+.arena-end-fighter h2 { margin: 4px 0 0; overflow-wrap: anywhere; font: 650 clamp(16px, 3vw, 25px)/1.1 'Space Grotesk', sans-serif; }
+.arena-end-table { width: 100%; border-collapse: collapse; background: #0a1426b5; font-size: 14px; }
+.arena-end-table th, .arena-end-table td { padding: 7px 14px; border-bottom: 1px solid #abc2e330; text-align: right; }
+.arena-end-table th:first-child { text-align: left; }
+.arena-end-table thead { color: #b6c7df; }
+.arena-end-table tbody th { display: flex; align-items: center; gap: 9px; overflow-wrap: anywhere; }
+.arena-end-table img { width: 25px; height: 25px; object-fit: contain; }
+.arena-end-table .is-winner { color: #ffe5b4; }
+.arena-end-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.arena-end-actions button {
+    min-height: 44px;
+    min-width: 100px;
+    padding: 8px 18px;
+    border: 1px solid #b7c9e268;
+    color: inherit;
+    background: #172b45;
+    font: 650 15px 'DM Sans', sans-serif;
+    cursor: pointer;
+}
+.arena-end-actions .arena-end-rematch { background: #edbb73; color: #17223b; border-color: #ffe0a9; }
+.arena-end-actions button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.arena-end-actions button:disabled { opacity: .65; cursor: wait; }
+.arena-end-actions > span { color: #c4d1e2; font-size: 13px; }
+
+@media (max-width: 580px) {
+    .arena-end { min-height: calc(100dvh - 70px); padding: 20px 14px 32px; gap: 14px; }
+    .arena-end-fighters { gap: 10px; margin-top: 0; }
+    .arena-end-fighter { flex: 0 1 45%; padding: 0 6px 9px; }
+    .arena-end-figure, .is-defeated .arena-end-figure { height: 140px; overflow: hidden; }
+    .arena-end-figure ::deep .avatar-sheet { transform: scale(.64); transform-origin: bottom center; }
+    .arena-end-figure ::deep .arena-starter-preview,
+    .is-defeated .arena-end-figure ::deep .arena-starter-preview { transform: scale(.9); transform-origin: bottom center; }
+    .arena-end-table th, .arena-end-table td { padding: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arena-end-figure ::deep .avatar-sheet { animation: none; }
+}

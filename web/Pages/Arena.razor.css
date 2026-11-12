@@ -97,3 +97,94 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+.arena-speech {
+    position: fixed;
+    z-index: 12;
+    top: 76px;
+    left: 50%;
+    width: max-content;
+    max-width: min(620px, calc(100% - 30px));
+    padding: 8px 13px;
+    margin: 0;
+    transform: translateX(-50%);
+    border: 1px solid #9bb7dc54;
+    border-radius: 5px;
+    color: #f0f5ff;
+    background: #08182bee;
+    font-size: 14px;
+    line-height: 1.35;
+    pointer-events: none;
+}
+
+.arena-shell.is-battle .arena-speech { top: 112px; }
+.arena-shell.is-result .arena-topbar { height: 68px; }
+.arena-shell.is-result .arena-speech { top: 58px; }
+.arena-voice-preview { margin-top: 12px; }
+
+.arena-practice-options {
+    min-width: 0;
+    margin: 18px 0;
+    padding: 14px 0 8px;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
+.arena-practice-options legend { padding: 0 12px 0 0; font: 600 17px 'Space Grotesk', sans-serif; }
+.arena-practice-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.arena-practice-tabs button, .arena-afk-button, .arena-afk-actions button {
+    min-height: 37px;
+    padding: 6px 12px;
+    border: 1px solid #adc5ec54;
+    background: #182d47;
+    color: #edf3fb;
+    font: inherit;
+    cursor: pointer;
+}
+.arena-practice-tabs button[aria-pressed='true'] { color: #13213b; background: #edbb73; border-color: #ffe2b3; }
+.arena-practice-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr)); gap: 12px; margin: 14px 0; }
+.arena-practice-fields label { display: grid; gap: 5px; color: #d5e3f5; font-size: 13px; }
+.arena-practice-fields select {
+    min-height: 40px;
+    padding: 6px;
+    border: 1px solid #adc5ec54;
+    border-radius: 3px;
+    color: #eff4fa;
+    background: #162a45;
+    font: inherit;
+}
+.arena-practice-refill { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.arena-practice-refill input, .arena-volume input { accent-color: #edbb73; }
+.arena-volume {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 14px 0;
+    color: #e0eafa;
+}
+.arena-volume input { grid-column: 1 / -1; width: 100%; margin: 0; }
+.arena-volume span { color: #ffd39a; font-variant-numeric: tabular-nums; }
+.arena-afk-button { margin-top: 8px; }
+.arena-battle-actions { display: flex; align-items: center; gap: 8px; }
+.arena-afk-actions { position: relative; z-index: 4; }
+.arena-afk-actions summary { cursor: pointer; font-size: 12px; }
+.arena-afk-actions > div {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    display: grid;
+    gap: 5px;
+    width: max-content;
+    max-width: min(280px, 65vw);
+    padding: 6px;
+    background: #101e34;
+    border: 1px solid #adc5ec54;
+}
+.arena-afk-actions button { text-align: left; overflow-wrap: anywhere; }
+.arena-battle-footer .arena-key-hints { display: flex; flex-wrap: wrap; column-gap: 12px; row-gap: 4px; }
+.arena-key-hints span { white-space: nowrap; }
+
+@media (max-width: 760px) {
+    .arena-battle-footer .arena-key-hints { display: none; }
+    .arena-speech { top: 54px; font-size: 13px; }
+    .arena-shell.is-battle .arena-speech { top: 82px; }
+    .arena-battle-actions { gap: 5px; }
+}

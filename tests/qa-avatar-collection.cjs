@@ -175,12 +175,13 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   results.push('Desktop, dark theme,390px mobile layout and reduced-motion rendering pass.');
   await page.setViewportSize({width:1440,height:1000});
   await visit('/games/avatar-demo');
-  await page.locator('.v2-gamegrid [data-avatar="bip01"]').waitFor();
-  await page.getByRole('button',{name:'Højre',exact:true}).click();
-  assert.equal(await page.locator('.v2-gamegrid [data-avatar="bip01"]').count(),1);
+  await page.waitForURL('**/games');
+  await page.getByRole('heading',{name:'LUP Arena',exact:true}).waitFor();
+  assert.equal(await page.locator('input[type=file]').count(),0);
+  assert.equal(await page.getByText('Rune Run Mini',{exact:true}).count(),0);
   await visit('/apartment');await page.locator('.v2-home-sprite [data-avatar="bip01"]').waitFor();
   await visit('/profile');await page.locator('.panel [data-avatar-icon="bip01"]').waitFor();
-  results.push('Selected body follows the player in Rune Run and apartment; profile uses the matching face icon.');
+  results.push('The old Rune Run address opens the public games catalog. The selected body follows the player in the apartment and the profile uses the matching face icon.');
   const secondDevice=await device(first),otherPage=observePage(await secondDevice.newPage());otherPage.setDefaultTimeout(90000);
   await otherPage.goto(base+'/profile/character');await otherPage.getByTestId('selected-avatar-name').waitFor();
   assert.equal(await otherPage.getByTestId('selected-avatar-name').textContent(),'BIP-01');
@@ -236,23 +237,27 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   if(globalThis.__qaAvatar.id==='lupp'){
     assert.equal(await fullAvatarPage.getByTestId('unlock-lupp').isDisabled(),true);
     assert.match(await fullAvatarPage.locator('[data-avatar-id="lupp"]').textContent(),/0\s*\/\s*1 uploadet spil/);
-    await fullAvatarPage.locator('.avatar-requirements-help a[href="/games/mine"]').click();
-    await fullAvatarPage.getByRole('heading',{name:'Mine spil',exact:true}).waitFor();
+    await fullAvatarPage.locator('.avatar-requirements-help a[href="/projects/mine?category=spil#upload-spil"]').click();
+    await fullAvatarPage.getByRole('heading',{name:'Mine projekter',exact:true}).waitFor();
+    assert.equal(await fullAvatarPage.locator('.project-categories [aria-current=page]').textContent(),'Spil');
     await fullAvatarPage.getByLabel('Spillets navn',{exact:true}).fill('Mit prototypespil');
     await fullAvatarPage.locator('input[type="file"]').setInputFiles({name:'prototype.html',mimeType:'text/html',buffer:Buffer.from('<!doctype html><button>Spil</button>')});
-    rejectGameUpload=true;await fullAvatarPage.getByRole('button',{name:'Upload spil',exact:true}).click();
+    rejectGameUpload=true;await fullAvatarPage.getByRole('button',{name:'Upload spilprojekt',exact:true}).click();
     await fullAvatarPage.getByRole('alert').filter({hasText:'startside'}).waitFor();
     assert.equal(await fullAvatarPage.getByLabel('Spillets navn',{exact:true}).inputValue(),'Mit prototypespil');
     assert.equal(profileFor(fullAvatarAccount).unlockProgress.find(p=>p.avatarId==='lupp').current,0);
-    await fullAvatarPage.getByRole('button',{name:'Upload spil',exact:true}).click();
+    await fullAvatarPage.getByRole('button',{name:'Upload spilprojekt',exact:true}).click();
     await fullAvatarPage.getByRole('status').filter({hasText:'Spillet er uploadet'}).waitFor();
     assert.equal(gameRequests.length,2);assert.equal(gameRequests[0],gameRequests[1]);
     assert.equal(profileFor(second).unlockProgress.find(p=>p.avatarId==='lupp').current,0);
+    const gameProject=fullAvatarPage.locator('.uploaded-game').filter({hasText:'Mit prototypespil'});
+    assert.match(await gameProject.getByRole('link',{name:'Åbn spilprojekt',exact:true}).getAttribute('href'),/^\/files\//);
+    assert.match(await gameProject.textContent(),/Privat/);
     await fullAvatarPage.getByRole('link',{name:'Vælg LUPP',exact:true}).click();
     await fullAvatarPage.getByTestId('unlock-lupp').waitFor();
     assert.equal(await fullAvatarPage.getByTestId('unlock-lupp').isEnabled(),true);
     assert.equal((games.get(fullAvatarAccount)||[]).length,1);
-    results.push('Real browser file input posts owner-bound multipart HTML; failed upload preserves selections and request id, successful private upload advances only the uploader’s LUPP requirement and enables free claim.');
+    results.push('Mine projekter → Spil posts owner-bound multipart HTML. Failed upload preserves selections and request id. Successful upload is listed as a private project and enables the uploader’s free LUPP claim.');
   }
   await fullAvatarPage.getByRole('button',{name:`Se ${globalThis.__qaAvatar.name}`,exact:true}).click();
   await fullAvatarPage.locator(`.avatar-preview .avatar-sheet[data-avatar="${globalThis.__qaAvatar.id}"]`).waitFor();
@@ -486,12 +491,10 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
   assert.ok(await fullAvatarPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${globalThis.__qaAvatar.name} collection has horizontal mobile overflow`);
   await fullAvatarPage.screenshot({path:path.join(output,`${globalThis.__qaAvatar.id}-mobile.png`),fullPage:true});
   await fullAvatarPage.setViewportSize({width:1440,height:1000});
-  for(const [route,selector] of [['/profile',`.panel [data-avatar-icon="${globalThis.__qaAvatar.id}"]`],['/apartment',`.v2-home-sprite [data-avatar="${globalThis.__qaAvatar.id}"]`],['/games/avatar-demo',`.v2-gamegrid [data-avatar="${globalThis.__qaAvatar.id}"]`]]){
+  for(const [route,selector] of [['/profile',`.panel [data-avatar-icon="${globalThis.__qaAvatar.id}"]`],['/apartment',`.v2-home-sprite [data-avatar="${globalThis.__qaAvatar.id}"]`]]){
     await fullAvatarPage.goto(base+route,{waitUntil:'domcontentloaded'});await fullAvatarPage.locator(selector).waitFor();
   }
-  await fullAvatarPage.getByRole('button',{name:'Højre',exact:true}).click();
-  assert.equal(await fullAvatarPage.locator(`.v2-gamegrid [data-avatar="${globalThis.__qaAvatar.id}"]`).count(),1);
-  results.push(`${globalThis.__qaAvatar.name} selection follows two isolated devices and appears in the header, profile, apartment and Rune Run; mobile and reduced motion pass.`);
+  results.push(`${globalThis.__qaAvatar.name} selection follows two isolated devices and appears in the header, profile and apartment. Mobile and reduced motion pass.`);
   await Promise.all([fullAvatarDevice.close(),fullAvatarSecondDevice.close()]);
   assert.deepEqual(failedAssets,[]);assert.deepEqual(errors,[]);
   const report={passed:true,results,browserErrors:errors,failedAssets,scope:'Isolated UI wiring test with shared API double across device contexts. Actual relational persistence and concurrency verified separately by AvatarProfileTests; no real accounts or external requests.'};

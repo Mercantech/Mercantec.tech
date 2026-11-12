@@ -64,6 +64,7 @@
                             }
                             @foreach (var link in NotebookLinks.Skip(1)) { <NavLink href="@link.Href">@link.Label</NavLink> }
                             <NavLink href="/arena">LUP Arena</NavLink>
+                            <NavLink href="/games">Spil</NavLink>
                             <NavLink href="/characters">Karakterer</NavLink>
                             @if (IsTeacher)
                             {
@@ -80,10 +81,11 @@
                 <nav class="mainnav public-nav" aria-label="Hovednavigation">
                     <NavLink href="/library">Oversigt</NavLink>
                     <NavLink href="/explore/projects">Projekter</NavLink>
+                    <NavLink href="/games">Spil</NavLink>
                     <NavLink href="/characters">Karakterer</NavLink>
                     <NavLink href="/sources">Om LUP</NavLink>
                 </nav>
-                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/library">Oversigt</a><a href="/explore/projects">Projekter</a><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
+                <details class="lup-mobile-nav"><summary>Menu</summary><nav class="lup-mobile-menu" aria-label="Hovednavigation"><a href="/library">Oversigt</a><a href="/explore/projects">Projekter</a><NavLink href="/games">Spil</NavLink><NavLink href="/characters">Karakterer</NavLink><a href="/sources">Om LUP</a></nav></details>
                 <div class="lup-tools">
                     <ThemePicker Value="@_theme" ValueChanged="SetTheme" />
                     <button type="button" class="action" @onclick="StartLogin" disabled="@(_loginBusy || !Auth.IsInitialized)">@(_loginBusy ? "Sender…" : "Log ind")</button>

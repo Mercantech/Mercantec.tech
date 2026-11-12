@@ -9,6 +9,7 @@ using Mercantec.Tech.Web.Demo;
 using Mercantec.Tech.Web.Games;
 using Mercantec.Tech.Web.Gifts;
 using Mercantec.Tech.Web.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,15 +28,25 @@ public sealed class UploadedGamesTests
         var collection = context.Render<AvatarEditor>();
         Assert.True(collection.Find("[data-testid=unlock-lupp]").HasAttribute("disabled"));
         Assert.Contains("Gratis", collection.Find("[data-avatar-id=lupp]").TextContent);
-        Assert.Contains(collection.FindAll("a"), link => link.GetAttribute("href") == "/games/mine");
+        Assert.Contains(collection.FindAll("a"), link => link.GetAttribute("href") == GamesCatalog.UploadGameProjectPath);
 
-        var page = context.Render<UploadedGames>();
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo(GamesCatalog.GameProjectsPath);
+        var page = context.Render<MineProjects>();
+        Assert.Equal("Spil", page.Find("nav [aria-current=page]").TextContent);
         await page.InvokeAsync(() => page.FindComponent<InputFile>().Instance.OnChange.InvokeAsync(new InputFileChangeEventArgs([new BrowserGame()])));
         await page.Find("button.action").ClickAsync(new());
         page.WaitForAssertion(() => Assert.True(world.CanUnlockAvatar("lupp")));
         Assert.Equal(context.Auth.Subject, api.UploadSubject);
         Assert.Contains("Spillet er uploadet", page.Markup);
         Assert.Contains("spil.html", page.Markup);
+        Assert.Equal($"/files/{GameApi.Game.FileId:D}", page.Find(".uploaded-game a").GetAttribute("href"));
+        Assert.Contains("Privat", page.Find(".uploaded-game").TextContent);
+        Assert.Empty(page.FindAll("iframe"));
+        await page.InvokeAsync(() => navigation.NavigateTo(GamesCatalog.ProjectsPath));
+        page.WaitForAssertion(() => Assert.Single(page.FindAll(".uploaded-game")));
+        Assert.Equal("Alle", page.Find("nav [aria-current=page]").TextContent);
+        Assert.Empty(page.FindAll("input[type=file]"));
         collection.WaitForAssertion(() => Assert.False(collection.Find("[data-testid=unlock-lupp]").HasAttribute("disabled")));
         Assert.Contains("Lås op gratis", collection.Find("[data-testid=unlock-lupp]").TextContent);
         Assert.Contains("1 / 1 uploadet spil", collection.Find("[data-avatar-id=lupp]").TextContent);

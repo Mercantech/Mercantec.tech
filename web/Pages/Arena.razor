@@ -5,7 +5,7 @@
 @implements IAsyncDisposable
 
 <PageTitle>LUP Arena</PageTitle>
-<div class="arena-shell @(_screen == "main" ? "is-main" : "") @(IsBattle ? "is-battle" : "")" @onkeydown="MenuKey">
+<div class="arena-shell @(_screen == "main" ? "is-main" : "") @(IsBattle ? "is-battle" : "") @(_screen == "result" ? "is-result" : "")" @onkeydown="MenuKey">
     <div class="arena-keyart" aria-hidden="true"></div>
     <header class="arena-topbar">
         <a href="@(Auth.IsAuthenticated ? "/profile#mit-univers" : "/")" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
@@ -19,6 +19,7 @@
     </header>
     @if (_error is not null) { <div class="arena-notice" role="alert"><span>@_error</span><button @onclick="ClearError" aria-label="Luk besked">×</button></div> }
     @if (_reconnecting) { <div class="arena-reconnecting" role="status">Forbinder igen…</div> }
+    <p id="arena-speech" class="arena-speech" role="status" hidden></p>
 
     @if (_screen == "main")
     {
@@ -84,10 +85,67 @@
                 <section class="arena-fighter-showcase" aria-label="@FighterName(_selectedAvatarId)"><img src="@Portrait(_selectedAvatarId)" alt="@FighterName(_selectedAvatarId)" /><div><h2>@FighterName(_selectedAvatarId)</h2><p>@FighterSpecial</p></div></section>
             </div>
             <ArenaMoveList AvatarId="@_selectedAvatarId" Expanded="@(_screen == "fighters")" />
+            @if (isRoster && AvatarCatalog.Find(_selectedAvatarId)?.AudioFiles.Count > 0)
+            {
+                <button type="button" class="arena-subtle-link arena-voice-preview" disabled="@(!_sound || _soundVolume == 0)" @onclick="PlayFighterPhrase">Hør figuren</button>
+            }
             @if (_screen == "setup")
             {
+                <fieldset class="arena-practice-options" disabled="@_busy">
+                    <legend>Træning</legend>
+                    <div class="arena-practice-tabs">
+                        <button type="button" aria-pressed="@(_sandbox ? "true" : "false")" @onclick="() => _sandbox = true">Øvebane</button>
+                        <button type="button" aria-pressed="@(!_sandbox ? "true" : "false")" @onclick="() => _sandbox = false">Træningskamp</button>
+                    </div>
+                    <div class="arena-practice-fields">
+                        <label>Modstander
+                            <select @bind="_practiceOpponent">
+                                @foreach (var avatar in AvatarCatalog.All)
+                                {
+                                    <option value="@avatar.Id">@(avatar.Id == "starter" ? "Startfigur" : avatar.Name)</option>
+                                }
+                            </select>
+                        </label>
+                        @if (_sandbox)
+                        {
+                            <label>Adfærd
+                                <select @bind="_practiceMode">
+                                    <option value="idle">Stå stille</option><option value="block">Hold skjold</option>
+                                    <option value="repeat">Gentag træk</option><option value="cpu">Kæmp</option>
+                                </select>
+                            </label>
+                            @if (_practiceMode == "repeat")
+                            {
+                                <label>Gentag
+                                    <select @bind="_practiceMove">
+                                        <option value="pulse">Projektil</option><option value="attack">Slag</option>
+                                        <option value="grab">Greb</option><option value="dash">Fremryk</option>
+                                    </select>
+                                </label>
+                            }
+                            <label>Startposition
+                                <select @bind="_practicePosition">
+                                    <option value="center">På banen</option><option value="edge">Ved kanten</option>
+                                    <option value="offstage">Uden for banen</option>
+                                </select>
+                            </label>
+                        }
+                        @if (!_sandbox || _practiceMode == "cpu")
+                        {
+                            <label>Sværhedsgrad
+                                <select @bind="_practiceDifficulty">
+                                    <option value="easy">Let</option><option value="normal">Normal</option><option value="hard">Svær</option>
+                                </select>
+                            </label>
+                        }
+                    </div>
+                    @if (_sandbox)
+                    {
+                        <label class="arena-practice-refill"><input type="checkbox" @bind="_refillPractice" /> Fyld ressourcer løbende</label>
+                    }
+                </fieldset>
                 <section class="arena-stage-picker" aria-label="Vælg bane"><div class="arena-stage-cards">@foreach(var stage in ArenaCatalog.Stages) { <button class="arena-stage-card @(_stageId == stage.Id ? "is-selected" : "")" @onclick="() => SelectStage(stage.Id)" aria-pressed="@(_stageId == stage.Id ? "true" : "false")"><img src="@StageArt(stage.Id)" alt="" /><span>@stage.Name</span><i>@(_stageId == stage.Id ? "✓" : "")</i></button> }</div></section>
-                <footer class="arena-screen-footer"><div class="arena-rules"><label>Liv <select @bind="_stocks"><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label><label>Tid <select @bind="_minutes"><option value="3">3 min.</option><option value="5">5 min.</option><option value="8">8 min.</option></select></label></div><button class="arena-action arena-action-gold" @onclick="StartTraining" disabled="@(_loading || !_artReady || _busy)">@(_loading ? "Indlæser…" : "Start")</button></footer>
+                <footer class="arena-screen-footer">@if (!_sandbox) { <div class="arena-rules"><label>Liv <select @bind="_stocks"><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label><label>Tid <select @bind="_minutes"><option value="3">3 min.</option><option value="5">5 min.</option><option value="8">8 min.</option></select></label></div> } else { <span></span> }<button class="arena-action arena-action-gold" @onclick="StartTraining" disabled="@(_loading || !_artReady || _busy)">@(_loading || _busy ? "Indlæser…" : "Start")</button></footer>
             }
             else { <footer class="arena-screen-footer"><span></span><button class="arena-action arena-action-gold" @onclick="Back">Vælg</button></footer> }
         </main>
@@ -119,24 +177,69 @@
             else
             {
                 <div class="arena-lobby-heading"><button class="arena-room-code" @onclick="CopyInvite" title="Kopiér invitation"><strong>@_room.Code</strong><span>@(_copied ? "Kopieret" : "Invitér")</span></button><span>@(_room.IsPublic ? "Offentligt" : "Privat")</span></div>
-                <div class="arena-lobby-roster">@foreach(var player in _room.Players) { <article class="arena-lobby-player" style="--player-color:@player.Color"><img src="@Portrait(player.AvatarId)" alt="" /><div><h2>@player.Name</h2><p>@(player.IsBot ? "Computer" : player.Id == _room.HostId ? "Vært" : FighterName(player.AvatarId))</p></div><span class="arena-player-ready">@(!player.Connected ? "Forbinder…" : player.Ready ? "Klar" : "Venter")</span></article> }@for(var i=_room.Players.Count;i<4;i++){<div class="arena-lobby-empty"><span>+</span><p>Ledig plads</p></div>}</div>
-                <div class="arena-lobby-bottom"><div class="arena-lobby-stage"><img src="@StageArt(_stageId)" alt="" /><span>@SelectedStage.Name</span><span>@_stocks liv · @_minutes min.</span></div><div class="arena-lobby-buttons">@if (_phase == "lobby") { if(IsHost) { <button class="arena-action arena-action-subtle" @onclick="AddBot" disabled="@(_room.Players.Count >= 4)">Tilføj computer</button> }<button class="arena-action @(_ready ? "arena-action-subtle" : "")" @onclick="ToggleReady">@(_ready ? "Klar ✓" : "Gør klar")</button>@if(IsHost) { <button class="arena-action arena-action-gold" @onclick="StartOnline" disabled="@(!_room.Players.All(p => p.Ready && p.Connected) || _room.Players.Count < 2)">Start</button> } }</div></div>
+                <div class="arena-lobby-roster">@foreach(var player in _room.Players) { <article class="arena-lobby-player" style="--player-color:@player.Color"><img src="@Portrait(player.AvatarId)" alt="" /><div><h2>@player.Name</h2><p>@(player.IsBot ? "Computer" : player.Id == _room.HostId ? "Vært" : FighterName(player.AvatarId))</p></div><span class="arena-player-ready">@(!player.Connected ? "Forbinder…" : player.CanRemoveAfk ? "Inaktiv" : player.Ready ? "Klar" : "Venter")</span>
+                    @if (IsHost && player.Id != _playerId && player.CanRemoveAfk)
+                    {
+                        <button type="button" class="arena-afk-button" aria-label="@($"Fjern {player.Name}")" @onclick="() => RemoveAfk(player.Id)">Fjern</button>
+                    }
+                </article> }@for(var i=_room.Players.Count;i<4;i++){<div class="arena-lobby-empty"><span>+</span><p>Ledig plads</p></div>}</div>
+                <div class="arena-lobby-bottom"><div class="arena-lobby-stage"><img src="@StageArt(_stageId)" alt="" /><span>@SelectedStage.Name</span><span>@_stocks liv · @_minutes min.</span></div><div class="arena-lobby-buttons">@if (_phase == "lobby") { if(IsHost) { <button class="arena-action arena-action-subtle" @onclick="AddBot" disabled="@(_room.Players.Count >= 4)">Tilføj computer</button> }<button class="arena-action @(_ready ? "arena-action-subtle" : "")" @onclick="ToggleReady" disabled="@_busy">@(_busy ? "Indlæser…" : _ready ? "Klar ✓" : "Gør klar")</button>@if(IsHost) { <button class="arena-action arena-action-gold" @onclick="StartOnline" disabled="@(!_room.Players.All(p => p.Ready && p.Connected) || _room.Players.Count < 2)">Start</button> } }</div></div>
             }
         </main>
     }
 
     @if (_screen == "settings")
     {
-        <main class="arena-screen arena-settings-screen"><header class="arena-screen-header"><button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button><h1>Indstillinger</h1></header><div class="arena-settings-layout"><section class="arena-settings-options"><button data-arena-sound-toggle="true" @onclick="ToggleSound" aria-label="@(_sound ? "Slå lyd fra" : "Slå lyd til")" aria-pressed="@(_sound ? "true" : "false")"><span>Lyd</span><strong>@(_sound ? "Til" : "Fra")</strong></button><button @onclick="Fullscreen"><span>Fuld skærm</span><strong>Åbn</strong></button>@if (_practice || _room is not null) { <button class="arena-exit-action" @onclick="ReturnMain"><span>Afslut kamp</span></button> }</section><section class="arena-controls-detail" aria-label="Styring"><h2>Styring</h2><dl><div><dt>A / D</dt><dd>Bevæg</dd></div><div><dt>W / S</dt><dd>Retning</dd></div><div><dt>Space</dt><dd>Hop / dobbelthop · tre tryk slipper greb</dd></div><div><dt>J</dt><dd>Angreb</dd></div><div><dt>K</dt><dd>Special</dd></div><div><dt>W + K</dt><dd>Redningshop</dd></div><div><dt>Hold I</dt><dd>@(ArenaMoveSets.Find(_selectedAvatarId) is null ? "Kraftslag" : "Stor evne · fuld måler")</dd></div><div><dt>L / Shift / U</dt><dd>Skjold / undvig / greb</dd></div></dl><ArenaMoveList AvatarId="@_selectedAvatarId" Expanded="true" /><h3>Controller</h3><p>A hop · X angreb · B special · Y greb<br />RT skjold · LB undvig · RB stor evne / kraftslag</p></section></div></main>
+        <main class="arena-screen arena-settings-screen"><header class="arena-screen-header"><button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button><h1>Indstillinger</h1></header><div class="arena-settings-layout"><section class="arena-settings-options"><button data-arena-sound-toggle="true" @onclick="ToggleSound" aria-label="@(_sound ? "Slå lyd fra" : "Slå lyd til")" aria-pressed="@(_sound ? "true" : "false")"><span>Lyd</span><strong>@(_sound ? "Til" : "Fra")</strong></button>
+            <label class="arena-volume">Lydstyrke <span>@((int)_soundVolume)%</span><input type="range" min="0" max="100" step="1" value="@_soundVolume" @oninput="ChangeVolume" /></label>
+            @if (_practice) { <button @onclick="EditPractice"><span>Træningsvalg</span></button> }
+            <button @onclick="Fullscreen"><span>Fuld skærm</span><strong>Åbn</strong></button>@if (_practice || _room is not null) { <button class="arena-exit-action" @onclick="ReturnMain"><span>Afslut kamp</span></button> }</section><section class="arena-controls-detail" aria-label="Styring"><h2>Styring</h2><dl><div><dt>A / D</dt><dd>Bevæg</dd></div><div><dt>W / S</dt><dd>Retning</dd></div><div><dt>Space</dt><dd>Hop / dobbelthop · tre tryk slipper greb</dd></div><div><dt>J</dt><dd>Angreb</dd></div><div><dt>K</dt><dd>Special</dd></div><div><dt>W + K</dt><dd>Redningshop</dd></div><div><dt>Hold I</dt><dd>@(ArenaMoveSets.Find(_selectedAvatarId) is null ? "Kraftslag" : "Stor evne · fuld måler")</dd></div><div><dt>L / Shift / U</dt><dd>Skjold / undvig / greb</dd></div></dl><ArenaMoveList AvatarId="@_selectedAvatarId" Expanded="true" /><h3>Controller</h3><p>A hop · X angreb · B special · Y greb<br />RT skjold · LB undvig · RB stor evne / kraftslag</p></section></div></main>
+    }
+
+    @if (_screen == "result" && _result is not null)
+    {
+        <ArenaResultScene Result="@_result" PlayerId="@_playerId" CanRematch="@(_practice || IsHost)"
+                          Busy="@_busy" OnRematch="Rematch" OnMenu="ReturnMain" />
     }
 
     <section class="arena-play @(IsBattle ? "is-visible" : "")" aria-label="Kampbane" aria-hidden="@(!IsBattle)">
-        <div class="arena-play-toolbar"><button @onclick="ShowSettings" class="arena-back">Menu</button><span>@(_practice ? "Træning" : _room?.Code ?? "Arena")</span><div><span id="arena-ping">@(_room is null ? "" : "Forbinder…")</span><button class="arena-icon-button" @onclick="Fullscreen" aria-label="Fuld skærm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"/></svg></button></div></div>
+        <div class="arena-play-toolbar">
+            <div class="arena-battle-actions">
+                <button @onclick="ShowSettings" class="arena-back">Menu</button>
+                @if (_practice && _sandbox)
+                {
+                    <button @onclick="ResetPractice" class="arena-back" title="Nulstil med R">Nulstil</button>
+                    <button @onclick="RefillPractice" class="arena-back">Fyld op</button>
+                }
+                @if (RemovablePlayers.Any())
+                {
+                    <details class="arena-afk-actions">
+                        <summary>Inaktive spillere</summary>
+                        <div>
+                            @foreach (var player in RemovablePlayers)
+                            {
+                                <button type="button" @onclick="() => RemoveAfk(player.Id)">Fjern @player.Name</button>
+                            }
+                        </div>
+                    </details>
+                }
+            </div>
+            <span>@(_practice ? _sandbox ? "Øvebane" : "Træningskamp" : _room?.Code ?? "Arena")</span>
+            <div><span id="arena-ping">@(_room is null ? "" : "Forbinder…")</span>
+                <button @onclick="Fullscreen" class="arena-icon-button" aria-label="Fuld skærm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"/></svg></button>
+            </div>
+        </div>
         <div class="arena-canvas-wrap">
             <canvas @ref="_canvas" width="1280" height="720" tabindex="0" aria-label="Kampbane. A og D bevæger, Space hopper, J angriber, K bruger special."></canvas>
-            @if (_result is not null && _phase == "finished") { <div class="arena-result" role="status"><span>Kamp slut</span><img src="@Portrait(_result.Fighters.FirstOrDefault(f=>f.Id==_result.WinnerId)?.AvatarId ?? "starter")" alt="" /><h2>@WinnerName</h2><div class="arena-scoreboard">@foreach(var fighter in _result.Fighters.OrderByDescending(x=>x.Stocks).ThenByDescending(x=>x.KOs)) { <div><strong style="color:@fighter.Color">@fighter.Name</strong><span>@fighter.KOs KO</span></div> }</div><div class="arena-result-actions"><button class="arena-action arena-action-gold" @onclick="Rematch" disabled="@(_room is not null && !IsHost)">Revanche</button><button class="arena-action arena-action-subtle" @onclick="ReturnMain">Menu</button></div></div> }
         </div>
-        <div class="arena-battle-footer"><span><kbd>A D</kbd> Bevæg <kbd>Space</kbd> Hop <kbd>J</kbd> Angreb <kbd>K</kbd> Special</span><button @onclick="ShowSettings">Styring</button></div>
+        <div class="arena-battle-footer"><span class="arena-key-hints">
+            <span><kbd>A D</kbd> Bevæg</span><span><kbd>W S</kbd> Retning</span><span><kbd>Space</kbd> Hop</span>
+            <span><kbd>J</kbd> Angreb</span><span><kbd>K</kbd> Special</span><span><kbd>W+K</kbd> Redning</span><span><kbd>L</kbd> Skjold</span>
+            <span><kbd>U</kbd> Greb</span><span><kbd>Shift</kbd> Undvig</span>
+            <span><kbd>Hold I</kbd> @(ArenaMoveSets.Find(_selectedAvatarId) is null ? "Kraftslag" : "Stor evne")</span>
+            @if (_practice && _sandbox) { <span><kbd>R</kbd> Nulstil</span> }
+            <span><kbd>Esc</kbd> Menu</span>
+        </span><button @onclick="ShowSettings">Styring</button></div>
         <div class="arena-touch" aria-label="Touchkontroller"><div class="arena-touch-directions"><button data-arena-key="KeyW" aria-label="Op">▲</button><button data-arena-key="KeyA" aria-label="Venstre">◀</button><button data-arena-key="KeyS" aria-label="Ned">▼</button><button data-arena-key="KeyD" aria-label="Højre">▶</button></div><div class="arena-touch-actions"><button data-arena-key="KeyL">Skjold</button><button data-arena-key="ShiftLeft">Undvig</button><button data-arena-key="KeyU">Greb</button><button data-arena-key="KeyI">@(ArenaMoveSets.Find(_selectedAvatarId) is null ? "Kraftslag" : "Stor evne")</button><button data-arena-key="KeyJ">Slå</button><button data-arena-key="KeyK">Special</button><button data-arena-key="Space">Hop</button></div></div>
     </section>
 </div>
