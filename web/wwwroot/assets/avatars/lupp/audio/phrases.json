@@ -7,9 +7,11 @@
     "file": "phrase_1_welcome.wav",
     "path": "audio/phrase_1_welcome.wav",
     "available": true,
-    "duration": 3.9283,
-    "durationSeconds": 3.9283,
-    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+    "duration": 2.608,
+    "durationSeconds": 2.608,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "26455374e8a90366144fa3b0d9f93bb3a18f8a28475c917e782f0f62b97b0730",
+    "seed": 1838056273
   },
   {
     "id": "phrase_2_start",
@@ -19,9 +21,11 @@
     "file": "phrase_2_start.wav",
     "path": "audio/phrase_2_start.wav",
     "available": true,
-    "duration": 3.2972,
-    "durationSeconds": 3.2972,
-    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+    "duration": 3.4149,
+    "durationSeconds": 3.4149,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "cde1f5dfed56376c18775f22d72ddc25ff0c3f79b10af447a626b456bf254d33",
+    "seed": 632144009
   },
   {
     "id": "phrase_3_success",
@@ -31,9 +35,11 @@
     "file": "phrase_3_success.wav",
     "path": "audio/phrase_3_success.wav",
     "available": true,
-    "duration": 3.4312,
-    "durationSeconds": 3.4312,
-    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+    "duration": 2.8382,
+    "durationSeconds": 2.8382,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "4f4a5757efe8d7cc6e3ee0ea0969c170315ff774214420f61ce9c13171a7ded2",
+    "seed": 4217538396
   },
   {
     "id": "phrase_4_retry",
@@ -43,9 +49,11 @@
     "file": "phrase_4_retry.wav",
     "path": "audio/phrase_4_retry.wav",
     "available": true,
-    "duration": 2.8995,
-    "durationSeconds": 2.8995,
-    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+    "duration": 2.6541,
+    "durationSeconds": 2.6541,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "b0c843b57a0a9f22b4cc5239e1d3a293e405868e232fcaf5b789fd00a1f35fe7",
+    "seed": 3970958396
   },
   {
     "id": "phrase_5_milestone",
@@ -55,8 +63,10 @@
     "file": "phrase_5_milestone.wav",
     "path": "audio/phrase_5_milestone.wav",
     "available": true,
-    "duration": 4.9589,
-    "durationSeconds": 4.9589,
-    "source": "local-Windows-OneCore-da-DK-lively-LUPP-character-processing"
+    "duration": 2.8331,
+    "durationSeconds": 2.8331,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "f9ff94530b70a444465120e02242c329436f48fe023719c77f86db9d17cdd258",
+    "seed": 1980204289
   }
 ]

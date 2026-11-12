@@ -36,7 +36,7 @@ Pickup tilkobler en valgfri genstand ved frame4 og følger den samme screen-righ
 4. En lille pause, og så prøver vi igen.
 5. Sammen får vi magien til at virke!
 
-Lydeffekterne er originale og bruger bløde støvletrin, stof, små klokker, træ/luft og julemagi. Talen er syntetiseret lokalt med den installerede danske WinRT-stemme Microsoft Helle og bearbejdet med lavere tonehøjde og varm EQ. Der er ikke brugt en ekstern stemme-API eller en påstået mandlig originalstemme. Alle33WAV-filer er kontrolleret for PCM, duration, signal, clipping, stilhed og dubletter samt afkodet og afspillet i Chrome. Værktøjet understøtter ikke subjektiv lyttekontrol; sådan en kontrol påstås ikke. Se lydens egne manifester og rapporter for præcise værdier.
+Lydeffekterne er originale og bruger bløde støvletrin, stof, små klokker, træ/luft og julemagi. Platformens fem replikker er genereret lokalt med dansk Røst Chatterbox og Julemandens egen varme, fyldige stemmereference. Den oprindelige masterpakke indeholder den arkiverede Microsoft Helle-indspilning. Se [den fælles stemmeproduktion](../voices/README.md) og [Julemandens lydpakke](AUDIO.md).
 
 I dette repository ligger runtimefiler i `web/wwwroot/assets/avatars/santa/`, Arena-effekter i `web/wwwroot/assets/arena/v3/effects/santa-*.webp`, eksakte prompter i denne mappes `prompts/` og lydscripts i `scripts/audio/`.
 

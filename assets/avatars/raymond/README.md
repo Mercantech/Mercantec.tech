@@ -29,7 +29,7 @@ Karakterarkene indeholder kun Raymond. Pickup tilkobler en valgfri genstand ved 
 
 ## Lyd
 
-Lydene er originale, varme og organiske med bløde, tunge trin, tøj/luft, træresonans og snabelhorn. Talen er renderet lokalt med dansk WinRT-stemme og mild stemme/EQ-behandling, uden robottens vocoder. Alle 33 WAV-filer er kontrolleret for duration, kanaler, PCM-format, RMS, peaks, klipning, stilhed og dubletter, og alle er afkodet/afspillet gennem Chrome. Værktøjet understøtter ikke audioinput til subjektiv lyttekontrol; dette er dokumenteret i lydrapporten, uden at foregive en sådan kontrol.
+Lydene er originale, varme og organiske med bløde, tunge trin, tøj/luft, træresonans og snabelhorn. Platformens fem replikker er genereret lokalt med dansk Røst Chatterbox og Raymonds egen dybe, rolige stemmereference. Den oprindelige masterpakke indeholder den arkiverede Microsoft Helle-indspilning. Se [den fælles stemmeproduktion](../voices/README.md) og [Raymonds lydpakke](AUDIO.md).
 
 Browseren afspiller først lyd efter et eksplicit klik. Begge avatarers præcise33filnavne er allowlistet; fjernadresser, traversal, ukendte navne og ekstra queryparametre afvises. Stop, figurskift og navigation afbryder lyden uden sene falske fejlbeskeder. Genskabsscripts findes i `scripts/audio/`.
 

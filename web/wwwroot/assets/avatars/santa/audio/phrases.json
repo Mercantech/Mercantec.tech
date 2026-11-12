@@ -7,9 +7,11 @@
     "file": "phrase_1_welcome.wav",
     "path": "audio/phrase_1_welcome.wav",
     "available": true,
-    "duration": 4.4149,
-    "durationSeconds": 4.4149,
-    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+    "duration": 3.156,
+    "durationSeconds": 3.156,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "f8bfbd2d0d76c416ff9f9d0e0748287e0f7149f4305ae52b5847d6adc60045f9",
+    "seed": 3147852923
   },
   {
     "id": "phrase_2_start",
@@ -19,9 +21,11 @@
     "file": "phrase_2_start.wav",
     "path": "audio/phrase_2_start.wav",
     "available": true,
-    "duration": 3.5657,
-    "durationSeconds": 3.5657,
-    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+    "duration": 3.756,
+    "durationSeconds": 3.756,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "59c2ffcda192eb4459ff62ca9d2d1dafeae928658fe230a7faf2150cb5090b70",
+    "seed": 170559592
   },
   {
     "id": "phrase_3_success",
@@ -31,9 +35,11 @@
     "file": "phrase_3_success.wav",
     "path": "audio/phrase_3_success.wav",
     "available": true,
-    "duration": 4.827,
-    "durationSeconds": 4.827,
-    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+    "duration": 3.436,
+    "durationSeconds": 3.436,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "43acb3490f8cc04e555ea54ebb582e47a3eeabeecf046b2c6789133b37913470",
+    "seed": 2299646209
   },
   {
     "id": "phrase_4_retry",
@@ -43,9 +49,11 @@
     "file": "phrase_4_retry.wav",
     "path": "audio/phrase_4_retry.wav",
     "available": true,
-    "duration": 3.296,
-    "durationSeconds": 3.296,
-    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+    "duration": 3.356,
+    "durationSeconds": 3.356,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "7f339de2db892f188676048a809d62219a00c050267b126087e6361df69aae48",
+    "seed": 3794662206
   },
   {
     "id": "phrase_5_milestone",
@@ -55,8 +63,10 @@
     "file": "phrase_5_milestone.wav",
     "path": "audio/phrase_5_milestone.wav",
     "available": true,
-    "duration": 2.343,
-    "durationSeconds": 2.343,
-    "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+    "duration": 3.076,
+    "durationSeconds": 3.076,
+    "source": "local-roest-chatterbox-character",
+    "sha256": "17681fe15c5d38f418e9eecdda3e000b037fa43538ac890630944210e64245b3",
+    "seed": 1450311775
   }
 ]

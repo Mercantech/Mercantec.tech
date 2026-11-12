@@ -202,39 +202,49 @@
     },
     {
       "id": "phrase_1_welcome",
-      "durationSeconds": 3.9282539682539683,
+      "durationSeconds": 2.6080498866213153,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "26455374e8a90366144fa3b0d9f93bb3a18f8a28475c917e782f0f62b97b0730",
+      "source": "/assets/avatars/lupp/audio/phrase_1_welcome.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_2_start",
-      "durationSeconds": 3.29718820861678,
+      "durationSeconds": 3.414943310657596,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "cde1f5dfed56376c18775f22d72ddc25ff0c3f79b10af447a626b456bf254d33",
+      "source": "/assets/avatars/lupp/audio/phrase_2_start.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_3_success",
-      "durationSeconds": 3.431156462585034,
+      "durationSeconds": 2.8381632653061226,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "4f4a5757efe8d7cc6e3ee0ea0969c170315ff774214420f61ce9c13171a7ded2",
+      "source": "/assets/avatars/lupp/audio/phrase_3_success.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_4_retry",
-      "durationSeconds": 2.8995238095238096,
+      "durationSeconds": 2.6540589569160997,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "b0c843b57a0a9f22b4cc5239e1d3a293e405868e232fcaf5b789fd00a1f35fe7",
+      "source": "/assets/avatars/lupp/audio/phrase_4_retry.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_5_milestone",
-      "durationSeconds": 4.958888888888889,
+      "durationSeconds": 2.8330839002267574,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "f9ff94530b70a444465120e02242c329436f48fe023719c77f86db9d17cdd258",
+      "source": "/assets/avatars/lupp/audio/phrase_5_milestone.wav?v=chatterbox-1"
     }
   ],
-  "scope": "Real native Chromium AudioContext decoding and HTMLAudioElement playback requests for all33files. Not subjective listening, transcription or full-clip end-to-end playback."
+  "scope": "Retained native Chromium results for 28 unchanged effects. Five current Røst phrases were decoded and played after trusted Chrome clicks through the versioned avatar player and service worker. This verifies decoding and playback start."
 }

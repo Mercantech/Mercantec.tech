@@ -746,9 +746,11 @@
       "file": "phrase_1_welcome.wav",
       "path": "audio/phrase_1_welcome.wav",
       "available": true,
-      "duration": 4.4149,
-      "durationSeconds": 4.4149,
-      "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+      "duration": 3.156,
+      "durationSeconds": 3.156,
+      "source": "local-roest-chatterbox-character",
+      "sha256": "f8bfbd2d0d76c416ff9f9d0e0748287e0f7149f4305ae52b5847d6adc60045f9",
+      "seed": 3147852923
     },
     {
       "id": "phrase_2_start",
@@ -758,9 +760,11 @@
       "file": "phrase_2_start.wav",
       "path": "audio/phrase_2_start.wav",
       "available": true,
-      "duration": 3.5657,
-      "durationSeconds": 3.5657,
-      "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+      "duration": 3.756,
+      "durationSeconds": 3.756,
+      "source": "local-roest-chatterbox-character",
+      "sha256": "59c2ffcda192eb4459ff62ca9d2d1dafeae928658fe230a7faf2150cb5090b70",
+      "seed": 170559592
     },
     {
       "id": "phrase_3_success",
@@ -770,9 +774,11 @@
       "file": "phrase_3_success.wav",
       "path": "audio/phrase_3_success.wav",
       "available": true,
-      "duration": 4.827,
-      "durationSeconds": 4.827,
-      "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+      "duration": 3.436,
+      "durationSeconds": 3.436,
+      "source": "local-roest-chatterbox-character",
+      "sha256": "43acb3490f8cc04e555ea54ebb582e47a3eeabeecf046b2c6789133b37913470",
+      "seed": 2299646209
     },
     {
       "id": "phrase_4_retry",
@@ -782,9 +788,11 @@
       "file": "phrase_4_retry.wav",
       "path": "audio/phrase_4_retry.wav",
       "available": true,
-      "duration": 3.296,
-      "durationSeconds": 3.296,
-      "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+      "duration": 3.356,
+      "durationSeconds": 3.356,
+      "source": "local-roest-chatterbox-character",
+      "sha256": "7f339de2db892f188676048a809d62219a00c050267b126087e6361df69aae48",
+      "seed": 3794662206
     },
     {
       "id": "phrase_5_milestone",
@@ -794,27 +802,47 @@
       "file": "phrase_5_milestone.wav",
       "path": "audio/phrase_5_milestone.wav",
       "available": true,
-      "duration": 2.343,
-      "durationSeconds": 2.343,
-      "source": "local-Windows-OneCore-da-DK-warm-Santa-character-processing"
+      "duration": 3.076,
+      "durationSeconds": 3.076,
+      "source": "local-roest-chatterbox-character",
+      "sha256": "17681fe15c5d38f418e9eecdda3e000b037fa43538ac890630944210e64245b3",
+      "seed": 1450311775
     }
   ],
   "speech": {
+    "provider": "Røst",
+    "model": "CoRal-project/roest-v3-chatterbox-500m",
+    "modelRevision": "7ce205cea6b3b36d9f60f18abb88ff21fa04ea0d",
+    "voice": "Julemanden · varm og fyldig",
+    "voiceId": "15529760c9371daa8e4f377b536856c4b3aa1cf6a694942cfaca00a64f64e17c",
+    "style": "synthetic-character",
+    "generation": {
+      "language_id": "da",
+      "temperature": 0.6,
+      "cfg_weight": 0.5,
+      "exaggeration": 0.5,
+      "repetition_penalty": 2.0,
+      "top_p": 0.95
+    },
+    "reference": {
+      "file": "references/santa.wav",
+      "source": "Røst synthetic built-in voice",
+      "sha256": "21b3b4ca785d92a3d14436aaed2cbd586f39965dcbf0873277df73b78f47fe80",
+      "durationSeconds": 8.2167,
+      "texts": [
+        "Her er en lille fortælling om et nyt spil, hvor alle kan være med.",
+        "Vi finder en vej gennem skoven og åbner døren til det næste rum."
+      ],
+      "seeds": [
+        7101,
+        7102
+      ],
+      "filters": "aresample=44100,asetrate=40675,aresample=44100,atempo=1.085,bass=f=175:g=2,equalizer=f=1250:t=q:w=0.9:g=2.5,highpass=f=45,alimiter=limit=0.76:level=false:latency=1,afade=t=in:d=0.008,areverse,afade=t=in:d=0.012,areverse"
+    },
+    "finishFilters": "aresample=44100,bass=f=170:g=1.8,equalizer=f=1500:t=q:w=1:g=2,aecho=0.9:0.85:36:0.075,highpass=f=45,alimiter=limit=0.76:level=false:latency=1,afade=t=in:d=0.008,areverse,afade=t=in:d=0.012,areverse",
     "available": true,
     "language": "da-DK",
-    "voice": "Microsoft Helle",
-    "voiceGender": "Female",
-    "installedDanishVoices": [
-      {
-        "name": "Microsoft Helle",
-        "language": "da-DK",
-        "gender": "Female"
-      }
-    ],
-    "speakingRate": 0.93,
-    "audioPitch": 0.76,
-    "status": "ready",
-    "processing": "Local speech pitch/rate control, warm EQ, high-quality resampling. No cloning, API or robot vocoder."
+    "status": "ready"
   },
   "playback": {
     "defaultMuted": true,
@@ -826,6 +854,6 @@
   },
   "license": {
     "proceduralSfx": "Original newly authored project assets; no sampled recordings or existing song melodies.",
-    "speech": "Synthesized locally with an installed Danish Windows OneCore voice. No API/network call/voice cloning."
+    "speech": "Synthesized locally with CoRal Røst Chatterbox and original model-generated conditioning."
   }
 }

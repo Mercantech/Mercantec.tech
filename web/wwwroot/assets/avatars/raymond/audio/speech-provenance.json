@@ -1,0 +1,72 @@
+{
+  "provider": "Røst",
+  "model": "CoRal-project/roest-v3-chatterbox-500m",
+  "modelRevision": "7ce205cea6b3b36d9f60f18abb88ff21fa04ea0d",
+  "voice": "Raymond · dyb, rolig og rund",
+  "voiceId": "8527926859cc2cff3b951b996b72075ef76238f1e4139307416d7cb30d6882fc",
+  "style": "synthetic-character",
+  "generation": {
+    "language_id": "da",
+    "temperature": 0.6,
+    "cfg_weight": 0.5,
+    "exaggeration": 0.5,
+    "repetition_penalty": 2.0,
+    "top_p": 0.95
+  },
+  "reference": {
+    "file": "references/raymond.wav",
+    "source": "Røst synthetic built-in voice",
+    "sha256": "bf1b55963b70a6ca48a8a62183b4b2cbbe0018322566b4bba8ccab94577a4a22",
+    "durationSeconds": 9.1545,
+    "texts": [
+      "Her er en lille fortælling om et nyt spil, hvor alle kan være med.",
+      "Vi finder en vej gennem skoven og åbner døren til det næste rum."
+    ],
+    "seeds": [
+      7101,
+      7102
+    ],
+    "filters": "aresample=44100,asetrate=36028,aresample=44100,atempo=1.10,bass=f=205:g=3,treble=f=2800:g=-3,highpass=f=45,alimiter=limit=0.76:level=false:latency=1,afade=t=in:d=0.008,areverse,afade=t=in:d=0.012,areverse"
+  },
+  "finishFilters": "aresample=44100,asetrate=43000,aresample=44100,atempo=0.98,bass=f=190:g=2,treble=f=3200:g=-1.5,highpass=f=45,alimiter=limit=0.76:level=false:latency=1,afade=t=in:d=0.008,areverse,afade=t=in:d=0.012,areverse",
+  "schemaVersion": 1,
+  "avatarId": "raymond",
+  "language": "da",
+  "phrases": [
+    {
+      "id": "phrase_1_welcome",
+      "file": "phrase_1_welcome.wav",
+      "text": "Jeg er Professor Codd, men du må gerne kalde mig Raymond.",
+      "sha256": "5596b1477949da70a85428e3d7380f439a48a852f4656eefe8b867f14d074732",
+      "seed": 194117161
+    },
+    {
+      "id": "phrase_2_start",
+      "file": "phrase_2_start.wav",
+      "text": "Lad os finde forbindelsen — én række ad gangen.",
+      "sha256": "fc999dba4baf7046e3cde1d168db44920c767cf824c6d8f40b5dda6b337f779e",
+      "seed": 2277761810
+    },
+    {
+      "id": "phrase_3_success",
+      "file": "phrase_3_success.wav",
+      "text": "Sådan! Nu hænger tabellerne sammen.",
+      "sha256": "ff8eb0e2f7687143542f9ce0bed3a6cb5f55706200c4e3d0a33450256d0d3641",
+      "seed": 3970657595
+    },
+    {
+      "id": "phrase_4_retry",
+      "file": "phrase_4_retry.wav",
+      "text": "En lille fejl er bare et godt sted at blive klogere.",
+      "sha256": "a23f17b46578c179499922201696d7f866d98a70104a519e35690f9028829c76",
+      "seed": 2334527046
+    },
+    {
+      "id": "phrase_5_milestone",
+      "file": "phrase_5_milestone.wav",
+      "text": "Tak for pladsen i din samling. Hvad skal vi undersøge først?",
+      "sha256": "4304ce63bce23ca6a214fda240fbf683c0119ff10103c9f45c09a6c4ebad3012",
+      "seed": 3617615335
+    }
+  ]
+}

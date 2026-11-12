@@ -202,39 +202,49 @@
     },
     {
       "id": "phrase_1_welcome",
-      "durationSeconds": 4.414875283446712,
+      "durationSeconds": 3.1559863945578233,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "f8bfbd2d0d76c416ff9f9d0e0748287e0f7149f4305ae52b5847d6adc60045f9",
+      "source": "/assets/avatars/santa/audio/phrase_1_welcome.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_2_start",
-      "durationSeconds": 3.5657369614512473,
+      "durationSeconds": 3.7559863945578233,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "59c2ffcda192eb4459ff62ca9d2d1dafeae928658fe230a7faf2150cb5090b70",
+      "source": "/assets/avatars/santa/audio/phrase_2_start.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_3_success",
-      "durationSeconds": 4.826961451247166,
+      "durationSeconds": 3.435986394557823,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "43acb3490f8cc04e555ea54ebb582e47a3eeabeecf046b2c6789133b37913470",
+      "source": "/assets/avatars/santa/audio/phrase_3_success.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_4_retry",
-      "durationSeconds": 3.295986394557823,
+      "durationSeconds": 3.355986394557823,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "7f339de2db892f188676048a809d62219a00c050267b126087e6361df69aae48",
+      "source": "/assets/avatars/santa/audio/phrase_4_retry.wav?v=chatterbox-1"
     },
     {
       "id": "phrase_5_milestone",
-      "durationSeconds": 2.343015873015873,
+      "durationSeconds": 3.075986394557823,
       "sampleRate": 44100,
       "channels": 1,
-      "playback": "started"
+      "playback": "started",
+      "sha256": "17681fe15c5d38f418e9eecdda3e000b037fa43538ac890630944210e64245b3",
+      "source": "/assets/avatars/santa/audio/phrase_5_milestone.wav?v=chatterbox-1"
     }
   ],
-  "scope": "Real native Chromium AudioContext decoding and HTMLAudioElement playback requests for all33files. Not subjective listening, transcription or full-clip end-to-end playback."
+  "scope": "Retained native Chromium results for 28 unchanged effects. Five current Røst phrases were decoded and played after trusted Chrome clicks through the versioned avatar player and service worker. This verifies decoding and playback start."
 }

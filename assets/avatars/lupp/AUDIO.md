@@ -12,16 +12,15 @@ SFX er særligt komponeret til LUPPs lilla lerfigur: bløde lertrin, små plop, 
 4. En fejl er en invitation til et nyt forsøg.
 5. Dit spil er ude i verden. Lad os se, hvad spillerne gør!
 
-Talen er syntetiseret lokalt med den installerede danske Windows OneCore-stemme Microsoft Helle (Female). SpeakingRate1.0 og AudioPitch1.03 giver et let livligt, tydeligt udtryk; efterbehandling bruger let varm EQ, en lille tilstedeværelsesløftning, præcis resampling og korte sikre fades. Stemmens faktiske metadata og rå lokale renderinger er bevaret i den komplette workspace-pakke design/lupp-avatar-v1/scripts/audio/raw/voice.json og samme mappe. Ingen ekstern API, stemmekloning eller robotvocoder anvendes.
+Platformens tale er genereret med dansk Røst Chatterbox og en syntetisk stemmereference formet til LUPPs lyse, lette og legende klang. Referencens fingerprint, modelrevision, indstillinger og hvert klips SHA-256 står i `speech-provenance.json`. Se [den fælles stemmeproduktion](../voices/README.md).
 
 ## Filer og genskabelse
 
 - audio-manifest.json forbinder alle28action-id'er og fem replikker til de faktiske WAV-filer.
-- audio-demo.wav giver en samlet prøve af bevægelse, evner, ultimate, jubel og alle replikker; audio-demo-cues.json giver tidspunkter.
+- Den arkiverede masterpakke `design/lupp-avatar-v1/` indeholder `audio-demo.wav`, cuefil og rå renderinger med den oprindelige Microsoft Helle-stemme.
 - all-sfx-preview.wav indeholder alle28SFX i rækkefølge med tilhørende cue-JSON.
-- ../scripts/audio/generate_audio.py er den fulde selvstændige generator for de28originale SFX og den lokale talepakning.
-- render_danish_speech.ps1 renderer de præcise danske tekster med WinRT uden netværkskald.
-- verify_audio.py undersøger signalet og sikrer33forskellige bølgeformer, korrekt format, duration, RMS, peak, DC, stilhed og klikfri kanter. Hashes sammenlignes også mod alle tre tidligere avatarpakker.
-- verify_browser.cjs bruger rigtig Chrome AudioContext-afkodning og HTMLAudioElement.play()-løfter for alle33WAV-filer. Det dokumenterer succesfuld afkodning og native afspilningsstart, ikke subjektiv lytning eller et fuldt afspillet klip.
+- De arkiverede scripts `generate_audio.py` og `render_danish_speech.ps1` kan genskabe den oprindelige masterpakke med dens SFX og WinRT-tale.
+- Runtime-rapporten `audio-validation.json` angiver målt PCM-format, varighed, RMS, peak, DC, stilhed, endepunkter og SHA-256.
+- Browserkontrollen registrerer Chrome AudioContext-afkodning og HTMLAudioElement-afspilningsstart i `browser-audio-validation.json`.
 
-Værktøjet understøtter ikke subjektiv lyttekontrol eller taletransskription; sådan en kontrol påstås ikke. Se audio-validation.json og browser-audio-validation.json for faktisk målte resultater og SHA256.
+Signal- og browserresultater kan læses i de to runtime-rapporter. Udtale og stemmeklang vurderes ved lytning.

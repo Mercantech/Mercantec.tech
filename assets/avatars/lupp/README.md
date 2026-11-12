@@ -33,7 +33,7 @@ Alle kropsark viser tomme hænder uden blyant, controller, projektil eller effek
 4. En fejl er en invitation til et nyt forsøg.
 5. Dit spil er ude i verden. Lad os se, hvad spillerne gør!
 
-Talen er syntetiseret lokalt med den installerede danske WinRT-stemme Microsoft Helle med let livlig tonehøjde og normal hastighed; stemmens faktiske metadata findes i lydrapporten. Der er ingen ekstern stemme-API. Værktøjet understøtter ikke subjektiv lyttekontrol; der påstås kun signal-, fil- og browserkontrol. Lyden afspilles først efter et klik. Se `audio/audio-validation.json` og lydens egen dokumentation.
+Platformens fem replikker er genereret lokalt med dansk Røst Chatterbox og LUPPs egen lyse, legende stemmereference. Lyden afspilles efter et klik. Den oprindelige masterpakke indeholder den arkiverede Microsoft Helle-indspilning. Se [den fælles stemmeproduktion](../voices/README.md) og [LUPPs lydpakke](AUDIO.md).
 
 ## Oplåsning og platform
 

@@ -10,31 +10,20 @@
 4. `phrase_4_retry.wav`: En lille pause, og så prøver vi igen.
 5. `phrase_5_milestone.wav`: Sammen får vi magien til at virke!
 
-Talen er faktisk renderet lokalt gennem Windows OneCore. Scriptet foretrækker en installeret dansk mandestemme; denne maskine har kun **Microsoft Helle (da-DK, Female)**. Den konkrete leverance bruger derfor Helle med taletempo0,93 og tonehøjde0,76, varm EQ og resampling til karakterens mørkere klang. Stemmens identitet og de installerede danske stemmer fremgår ærligt af manifestet og `scripts/audio/raw/voice.json`. Der er ikke tale om en indspillet skuespillerstemme, stemmekloning eller en ekstern lyd-API.
+Platformens tale er genereret med dansk Røst Chatterbox og en syntetisk stemmereference formet til Julemandens varme, fyldige klang. Let rum giver stemmen resonans. Referencens fingerprint, modelrevision, indstillinger og hvert klips SHA-256 står i `speech-provenance.json`. Se [den fælles stemmeproduktion](../voices/README.md).
 
 ## Filer og afspilning
 
 - `audio-manifest.json`: alle28handlings-ID'er, fem replikker, præcise varigheder, beskrivelser og provenance.
-- `audio-demo.wav` og `audio-demo-cues.json`: samlet prøve af bevægelse, alle evner, ultimate, jubel og fem replikker.
+- Arkivets `audio-demo.wav` og `audio-demo-cues.json`: prøve af bevægelse, evner, ultimate, jubel og de oprindelige Microsoft Helle-replikker.
 - `all-sfx-preview.wav` og cuefil: samtlige28lydeffekter i rækkefølge.
-- `audio-validation.json`: PCM-format, varighed, RMS, peak/DC, stilhed, bløde kanter, SHA256 og unikke bølgeformer.
+- `audio-validation.json`: PCM-format, varighed, RMS, peak/DC, stilhed, endepunkter, SHA-256 og unikke bølgeformer.
 - `browser-audio-validation.json`: alle33WAV-filer afkodet af Chrome AudioContext og en succesfuld HTMLAudioElement-afspilningsstart pr. fil.
 
 28SFX følger nøjagtigt karakterens28handlings-ID'er. Fodtrin er ét klip pr. fodkontakt; idle og søvn starter ikke automatisk vedvarende baggrundslyd. Pickup/interact er generiske og angiver ikke materialet på en bestemt genstand. Evnelyde følger Stjerneskud, Gavegreb, Julefred, Kanesus, Julevarme og Den store gavefest.
 
-Lydværktøjerne her understøtter ikke subjektiv lytning eller automatisk transskription. Rapporter beskriver derfor de faktisk udførte signal-/browserkontroller og påstår ikke ørekontrol af stemmekvalitet eller udtale. Demoen gør manuel lytning mulig.
+Signal- og browserresultater kan læses i runtime-rapporterne. Udtale og stemmeklang vurderes ved lytning.
 
 ## Genskabelse
 
-Fra fuldpakkens rod på Windows, med Python3, ffmpeg i PATH og en installeret da-DK OneCore-stemme:
-
-```text
-python scripts/audio/generate_audio.py
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/audio/render_danish_speech.ps1
-python scripts/audio/generate_audio.py
-python scripts/audio/verify_audio.py
-node scripts/audio/verify_browser.cjs
-python scripts/audio/publish_audio.py --repo ../santa-avatar-release-20261109
-```
-
-Browserkontrollen bruger Playwright og lokal Google Chrome. `SANTA_BROWSER` kan angive en anden installeret Chromium-eksekverbar fil. Der læses ingen API-nøgler. Alle kildekoder, rå OneCore-WAV-filer og stemmeparametre bevares i fuldpakken. Runtime får de33enkeltklip og JSON-manifester/rapporter; de to længere demo-WAV-filer ligger kun i fuldpakken.
+Den arkiverede masterpakke `design/santa-avatar-v1/` indeholder SFX-generatoren, rå WinRT-filer og lydprøver fra den oprindelige produktion. Brug [Røst-arbejdsgangen](../voices/README.md) til platformens replikker. De 33 enkeltklip og JSON-manifester ligger i runtime. Demoerne ligger i masterpakken.

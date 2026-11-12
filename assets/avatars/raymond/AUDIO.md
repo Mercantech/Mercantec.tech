@@ -4,9 +4,9 @@
 
 - Format: PCM16 WAV, mono, 44.100 Hz.
 - Karakter: varme træresonanser, bløde tunge elefantfodtrin, cardigan-/luftbevægelser og venlige snabel-/hornklange.
-- Tale: den installerede danske Windows OneCore-stemme Microsoft Helle med separat, lavere karaktertone (AudioPitch 0,86), rolig talehastighed 0,97 og mild varm EQ. Det er lokal syntetisk tale; ingen stemmekloning eller ekstern API.
+- Tale: dansk Røst Chatterbox med en syntetisk stemmereference formet til Raymonds dybe, rolige klang. Se [den fælles stemmeproduktion](../voices/README.md).
 - Raymond har ikke robottens ringmodulation, bip eller forsinkede robotstemme. Ingen BIP-01-lydfiler er genbrugt.
-- Headroom: maksimal peak er under −2,3 dBFS; alle filer har bløde ind-/udfasninger og ingen hårde kliks i enderne. Små bevægelser har bevidst lavere lydstyrke end angreb.
+- Små lydeffekter har bevidst lavere lydstyrke end angreb. Talen eksporteres med en peakbegrænser.
 - `walk.wav` og `run.wav` er ét fodtrin pr. kontakt, så spillet kan time dem til hver fod, i stedet for at køre et forkert fast gangloop.
 - Alle filer er hændelseslyde. Ingen automatisk konstant idle-/sovelyd eller tale.
 
@@ -14,9 +14,9 @@
 
 `audio-manifest.json` beskriver de 28 præcise action-id'er, danske labels, taletekst, varigheder og afspilningsregler. `file` er relativ til denne mappe; `path` er relativ til avatarpakkens rod.
 
-`audio-demo.wav` er en 39,59 sekunders gennemgang af bevægelse, de fem evner, ultimate og alle fem replikker. `audio-demo-cues.json` indeholder starttider. `all-sfx-preview.wav` afspiller alle 28 lyde, og `all-sfx-preview-cues.json` viser deres rækkefølge.
+`speech-provenance.json` angiver stemmereferencens fingerprint, modelrevision, indstillinger og klippenes SHA-256. Den arkiverede masterpakke indeholder `audio-demo.wav` med de oprindelige Microsoft Helle-replikker, cuefiler og `all-sfx-preview.wav` med de 28 lydeffekter.
 
-`audio-validation.json` kontrollerer samtlige 33 filer: format, varighed, peak, RMS, DC-offset, lydløse endepunkter, signal og forskellige SHA-256-fingeraftryk. `browser-audio-validation.json` dokumenterer, at Chromium kan afkode alle filer og starte afspilning af alle fem replikker. Der er ingen automatisk transskription eller påstået menneskelig lyttekontrol i disse rapporter. Brug previewet til den subjektive lyttevurdering.
+Masterpakkens oprindelige signal- og browserrapporter beskriver de arkiverede optagelser. Platformens stemmeproveniens beskriver de fem nye runtime-filer.
 
 ## De fem replikker
 
@@ -40,14 +40,4 @@
 
 ## Genskab
 
-Kør fra workspace-roden:
-
-```text
-python design/raymond-avatar-v2/scripts/audio/generate_audio.py
-powershell.exe -NoProfile -NonInteractive -File design/raymond-avatar-v2/scripts/audio/render_danish_speech.ps1
-python design/raymond-avatar-v2/scripts/audio/generate_audio.py
-python design/raymond-avatar-v2/scripts/audio/verify_audio.py
-node design/raymond-avatar-v2/scripts/audio/verify_browser.cjs
-```
-
-SFX-scriptet bruger Python-standardbiblioteket. Talerenderingen kræver Windows med en installeret da-DK OneCore-stemme; den ændrer ikke registreringsdatabasen og installerer ikke noget. FFmpeg bruges til høj kvalitet ved resampling og mild EQ. Originale rå talefiler samt de faktiske lokale stemmeindstillinger gemmes under `scripts/audio/raw/`.
+Den arkiverede masterpakke `design/raymond-avatar-v2/` indeholder SFX-generatoren, rå WinRT-filer og lydprøver fra den oprindelige produktion. Brug [Røst-arbejdsgangen](../voices/README.md) til platformens replikker.

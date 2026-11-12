@@ -1,7 +1,7 @@
 {
-  "date": "2026-11-10",
+  "date": "2026-11-12",
   "title": "Lås figurer op med guld og opgaver",
-  "description": "Din avatarsamling følger kontoen, og figurer har egne aktivitetskrav. LUPP låses gratis op, når du har uploadet dit eget browser-spil som HTML eller ZIP under Mine spil. Han har 28 handlinger, 224 animationsbilleder, 33 lydklip, ansigtsikon og fire emojis samt fem særlige evner og Game Jam i Arena. Send julegaver til tre forskellige brugere for at kunne låse Julemanden op; level 4 og 150 guld kræves også. Fremskridt kommer fra gemte aktiviteter, og allerede oplåste figurer bevares.",
+  "description": "BIP-01, Raymond, Julemanden og LUPP har fået hver sin danske Chatterbox-stemme til deres fem replikker i avatarsamlingen. Din avatarsamling følger kontoen, og figurer har egne aktivitetskrav. LUPP låses gratis op, når du har uploadet dit eget browser-spil som HTML eller ZIP under Mine spil. Han har 28 handlinger, 224 animationsbilleder, 33 lydklip, ansigtsikon og fire emojis samt fem særlige evner og Game Jam i Arena. Send julegaver til tre forskellige brugere for at kunne låse Julemanden op. Det kræver også level 4 og 150 guld. Fremskridt kommer fra gemte aktiviteter, og allerede oplåste figurer bevares.",
   "authors": ["Kasper"],
   "after": { "id": "avatar-unlock-requirements", "alt": "Avatarsamlingen viser Julemandens krav med julegaver sendt til to ud af tre forskellige brugere." },
   "before": { "id": "avatar", "alt": "Den tidligere avatar-editor med udseendevalg og garderobe." }

@@ -44,8 +44,12 @@ test('all complete avatar packs allow their exact 28 effects and five spoken fil
     const actions = ['idle','blink','wave','think','talk','point','celebrate','encourage','surprised','unlock','walk','run','jump','land','sit','sleep','pickup','interact','hit','knockout','respawn','ability_1_pulse','ability_2_magnet','ability_3_shield','ability_4_dash','ability_5_repair','ultimate_charge','ultimate_release'];
     const phrases = ['phrase_1_welcome','phrase_2_start','phrase_3_success','phrase_4_retry','phrase_5_milestone'];
     for (const avatar of ['bip-01', 'raymond', 'santa', 'lupp']) {
-        for (const id of [...actions, ...phrases])
-            assert.equal(await api.play(`/assets/avatars/${avatar}/audio/${id}.wav`), true, avatar + '/' + id);
+        for (const id of [...actions, ...phrases]) {
+            const file = `/assets/avatars/${avatar}/audio/${id}.wav`;
+            assert.equal(await api.play(file), true, avatar + '/' + id);
+            const expectedSource = phrases.includes(id) ? file + '?v=chatterbox-1' : file;
+            assert.equal(audio.at(-1).file, expectedSource);
+        }
     }
     assert.equal(audio.length, 132);
     assert.ok(audio.slice(0, -1).every(clip => clip.paused && clip.currentTime === 0));
@@ -60,6 +64,7 @@ test('audio allowlist rejects remote, invented, traversal and modified URLs', as
         '/assets/avatars/raymond/audio/./walk.wav', '/assets/avatars/raymond/audio/%77alk.wav',
         '/assets/avatars/raymond/audio/phrase_1_invented.wav', '/assets/avatars/raymond/audio/invented.wav',
         '/assets/avatars/raymond/audio/walk.wav?url=https://example.com',
+        '/assets/avatars/raymond/audio/phrase_1_welcome.wav?v=chatterbox-1',
         '/assets/avatars/raymond/audio/walk.wav#fragment', '/assets/avatars/raymond/audio/walk.wav ',
         '/assets/avatars/raymond/audio/walk.wav\n',
         null, {}, 5

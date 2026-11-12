@@ -332,8 +332,9 @@ const results=[];results.push=(...values)=>{console.log(...values);return Array.
     const audioBefore=await fullAvatarPage.evaluate(()=>window.__avatarAudio.length);
     await fullAvatarPage.getByRole('button',{name:'Hør replikken',exact:false}).click();
     await fullAvatarPage.waitForFunction(before=>window.__avatarAudio.length===before+1,audioBefore);
-    assert.ok((await fullAvatarPage.evaluate(()=>window.__avatarAudio.at(-1))).endsWith(`/assets/avatars/${globalThis.__qaAvatar.id}/audio/`+phraseFiles[i]),'Spoken phrase '+(i+1));
-    await fullAvatarPage.waitForFunction(file=>window.__avatarAudioPlayed.some(source=>source.endsWith(file)),`/assets/avatars/${globalThis.__qaAvatar.id}/audio/`+phraseFiles[i]);
+    const phrasePath=`/assets/avatars/${globalThis.__qaAvatar.id}/audio/`+phraseFiles[i];
+    assert.equal(new URL(await fullAvatarPage.evaluate(()=>window.__avatarAudio.at(-1)),base).pathname,phrasePath,'Spoken phrase '+(i+1));
+    await fullAvatarPage.waitForFunction(file=>window.__avatarAudioPlayed.some(source=>new URL(source,location.href).pathname===file),phrasePath);
     await fullAvatarPage.getByRole('button',{name:'Næste replik',exact:true}).click();
     await fullAvatarPage.waitForFunction(previous=>document.querySelector('.avatar-phrases blockquote')?.textContent!==previous,phrase);
     assert.equal(await fullAvatarPage.evaluate(()=>window.__avatarAudio.length),audioBefore+1,'Changing phrase must not autoplay speech');
