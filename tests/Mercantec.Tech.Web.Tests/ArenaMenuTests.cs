@@ -184,7 +184,7 @@ public sealed class ArenaMenuTests
         var page = context.Render<Arena>();
         page.WaitForAssertion(() => Assert.Equal(1, javascript.Module.MountCount));
 
-        Assert.Equal("./js/arena-client.js?v=8", javascript.ImportPath);
+        Assert.Equal("./js/arena-client.js?v=20261112-2", javascript.ImportPath);
         Assert.Equal(new[] { "soundPreference", "soundVolume", "mount" }, javascript.Module.Calls.Take(3));
         Assert.True(javascript.Module.MountedSound);
         var sound = page.Find(".arena-topbar [data-arena-sound-toggle]");

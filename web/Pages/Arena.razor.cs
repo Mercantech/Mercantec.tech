@@ -89,7 +89,7 @@ public partial class Arena
             await World.BindAvatarProfileAsync(Auth.IsAuthenticated ? Auth.Subject : null);
             if (_disposed) return;
             _selectedAvatarId = World.SelectedAvatarId;
-            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=8");
+            _module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/arena-client.js?v=20261112-2");
             if (_disposed) { await _module.DisposeAsync(); _module = null; return; }
             _sound = await _module.InvokeAsync<bool>("soundPreference");
             _soundVolume = Math.Clamp(await _module.InvokeAsync<double>("soundVolume"), 0, 100);

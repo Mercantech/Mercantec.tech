@@ -6,7 +6,7 @@ const moduleUrl = source => 'data:text/javascript;base64,' + Buffer.from(source)
 const js = file => readFile(new URL('../web/wwwroot/js/' + file, import.meta.url), 'utf8');
 let rendererSource = await js('arena-renderer.js');
 for (const file of ['arena-avatar-art.js', 'arena-effect-art.js', 'arena-motion.js']) {
-    const expression = new RegExp("'\\./" + file.replace('.', '\\.') + "\\?v=\\d+'");
+    const expression = new RegExp("'\\./" + file.replace('.', '\\.') + "\\?v=[a-zA-Z0-9_-]+'");
     rendererSource = rendererSource.replace(expression, JSON.stringify(moduleUrl(await js(file))));
 }
 const { ArenaRenderer } = await import(moduleUrl(rendererSource));

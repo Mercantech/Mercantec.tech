@@ -1,6 +1,6 @@
-import { ArenaRenderer } from './arena-renderer.js?v=8';
-import { createArenaAudio, audioAvatarForEvent } from './arena-audio.js?v=3';
-import { ArenaInputBuffer, arenaNeutralInput } from './arena-input.js?v=1';
+import { ArenaRenderer } from './arena-renderer.js?v=20261112-2';
+import { createArenaAudio, audioAvatarForEvent } from './arena-audio.js?v=20261112-2';
+import { ArenaInputBuffer, arenaNeutralInput } from './arena-input.js?v=20261112-2';
 
 const soundStorageKey = 'lup.arena.sound.v1';
 const volumeStorageKey = 'lup.arena.volume.v1';
