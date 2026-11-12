@@ -1,31 +1,6 @@
 @page "/settings"
-@using Mercantec.Tech.Web.Theming
-@inject AuthService Auth
-@inject IJSRuntime Js
+@inject NavigationManager Nav
 
-<PageTitle>Indstillinger · LUP</PageTitle>
-@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Indstillinger</h1><p>Log ind for at åbne dine indstillinger.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
-else
-{
-    <header class="page-title"><div><h1>Indstillinger</h1></div></header>
-    <section class="panel settings-appearance"><h2>Udseende</h2><label class="field">Tema<select value="@_theme" @onchange="SetTheme">@foreach (var theme in ThemeCatalog.All) { <option value="@theme.Id">@theme.Name</option> }</select></label></section>
-    <div class="settings-links">
-        <NavigationCard Href="/profile" Title="Min profil" Description="Dine kontooplysninger." Icon="people" />
-        <NavigationCard Href="/lectio" Title="Lectio-kobling" Description="Din forbindelse til Lectio." Icon="calendar" />
-        <NavigationCard Href="/rights" Title="Mine rettigheder" Description="Indsigt i og håndtering af dine personoplysninger." Icon="shield" />
-        <NavigationCard Href="/help" Title="Hjælp" Description="Vejledning til LUP." Icon="book" />
-    </div>
-}
 @code {
-    private string _theme = "system";
-    private bool _themeLoaded;
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_themeLoaded || !Auth.IsAuthenticated) return;
-        _themeLoaded = true;
-        _theme = await Js.InvokeAsync<string>("lupTheme.get");
-        StateHasChanged();
-    }
-    private async Task SetTheme(ChangeEventArgs e) { _theme = e.Value?.ToString() ?? "system"; await Js.InvokeVoidAsync("lupTheme.set", _theme); }
+    protected override void OnInitialized() => Nav.NavigateTo("/profile#indstillinger", replace: true);
 }

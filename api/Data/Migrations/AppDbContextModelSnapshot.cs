@@ -2230,6 +2230,21 @@ namespace Mercantec.Tech.Api.Data.Migrations
                     b.ToTable("poll_rounds", (string)null);
                 });
 
+            modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.ProfileName", b =>
+                {
+                    b.Property<Guid>("UserSub")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("UserSub");
+
+                    b.ToTable("profile_names", (string)null);
+                });
+
             modelBuilder.Entity("Mercantec.Tech.Api.Data.Entities.QuestAudienceGroup", b =>
                 {
                     b.Property<Guid>("QuestId")

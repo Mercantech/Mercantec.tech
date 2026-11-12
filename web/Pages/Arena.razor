@@ -1,5 +1,6 @@
 @page "/arena"
 @page "/games/arena"
+@using Mercantec.Tech.Web.Characters
 @layout ArenaLayout
 @implements IAsyncDisposable
 
@@ -7,7 +8,7 @@
 <div class="arena-shell @(_screen == "main" ? "is-main" : "") @(IsBattle ? "is-battle" : "")" @onkeydown="MenuKey">
     <div class="arena-keyart" aria-hidden="true"></div>
     <header class="arena-topbar">
-        <a href="/universe" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
+        <a href="@(Auth.IsAuthenticated ? "/profile#mit-univers" : "/")" class="arena-home" aria-label="Tilbage til LUP"><span class="arena-lup-mark">LUP</span><span>Tilbage til LUP</span></a>
         <div class="arena-top-actions">
             @if (_room is not null) { <span class="arena-room-tag">@_room.Code</span> }
             <button class="arena-icon-button" data-arena-sound-toggle="true" @onclick="ToggleSound" aria-label="@(_sound ? "Slå lyd fra" : "Slå lyd til")" aria-pressed="@(_sound ? "true" : "false")">
@@ -34,16 +35,50 @@
 
     @if (_screen is "setup" or "fighters")
     {
-        <main class="arena-screen arena-selection-screen">
-            <header class="arena-screen-header"><button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button><h1>@(_screen == "fighters" ? "Kæmpere" : "Træning")</h1><a href="/profile/character" class="arena-subtle-link">Min samling</a></header>
+        var isRoster = _screen == "fighters";
+        var ownershipPending = isRoster && Auth.IsAuthenticated && !World.AvatarProfileReady;
+        <main class="arena-screen arena-selection-screen @(isRoster ? "arena-fighters-screen" : null)">
+            <header class="arena-screen-header">
+                <button class="arena-back" @onclick="Back"><span>‹</span> Tilbage</button>
+                <h1>@(isRoster ? "Kæmpere" : "Træning")</h1>
+                @if (isRoster)
+                {
+                    <a href="@ArenaFighters.RosterPath" class="arena-subtle-link">Karaktergalleri</a>
+                }
+                else
+                {
+                    <a href="/profile/character" class="arena-subtle-link">Min samling</a>
+                }
+            </header>
             <div class="arena-selection-layout">
                 <section class="arena-roster" aria-label="Vælg kæmper">
                     @foreach (var avatar in AvatarCatalog.All)
                     {
                         var owned = Owns(avatar.Id);
-                        <button class="arena-fighter @(_selectedAvatarId == avatar.Id ? "is-selected" : "")" disabled="@(!owned || _loading)" @onclick="() => SelectFighter(avatar.Id)" aria-pressed="@(_selectedAvatarId == avatar.Id ? "true" : "false")">
-                            <img src="@Portrait(avatar.Id)" alt="" /><span><strong>@FighterName(avatar.Id)</strong><small>@(owned ? FighterRole(avatar.Id) : "Låst")</small></span><span class="arena-choice-mark">@(_selectedAvatarId == avatar.Id ? "✓" : "")</span>
-                        </button>
+                        var showUnlock = isRoster && !owned && !ownershipPending;
+                        var requirements = showUnlock ? ArenaFighters.Requirements(avatar.Id) : null;
+                        var unlockId = requirements is { Count: > 0 } ? $"arena-unlock-{avatar.Id}" : null;
+                        var status = owned ? FighterRole(avatar.Id) : "Låst";
+                        if (!owned && ownershipPending)
+                            status = _loading ? "Indlæser…" : "Ejerskab ukendt";
+
+                        <div class="arena-fighter-entry @(showUnlock ? "has-unlock" : null)">
+                            <button class="arena-fighter @(_selectedAvatarId == avatar.Id ? "is-selected" : "")" disabled="@(!owned || _loading)" @onclick="() => SelectFighter(avatar.Id)" aria-pressed="@(_selectedAvatarId == avatar.Id ? "true" : "false")" aria-describedby="@unlockId">
+                                <img src="@Portrait(avatar.Id)" alt="" />
+                                <span><strong>@FighterName(avatar.Id)</strong><small>@status</small></span>
+                                <span class="arena-choice-mark" aria-hidden="true">@(_selectedAvatarId == avatar.Id ? "✓" : "")</span>
+                            </button>
+                            @if (showUnlock)
+                            {
+                                <div class="arena-fighter-unlock">
+                                    @if (requirements is { Count: > 0 })
+                                    {
+                                        <p id="@unlockId">@string.Join(" · ", requirements)</p>
+                                    }
+                                    <a href="@ArenaFighters.CollectionPath(avatar.Id)" aria-label="@($"{FighterName(avatar.Id)} i min samling")">Se i min samling <span aria-hidden="true">↗</span></a>
+                                </div>
+                            }
+                        </div>
                     }
                 </section>
                 <section class="arena-fighter-showcase" aria-label="@FighterName(_selectedAvatarId)"><img src="@Portrait(_selectedAvatarId)" alt="@FighterName(_selectedAvatarId)" /><div><h2>@FighterName(_selectedAvatarId)</h2><p>@FighterSpecial</p></div></section>

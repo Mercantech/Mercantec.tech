@@ -1,0 +1,77 @@
+.character-arena {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px 24px;
+    margin-top: 32px;
+    padding: 19px 21px;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--paper);
+}
+
+.character-arena-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    min-width: 0;
+}
+
+.character-arena-info h2 {
+    font-size: 20px;
+    line-height: 1.35;
+}
+
+.character-arena-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 39px;
+    height: 39px;
+    border-radius: 8px;
+    background: var(--tint);
+    color: var(--blue);
+}
+
+.character-arena-icon ::deep .ui-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.character-arena-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 15px;
+    margin: 7px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.character-arena-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.character-arena-links > a {
+    min-height: 40px;
+}
+
+@media (max-width: 900px) {
+    .character-arena {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .character-arena {
+        padding: 16px 14px;
+    }
+
+    .character-arena-info h2 {
+        font-size: 18px;
+    }
+}

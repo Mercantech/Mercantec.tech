@@ -167,7 +167,6 @@ function initializeBrowser(seed) {
 
 async function prepare(page, id) {
   if (id === 'editor') await page.locator('.notion-editor-root').getByText('Forbind sensoren, send målingen med MQTT', { exact: false }).waitFor();
-  if (id === 'themes') await page.locator('.theme-trigger').first().click();
   if (id === 'lectio') await page.getByRole('tab', { name: 'Elever', exact: true }).click();
   if (id === 'lectio-linking') {
     await page.getByRole('tab', { name: 'Kobling', exact: true }).click();
@@ -220,12 +219,6 @@ async function regionReady(page, selector) {
 
 async function saveImage(page, locator, outputDir, id) {
   const region = await locator.boundingBox();
-  // The profile's third panel is a raw diagnostic response, below the two user-facing panels.
-  if (id === 'profile') {
-    const info = await locator.locator('.panel').nth(1).boundingBox();
-    if (!info) throw new CaptureFailure('capture_not_ready');
-    region.height = Math.min(region.height, info.y + info.height - region.y);
-  }
   let clip = captureBounds(region);
   let bytes;
   for (let attempt = 0; attempt < 5; attempt++) {

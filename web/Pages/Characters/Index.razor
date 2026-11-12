@@ -1,5 +1,8 @@
 @page "/characters"
 @using Mercantec.Tech.Web.Characters
+@inject NavigationManager Nav
+@inject IJSRuntime Js
+@implements IDisposable
 
 <PageTitle>Karakterer · LUP</PageTitle>
 <div class="characters">
@@ -7,7 +10,10 @@
         <p class="characters-eyebrow">LUPs univers</p>
         <h1>Mød karaktererne</h1>
         <p>Mød underviserne i Game Design, SQL, backendprogrammering, Machine Learning, IoT og embedded, cybersikkerhed, softwaretest og DevNet. Lær at fejlfinde med Gummianden, og se, hvad Vatson arbejder med hos VATek.</p>
-        <a class="characters-library-link" href="/library?category=characters">Karakterer i Oversigt <span aria-hidden="true">→</span></a>
+        <div class="character-index-links">
+            <a class="characters-library-link" href="/library?category=characters">Karakterer i Oversigt</a>
+            <a class="characters-library-link" href="@ArenaFighters.RosterPath"><UiIcon Name="game" /> Kæmpere i Arena</a>
+        </div>
     </header>
 
     <div class="character-grid">
@@ -17,5 +23,62 @@
         }
     </div>
 
-    <p class="characters-footnote">Vælg en karakter for at se mere om deres fag, personlighed og plads i undervisningen.</p>
+    <section class="character-arena-roster" id="@ArenaFighters.RosterSectionId" tabindex="-1" aria-labelledby="arena-fighter-heading">
+        <header class="character-arena-heading">
+            <div>
+                <h2 id="arena-fighter-heading">Kæmpere i LUP Arena</h2>
+                <p>Startfiguren er klar med det samme. De øvrige figurer låses op i din avatarsamling.</p>
+            </div>
+            <a class="action" href="@ArenaFighters.PlayPath"><UiIcon Name="game" /> Åbn Arena</a>
+        </header>
+        <div class="character-arena-grid">
+            @foreach (var avatar in AvatarCatalog.All)
+            {
+                <article class="character-arena-fighter" aria-labelledby="@($"arena-fighter-{avatar.Id}")">
+                    @if (avatar.FaceImage is { } portrait)
+                    {
+                        <img src="@portrait" alt="" width="88" height="88" loading="lazy" />
+                    }
+                    <h3 id="@($"arena-fighter-{avatar.Id}")">
+                        @if (avatar.CharacterProfilePath is { } characterPath)
+                        {
+                            <a href="@characterPath">@avatar.Name</a>
+                        }
+                        else
+                        {
+                            @avatar.Name
+                        }
+                    </h3>
+                    <ul>
+                        @foreach (var requirement in ArenaFighters.Requirements(avatar.Id))
+                        {
+                            <li>@requirement</li>
+                        }
+                    </ul>
+                    <a class="character-arena-collection" href="@ArenaFighters.CollectionPath(avatar.Id)" aria-label="@($"Se {avatar.Name} i avatarsamlingen")">Se i avatarsamlingen</a>
+                </article>
+            }
+        </div>
+    </section>
 </div>
+
+@code {
+    private string? _handledLocation;
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var location = Nav.Uri;
+        if (_handledLocation == location)
+            return;
+
+        _handledLocation = location;
+        if (Nav.ToAbsoluteUri(location).Fragment == "#" + ArenaFighters.RosterSectionId)
+            await Js.InvokeVoidAsync("lupCharacterUi.scrollToSection", ArenaFighters.RosterSectionId);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

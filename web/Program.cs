@@ -13,6 +13,7 @@ builder.Services.Configure<RoleOptions>(builder.Configuration.GetSection(RoleOpt
 builder.Services.AddScoped<RoleResolver>();
 builder.Services.AddScoped<AuthRedirect>();
 builder.Services.AddScoped<ViewAsStudentContext>();
+builder.Services.AddScoped<Mercantec.Tech.Web.ProfileNames.ProfileNameState>();
 
 var apiBase = builder.Configuration["ApiBaseUrl"]?.Trim() ?? "/api/";
 Uri apiBaseUri;

@@ -3,6 +3,7 @@
 @inject AuthService Auth
 @inject NavigationManager Nav
 @inject IJSRuntime Js
+@implements IDisposable
 
 @if (_character is not { } character)
 {
@@ -76,6 +77,33 @@ else
             }
         </div>
 
+        @if (ArenaFighters.ForCharacter(character.Path) is { } fighter)
+        {
+            var requirements = ArenaFighters.Requirements(fighter.Id);
+            <section class="character-arena" aria-labelledby="character-arena-title">
+                <div class="character-arena-info">
+                    <span class="character-arena-icon"><UiIcon Name="game" /></span>
+                    <div>
+                        <h2 id="character-arena-title">@fighter.Name i LUP Arena</h2>
+                        @if (requirements.Count > 0)
+                        {
+                            <ul class="character-arena-requirements" aria-label="Krav for at låse karakteren op">
+                                @foreach (var requirement in requirements)
+                                {
+                                    <li>@requirement</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+                <div class="character-arena-links">
+                    <a class="action" href="@ArenaFighters.PlayPath">Åbn Arena</a>
+                    <a class="secondary" href="@ArenaFighters.RosterPath">Se alle kæmpere</a>
+                    <a class="secondary" href="@ArenaFighters.CollectionPath(fighter.Id)">Min avatarsamling</a>
+                </div>
+            </section>
+        }
+
         <CharacterAnimationGallery CharacterSlug="@character.Slug" CharacterName="@character.Name" Subject="@character.AnimationSubject" Items="@character.Animations" />
 
         <CharacterArtworkGallery CharacterSlug="@character.Slug" HeadingId="character-reactions-title"
@@ -107,26 +135,51 @@ else
     [Parameter] public string? Slug { get; set; }
     private CharacterProfile? _character;
     private int _appearanceIndex;
-    private string? _handledLocation, _pendingSection;
+    private string? _handledLocation;
+    private (string Id, string Location)? _pendingSection;
     private CharacterAppearance? SelectedAppearance => _appearanceIndex == 0 ? _character?.DisplayPortrait : _character?.Appearances.ElementAtOrDefault(_appearanceIndex);
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
 
     protected override void OnParametersSet()
     {
         var next = CharacterCatalog.Find(Slug);
-        if (_character?.Slug != next?.Slug) _appearanceIndex = 0;
-        _character = next;
-        if (_handledLocation != Nav.Uri)
+        if (_character?.Slug != next?.Slug)
         {
-            _handledLocation = Nav.Uri;
-            var fragment = new Uri(Nav.Uri).Fragment;
-            _pendingSection = next?.Materials.FirstOrDefault(material => "#" + material.SectionId == fragment)?.SectionId;
+            _appearanceIndex = 0;
+            _handledLocation = null;
+            _pendingSection = null;
         }
+        _character = next;
+        QueueSection(Nav.Uri);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args) => _ = InvokeAsync(() =>
+    {
+        if (args.Location == Nav.Uri && QueueSection(args.Location)) StateHasChanged();
+    });
+
+    private bool QueueSection(string location)
+    {
+        if (_character is not { } character || _handledLocation == location) return false;
+
+        var uri = Nav.ToAbsoluteUri(location);
+        var characterPath = Nav.ToAbsoluteUri(character.Path).AbsolutePath;
+        if (!string.Equals(uri.AbsolutePath.TrimEnd('/'), characterPath, StringComparison.OrdinalIgnoreCase)) return false;
+
+        _handledLocation = location;
+        var fragment = Uri.UnescapeDataString(uri.Fragment.TrimStart('#'));
+        var section = character.Materials.FirstOrDefault(material => material.SectionId == fragment)?.SectionId;
+        _pendingSection = section is null ? null : (section, location);
+        return _pendingSection.HasValue;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_pendingSection is not { } section) return;
         _pendingSection = null;
-        await Js.InvokeVoidAsync("lupCharacterUi.scrollToSection", section);
+        await Js.InvokeVoidAsync("lupCharacterUi.scrollToSection", section.Id, section.Location);
     }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
 }

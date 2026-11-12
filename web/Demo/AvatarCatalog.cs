@@ -89,7 +89,10 @@ public static class AvatarCatalog
                 new("starter-success", "success", "Sådan! Det var godt arbejde."),
                 new("starter-retry", "retry", "Et nyt forsøg gør os klogere."),
                 new("starter-unlock", "unlock", "En ny ven til samlingen!")
-            ])),
+            ]))
+        {
+            FaceImage = "/assets/arena/v2/portrait-starter.webp"
+        },
         new(Bip01Id, "BIP-01", "En lille robot med stor nysgerrighed og et ansigt fuldt af følelser.", 2, 150,
             Array.AsReadOnly<AvatarCatchphrase>(
             [

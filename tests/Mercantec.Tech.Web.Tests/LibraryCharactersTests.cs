@@ -207,15 +207,16 @@ public sealed class LibraryCharactersTests
             configure: services => services.AddSingleton<IJSRuntime>(javascript));
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo($"/characters/{slug}#{section}");
+        var location = navigation.Uri;
 
         var page = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, slug));
 
-        Assert.Equal(new[] { section }, javascript.Sections);
+        Assert.Equal(new[] { (section, location) }, javascript.Sections);
         Assert.Single(page.FindAll("#" + section));
         if (page.FindAll(".character-appearance-picker button") is { Count: > 1 } appearances)
             appearances[1].Click();
         page.Render(p => p.Add(x => x.Slug, slug));
-        Assert.Equal(new[] { section }, javascript.Sections);
+        Assert.Equal(new[] { (section, location) }, javascript.Sections);
     }
 
     [Fact]
@@ -227,13 +228,19 @@ public sealed class LibraryCharactersTests
             configure: services => services.AddSingleton<IJSRuntime>(javascript));
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("/characters/raymond#character-animations-title");
+        var animationLocation = navigation.Uri;
         var page = context.Render<CharacterDetail>(p => p.Add(x => x.Slug, "raymond"));
 
-        navigation.NavigateTo("/characters/raymond#character-reactions-title");
+        await page.InvokeAsync(() => navigation.NavigateTo("/characters/raymond#character-reactions-title"));
+        var reactionLocation = navigation.Uri;
         page.Render(p => p.Add(x => x.Slug, "raymond"));
         page.Render(p => p.Add(x => x.Slug, "raymond"));
 
-        Assert.Equal(new[] { "character-animations-title", "character-reactions-title" }, javascript.Sections);
+        Assert.Equal(new[]
+        {
+            ("character-animations-title", animationLocation),
+            ("character-reactions-title", reactionLocation)
+        }, javascript.Sections);
     }
 
     [Theory]
@@ -258,14 +265,18 @@ public sealed class LibraryCharactersTests
 
     private sealed class ScrollJavascript : IJSRuntime
     {
-        public List<string> Sections { get; } = [];
+        public List<(string Section, string Location)> Sections { get; } = [];
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
             => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (identifier == "lupCharacterUi.scrollToSection")
-                Sections.Add(Assert.IsType<string>(Assert.Single(args!)));
+            {
+                Assert.NotNull(args);
+                Assert.Equal(2, args.Length);
+                Sections.Add((Assert.IsType<string>(args[0]), Assert.IsType<string>(args[1])));
+            }
             return ValueTask.FromResult(default(TValue)!);
         }
     }

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Bunit;
+using Bunit.TestDoubles;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Avatars;
 using Mercantec.Tech.Web.Components;
@@ -128,6 +129,34 @@ public sealed class AvatarRequirementTests
         Assert.False(await world.TryUnlockAvatarAsync(AvatarEconomy.SantaId));
         Assert.Equal(0, api.UnlockCalls);
         Assert.Equal(170, world.Gold);
+    }
+
+    [Fact]
+    public async Task Avatar_collection_link_previews_the_requested_fighter_without_selecting_or_unlocking_it()
+    {
+        using var api = new RequirementApi { Subject = LearningUiTestContext.AccountId.ToString() };
+        api.Profiles[api.Subject] = Profile(0);
+        await using var context = await LearningUiTestContext.CreateAsync(api, configure: services =>
+        {
+            services.AddSingleton<IAvatarClient>(api);
+            services.AddSingleton<DemoWorld>();
+            services.AddSingleton<GiftMailboxClient>();
+        });
+        var navigation = context.Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
+        navigation.NavigateTo("/profile/character?avatar=santa");
+        context.ComponentFactories.AddStub<AvatarLayerPreview>();
+        var page = context.Render<Mercantec.Tech.Web.Pages.Demo.Universe>();
+
+        page.WaitForAssertion(() => Assert.Equal("Julemanden", page.Find("#avatar-preview-title").TextContent.Trim()));
+        Assert.True(page.Find("[data-testid=unlock-santa]").HasAttribute("disabled"));
+        Assert.Equal(AvatarEconomy.StarterId, context.Services.GetRequiredService<DemoWorld>().SelectedAvatarId);
+        Assert.Equal(0, api.UnlockCalls);
+
+        page.Find("[data-avatar-id=starter] .avatar-inspect").Click();
+        Assert.Equal("Din første avatar", page.Find("#avatar-preview-title").TextContent.Trim());
+        Assert.Single(page.FindAll(".avatar-preview-canvas .arena-starter-preview"));
+        Assert.Equal("/assets/arena/v2/portrait-starter.webp",
+            page.Find("[data-avatar-id=starter] .avatar-inspect img").GetAttribute("src"));
     }
 
     [Fact]

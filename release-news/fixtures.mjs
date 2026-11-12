@@ -106,6 +106,7 @@ export function fixtureResponse(urlLike, method = 'GET') {
     return json({ error: 'capture_fixture_mutation_blocked' }, 404);
   }
   if (p === 'me') return json({ sub: T, name: 'Underviser QA', email: 'underviser@example.test', roles: ['Teacher'] });
+  if (p === 'me/profile') return json({ displayName: 'Underviser QA' });
   if (p === 'me/avatars') return json(avatarProfile);
   if (p === 'me/actions') return json({ generatedAtUtc: stamp, items: actionItems });
   if (p === 'me/actions/read') return json({});

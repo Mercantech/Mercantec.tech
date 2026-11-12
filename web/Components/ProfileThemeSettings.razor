@@ -1,0 +1,43 @@
+@using Mercantec.Tech.Web.Theming
+
+<div class="profile-theme-settings" role="group" aria-label="Tema">
+    <button type="button" class="profile-theme-choice profile-theme-system"
+            aria-label="@SystemTheme.Name" aria-describedby="profile-system-theme-description"
+            aria-pressed="@Pressed(SystemTheme.Id)" @onclick="() => SelectTheme(SystemTheme.Id)">
+        <span class="profile-theme-icon"><UiIcon Name="@SystemTheme.Icon" /></span>
+        <span class="profile-theme-label">
+            <strong>@SystemTheme.Name</strong>
+            <small id="profile-system-theme-description">@SystemTheme.Description</small>
+        </span>
+        @if (Theme == SystemTheme.Id)
+        {
+            <span class="profile-theme-check" aria-hidden="true"><UiIcon Name="check" /></span>
+        }
+    </button>
+
+    <div class="profile-theme-options" role="group" aria-label="Faste temaer">
+        @foreach (var theme in FixedThemes)
+        {
+            <button type="button" class="profile-theme-choice" aria-pressed="@Pressed(theme.Id)"
+                    @onclick="() => SelectTheme(theme.Id)">
+                <span class="profile-theme-icon"><UiIcon Name="@theme.Icon" /></span>
+                <span class="profile-theme-label">@theme.Name</span>
+                @if (Theme == theme.Id)
+                {
+                    <span class="profile-theme-check" aria-hidden="true"><UiIcon Name="check" /></span>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter(Name = "LupTheme")] public string Theme { get; set; } = "light";
+    [CascadingParameter(Name = "LupThemeChanged")] public EventCallback<string> ThemeChanged { get; set; }
+
+    private static readonly ThemeDefinition SystemTheme = ThemeCatalog.Find("system");
+    private static readonly ThemeDefinition[] FixedThemes = ThemeCatalog.All.Where(theme => theme.Id != "system").ToArray();
+
+    private string Pressed(string theme) => Theme == theme ? "true" : "false";
+    private Task SelectTheme(string theme) => Theme == theme ? Task.CompletedTask : ThemeChanged.InvokeAsync(theme);
+}

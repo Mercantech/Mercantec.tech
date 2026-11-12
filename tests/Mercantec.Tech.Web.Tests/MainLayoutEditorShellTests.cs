@@ -1,11 +1,15 @@
 using System.Net;
+using System.Net.Http.Json;
 using Bunit;
+using Bunit.TestDoubles;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Avatars;
 using Mercantec.Tech.Web.Components;
 using Mercantec.Tech.Web.Demo;
 using Mercantec.Tech.Web.Layout;
 using Mercantec.Tech.Web.Notebooks;
+using Mercantec.Tech.Web.Pages;
+using Mercantec.Tech.Web.ProfileNames;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -64,6 +68,7 @@ public sealed class MainLayoutEditorShellTests
         Assert.Equal(2, layout.FindAll("header nav a[href='/library']").Count);
         Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
         Assert.DoesNotContain(layout.FindAll("header nav a"), link => link.TextContent.Trim() == "Undervisning");
+        Assert.Single(layout.FindComponents<Stub<ThemePicker>>());
     }
 
     [Theory]
@@ -76,6 +81,23 @@ public sealed class MainLayoutEditorShellTests
         var layout = context.Render<MainLayout>();
         Assert.Equal(home, layout.Find("a.brand").GetAttribute("href"));
         Assert.All(layout.FindAll("header nav a[href='/library']"), link => Assert.Equal("Oversigt", link.TextContent));
+        Assert.Equal("Min profil", Assert.Single(layout.FindAll(".lup-account a[href='/profile']")).TextContent.Trim());
+        Assert.Empty(layout.FindAll(".lup-account a[href='/universe'], .lup-account a[href='/settings']"));
+        Assert.Empty(layout.FindComponents<Stub<ThemePicker>>());
+    }
+
+    [Fact]
+    public async Task Preview_menu_keeps_the_exit_action_and_hides_the_teachers_personal_profile()
+    {
+        using var api = new LayoutApi();
+        using var context = await CreateContext(api);
+        context.ViewAs.Enter("preview-student", null);
+        var layout = context.Render<MainLayout>();
+
+        Assert.Equal("Elev", layout.Find(".lup-account-name").TextContent.Trim());
+        Assert.Equal("E", layout.Find(".lup-account .avatar").TextContent.Trim());
+        Assert.Empty(layout.FindAll(".lup-account a[href='/profile'], .lup-account a[href='/universe'], .lup-account a[href='/settings']"));
+        Assert.Contains(layout.FindAll(".lup-account button"), button => button.TextContent.Trim() == "Afslut elev-visning");
     }
 
     [Fact]
@@ -111,6 +133,49 @@ public sealed class MainLayoutEditorShellTests
         layout.WaitForAssertion(() => Assert.Equal("page", layout.Find("a.brand").GetAttribute("aria-current")));
     }
 
+    [Fact]
+    public async Task Saving_and_resetting_the_profile_name_update_both_the_profile_and_menu()
+    {
+        using var api = new LayoutApi { ProfileName = "Kasper H." };
+        using var context = await CreateContext(api);
+        context.Services.GetRequiredService<NavigationManager>().NavigateTo("/profile");
+        var layout = context.Render<MainLayout>(parameters => parameters.Add(x => x.Body, (RenderFragment)(builder =>
+        {
+            builder.OpenComponent<Profile>(0);
+            builder.CloseComponent();
+        })));
+
+        layout.WaitForAssertion(() =>
+        {
+            Assert.Equal("Kasper H.", layout.Find("#profile-name").TextContent.Trim());
+            Assert.Equal("Kasper H.", layout.Find(".lup-account-name").TextContent.Trim());
+        });
+
+        layout.Find(".profile-name-edit").Click();
+        layout.Find("#profile-name-input").Input("   ");
+        layout.Find(".profile-name-form").Submit();
+        Assert.Contains("Skriv et navn", layout.Find("#profile-name-error").TextContent);
+        Assert.Empty(api.ProfileUpdates);
+
+        layout.Find("#profile-name-input").Input("  Kasper Ø  ");
+        layout.Find(".profile-name-form").Submit();
+        layout.WaitForAssertion(() =>
+        {
+            Assert.Equal("Kasper Ø", layout.Find("#profile-name").TextContent.Trim());
+            Assert.Equal("Kasper Ø", layout.Find(".lup-account-name").TextContent.Trim());
+            Assert.Equal("Kasper Ø", Assert.Single(api.ProfileUpdates));
+        });
+
+        layout.Find(".profile-name-edit").Click();
+        layout.FindAll(".profile-name-form button").Single(button => button.TextContent.Trim() == "Brug login-navn").Click();
+        layout.WaitForAssertion(() =>
+        {
+            Assert.Equal("Testelev", layout.Find("#profile-name").TextContent.Trim());
+            Assert.Equal("Testelev", layout.Find(".lup-account-name").TextContent.Trim());
+            Assert.Null(api.ProfileUpdates[1]);
+        });
+    }
+
     private static async Task<LearningUiTestContext> CreateContext(LayoutApi api, bool teacher = true)
     {
         var context = await LearningUiTestContext.CreateAsync(api, teacher: teacher, configure: services =>
@@ -119,6 +184,7 @@ public sealed class MainLayoutEditorShellTests
             services.AddSingleton<DemoWorld>();
             services.AddSingleton<LearningContext>();
             services.AddSingleton<NotebookClient>();
+            services.AddSingleton<ProfileNameState>();
         });
         context.ComponentFactories.AddStub<ThemeDecorations>();
         context.ComponentFactories.AddStub<ThemePicker>();
@@ -129,8 +195,27 @@ public sealed class MainLayoutEditorShellTests
 
     private sealed class LayoutApi : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        public string? ProfileName { get; set; }
+        public List<string?> ProfileUpdates { get; } = [];
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri?.AbsolutePath != "/api/me/profile")
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+
+            Assert.Equal(LearningUiTestContext.AccountId.ToString("D"), request.Headers.GetValues(ProfileNameRules.SubjectHeader).Single());
+            if (request.Method == HttpMethod.Put)
+            {
+                var update = await request.Content!.ReadFromJsonAsync<UpdateProfileNameRequest>(cancellationToken);
+                ProfileName = update!.DisplayName;
+                ProfileUpdates.Add(ProfileName);
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new ProfileNameDto(ProfileName))
+            };
+        }
     }
 
     private sealed class LayoutAvatarClient : IAvatarClient

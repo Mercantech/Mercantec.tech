@@ -1,25 +1,6 @@
 @page "/universe"
-@inject AuthService Auth
+@inject NavigationManager Nav
 
-<PageTitle>Mit univers · LUP</PageTitle>
-@if (!Auth.IsInitialized) { <p role="status">Indlæser…</p> }
-else if (!Auth.IsAuthenticated) { <header class="page-title"><div><h1>Mit univers</h1><p>Log ind for at se dit univers.</p></div></header><a class="action" href="@Auth.LoginPath()">Log ind</a> }
-else
-{
-    <header class="page-title"><div><h1>Mit univers</h1></div></header>
-    <section class="universe-group" aria-labelledby="universe-progress"><h2 id="universe-progress">Udvikling</h2><div class="universe-grid">
-        <NavigationCard Href="/progress" Title="XP, level og guld" Description="Din udvikling og dine belønninger." Icon="chart" HeadingLevel="3" />
-        <NavigationCard Href="/progress/badges" Title="Mine badges" Description="Dine opnåede badges og næste niveau." Icon="star" HeadingLevel="3" />
-    </div></section>
-    <section class="universe-group" aria-labelledby="universe-personal"><h2 id="universe-personal">Projekter og figur</h2><div class="universe-grid">
-        <NavigationCard Href="/projects/mine" Title="Mine projekter" Description="Dine egne projekter." Icon="folder" HeadingLevel="3" />
-        <NavigationCard Href="/profile/character" Title="Min avatarsamling" Description="Lås figurer op, og vælg din avatar." Icon="shirt" HeadingLevel="3" />
-        <NavigationCard Href="/gifts" Title="Mine gaver" Description="Modtagne gaver og hilsner." Icon="gift" HeadingLevel="3" />
-        <NavigationCard Href="/apartment" Title="Min lejlighed" Description="Dit rum og dine møbler." Icon="pin" HeadingLevel="3" />
-    </div></section>
-    <section class="universe-group" aria-labelledby="universe-shop"><h2 id="universe-shop">Butik og spil</h2><div class="universe-grid">
-        <NavigationCard Href="/universe/shop" Title="Butik" Description="Tøj og møbler til dit univers." Icon="gift" HeadingLevel="3" />
-        <NavigationCard Href="/universe/unlocks" Title="Oplåsninger" Description="Se, hvad levels og badges giver adgang til." Icon="lock" HeadingLevel="3" />
-        <NavigationCard Href="/games" Title="Spil" Description="Spil og prøv din avatar." Icon="game" HeadingLevel="3" />
-    </div></section>
+@code {
+    protected override void OnInitialized() => Nav.NavigateTo("/profile#mit-univers", replace: true);
 }

@@ -1,10 +1,13 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using Bunit;
 using Mercantec.Tech.Contracts;
 using Mercantec.Tech.Web.Auth;
 using Mercantec.Tech.Web.Components;
 using Mercantec.Tech.Web.Avatars;
+using Mercantec.Tech.Web.Characters;
 using Mercantec.Tech.Web.Demo;
 using Mercantec.Tech.Web.Pages;
 using Microsoft.AspNetCore.Components;
@@ -28,6 +31,7 @@ public sealed class ArenaMenuTests
         await Button(page, "Træning").ClickAsync(new MouseEventArgs());
         Assert.Equal("Træning", page.Find(".arena-screen-header h1").TextContent.Trim());
         Assert.Single(page.FindAll("canvas"));
+        Assert.Empty(page.FindAll(".arena-fighter-unlock"));
         var skyline = page.FindAll(".arena-stage-card").Single(x => x.TextContent.Contains("Skyøerne"));
         await skyline.ClickAsync(new MouseEventArgs());
         Assert.Equal("true", page.FindAll(".arena-stage-card").Single(x => x.TextContent.Contains("Skyøerne")).GetAttribute("aria-pressed"));
@@ -61,6 +65,73 @@ public sealed class ArenaMenuTests
         Assert.True(lupp.HasAttribute("disabled"));
         Assert.Equal("/assets/avatars/lupp/face.png", lupp.QuerySelector("img")!.GetAttribute("src"));
         Assert.Equal("true", fighters.Single(x => x.TextContent.Contains("Din avatar")).GetAttribute("aria-pressed"));
+        Assert.Contains("3 forskellige brugere", santa.ParentElement!.QuerySelector(".arena-fighter-unlock p")!.TextContent);
+        Assert.Contains("Upload dit eget spil", lupp.ParentElement!.QuerySelector(".arena-fighter-unlock p")!.TextContent);
+        Assert.Equal(ArenaFighters.CollectionPath("santa"), santa.ParentElement!.QuerySelector("a")!.GetAttribute("href"));
+        Assert.Equal(ArenaFighters.CollectionPath("lupp"), lupp.ParentElement!.QuerySelector("a")!.GetAttribute("href"));
+        Assert.Equal(ArenaFighters.RosterPath, page.Find(".arena-screen-header a").GetAttribute("href"));
+        Assert.Empty(api.Requests);
+    }
+
+    [Theory]
+    [InlineData("/arena")]
+    [InlineData("/games/arena")]
+    public async Task Direct_fighters_links_open_the_roster_and_back_returns_to_the_menu(string route)
+    {
+        using var api = new NoNetworkApi();
+        var javascript = new MenuJavascript();
+        await using var context = await CreateContext(api, javascript);
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo(route + "?view=fighters");
+        var page = context.Render<Arena>();
+
+        Assert.Equal("Kæmpere", page.Find(".arena-screen-header h1").TextContent.Trim());
+        Assert.Single(page.FindAll("canvas"));
+        await Button(page, "Tilbage").ClickAsync(new MouseEventArgs());
+
+        Assert.Single(page.FindAll("nav[aria-label='Spilmenu']"));
+        Assert.Equal(route, new Uri(navigation.Uri).PathAndQuery);
+        Assert.Equal(1, javascript.Module.MountCount);
+        Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public async Task A_room_invitation_still_opens_online_play_with_a_fighters_query()
+    {
+        using var api = new NoNetworkApi();
+        await using var context = await CreateContext(api, new MenuJavascript());
+        const string invite = "/arena?room=ABC123&view=fighters";
+        context.Services.GetRequiredService<NavigationManager>().NavigateTo(invite);
+        var page = context.Render<Arena>();
+
+        page.WaitForAssertion(() => Assert.Equal("Spil online", page.Find(".arena-screen-header h1").TextContent.Trim()));
+        Assert.Equal(AuthReturnPath.LoginUrl(invite), page.Find(".arena-online-form a").GetAttribute("href"));
+        Assert.Empty(api.Requests);
+    }
+
+    [Fact]
+    public async Task The_roster_selects_an_owned_fighter_and_keeps_a_different_fighter_locked()
+    {
+        using var api = new NoNetworkApi();
+        var claims = new Claim[] { new("sub", Guid.NewGuid().ToString()), new("name", "Testspiller") };
+        var javascript = new MenuJavascript { Token = new JwtSecurityTokenHandler().WriteToken(new JwtSecurityToken(claims: claims)) };
+        var avatars = new StarterAvatars(new(AvatarEconomy.StarterId, [AvatarEconomy.StarterId, AvatarEconomy.LuppId],
+            AvatarEconomy.InitialGold, AvatarEconomy.InitialLevel, AvatarEconomy.InitialItemIds, false, 0));
+        await using var context = await CreateContext(api, javascript, avatars);
+        context.Services.GetRequiredService<NavigationManager>().NavigateTo(ArenaFighters.PlayPath);
+        var page = context.Render<Arena>();
+
+        page.WaitForAssertion(() => Assert.False(page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("LUPP")).HasAttribute("disabled")));
+        var lupp = page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("LUPP"));
+        Assert.Null(lupp.ParentElement!.QuerySelector(".arena-fighter-unlock"));
+        var raymond = page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("Raymond"));
+        Assert.True(raymond.HasAttribute("disabled"));
+        Assert.NotNull(raymond.ParentElement!.QuerySelector(".arena-fighter-unlock"));
+
+        await lupp.ClickAsync(new MouseEventArgs());
+        Assert.Equal("true", page.FindAll(".arena-fighter").Single(x => x.TextContent.Contains("LUPP")).GetAttribute("aria-pressed"));
+        Assert.Equal("LUPP", page.Find(".arena-fighter-showcase h2").TextContent);
+        Assert.Contains("preview", javascript.Module.Calls);
         Assert.Empty(api.Requests);
     }
 
@@ -223,14 +294,14 @@ public sealed class ArenaMenuTests
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<Arena> page, string label)
         => page.FindAll("button").Single(x => x.TextContent.Trim().TrimStart('‹').Trim() == label);
 
-    private static async Task<BunitContext> CreateContext(NoNetworkApi api, MenuJavascript javascript)
+    private static async Task<BunitContext> CreateContext(NoNetworkApi api, MenuJavascript javascript, IAvatarClient? avatars = null)
     {
         var context = new BunitContext();
         context.Services.AddOptions();
         context.Services.AddSingleton<IJSRuntime>(javascript);
         context.Services.AddSingleton<TokenStore>();
         context.Services.AddSingleton<AuthService>();
-        context.Services.AddSingleton<IAvatarClient>(new StarterAvatars());
+        context.Services.AddSingleton<IAvatarClient>(avatars ?? new StarterAvatars());
         context.Services.AddSingleton<DemoWorld>();
         context.Services.AddSingleton(new HttpClient(api) { BaseAddress = new Uri("https://lup.example/api/") });
         context.Services.GetRequiredService<NavigationManager>().NavigateTo("/arena");
@@ -241,10 +312,13 @@ public sealed class ArenaMenuTests
     private sealed class MenuJavascript : IJSRuntime
     {
         public MenuModule Module { get; init; } = new();
+        public string? Token { get; init; }
         public string? ImportPath { get; private set; }
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
         {
+            if (identifier == "mercantecAuth.getTokens" && Token is not null)
+                return ValueTask.FromResult(JsonSerializer.Deserialize<TValue>(JsonSerializer.Serialize(new { access = Token }))!);
             if (identifier != "import") return ValueTask.FromResult(default(TValue)!);
             ImportPath = (string)args![0]!;
             return ValueTask.FromResult((TValue)(object)Module);
@@ -278,10 +352,10 @@ public sealed class ArenaMenuTests
         }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
-    private sealed class StarterAvatars : IAvatarClient
+    private sealed class StarterAvatars(AvatarProfileDto? profile = null) : IAvatarClient
     {
         public Task<AvatarProfileDto> GetAsync(CancellationToken ct = default, string? expectedSubject = null)
-            => throw new InvalidOperationException("Guest menus must not request account data.");
+            => Task.FromResult(profile ?? throw new InvalidOperationException("Guest menus must not request account data."));
         private static Task<AvatarProfileDto> Mutation() => throw new InvalidOperationException("Menu navigation must not mutate profile data.");
         public Task<AvatarProfileDto> UnlockAsync(string avatarId, CancellationToken ct = default, string? expectedSubject = null) => Mutation();
         public Task<AvatarProfileDto> SelectAsync(string avatarId, CancellationToken ct = default, string? expectedSubject = null) => Mutation();

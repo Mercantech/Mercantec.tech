@@ -63,3 +63,7 @@ main { flex:1; }
     .brand-mark { width:22px; height:22px; }
     .lup-header .brand.is-current::after { bottom:-10px; }
 }
+
+.lup-account-name {
+    overflow-wrap: anywhere;
+}

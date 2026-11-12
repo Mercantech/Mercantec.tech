@@ -10,7 +10,7 @@ tags: [feature, navigation, search, design]
 
 **LUP – Lokal UndervisningsPlatform** har én kompakt header. Logoet åbner forsiden før login og det personlige overblik efter login. De fælles indgange er **Mine hold** og **Oversigt**; undervisere har desuden **Min kalender** på tværs af hold. Søgning, én notifikationsindgang og profil ligger til højre. Mobilnavigationen foldes ind i Menu.
 
-Profilmenuen samler Min profil, Mit univers, Indstillinger og Log ud. Underviserværktøjer vises kun til undervisere. Indstillinger samler tema og kontotilknytning. Oversigten samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav; eksempelforløb er en særskilt foldet sektion for loggede ind. Mit univers samler progression, badges, egne projekter, avatar, lejlighed, butik og spil.
+Profilmenuen åbner **Min profil** og giver adgang til Log ud. Underviserværktøjer vises kun til undervisere. På `/profile` ligger konto, temavalg og **Mit univers** på samme side. Mit univers samler genveje til progression, badges, egne projekter, avatar, lejlighed, butik og spil. De gamle indgange `/universe` og `/settings` fører til de relevante afsnit på profilsiden. Oversigten samler undervisningsplaner, fag, offentlige DEMO-projekter og badgekrav. Eksempelforløb er en særskilt foldet sektion for brugere, der er logget ind.
 
 På **Underviserværktøjer** er genvejene grupperet under **Undervisning**, **Elever og opfølgning** og **Opsætning**. Vælg et hold under **Holdværktøjer** for at gå direkte til dets forløb, quests, afleveringer til vurdering, kalender, grupper, materialer, afstemninger og indstillinger. Samme område har genveje til grupperoulette, sidegraf, Mine hold og oprettelse fra Lectio. Holdvælgeren viser de hold, underviseren kan administrere.
 
@@ -34,7 +34,7 @@ Der opfindes ingen logbogspligt ud fra aktive skabeloner. Badgeopnåelser, profi
 
 Oversigten har lokal offentlig søgning og fem kategorier med direkte links: `/library?category=courses|subjects|projects|badges|characters`. Læringsplaner vises med indeks, mål og ugeplan, fag med emnelinks, projekter med DEMO-billeder og badges med kriterier. De offentlige badgekrav vises ens med og uden login; personlige badges findes under Mit univers.
 
-System, lyst, mørkt, jul, nytår og hacker kan vælges med Tema-knappen i topbaren før og efter login. [[Temaer-og-nytaar]] beskriver temakataloget. Rainbow er udgået.
+Gæster vælger tema med Tema-knappen i topbaren. Efter login ligger temaerne på Min profil, hvor **System** har sin egen knap. [[Temaer-og-nytaar]] beskriver temakataloget. Rainbow er udgået.
 
 ## Global søgning
 

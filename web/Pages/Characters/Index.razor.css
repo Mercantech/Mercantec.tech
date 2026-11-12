@@ -1,0 +1,103 @@
+.character-index-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+}
+
+.character-index-links a,
+.character-arena-heading > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.character-index-links ::deep .ui-icon,
+.character-arena-heading ::deep .ui-icon {
+    width: 17px;
+    height: 17px;
+    flex: none;
+}
+
+.character-arena-roster {
+    margin-top: 32px;
+    padding: clamp(16px, 3vw, 28px);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    background: var(--paper);
+    color: var(--ink);
+    scroll-margin-top: 88px;
+}
+
+.character-arena-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+    margin-bottom: 18px;
+}
+
+.character-arena-heading h2 {
+    margin: 0;
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+}
+
+.character-arena-heading p {
+    margin: 5px 0 0;
+    color: var(--muted);
+}
+
+.character-arena-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 155px), 1fr));
+    gap: 10px;
+}
+
+.character-arena-fighter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--bg);
+}
+
+.character-arena-fighter img {
+    align-self: center;
+    display: block;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.character-arena-fighter h3 {
+    margin: 0 0 7px;
+    font-size: 1rem;
+}
+
+.character-arena-fighter ul {
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: .85rem;
+}
+
+.character-arena-fighter li + li {
+    margin-top: 5px;
+}
+
+.character-arena-collection {
+    margin-top: auto;
+    padding-block: 5px;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.character-arena-roster a:focus-visible,
+.character-index-links a:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}

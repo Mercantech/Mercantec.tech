@@ -1,0 +1,233 @@
+.profile-page {
+    max-width: 1040px;
+    margin-inline: auto;
+}
+
+.profile-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-bottom: 18px;
+}
+
+.profile-header h1 {
+    margin: 0;
+}
+
+.profile-jump-links,
+.profile-identity-actions,
+.profile-account-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.profile-jump-links a,
+.profile-identity-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.profile-jump-links a {
+    color: var(--blue);
+    padding: 8px 0;
+    font-weight: 600;
+}
+
+.profile-jump-links ::deep .ui-icon,
+.profile-identity-actions ::deep .ui-icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+
+.profile-identity {
+    display: grid;
+    grid-template-columns: 166px minmax(0, 1fr);
+    align-items: center;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--paper);
+}
+
+.profile-avatar {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    min-height: 166px;
+    border-right: 1px solid var(--rule);
+    background-color: var(--tint);
+    background-image: radial-gradient(var(--rule) 1px, transparent 1px);
+    background-size: 14px 14px;
+    color: var(--blue);
+}
+
+.profile-avatar ::deep .ui-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.profile-identity-body {
+    padding: 24px 28px;
+    min-width: 0;
+}
+
+.profile-identity-body > p {
+    margin: 3px 0 14px;
+    color: var(--muted);
+}
+
+.profile-section {
+    margin-top: 28px;
+    scroll-margin-top: 92px;
+}
+
+.profile-section h2 {
+    margin: 0 0 12px;
+    font-size: 1.24rem;
+}
+
+.profile-categories {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--rule);
+    gap: 1px;
+    overflow: hidden;
+}
+
+.profile-category {
+    min-width: 0;
+    background: var(--paper);
+    padding: 16px 20px 12px;
+}
+
+.profile-category h3,
+.profile-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-category h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.profile-category-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--tint);
+    color: var(--blue);
+}
+
+.profile-category-icon ::deep .ui-icon {
+    width: 19px;
+    height: 19px;
+}
+
+.profile-category ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-category li + li {
+    border-top: 1px solid var(--rule);
+}
+
+.profile-category a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.profile-category a:hover {
+    color: var(--blue);
+    text-decoration: underline;
+}
+
+.profile-category a ::deep .ui-icon {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    color: var(--muted);
+}
+
+.profile-section-heading {
+    margin-bottom: 14px;
+}
+
+.profile-section-heading h2 {
+    margin: 0;
+}
+
+.profile-account {
+    padding: 18px 0 6px;
+    border-top: 1px solid var(--rule);
+}
+
+.profile-account-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 34px;
+    margin: 0 0 12px;
+    overflow-wrap: anywhere;
+}
+
+.profile-account-details dt {
+    color: var(--muted);
+    font-size: .85rem;
+}
+
+.profile-account-details dd {
+    margin: 3px 0 0;
+}
+
+.profile-account-links {
+    margin-bottom: 14px;
+}
+
+.profile-page a:focus-visible,
+.profile-page button:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}
+
+@media (max-width: 620px) {
+    .profile-identity {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-avatar {
+        min-height: 138px;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .profile-identity-body {
+        padding: 18px;
+    }
+
+    .profile-categories {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-category {
+        padding-inline: 16px;
+    }
+}
