@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { openCharacterOriginal } from './character-originals.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sharp = createRequire(path.join(root, '.tools/character-previews/package.json'))('sharp');
@@ -16,8 +17,8 @@ const hash = data => createHash('sha256').update(data).digest('hex');
 const strings = values => '[' + values.map(q).join(', ') + ']';
 const report = [];
 async function packagePng(image, width, height, previewWidth) {
-    const input = path.join(root, 'web/wwwroot', image);
-    const original = await fs.readFile(input);
+    const source = await openCharacterOriginal(image);
+    const original = source.bytes;
     const metadata = await sharp(original).metadata();
     if (metadata.format !== 'png' || metadata.width !== width || metadata.height !== height)
         throw new Error(`Unexpected native PNG dimensions: ${image}`);
@@ -25,7 +26,7 @@ async function packagePng(image, width, height, previewWidth) {
     await sharp(original).resize({ width: previewWidth, withoutEnlargement: true })
         .webp({ quality: 92, effort: 6 }).toFile(path.join(root, 'web/wwwroot', preview));
     const webp = await fs.readFile(path.join(root, 'web/wwwroot', preview));
-    if (!(await fs.readFile(input)).equals(original)) throw new Error(`Native image was changed: ${image}`);
+    await source.verifyUnchanged?.();
     report.push({ image, preview, width, height, originalBytes: original.length, previewBytes: webp.length,
         originalSha256: hash(original), previewSha256: hash(webp) });
     return preview;

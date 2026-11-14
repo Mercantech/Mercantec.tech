@@ -14,6 +14,7 @@
     <EmbeddedResource Include="Updates/Notes/*.json" LogicalName="platform-updates/notes/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Wordle/Data/answers.json" LogicalName="wordle/answers.json" />
     <EmbeddedResource Include="Wordle/Data/guesses.txt" LogicalName="wordle/guesses.txt" />
+    <EmbeddedResource Include="Storage/CharacterOriginals/manifest.json" LogicalName="character-originals/manifest.json" />
     <EmbeddedResource Include="Integrations\OpenAI\editor-block-prompt.txt">
       <LogicalName>Mercantec.Tech.Api.EditorBlockPrompt.txt</LogicalName>
     </EmbeddedResource>

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { openCharacterOriginal } from './character-originals.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sharp = createRequire(path.join(root, '.tools/character-previews/package.json'))('sharp');
@@ -141,7 +142,8 @@ for (const item of entries) {
             seenEmojiIds.add(item.id);
             if (item.image !== `/images/characters/chameleon/reactions/${item.id}.png`) throw new Error('Emoji id and public filename differ');
         }
-        const nativeBytes = await fs.readFile(publicPath(item.image));
+        const original = await openCharacterOriginal(item.image);
+        const nativeBytes = original.bytes;
         const metadata = await sharp(nativeBytes).metadata();
         const landscape = item.group === 'infographics' || item.group === 'scenes';
         const width = landscape ? 1536 : 1254, height = landscape ? 1024 : 1254;
@@ -195,7 +197,7 @@ for (const item of entries) {
             && recorded.previewSha256 === result.preview.sha256 && recorded.originalBytes === nativeBytes.length && recorded.previewBytes === previewBytes.length);
         if (!result.previewReportMatches) result.errors.push('Missing or stale native/preview packaging hash record');
         // Catch accidental writes by concurrent packaging or another process during this audit.
-        if (!nativeBytes.equals(await fs.readFile(publicPath(item.image)))) result.errors.push('Native file changed during verification');
+        await original.verifyUnchanged?.();
         result.valid = result.errors.length === 0;
     } catch (error) {
         result.errors.push(message(error));

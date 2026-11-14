@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
+import { openCharacterOriginal } from './character-originals.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(path.join(root, '.tools/character-previews/package.json'));
@@ -24,7 +25,8 @@ for (const asset of catalog.entries) {
         throw new Error(`Unexpected image path: ${asset.image}`);
     const input = path.join(root, 'web/wwwroot', asset.image.split('?')[0]);
     const output = input.replace(/\.png$/, '.webp');
-    const before = await fs.readFile(input);
+    const original = await openCharacterOriginal(asset.image);
+    const before = original.bytes;
     const metadata = await sharp(before).metadata();
     if (metadata.width !== asset.width || metadata.height !== asset.height || !metadata.hasAlpha)
         throw new Error(`Dimensions or alpha mismatch: ${asset.image}`);
@@ -40,8 +42,7 @@ for (const asset of catalog.entries) {
             || prior.previewSha256 !== createHash('sha256').update(preview).digest('hex'))
             throw new Error(`Changed or missing known image; regenerate without reuse flags: ${asset.image}`);
     }
-    const after = await fs.readFile(input);
-    if (!before.equals(after)) throw new Error(`Original PNG was modified: ${asset.image}`);
+    await original.verifyUnchanged?.();
     lines.push(`        new(new(${JSON.stringify(asset.guid)}), ${JSON.stringify(asset.character)}, ${JSON.stringify(asset.name)}, ${JSON.stringify(asset.title)}, ${JSON.stringify(asset.image)}, ${JSON.stringify(asset.alt)}) { PreviewSizeBytes = ${preview.length} }`);
     report.push({ image: asset.image, preview: asset.image.replace('.png', '.webp'), originalBytes: before.length,
         previewBytes: preview.length, originalSha256: createHash('sha256').update(before).digest('hex'),

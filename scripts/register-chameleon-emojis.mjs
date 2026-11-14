@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { openCharacterOriginal } from './character-originals.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const catalogPath = path.join(root, 'assets/characters/reactions-catalog.json');
@@ -28,7 +29,7 @@ for (const part of ['a', 'b']) {
             || !item.prompt || !(item.sourceArtifact || item.source)
             || !item.alt?.startsWith('Kamæleonen') || !item.title || item.width !== 1254 || item.height !== 1254)
             throw new Error(`Invalid reaction metadata: ${item.id}`);
-        await fs.access(path.join(root, 'web/wwwroot', item.image));
+        await openCharacterOriginal(item.image);
         ids.add(item.id);
         entries.push({ id: item.id, character: 'chameleon', title: item.title, image: item.image,
             alt: item.alt, width: item.width, height: item.height,

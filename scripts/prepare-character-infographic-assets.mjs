@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
+import { openCharacterOriginal } from './character-originals.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const toolsDir = process.argv.find(arg => arg.startsWith('--tools-dir='))?.slice('--tools-dir='.length)
@@ -39,8 +40,8 @@ for (const item of entries) {
         throw new Error(`Incomplete teaching metadata: ${item.id}`);
     for (const source of item.sources)
         if (!source.label || new URL(source.href).protocol !== 'https:') throw new Error(`Invalid source: ${item.id}`);
-    const input = path.join(root, 'web/wwwroot', item.image);
-    const original = await fs.readFile(input);
+    const source = await openCharacterOriginal(item.image);
+    const original = source.bytes;
     const metadata = await sharp(original).metadata();
     if (metadata.format !== 'png' || metadata.width !== item.width || metadata.height !== item.height
         || item.width < 1440 || Math.abs(item.width / item.height - 1.5) > 0.02)
@@ -51,7 +52,7 @@ for (const item of entries) {
         .webp({ quality: 92, effort: 6 }).toFile(output);
     const webp = await fs.readFile(output);
     const previewMetadata = await sharp(webp).metadata();
-    if (!(await fs.readFile(input)).equals(original)) throw new Error(`Original modified: ${item.id}`);
+    await source.verifyUnchanged?.();
     report.push({ id: item.id, image: item.image, preview, width: item.width, height: item.height,
         previewWidth: previewMetadata.width, previewHeight: previewMetadata.height,
         originalBytes: original.length, previewBytes: webp.length,

@@ -6,6 +6,7 @@ using Mercantec.Tech.Api.Integrations.OpenAI;
 using Mercantec.Tech.Api.Ai.EditorRuns;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
+using Mercantec.Tech.Api.Storage.CharacterOriginals;
 using Mercantec.Tech.Api.Mcp;
 using Mercantec.Tech.Api.Wordle;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,6 +14,13 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+
+if (args is ["character-originals", "verify"] or ["character-originals", "import", _])
+{
+    var storageConfiguration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+    await CharacterOriginalImport.RunAsync(storageConfiguration, args.Length == 3 ? args[2] : null);
+    return;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +130,7 @@ if (!builder.Configuration.GetValue<bool>("PreviewWorker:Only"))
 builder.Services.AddScoped<MembershipClaimService>();
 
 builder.Services.Configure<ObjectStorageOptions>(builder.Configuration.GetSection(ObjectStorageOptions.SectionName));
+builder.Services.AddSingleton(_ => CharacterOriginalCatalog.Load());
 builder.Services.AddSingleton<IObjectStorage>(sp =>
 {
     var opts = sp.GetRequiredService<IOptions<ObjectStorageOptions>>().Value;
