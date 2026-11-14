@@ -39,6 +39,7 @@ builder.Services.AddScoped<Mercantec.Tech.Web.Activity.ActionCenterChanges>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Activity.ActionCenterService>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Gifts.GiftMailboxClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Games.UploadedGamesClient>();
+builder.Services.AddScoped<Mercantec.Tech.Web.Games.WordleClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Polls.PollClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Electives.ElectiveClient>();
 builder.Services.AddScoped<Mercantec.Tech.Web.Learning.LearningClient>();

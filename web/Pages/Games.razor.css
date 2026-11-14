@@ -10,6 +10,82 @@
     line-height: 1.1;
 }
 
+.games-wordle {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(.65rem, 2.5vw, 1.5rem);
+    margin: clamp(1rem, 3vw, 1.75rem) 0;
+    padding: clamp(.85rem, 3vw, 1.5rem);
+    border: 1px solid var(--rule);
+    border-radius: 1.25rem;
+    background: var(--tint);
+    color: var(--ink);
+}
+
+.games-wordle-preview {
+    display: flex;
+    gap: .25rem;
+}
+
+.games-wordle-preview span {
+    display: grid;
+    place-items: center;
+    width: clamp(1.65rem, 5vw, 2.75rem);
+    aspect-ratio: 1;
+    border-radius: .45rem;
+    background: var(--paper);
+    font: 700 clamp(1rem, 3vw, 1.4rem)/1 "Space Grotesk", sans-serif;
+}
+
+.games-wordle-preview span:nth-child(2) {
+    background: var(--peach);
+    color: var(--orange);
+}
+
+.games-wordle-preview span:nth-child(3) {
+    background: var(--green-tint);
+    color: var(--green);
+}
+
+.games-wordle-copy h2, .games-wordle-copy p {
+    margin: 0;
+}
+
+.games-wordle-copy h2 {
+    font-size: clamp(1.25rem, 3.5vw, 1.8rem);
+    letter-spacing: -.025em;
+}
+
+.games-wordle-play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    min-height: 2.75rem;
+    padding: .4rem .85rem;
+    border-radius: .65rem;
+    color: var(--on-blue);
+    background: var(--blue);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.games-wordle-play:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+}
+
+@media (max-width: 38rem) {
+    .games-wordle {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .games-wordle-play {
+        grid-column: 1 / -1;
+    }
+}
+
 .arena-feature {
     position: relative;
     display: flex;

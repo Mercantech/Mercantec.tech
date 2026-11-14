@@ -14,6 +14,7 @@ public sealed record ClassicGamePage(string Title, string LegacyPath)
 public static class GamesCatalog
 {
     public const string Path = "/games";
+    public const string WordlePath = Path + "/wordle";
     public const string ProjectsPath = "/projects/mine";
     public const string GameCategory = "spil";
     public const string GameProjectsPath = ProjectsPath + "?category=" + GameCategory;

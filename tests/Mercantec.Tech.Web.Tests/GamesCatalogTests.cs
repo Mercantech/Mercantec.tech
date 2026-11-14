@@ -22,6 +22,7 @@ public sealed class GamesCatalogTests
             ["/games/bomberman", "/games/wizard", "/games/tetris", "/games/pong", "/games/tower-defense"],
             page.FindAll(".classic-game a").Select(link => link.GetAttribute("href") ?? "").ToArray());
         Assert.Contains(page.FindAll("a"), link => link.GetAttribute("href") == "/games/guide");
+        Assert.Equal("/games/wordle", page.Find("a.games-wordle-play").GetAttribute("href"));
         Assert.DoesNotContain("Rune Run", page.Markup);
         Assert.Empty(page.FindAll("input[type=file]"));
         Assert.All(page.FindAll("a"), link => Assert.True(PublicPageAccess.Allows(link.GetAttribute("href")!)));

@@ -26,6 +26,11 @@ Dette testprojekt er ikke del af produktionsappen, løsningen eller Docker-build
 Den særlige auth-handler accepterer kun fixture-processens fire præcise fiktive tokens.
 Ingen auth-omgåelse eller QA-rute tilføjes til den rigtige API.
 
+`node editor/tests/qa-wordle-browser.mjs` bruger samme fixture til Dagens Wordle.
+Start en frisk fixture før testen, så de fiktive konti har en tom daglig runde.
+Testen dækker gæstevisning, loginretur, fysiske taster og skærmtaster, resultat,
+genåbning på samme konto og en anden kontos separate runde.
+
 `node editor/tests/qa-references-browser.mjs` bruger samme fixture og fjerde fiktive bruger
 uden hold til at teste oprettelse af teori via oversigten, rigtige globale mentions,
 udgivelse, private linkmåls synlighed, personnotifikationer og graf på tværs af

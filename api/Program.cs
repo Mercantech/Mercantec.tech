@@ -7,6 +7,7 @@ using Mercantec.Tech.Api.Ai.EditorRuns;
 using Mercantec.Tech.Api.Services;
 using Mercantec.Tech.Api.Storage;
 using Mercantec.Tech.Api.Mcp;
+using Mercantec.Tech.Api.Wordle;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ if (builder.Configuration.GetValue<bool>("PreviewConverter:Only"))
 }
 
 builder.Services.AddControllers();
+builder.Services.AddWordle();
 builder.Services.AddSingleton<Mercantec.Tech.Api.Updates.PlatformUpdatesFeed>();
 builder.Services.Configure<Mercantec.Tech.Api.Updates.Automation.PlatformUpdatesAutomationOptions>(
     builder.Configuration.GetSection("PlatformUpdatesAutomation"));

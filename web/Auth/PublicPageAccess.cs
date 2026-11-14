@@ -9,7 +9,7 @@ public static class PublicPageAccess
     {
         var path = relativePath.Split('?', '#')[0].Trim('/');
         if (path is "" or "login" or "auth/callback" or "privacy" or "help" or "sources" or "extension"
-            or "arena" or "games" or "games/arena" or "games/avatar-demo" or "games/mine" or "games/upload"
+            or "arena" or "games" or "games/arena" or "games/wordle" or "games/avatar-demo" or "games/mine" or "games/upload"
             or "library" or "search" or "explore/modules" or "subjects" or "badges" or "explore/projects" or "courses/template" or "lup" or "characters")
             return true;
 

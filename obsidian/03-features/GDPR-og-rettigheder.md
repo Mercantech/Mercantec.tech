@@ -28,6 +28,8 @@ Brugere (elever/undervisere) skal kunne forstå, hvilke personoplysninger platfo
 - [x] Links fra nav/profil
 - [x] ADR + denne note
 
+Wordle gemmer spillets dato, gæt og status med spillerens Auth-sub. Brugeren kan hente sine egne runder med privatlivseksporten. Ved en verificeret sletteanmodning skal drift også slette rækker fra `wordle_plays`, der matcher brugerens `UserSub`. Dagens fælles ord og planlægningsnøgle er fælles driftsdata og indeholder ingen brugeroplysninger.
+
 ## Afhængigheder
 
 - Auth (JWT / `sub`)

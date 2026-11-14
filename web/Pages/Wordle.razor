@@ -1,0 +1,181 @@
+@page "/games/wordle"
+@using Mercantec.Tech.Web.Characters
+@using Mercantec.Tech.Web.Games
+@implements IDisposable
+@inject WordleClient Games
+@inject AuthService Auth
+
+<PageTitle>Dagens Wordle · LUP</PageTitle>
+
+<div class="wordle">
+    <header class="wordle-heading">
+        <a href="@GamesCatalog.Path">← Alle spil</a>
+        <h1>Dagens Wordle</h1>
+        @if (_day is { } day)
+        {
+            <p><time datetime="@day.Date.ToString("yyyy-MM-dd")">@day.Date.ToString("d. MMMM yyyy", Danish)</time> <span aria-hidden="true">·</span> @day.Theme</p>
+        }
+    </header>
+
+    @if (_day is null)
+    {
+        <div class="wordle-panel wordle-loading">
+            <p role="status">@(_error ?? "Henter dagens Wordle …")</p>
+            @if (_error is not null)
+            {
+                <button class="wordle-action" type="button" @onclick="LoadAsync">Prøv igen</button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="wordle-layout">
+            <section class="wordle-panel wordle-play" aria-labelledby="wordle-game-title">
+                <div class="wordle-game-header">
+                    <h2 id="wordle-game-title">Gæt dagens ord</h2>
+                    @if (_round is { } current)
+                    {
+                        <span class="wordle-count">@current.Guesses.Count af 6 forsøg</span>
+                    }
+                </div>
+
+                @if (_round is not null)
+                {
+                    <div class="wordle-board" role="group" aria-label="Seks rækker med fem bogstaver">
+                        @for (var row = 0; row < 6; row++)
+                        {
+                            var guess = row < _round.Guesses.Count ? _round.Guesses[row] : null;
+                            var active = row == _round.Guesses.Count && _round.Status == WordleStatus.Playing;
+                            <div class="wordle-row @(active ? "is-active" : null)" aria-hidden="@(guess is null ? "true" : null)">
+                                @for (var col = 0; col < 5; col++)
+                                {
+                                    var mark = guess?.Marks[col];
+                                    var letter = guess?.Word[col] ?? (active && col < _input.Length ? _input[col] : ' ');
+                                    <span class="wordle-tile @MarkClass(mark)" aria-hidden="true">
+                                        @char.ToUpperInvariant(letter)
+                                        @if (mark is not null)
+                                        {
+                                            <small>@MarkSymbol(mark.Value)</small>
+                                        }
+                                    </span>
+                                }
+                                @if (guess is not null)
+                                {
+                                    <span class="visually-hidden">Forsøg @(row + 1). @Describe(guess)</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                <p class="wordle-feedback" role="status" aria-atomic="true">@(_error ?? _feedback)</p>
+                @if (!CanPlay)
+                {
+                    <div class="wordle-guest">
+                        <p>@(_loginRequired ? "Log ind igen for at fortsætte dagens runde." : "Fem bogstaver, seks forsøg. Log ind for at spille og gemme din streak.")</p>
+                        <a class="wordle-action" href="@Auth.LoginPath()">Log ind og spil</a>
+                    </div>
+                }
+                else if (_round is null)
+                {
+                    @if (_error is null)
+                    {
+                        <p role="status">Henter din runde …</p>
+                    }
+                    else
+                    {
+                        <button class="wordle-action" type="button" @onclick="LoadAsync">Prøv igen</button>
+                    }
+                }
+                else if (_round.Status == WordleStatus.Playing)
+                {
+                    <form class="wordle-entry" aria-label="Indsend et gæt" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+                        <label class="visually-hidden" for="wordle-guess">Dit gæt på fem bogstaver</label>
+                        <input id="wordle-guess" type="text" @bind:get="_input" @bind:set="SetInput" @bind:event="oninput" @ref="_entry"
+                               placeholder="Skriv dit gæt" readonly="@_submitting"
+                               inputmode="none" autocomplete="off" autocorrect="off" spellcheck="false" />
+                        <button class="wordle-action" type="submit" disabled="@(_input.Length != 5 || _submitting)">Gæt</button>
+                    </form>
+                    <div class="wordle-keyboard" role="group" aria-label="Dansk skærmtastatur">
+                        @foreach (var keys in Keyboard)
+                        {
+                            <div class="wordle-keys">
+                                @foreach (var key in keys)
+                                {
+                                    var mark = KeyMark(key);
+                                    <button type="button" class="wordle-key @MarkClass(mark)" disabled="@_submitting"
+                                            aria-label="@(mark is { } used ? $"{key}, {MarkLabel(used)}" : key.ToString())"
+                                            @onclick="() => AddLetter(key)">
+                                        @key
+                                        @if (mark is { } state)
+                                        {
+                                            <small aria-hidden="true">@MarkSymbol(state)</small>
+                                        }
+                                    </button>
+                                }
+                                @if (keys == Keyboard[^1])
+                                {
+                                    <button type="button" class="wordle-key wordle-erase" aria-label="Slet sidste bogstav"
+                                            disabled="@_submitting" @onclick="EraseLetter">⌫</button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="wordle-result">
+                        <h3>@(_round.Status == WordleStatus.Won ? "Du fandt ordet!" : "Du brugte alle seks forsøg")</h3>
+                        <p>Dagens ord var <strong>@_round.Answer?.ToUpperInvariant()</strong>.</p>
+                        <p>@_round.Explanation</p>
+                        <p class="wordle-next">Næste ord <time datetime="@_day.NextRoundAt.ToString("O")">@NextRoundLabel</time> (dansk tid)</p>
+                    </div>
+                }
+            </section>
+
+            <aside class="wordle-sidebar" aria-label="Dagens vært og spilleregler">
+                <section class="wordle-panel wordle-host" aria-labelledby="wordle-host-title">
+                    @if (Host is { } host)
+                    {
+                        <div class="wordle-host-art">
+                            @if (host.DisplayPortrait is { } portrait)
+                            {
+                                <img src="@portrait.Image" alt="" width="216" height="216" />
+                            }
+                        </div>
+                        <div class="wordle-host-copy">
+                            <p class="wordle-label">Dagens vært</p>
+                            <h2 id="wordle-host-title"><a href="@host.Path">@host.Name</a></h2>
+                            <p>@_day.Theme</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <h2 id="wordle-host-title">Dagens tema</h2>
+                        <p>@_day.Theme</p>
+                    }
+                </section>
+                @if (_round is { } progress)
+                {
+                    <section class="wordle-panel wordle-progress" aria-labelledby="wordle-progress-title">
+                        <h2 id="wordle-progress-title">Din streak</h2>
+                        <dl>
+                            <div><dt>I træk nu</dt><dd>@DaysLabel(progress.Streak)</dd></div>
+                            <div><dt>Din rekord</dt><dd>@DaysLabel(progress.BestStreak)</dd></div>
+                        </dl>
+                        <p>Både sejr og nederlag tæller, når du gør runden færdig i dag.</p>
+                    </section>
+                }
+                <details class="wordle-panel wordle-rules" open="@(!_playedBefore)" @key="_subject">
+                    <summary>Sådan spiller du</summary>
+                    <p>Gæt et dansk ord på fem bogstaver. Du har seks forsøg.</p>
+                    <ul>
+                        <li><span class="wordle-example mark-correct" aria-hidden="true">N ✓</span> N står på den rigtige plads.</li>
+                        <li><span class="wordle-example mark-present" aria-hidden="true">Ø ↔</span> Ø er med, men står et andet sted.</li>
+                        <li><span class="wordle-example mark-absent" aria-hidden="true">Å ×</span> Der er ikke et Å tilbage at placere.</li>
+                    </ul>
+                </details>
+            </aside>
+        </div>
+    }
+</div>

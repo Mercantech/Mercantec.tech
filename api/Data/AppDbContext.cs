@@ -22,6 +22,7 @@ public partial class AppDbContext(DbContextOptions<AppDbContext> options) : DbCo
     {
         ConfigureAvatarProfiles(modelBuilder);
         ConfigureUploadedGames(modelBuilder);
+        ConfigureWordle(modelBuilder);
         ConfigureActionCenter(modelBuilder);
         ConfigureLearning(modelBuilder);
         ConfigureGroupSets(modelBuilder);
